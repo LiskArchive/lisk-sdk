@@ -174,30 +174,6 @@ LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
 };
 
 /**
- * @method sendRequest
- * @param requestMethod
- * @param requestType
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return APIanswer Object
- */
-
-LiskAPI.prototype.sendRequest = function sendRequest(
-	requestMethod = GET, requestType, optionsOrCallback, callbackIfOptions,
-) {
-	const callback = callbackIfOptions || optionsOrCallback;
-	const options = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? privateApi.checkOptions.call(this, optionsOrCallback) : {};
-	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
-		.then(result => result.body)
-		.then(privateApi.handleTimestampIsInFutureFailures.bind(
-			this, requestMethod, requestType, options,
-		))
-		.catch(privateApi.handleSendRequestFailures.bind(this, requestMethod, requestType, options))
-		.then(privateApi.optionallyCallCallback.bind(this, callback));
-};
-
-/**
  * @method broadcastSignedTransaction
  * @param transaction
  * @param callback
@@ -216,6 +192,33 @@ LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransacti
 	};
 
 	privateApi.sendRequestPromise.call(this, POST, request).then(result => callback(result.body));
+};
+
+/**
+ * @method sendRequest
+ * @param requestMethod
+ * @param requestType
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return APIanswer Object
+ */
+
+LiskAPI.prototype.sendRequest = function sendRequest(
+	requestMethod, requestType, optionsOrCallback, callbackIfOptions,
+) {
+	const callback = callbackIfOptions || optionsOrCallback;
+	const options = (typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined')
+		? privateApi.checkOptions.call(this, optionsOrCallback)
+		: {};
+
+	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
+		.then(result => result.body)
+		.then(privateApi.handleTimestampIsInFutureFailures.bind(
+			this, requestMethod, requestType, options,
+		))
+		.catch(privateApi.handleSendRequestFailures.bind(this, requestMethod, requestType, options))
+		.then(privateApi.optionallyCallCallback.bind(this, callback));
 };
 
 /**
