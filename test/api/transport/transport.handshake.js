@@ -76,92 +76,91 @@ describe('handshake', function () {
 		}
 	});
 
-	it('should fail with INVALID_HEADERS code when passing no headers', function (done) {
-		delete validClientSocketOptions.query;
-		connect();
-		expectDisconnect(this, function (code) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			done();
-		});
-	});
+	describe('with invalid headers', function () {
 
-	it('should fail with INVALID_HEADERS code while passing null headers', function (done) {
-		validClientSocketOptions.query = null;
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('Missing required property');
-			done();
-		});
-	});
+		describe('failing with INVALID_HEADERS code', function () {
 
-	it('should fail with INVALID_HEADERS code while passing undefined headers', function (done) {
-		validClientSocketOptions.query = undefined;
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('Missing required property');
-			done();
-		});
-	});
+			it('should fail without headers', function (done) {
+				delete validClientSocketOptions.query;
+				connect();
+				expectDisconnect(this, function (code) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					done();
+				});
+			});
 
-	it('should fail with INVALID_HEADERS code while passing empty headers', function (done) {
-		validClientSocketOptions.query = {};
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('Missing required property');
-			done();
-		});
-	});
+			it('should fail with null headers', function (done) {
+				validClientSocketOptions.query = null;
+				connect();
+				expectDisconnect(this, function (code, description) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('Missing required property');
+					done();
+				});
+			});
 
-	it('should fail with INVALID_HEADERS code and correct description while passing headers without port', function (done) {
-		delete validClientSocketOptions.query.port;
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('Expected type integer but found type not-a-number');
-			done();
-		});
-	});
+			it('should fail with undefined headers', function (done) {
+				validClientSocketOptions.query = undefined;
+				connect();
+				expectDisconnect(this, function (code, description) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('Missing required property');
+					done();
+				});
+			});
 
-	it('should fail with INVALID_HEADERS code and correct description while passing headers without height', function (done) {
-		delete validClientSocketOptions.query.height;
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('#/height: Expected type integer but found type not-a-number');
-			done();
+			it('should fail with empty headers', function (done) {
+				validClientSocketOptions.query = {};
+				connect();
+				expectDisconnect(this, function (code, description) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('Missing required property');
+					done();
+				});
+			});
 		});
-	});
 
-	it('should fail with INVALID_HEADERS code and correct description while passing headers without version', function (done) {
-		delete validClientSocketOptions.query.version;
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('Missing required property: version');
-			done();
-		});
-	});
+		describe('failing with INVALID_HEADERS code and description', function () {
 
-	it('should fail with INVALID_HEADERS code and correct description while passing headers without nethash', function (done) {
-		delete validClientSocketOptions.query.nethash;
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('Missing required property: nethash');
-			done();
-		});
-	});
+			it('should fail with without port', function (done) {
+				delete validClientSocketOptions.query.port;
+				connect();
+				expectDisconnect(this, function (code, description) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('Expected type integer but found type not-a-number');
+					done();
+				});
+			});
 
-	it('should fail with INVALID_HEADERS code and correct description while passing headers without height', function (done) {
-		delete validClientSocketOptions.query.height;
-		connect();
-		expectDisconnect(this, function (code, description) {
-			expect(code).equal(failureCodes.INVALID_HEADERS);
-			expect(description).contain('#/height: Expected type integer but found type not-a-number');
-			done();
+			it('should fail without height', function (done) {
+				delete validClientSocketOptions.query.height;
+				connect();
+				expectDisconnect(this, function (code, description) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('#/height: Expected type integer but found type not-a-number');
+					done();
+				});
+			});
+
+			it('should fail without version', function (done) {
+				delete validClientSocketOptions.query.version;
+				connect();
+				expectDisconnect(this, function (code, description) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('Missing required property: version');
+					done();
+				});
+			});
+
+			it('should fail without nethash', function (done) {
+				delete validClientSocketOptions.query.nethash;
+				connect();
+				expectDisconnect(this, function (code, description) {
+					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('Missing required property: nethash');
+					done();
+				});
+			});
 		});
 	});
 
