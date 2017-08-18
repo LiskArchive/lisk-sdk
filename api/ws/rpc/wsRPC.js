@@ -152,7 +152,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	});
 
 	clientSocket.on('connectAbort', function () {
-		connectionState.reject('Connection rejected while attempt to establish connection');
+		connectionState.reject('Connection rejected while attempting to establish connection');
 	});
 
 	clientSocket.on('disconnect', function (code, description) {
