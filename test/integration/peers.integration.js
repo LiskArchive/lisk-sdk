@@ -247,7 +247,7 @@ function waitForAllNodesToBeReady (done) {
 function establishWSConnectionsToNodes (sockets, done) {
 	var connectedTo = 0;
 	var wampClient = new WAMPClient();
-	//ToDo: find a better way for waiting until all test node being able to receive connections
+	// TODO: Find a better way for waiting until all test nodes are able to receive connections
 	setTimeout(function () {
 		testNodeConfigs.forEach(function (testNodeConfig) {
 			monitorWSClient.port = testNodeConfig.port;
