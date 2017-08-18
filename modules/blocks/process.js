@@ -391,6 +391,11 @@ Process.prototype.onReceiveBlock = function (block) {
 			return;
 		}
 
+		if (modules.blocks.verify.forks.get(block.id) !== -1) {
+			library.logger.info(['Skip received forked block, id:', block.id].join(' '));
+			return setImmediate(cb);
+		}
+
 		lastBlock = modules.blocks.lastBlock.get();
 
 		// Initial check if new block looks fine

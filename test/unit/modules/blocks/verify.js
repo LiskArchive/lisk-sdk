@@ -719,6 +719,11 @@ describe('blocks/verify', function () {
 				}
 			}, true);
 		});
+
+		it('should be ok when search block id into forked list', function (done) {
+			expect(blocksVerify.forks.get(block2.id)).to.not.equal(-1);
+			done();
+		});
 	});
 
 	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', function () {
