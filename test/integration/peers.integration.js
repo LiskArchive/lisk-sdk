@@ -204,6 +204,7 @@ function recreateDatabases (done) {
 
 function registerDelegatesUsingHttpRequests (done) {
 	var enableForgingPromises = [];
+
 	testNodeConfigs.forEach(function (testNodeConfig) {
 		testNodeConfig.secrets.forEach(function (keys) {
 			var enableForgingPromise = popsicle.post({
@@ -220,6 +221,7 @@ function registerDelegatesUsingHttpRequests (done) {
 			enableForgingPromises.push(enableForgingPromise);
 		});
 	});
+
 	Promise.all(enableForgingPromises).then(function () {
 		done();
 	}).catch(function () {
@@ -518,4 +520,3 @@ describe('integration', function () {
 		});
 	});
 });
-
