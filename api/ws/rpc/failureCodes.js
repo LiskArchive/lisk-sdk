@@ -7,7 +7,7 @@ module.exports = {
 	INCOMPATIBLE_VERSION: 4103,
 	ALREADY_ADDED: 4104,
 	ALREADY_REMOVED: 4105,
-	DIFFERENT_CONN_ID: 4107,
+	DIFFERENT_CONN_ID: 4106,
 	ON_MASTER: {
 		UPDATE: {
 			CHECK_PRESENCE: 4200,
@@ -29,16 +29,16 @@ module.exports.errorMessages = {
 	4101: 'Request is made by itself',
 	4102: 'Request is made on the wrong network',
 	4103: 'Request is made from incompatible version',
-	4104: 'Attempt to insert already active peer',
-	4105: 'Attempt to remove not existing peer',
-	4106: 'Attempt to change peer data from different connection',
-	4107: 'Error occurred during update on master process',
-	4200: 'Failed to check if peer is already added',
-	4201: 'Cannot match a proper address for the peer',
-	4202: 'Transport error during invoking update procedure',
+	4104: 'Attempting to insert already active peer',
+	4105: 'Attempting to remove not existing peer',
+	4106: 'Attempting to change peer data from different connection',
+	4107: 'Error occurred during update on master process', // Needs to be implemented
+	4200: 'Failed to check if peer is already present',
+	4201: 'Unable to match an address to the peer',
+	4202: 'Transport error while invoking update procedure',
 	4210: 'Peer is not on a peers list',
-	4211: 'Attempt to remove frozen peer',
-	4230: 'Update with insert only failed - peer is on a list',
+	4211: 'Attempting to remove a frozen peer',
+	4230: 'Insert only update failed - peer is on a list',
 };
 
 /**
