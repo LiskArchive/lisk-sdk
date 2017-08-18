@@ -326,7 +326,7 @@ Peers.prototype.getConsensus = function (matched, active) {
 // Public methods
 
 /**
- * Updates peer on a list
+ * Updates peer in peers list.
  * @param {peer} peer
  * @return {boolean|number} Calls peers.upsert
  * @todo rename this function to activePeer or similar
