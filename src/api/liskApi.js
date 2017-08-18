@@ -394,7 +394,7 @@ LiskAPI.prototype.getDapp = privateApi.wrapSendRequest(GET, 'dapps', transaction
 LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => data);
 
 /**
- * @method getDappCategory
+ * @method getDappsByCategory
  * @param category
  * @param optionsOrCallback
  * @param callbackIfOptions
@@ -402,7 +402,7 @@ LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => da
  * @return API object
  */
 
-LiskAPI.prototype.getDappsCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
+LiskAPI.prototype.getDappsByCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
 
 
 /**
