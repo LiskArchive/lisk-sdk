@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import newCrypto from '../../../src/transactions/crypto/index';
+import newCrypto from '../../../src/crypto/index';
 import oldCrypto from '../../../src/transactions/crypto';
 
 describe('crypto/index.js', () => {

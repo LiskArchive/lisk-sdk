@@ -22,7 +22,7 @@ import crypto from 'crypto-browserify';
 import ByteBuffer from 'bytebuffer';
 import bignum from 'browserify-bignum';
 import constants from '../constants';
-import cryptoModule from './crypto/index';
+import cryptoModule from '../crypto/index';
 
 /**
  * @method getTransactionBytes
