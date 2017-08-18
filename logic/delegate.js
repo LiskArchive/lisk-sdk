@@ -45,7 +45,7 @@ Delegate.prototype.calculateFee = function (trs, sender) {
  * @param {transaction} trs
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|Object} returns error if invalid parameter | 
+ * @returns {setImmediateCallback|Object} returns error if invalid parameter |
  * trs validated.
  */
 Delegate.prototype.verify = function (trs, sender, cb) {
@@ -214,7 +214,7 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 };
 
 /**
- * Checks trs delegate and calls modules.accounts.setAccountAndGet() with 
+ * Checks trs delegate and calls modules.accounts.setAccountAndGet() with
  * username and u_username both null.
  * @implements module:accounts#Accounts~setAccountAndGet
  * @param {transaction} trs
@@ -240,14 +240,13 @@ Delegate.prototype.schema = {
 	id: 'Delegate',
 	type: 'object',
 	properties: {
-		publicKey: {
+		username: {
 			type: 'string',
-			format: 'publicKey'
+			format: 'username'
 		}
 	},
-	required: ['publicKey']
+	required: ['username']
 };
-
 /**
  * Validates transaction delegate schema.
  * @param {transaction} trs
