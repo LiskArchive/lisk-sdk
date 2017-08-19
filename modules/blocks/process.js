@@ -373,7 +373,7 @@ Process.prototype.onReceiveBlock = function (block) {
 		}
 
 		lastBlock = modules.blocks.lastBlock.get();
-		
+
 		if (block.id === lastBlock.id) {
 			library.logger.debug('Block already processed: ', block.id);
 			return setImmediate(cb);
@@ -381,7 +381,7 @@ Process.prototype.onReceiveBlock = function (block) {
 
 		modules.blocks.verify.checkBlock(block, function (err) {
 			if (err) {
-				library.logger.error('Failed to check block: ', err);
+				library.logger.error('Failed to check block', err);
 				return setImmediate(cb);
 			}
 
