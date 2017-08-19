@@ -384,7 +384,7 @@ Process.prototype.onReceiveBlock = function (block) {
 				// Process received block
 				return __private.receiveBlock(block, cb);
 			} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
-				// Fork: Consecutive height but different previous block id.
+				// Fork: Consecutive height but different previous block id
 				modules.delegates.fork(block, 1);
 
 				// We should keep the oldest one or if both have same age - keep one with lower id
@@ -392,7 +392,7 @@ Process.prototype.onReceiveBlock = function (block) {
 					library.logger.info('Last block stands');
 					return setImmediate(cb);
 				} else {
-					// In other cases - we have wrong parent and should rewind.
+					// In other cases - we have wrong parent and should rewind
 					library.logger.info('Last block and parent loses');
 					// Delete last 2 blocks
 					async.series([
@@ -401,10 +401,10 @@ Process.prototype.onReceiveBlock = function (block) {
 					], cb);
 				}
 			} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
-				// Fork: Same height and previous block id, but different block id.
+				// Fork: Same height and previous block id, but different block id
 				modules.delegates.fork(block, 5);
 
-				// Check if delegate forged on more than one node.
+				// Check if delegate forged on more than one node
 				if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
 					library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
 				}
