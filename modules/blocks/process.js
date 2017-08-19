@@ -372,13 +372,18 @@ Process.prototype.onReceiveBlock = function (block) {
 			return;
 		}
 
+		lastBlock = modules.blocks.lastBlock.get();
+		
+		if (block.id === lastBlock.id) {
+			library.logger.debug('Block already processed: ', block.id);
+			return setImmediate(cb);
+		}
+
 		modules.blocks.verify.checkBlock(block, function (err) {
 			if (err) {
 				library.logger.error('Failed to check block: ', err);
 				return setImmediate(cb);
 			}
-
-			lastBlock = modules.blocks.lastBlock.get();
 
 			// Initial check if new block looks fine
 			if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
