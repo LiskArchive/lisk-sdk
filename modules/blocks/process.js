@@ -132,7 +132,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method loadBlocksOffset
@@ -295,7 +295,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 /**
  * Generate new block
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method generateBlock
@@ -374,7 +374,7 @@ Process.prototype.onReceiveBlock = function (block) {
 
 		modules.blocks.verify.checkBlock(block, function (err) {
 			if (err) {
-				return setImmediate(cb);	
+				return setImmediate(cb);
 			}
 
 			lastBlock = modules.blocks.lastBlock.get();

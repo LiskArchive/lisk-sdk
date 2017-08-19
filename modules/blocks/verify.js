@@ -89,7 +89,7 @@ __private.checkTransaction = function (block, transaction, cb) {
 
 /**
  * Verify block and return all possible errors related to block
- * 
+ *
  * @public
  * @method verifyBlock
  * @param  {Object}  block Full block
@@ -210,7 +210,7 @@ Verify.prototype.verifyBlock = function (block) {
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
  * - Apply the block to database if both verifications are ok
- * 
+ *
  * @async
  * @public
  * @method processBlock
@@ -238,7 +238,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock, check
 					block = library.logic.block.objectNormalize(block);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
-				}				
+				}
 			}
 
 			return setImmediate(seriesCb);
@@ -252,7 +252,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock, check
 				if (!check.verified) {
 					library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
 					return setImmediate(seriesCb, check.errors[0]);
-				}				
+				}
 			}
 
 			return setImmediate(seriesCb);
@@ -281,7 +281,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock, check
 					} else {
 						return setImmediate(seriesCb);
 					}
-				});				
+				});
 			} else {
 				return setImmediate(seriesCb);
 			}
@@ -317,7 +317,6 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock, check
  * @return {Object}   cb.err Error if occurred
  */
 Verify.prototype.checkBlock = function (block, cb) {
-
 	async.series({
 		normalizeBlock: function (seriesCb) {
 			try {
