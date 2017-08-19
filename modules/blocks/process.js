@@ -374,6 +374,7 @@ Process.prototype.onReceiveBlock = function (block) {
 
 		modules.blocks.verify.checkBlock(block, function (err) {
 			if (err) {
+				library.logger.error('Failed to check block: ', err);
 				return setImmediate(cb);
 			}
 
