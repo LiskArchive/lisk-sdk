@@ -308,7 +308,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock, check
 };
 
 /**
- * Main function to validate block before processing them
+ * Main function to validate block before processing it
  *
  * @async
  * @param  {Object}   block Full block
