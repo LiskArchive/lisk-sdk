@@ -375,7 +375,7 @@ Process.prototype.onReceiveBlock = function (block) {
 		lastBlock = modules.blocks.lastBlock.get();
 
 		if (block.id === lastBlock.id) {
-			library.logger.debug('Block already processed: ', block.id);
+			library.logger.debug('Block already processed', block.id);
 			return setImmediate(cb);
 		}
 
