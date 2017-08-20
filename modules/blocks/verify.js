@@ -88,19 +88,92 @@ __private.checkTransaction = function (block, transaction, cb) {
 };
 
 /**
- * Verify block and return all possible errors related to block
+ * Set height according to the given last block
  *
- * @public
+ * @private
  * @method verifyBlock
- * @param  {Object}  block Full block
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @param  {Object}  lastBlock Last block
+ * @return {Object}  block Target block
+ */
+__private.setHeight = function (block, lastBlock) {
+	block.height = lastBlock.height + 1;
+
+	return block;
+};
+
+/**
+ * Verify previous block
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
  */
-Verify.prototype.verifyBlock = function (block) {
-	var lastBlock = modules.blocks.lastBlock.get();
-	var result = { verified: false, errors: [] };
+__private.verifyPreviousBlock = function (block, result) {
+	if (!block.previousBlock && block.height !== 1) {
+		result.errors.push('Invalid previous block');
+	}
 
+	return result;
+};
+
+/**
+ * Verify block version
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyVersion = function (block, result) {
+	if (block.version > 0) {
+		result.errors.push('Invalid block version');
+	}
+
+	return result;
+};
+
+/**
+ * Verify block reward
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyReward = function (block, result) {
+	var expectedReward = __private.blockReward.calcReward(block.height);
+
+	if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
+		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
+	}
+
+	return result;
+};
+
+/**
+ * Verify block id
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyId = function (block, result) {
 	try {
 		// Get block ID
 		// FIXME: Why we don't have it?
@@ -109,27 +182,21 @@ Verify.prototype.verifyBlock = function (block) {
 		result.errors.push(e.toString());
 	}
 
-	// Set block height
-	block.height = lastBlock.height + 1;
+	return result;
+};
 
-	if (!block.previousBlock && block.height !== 1) {
-		result.errors.push('Invalid previous block');
-	}
-
-	// Check for fork cause 1
-	if (block.previousBlock !== lastBlock.id) {
-		// Fork: Same height but different previous block id
-		modules.delegates.fork(block, 1);
-		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
-	}
-
-	// Calculate expected rewards
-	var expectedReward = __private.blockReward.calcReward(block.height);
-
-	if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
-		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
-	}
-
+/**
+ * Verify block signature
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifySignature = function (block, result) {
 	var valid;
 
 	try {
@@ -142,17 +209,21 @@ Verify.prototype.verifyBlock = function (block) {
 		result.errors.push('Failed to verify block signature');
 	}
 
-	if (block.version > 0) {
-		result.errors.push('Invalid block version');
-	}
+	return result;
+};
 
-	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
-
-	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-		result.errors.push('Invalid block timestamp');
-	}
-
+/**
+ * Verify block payload (transactions)
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyPayload = function (block, result) {
 	if (block.payloadLength > constants.maxPayloadLength) {
 		result.errors.push('Payload length is too high');
 	}
@@ -165,11 +236,10 @@ Verify.prototype.verifyBlock = function (block) {
 		result.errors.push('Transactions length is too high');
 	}
 
-	// Checking if transactions of the block adds up to block values.
-	var totalAmount = 0,
-	    totalFee = 0,
-	    payloadHash = crypto.createHash('sha256'),
-	    appliedTransactions = {};
+	var totalAmount = 0;
+	var totalFee = 0;
+	var payloadHash = crypto.createHash('sha256');
+	var appliedTransactions = {};
 
 	for (var i in block.transactions) {
 		var transaction = block.transactions[i];
@@ -202,6 +272,104 @@ Verify.prototype.verifyBlock = function (block) {
 	if (totalFee !== block.totalFee) {
 		result.errors.push('Invalid total fee');
 	}
+
+	return result;
+};
+
+/**
+ * Verify block for fork cause one
+ *
+ * @private
+ * @method verifyBlock
+ * @param  {Object}  block Target block
+ * @param  {Object}  lastBlock Last block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyForkOne = function (block, lastBlock, result) {
+	if (block.previousBlock !== lastBlock.id) {
+		modules.delegates.fork(block, 1);
+		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
+	}
+
+	return result;
+};
+
+/**
+ * Verify block slot according to timestamp
+ *
+ * @private
+ * @method verifyBlock
+ * @param  {Object}  block Target block
+ * @param  {Object}  lastBlock Last block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyBlockSlot = function (block, lastBlock, result) {
+	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
+	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+
+	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
+		result.errors.push('Invalid block timestamp');
+	}
+
+	return result;
+};
+
+/**
+ * Verify block before fork detection and return all possible errors related to block
+ *
+ * @public
+ * @method verifyReceipt
+ * @param  {Object}  block Full block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+Verify.prototype.verifyReceipt = function (block) {
+	var lastBlock = modules.blocks.lastBlock.get();
+
+	block = __private.setHeight(block, lastBlock);
+
+	var result = { verified: false, errors: [] };
+
+	result = __private.verifyPreviousBlock(block, result);
+	result = __private.verifyVersion(block, result);
+	result = __private.verifyReward(block, result);
+	result = __private.verifyId(block, result);
+	result = __private.verifyPayload(block, result);
+
+	result.verified = result.errors.length === 0;
+	return result;
+};
+
+/**
+ * Verify block before processing and return all possible errors related to block
+ *
+ * @public
+ * @method verifyBlock
+ * @param  {Object}  block Full block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+Verify.prototype.verifyBlock = function (block) {
+	var lastBlock = modules.blocks.lastBlock.get();
+
+	block = __private.setHeight(block, lastBlock);
+
+	var result = { verified: false, errors: [] };
+
+	result = __private.verifyPreviousBlock(block, result);
+	result = __private.verifyVersion(block, result);
+	result = __private.verifyReward(block, result);
+	result = __private.verifyId(block, result);
+	result = __private.verifyPayload(block, result);
+
+	result = __private.verifyForkOne(block, lastBlock, result);
+	result = __private.verifyBlockSlot(block, lastBlock, result);
 
 	result.verified = result.errors.length === 0;
 	return result;
@@ -299,108 +467,6 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			modules.blocks.chain.applyBlock(block, broadcast, cb, saveBlock);
 		}
 	});
-};
-
-/**
- * Verify block and return all possible errors related to block
- *
- * @public
- * @method preVerifyBlock
- * @param  {Object}  block Full block
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
- */
-Verify.prototype.preVerifyBlock = function (block) {
-	var lastBlock = modules.blocks.lastBlock.get();
-	var result = { verified: false, errors: [] };
-
-	try {
-		// Get block ID
-		// FIXME: Why we don't have it?
-		block.id = library.logic.block.getId(block);
-	} catch (e) {
-		result.errors.push(e.toString());
-	}
-
-	// Set block height
-	block.height = lastBlock.height + 1;
-
-	// Calculate expected rewards
-	var expectedReward = __private.blockReward.calcReward(block.height);
-
-	if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
-		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
-	}
-
-	var valid;
-
-	try {
-		valid = library.logic.block.verifySignature(block);
-	} catch (e) {
-		result.errors.push(e.toString());
-	}
-
-	if (!valid) {
-		result.errors.push('Failed to verify block signature');
-	}
-
-	if (block.version > 0) {
-		result.errors.push('Invalid block version');
-	}
-
-	if (block.payloadLength > constants.maxPayloadLength) {
-		result.errors.push('Payload length is too high');
-	}
-
-	if (block.transactions.length !== block.numberOfTransactions) {
-		result.errors.push('Invalid number of transactions');
-	}
-
-	if (block.transactions.length > constants.maxTxsPerBlock) {
-		result.errors.push('Transactions length is too high');
-	}
-
-	// Checking if transactions of the block adds up to block values.
-	var totalAmount = 0,
-	    totalFee = 0,
-	    payloadHash = crypto.createHash('sha256'),
-	    appliedTransactions = {};
-
-	for (var i in block.transactions) {
-		var transaction = block.transactions[i];
-		var bytes;
-
-		try {
-			bytes = library.logic.transaction.getBytes(transaction);
-		} catch (e) {
-			result.errors.push(e.toString());
-		}
-
-		if (appliedTransactions[transaction.id]) {
-			result.errors.push('Encountered duplicate transaction: ' + transaction.id);
-		}
-
-		appliedTransactions[transaction.id] = transaction;
-		if (bytes) { payloadHash.update(bytes); }
-		totalAmount += transaction.amount;
-		totalFee += transaction.fee;
-	}
-
-	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-		result.errors.push('Invalid payload hash');
-	}
-
-	if (totalAmount !== block.totalAmount) {
-		result.errors.push('Invalid total amount');
-	}
-
-	if (totalFee !== block.totalFee) {
-		result.errors.push('Invalid total fee');
-	}
-
-	result.verified = result.errors.length === 0;
-	return result;
 };
 
 /**

@@ -392,7 +392,7 @@ Process.prototype.onReceiveBlock = function (block) {
 			} else {
 				library.logger.error('Block discarded', block.id);
 			}
-			
+
 			// Discard received block
 			return setImmediate(cb);
 		}
@@ -455,7 +455,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 			},
 			// Check received block before any deletion
 			function (seriesCb) {
-				var check = modules.blocks.verify.preVerifyBlock(tmp_block);
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
 
 				if (!check.verified) {
 					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
@@ -514,7 +514,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 			},
 			// Check received block before any deletion
 			function (seriesCb) {
-				var check = modules.blocks.verify.preVerifyBlock(tmp_block);
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
 
 				if (!check.verified) {
 					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
