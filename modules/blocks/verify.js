@@ -110,6 +110,7 @@ __private.setHeight = function (block, lastBlock) {
  * @method verifyBlock
  * @method verifyReceipt
  * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
@@ -129,6 +130,7 @@ __private.verifyPreviousBlock = function (block, result) {
  * @method verifyBlock
  * @method verifyReceipt
  * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
@@ -148,6 +150,7 @@ __private.verifyVersion = function (block, result) {
  * @method verifyBlock
  * @method verifyReceipt
  * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
@@ -169,6 +172,7 @@ __private.verifyReward = function (block, result) {
  * @method verifyBlock
  * @method verifyReceipt
  * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
@@ -192,6 +196,7 @@ __private.verifyId = function (block, result) {
  * @method verifyBlock
  * @method verifyReceipt
  * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
@@ -219,6 +224,7 @@ __private.verifySignature = function (block, result) {
  * @method verifyBlock
  * @method verifyReceipt
  * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
@@ -283,6 +289,7 @@ __private.verifyPayload = function (block, result) {
  * @method verifyBlock
  * @param  {Object}  block Target block
  * @param  {Object}  lastBlock Last block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
@@ -303,6 +310,7 @@ __private.verifyForkOne = function (block, lastBlock, result) {
  * @method verifyBlock
  * @param  {Object}  block Target block
  * @param  {Object}  lastBlock Last block
+ * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
