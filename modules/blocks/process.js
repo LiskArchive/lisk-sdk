@@ -467,7 +467,12 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 			// Delete last 2 blocks
 			modules.blocks.chain.deleteLastBlock,
 			modules.blocks.chain.deleteLastBlock
-		], cb);
+		], function (err) {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return cb(err);
+		});
 	}
 };
 
@@ -525,7 +530,12 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 			function (seriesCb) {
 				return __private.receiveBlock(block, seriesCb);
 			}
-		], cb);
+		], function (err) {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return cb(err);
+		});
 	}
 };
 
