@@ -235,12 +235,10 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 
 	async.series({
 		normalizeBlock: function (seriesCb) {
-			if (!checked) {
-				try {
-					block = library.logic.block.objectNormalize(block);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
+			try {
+				block = library.logic.block.objectNormalize(block);
+			} catch (err) {
+				return setImmediate(seriesCb, err);
 			}
 
 			return setImmediate(seriesCb);
