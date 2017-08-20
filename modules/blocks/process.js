@@ -375,7 +375,7 @@ Process.prototype.onReceiveBlock = function (block) {
 		// Get the last block
 		lastBlock = modules.blocks.lastBlock.get();
 
-		// Discard already processed blocks
+		// Discard already processed block
 		if (block.id === lastBlock.id) {
 			library.logger.debug('Block already processed', block.id);
 			return setImmediate(cb);
@@ -508,12 +508,12 @@ __private.receiveForkFIve = function (block, lastBlock, cb) {
 					}
 				});
 			},
+			// Delete last block
 			function (seriesCb) {
-				// Delete last block
 				modules.blocks.chain.deleteLastBlock(seriesCb);
 			},
+			// Process received block
 			function (seriesCb) {
-				// Process received block
 				return __private.receiveBlock(block, seriesCb);
 			}
 		], cb);
