@@ -264,7 +264,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 
 	// Process single block
 	function processBlock (block, seriesCb) {
-		// Start block processing - broadcast: false, saveBlock: true, checked: false
+		// Start block processing - broadcast: false, saveBlock: true
 		modules.blocks.verify.processBlock(block, false, function (err) {
 			if (!err) {
 				// Update last valid block
@@ -276,7 +276,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 				library.logger.debug('Block processing failed', {id: id, err: err.toString(), module: 'blocks', block: block});
 			}
 			return seriesCb(err);
-		}, true, false);
+		}, true);
 	}
 
 	async.waterfall([
@@ -343,8 +343,8 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 			return setImmediate(cb, e);
 		}
 
-		// Start block processing - broadcast: true, saveBlock: true, checked: false
-		modules.blocks.verify.processBlock(block, true, cb, true, false);
+		// Start block processing - broadcast: true, saveBlock: true
+		modules.blocks.verify.processBlock(block, true, cb, true);
 	});
 };
 
@@ -424,8 +424,8 @@ __private.receiveBlock = function (block, cb) {
 
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
-	// Start block processing - broadcast: true, saveBlock: true, checked: true
-	modules.blocks.verify.processBlock(block, true, cb, true, true);
+	// Start block processing - broadcast: true, saveBlock: true
+	modules.blocks.verify.processBlock(block, true, cb, true);
 };
 
 /**
@@ -438,6 +438,8 @@ __private.receiveBlock = function (block, cb) {
  * @param {Function} cb Callback function
  */
 __private.receiveForkOne = function (block, lastBlock, cb) {
+	var tmp_block;
+
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
 
@@ -448,19 +450,24 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 	} else {
 		library.logger.info('Last block and parent loses');
 		async.series([
+			function (seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+			},
 			// Check received block before any deletion
 			function (seriesCb) {
-				modules.blocks.verify.checkBlock(block, function (err) {
-					if (err) {
-						// Log and return error
-						// Do not proceed with deletion
-						library.logger.error('Failed to check block', err);
-						return setImmediate(seriesCb, err);
-					} else {
-						// Block checked ok
-						return setImmediate(seriesCb);
-					}
-				});
+				var check = modules.blocks.verify.preVerifyBlock(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				} else {
+					return setImmediate(seriesCb);
+				}
 			},
 			// Delete last 2 blocks
 			modules.blocks.chain.deleteLastBlock,
@@ -479,6 +486,8 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
  * @param {Function} cb Callback function
  */
 __private.receiveForkFive = function (block, lastBlock, cb) {
+	var tmp_block;
+
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
 
@@ -494,19 +503,24 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 	} else {
 		library.logger.info('Last block loses');
 		async.series([
+			function (seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+			},
 			// Check received block before any deletion
 			function (seriesCb) {
-				modules.blocks.verify.checkBlock(block, function (err) {
-					if (err) {
-						// Log and return error
-						// Do not proceed with deletion
-						library.logger.error('Failed to check block', err);
-						return setImmediate(seriesCb, err);
-					} else {
-						// Block checked ok
-						return setImmediate(seriesCb);
-					}
-				});
+				var check = modules.blocks.verify.preVerifyBlock(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				} else {
+					return setImmediate(seriesCb);
+				}
 			},
 			// Delete last block
 			function (seriesCb) {
