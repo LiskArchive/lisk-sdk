@@ -434,7 +434,7 @@ __private.receiveBlock = function (block, cb) {
  * @private
  * @async
  * @method receiveBlock
- * @param {Object}   block received block
+ * @param {Object}   block Received block
  * @param {Function} cb Callback function
  */
 __private.receiveForkOne = function (block, lastBlock, cb) {
@@ -475,7 +475,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
  * @private
  * @async
  * @method receiveBlock
- * @param {Object}   block received block
+ * @param {Object}   block Received block
  * @param {Function} cb Callback function
  */
 __private.receiveForkFive = function (block, lastBlock, cb) {
