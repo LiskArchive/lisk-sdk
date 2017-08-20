@@ -358,7 +358,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
  * @public
  * @method  onReceiveBlock
  * @listens module:transport~event:receiveBlock
- * @param   {block}   block New block
+ * @param   {block} block New block
  */
 Process.prototype.onReceiveBlock = function (block) {
 	var lastBlock;
@@ -372,8 +372,10 @@ Process.prototype.onReceiveBlock = function (block) {
 			return;
 		}
 
+		// Get the last block
 		lastBlock = modules.blocks.lastBlock.get();
 
+		// Discard already processed blocks
 		if (block.id === lastBlock.id) {
 			library.logger.debug('Block already processed', block.id);
 			return setImmediate(cb);
@@ -382,6 +384,7 @@ Process.prototype.onReceiveBlock = function (block) {
 		modules.blocks.verify.checkBlock(block, function (err) {
 			if (err) {
 				library.logger.error('Failed to check block', err);
+				// Discard invalid block
 				return setImmediate(cb);
 			}
 
@@ -440,7 +443,7 @@ Process.prototype.onReceiveBlock = function (block) {
 };
 
 /**
- * Receive block - logs info about received block, updates last receipt, fires processing
+ * Receive block - logs info about received block, updates last receipt, processes block
  *
  * @private
  * @async
