@@ -132,7 +132,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method loadBlocksOffset
@@ -264,7 +264,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 
 	// Process single block
 	function processBlock (block, seriesCb) {
-		// Start block processing - broadcast: false, saveBlock: true
+		// Start block processing - broadcast: false, saveBlock: true, checked: false
 		modules.blocks.verify.processBlock(block, false, function (err) {
 			if (!err) {
 				// Update last valid block
@@ -276,7 +276,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 				library.logger.debug('Block processing failed', {id: id, err: err.toString(), module: 'blocks', block: block});
 			}
 			return seriesCb(err);
-		}, true);
+		}, true, false);
 	}
 
 	async.waterfall([
@@ -295,7 +295,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 /**
  * Generate new block
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method generateBlock
@@ -343,8 +343,8 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 			return setImmediate(cb, e);
 		}
 
-		// Start block processing - broadcast: true, saveBlock: true
-		modules.blocks.verify.processBlock(block, true, cb, true);
+		// Start block processing - broadcast: true, saveBlock: true, checked: false
+		modules.blocks.verify.processBlock(block, true, cb, true, false);
 	});
 };
 
@@ -374,56 +374,68 @@ Process.prototype.onReceiveBlock = function (block) {
 
 		lastBlock = modules.blocks.lastBlock.get();
 
-		// Initial check if new block looks fine
-		if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
-			// Process received block
-			return __private.receiveBlock(block, cb);
-		} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
-			// Fork: Consecutive height but different previous block id.
-			modules.delegates.fork(block, 1);
-
-			// We should keep the oldest one or if both have same age - keep one with lower id
-			if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-				library.logger.info('Last block stands');
-				return setImmediate(cb);
-			} else {
-				// In other cases - we have wrong parent and should rewind.
-				library.logger.info('Last block and parent loses');
-				// Delete last 2 blocks
-				async.series([
-					modules.blocks.chain.deleteLastBlock,
-					modules.blocks.chain.deleteLastBlock
-				], cb);
-			}
-		} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
-			// Fork: Same height and previous block id, but different block id.
-			modules.delegates.fork(block, 5);
-
-			// Check if delegate forged on more than one node.
-			if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
-				library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
-			}
-
-			// Two competiting blocks on same height, we should keep the oldest one or if both have same age - keep one with lower id
-			if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-				library.logger.info('Last block stands');
-				return setImmediate(cb);
-			} else {
-				library.logger.info('Last block loses');
-				async.series([
-					function (seriesCb) {
-						// Delete last block
-						modules.blocks.chain.deleteLastBlock(seriesCb);
-					},
-					function (seriesCb) {
-						// Process received block
-						return __private.receiveBlock(block, seriesCb);
-					}
-				], cb);
-			}
-		} else {
+		if (block.id === lastBlock.id) {
+			library.logger.debug('Block already processed', block.id);
 			return setImmediate(cb);
 		}
+
+		modules.blocks.verify.checkBlock(block, function (err) {
+			if (err) {
+				library.logger.error('Failed to check block', err);
+				return setImmediate(cb);
+			}
+
+			// Initial check if new block looks fine
+			if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
+				// Process received block
+				return __private.receiveBlock(block, cb);
+			} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
+				// Fork: Consecutive height but different previous block id
+				modules.delegates.fork(block, 1);
+
+				// We should keep the oldest one or if both have same age - keep one with lower id
+				if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+					library.logger.info('Last block stands');
+					return setImmediate(cb);
+				} else {
+					// In other cases - we have wrong parent and should rewind
+					library.logger.info('Last block and parent loses');
+					// Delete last 2 blocks
+					async.series([
+						modules.blocks.chain.deleteLastBlock,
+						modules.blocks.chain.deleteLastBlock
+					], cb);
+				}
+			} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
+				// Fork: Same height and previous block id, but different block id
+				modules.delegates.fork(block, 5);
+
+				// Check if delegate forged on more than one node
+				if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
+					library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
+				}
+
+				// Two competiting blocks on same height, we should keep the oldest one or if both have same age - keep one with lower id
+				if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+					library.logger.info('Last block stands');
+					return setImmediate(cb);
+				} else {
+					library.logger.info('Last block loses');
+					async.series([
+						function (seriesCb) {
+							// Delete last block
+							modules.blocks.chain.deleteLastBlock(seriesCb);
+						},
+						function (seriesCb) {
+							// Process received block
+							return __private.receiveBlock(block, seriesCb);
+						}
+					], cb);
+				}
+			} else {
+				return setImmediate(cb);
+			}
+		});
 	});
 };
 
@@ -447,8 +459,8 @@ __private.receiveBlock = function (block, cb) {
 
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
-	// Start block processing - broadcast: true, saveBlock: true
-	modules.blocks.verify.processBlock(block, true, cb, true);
+	// Start block processing - broadcast: true, saveBlock: true, checked: true
+	modules.blocks.verify.processBlock(block, true, cb, true, true);
 };
 
 /**
