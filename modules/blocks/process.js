@@ -390,7 +390,13 @@ Process.prototype.onReceiveBlock = function (block) {
 			if (block.id === lastBlock.id) {
 				library.logger.debug('Block already processed', block.id);
 			} else {
-				library.logger.error('Block discarded', block.id);
+				library.logger.warn([
+					'Discarded block that does not match with current chain:', block.id,
+					'height:', block.height,
+					'round:',  modules.rounds.calc(block.height),
+					'slot:', slots.getSlotNumber(block.timestamp),
+					'generator:', block.generatorPublicKey
+				].join(' '));
 			}
 
 			// Discard received block
