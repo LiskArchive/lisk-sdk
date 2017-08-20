@@ -388,54 +388,24 @@ Process.prototype.onReceiveBlock = function (block) {
 				return setImmediate(cb);
 			}
 
-			// Initial check if new block looks fine
+			// Detect sane block
 			if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
 				// Process received block
 				return __private.receiveBlock(block, cb);
-			} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
-				// Fork: Consecutive height but different previous block id
-				modules.delegates.fork(block, 1);
+			}
 
-				// We should keep the oldest one or if both have same age - keep one with lower id
-				if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-					library.logger.info('Last block stands');
-					return setImmediate(cb);
-				} else {
-					// In other cases - we have wrong parent and should rewind
-					library.logger.info('Last block and parent loses');
-					// Delete last 2 blocks
-					async.series([
-						modules.blocks.chain.deleteLastBlock,
-						modules.blocks.chain.deleteLastBlock
-					], cb);
-				}
-			} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
-				// Fork: Same height and previous block id, but different block id
-				modules.delegates.fork(block, 5);
+			// Detect fork cause 1
+			if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
+				// Process received fork cause 1
+				return __private.receiveForkOne(block, lastBlock, cb);
+			}
 
-				// Check if delegate forged on more than one node
-				if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
-					library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
-				}
-
-				// Two competiting blocks on same height, we should keep the oldest one or if both have same age - keep one with lower id
-				if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-					library.logger.info('Last block stands');
-					return setImmediate(cb);
-				} else {
-					library.logger.info('Last block loses');
-					async.series([
-						function (seriesCb) {
-							// Delete last block
-							modules.blocks.chain.deleteLastBlock(seriesCb);
-						},
-						function (seriesCb) {
-							// Process received block
-							return __private.receiveBlock(block, seriesCb);
-						}
-					], cb);
-				}
+			// Detect fork cause 5
+			if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
+				// Process received fork cause 5
+				return __private.receiveForkFive(block, lastBlock, cb);
 			} else {
+				// Discard received block
 				return setImmediate(cb);
 			}
 		});
@@ -464,6 +434,70 @@ __private.receiveBlock = function (block, cb) {
 	modules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true, checked: true
 	modules.blocks.verify.processBlock(block, true, cb, true, true);
+};
+
+/**
+ * Receive block detected as fork cause 1: Consecutive height but different previous block id
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block received block
+ * @param {Function} cb Callback function
+ */
+__private.receiveForkOne = function (block, lastBlock, cb) {
+	// Fork: Consecutive height but different previous block id
+	modules.delegates.fork(block, 1);
+
+	// Keep the oldest block, or if both have same age, keep block with lower id
+	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+		library.logger.info('Last block stands');
+		return setImmediate(cb); // Discard received block
+	} else {
+		library.logger.info('Last block and parent loses');
+		async.series([
+			// Delete last 2 blocks
+			modules.blocks.chain.deleteLastBlock,
+			modules.blocks.chain.deleteLastBlock
+		], cb);
+	}
+};
+
+/**
+ * Receive block detected as fork cause 5: Same height and previous block id, but different block id
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block received block
+ * @param {Function} cb Callback function
+ */
+__private.receiveForkFIve = function (block, lastBlock, cb) {
+	// Fork: Same height and previous block id, but different block id
+	modules.delegates.fork(block, 5);
+
+	// Check if delegate forged on more than one node
+	if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
+		library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
+	}
+
+	// Keep the oldest block, or if both have same age, keep block with lower id
+	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+		library.logger.info('Last block stands');
+		return setImmediate(cb); // Discard received block
+	} else {
+		library.logger.info('Last block loses');
+		async.series([
+			function (seriesCb) {
+				// Delete last block
+				modules.blocks.chain.deleteLastBlock(seriesCb);
+			},
+			function (seriesCb) {
+				// Process received block
+				return __private.receiveBlock(block, seriesCb);
+			}
+		], cb);
+	}
 };
 
 /**
