@@ -478,7 +478,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
  * @param {Object}   block received block
  * @param {Function} cb Callback function
  */
-__private.receiveForkFIve = function (block, lastBlock, cb) {
+__private.receiveForkFive = function (block, lastBlock, cb) {
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
 
