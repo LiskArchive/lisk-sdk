@@ -451,6 +451,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
+				return setImmediate(seriesCb);
 			},
 			// Check received block before any deletion
 			function (seriesCb) {
@@ -471,7 +472,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 			if (err) {
 				library.logger.error('Fork recovery failed', err);
 			}
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	}
 };
@@ -509,6 +510,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
+				return setImmediate(seriesCb);
 			},
 			// Check received block before any deletion
 			function (seriesCb) {
@@ -534,7 +536,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 			if (err) {
 				library.logger.error('Fork recovery failed', err);
 			}
-			return cb(err);
+			return setImmediate(cb, err);
 		});
 	}
 };
