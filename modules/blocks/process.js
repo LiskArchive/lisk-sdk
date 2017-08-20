@@ -501,7 +501,7 @@ __private.receiveForkFIve = function (block, lastBlock, cb) {
 						// Log and return error
 						// Do not proceed with deletion
 						library.logger.error('Failed to check block', err);
-						return setImmediate(cb, err);
+						return setImmediate(seriesCb, err);
 					} else {
 						// Block checked ok
 						return setImmediate(seriesCb);
