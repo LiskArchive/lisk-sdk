@@ -381,34 +381,26 @@ Process.prototype.onReceiveBlock = function (block) {
 			return setImmediate(cb);
 		}
 
-		modules.blocks.verify.checkBlock(block, function (err) {
-			if (err) {
-				library.logger.error('Failed to check block', err);
-				// Discard invalid block
-				return setImmediate(cb);
-			}
+		// Detect sane block
+		if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
+			// Process received block
+			return __private.receiveBlock(block, cb);
+		}
 
-			// Detect sane block
-			if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
-				// Process received block
-				return __private.receiveBlock(block, cb);
-			}
+		// Detect fork cause 1
+		if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
+			// Process received fork cause 1
+			return __private.receiveForkOne(block, lastBlock, cb);
+		}
 
-			// Detect fork cause 1
-			if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
-				// Process received fork cause 1
-				return __private.receiveForkOne(block, lastBlock, cb);
-			}
-
-			// Detect fork cause 5
-			if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
-				// Process received fork cause 5
-				return __private.receiveForkFive(block, lastBlock, cb);
-			} else {
-				// Discard received block
-				return setImmediate(cb);
-			}
-		});
+		// Detect fork cause 5
+		if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
+			// Process received fork cause 5
+			return __private.receiveForkFive(block, lastBlock, cb);
+		} else {
+			// Discard received block
+			return setImmediate(cb);
+		}
 	});
 };
 
@@ -456,6 +448,20 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 	} else {
 		library.logger.info('Last block and parent loses');
 		async.series([
+			// Check received block before any deletion
+			function (seriesCb) {
+				modules.blocks.verify.checkBlock(block, function (err) {
+					if (err) {
+						// Log and return error
+						// Do not proceed with deletion
+						library.logger.error('Failed to check block', err);
+						return setImmediate(seriesCb, err);
+					} else {
+						// Block checked ok
+						return setImmediate(seriesCb);
+					}
+				});
+			},
 			// Delete last 2 blocks
 			modules.blocks.chain.deleteLastBlock,
 			modules.blocks.chain.deleteLastBlock
@@ -488,6 +494,20 @@ __private.receiveForkFIve = function (block, lastBlock, cb) {
 	} else {
 		library.logger.info('Last block loses');
 		async.series([
+			// Check received block before any deletion
+			function (seriesCb) {
+				modules.blocks.verify.checkBlock(block, function (err) {
+					if (err) {
+						// Log and return error
+						// Do not proceed with deletion
+						library.logger.error('Failed to check block', err);
+						return setImmediate(cb, err);
+					} else {
+						// Block checked ok
+						return setImmediate(seriesCb);
+					}
+				});
+			},
 			function (seriesCb) {
 				// Delete last block
 				modules.blocks.chain.deleteLastBlock(seriesCb);
