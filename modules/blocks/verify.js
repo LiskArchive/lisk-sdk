@@ -97,7 +97,7 @@ __private.checkTransaction = function (block, transaction, cb) {
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
  */
-Verify.prototype.verifyBlock = function (block) {
+Verify.prototype.verifyBlock = function (block, ignoreFork) {
 	var lastBlock = modules.blocks.lastBlock.get();
 	var result = { verified: false, errors: [] };
 
@@ -114,8 +114,11 @@ Verify.prototype.verifyBlock = function (block) {
 
 	if (!block.previousBlock && block.height !== 1) {
 		result.errors.push('Invalid previous block');
-	} else if (block.previousBlock !== lastBlock.id) {
-		// Fork: Same height but different previous block id.
+	}
+
+	// Check for fork cause 1 (ignored in Verify.prototype.checkBlock)
+	if (block.previousBlock !== lastBlock.id && !ignoreFork) {
+		// Fork: Same height but different previous block id
 		modules.delegates.fork(block, 1);
 		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
 	}
@@ -329,8 +332,9 @@ Verify.prototype.checkBlock = function (block, cb) {
 		},
 		verifyBlock: function (seriesCb) {
 			// Sanity check of the block, if values are coherent
+			// Fork check ignored here, but checked later in Process.prototype.onReceiveBlock
 			// No access to database
-			var check = self.verifyBlock(block);
+			var check = self.verifyBlock(block, true);
 
 			if (!check.verified) {
 				library.logger.error(['Block', block.id, 'verification failed'].join(' '), check.errors.join(', '));
