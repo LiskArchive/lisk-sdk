@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var constants = require('../../helpers/constants.js');
 var schema = require('../../schema/blocks.js');
@@ -375,29 +376,23 @@ Process.prototype.onReceiveBlock = function (block) {
 		// Get the last block
 		lastBlock = modules.blocks.lastBlock.get();
 
-		// Discard already processed block
-		if (block.id === lastBlock.id) {
-			library.logger.debug('Block already processed', block.id);
-			return setImmediate(cb);
-		}
-
 		// Detect sane block
 		if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
 			// Process received block
 			return __private.receiveBlock(block, cb);
-		}
-
-		// Detect fork cause 1
-		if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
+		} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
 			// Process received fork cause 1
 			return __private.receiveForkOne(block, lastBlock, cb);
-		}
-
-		// Detect fork cause 5
-		if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
+		} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
 			// Process received fork cause 5
 			return __private.receiveForkFive(block, lastBlock, cb);
 		} else {
+			if (block.id === lastBlock.id) {
+				library.logger.debug('Block already processed', block.id);
+			} else {
+				library.logger.error('Block discarded', block.id);
+			}
+			
 			// Discard received block
 			return setImmediate(cb);
 		}
@@ -438,7 +433,7 @@ __private.receiveBlock = function (block, cb) {
  * @param {Function} cb Callback function
  */
 __private.receiveForkOne = function (block, lastBlock, cb) {
-	var tmp_block;
+	var tmp_block = _.clone(block);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -452,7 +447,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 		async.series([
 			function (seriesCb) {
 				try {
-					tmp_block = library.logic.block.objectNormalize(block);
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -486,7 +481,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
  * @param {Function} cb Callback function
  */
 __private.receiveForkFive = function (block, lastBlock, cb) {
-	var tmp_block;
+	var tmp_block = _.clone(block);
 
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
@@ -505,7 +500,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 		async.series([
 			function (seriesCb) {
 				try {
-					tmp_block = library.logic.block.objectNormalize(block);
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
