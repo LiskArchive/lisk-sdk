@@ -146,12 +146,14 @@ Verify.prototype.verifyBlock = function (block, ignoreFork) {
 		result.errors.push('Invalid block version');
 	}
 
-	// Calculate expected block slot
-	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+	// Check block slot calculated from timestamp (ignored in Verify.prototype.checkBlock)
+	if (!ignoreFork) {
+		var blockSlotNumber = slots.getSlotNumber(block.timestamp);
+		var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
-	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-		result.errors.push('Invalid block timestamp');
+		if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
+			result.errors.push('Invalid block timestamp');
+		}
 	}
 
 	if (block.payloadLength > constants.maxPayloadLength) {
@@ -332,7 +334,8 @@ Verify.prototype.checkBlock = function (block, cb) {
 		},
 		verifyBlock: function (seriesCb) {
 			// Sanity check of the block, if values are coherent
-			// Fork check ignored here, but checked later in Process.prototype.onReceiveBlock
+			// - Fork check ignored here, but checked later in Process.prototype.onReceiveBlock
+			// - Block slot check ignored here, but checked later in Verify.prototype.processBlock
 			// No access to database
 			var check = self.verifyBlock(block, true);
 
