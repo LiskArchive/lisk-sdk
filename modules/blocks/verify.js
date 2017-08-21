@@ -145,7 +145,7 @@ __private.verifySignature = function (block, result) {
  */
 __private.verifyPreviousBlock = function (block, result) {
 	if (!block.previousBlock && block.height !== 1) {
-		result.errors.push('Invalid previous block');
+		result.errors.unshift('Invalid previous block');
 	}
 
 	return result;
@@ -165,7 +165,7 @@ __private.verifyPreviousBlock = function (block, result) {
  */
 __private.verifyVersion = function (block, result) {
 	if (block.version > 0) {
-		result.errors.push('Invalid block version');
+		result.errors.unshift('Invalid block version');
 	}
 
 	return result;
@@ -187,7 +187,7 @@ __private.verifyReward = function (block, result) {
 	var expectedReward = __private.blockReward.calcReward(block.height);
 
 	if (block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1) {
-		result.errors.push(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
+		result.errors.unshift(['Invalid block reward:', block.reward, 'expected:', expectedReward].join(' '));
 	}
 
 	return result;
@@ -211,7 +211,7 @@ __private.verifyId = function (block, result) {
 		// FIXME: Why we don't have it?
 		block.id = library.logic.block.getId(block);
 	} catch (e) {
-		result.errors.push(e.toString());
+		result.errors.unshift(e.toString());
 	}
 
 	return result;
@@ -231,15 +231,15 @@ __private.verifyId = function (block, result) {
  */
 __private.verifyPayload = function (block, result) {
 	if (block.payloadLength > constants.maxPayloadLength) {
-		result.errors.push('Payload length is too high');
+		result.errors.unshift('Payload length is too long');
 	}
 
 	if (block.transactions.length !== block.numberOfTransactions) {
-		result.errors.push('Invalid number of transactions');
+		result.errors.unshift('Included transactions do not match block transactions count');
 	}
 
 	if (block.transactions.length > constants.maxTxsPerBlock) {
-		result.errors.push('Transactions length is too high');
+		result.errors.unshift('Number of transactions exceeds maximum per block');
 	}
 
 	var totalAmount = 0;
@@ -254,11 +254,11 @@ __private.verifyPayload = function (block, result) {
 		try {
 			bytes = library.logic.transaction.getBytes(transaction);
 		} catch (e) {
-			result.errors.push(e.toString());
+			result.errors.unshift(e.toString());
 		}
 
 		if (appliedTransactions[transaction.id]) {
-			result.errors.push('Encountered duplicate transaction: ' + transaction.id);
+			result.errors.unshift('Encountered duplicate transaction: ' + transaction.id);
 		}
 
 		appliedTransactions[transaction.id] = transaction;
@@ -268,15 +268,15 @@ __private.verifyPayload = function (block, result) {
 	}
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-		result.errors.push('Invalid payload hash');
+		result.errors.unshift('Invalid payload hash');
 	}
 
 	if (totalAmount !== block.totalAmount) {
-		result.errors.push('Invalid total amount');
+		result.errors.unshift('Invalid total amount');
 	}
 
 	if (totalFee !== block.totalFee) {
-		result.errors.push('Invalid total fee');
+		result.errors.unshift('Invalid total fee');
 	}
 
 	return result;
@@ -297,7 +297,7 @@ __private.verifyPayload = function (block, result) {
 __private.verifyForkOne = function (block, lastBlock, result) {
 	if (block.previousBlock !== lastBlock.id) {
 		modules.delegates.fork(block, 1);
-		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
+		result.errors.unshift(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
 	}
 
 	return result;
@@ -320,7 +320,7 @@ __private.verifyBlockSlot = function (block, lastBlock, result) {
 	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
 	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
-		result.errors.push('Invalid block timestamp');
+		result.errors.unshift('Invalid block timestamp');
 	}
 
 	return result;
