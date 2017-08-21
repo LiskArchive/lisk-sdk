@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { PopsicleError } from 'popsicle';
 import privateApi from '../../src/api/privateApi';
 
 describe('privateApi module @now', () => {
@@ -46,14 +47,14 @@ describe('privateApi module @now', () => {
 			},
 
 			parseOfflineRequests: () => ({
-				requestMethod: 'GET',
+				requestMethod: GET,
 			}),
 			setTestnet: () => {},
 			setNode: () => {},
 			sendRequest: () => {},
 		};
-		sendRequestResult = { success: true };
-		sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign(sendRequestResult));
+		sendRequestResult = { success: true, sendRequest: true };
+		sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
 	});
 
 	afterEach(() => {
@@ -268,7 +269,6 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-
 	describe('#constructRequestData', () => {
 		const address = '18160565574430594874L';
 		const defaultRequestLimit = 10;
@@ -312,7 +312,50 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#sendRequestPromise', () => {
-		it('should have tests');
+		const { sendRequestPromise } = privateApi;
+
+		let options;
+		let createRequestObjectResult;
+		let createRequestObjectStub;
+		let restoreCreateRequestObject;
+		let sendRequestPromiseResult;
+
+		beforeEach(() => {
+			options = {
+				key1: 'value 2',
+				key3: 4,
+			};
+			createRequestObjectResult = {
+				method: defaultMethod,
+				url: `http://${localNode}:${port}/api/bad_endpoint?k=v`,
+				headers: {},
+				body: {},
+			};
+			createRequestObjectStub = sinon.stub().returns(Object.assign({}, createRequestObjectResult));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreCreateRequestObject = privateApi.__set__('createRequestObject', createRequestObjectStub);
+			sendRequestPromiseResult = sendRequestPromise
+				.call(LSK, defaultMethod, defaultEndpoint, options)
+				.catch(result => result);
+			return sendRequestPromiseResult;
+		});
+
+		afterEach(() => {
+			restoreCreateRequestObject();
+		});
+
+		it('should create a request object', () => {
+			(createRequestObjectStub.calledOn(LSK)).should.be.true();
+			(createRequestObjectStub.calledWithExactly(defaultMethod, defaultEndpoint, options))
+				.should.be.true();
+		});
+
+		it('should return the result of a popsicle request', () => {
+			return sendRequestPromiseResult
+				.then((result) => {
+					(result).should.be.instanceof(PopsicleError);
+				});
+		});
 	});
 
 	describe('#wrapSendRequest', () => {
@@ -394,7 +437,7 @@ describe('privateApi module @now', () => {
 			it('should return the result of the sent request', () => {
 				return returnedFunction.call(LSK, value, callback)
 					.then((result) => {
-						(result).should.be.equal(sendRequestResult);
+						(result).should.be.eql(sendRequestResult);
 					});
 			});
 		});
@@ -477,7 +520,7 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe.skip('#handleSendRequestFailures', () => {
+	describe('#handleSendRequestFailures', () => {
 		const { handleSendRequestFailures } = privateApi;
 
 		let options;
@@ -541,7 +584,7 @@ describe('privateApi module @now', () => {
 			it('should resolve to the result of the request', () => {
 				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then((result) => {
-						(result).should.be.equal(sendRequestResult);
+						(result).should.be.eql(sendRequestResult);
 					});
 			});
 		});
