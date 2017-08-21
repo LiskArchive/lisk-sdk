@@ -225,46 +225,50 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#createRequestObject', () => {
-		const requestType = 'transaction';
 		let options;
 		let expectedObject;
 
 		beforeEach(() => {
-			options = { limit: 5, offset: 3, details: defaultData };
+			options = {
+				limit: 5,
+				offset: 3,
+				details: defaultData,
+			};
 			expectedObject = {
 				method: GET,
-				url: `http://${localNode}:${port}/api/${requestType}`,
+				url: `http://${localNode}:${port}/api/${defaultEndpoint}`,
 				headers: LSK.nethash,
 				body: {},
 			};
 		});
 
-		it('should create a valid request Object for GET request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, GET, requestType, options);
+		it('should create a valid request object for GET request', () => {
 			expectedObject.url += `?limit=${options.limit}&offset=${options.offset}&details=${options.details}`;
 
+			const requestObject = privateApi.createRequestObject.call(LSK, GET, defaultEndpoint, options);
 			(requestObject).should.be.eql(expectedObject);
 		});
 
-		it('should create a valid request Object for POST request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, POST, requestType, options);
-			expectedObject.body = { limit: 5, offset: 3, details: 'testData' };
+		it('should create a valid request object for POST request', () => {
+			expectedObject.body = Object.assign({}, options);
 			expectedObject.method = POST;
 
+			const requestObject = privateApi.createRequestObject
+				.call(LSK, POST, defaultEndpoint, options);
 			(requestObject).should.be.eql(expectedObject);
 		});
 
-		it('should create a valid request Object for POST request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, POST, requestType);
+		it('should create a valid request object for POST request without options', () => {
 			expectedObject.method = POST;
 
+			const requestObject = privateApi.createRequestObject.call(LSK, POST, defaultEndpoint);
 			(requestObject).should.be.eql(expectedObject);
 		});
 
-		it('should create a valid request Object for undefined request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, undefined, requestType);
+		it('should create a valid request object for undefined request method without options', () => {
 			expectedObject.method = undefined;
 
+			const requestObject = privateApi.createRequestObject.call(LSK, undefined, defaultEndpoint);
 			(requestObject).should.be.eql(expectedObject);
 		});
 	});
@@ -445,7 +449,7 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe.skip('#handleTimestampIsInFutureFailures', () => {
+	describe('#handleTimestampIsInFutureFailures', () => {
 		const { handleTimestampIsInFutureFailures } = privateApi;
 		let result;
 		let options;
@@ -522,7 +526,7 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe('#handleSendRequestFailures', () => {
+	describe.skip('#handleSendRequestFailures', () => {
 		const { handleSendRequestFailures } = privateApi;
 
 		let options;
