@@ -172,7 +172,7 @@ function killTestNodes (cb) {
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('npm', ['run', 'test-functional'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['test/api/transactions', 'test/api/blocks'], {
 		cwd: __dirname + '/../..'
 	});
 
@@ -202,7 +202,7 @@ function recreateDatabases (done) {
 	});
 }
 
-function registerDelegatesUsingHttpRequests (done) {
+function enableForgingOnDelegates (done) {
 	var enableForgingPromises = [];
 
 	testNodeConfigs.forEach(function (testNodeConfig) {
@@ -225,7 +225,7 @@ function registerDelegatesUsingHttpRequests (done) {
 	Promise.all(enableForgingPromises).then(function () {
 		done();
 	}).catch(function () {
-		done('Error during registering delegates using http requests');
+		done('Failed to enable forging on delegates');
 	});
 }
 
@@ -263,11 +263,11 @@ function establishWSConnectionsToNodes (sockets, done) {
 				}
 			});
 			socket.on('error', function (err) {});
-			socket.on('connectAbort', function (err) {
-				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+			socket.on('connectAbort', function () {
+				done('Failed to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
 			});
-		}, 1000);
-	});
+		});
+	}, 1000);
 }
 
 describe('integration', function () {
@@ -295,7 +295,7 @@ describe('integration', function () {
 	});
 
 	before(function (done) {
-		registerDelegatesUsingHttpRequests(done);
+		enableForgingOnDelegates(done);
 	});
 
 	before(function (done) {
