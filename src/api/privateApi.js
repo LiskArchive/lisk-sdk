@@ -251,7 +251,9 @@ const constructRequestData = (providedObject, optionsOrCallback) => {
 function sendRequestPromise(requestMethod, requestType, options) {
 	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
 
-	return popsicle.request(requestObject).use(popsicle.plugins.parse(['json', 'urlencoded']));
+	return popsicle
+		.request(requestObject)
+		.use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
 
 /**
