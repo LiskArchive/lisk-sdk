@@ -104,6 +104,34 @@ __private.setHeight = function (block, lastBlock) {
 };
 
 /**
+ * Verify block signature
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifySignature = function (block, result) {
+	var valid;
+
+	try {
+		valid = library.logic.block.verifySignature(block);
+	} catch (e) {
+		result.errors.unshift(e.toString());
+	}
+
+	if (!valid) {
+		result.errors.unshift('Failed to verify block signature');
+	}
+
+	return result;
+};
+
+/**
  * Verify previous block
  *
  * @private
@@ -184,34 +212,6 @@ __private.verifyId = function (block, result) {
 		block.id = library.logic.block.getId(block);
 	} catch (e) {
 		result.errors.push(e.toString());
-	}
-
-	return result;
-};
-
-/**
- * Verify block signature
- *
- * @private
- * @method verifyBlock
- * @method verifyReceipt
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
- */
-__private.verifySignature = function (block, result) {
-	var valid;
-
-	try {
-		valid = library.logic.block.verifySignature(block);
-	} catch (e) {
-		result.errors.push(e.toString());
-	}
-
-	if (!valid) {
-		result.errors.push('Failed to verify block signature');
 	}
 
 	return result;
@@ -343,6 +343,7 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	var result = { verified: false, errors: [] };
 
+	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
@@ -370,6 +371,7 @@ Verify.prototype.verifyBlock = function (block) {
 
 	var result = { verified: false, errors: [] };
 
+	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
