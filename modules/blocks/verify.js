@@ -29,7 +29,7 @@ function Verify (logger, block, transaction, db) {
 
 /**
  * Check transaction - perform transaction validation when processing block
- * //FIXME: Some check can be redundant probably, see: logic.transactionPool
+ * FIXME: Some checks are probably redundant, see: logic.transactionPool
  *
  * @private
  * @async
