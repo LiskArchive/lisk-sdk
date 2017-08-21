@@ -3,6 +3,7 @@ require('./unit/logic/blockReward.js');
 require('./unit/sql/blockRewards.js');
 require('./unit/modules/peers.js');
 require('./unit/modules/blocks.js');
+require('./unit/modules/blocks/verify.js');
 
 require('./api/accounts');
 require('./api/blocks');

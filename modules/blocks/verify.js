@@ -29,7 +29,7 @@ function Verify (logger, block, transaction, db) {
 
 /**
  * Check transaction - perform transaction validation when processing block
- * //FIXME: Some check can be redundant probably, see: logic.transactionPool
+ * FIXME: Some checks are probably redundant, see: logic.transactionPool
  *
  * @private
  * @async
@@ -101,6 +101,34 @@ __private.setHeight = function (block, lastBlock) {
 	block.height = lastBlock.height + 1;
 
 	return block;
+};
+
+/**
+ * Verify block signature
+ *
+ * @private
+ * @method verifyBlock
+ * @method verifyReceipt
+ * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifySignature = function (block, result) {
+	var valid;
+
+	try {
+		valid = library.logic.block.verifySignature(block);
+	} catch (e) {
+		result.errors.push(e.toString());
+	}
+
+	if (!valid) {
+		result.errors.push('Failed to verify block signature');
+	}
+
+	return result;
 };
 
 /**
@@ -190,34 +218,6 @@ __private.verifyId = function (block, result) {
 };
 
 /**
- * Verify block signature
- *
- * @private
- * @method verifyBlock
- * @method verifyReceipt
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
- */
-__private.verifySignature = function (block, result) {
-	var valid;
-
-	try {
-		valid = library.logic.block.verifySignature(block);
-	} catch (e) {
-		result.errors.push(e.toString());
-	}
-
-	if (!valid) {
-		result.errors.push('Failed to verify block signature');
-	}
-
-	return result;
-};
-
-/**
  * Verify block payload (transactions)
  *
  * @private
@@ -231,15 +231,15 @@ __private.verifySignature = function (block, result) {
  */
 __private.verifyPayload = function (block, result) {
 	if (block.payloadLength > constants.maxPayloadLength) {
-		result.errors.push('Payload length is too high');
+		result.errors.push('Payload length is too long');
 	}
 
 	if (block.transactions.length !== block.numberOfTransactions) {
-		result.errors.push('Invalid number of transactions');
+		result.errors.push('Included transactions do not match block transactions count');
 	}
 
 	if (block.transactions.length > constants.maxTxsPerBlock) {
-		result.errors.push('Transactions length is too high');
+		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
 	var totalAmount = 0;
@@ -295,7 +295,7 @@ __private.verifyPayload = function (block, result) {
  * @return {Array}   result.errors Array of validation errors
  */
 __private.verifyForkOne = function (block, lastBlock, result) {
-	if (block.previousBlock !== lastBlock.id) {
+	if (block.previousBlock && block.previousBlock !== lastBlock.id) {
 		modules.delegates.fork(block, 1);
 		result.errors.push(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
 	}
@@ -343,6 +343,7 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	var result = { verified: false, errors: [] };
 
+	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
@@ -350,6 +351,8 @@ Verify.prototype.verifyReceipt = function (block) {
 	result = __private.verifyPayload(block, result);
 
 	result.verified = result.errors.length === 0;
+	result.errors.reverse();
+
 	return result;
 };
 
@@ -370,6 +373,7 @@ Verify.prototype.verifyBlock = function (block) {
 
 	var result = { verified: false, errors: [] };
 
+	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
@@ -380,6 +384,8 @@ Verify.prototype.verifyBlock = function (block) {
 	result = __private.verifyBlockSlot(block, lastBlock, result);
 
 	result.verified = result.errors.length === 0;
+	result.errors.reverse();
+
 	return result;
 };
 
