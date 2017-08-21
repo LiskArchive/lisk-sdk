@@ -271,6 +271,7 @@ describe('privateApi module @now', () => {
 
 	describe('#constructRequestData', () => {
 		const address = '18160565574430594874L';
+		const customAddress = '123l';
 		const defaultRequestLimit = 10;
 		const defaultRequestOffset = 101;
 		const optionsObject = {
@@ -283,12 +284,12 @@ describe('privateApi module @now', () => {
 			offset: defaultRequestOffset,
 		};
 		const optionsWithConflictObject = {
-			address: '123L',
+			address: customAddress,
 			limit: 4,
 			offset: 5,
 		};
 		const resolvedConflictObject = {
-			address: '123L',
+			address: customAddress,
 			limit: defaultRequestLimit,
 			offset: defaultRequestOffset,
 		};
@@ -299,8 +300,9 @@ describe('privateApi module @now', () => {
 		});
 
 		it('should recognise when a callback function is passed instead of an options object', () => {
-			const requestData = privateApi.constructRequestData({ address }, () => true);
-			(requestData).should.be.eql({ address });
+			const providedObj = { address };
+			const requestData = privateApi.constructRequestData(providedObj, () => true);
+			(requestData).should.be.eql(providedObj);
 		});
 
 		it('should prioritise values from the data object when the data object and options object conflict', () => {
@@ -443,7 +445,7 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe('#handleTimestampIsInFutureFailures', () => {
+	describe.skip('#handleTimestampIsInFutureFailures', () => {
 		const { handleTimestampIsInFutureFailures } = privateApi;
 		let result;
 		let options;
