@@ -316,7 +316,88 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#wrapSendRequest', () => {
-		it('should have tests');
+		const { wrapSendRequest } = privateApi;
+		const value = '123';
+
+		let options;
+		let getDataFnResult;
+		let getDataFnStub;
+		let constructRequestDataResult;
+		let constructRequestDataStub;
+		let restoreConstructRequestDataStub;
+		let callback;
+		let returnedFunction;
+
+		beforeEach(() => {
+			options = {
+				key1: 'value 1',
+				key2: 2,
+			};
+			getDataFnResult = {
+				key3: 'value3',
+				key4: 4,
+			};
+			constructRequestDataResult = {
+				key5: 'value 5',
+				key6: 6,
+			};
+			getDataFnStub = sinon.stub().returns(Object.assign({}, getDataFnResult));
+			constructRequestDataStub = sinon.stub()
+				.returns(Object.assign({}, constructRequestDataResult));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreConstructRequestDataStub = privateApi.__set__('constructRequestData', constructRequestDataStub);
+			returnedFunction = wrapSendRequest(defaultMethod, defaultEndpoint, getDataFnStub);
+			callback = () => {};
+		});
+
+		afterEach(() => {
+			restoreConstructRequestDataStub();
+		});
+
+		it('should return a function', () => {
+			(returnedFunction).should.be.type('function');
+		});
+
+		describe('returned function', () => {
+			it('should call the provided getData function on the provided value and options', () => {
+				return returnedFunction.call(LSK, value, options)
+					.then(() => {
+						(getDataFnStub.calledWithExactly(value, options)).should.be.true();
+					});
+			});
+
+			it('should construct request data using the provided data and options', () => {
+				return returnedFunction.call(LSK, value, options)
+					.then(() => {
+						(constructRequestDataStub.calledWithExactly(getDataFnResult, options)).should.be.true();
+					});
+			});
+
+			it('should send a request with the constructed data and a callback if options are provided', () => {
+				return returnedFunction.call(LSK, value, options, callback)
+					.then(() => {
+						(sendRequestStub.calledWithExactly(
+							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
+						)).should.be.true();
+					});
+			});
+
+			it('should send a request with the constructed data and a callback if options are not provided', () => {
+				return returnedFunction.call(LSK, value, callback)
+					.then(() => {
+						(sendRequestStub.calledWithExactly(
+							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
+						)).should.be.true();
+					});
+			});
+
+			it('should return the result of the sent request', () => {
+				return returnedFunction.call(LSK, value, callback)
+					.then((result) => {
+						(result).should.be.equal(sendRequestResult);
+					});
+			});
+		});
 	});
 
 	describe('#handleTimestampIsInFutureFailures', () => {
@@ -396,7 +477,7 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe('#handleSendRequestFailures', () => {
+	describe.skip('#handleSendRequestFailures', () => {
 		const { handleSendRequestFailures } = privateApi;
 
 		let options;
