@@ -267,10 +267,10 @@ function establishWSConnectionsToNodes (sockets, done) {
 				done('Failed to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
 			});
 		});
-	}, 1000);
+	}, 10000);
 }
 
-describe('integration', function () {
+describe('integration', function (integrationDone) {
 
 	var sockets = [];
 
@@ -333,6 +333,7 @@ describe('integration', function () {
 
 			}).catch(function (err) {
 				done(err);
+				integrationDone(err);
 			});
 		});
 	});
