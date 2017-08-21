@@ -185,13 +185,13 @@ function checkOptions(options) {
 }
 
 /**
- * @method serialiseHttpData
+ * @method serialiseHTTPData
  * @param data
  *
  * @return serialisedData string
  */
 
-function serialiseHttpData(data) {
+function serialiseHTTPData(data) {
 	let serialised;
 
 	serialised = utils.trimObj(data);
@@ -214,7 +214,7 @@ function serialiseHttpData(data) {
 function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
 	const url = method === GET
-		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHttpData.call(this, options)}`
+		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHTTPData.call(this, options)}`
 		: `${getFullUrl.call(this)}/api/${requestType}`;
 
 	return {
@@ -319,7 +319,7 @@ module.exports = {
 	checkReDial,
 	checkOptions,
 	sendRequestPromise,
-	serialiseHttpData,
+	serialiseHTTPData,
 	createRequestObject,
 	constructRequestData,
 	wrapSendRequest,
