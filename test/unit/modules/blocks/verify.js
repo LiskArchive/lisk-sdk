@@ -585,9 +585,9 @@ describe('blocks/verify', function () {
 
 		describe('calling verifyPayload()', testVerifyPayload.bind(null, 'verifyReceipt'));
 
-		// describe('calling verifyForkOne()', testVerifyForkOne);
+		describe.skip('calling verifyForkOne()', testVerifyForkOne);
 
-		// describe('calling verifyBlockSlot()', testVerifyBlockSlot);
+		describe.skip('calling verifyBlockSlot()', testVerifyBlockSlot);
 	});
 
 	describe('verifyBlock() when block is valid', testValid.bind(null, 'verifyBlock'));
