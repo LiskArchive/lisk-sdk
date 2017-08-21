@@ -19,6 +19,14 @@ import convert from './convert';
 import keys from './keys';
 import hash from './hash';
 
+/**
+ * @method signMessageWithSecret
+ * @param message
+ * @param secret
+ *
+ * @return {string}
+ */
+
 function signMessageWithSecret(message, secret) {
 	const msgBytes = naclInstance.encode_utf8(message);
 	const keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
@@ -28,6 +36,15 @@ function signMessageWithSecret(message, secret) {
 
 	return hexSignedMessage;
 }
+
+/**
+ * @method signMessageWithTwoSecrets
+ * @param message
+ * @param secret
+ * @param secondSecret
+ *
+ * @return {string}
+ */
 
 function signMessageWithTwoSecrets(message, secret, secondSecret) {
 	const msgBytes = naclInstance.encode_utf8(message);
@@ -42,6 +59,15 @@ function signMessageWithTwoSecrets(message, secret, secondSecret) {
 
 	return hexSignedMessage;
 }
+
+/**
+ * @method verifyMessageWithTwoPublicKeys
+ * @param signedMessage
+ * @param publicKey
+ * @param secondPublicKey
+ *
+ * @return {string}
+ */
 
 function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondPublicKey) {
 	const signedMessageBytes = convert.hexToBuffer(signedMessage);
@@ -72,6 +98,13 @@ function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondPublicKe
 	}
 }
 
+/**
+ * @method signAndPrintMessage
+ * @param message
+ * @param secret
+ *
+ * @return {string}
+ */
 
 function signAndPrintMessage(message, secret) {
 	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
@@ -97,6 +130,15 @@ function signAndPrintMessage(message, secret) {
 	return outputArray.join('\n');
 }
 
+/**
+ * @method printSignedMessage
+ * @param message
+ * @param signedMessage
+ * @param publicKey
+ *
+ * @return {string}
+ */
+
 function printSignedMessage(message, signedMessage, publicKey) {
 	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	const messageHeader = '-----MESSAGE-----';
@@ -118,6 +160,14 @@ function printSignedMessage(message, signedMessage, publicKey) {
 	return outputArray.join('\n');
 }
 
+/**
+ * @method verifyMessageWithPublicKey
+ * @param signedMessage
+ * @param publicKey
+ *
+ * @return {string}
+ */
+
 function verifyMessageWithPublicKey(signedMessage, publicKey) {
 	const signedMessageBytes = convert.hexToBuffer(signedMessage);
 	const publicKeyBytes = convert.hexToBuffer(publicKey);
@@ -136,13 +186,36 @@ function verifyMessageWithPublicKey(signedMessage, publicKey) {
 	throw new Error('Invalid signature publicKey combination, cannot verify message');
 }
 
+/**
+ * @method convertPublicKeyEd2Curve
+ * @param publicKey
+ *
+ * @return {object}
+ */
+
 function convertPublicKeyEd2Curve(publicKey) {
 	return ed2curve.convertPublicKey(publicKey);
 }
 
+/**
+ * @method convertPrivateKeyEd2Curve
+ * @param privateKey
+ *
+ * @return {object}
+ */
+
 function convertPrivateKeyEd2Curve(privateKey) {
 	return ed2curve.convertSecretKey(privateKey);
 }
+
+/**
+ * @method encryptMessageWithSecret
+ * @param message
+ * @param secret
+ * @param recipientPublicKey
+ *
+ * @return {object}
+ */
 
 function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 	const senderPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
@@ -164,6 +237,16 @@ function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 		encryptedMessage,
 	};
 }
+
+/**
+ * @method decryptMessageWithSecret
+ * @param packet
+ * @param nonce
+ * @param secret
+ * @param senderPublicKey
+ *
+ * @return {string}
+ */
 
 function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
 	const recipientPrivateKey = keys.getRawPrivateAndPublicKeyFromSecret(secret).privateKey;

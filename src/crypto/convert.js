@@ -18,13 +18,35 @@ import crypto from 'crypto-browserify';
 import hash from './hash';
 import { getBytes } from '../transactions/transactionBytes';
 
+/**
+ * @method bufferToHex
+ * @param buffer
+ *
+ * @return {string}
+ */
+
 function bufferToHex(buffer) {
 	return naclInstance.to_hex(buffer);
 }
 
+/**
+ * @method hexToBuffer
+ * @param hex
+ *
+ * @return {buffer}
+ */
+
 function hexToBuffer(hex) {
 	return naclInstance.from_hex(hex);
 }
+
+/**
+ * @method useFirstEightBufferEntriesReversed
+ * @param publicKeyBytes
+ *
+ * @return {buffer}
+ */
+
 
 // TODO: Discuss behaviour and output format
 function useFirstEightBufferEntriesReversed(publicKeyBytes) {
@@ -32,6 +54,13 @@ function useFirstEightBufferEntriesReversed(publicKeyBytes) {
 		.slice(0, 8)
 		.reverse();
 }
+
+/**
+ * @method toAddress
+ * @param buffer
+ *
+ * @return {string}
+ */
 
 function toAddress(buffer) {
 	return `${bignum.fromBuffer(buffer).toString()}L`;
@@ -41,7 +70,7 @@ function toAddress(buffer) {
  * @method getAddress
  * @param publicKey string
  *
- * @return address string
+ * @return {string}
  */
 
 function getAddress(publicKey) {

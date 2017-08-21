@@ -17,6 +17,13 @@ import bignum from 'browserify-bignum';
 import hash from './hash';
 import convert from './convert';
 
+/**
+ * @method getPrivateAndPublicKeyFromSecret
+ * @param secret
+ *
+ * @return {object}
+ */
+
 function getPrivateAndPublicKeyFromSecret(secret) {
 	const sha256Hash = hash.getSha256Hash(secret, 'utf8');
 	const keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
@@ -27,6 +34,13 @@ function getPrivateAndPublicKeyFromSecret(secret) {
 	};
 }
 
+/**
+ * @method getRawPrivateAndPublicKeyFromSecret
+ * @param secret
+ *
+ * @return {object}
+ */
+
 function getRawPrivateAndPublicKeyFromSecret(secret) {
 	const sha256Hash = hash.getSha256Hash(secret, 'utf8');
 	const keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
@@ -36,6 +50,13 @@ function getRawPrivateAndPublicKeyFromSecret(secret) {
 		publicKey: keypair.signPk,
 	};
 }
+
+/**
+ * @method getAddressFromPublicKey
+ * @param publicKey
+ *
+ * @return {string}
+ */
 
 function getAddressFromPublicKey(publicKey) {
 	const publicKeyHash = hash.getSha256Hash(publicKey, 'hex');
