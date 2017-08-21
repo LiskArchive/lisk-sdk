@@ -15,7 +15,7 @@ var wsServer = require('../../common/wsServer');
 
 describe('handshake', function () {
 
-	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port);
+	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;
@@ -229,11 +229,9 @@ describe('handshake', function () {
 					validClientSocketOptions.query.state = 1;
 					clientSocket.wampSend('updateMyself', validClientSocketOptions.query)
 						.then(function (peer) {
-							console.log('after updateMyself: ', peer);
 							done();
 						})
 						.catch(function (err) {
-							console.log('updateMyself error:', err);
 							done(err);
 						});
 				}, 1000);

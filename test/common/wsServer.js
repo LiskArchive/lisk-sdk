@@ -7,6 +7,7 @@ var testConfig = require('../config.json');
 
 var wsServer = {
 	port: 9999,
+	validNonce: 'Ffcdeewz4hBYMkwu',
 	testSocketCluster: null,
 	testWampServer: null,
 

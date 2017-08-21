@@ -231,9 +231,10 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 	);
 };
 
-node.generatePeerHeaders = function (ip, port) {
+node.generatePeerHeaders = function (ip, port, nonce) {
 	port = port || 9999;
 	ip = ip || '127.0.0.1';
+	nonce = nonce || randomString.generate(16);
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
 	var version = node.version;
@@ -246,7 +247,7 @@ node.generatePeerHeaders = function (ip, port) {
 		ip: ip,
 		port: port,
 		version: version,
-		nonce: randomString.generate(16)
+		nonce: nonce
 	};
 };
 
