@@ -272,12 +272,9 @@ const wrapSendRequest = (method, endpoint, getDataFn) =>
 
 function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
 	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
-		const newOptions = {};
-
-		Object.keys(options).forEach((key) => {
-			newOptions[key] = options[key];
+		const newOptions = Object.assign({}, options, {
+			timeOffset: (options.timeOffset || 0) + 10,
 		});
-		newOptions.timeOffset = (options.timeOffset || 0) + 10;
 
 		return this.sendRequest(requestMethod, requestType, newOptions);
 	}
