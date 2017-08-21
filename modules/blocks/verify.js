@@ -295,7 +295,7 @@ __private.verifyPayload = function (block, result) {
  * @return {Array}   result.errors Array of validation errors
  */
 __private.verifyForkOne = function (block, lastBlock, result) {
-	if (block.previousBlock !== lastBlock.id) {
+	if (block.previousBlock && block.previousBlock !== lastBlock.id) {
 		modules.delegates.fork(block, 1);
 		result.errors.unshift(['Invalid previous block:', block.previousBlock, 'expected:', lastBlock.id].join(' '));
 	}
