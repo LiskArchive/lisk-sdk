@@ -22,8 +22,12 @@ describe('privateApi module @now', () => {
 	const defaultData = 'testData';
 	const GET = 'GET';
 	const POST = 'POST';
+	const defaultMethod = POST;
+	const defaultEndpoint = 'transactions';
 
 	let LSK;
+	let sendRequestResult;
+	let sendRequestStub;
 
 	beforeEach(() => {
 		LSK = {
@@ -46,8 +50,14 @@ describe('privateApi module @now', () => {
 			}),
 			setTestnet: () => {},
 			setNode: () => {},
-			sendRequest: () => Promise.resolve(),
+			sendRequest: () => {},
 		};
+		sendRequestResult = { success: true };
+		sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign(sendRequestResult));
+	});
+
+	afterEach(() => {
+		sendRequestStub.restore();
 	});
 
 	describe('#netHashOptions', () => {
@@ -310,21 +320,90 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#handleTimestampIsInFutureFailures', () => {
-		it('should have tests');
+		const { handleTimestampIsInFutureFailures } = privateApi;
+		let result;
+		let options;
+
+		beforeEach(() => {
+			result = {
+				success: false,
+				message: 'Timestamp is in the future',
+			};
+			options = {
+				key1: 'value 1',
+				key2: 2,
+				timeOffset: 40,
+			};
+		});
+
+		it('should resolve the result if success is true', () => {
+			result.success = true;
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resolve the result if there is no message', () => {
+			delete result.message;
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resolve the result if the message is not about the timestamp being in the future', () => {
+			result.message = 'Timestamp is in the past';
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resolve the result if the time offset is greater than 40 seconds', () => {
+			options.timeOffset = 41;
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resend the request with a time offset of 10 seconds if all those conditions are met and the time offset is not specified', () => {
+			delete options.timeOffset;
+			const expectedOptions = Object.assign({}, options, { timeOffset: 10 });
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.be.eql(sendRequestResult);
+					(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions))
+						.should.be.true();
+				});
+		});
+
+		it('should resend the request with the time offset increased by 10 seconds if all those conditions are met and the time offset is specified', () => {
+			const expectedOptions = Object.assign({}, options, { timeOffset: 50 });
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.be.eql(sendRequestResult);
+					(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions))
+						.should.be.true();
+				});
+		});
 	});
 
 	describe('#handleSendRequestFailures', () => {
 		const { handleSendRequestFailures } = privateApi;
-		const method = GET;
-		const endpoint = 'transactions';
-		const sendRequestResult = { success: true };
 
 		let options;
 		let error;
 		let setNodeSpy;
 		let banNodeSpy;
 		let restoreBanNodeSpy;
-		let sendRequestStub;
 		let checkReDialStub;
 		let restoreCheckReDialStub;
 
@@ -335,7 +414,6 @@ describe('privateApi module @now', () => {
 			};
 			error = new Error('Test error.');
 			setNodeSpy = sinon.spy(LSK, 'setNode');
-			sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign(sendRequestResult));
 			banNodeSpy = sinon.spy();
 			// eslint-disable-next-line no-underscore-dangle
 			restoreBanNodeSpy = privateApi.__set__('banNode', banNodeSpy);
@@ -343,7 +421,6 @@ describe('privateApi module @now', () => {
 
 		afterEach(() => {
 			setNodeSpy.restore();
-			sendRequestStub.restore();
 			restoreBanNodeSpy();
 		});
 
@@ -359,28 +436,29 @@ describe('privateApi module @now', () => {
 			});
 
 			it('should ban the node', () => {
-				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
 						(banNodeSpy.calledOn(LSK)).should.be.true();
 					});
 			});
 
 			it('should set a new node', () => {
-				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
 						(setNodeSpy.calledOnce).should.be.true();
 					});
 			});
 
 			it('should send the request again with the same arguments', () => {
-				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						(sendRequestStub.calledWithExactly(method, endpoint, options)).should.be.true();
+						(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, options))
+							.should.be.true();
 					});
 			});
 
 			it('should resolve to the result of the request', () => {
-				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then((result) => {
 						(result).should.be.equal(sendRequestResult);
 					});
@@ -397,21 +475,21 @@ describe('privateApi module @now', () => {
 			});
 
 			it('should resolve to an object with success set to false', () => {
-				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then((result) => {
 						(result).should.have.property('success').and.be.equal(false);
 					});
 			});
 
 			it('should resolve to an object with the provided error if no redial is possible', () => {
-				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then((result) => {
 						(result).should.have.property('error').and.be.equal(error);
 					});
 			});
 
 			it('should resolve to an object with a helpful message', () => {
-				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then((result) => {
 						(result).should.have.property('message').and.be.equal('Could not create an HTTP request to any known peers.');
 					});
