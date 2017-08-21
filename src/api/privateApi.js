@@ -192,12 +192,9 @@ function checkOptions(options) {
  */
 
 function serialiseHTTPData(data) {
-	let serialised;
-
-	serialised = utils.trimObj(data);
-	serialised = utils.toQueryString(serialised);
-
-	return `?${serialised}`;
+	const trimmed = utils.trimObj(data);
+	const queryString = utils.toQueryString(trimmed);
+	return `?${queryString}`;
 }
 
 /**
