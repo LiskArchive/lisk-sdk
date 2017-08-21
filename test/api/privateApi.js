@@ -14,6 +14,7 @@
  */
 import { PopsicleError } from 'popsicle';
 import privateApi from '../../src/api/privateApi';
+import utils from '../../src/api/utils';
 
 describe('privateApi module @now', () => {
 	const port = 7000;
@@ -211,16 +212,45 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe('#serialiseHttpData', () => {
-		it('should create a http string from an object and trim.', () => {
-			const myObj = {
-				obj: ' myval',
-				key: 'my2ndval ',
+	describe('#serialiseHTTPData', () => {
+		const { serialiseHTTPData } = privateApi;
+		const queryStringData = 'key%2F1=value%20%252&key3=4';
+
+		let data;
+		let trimmedData;
+		let trimObjStub;
+		let toQueryStringStub;
+		let serialisedData;
+
+		beforeEach(() => {
+			data = {
+				' key/1 ': '  value %2',
+				key3: 4,
 			};
+			trimmedData = {
+				'key%2F': 'value%20%252',
+				key3: 4,
+			};
+			trimObjStub = sinon.stub(utils, 'trimObj').returns(trimmedData);
+			toQueryStringStub = sinon.stub(utils, 'toQueryString').returns(queryStringData);
+			serialisedData = serialiseHTTPData(data);
+		});
 
-			const serialised = privateApi.serialiseHttpData(myObj);
+		afterEach(() => {
+			trimObjStub.restore();
+			toQueryStringStub.restore();
+		});
 
-			(serialised).should.be.equal('?obj=myval&key=my2ndval');
+		it('should trim the object', () => {
+			(trimObjStub.calledWithExactly(data)).should.be.true();
+		});
+
+		it('should convert the trimmed object to a query string', () => {
+			(toQueryStringStub.calledWithExactly(trimmedData)).should.be.true();
+		});
+
+		it('should prepend a question mark to the query string', () => {
+			(serialisedData).should.equal(`?${queryStringData}`);
 		});
 	});
 
