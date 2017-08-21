@@ -10,9 +10,11 @@ var peersSortFields = require('../../sql/peers').sortFields;
 var wsServer = require('../common/wsServer');
 var testConfig = require('../config.json');
 
-var validHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
+var validHeaders;
 
 before(function (done) {
+	wsServer.port = 9998;
+	validHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port);
 	wsServer.start();
 	var validClientSocketOptions = {
 		protocol: 'http',
