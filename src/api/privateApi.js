@@ -299,7 +299,7 @@ function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	return Promise.resolve({
 		success: false,
 		error,
-		message: 'could not create http request to any of the given peers',
+		message: 'Could not create an HTTP request to any known peers.',
 	});
 }
 
