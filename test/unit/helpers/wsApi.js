@@ -110,7 +110,7 @@ describe('handshake', function () {
 		validHeaders.version = '0.0.0';
 		handshake(validHeaders, function (err) {
 			expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_VERSION);
-			expect(err).to.have.property('description').equal('Expected min version: ' + minVersion + ' but received: ' + validHeaders.version);
+			expect(err).to.have.property('description').equal('Expected version: ' + minVersion + ' but received: ' + validHeaders.version);
 			done();
 		});
 	});
