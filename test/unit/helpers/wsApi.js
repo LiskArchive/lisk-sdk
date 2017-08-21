@@ -160,7 +160,7 @@ describe('handshake', function () {
 			validHeaders.nethash = 'DIFFERENT_NETWORK_NETHASH';
 			handshake(validHeaders, function (err) {
 				expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NETWORK);
-				expect(err).to.have.property('description').contain('Expected network: ' + config.nethash + ' but received: ' + validHeaders.nethash);
+				expect(err).to.have.property('description').contain('Expected nethash: ' + config.nethash + ' but received: ' + validHeaders.nethash);
 				eachCb();
 			});
 		}, done);
@@ -190,7 +190,7 @@ describe('handshake', function () {
 		validHeaders.nonce = validConfig.config.nonce;
 		handshake(validHeaders, function (err) {
 			expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NONCE);
-			expect(err).to.have.property('description').contain('Expected nonce different than ' + validConfig.config.nonce);
+			expect(err).to.have.property('description').contain('Expected nonce different than: ' + validConfig.config.nonce + ' but received: ' + validHeaders.nonce);
 			done();
 		});
 	});
