@@ -14,7 +14,7 @@
  */
 import privateApi from '../../src/api/privateApi';
 
-describe('privateApi', () => {
+describe('privateApi module @now', () => {
 	const port = 7000;
 	const localNode = 'localhost';
 	const externalNode = 'external';
@@ -48,24 +48,21 @@ describe('privateApi', () => {
 		};
 	});
 
-	describe('#selectNode', () => {
-		it('should return the node from initial settings when set', () => {
-			(privateApi.selectNode.call(LSK)).should.be.equal(localNode);
-		});
+	describe('#netHashOptions', () => {
+		it('should have tests');
 	});
 
-	describe('#getRandomPeer', () => {
-		it('should give a random peer', () => {
-			(privateApi.getRandomPeer.call(LSK)).should.be.ok();
+	describe('#getURLPrefix', () => {
+		it('should be http when ssl is false', () => {
+			LSK.ssl = false;
+
+			(privateApi.getURLPrefix.call(LSK)).should.be.equal('http');
 		});
-	});
 
-	describe('#banNode', () => {
-		it('should add current node to banned peers', () => {
-			const currentNode = LSK.currentPeer;
-			privateApi.banNode.call(LSK);
+		it('should be https when ssl is true', () => {
+			LSK.ssl = true;
 
-			(LSK.bannedPeers).should.containEql(currentNode);
+			(privateApi.getURLPrefix.call(LSK)).should.be.equal('https');
 		});
 	});
 
@@ -85,44 +82,24 @@ describe('privateApi', () => {
 		});
 	});
 
-	describe('#getURLPrefix', () => {
-		it('should be http when ssl is false', () => {
-			LSK.ssl = false;
-
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('http');
-		});
-
-		it('should be https when ssl is true', () => {
-			LSK.ssl = true;
-
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('https');
+	describe('#getRandomPeer', () => {
+		it('should give a random peer', () => {
+			(privateApi.getRandomPeer.call(LSK)).should.be.ok();
 		});
 	});
 
-	describe('#serialiseHttpData', () => {
-		it('should create a http string from an object and trim.', () => {
-			const myObj = {
-				obj: ' myval',
-				key: 'my2ndval ',
-			};
-
-			const serialised = privateApi.serialiseHttpData(myObj);
-
-			(serialised).should.be.equal('?obj=myval&key=my2ndval');
+	describe('#selectNode', () => {
+		it('should return the node from initial settings when set', () => {
+			(privateApi.selectNode.call(LSK)).should.be.equal(localNode);
 		});
 	});
 
-	describe.skip('#checkOptions', () => {
-		it('should not accept falsy options like undefined', () => {
-			(function sendRequestWithUndefinedLimit() {
-				LSK.sendRequest('delegates/', { limit: undefined }, () => {});
-			}).should.throw('parameter value "limit" should not be undefined');
-		});
+	describe('#banNode', () => {
+		it('should add current node to banned peers', () => {
+			const currentNode = LSK.currentPeer;
+			privateApi.banNode.call(LSK);
 
-		it('should not accept falsy options like NaN', () => {
-			(function sendRequestWithNaNLimit() {
-				LSK.sendRequest('delegates/', { limit: NaN }, () => {});
-			}).should.throw('parameter value "limit" should not be NaN');
+			(LSK.bannedPeers).should.containEql(currentNode);
 		});
 	});
 
@@ -204,6 +181,33 @@ describe('privateApi', () => {
 			LSK.randomPeer = false;
 
 			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
+		});
+	});
+
+	describe.skip('#checkOptions', () => {
+		it('should not accept falsy options like undefined', () => {
+			(function sendRequestWithUndefinedLimit() {
+				LSK.sendRequest('delegates/', { limit: undefined }, () => {});
+			}).should.throw('parameter value "limit" should not be undefined');
+		});
+
+		it('should not accept falsy options like NaN', () => {
+			(function sendRequestWithNaNLimit() {
+				LSK.sendRequest('delegates/', { limit: NaN }, () => {});
+			}).should.throw('parameter value "limit" should not be NaN');
+		});
+	});
+
+	describe('#serialiseHttpData', () => {
+		it('should create a http string from an object and trim.', () => {
+			const myObj = {
+				obj: ' myval',
+				key: 'my2ndval ',
+			};
+
+			const serialised = privateApi.serialiseHttpData(myObj);
+
+			(serialised).should.be.equal('?obj=myval&key=my2ndval');
 		});
 	});
 
@@ -293,5 +297,25 @@ describe('privateApi', () => {
 			);
 			(requestData).should.be.eql(resolvedConflictObject);
 		});
+	});
+
+	describe('#sendRequestPromise', () => {
+		it('should have tests');
+	});
+
+	describe('#wrapSendRequest', () => {
+		it('should have tests');
+	});
+
+	describe('#handleTimestampIsInFutureFailures', () => {
+		it('should have tests');
+	});
+
+	describe('#handleSendRequestFailures', () => {
+		it('should have tests');
+	});
+
+	describe('#optionallyCallCallback', () => {
+		it('should have tests');
 	});
 });

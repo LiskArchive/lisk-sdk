@@ -226,6 +226,19 @@ function createRequestObject(method, requestType, providedOptions) {
 }
 
 /**
+ * @method constructRequestData
+ * @param providedObject
+ * @param optionsOrCallback
+ *
+ * @return request object
+ */
+
+const constructRequestData = (providedObject, optionsOrCallback) => {
+	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
+	return Object.assign({}, providedOptions, providedObject);
+};
+
+/**
  * @method sendRequestPromise
  * @param requestMethod
  * @param requestType
@@ -240,19 +253,6 @@ function sendRequestPromise(requestMethod, requestType, options) {
 
 	return popsicle.request(requestObject).use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
-
-/**
- * @method constructRequestData
- * @param providedObject
- * @param optionsOrCallback
- *
- * @return request object
- */
-
-const constructRequestData = (providedObject, optionsOrCallback) => {
-	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
-	return Object.assign({}, providedOptions, providedObject);
-};
 
 /**
  * @method wrapSendRequest
