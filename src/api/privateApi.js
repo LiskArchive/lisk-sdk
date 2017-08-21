@@ -196,7 +196,6 @@ function serialiseHTTPData(data) {
 
 	serialised = utils.trimObj(data);
 	serialised = utils.toQueryString(serialised);
-	serialised = encodeURI(serialised);
 
 	return `?${serialised}`;
 }
