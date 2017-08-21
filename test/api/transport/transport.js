@@ -16,7 +16,7 @@ describe('RPC', function () {
 	var clientSocket;
 	var validClientSocketOptions;
 	var wampClient = new WAMPClient();
-	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port);
+	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
 
 	before(function (done) {
 		validClientSocketOptions = {

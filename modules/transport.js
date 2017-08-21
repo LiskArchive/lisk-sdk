@@ -4,18 +4,18 @@ var async = require('async');
 var crypto = require('crypto');
 var extend = require('extend');
 var ip = require('ip');
-var popsicle = require('popsicle');
 var zlib = require('zlib');
 
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
-var failureCodes = require('../api/ws/rpc/failureCodes');
-var Rules = require('../api/ws/workers/rules');
-var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
+var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
+var failureCodes = require('../api/ws/rpc/failureCodes');
+var Peer = require('../logic/peer');
+var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
+var Rules = require('../api/ws/workers/rules');
 var schema = require('../schema/transport.js');
 var sql = require('../sql/transport.js');
-var Peer = require('../logic/peer');
 var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
@@ -496,7 +496,12 @@ Transport.prototype.shared = {
 	postBlock: function (query, cb) {
 		query = query || {};
 		try {
-			var block = library.logic.block.objectNormalize(query.block);
+			var block;
+			if (query.block) {
+				query.block = bson.deserialize(Buffer.from(query.block));
+				block = modules.blocks.verify.addBlockProperties(query.block);
+			}
+			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
 			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
 
