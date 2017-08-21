@@ -23,7 +23,6 @@ import { getBytes } from './../transactions/transactionBytes';
  * @return {string}
  */
 
-
 // TODO: Discuss behaviour with format and hashing
 function getSha256Hash(stringToSign, format) {
 	const encodedString = (!format || format === 'utf8')

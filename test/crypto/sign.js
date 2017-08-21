@@ -15,96 +15,83 @@
 import cryptoModule from '../../src/crypto/index';
 
 describe('sign', () => {
-	describe('#signMessageWithSecret sign.js', () => {
-		const message = 'not secret message';
-		const secret = '123';
-		const signedMessageDone = '27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765';
-		const signedMessage = cryptoModule.signMessageWithSecret(message, secret);
+	const secretMessage = 'secret message';
+	const notSecretMessage = 'not secret message';
+	const defaultSignature = '5fd698d33c009fc358f2085f66465ae50ac3774d1a5c36d5167fbd7f9bac6b648b26bb2976d360b6286fea1c367dd128dad7f0cc241a0301fbcfff4ca77b9e0b6e6f7420736563726574206d657373616765';
+	const defaultTwoSignSignature = 'bd47944ce96f5137b786f99d54d007553f81b6d93aaa44925fbfc9a03a7189d4875dc43c1d7800ba0b5f253961eb8286b89e36de0f9e310496222c024f853d005fd698d33c009fc358f2085f66465ae50ac3774d1a5c36d5167fbd7f9bac6b648b26bb2976d360b6286fea1c367dd128dad7f0cc241a0301fbcfff4ca77b9e0b6e6f7420736563726574206d657373616765';
+	const defaultSecret = 'secret';
+	const defaultSecondSecret = 'second secret';
+	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+
+	describe('#signMessageWithSecret', () => {
+		const signedMessage = cryptoModule.signMessageWithSecret(notSecretMessage, defaultSecret);
 
 		it('should sign a message with message and secret provided', () => {
 			(signedMessage).should.be.ok();
 		});
 
 		it('should sign the message correctly', () => {
-			(signedMessage).should.be.equal(signedMessageDone);
+			(signedMessage).should.be.equal(defaultSignature);
 		});
 	});
 
-	describe('#verifyMessageWithPublicKey sign.js', () => {
-		const message = 'not secret message';
-		const secret = '123';
-		const keypair = cryptoModule.getPrivateAndPublicKeyFromSecret(secret);
-		const publicKey = keypair.publicKey;
-		const signedMessage = cryptoModule.signMessageWithSecret(message, secret);
-		const verifyMessage = cryptoModule.verifyMessageWithPublicKey(signedMessage, publicKey);
+	describe('#verifyMessageWithPublicKey', () => {
+		const signedMessage = cryptoModule.signMessageWithSecret(notSecretMessage, defaultSecret);
+		const verifyMessage = cryptoModule.verifyMessageWithPublicKey(signedMessage, defaultPublicKey);
 
 		it('should verify the message correctly', () => {
 			(verifyMessage).should.be.ok();
 		});
 
 		it('should output the original signed message', () => {
-			(verifyMessage).should.be.equal(message);
+			(verifyMessage).should.be.equal(notSecretMessage);
 		});
 
 		it('should detect invalid publicKeys', () => {
-			const invalidPublicKey = `${keypair.publicKey}ERROR`;
+			const invalidPublicKey = `${defaultPublicKey}ERROR`;
 			(function verifyMessageWithInvalidPublicKey() {
 				cryptoModule.verifyMessageWithPublicKey(signedMessage, invalidPublicKey);
 			}).should.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect not verifiable signature', () => {
-			const invalidSignedMessage = `${cryptoModule.signMessageWithSecret(message, secret)}ERROR`;
+			const invalidSignedMessage = `${cryptoModule.signMessageWithSecret(notSecretMessage, defaultSecret)}ERROR`;
 			(function verifyInvalidMessageWithPublicKey() {
-				cryptoModule.verifyMessageWithPublicKey(invalidSignedMessage, publicKey);
+				cryptoModule.verifyMessageWithPublicKey(invalidSignedMessage, defaultPublicKey);
 			}).should.throw('Invalid signature publicKey combination, cannot verify message');
 		});
 	});
 
-	describe('#printSignedMessage sign.js', () => {
-		it('should wrap the signed message into a printed Lisk template', () => {
-			const message = 'not secret message';
-			const secret = '123';
-			const keypair = cryptoModule.getPrivateAndPublicKeyFromSecret(secret);
-			const signedMessage = cryptoModule.signMessageWithSecret(message, secret);
-			const printedMessage = cryptoModule
-				.printSignedMessage(message, signedMessage, keypair.publicKey);
+	describe('sign and print messages', () => {
+		const signedMessageExample = `
+-----BEGIN LISK SIGNED MESSAGE-----
+-----MESSAGE-----
+not secret message
+-----PUBLIC KEY-----
+${defaultPublicKey}
+-----SIGNATURE-----
+${defaultSignature}
+-----END LISK SIGNED MESSAGE-----
+`.trim();
 
-			const signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\n' +
-				'-----MESSAGE-----\n' +
-				'not secret message\n' +
-				'-----PUBLIC KEY-----\n' +
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\n' +
-				'-----SIGNATURE-----\n' +
-				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\n' +
-				'-----END LISK SIGNED MESSAGE-----';
+		it('#printSignedMessage should wrap the signed message into a printed Lisk template', () => {
+			const signedMessage = cryptoModule.signMessageWithSecret(notSecretMessage, defaultSecret);
+			const printedMessage = cryptoModule
+				.printSignedMessage(notSecretMessage, signedMessage, defaultPublicKey);
 
 			(printedMessage).should.be.equal(signedMessageExample);
 		});
-	});
 
-	describe('#signAndPrintMessage sign.js', () => {
-		it('should wrap the signed message into a printed Lisk template', () => {
-			const message = 'not secret message';
-			const secret = '123';
-			const printSignedMessage = cryptoModule.signAndPrintMessage(message, secret);
-
-			const signedMessageExample = '-----BEGIN LISK SIGNED MESSAGE-----\n' +
-				'-----MESSAGE-----\n' +
-				'not secret message\n' +
-				'-----PUBLIC KEY-----\n' +
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd\n' +
-				'-----SIGNATURE-----\n' +
-				'27859f913636aa3e9f7000c07b86c4b1eff17b415c5772619e05d86eabf07724551d96685c44533df3682a9b3c229df27b17a282516100d3f1eae4581cd6cd026e6f7420736563726574206d657373616765\n' +
-				'-----END LISK SIGNED MESSAGE-----';
-
+		it('#signAndPrintMessage should wrap the signed message into a printed Lisk template', () => {
+			const printSignedMessage = cryptoModule.signAndPrintMessage(notSecretMessage, defaultSecret);
 			(printSignedMessage).should.be.equal(signedMessageExample);
 		});
 	});
-
-	describe('#encryptMessageWithSecret sign.js', () => {
-		const recipientKeyPair = cryptoModule.getPrivateAndPublicKeyFromSecret('1234');
-		const encryptedMessage = cryptoModule.encryptMessageWithSecret('hello', 'secret', recipientKeyPair.publicKey);
+	describe('#encryptMessageWithSecret', () => {
+		const encryptedMessage = cryptoModule.encryptMessageWithSecret(
+			secretMessage, defaultSecret, defaultPublicKey,
+		);
 
 		it('should encrypt a message', () => {
 			(encryptedMessage).should.be.ok();
@@ -117,17 +104,18 @@ describe('sign', () => {
 		});
 	});
 
-	describe('#decryptMessageWithSecret sign.js', () => {
-		const recipientKeyPair = cryptoModule.getPrivateAndPublicKeyFromSecret('1234');
-		const senderKeyPair = cryptoModule.getPrivateAndPublicKeyFromSecret('secret');
-		const message = 'hello this is my secret message';
-		const encryptedMessage = cryptoModule.encryptMessageWithSecret(message, 'secret', recipientKeyPair.publicKey);
+	describe('#decryptMessageWithSecret', () => {
+		const encryptedMessage = cryptoModule.encryptMessageWithSecret(
+			secretMessage, defaultSecret, defaultPublicKey,
+		);
 
 		it('should be able to decrypt the message correctly with given receiver secret', () => {
-			const decryptedMessage = cryptoModule.decryptMessageWithSecret(encryptedMessage.encryptedMessage, encryptedMessage.nonce, '1234', senderKeyPair.publicKey);
+			const decryptedMessage = cryptoModule.decryptMessageWithSecret(
+				encryptedMessage.encryptedMessage, encryptedMessage.nonce, defaultSecret, defaultPublicKey,
+			);
 
 			(decryptedMessage).should.be.ok();
-			(decryptedMessage).should.be.equal(message);
+			(decryptedMessage).should.be.equal(secretMessage);
 		});
 	});
 
@@ -142,7 +130,7 @@ describe('sign', () => {
 		});
 	});
 
-	describe('#convertPrivateKeyEd2Curve sign.js', () => {
+	describe('#convertPrivateKeyEd2Curve', () => {
 		const keyPair = cryptoModule.getRawPrivateAndPublicKeyFromSecret('123');
 
 		it('should convert privateKey ED25519 to Curve25519 key', () => {
@@ -153,33 +141,69 @@ describe('sign', () => {
 		});
 	});
 
-	describe('#signMessageWithTwoSecrets sign.js', () => {
+	describe('#signMessageWithTwoSecrets @now', () => {
 		it('should sign a message using two secrets', () => {
-			const secret = '123';
-			const secondSecret = '1234';
-			const message = 'Hello.';
-			const signature = cryptoModule.signMessageWithTwoSecrets(message, secret, secondSecret);
-
-			(signature).should.be.equal('7e824f3cf65fd966a9064e4ba0041f82956c795f88343965265cf6e5e6ef94fd3692a1abc6a9c95a23935ad56ae4b72fb85f0317ba5a135dd16fdd916361430d5cabc8fcb71c11280f51ca379abae0f5fdd897d8446170f0a591d943b0b10cc13fe0bdab24daa05243647bb90ced16ebb93bbe07333aae0b80108aa08c1a310348656c6c6f2e');
-		});
-	});
-
-	describe('#verifyMessageWithTwoPublicKeys sign.js', () => {
-		it('should verify a message using two publicKeys', () => {
-			const signature = '7e824f3cf65fd966a9064e4ba0041f82956c795f88343965265cf6e5e6ef94fd3692a1abc6a9c95a23935ad56ae4b72fb85f0317ba5a135dd16fdd916361430d5cabc8fcb71c11280f51ca379abae0f5fdd897d8446170f0a591d943b0b10cc13fe0bdab24daa05243647bb90ced16ebb93bbe07333aae0b80108aa08c1a310348656c6c6f2e';
-
-			const publicKey1 = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
-			const publicKey2 = 'caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc0cc';
-
-			const verified = cryptoModule.verifyMessageWithTwoPublicKeys(
-				signature, publicKey1, publicKey2,
+			const signature = cryptoModule.signMessageWithTwoSecrets(
+				notSecretMessage, defaultSecret, defaultSecondSecret,
 			);
 
-			(verified).should.be.equal('Hello.');
+			(signature).should.be.equal(defaultTwoSignSignature);
 		});
 	});
 
-	describe('sign and verify', () => {
+	describe('#verifyMessageWithTwoPublicKeys @now', () => {
+		const publicKey1 = defaultPublicKey;
+		const publicKey2 = defaultSecondPublicKey;
+		const invalidPublicKey1 = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96fe';
+		const invalidPublicKey2 = 'caf0f4c00cf9240771975e42b6672c88a832f98f01825dda6e001e2aab0bc';
+		it('should verify a message using two publicKeys', () => {
+			const verified = cryptoModule.verifyMessageWithTwoPublicKeys(
+				defaultTwoSignSignature, publicKey1, publicKey2,
+			);
+
+			(verified).should.be.equal(notSecretMessage);
+		});
+
+		it('should throw on invalid first publicKey', () => {
+			(function verifyMessageWithFirstInvalidPublicKey() {
+				cryptoModule.verifyMessageWithTwoPublicKeys(
+					defaultTwoSignSignature, invalidPublicKey1, publicKey2,
+				);
+			}).should.throw('Invalid first publicKey, expected 32-byte publicKey');
+		});
+
+		it('should throw on invalid second publicKey', () => {
+			(function verifyMessageWithSecondInvalidPublicKey() {
+				cryptoModule.verifyMessageWithTwoPublicKeys(
+					defaultTwoSignSignature, publicKey1, invalidPublicKey2,
+				);
+			}).should.throw('Invalid second publicKey, expected 32-byte publicKey');
+		});
+
+		it('should throw on invalid primary signature', () => {
+			(function verifyMessageWithSecondInvalidPublicKey() {
+				const invalidTwoSignSignature = defaultTwoSignSignature.slice(0, 20);
+				cryptoModule.verifyMessageWithTwoPublicKeys(
+					invalidTwoSignSignature, publicKey1, publicKey2,
+				);
+			}).should.throw('Invalid signature primary publicKey, cannot verify message');
+		});
+
+		it('should throw on invalid secondary signature', () => {
+			(function verifyMessageWithSecondInvalidPublicKey() {
+				const msgBytes = naclInstance.encode_utf8(notSecretMessage);
+				const firstKeys = cryptoModule.getRawPrivateAndPublicKeyFromSecret(defaultSecret);
+				const secondKeys = cryptoModule.getRawPrivateAndPublicKeyFromSecret(defaultSecondSecret);
+				const signedMessage = naclInstance.crypto_sign(msgBytes, firstKeys.privateKey).slice(0, 20);
+				const doubleSignedMessage = cryptoModule.bufferToHex(naclInstance.crypto_sign(
+					signedMessage, secondKeys.privateKey,
+				));
+				cryptoModule.verifyMessageWithTwoPublicKeys(doubleSignedMessage, publicKey1, publicKey2);
+			}).should.throw('Invalid signature second publicKey, cannot verify message');
+		});
+	});
+
+	describe('sign and verify @now', () => {
 		const sign = cryptoModule.sign;
 		const verify = cryptoModule.verify;
 		const keys = cryptoModule.getKeys('123');
@@ -194,7 +218,6 @@ describe('sign', () => {
 			id: '13987348420913138422',
 			senderPublicKey: keys.publicKey,
 		};
-		const signature = sign(transaction, keys);
 		const alterTransaction = {
 			type: 0,
 			amount: '100',
@@ -204,7 +227,6 @@ describe('sign', () => {
 			id: '13987348420913138422',
 			senderPublicKey: keys.publicKey,
 		};
-		const alterSignature = sign(alterTransaction, keys);
 		const transactionToVerify = Object.assign({}, transaction, {
 			signature: sign(transaction, keys),
 		});
@@ -213,6 +235,8 @@ describe('sign', () => {
 		});
 
 		describe('#sign', () => {
+			const signature = sign(transaction, keys);
+			const alterSignature = sign(alterTransaction, keys);
 			it('should be ok', () => {
 				(sign).should.be.ok();
 			});

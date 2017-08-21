@@ -12,36 +12,67 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import convert from './convert';
-import sign from './sign';
-import keys from './keys';
-import hash from './hash';
+import {
+	bufferToHex,
+	hexToBuffer,
+	useFirstEightBufferEntriesReversed,
+	getAddress,
+	getId,
+	toAddress,
+} from './convert';
+import {
+	verifyMessageWithPublicKey,
+	signMessageWithSecret,
+	signAndPrintMessage,
+	printSignedMessage,
+	encryptMessageWithSecret,
+	decryptMessageWithSecret,
+	convertPublicKeyEd2Curve,
+	convertPrivateKeyEd2Curve,
+	signMessageWithTwoSecrets,
+	verifyMessageWithTwoPublicKeys,
+	sign,
+	multiSign,
+	verify,
+	verifySecondSignature,
+} from './sign';
+import {
+	getPrivateAndPublicKeyFromSecret,
+	getRawPrivateAndPublicKeyFromSecret,
+	getAddressFromPublicKey,
+	getKeys,
+} from './keys';
+import {
+	getSha256Hash,
+	getHash,
+} from './hash';
 
 module.exports = {
-	bufferToHex: convert.bufferToHex,
-	hexToBuffer: convert.hexToBuffer,
-	useFirstEightBufferEntriesReversed: convert.useFirstEightBufferEntriesReversed,
-	getAddress: convert.getAddress,
-	getId: convert.getId,
-	verifyMessageWithPublicKey: sign.verifyMessageWithPublicKey,
-	signMessageWithSecret: sign.signMessageWithSecret,
-	signAndPrintMessage: sign.signAndPrintMessage,
-	printSignedMessage: sign.printSignedMessage,
-	encryptMessageWithSecret: sign.encryptMessageWithSecret,
-	decryptMessageWithSecret: sign.decryptMessageWithSecret,
-	convertPublicKeyEd2Curve: sign.convertPublicKeyEd2Curve,
-	convertPrivateKeyEd2Curve: sign.convertPrivateKeyEd2Curve,
-	getPrivateAndPublicKeyFromSecret: keys.getPrivateAndPublicKeyFromSecret,
-	getRawPrivateAndPublicKeyFromSecret: keys.getRawPrivateAndPublicKeyFromSecret,
-	getAddressFromPublicKey: keys.getAddressFromPublicKey,
-	getKeys: keys.getKeys,
-	getSha256Hash: hash.getSha256Hash,
-	getHash: hash.getHash,
-	toAddress: convert.toAddress,
-	signMessageWithTwoSecrets: sign.signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys: sign.verifyMessageWithTwoPublicKeys,
-	sign: sign.sign,
-	multiSign: sign.multiSign,
-	verify: sign.verify,
-	verifySecondSignature: sign.verifySecondSignature,
+	bufferToHex,
+	hexToBuffer,
+	useFirstEightBufferEntriesReversed,
+	getAddress,
+	getId,
+	toAddress,
+	verifyMessageWithPublicKey,
+	signMessageWithSecret,
+	signAndPrintMessage,
+	printSignedMessage,
+	encryptMessageWithSecret,
+	decryptMessageWithSecret,
+	convertPublicKeyEd2Curve,
+	convertPrivateKeyEd2Curve,
+	signMessageWithTwoSecrets,
+	verifyMessageWithTwoPublicKeys,
+	sign,
+	multiSign,
+	verify,
+	verifySecondSignature,
+	getPrivateAndPublicKeyFromSecret,
+	getRawPrivateAndPublicKeyFromSecret,
+	getAddressFromPublicKey,
+	getKeys,
+	getSha256Hash,
+	getHash,
+
 };

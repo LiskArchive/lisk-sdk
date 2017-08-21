@@ -29,9 +29,9 @@ import hash from './hash';
 
 function signMessageWithSecret(message, secret) {
 	const msgBytes = naclInstance.encode_utf8(message);
-	const keypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secret);
+	const { privateKey } = keys.getRawPrivateAndPublicKeyFromSecret(secret);
 
-	const signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
+	const signedMessage = naclInstance.crypto_sign(msgBytes, privateKey);
 	const hexSignedMessage = convert.bufferToHex(signedMessage);
 
 	return hexSignedMessage;
@@ -52,8 +52,9 @@ function signMessageWithTwoSecrets(message, secret, secondSecret) {
 	const secondKeypairBytes = keys.getRawPrivateAndPublicKeyFromSecret(secondSecret);
 
 	const signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
-	const doubleSignedMessage = naclInstance
-		.crypto_sign(signedMessage, secondKeypairBytes.privateKey);
+	const doubleSignedMessage = naclInstance.crypto_sign(
+		signedMessage, secondKeypairBytes.privateKey,
+	);
 
 	const hexSignedMessage = convert.bufferToHex(doubleSignedMessage);
 

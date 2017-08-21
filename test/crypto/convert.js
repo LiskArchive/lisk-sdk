@@ -14,7 +14,7 @@
  */
 import cryptoModule from '../../src/crypto/index';
 
-describe('convert @now', () => {
+describe('convert', () => {
 	const defaultBuffer = naclInstance.encode_utf8('\xe5\xe4\xf6');
 	const defaultHex = 'c3a5c3a4c3b6';
 	describe('#bufferToHex', () => {
