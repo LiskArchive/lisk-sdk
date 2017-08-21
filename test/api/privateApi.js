@@ -45,6 +45,8 @@ describe('privateApi module @now', () => {
 				requestMethod: 'GET',
 			}),
 			setTestnet: () => {},
+			setNode: () => {},
+			sendRequest: () => Promise.resolve(),
 		};
 	});
 
@@ -312,7 +314,109 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#handleSendRequestFailures', () => {
-		it('should have tests');
+		const { handleSendRequestFailures } = privateApi;
+		const method = GET;
+		const endpoint = 'transactions';
+		const sendRequestResult = { success: true };
+
+		let options;
+		let error;
+		let setNodeSpy;
+		let banNodeSpy;
+		let restoreBanNodeSpy;
+		let sendRequestStub;
+		let checkReDialStub;
+		let restoreCheckReDialStub;
+
+		beforeEach(() => {
+			options = {
+				key1: 'value 1',
+				key2: 2,
+			};
+			error = new Error('Test error.');
+			setNodeSpy = sinon.spy(LSK, 'setNode');
+			sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign(sendRequestResult));
+			banNodeSpy = sinon.spy();
+			// eslint-disable-next-line no-underscore-dangle
+			restoreBanNodeSpy = privateApi.__set__('banNode', banNodeSpy);
+		});
+
+		afterEach(() => {
+			setNodeSpy.restore();
+			sendRequestStub.restore();
+			restoreBanNodeSpy();
+		});
+
+		describe('if a redial is possible', () => {
+			beforeEach(() => {
+				checkReDialStub = sinon.stub().returns(true);
+				// eslint-disable-next-line no-underscore-dangle
+				restoreCheckReDialStub = privateApi.__set__('checkReDial', checkReDialStub);
+			});
+
+			afterEach(() => {
+				restoreCheckReDialStub();
+			});
+
+			it('should ban the node', () => {
+				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+					.then(() => {
+						(banNodeSpy.calledOn(LSK)).should.be.true();
+					});
+			});
+
+			it('should set a new node', () => {
+				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+					.then(() => {
+						(setNodeSpy.calledOnce).should.be.true();
+					});
+			});
+
+			it('should send the request again with the same arguments', () => {
+				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+					.then(() => {
+						(sendRequestStub.calledWithExactly(method, endpoint, options)).should.be.true();
+					});
+			});
+
+			it('should resolve to the result of the request', () => {
+				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+					.then((result) => {
+						(result).should.be.equal(sendRequestResult);
+					});
+			});
+		});
+
+		describe('if no redial is possible', () => {
+			beforeEach(() => {
+				checkReDialStub = sinon.stub(privateApi, 'checkReDial').returns(false);
+			});
+
+			afterEach(() => {
+				checkReDialStub.restore();
+			});
+
+			it('should resolve to an object with success set to false', () => {
+				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+					.then((result) => {
+						(result).should.have.property('success').and.be.equal(false);
+					});
+			});
+
+			it('should resolve to an object with the provided error if no redial is possible', () => {
+				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+					.then((result) => {
+						(result).should.have.property('error').and.be.equal(error);
+					});
+			});
+
+			it('should resolve to an object with a helpful message', () => {
+				return handleSendRequestFailures.call(LSK, method, endpoint, options, error)
+					.then((result) => {
+						(result).should.have.property('message').and.be.equal('Could not create an HTTP request to any known peers.');
+					});
+			});
+		});
 	});
 
 	describe('#optionallyCallCallback', () => {
