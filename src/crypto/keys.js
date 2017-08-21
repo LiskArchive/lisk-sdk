@@ -46,9 +46,21 @@ function getAddressFromPublicKey(publicKey) {
 	return address;
 }
 
+/**
+ * @method getKeys
+ * @param secret string
+ *
+ * @return {object}
+ */
+
+function getKeys(secret) {
+	return getPrivateAndPublicKeyFromSecret(secret);
+}
+
 module.exports = {
 	getKeypair: getPrivateAndPublicKeyFromSecret,
 	getPrivateAndPublicKeyFromSecret,
 	getRawPrivateAndPublicKeyFromSecret,
 	getAddressFromPublicKey,
+	getKeys,
 };

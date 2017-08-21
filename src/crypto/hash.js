@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getBytes } from './../transactions/transactionBytes';
+import crypto from 'crypto-browserify';
 
 // TODO: Discuss behaviour with format and hashing
 function getSha256Hash(stringToSign, format) {
@@ -22,6 +24,20 @@ function getSha256Hash(stringToSign, format) {
 	return naclInstance.crypto_hash_sha256(encodedString);
 }
 
+/**
+ * @method getHash
+ * @param transaction Object
+ *
+ * @return {string}
+ */
+
+function getHash(transaction) {
+	const bytes = getBytes(transaction);
+	//const hash = getSha256Hash(bytes);
+	return crypto.createHash('sha256').update(bytes).digest();
+}
+
 module.exports = {
 	getSha256Hash,
+	getHash,
 };

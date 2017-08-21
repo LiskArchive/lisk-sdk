@@ -218,9 +218,10 @@ describe('crypto.js', () => {
 		});
 	});
 
-	describe('sign and verify @now', () => {
+	describe('sign and verify', () => {
 		const sign = cryptoModule.sign;
 		const verify = cryptoModule.verify;
+		console.log(cryptoModule);
 		const keys = cryptoModule.getKeys('123');
 		const secondKeys = cryptoModule.getKeys('345');
 		const expectedSignature = '05383e756598172785843f5f165a8bef3632d6a0f6b7a3429201f83e5d60a5b57faa1fa383c4f33bb85d5804848e5313aa7b0cf1058873bc8576d206bdb9c804';

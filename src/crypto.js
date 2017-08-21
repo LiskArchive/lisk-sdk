@@ -19,38 +19,9 @@
  */
 /* eslint-disable no-plusplus */
 import crypto from 'crypto-browserify';
-import bignum from 'browserify-bignum';
 import constants from './constants';
 import cryptoModule from './crypto/index';
 import { getBytes } from './transactions/transactionBytes';
-
-/**
- * @method getId
- * @param transaction Object
- *
- * @return {string}
- */
-
-function getId(transaction) {
-	const transactionBytes = getBytes(transaction);
-	const transactionHash = crypto.createHash('sha256').update(transactionBytes).digest();
-	const bufferFromFirstEntriesReversed = transactionHash.slice(0, 8).reverse();
-	const firstEntriesToNumber = bignum.fromBuffer(bufferFromFirstEntriesReversed);
-
-	return firstEntriesToNumber.toString();
-}
-
-/**
- * @method getHash
- * @param transaction Object
- *
- * @return {string}
- */
-
-function getHash(transaction) {
-	const bytes = getBytes(transaction);
-	return crypto.createHash('sha256').update(bytes).digest();
-}
 
 /**
  * @method getFee
@@ -72,7 +43,7 @@ function getFee(transaction) {
  */
 
 function sign(transaction, keys) {
-	const hash = getHash(transaction);
+	const hash = cryptoModule.getHash(transaction);
 	const signature = naclInstance.crypto_sign_detached(hash, Buffer.from(keys.privateKey, 'hex'));
 	return Buffer.from(signature).toString('hex');
 }
@@ -96,6 +67,7 @@ function multiSign(transaction, keys) {
 
 	return Buffer.from(signature).toString('hex');
 }
+
 /**
  * @method verify
  * @param transaction Object
@@ -152,41 +124,32 @@ function verifySecondSignature(transaction, publicKey) {
 	return res;
 }
 
-/**
- * @method getKeys
- * @param secret string
- *
- * @return {object}
- */
-
-function getKeys(secret) {
-	return cryptoModule.getPrivateAndPublicKeyFromSecret(secret);
-}
-
-/**
- * @method getAddress
- * @param publicKey string
- *
- * @return address string
- */
-
-function getAddress(publicKey) {
-	const publicKeyHash = cryptoModule.getSha256Hash(publicKey, 'hex');
-	const firstEntriesReversed = cryptoModule.useFirstEightBufferEntriesReversed(publicKeyHash);
-
-	return cryptoModule.toAddress(firstEntriesReversed);
-}
-
 module.exports = {
-	getHash,
-	getId,
 	getFee,
 	sign,
 	multiSign,
-	getKeys,
-	getAddress,
 	verify,
 	verifySecondSignature,
-
-	cryptoModule,
+	getId: cryptoModule.getId,
+	bufferToHex: cryptoModule.bufferToHex,
+	hexToBuffer: cryptoModule.hexToBuffer,
+	useFirstEightBufferEntriesReversed: cryptoModule.useFirstEightBufferEntriesReversed,
+	verifyMessageWithPublicKey: cryptoModule.verifyMessageWithPublicKey,
+	signMessageWithSecret: cryptoModule.signMessageWithSecret,
+	signAndPrintMessage: cryptoModule.signAndPrintMessage,
+	printSignedMessage: cryptoModule.printSignedMessage,
+	getPrivateAndPublicKeyFromSecret: cryptoModule.getPrivateAndPublicKeyFromSecret,
+	getRawPrivateAndPublicKeyFromSecret: cryptoModule.getRawPrivateAndPublicKeyFromSecret,
+	getAddressFromPublicKey: cryptoModule.getAddressFromPublicKey,
+	getSha256Hash: cryptoModule.getSha256Hash,
+	encryptMessageWithSecret: cryptoModule.encryptMessageWithSecret,
+	decryptMessageWithSecret: cryptoModule.decryptMessageWithSecret,
+	convertPublicKeyEd2Curve: cryptoModule.convertPublicKeyEd2Curve,
+	convertPrivateKeyEd2Curve: cryptoModule.convertPrivateKeyEd2Curve,
+	toAddress: cryptoModule.toAddress,
+	signMessageWithTwoSecrets: cryptoModule.signMessageWithTwoSecrets,
+	verifyMessageWithTwoPublicKeys: cryptoModule.verifyMessageWithTwoPublicKeys,
+	getKeys: cryptoModule.getKeys,
+	getHash: cryptoModule.getHash,
+	getAddress: cryptoModule.getAddress,
 };
