@@ -13,8 +13,11 @@
  *
  */
 import ed2curve from 'ed2curve';
+import crypto from 'crypto-browserify';
+import { getBytes } from '../transactions/transactionBytes';
 import convert from './convert';
 import keys from './keys';
+import hash from './hash';
 
 function signMessageWithSecret(message, secret) {
 	const msgBytes = naclInstance.encode_utf8(message);
@@ -149,8 +152,9 @@ function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 	const utf8Message = naclInstance.encode_utf8(message);
 
 	const nonce = naclInstance.crypto_box_random_nonce();
-	const packet = naclInstance
-		.crypto_box(utf8Message, nonce, convertedPublicKey, convertedPrivateKey);
+	const packet = naclInstance.crypto_box(
+		utf8Message, nonce, convertedPublicKey, convertedPrivateKey);
+
 
 	const nonceHex = convert.bufferToHex(nonce);
 	const encryptedMessage = convert.bufferToHex(packet);
@@ -169,10 +173,91 @@ function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
 	const packetBytes = convert.hexToBuffer(packet);
 	const nonceBytes = convert.hexToBuffer(nonce);
 
-	const decoded = naclInstance
-		.crypto_box_open(packetBytes, nonceBytes, convertedPublicKey, convertedPrivateKey);
+	const decoded = naclInstance.crypto_box_open(
+		packetBytes, nonceBytes, convertedPublicKey, convertedPrivateKey,
+	);
 
 	return naclInstance.decode_utf8(decoded);
+}
+
+/**
+ * @method sign
+ * @param transaction Object
+ * @param givenKeys Object
+ *
+ * @return {string}
+ */
+
+function sign(transaction, givenKeys) {
+	const transactionHash = hash.getHash(transaction);
+	const signature = naclInstance.crypto_sign_detached(transactionHash, Buffer.from(givenKeys.privateKey, 'hex'));
+	return Buffer.from(signature).toString('hex');
+}
+
+/**
+ * @method multiSign
+ * @param transaction Object
+ * @param givenKeys Object
+ *
+ * @return {string}
+ */
+
+function multiSign(transaction, givenKeys) {
+	const signTransaction = transaction;
+	delete signTransaction.signature;
+	delete signTransaction.signSignature;
+	const { privateKey } = givenKeys;
+	const bytes = getBytes(signTransaction);
+	const transactionHash = crypto.createHash('sha256').update(bytes).digest();
+	const signature = naclInstance.crypto_sign_detached(
+		transactionHash, convert.hexToBuffer(privateKey),
+	);
+
+	return Buffer.from(signature).toString('hex');
+}
+
+/**
+ * @method verify
+ * @param transaction Object
+ *
+ * @return {boolean}
+ */
+
+function verify(transaction) {
+	const remove = transaction.signSignature ? 128 : 64;
+	const bytes = getBytes(transaction);
+	const data2 = Buffer.alloc(bytes.length - remove).fill(bytes);
+	const transactionHash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
+
+	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
+	const senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
+	const res = naclInstance.crypto_sign_verify_detached(
+		signatureBuffer, transactionHash, senderPublicKeyBuffer,
+	);
+
+	return res;
+}
+
+/**
+ * @method verifySecondSignature
+ * @param transaction Object
+ * @param publicKey Object
+ *
+ * @return {boolean}
+ */
+
+function verifySecondSignature(transaction, publicKey) {
+	const bytes = getBytes(transaction);
+	const data2 = Buffer.alloc(bytes.length - 64).fill(bytes);
+	const transactionHash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
+
+	const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
+	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+	const res = naclInstance.crypto_sign_verify_detached(
+		signSignatureBuffer, transactionHash, publicKeyBuffer,
+	);
+
+	return res;
 }
 
 module.exports = {
@@ -186,4 +271,8 @@ module.exports = {
 	convertPrivateKeyEd2Curve,
 	signMessageWithTwoSecrets,
 	verifyMessageWithTwoPublicKeys,
+	sign,
+	multiSign,
+	verify,
+	verifySecondSignature,
 };

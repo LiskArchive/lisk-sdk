@@ -13,7 +13,6 @@
  *
  */
 import newCrypto from '../../../src/crypto/index';
-import oldCrypto from '../../../src/crypto';
 
 describe('crypto/index.js', () => {
 	it('should be ok', () => {
@@ -93,8 +92,8 @@ describe('crypto/index.js', () => {
 	});
 
 	describe('#getAddressFromPublicKey keys.js', () => {
-		const keys = oldCrypto.getKeys('123');
-		const address1 = oldCrypto.getAddress(keys.publicKey);
+		const keys = newCrypto.getKeys('123');
+		const address1 = newCrypto.getAddress(keys.publicKey);
 
 		const secret = '123';
 		const keypair = newCrypto.getPrivateAndPublicKeyFromSecret(secret);

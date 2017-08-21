@@ -40,4 +40,8 @@ module.exports = {
 	toAddress: convert.toAddress,
 	signMessageWithTwoSecrets: sign.signMessageWithTwoSecrets,
 	verifyMessageWithTwoPublicKeys: sign.verifyMessageWithTwoPublicKeys,
+	sign: sign.sign,
+	multiSign: sign.multiSign,
+	verify: sign.verify,
+	verifySecondSignature: sign.verifySecondSignature,
 };

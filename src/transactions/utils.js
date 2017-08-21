@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import crypto from '../crypto';
+import crypto from '../crypto/index';
 
 const secondSignTransaction = (transactionObject, secondSecret) => {
 	const secondKeys = crypto.getKeys(secondSecret);
