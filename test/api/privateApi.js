@@ -316,6 +316,31 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#optionallyCallCallback', () => {
-		it('should have tests');
+		const { optionallyCallCallback } = privateApi;
+		const result = 'result';
+		const spy = sinon.spy();
+
+		it('should return the result with a callback', () => {
+			const returnValue = optionallyCallCallback(spy, result);
+			(returnValue).should.equal(result);
+		});
+
+		it('should return the result without a callback', () => {
+			const returnValue = optionallyCallCallback(undefined, result);
+			(returnValue).should.equal(result);
+		});
+
+		it('should not call the callback if it is not a function', () => {
+			(optionallyCallCallback.bind(null, { foo: 'bar' }, result)).should.not.throw();
+		});
+
+		it('should not call the callback if it is undefined', () => {
+			(optionallyCallCallback.bind(null, undefined, result)).should.not.throw();
+		});
+
+		it('should call the callback with the result if callback is a function', () => {
+			optionallyCallCallback(spy, result);
+			(spy.calledWithExactly(result)).should.be.true();
+		});
 	});
 });
