@@ -30,7 +30,7 @@ import { getHash } from './hash';
  * @return {string}
  */
 
-function signMessageWithSecret(message, secret) {
+export function signMessageWithSecret(message, secret) {
 	const msgBytes = naclInstance.encode_utf8(message);
 	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
 
@@ -49,7 +49,7 @@ function signMessageWithSecret(message, secret) {
  * @return {string}
  */
 
-function signMessageWithTwoSecrets(message, secret, secondSecret) {
+export function signMessageWithTwoSecrets(message, secret, secondSecret) {
 	const msgBytes = naclInstance.encode_utf8(message);
 	const keypairBytes = getRawPrivateAndPublicKeyFromSecret(secret);
 	const secondKeypairBytes = getRawPrivateAndPublicKeyFromSecret(secondSecret);
@@ -73,7 +73,7 @@ function signMessageWithTwoSecrets(message, secret, secondSecret) {
  * @return {string}
  */
 
-function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondPublicKey) {
+export function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondPublicKey) {
 	const signedMessageBytes = hexToBuffer(signedMessage);
 	const publicKeyBytes = hexToBuffer(publicKey);
 	const secondPublicKeyBytes = hexToBuffer(secondPublicKey);
@@ -110,7 +110,7 @@ function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondPublicKe
  * @return {string}
  */
 
-function signAndPrintMessage(message, secret) {
+export function signAndPrintMessage(message, secret) {
 	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	const messageHeader = '-----MESSAGE-----';
 	const plainMessage = message;
@@ -143,7 +143,7 @@ function signAndPrintMessage(message, secret) {
  * @return {string}
  */
 
-function printSignedMessage(message, signedMessage, publicKey) {
+export function printSignedMessage(message, signedMessage, publicKey) {
 	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
 	const messageHeader = '-----MESSAGE-----';
 	const publicKeyHeader = '-----PUBLIC KEY-----';
@@ -172,7 +172,7 @@ function printSignedMessage(message, signedMessage, publicKey) {
  * @return {string}
  */
 
-function verifyMessageWithPublicKey(signedMessage, publicKey) {
+export function verifyMessageWithPublicKey(signedMessage, publicKey) {
 	const signedMessageBytes = hexToBuffer(signedMessage);
 	const publicKeyBytes = hexToBuffer(publicKey);
 
@@ -197,7 +197,7 @@ function verifyMessageWithPublicKey(signedMessage, publicKey) {
  * @return {object}
  */
 
-function convertPublicKeyEd2Curve(publicKey) {
+export function convertPublicKeyEd2Curve(publicKey) {
 	return ed2curve.convertPublicKey(publicKey);
 }
 
@@ -208,7 +208,7 @@ function convertPublicKeyEd2Curve(publicKey) {
  * @return {object}
  */
 
-function convertPrivateKeyEd2Curve(privateKey) {
+export function convertPrivateKeyEd2Curve(privateKey) {
 	return ed2curve.convertSecretKey(privateKey);
 }
 
@@ -221,7 +221,7 @@ function convertPrivateKeyEd2Curve(privateKey) {
  * @return {object}
  */
 
-function encryptMessageWithSecret(message, secret, recipientPublicKey) {
+export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 	const senderPrivateKey = getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKey);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
@@ -252,7 +252,7 @@ function encryptMessageWithSecret(message, secret, recipientPublicKey) {
  * @return {string}
  */
 
-function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
+export function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
 	const recipientPrivateKey = getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(recipientPrivateKey);
 	const senderPublicKeyBytes = hexToBuffer(senderPublicKey);
@@ -275,7 +275,7 @@ function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
  * @return {string}
  */
 
-function sign(transaction, givenKeys) {
+export function sign(transaction, givenKeys) {
 	const transactionHash = getHash(transaction);
 	const signature = naclInstance.crypto_sign_detached(transactionHash, Buffer.from(givenKeys.privateKey, 'hex'));
 	return Buffer.from(signature).toString('hex');
@@ -289,7 +289,7 @@ function sign(transaction, givenKeys) {
  * @return {string}
  */
 
-function multiSign(transaction, givenKeys) {
+export function multiSign(transaction, givenKeys) {
 	const signTransaction = transaction;
 	delete signTransaction.signature;
 	delete signTransaction.signSignature;
@@ -310,7 +310,7 @@ function multiSign(transaction, givenKeys) {
  * @return {boolean}
  */
 
-function verify(transaction) {
+export function verify(transaction) {
 	const remove = transaction.signSignature ? 128 : 64;
 	const bytes = getBytes(transaction);
 	const data2 = Buffer.alloc(bytes.length - remove).fill(bytes);
@@ -333,7 +333,7 @@ function verify(transaction) {
  * @return {boolean}
  */
 
-function verifySecondSignature(transaction, publicKey) {
+export function verifySecondSignature(transaction, publicKey) {
 	const bytes = getBytes(transaction);
 	const data2 = Buffer.alloc(bytes.length - 64).fill(bytes);
 	const transactionHash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
@@ -346,20 +346,3 @@ function verifySecondSignature(transaction, publicKey) {
 
 	return res;
 }
-
-export {
-	verifyMessageWithPublicKey,
-	signMessageWithSecret,
-	printSignedMessage,
-	signAndPrintMessage,
-	encryptMessageWithSecret,
-	decryptMessageWithSecret,
-	convertPublicKeyEd2Curve,
-	convertPrivateKeyEd2Curve,
-	signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys,
-	sign,
-	multiSign,
-	verify,
-	verifySecondSignature,
-};

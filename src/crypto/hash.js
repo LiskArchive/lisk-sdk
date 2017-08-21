@@ -24,7 +24,7 @@ import { getBytes } from './../transactions/transactionBytes';
  */
 
 // TODO: Discuss behaviour with format and hashing
-function getSha256Hash(stringToSign, format) {
+export function getSha256Hash(stringToSign, format) {
 	const encodedString = (!format || format === 'utf8')
 		? naclInstance.encode_utf8(stringToSign)
 		: naclInstance.from_hex(stringToSign);
@@ -39,12 +39,7 @@ function getSha256Hash(stringToSign, format) {
  * @return {string}
  */
 
-function getHash(transaction) {
+export function getHash(transaction) {
 	const bytes = getBytes(transaction);
 	return crypto.createHash('sha256').update(bytes).digest();
 }
-
-export {
-	getSha256Hash,
-	getHash,
-};

@@ -25,7 +25,7 @@ import { getBytes } from '../transactions/transactionBytes';
  * @return {string}
  */
 
-function bufferToHex(buffer) {
+export function bufferToHex(buffer) {
 	return naclInstance.to_hex(buffer);
 }
 
@@ -36,7 +36,7 @@ function bufferToHex(buffer) {
  * @return {buffer}
  */
 
-function hexToBuffer(hex) {
+export function hexToBuffer(hex) {
 	return naclInstance.from_hex(hex);
 }
 
@@ -49,7 +49,7 @@ function hexToBuffer(hex) {
 
 
 // TODO: Discuss behaviour and output format
-function useFirstEightBufferEntriesReversed(publicKeyBytes) {
+export function useFirstEightBufferEntriesReversed(publicKeyBytes) {
 	return Buffer.from(publicKeyBytes)
 		.slice(0, 8)
 		.reverse();
@@ -62,7 +62,7 @@ function useFirstEightBufferEntriesReversed(publicKeyBytes) {
  * @return {string}
  */
 
-function toAddress(buffer) {
+export function toAddress(buffer) {
 	return `${bignum.fromBuffer(buffer).toString()}L`;
 }
 
@@ -73,7 +73,7 @@ function toAddress(buffer) {
  * @return {string}
  */
 
-function getAddress(publicKey) {
+export function getAddress(publicKey) {
 	const publicKeyHash = getSha256Hash(publicKey, 'hex');
 	const firstEntriesReversed = useFirstEightBufferEntriesReversed(publicKeyHash);
 
@@ -87,7 +87,7 @@ function getAddress(publicKey) {
  * @return {string}
  */
 
-function getId(transaction) {
+export function getId(transaction) {
 	const transactionBytes = getBytes(transaction);
 	const transactionHash = crypto.createHash('sha256').update(transactionBytes).digest();
 	const bufferFromFirstEntriesReversed = transactionHash.slice(0, 8).reverse();
@@ -95,12 +95,3 @@ function getId(transaction) {
 
 	return firstEntriesToNumber.toString();
 }
-
-export {
-	bufferToHex,
-	hexToBuffer,
-	useFirstEightBufferEntriesReversed,
-	toAddress,
-	getAddress,
-	getId,
-};

@@ -24,7 +24,7 @@ import { bufferToHex, useFirstEightBufferEntriesReversed } from './convert';
  * @return {object}
  */
 
-function getPrivateAndPublicKeyFromSecret(secret) {
+export function getPrivateAndPublicKeyFromSecret(secret) {
 	const sha256Hash = getSha256Hash(secret, 'utf8');
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
@@ -41,7 +41,7 @@ function getPrivateAndPublicKeyFromSecret(secret) {
  * @return {object}
  */
 
-function getRawPrivateAndPublicKeyFromSecret(secret) {
+export function getRawPrivateAndPublicKeyFromSecret(secret) {
 	const sha256Hash = getSha256Hash(secret, 'utf8');
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
@@ -58,7 +58,7 @@ function getRawPrivateAndPublicKeyFromSecret(secret) {
  * @return {string}
  */
 
-function getAddressFromPublicKey(publicKey) {
+export function getAddressFromPublicKey(publicKey) {
 	const publicKeyHash = getSha256Hash(publicKey, 'hex');
 
 	const publicKeyTransform = useFirstEightBufferEntriesReversed(publicKeyHash);
@@ -74,14 +74,6 @@ function getAddressFromPublicKey(publicKey) {
  * @return {object}
  */
 
-function getKeys(secret) {
+export function getKeys(secret) {
 	return getPrivateAndPublicKeyFromSecret(secret);
 }
-
-export {
-	getPrivateAndPublicKeyFromSecret as getKeypair,
-	getPrivateAndPublicKeyFromSecret,
-	getRawPrivateAndPublicKeyFromSecret,
-	getAddressFromPublicKey,
-	getKeys,
-};
