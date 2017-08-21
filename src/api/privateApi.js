@@ -304,7 +304,7 @@ function handleSendRequestFailures(requestMethod, requestType, options, error) {
 }
 
 function optionallyCallCallback(callback, result) {
-	if (callback && (typeof callback === 'function')) {
+	if (typeof callback === 'function') {
 		callback(result);
 	}
 	return result;
