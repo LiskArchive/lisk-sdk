@@ -74,5 +74,4 @@ module.exports = {
 	getKeys,
 	getSha256Hash,
 	getHash,
-
 };

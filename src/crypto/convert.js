@@ -15,7 +15,7 @@
 import { Buffer } from 'buffer';
 import bignum from 'browserify-bignum';
 import crypto from 'crypto-browserify';
-import hash from './hash';
+import { getSha256Hash } from './hash';
 import { getBytes } from '../transactions/transactionBytes';
 
 /**
@@ -74,7 +74,7 @@ function toAddress(buffer) {
  */
 
 function getAddress(publicKey) {
-	const publicKeyHash = hash.getSha256Hash(publicKey, 'hex');
+	const publicKeyHash = getSha256Hash(publicKey, 'hex');
 	const firstEntriesReversed = useFirstEightBufferEntriesReversed(publicKeyHash);
 
 	return toAddress(firstEntriesReversed);
@@ -96,7 +96,7 @@ function getId(transaction) {
 	return firstEntriesToNumber.toString();
 }
 
-module.exports = {
+export {
 	bufferToHex,
 	hexToBuffer,
 	useFirstEightBufferEntriesReversed,

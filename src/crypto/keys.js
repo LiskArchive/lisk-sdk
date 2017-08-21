@@ -14,8 +14,8 @@
  */
 import { Buffer } from 'buffer';
 import bignum from 'browserify-bignum';
-import hash from './hash';
-import convert from './convert';
+import { getSha256Hash } from './hash';
+import { bufferToHex, useFirstEightBufferEntriesReversed } from './convert';
 
 /**
  * @method getPrivateAndPublicKeyFromSecret
@@ -25,12 +25,12 @@ import convert from './convert';
  */
 
 function getPrivateAndPublicKeyFromSecret(secret) {
-	const sha256Hash = hash.getSha256Hash(secret, 'utf8');
-	const keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
+	const sha256Hash = getSha256Hash(secret, 'utf8');
+	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
 	return {
-		privateKey: convert.bufferToHex(Buffer.from(keypair.signSk)),
-		publicKey: convert.bufferToHex(Buffer.from(keypair.signPk)),
+		privateKey: bufferToHex(Buffer.from(signSk)),
+		publicKey: bufferToHex(Buffer.from(signPk)),
 	};
 }
 
@@ -42,12 +42,12 @@ function getPrivateAndPublicKeyFromSecret(secret) {
  */
 
 function getRawPrivateAndPublicKeyFromSecret(secret) {
-	const sha256Hash = hash.getSha256Hash(secret, 'utf8');
-	const keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
+	const sha256Hash = getSha256Hash(secret, 'utf8');
+	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
 	return {
-		privateKey: keypair.signSk,
-		publicKey: keypair.signPk,
+		privateKey: signSk,
+		publicKey: signPk,
 	};
 }
 
@@ -59,9 +59,9 @@ function getRawPrivateAndPublicKeyFromSecret(secret) {
  */
 
 function getAddressFromPublicKey(publicKey) {
-	const publicKeyHash = hash.getSha256Hash(publicKey, 'hex');
+	const publicKeyHash = getSha256Hash(publicKey, 'hex');
 
-	const publicKeyTransform = convert.useFirstEightBufferEntriesReversed(publicKeyHash);
+	const publicKeyTransform = useFirstEightBufferEntriesReversed(publicKeyHash);
 	const address = `${bignum.fromBuffer(publicKeyTransform).toString()}L`;
 
 	return address;
@@ -78,8 +78,8 @@ function getKeys(secret) {
 	return getPrivateAndPublicKeyFromSecret(secret);
 }
 
-module.exports = {
-	getKeypair: getPrivateAndPublicKeyFromSecret,
+export {
+	getPrivateAndPublicKeyFromSecret as getKeypair,
 	getPrivateAndPublicKeyFromSecret,
 	getRawPrivateAndPublicKeyFromSecret,
 	getAddressFromPublicKey,

@@ -44,7 +44,7 @@ function getHash(transaction) {
 	return crypto.createHash('sha256').update(bytes).digest();
 }
 
-module.exports = {
+export {
 	getSha256Hash,
 	getHash,
 };
