@@ -25,7 +25,7 @@ describe('crypto.js', () => {
 	});
 
 	it('should has properties', () => {
-		const properties = ['getHash', 'getId', 'getFee', 'sign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
+		const properties = ['getHash', 'getId', 'sign', 'getKeys', 'getAddress', 'verify', 'verifySecondSignature'];
 		properties.forEach((property) => {
 			(cryptoModule).should.have.property(property);
 		});
@@ -177,44 +177,6 @@ describe('crypto.js', () => {
 			(address).should.be.ok();
 			(address).should.be.type('string');
 			(address).should.be.equal('18160565574430594874L');
-		});
-	});
-
-	describe('#getFee', () => {
-		const getFee = cryptoModule.getFee;
-
-		it('should be ok', () => {
-			(getFee).should.be.ok();
-		});
-
-		it('should be a function', () => {
-			(getFee).should.be.type('function');
-		});
-
-		it('should return number', () => {
-			const fee = getFee({ amount: 100000, type: 0 });
-			(fee).should.be.type('number');
-			(fee).should.be.not.NaN();
-		});
-
-		it('should return 10000000', () => {
-			const fee = getFee({ amount: 100000, type: 0 });
-			(fee).should.be.type('number').and.equal(10000000);
-		});
-
-		it('should return 500000000', () => {
-			const fee = getFee({ type: 1 });
-			(fee).should.be.type('number').and.equal(500000000);
-		});
-
-		it('should be equal 2500000000', () => {
-			const fee = getFee({ type: 2 });
-			(fee).should.be.type('number').and.equal(2500000000);
-		});
-
-		it('should be equal 100000000', () => {
-			const fee = getFee({ type: 3 });
-			(fee).should.be.type('number').and.equal(100000000);
 		});
 	});
 

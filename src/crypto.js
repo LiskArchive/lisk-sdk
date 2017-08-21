@@ -19,20 +19,8 @@
  */
 /* eslint-disable no-plusplus */
 import crypto from 'crypto-browserify';
-import constants from './constants';
 import cryptoModule from './crypto/index';
 import { getBytes } from './transactions/transactionBytes';
-
-/**
- * @method getFee
- * @param transaction Object
- *
- * @return {number}
- */
-
-function getFee(transaction) {
-	return constants.fee[transaction.type];
-}
 
 /**
  * @method sign
@@ -125,7 +113,6 @@ function verifySecondSignature(transaction, publicKey) {
 }
 
 module.exports = {
-	getFee,
 	sign,
 	multiSign,
 	verify,

@@ -14,7 +14,9 @@
  */
 import { Buffer } from 'buffer';
 import bignum from 'browserify-bignum';
+import crypto from 'crypto-browserify';
 import hash from './hash';
+import { getBytes } from '../transactions/transactionBytes';
 
 function bufferToHex(buffer) {
 	return naclInstance.to_hex(buffer);
