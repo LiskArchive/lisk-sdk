@@ -16,11 +16,12 @@ import cryptoModule from '../../src/crypto/index';
 
 describe('hash', () => {
 	describe('#getSha256Hash hash.js', () => {
+		const defaultHash = 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
+		const defaultString = '123';
 		it('should get a correct Sha256 hash', () => {
-			const string = '123';
-			const hashString = cryptoModule.bufferToHex(cryptoModule.getSha256Hash(string));
+			const hashString = cryptoModule.bufferToHex(cryptoModule.getSha256Hash(defaultString));
 
-			(hashString).should.be.equal('a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
+			(hashString).should.be.equal(defaultHash);
 		});
 	});
 

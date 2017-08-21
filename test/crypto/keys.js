@@ -15,12 +15,12 @@
 import cryptoModule from '../../src/crypto/index';
 
 describe('keys', () => {
-	describe('#getPrivateAndPublicKeyFromSecret keys.js', () => {
-		const secret = '123';
-		const expectedPublicKey = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
-		const expectedPrivateKey = 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
-
-		const keypair = cryptoModule.getPrivateAndPublicKeyFromSecret(secret);
+	const defaultSecret = 'secret';
+	const defaultAddress = '18160565574430594874L';
+	const expectedPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const expectedPrivateKey = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	describe('#getPrivateAndPublicKeyFromSecret', () => {
+		const keypair = cryptoModule.getPrivateAndPublicKeyFromSecret(defaultSecret);
 
 		it('should generate the correct publicKey from a secret', () => {
 			(keypair.publicKey).should.be.equal(expectedPublicKey);
@@ -31,56 +31,41 @@ describe('keys', () => {
 		});
 	});
 
-	describe('#getRawPrivateAndPublicKeyFromSecret keys.js', () => {
-		const secret = '123';
+	describe('#getRawPrivateAndPublicKeyFromSecret', () => {
+		const keypair = cryptoModule.getRawPrivateAndPublicKeyFromSecret(defaultSecret);
 
-		const keypair1 = cryptoModule.getPrivateAndPublicKeyFromSecret(secret);
-		const keypair2 = cryptoModule.getRawPrivateAndPublicKeyFromSecret(secret);
-
-		it('should create the same privateKey as the unraw function', () => {
+		it('should create buffer publicKey', () => {
 			(cryptoModule.bufferToHex(
-				Buffer.from(keypair2.publicKey))
-			).should.be.equal(keypair1.publicKey);
+				Buffer.from(keypair.publicKey))
+			).should.be.equal(expectedPublicKey);
 		});
 
-		it('should create the same privateKey as the unraw function', () => {
-			(cryptoModule.bufferToHex(Buffer.from(keypair2.privateKey)))
-				.should.be.equal(keypair1.privateKey);
+		it('should create buffer privateKey', () => {
+			(cryptoModule.bufferToHex(Buffer.from(keypair.privateKey)))
+				.should.be.equal(expectedPrivateKey);
 		});
 	});
 
-	describe('#getAddressFromPublicKey keys.js', () => {
-		const keys = cryptoModule.getKeys('123');
-		const address1 = cryptoModule.getAddress(keys.publicKey);
+	describe('#getAddressFromPublicKey', () => {
+		const address = cryptoModule.getAddressFromPublicKey(expectedPublicKey);
 
-		const secret = '123';
-		const keypair = cryptoModule.getPrivateAndPublicKeyFromSecret(secret);
-		const publicKey = keypair.publicKey;
-		const address = cryptoModule.getAddressFromPublicKey(publicKey);
-
-		it('should generate the same address as the old function', () => {
-			(address).should.be.equal(address1);
+		it('should generate address from publicKey', () => {
+			(address).should.be.equal(defaultAddress);
 		});
 	});
 
 	describe('#getKeys', () => {
 		const getKeys = cryptoModule.getKeys;
 
-		it('should be ok', () => {
-			(getKeys).should.be.ok();
-		});
-
-		it('should be a function', () => {
-			(getKeys).should.be.type('function');
-		});
-
 		it('should return two keys in hex', () => {
 			const keys = getKeys('secret');
 
-			(keys).should.be.ok();
-			(keys).should.be.type('object');
 			(keys).should.have.property('publicKey').and.be.type('string').and.be.hexString();
 			(keys).should.have.property('privateKey').and.be.type('string').and.be.hexString();
+			(keys).should.be.eql({
+				publicKey: expectedPublicKey,
+				privateKey: expectedPrivateKey,
+			});
 		});
 	});
 });

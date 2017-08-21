@@ -14,32 +14,36 @@
  */
 import cryptoModule from '../../src/crypto/index';
 
-describe('convert', () => {
-	describe('#bufferToHex convert.js', () => {
+describe('convert @now', () => {
+	const defaultBuffer = naclInstance.encode_utf8('\xe5\xe4\xf6');
+	const defaultHex = 'c3a5c3a4c3b6';
+	describe('#bufferToHex', () => {
 		it('should create Hex from Buffer type', () => {
-			// var buffer = [72, 69, 76, 76, 79];
-			const hex = cryptoModule.bufferToHex(naclInstance.encode_utf8('\xe5\xe4\xf6'));
-			(hex).should.be.equal('c3a5c3a4c3b6');
+			const hex = cryptoModule.bufferToHex(defaultBuffer);
+			(hex).should.be.equal(defaultHex);
 		});
 	});
 
-	describe('#hexToBuffer convert.js', () => {
+	describe('#hexToBuffer', () => {
 		it('should create Buffer from Hex type', () => {
-			// var hex = 'c3a5c3a4c3b6';
 			const buffer = cryptoModule.hexToBuffer('68656c6c6f');
 			(naclInstance.decode_utf8(buffer)).should.be.equal('hello');
 		});
 	});
 
-	describe('#useFirstEightBufferEntriesReversed, #toAddress convert.js', () => {
-		it('should use a Buffer, cut after first 8 entries and reverse them. Create numeric addresss from this', () => {
-			const keypair = cryptoModule.getPrivateAndPublicKeyFromSecret('123');
-			const publicKeyHash = cryptoModule.getSha256Hash(keypair.publicKey, 'hex');
-			const reversedAndCut = cryptoModule.useFirstEightBufferEntriesReversed(publicKeyHash);
-			const numbericAddress = cryptoModule.toAddress(reversedAndCut);
-
-			(numbericAddress).should.be.equal('12475940823804898745L');
+	describe('#useFirstEightBufferEntriesReversed', () => {
+		it('should use a Buffer, cut after first 8 entries and reverse them', () => {
+			const bufferEntry = Buffer.from('0123456789');
+			const reversedAndCut = cryptoModule.useFirstEightBufferEntriesReversed(bufferEntry);
+			(reversedAndCut).should.be.eql(Buffer.from('76543210'));
 		});
+	});
+
+	describe('#toAddress', () => {
+		const bufferInit = Buffer.from('Hello!');
+		const address = cryptoModule.toAddress(bufferInit);
+
+		(address).should.be.eql('79600447942433L');
 	});
 
 	describe('#getId', () => {
