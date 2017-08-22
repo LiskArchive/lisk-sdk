@@ -155,11 +155,40 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#banNode', () => {
+		const { banNode } = privateApi;
+		let currentNode;
+		let selectNodeStub;
+		let restoreSelectNodeStub;
+
+		beforeEach(() => {
+			selectNodeStub = sinon.stub();
+			// eslint-disable-next-line no-underscore-dangle
+			restoreSelectNodeStub = privateApi.__set__('selectNode', selectNodeStub);
+			currentNode = LSK.currentPeer;
+		});
+
+		afterEach(() => {
+			restoreSelectNodeStub();
+		});
+
 		it('should add current node to banned peers', () => {
-			const currentNode = LSK.currentPeer;
-			privateApi.banNode.call(LSK);
+			banNode.call(LSK);
 
 			(LSK.bannedPeers).should.containEql(currentNode);
+		});
+
+		it('should not duplicate a banned peer', () => {
+			const bannedPeers = [currentNode];
+			LSK.bannedPeers = bannedPeers;
+			banNode.call(LSK);
+
+			(LSK.bannedPeers).should.be.eql(bannedPeers);
+		});
+
+		it('should select a node', () => {
+			banNode.call(LSK);
+
+			(selectNodeStub.calledOn(LSK)).should.be.true();
 		});
 	});
 
