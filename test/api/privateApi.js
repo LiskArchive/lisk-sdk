@@ -73,16 +73,18 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#getURLPrefix', () => {
-		it('should be http when ssl is false', () => {
-			LSK.ssl = false;
+		const { getURLPrefix } = privateApi;
 
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('http');
+		it('should return http when ssl is set to false', () => {
+			LSK.ssl = false;
+			const result = getURLPrefix.call(LSK);
+			(result).should.be.equal('http');
 		});
 
-		it('should be https when ssl is true', () => {
+		it('should return https when ssl is set to true', () => {
 			LSK.ssl = true;
-
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('https');
+			const result = getURLPrefix.call(LSK);
+			(result).should.be.equal('https');
 		});
 	});
 
