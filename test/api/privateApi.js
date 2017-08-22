@@ -21,11 +21,14 @@ describe('privateApi module @now', () => {
 	const localNode = 'localhost';
 	const externalNode = 'external';
 	const externalTestnetNode = 'testnet';
-	const defaultData = 'testData';
+	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const GET = 'GET';
 	const POST = 'POST';
 	const defaultMethod = POST;
 	const defaultEndpoint = 'transactions';
+	const defaultData = 'testData';
+	const defaultPeers = [localNode, externalNode];
 
 	let LSK;
 	let sendRequestResult;
@@ -35,8 +38,8 @@ describe('privateApi module @now', () => {
 		LSK = {
 			randomPeer: false,
 			currentPeer: localNode,
-			defaultPeers: [localNode, externalNode],
-			defaultSSLPeers: [localNode, externalNode],
+			defaultPeers: [].concat(defaultPeers),
+			defaultSSLPeers: ['sslpeer'].concat(defaultPeers),
 			defaultTestnetPeers: [localNode, externalTestnetNode],
 			bannedPeers: [],
 			port,
@@ -96,6 +99,10 @@ describe('privateApi module @now', () => {
 		});
 	});
 
+	describe('#getPeers', () => {
+		it('should have tests');
+	});
+
 	describe('#getRandomPeer', () => {
 		it('should give a random peer', () => {
 			(privateApi.getRandomPeer.call(LSK)).should.be.ok();
@@ -118,83 +125,113 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#checkReDial', () => {
+		const { checkReDial } = privateApi;
+		let getPeersStub;
+		let restoreGetPeersStub;
+		let netHashOptionsStub;
+		let setTestnetStub;
+
 		beforeEach(() => {
-			LSK.randomPeer = true;
+			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
+			netHashOptionsStub = sinon.stub(privateApi, 'netHashOptions');
+			setTestnetStub = sinon.stub(LSK, 'setTestnet');
 		});
 
-		it('should check if all the peers are already banned', () => {
-			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
+		afterEach(() => {
+			restoreGetPeersStub();
+			netHashOptionsStub.restore();
+			setTestnetStub.restore();
 		});
 
-		it.skip('should be able to get a new node when current one is not reachable', () => {
-			return LSK.sendRequest('blocks/getHeight', {}, (result) => {
-				(result).should.be.type('object');
+		describe('with random peer', () => {
+			let result;
+
+			beforeEach(() => {
+				LSK.randomPeer = true;
+			});
+
+			it('should get peers', () => {
+				checkReDial.call(LSK);
+				(getPeersStub.calledOn(LSK)).should.be.true();
+			});
+
+			describe('when nethash is set', () => {
+				describe('when the nethash matches the testnet', () => {
+					beforeEach(() => {
+						LSK.options.nethash = testnetNethash;
+						result = checkReDial.call(LSK);
+					});
+
+					it('should set testnet to true', () => {
+						(setTestnetStub.calledOn(LSK)).should.be.true();
+						(setTestnetStub.calledWithExactly(true)).should.be.true();
+					});
+
+					it('should return true', () => {
+						(result).should.be.true();
+					});
+				});
+
+				describe('when the nethash matches the mainnet', () => {
+					beforeEach(() => {
+						LSK.options.nethash = mainnetNethash;
+						result = checkReDial.call(LSK);
+					});
+
+					it('should set testnet to false', () => {
+						(setTestnetStub.calledOn(LSK)).should.be.true();
+						(setTestnetStub.calledWithExactly(false)).should.be.true();
+					});
+
+					it('should return true', () => {
+						(result).should.be.true();
+					});
+				});
+
+				describe('when the nethash matches neither the mainnet nor the testnet', () => {
+					beforeEach(() => {
+						LSK.options.nethash = 'abc123';
+						result = checkReDial.call(LSK);
+					});
+
+					it('should return false', () => {
+						(result).should.be.false();
+					});
+				});
+			});
+
+			describe('when nethash is not set', () => {
+				beforeEach(() => {
+					LSK.options.nethash = undefined;
+				});
+
+				it('should return true if there are peers which are not banned', () => {
+					LSK.bannedPeers = ['bannedPeer'].concat(LSK.defaultPeers.slice(1));
+					result = checkReDial.call(LSK);
+
+					(result).should.be.true();
+				});
+
+				it('should return false if there are no peers which are not banned', () => {
+					LSK.bannedPeers = [].concat(LSK.defaultPeers);
+					result = checkReDial.call(LSK);
+
+					(result).should.be.false();
+				});
 			});
 		});
 
-		it('should recognize that now all the peers are banned for mainnet', () => {
-			LSK.bannedPeers = LSK.defaultPeers;
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
-		});
-
-		it('should recognize that now all the peers are banned for testnet', () => {
-			LSK.testnet = true;
-			LSK.bannedPeers = LSK.defaultTestnetPeers;
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
-		});
-
-		it('should recognize that now all the peers are banned for ssl', () => {
-			LSK.ssl = true;
-			LSK.bannedPeers = LSK.defaultSSLPeers;
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
-		});
-
-		it.skip('should stop redial when all the peers are banned already', () => {
-			LSK.bannedPeers = LSK.defaultPeers;
-			LSK.currentPeer = '';
-
-			return LSK.sendRequest('blocks/getHeight').then((e) => {
-				(e.message).should.be.equal('could not create http request to any of the given peers');
+		describe('without random peer', () => {
+			beforeEach(() => {
+				LSK.randomPeer = false;
 			});
-		});
 
-		it('should redial to new node when randomPeer is set true', () => {
-			LSK.randomPeer = true;
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
-		});
-
-		it('should not redial to new node when randomPeer is set to true but unknown nethash provided', () => {
-			LSK.options.nethash = '123';
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
-		});
-
-		it('should redial to mainnet nodes when nethash is set and randomPeer is true', () => {
-			LSK.options.nethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-			const stub = sinon.stub(LSK, 'setTestnet');
-
-			(privateApi.checkReDial.call(LSK)).should.be.true();
-			(stub.calledWithExactly(false)).should.be.true();
-			stub.restore();
-		});
-
-		it('should redial to testnet nodes when nethash is set and randomPeer is true', () => {
-			LSK.options.nethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-			const stub = sinon.stub(LSK, 'setTestnet');
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
-			(stub.calledWithExactly(true)).should.be.true();
-			stub.restore();
-		});
-
-		it('should not redial when randomPeer is set false', () => {
-			LSK.randomPeer = false;
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
+			it('should return false', () => {
+				const result = checkReDial.call(LSK);
+				(result).should.be.false();
+			});
 		});
 	});
 
