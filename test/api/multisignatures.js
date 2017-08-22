@@ -310,7 +310,7 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
-	it('using null member should fail', function (done) {
+	it('using null member in signature keysgroup should fail', function (done) {
 		var nullMemberParams = {
 			secret: multisigAccount.password,
 			lifetime: parseInt(node.randomNumber(1,72)),
@@ -326,7 +326,7 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
-	it('using null member via POST /peer/transaction should fail', function (done) {
+	it('using null member in signature keysgroup via POST /peer/transaction should fail', function (done) {
 		var nullMemberTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, null], 1, 2);
 
 		node.post('/peer/transactions', {
@@ -334,6 +334,20 @@ describe('PUT /api/multisignatures', function () {
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('message').to.equal('Invalid member in keysgroup');
+			done();
+		});
+	});
+
+	it('using invalid member in signature keysgroup should fail', function (done) {
+		var memberAccount = node.randomAccount();
+		var memberAccount2 = node.randomAccount();
+		var nullMemberTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey + 'A', '+' + memberAccount.publicKey, '+' + memberAccount2.publicKey], 1, 2);
+
+		node.post('/peer/transactions', {
+			transaction: nullMemberTx
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.equal('Invalid public key in multisignature keysgroup');
 			done();
 		});
 	});
