@@ -4,3 +4,4 @@
 [submodule "test/lisk-js"]
 	path = test/lisk-js
 	url = https://github.com/LiskHQ/lisk-js.git
+	branch = 0.4.5
