@@ -24,25 +24,26 @@ const GET = 'GET';
  */
 
 function netHashOptions() {
+	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+
+	const commonNethash = {
+		'Content-Type': 'application/json',
+		os: 'lisk-js-api',
+		version: '1.0.0',
+		minVersion: '>=0.5.0',
+		port: this.port,
+	};
+
 	return {
-		testnet: {
-			'Content-Type': 'application/json',
-			nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			broadhash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			os: 'lisk-js-api',
-			version: '1.0.0',
-			minVersion: '>=0.5.0',
-			port: this.port,
-		},
-		mainnet: {
-			'Content-Type': 'application/json',
-			nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			os: 'lisk-js-api',
-			version: '1.0.0',
-			minVersion: '>=0.5.0',
-			port: this.port,
-		},
+		testnet: Object.assign({}, commonNethash, {
+			nethash: testnetNethash,
+			broadhash: testnetNethash,
+		}),
+		mainnet: Object.assign({}, commonNethash, {
+			nethash: mainnetNethash,
+			broadhash: mainnetNethash,
+		}),
 	};
 }
 
