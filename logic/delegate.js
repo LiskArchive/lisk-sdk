@@ -159,6 +159,7 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 		vote: 0
 	};
 
+	// Not sure if this condition is required here.
 	if (trs.asset.delegate.username) {
 		data.u_username = null;
 		data.username = trs.asset.delegate.username;
@@ -205,6 +206,7 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		isDelegate: 0
 	};
 
+	// Not sure if we need this check here.
 	if (trs.asset.delegate.username) {
 		data.username = null;
 		data.u_username = trs.asset.delegate.username;
@@ -233,6 +235,7 @@ Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {
 		data.u_username = null;
 	}
 
+
 	modules.accounts.setAccountAndGet(data, cb);
 };
 
@@ -258,7 +261,7 @@ Delegate.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.delegate, Delegate.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate delegate schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate delegate schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
