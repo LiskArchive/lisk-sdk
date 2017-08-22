@@ -309,6 +309,34 @@ describe('PUT /api/multisignatures', function () {
 			done();
 		});
 	});
+
+	it('using null member should fail', function (done) {
+		var nullMemberParams = {
+			secret: multisigAccount.password,
+			lifetime: parseInt(node.randomNumber(1,72)),
+			min: requiredSignatures,
+			keysgroup: makeKeysGroup()
+		};
+		nullMemberParams.keysgroup.push(null);
+
+		node.put('/api/multisignatures', nullMemberParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid member in keysgroup');
+			done();
+		});
+	});
+
+	it('using null member via POST /peer/transaction should fail', function (done) {
+		var nullMemberTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, null], 1, 2);
+
+		node.post('/peer/transactions', {
+			transaction: nullMemberTx
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('message').to.equal('Invalid member in keysgroup');
+			done();
+		});
+	});
 });
 
 describe('GET /api/multisignatures/pending', function () {

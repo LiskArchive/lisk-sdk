@@ -267,7 +267,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 
 /**
  * Calls `ready` based on trs type (see privateTypes)
- * @see privateTypes 
+ * @see privateTypes
  * @param {transaction} trs
  * @param {account} sender
  * @return {function|boolean} calls `ready` | false
@@ -475,9 +475,13 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	if (multisignatures.length === 0) {
 		if (trs.asset && trs.asset.multisignature && trs.asset.multisignature.keysgroup) {
 
-			multisignatures = trs.asset.multisignature.keysgroup.map(function (key) {
-				return key.slice(1);
-			});
+			for (var i = 0; i < trs.asset.multisignature.keysgroup.length; i++) {
+				var key = trs.asset.multisignature.keysgroup[i];
+				if(!key || typeof key !== 'string'){
+					return setImmediate(cb, 'Invalid member in keysgroup');
+				}
+				multisignatures.push(key.slice(1));
+			}
 		}
 	}
 
@@ -977,7 +981,7 @@ Transaction.prototype.afterSave = function (trs, cb) {
  * @property {Object} [asset.outTransfer] - Contains dappId and transactionId
  * @property {Object} [asset.inTransfer] - Contains dappId
  * @property {votes} [asset.votes] - Contains multiple votes to a transactionId
- * 
+ *
  */
 Transaction.prototype.schema = {
 	id: 'Transaction',
