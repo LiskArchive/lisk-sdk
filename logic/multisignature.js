@@ -78,10 +78,10 @@ Multisignature.prototype.calculateFee = function (trs, sender) {
 /**
  * Verifies multisignature fields from transaction asset and sender.
  * @implements module:transactions#Transaction~verifySignature
- * @param {transaction} trs 
+ * @param {transaction} trs
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|transaction} returns error string if invalid parameter | 
+ * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * trs validated.
  */
 Multisignature.prototype.verify = function (trs, sender, cb) {
@@ -150,6 +150,10 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 	}
 
 	async.eachSeries(trs.asset.multisignature.keysgroup, function (key, cb) {
+		if (!key || typeof key !== 'string') {
+			return setImmediate(cb, 'Invalid member in keysgroup');
+		}
+
 		var math = key[0];
 		var publicKey = key.slice(1);
 
@@ -313,7 +317,7 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
  * Turns off unconfirmedSignatures for sender address.
  * Inverts multisignature signs and merges into sender address
  * to unconfirmed fields.
- * 
+ *
  * @param {transaction} trs - Uses multisignature from asset.
  * @param {account} sender
  * @param {function} cb - Callback function.

@@ -39,7 +39,7 @@ def startLisk() {
     cd test/lisk-js/; npm install; cd ../..
     cp test/config.json test/genesisBlock.json .
     export NODE_ENV=test
-    BUILD_ID=dontKillMe ~/start_lisk.sh
+    JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
