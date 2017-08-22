@@ -224,8 +224,90 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#selectNode', () => {
-		it('should return the node from initial settings when set', () => {
-			(privateApi.selectNode.call(LSK)).should.be.equal(localNode);
+		const { selectNode } = privateApi;
+		const customNode = 'customPeer';
+		const getRandomPeerResult = externalNode;
+
+		let getRandomPeerStub;
+		let restoreGetRandomPeer;
+
+		beforeEach(() => {
+			getRandomPeerStub = sinon.stub().returns(getRandomPeerResult);
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetRandomPeer = privateApi.__set__('getRandomPeer', getRandomPeerStub);
+		});
+
+		afterEach(() => {
+			restoreGetRandomPeer();
+		});
+
+		describe('if a node was provided in the options', () => {
+			beforeEach(() => {
+				LSK.options.node = customNode;
+			});
+			describe('if randomPeer is set to false', () => {
+				beforeEach(() => {
+					LSK.randomPeer = false;
+				});
+
+				it('should throw an error if the provided node is banned', () => {
+					LSK.bannedPeers = [customNode];
+					(selectNode.bind(LSK)).should.throw('Cannot select node: provided node has been banned and randomPeer is not set to true.');
+				});
+
+				it('should return the provided node if it is not banned', () => {
+					const result = selectNode.call(LSK);
+					(result).should.be.equal(customNode);
+				});
+			});
+
+			describe('if randomPeer is set to true', () => {
+				beforeEach(() => {
+					LSK.randomPeer = true;
+				});
+
+				it('should call getRandomPeer', () => {
+					selectNode.call(LSK);
+					(getRandomPeerStub.calledOn(LSK)).should.be.true();
+				});
+
+				it('should return a random peer', () => {
+					const result = selectNode.call(LSK);
+					(result).should.be.equal(getRandomPeerResult);
+				});
+			});
+		});
+
+		describe('if a node was not provided in the options', () => {
+			beforeEach(() => {
+				LSK.options.node = undefined;
+			});
+
+			describe('if randomPeer is set to false', () => {
+				beforeEach(() => {
+					LSK.randomPeer = false;
+				});
+
+				it('should throw an error', () => {
+					(selectNode.bind(LSK)).should.throw('Cannot select node: no node provided and randomPeer is not set to true.');
+				});
+			});
+
+			describe('if randomPeer is set to true', () => {
+				beforeEach(() => {
+					LSK.randomPeer = true;
+				});
+
+				it('should call getRandomPeer', () => {
+					selectNode.call(LSK);
+					(getRandomPeerStub.calledOn(LSK)).should.be.true();
+				});
+
+				it('should return a random peer', () => {
+					const result = selectNode.call(LSK);
+					(result).should.be.equal(getRandomPeerResult);
+				});
+			});
 		});
 	});
 
