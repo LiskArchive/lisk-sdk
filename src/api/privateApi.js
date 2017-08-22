@@ -76,6 +76,16 @@ function getFullUrl() {
 }
 
 /**
+ * @method getPeers
+ * @return peers Array
+ * @private
+ */
+
+function getPeers() {
+	return [];
+}
+
+/**
  * @method getRandomPeer
  * @return peer string
  * @private
@@ -133,10 +143,9 @@ function banNode() {
  */
 
 function checkReDial() {
-	let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
-	if (this.testnet) peers = this.defaultTestnetPeers;
-
-	let reconnect = true;
+	const peers = getPeers.call(this);
+	// let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
+	// if (this.testnet) peers = this.defaultTestnetPeers;
 
 	// RandomPeer discovery explicitly set
 	if (this.randomPeer === true) {
@@ -145,26 +154,21 @@ function checkReDial() {
 			// Nethash is equal to testnet nethash, we can proceed to get testnet peers
 			if (this.options.nethash === netHashOptions.call(this).testnet.nethash) {
 				this.setTestnet(true);
-				reconnect = true;
+				return true;
 			// Nethash is equal to mainnet nethash, we can proceed to get mainnet peers
 			} else if (this.options.nethash === netHashOptions.call(this).mainnet.nethash) {
 				this.setTestnet(false);
-				reconnect = true;
-			// Nethash is neither mainnet nor testnet, do not proceed to get peers
-			} else {
-				reconnect = false;
+				return true;
 			}
-		// No nethash set, we can take the usual approach:
-		// just when there are not-banned peers, take one
-		} else {
-			reconnect = (peers.length !== this.bannedPeers.length);
+			// Nethash is neither mainnet nor testnet, do not proceed to get peers
+			return false;
 		}
-	// RandomPeer is not explicitly set, no peer discovery
-	} else {
-		reconnect = false;
+		// No nethash set, we can take the usual approach:
+		// take a random peer if there is any that is not banned
+		return peers.some(peer => !this.bannedPeers.includes(peer));
 	}
-
-	return reconnect;
+	// RandomPeer is not explicitly set, no peer discovery
+	return false;
 }
 
 /**
@@ -310,6 +314,7 @@ module.exports = {
 	getFullUrl,
 	getURLPrefix,
 	selectNode,
+	getPeers,
 	getRandomPeer,
 	banNode,
 	checkReDial,
