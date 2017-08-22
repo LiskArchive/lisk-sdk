@@ -105,24 +105,18 @@ function getRandomPeer() {
  */
 
 function selectNode() {
-	let currentRandomPeer;
-
-	if (this.options.node) {
-		currentRandomPeer = this.currentPeer;
-	}
+	const providedNode = this.options.node;
 
 	if (this.randomPeer) {
-		currentRandomPeer = getRandomPeer.call(this);
-		let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
-		if (this.testnet) peers = this.defaultTestnetPeers;
-
-		peers.forEach(() => {
-			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) return;
-			currentRandomPeer = getRandomPeer.call(this);
-		});
+		return getRandomPeer.call(this);
+	} else if (providedNode) {
+		if (this.bannedPeers.includes(providedNode)) {
+			throw new Error('Cannot select node: provided node has been banned and randomPeer is not set to true.');
+		}
+		return providedNode;
 	}
 
-	return currentRandomPeer;
+	throw new Error('Cannot select node: no node provided and randomPeer is not set to true.');
 }
 
 /**
