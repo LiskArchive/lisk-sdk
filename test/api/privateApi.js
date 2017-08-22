@@ -203,6 +203,11 @@ describe('privateApi module @now', () => {
 			restoreGetPeersStub();
 		});
 
+		it('should throw an error if all relevant peers are banned', () => {
+			LSK.bannedPeers = [].concat(defaultPeers);
+			(getRandomPeer.bind(LSK)).should.throw('Cannot get random peer: all relevant peers have been banned.');
+		});
+
 		it('should get peers', () => {
 			getRandomPeer.call(LSK);
 			(getPeersStub.calledOn(LSK)).should.be.true();

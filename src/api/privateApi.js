@@ -92,7 +92,12 @@ function getPeers() {
  */
 
 function getRandomPeer() {
-	const peers = getPeers.call(this);
+	const peers = getPeers.call(this)
+		.filter(peer => !this.bannedPeers.includes(peer));
+
+	if (!peers.length) {
+		throw new Error('Cannot get random peer: all relevant peers have been banned.');
+	}
 
 	const randomIndex = Math.floor((Math.random() * peers.length));
 	return peers[randomIndex];
