@@ -107,7 +107,7 @@ describe('multisignature', function () {
 				});
 			});
 
-			it('should return error when multisignature keysgroup has an entry which does is null', function (done) {
+			it('should return error when multisignature keysgroup has an entry which is null', function (done) {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, null], 1, 2);
 				trs.senderId = node.gAccount.address;
 
@@ -117,7 +117,7 @@ describe('multisignature', function () {
 				});
 			});
 
-			it('should return error when multisignature keysgroup has an entry which does is undefined', function (done) {
+			it('should return error when multisignature keysgroup has an entry which is undefined', function (done) {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, undefined], 1, 2);
 				trs.senderId = node.gAccount.address;
 
@@ -127,7 +127,7 @@ describe('multisignature', function () {
 				});
 			});
 
-			it('should return error when multisignature keysgroup has an entry which does is an integer', function (done) {
+			it('should return error when multisignature keysgroup has an entry which is an integer', function (done) {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, 12], 1, 2);
 				trs.senderId = node.gAccount.address;
 
@@ -161,7 +161,7 @@ describe('multisignature', function () {
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which does is null', function (done) {
+		it('should return error when multisignature keysgroup has an entry which is null', function (done) {
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, null], 1, 2);
 			trs.senderId = node.gAccount.address;
 
@@ -171,7 +171,7 @@ describe('multisignature', function () {
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which does is undefined', function (done) {
+		it('should return error when multisignature keysgroup has an entry which is undefined', function (done) {
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, undefined], 1, 2);
 			trs.senderId = node.gAccount.address;
 
@@ -181,7 +181,7 @@ describe('multisignature', function () {
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which does is an integer', function (done) {
+		it('should return error when multisignature keysgroup has an entry which is an integer', function (done) {
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, 12], 1, 2);
 			trs.senderId = node.gAccount.address;
 
