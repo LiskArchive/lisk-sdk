@@ -173,16 +173,16 @@ function checkReDial() {
  * @private
  */
 
-function checkOptions(options) {
+const checkOptions = (options) => {
 	Object.entries(options)
 		.forEach(([key, value]) => {
 			if (value === undefined || Number.isNaN(value)) {
-				throw new Error(`parameter value "${key}" should not be ${value}`);
+				throw new Error(`"${key}" option should not be ${value}`);
 			}
 		});
 
 	return options;
-}
+};
 
 /**
  * @method serialiseHTTPData
@@ -191,11 +191,11 @@ function checkOptions(options) {
  * @return serialisedData string
  */
 
-function serialiseHTTPData(data) {
+const serialiseHTTPData = (data) => {
 	const trimmed = utils.trimObj(data);
 	const queryString = utils.toQueryString(trimmed);
 	return `?${queryString}`;
-}
+};
 
 /**
  * @method createRequestObject
