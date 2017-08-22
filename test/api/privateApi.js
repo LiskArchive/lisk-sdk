@@ -198,17 +198,32 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe.skip('#checkOptions', () => {
-		it('should not accept falsy options like undefined', () => {
-			(function sendRequestWithUndefinedLimit() {
-				LSK.sendRequest('delegates/', { limit: undefined }, () => {});
-			}).should.throw('parameter value "limit" should not be undefined');
+	describe('#checkOptions', () => {
+		const { checkOptions } = privateApi;
+		const goodOptions = {
+			key1: 'value 1',
+			key2: 2,
+		};
+
+		it('should throw an error if any option is undefined', () => {
+			const optionsWithUndefined = Object.assign({
+				badKey: undefined,
+			}, goodOptions);
+
+			(checkOptions.bind(null, optionsWithUndefined)).should.throw('"badKey" option should not be undefined');
 		});
 
-		it('should not accept falsy options like NaN', () => {
-			(function sendRequestWithNaNLimit() {
-				LSK.sendRequest('delegates/', { limit: NaN }, () => {});
-			}).should.throw('parameter value "limit" should not be NaN');
+		it('should throw an error if any option is NaN', () => {
+			const optionsWithNaN = Object.assign({
+				badKey: NaN,
+			}, goodOptions);
+
+			(checkOptions.bind(null, optionsWithNaN)).should.throw('"badKey" option should not be NaN');
+		});
+
+		it('should return the options if they are all ok', () => {
+			const result = checkOptions(Object.assign({}, goodOptions));
+			(result).should.be.eql(goodOptions);
 		});
 	});
 
@@ -556,7 +571,7 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe.skip('#handleSendRequestFailures', () => {
+	describe('#handleSendRequestFailures', () => {
 		const { handleSendRequestFailures } = privateApi;
 
 		let options;
