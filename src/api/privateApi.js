@@ -60,17 +60,15 @@ function getURLPrefix() {
 }
 
 /**
- * @method getFullUrl
+ * @method getFullURL
  * @return url string
  * @private
  */
 
-function getFullUrl() {
-	let nodeUrl = this.currentPeer;
-
-	if (this.port) {
-		nodeUrl += `:${this.port}`;
-	}
+function getFullURL() {
+	const nodeUrl = this.port
+		? `${this.currentPeer}:${this.port}`
+		: this.currentPeer;
 
 	return `${getURLPrefix.call(this)}://${nodeUrl}`;
 }
@@ -214,8 +212,8 @@ const serialiseHTTPData = (data) => {
 function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
 	const url = method === GET
-		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHTTPData.call(this, options)}`
-		: `${getFullUrl.call(this)}/api/${requestType}`;
+		? `${getFullURL.call(this)}/api/${requestType}${serialiseHTTPData.call(this, options)}`
+		: `${getFullURL.call(this)}/api/${requestType}`;
 
 	return {
 		method,
@@ -311,7 +309,7 @@ function optionallyCallCallback(callback, result) {
 
 module.exports = {
 	netHashOptions,
-	getFullUrl,
+	getFullURL,
 	getURLPrefix,
 	selectNode,
 	getPeers,

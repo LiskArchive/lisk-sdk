@@ -86,19 +86,37 @@ describe('privateApi module @now', () => {
 		});
 	});
 
-	describe('#getFullUrl', () => {
-		it('should give the full url inclusive port', () => {
-			const fullUrl = `http://${localNode}:${port}`;
+	describe('#getFullURL', () => {
+		const { getFullURL } = privateApi;
+		const URLPrefix = 'ftp';
 
-			(privateApi.getFullUrl.call(LSK)).should.be.equal(fullUrl);
+		let getURLPrefixStub;
+		let restoreGetURLPrefixStub;
+		let result;
+
+		beforeEach(() => {
+			getURLPrefixStub = sinon.stub().returns(URLPrefix);
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetURLPrefixStub = privateApi.__set__('getURLPrefix', getURLPrefixStub);
+			result = getFullURL.call(LSK);
 		});
 
-		it('should give the full url without port and with SSL', () => {
-			LSK.port = '';
-			LSK.ssl = true;
-			const fullUrl = `https://${localNode}`;
+		afterEach(() => {
+			restoreGetURLPrefixStub();
+		});
 
-			(privateApi.getFullUrl.call(LSK)).should.be.equal(fullUrl);
+		it('should get the URL prefix', () => {
+			(getURLPrefixStub.calledOn(LSK)).should.be.true();
+		});
+
+		it('should add the prefix to the node URL and the port', () => {
+			(result).should.equal(`${URLPrefix}://${LSK.currentPeer}:${port}`);
+		});
+
+		it('should not include a port if not set', () => {
+			delete LSK.port;
+			result = getFullURL.call(LSK);
+			(result).should.equal(`${URLPrefix}://${LSK.currentPeer}`);
 		});
 	});
 
