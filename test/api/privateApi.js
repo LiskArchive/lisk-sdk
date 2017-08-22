@@ -143,8 +143,37 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#getRandomPeer', () => {
-		it('should give a random peer', () => {
-			(privateApi.getRandomPeer.call(LSK)).should.be.ok();
+		const { getRandomPeer } = privateApi;
+		let getPeersStub;
+		let restoreGetPeersStub;
+
+		beforeEach(() => {
+			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
+		});
+
+		afterEach(() => {
+			restoreGetPeersStub();
+		});
+
+		it('should get peers', () => {
+			getRandomPeer.call(LSK);
+			(getPeersStub.calledOn(LSK));
+		});
+
+		it('should return a peer', () => {
+			const result = getRandomPeer.call(LSK);
+			(LSK.defaultPeers).should.containEql(result);
+		});
+
+		it('should randomly select the peer', () => {
+			const firstResult = getRandomPeer.call(LSK);
+			let nextResult = getRandomPeer.call(LSK);
+			// Test will almost certainly time out if not random
+			while (nextResult === firstResult) {
+				nextResult = getRandomPeer.call(LSK);
+			}
 		});
 	});
 
