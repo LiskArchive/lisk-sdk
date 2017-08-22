@@ -20,6 +20,7 @@ describe('privateApi module @now', () => {
 	const port = 7000;
 	const localNode = 'localhost';
 	const externalNode = 'external';
+	const sslNode = 'sslPeer';
 	const externalTestnetNode = 'testnet';
 	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
@@ -29,6 +30,8 @@ describe('privateApi module @now', () => {
 	const defaultEndpoint = 'transactions';
 	const defaultData = 'testData';
 	const defaultPeers = [localNode, externalNode];
+	const defaultSSLPeers = [localNode, externalNode, sslNode];
+	const defaultTestnetPeers = [localNode, externalTestnetNode];
 
 	let LSK;
 	let sendRequestResult;
@@ -39,8 +42,8 @@ describe('privateApi module @now', () => {
 			randomPeer: false,
 			currentPeer: localNode,
 			defaultPeers: [].concat(defaultPeers),
-			defaultSSLPeers: ['sslpeer'].concat(defaultPeers),
-			defaultTestnetPeers: [localNode, externalTestnetNode],
+			defaultSSLPeers: [].concat(defaultSSLPeers),
+			defaultTestnetPeers: [].concat(defaultTestnetPeers),
 			bannedPeers: [],
 			port,
 			options: {
@@ -100,7 +103,43 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#getPeers', () => {
-		it('should have tests');
+		const { getPeers } = privateApi;
+
+		describe('with SSL set to true', () => {
+			beforeEach(() => {
+				LSK.ssl = true;
+			});
+
+			it('should return default testnet peers if testnet is set to true', () => {
+				LSK.testnet = true;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultTestnetPeers);
+			});
+
+			it('should return default SSL peers if testnet is not set to true', () => {
+				LSK.testnet = false;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultSSLPeers);
+			});
+		});
+
+		describe('with SSL set to false', () => {
+			beforeEach(() => {
+				LSK.ssl = false;
+			});
+
+			it('should return default testnet peers if testnet is set to true', () => {
+				LSK.testnet = true;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultTestnetPeers);
+			});
+
+			it('should return default mainnet peers if testnet is not set to true', () => {
+				LSK.testnet = false;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultPeers);
+			});
+		});
 	});
 
 	describe('#getRandomPeer', () => {
