@@ -137,7 +137,7 @@ describe('signature', function () {
 
 	describe('calculateFee', function () {
 
-		it('should return the correct fee when data field is not set', function () {
+		it('should return the correct fee for second signature transaction', function () {
 			expect(signature.calculateFee.call(transactionMock, trs)).to.equal(node.constants.fees.secondsignature);
 		});
 	});
