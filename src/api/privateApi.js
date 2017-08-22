@@ -131,7 +131,9 @@ function selectNode() {
  */
 
 function banNode() {
-	if (this.bannedPeers.indexOf(this.currentPeer) === -1) this.bannedPeers.push(this.currentPeer);
+	if (!this.bannedPeers.includes(this.currentPeer)) {
+		this.bannedPeers.push(this.currentPeer);
+	}
 }
 
 /**
