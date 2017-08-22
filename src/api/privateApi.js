@@ -270,6 +270,46 @@ const wrapSendRequest = (method, endpoint, getDataFn) =>
 		return this.sendRequest(method, endpoint, data, callback);
 	};
 
+function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
+	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
+		const newOptions = {};
+
+		Object.keys(options).forEach((key) => {
+			newOptions[key] = options[key];
+		});
+		newOptions.timeOffset = (options.timeOffset || 0) + 10;
+
+		return this.sendRequest(requestMethod, requestType, newOptions);
+	}
+	return Promise.resolve(result);
+}
+
+function handleSendRequestFailures(requestMethod, requestType, options, error) {
+	const that = this;
+	if (checkReDial.call(that)) {
+		return new Promise(((resolve, reject) => {
+			setTimeout(() => {
+				banNode.call(that);
+				that.setNode();
+				that.sendRequest(requestMethod, requestType, options)
+					.then(resolve, reject);
+			}, 1000);
+		}));
+	}
+	return Promise.resolve({
+		success: false,
+		error,
+		message: 'could not create http request to any of the given peers',
+	});
+}
+
+function optionallyCallCallback(callback, result) {
+	if (callback && (typeof callback === 'function')) {
+		callback(result);
+	}
+	return result;
+}
+
 module.exports = {
 	netHashOptions,
 	getFullUrl,
@@ -284,4 +324,7 @@ module.exports = {
 	createRequestObject,
 	constructRequestData,
 	wrapSendRequest,
+	handleTimestampIsInFutureFailures,
+	handleSendRequestFailures,
+	optionallyCallCallback,
 };
