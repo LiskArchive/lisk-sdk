@@ -310,44 +310,34 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
-	it('using null member in signature keysgroup should fail', function (done) {
-		var nullMemberParams = {
+	it('using null member in keysgroup should fail', function (done) {
+		var multiSigTx = {
 			secret: multisigAccount.password,
 			lifetime: parseInt(node.randomNumber(1,72)),
 			min: requiredSignatures,
 			keysgroup: makeKeysGroup()
 		};
-		nullMemberParams.keysgroup.push(null);
+		multiSigTx.keysgroup.push(null);
 
-		node.put('/api/multisignatures', nullMemberParams, function (err, res) {
+		node.put('/api/multisignatures', multiSigTx, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Invalid member in keysgroup');
 			done();
 		});
 	});
 
-	it('using null member in signature keysgroup via POST /peer/transaction should fail', function (done) {
-		var nullMemberTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, null], 1, 2);
+	it('using invalid member in keysgroup should fail', function (done) {
+		var multiSigTx = {
+			secret: multisigAccount.password,
+			lifetime: parseInt(node.randomNumber(1,72)),
+			min: requiredSignatures,
+			keysgroup: makeKeysGroup()
+		};
+		multiSigTx.keysgroup.push('+' + node.eAccount.publicKey + 'A');
 
-		node.post('/peer/transactions', {
-			transaction: nullMemberTx
-		}, function (err, res) {
+		node.put('/api/multisignatures', multiSigTx, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.equal('Invalid member in keysgroup');
-			done();
-		});
-	});
-
-	it('using invalid member in signature keysgroup should fail', function (done) {
-		var memberAccount = node.randomAccount();
-		var memberAccount2 = node.randomAccount();
-		var nullMemberTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey + 'A', '+' + memberAccount.publicKey, '+' + memberAccount2.publicKey], 1, 2);
-
-		node.post('/peer/transactions', {
-			transaction: nullMemberTx
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.equal('Invalid public key in multisignature keysgroup');
+			node.expect(res.body).to.have.property('error').to.equal('Invalid public key in multisignature keysgroup');
 			done();
 		});
 	});
