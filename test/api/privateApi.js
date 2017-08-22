@@ -205,7 +205,7 @@ describe('privateApi module @now', () => {
 
 		it('should get peers', () => {
 			getRandomPeer.call(LSK);
-			(getPeersStub.calledOn(LSK));
+			(getPeersStub.calledOn(LSK)).should.be.true();
 		});
 
 		it('should return a peer', () => {

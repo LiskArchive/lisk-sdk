@@ -92,8 +92,7 @@ function getPeers() {
  */
 
 function getRandomPeer() {
-	let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
-	if (this.testnet) peers = this.defaultTestnetPeers;
+	const peers = getPeers.call(this);
 
 	const randomIndex = Math.floor((Math.random() * peers.length));
 	return peers[randomIndex];
