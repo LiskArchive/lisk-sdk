@@ -53,10 +53,9 @@ function netHashOptions() {
  */
 
 function getURLPrefix() {
-	if (this.ssl) {
-		return 'https';
-	}
-	return 'http';
+	return this.ssl
+		? 'https'
+		: 'http';
 }
 
 /**
