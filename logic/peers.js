@@ -88,15 +88,8 @@ Peers.prototype.get = function (peer) {
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
-		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
-			peer.updated = Date.now();
-			if (self.peersManager.add(peer)) {
-				return library.logger.debug('Inserted new peer', peer.string);
-			}
-			library.logger.debug('Cannot insert peer (nonce exists / empty address field)', peer.string);
-		} else {
-			library.logger.debug('Rejecting unacceptable peer', peer.string);
-		}
+		peer.updated = Date.now();
+		return self.peersManager.add(peer);
 	};
 
 	// Update existing peer
@@ -123,9 +116,10 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	peer.string = peer.string || self.peersManager.getAddress(peer.nonce);
 
 	if (!peer.string) {
-		console.trace('Upsert invalid peer rejected', {peer: peer});
+		library.logger.trace('Upsert invalid peer rejected', {peer: peer});
 		return failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
 	}
+
 	// Performing insert or update
 	if (self.exists(peer)) {
 		// Skip update if insert-only is forced
@@ -135,7 +129,16 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 			return failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE;
 		}
 	} else {
-		insert(peer);
+		if (_.isEmpty(modules.peers.acceptable([peer]))) {
+			library.logger.debug('Rejecting unacceptable peer', peer.string);
+			return failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED;
+		}
+		if (insert(peer)) {
+			library.logger.debug('Inserted new peer', peer.string);
+		} else {
+			library.logger.debug('Cannot insert peer (nonce exists / empty address field)', peer.string);
+			return failureCodes.ON_MASTER.INSERT.NONCE_EXISTS;
+		}
 	}
 
 	// Stats for tracking changes

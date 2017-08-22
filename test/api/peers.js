@@ -51,7 +51,7 @@ describe('GET /api/peers/count', function () {
 	it('should be ok', function (done) {
 		http.get('/api/peers/count', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('connected').that.is.a('number').equal(1);
+			node.expect(res.body).to.have.property('connected').that.is.a('number').at.least(1);
 			node.expect(res.body).to.have.property('disconnected').that.is.a('number');
 			node.expect(res.body).to.have.property('banned').that.is.a('number');
 			done ();
