@@ -19,7 +19,9 @@ module.exports = {
 			FROZEN_PEER: 4211
 		},
 		INSERT: {
-			INSERT_ONLY_FAILURE: 4230
+			INSERT_ONLY_FAILURE: 4230,
+			NOT_ACCEPTED: 4231,
+			NONCE_EXISTS: 4232,
 		}
 	}
 };
@@ -32,13 +34,14 @@ module.exports.errorMessages = {
 	4104: 'Attempting to insert an already active peer',
 	4105: 'Attempting to remove a non-existent peer',
 	4106: 'Attempting to change peer data from different connection',
-	4107: 'Error occurred during update on master process', // Needs to be implemented
 	4200: 'Failed to check if peer is already present',
 	4201: 'Unable to match an address to the peer',
 	4202: 'Transport error while invoking update procedure',
 	4210: 'Peer is not on a peers list',
 	4211: 'Attempting to remove a frozen peer',
 	4230: 'Insert only update failed - peer is on a list',
+	4231: 'Cannot accept a peer - private ip address or itself',
+	4232: 'Attempting to insert a peer with nonce that is on a list already',
 };
 
 /**
