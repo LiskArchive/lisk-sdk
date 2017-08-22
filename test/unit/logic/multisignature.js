@@ -49,6 +49,7 @@ var multiSigAccount2 = {
 };
 
 describe('multisignature', function () {
+
 	var transaction;
 	var multisignature;
 	var trs;
@@ -85,7 +86,7 @@ describe('multisignature', function () {
 		}, function (err, result) {
 			transaction = result.transaction;
 			transaction.bindModules(result);
-			attachMultiSigAsset(transaction, result.accountLogic, result.rounds, done); 
+			attachMultiSigAsset(transaction, result.accountLogic, result.rounds, done);
 		});
 	});
 
@@ -136,7 +137,7 @@ describe('multisignature', function () {
 					done();
 				});
 			});
-			
+
 			it('should be okay for valid transaction', function (done) {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 2);
 				trs.senderId = node.gAccount.address;
