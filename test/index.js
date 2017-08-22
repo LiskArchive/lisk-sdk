@@ -14,6 +14,7 @@ require('./api/peer');
 require('./api/peer.transactions.main');
 require('./api/peer.transactions.collision');
 require('./api/peer.transactions.delegates');
+require('./api/peer.transactions.multisignatures');
 require('./api/peer.transactions.signatures');
 require('./api/peer.transactions.votes');
 require('./api/peers');
