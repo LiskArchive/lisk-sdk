@@ -82,7 +82,9 @@ function getFullUrl() {
  */
 
 function getPeers() {
-	return [];
+	if (this.testnet) return this.defaultTestnetPeers;
+	if (this.ssl) return this.defaultSSLPeers;
+	return this.defaultPeers;
 }
 
 /**
@@ -144,8 +146,6 @@ function banNode() {
 
 function checkReDial() {
 	const peers = getPeers.call(this);
-	// let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
-	// if (this.testnet) peers = this.defaultTestnetPeers;
 
 	// RandomPeer discovery explicitly set
 	if (this.randomPeer === true) {
