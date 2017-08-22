@@ -69,7 +69,33 @@ describe('privateApi module @now', () => {
 	});
 
 	describe('#netHashOptions', () => {
-		it('should have tests');
+		const { netHashOptions } = privateApi;
+		let result;
+
+		beforeEach(() => {
+			result = netHashOptions.call(LSK);
+		});
+
+		it('should return an object with a testnet nethash', () => {
+			const { testnet } = result;
+			(testnet).should.have.property('Content-Type').and.be.type('string');
+			(testnet).should.have.property('nethash').and.be.type('string');
+			(testnet).should.have.property('broadhash').and.be.type('string');
+			(testnet).should.have.property('os').and.be.type('string');
+			(testnet).should.have.property('version').and.be.type('string');
+			(testnet).should.have.property('minVersion').and.be.type('string');
+			(testnet).should.have.property('port').and.be.type('number');
+		});
+		it('should return an object with a mainnet nethash', () => {
+			const { mainnet } = result;
+			(mainnet).should.have.property('Content-Type').and.be.type('string');
+			(mainnet).should.have.property('nethash').and.be.type('string');
+			(mainnet).should.have.property('broadhash').and.be.type('string');
+			(mainnet).should.have.property('os').and.be.type('string');
+			(mainnet).should.have.property('version').and.be.type('string');
+			(mainnet).should.have.property('minVersion').and.be.type('string');
+			(mainnet).should.have.property('port').and.be.type('number');
+		});
 	});
 
 	describe('#getURLPrefix', () => {
