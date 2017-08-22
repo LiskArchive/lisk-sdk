@@ -477,9 +477,11 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 			for (var i = 0; i < trs.asset.multisignature.keysgroup.length; i++) {
 				var key = trs.asset.multisignature.keysgroup[i];
-				if(!key || typeof key !== 'string'){
+
+				if (!key || typeof key !== 'string') {
 					return setImmediate(cb, 'Invalid member in keysgroup');
 				}
+
 				multisignatures.push(key.slice(1));
 			}
 		}
