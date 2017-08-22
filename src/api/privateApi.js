@@ -132,7 +132,6 @@ function selectNode() {
 
 function banNode() {
 	if (this.bannedPeers.indexOf(this.currentPeer) === -1) this.bannedPeers.push(this.currentPeer);
-	selectNode.call(this);
 }
 
 /**
