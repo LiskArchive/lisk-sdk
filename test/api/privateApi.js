@@ -16,7 +16,7 @@ import { PopsicleError } from 'popsicle';
 import privateApi from '../../src/api/privateApi';
 import utils from '../../src/api/utils';
 
-describe('privateApi module @now', () => {
+describe('privateApi module', () => {
 	const port = 7000;
 	const localNode = 'localhost';
 	const externalNode = 'external';
