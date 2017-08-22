@@ -150,7 +150,7 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 	}
 
 	async.eachSeries(trs.asset.multisignature.keysgroup, function (key, cb) {
-		if(!key || typeof key !== 'string'){
+		if (!key || typeof key !== 'string') {
 			return setImmediate(cb, 'Invalid member in keysgroup');
 		}
 
