@@ -130,7 +130,7 @@ describe('Lisk.api()', () => {
 		});
 	});
 
-	describe('#getAddressFromSecret', () => {
+	describe('#getAddressFromSecret @now', () => {
 		it('should create correct address and publicKey', () => {
 			(LSK.getAddressFromSecret(defaultSecret)).should.eql(defaultAddress);
 		});

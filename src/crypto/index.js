@@ -12,66 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	bufferToHex,
-	hexToBuffer,
-	useFirstEightBufferEntriesReversed,
-	getAddress,
-	getId,
-	toAddress,
-} from './convert';
-import {
-	verifyMessageWithPublicKey,
-	signMessageWithSecret,
-	signAndPrintMessage,
-	printSignedMessage,
-	encryptMessageWithSecret,
-	decryptMessageWithSecret,
-	convertPublicKeyEd2Curve,
-	convertPrivateKeyEd2Curve,
-	signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys,
-	sign,
-	multiSign,
-	verify,
-	verifySecondSignature,
-} from './sign';
-import {
-	getPrivateAndPublicKeyFromSecret,
-	getRawPrivateAndPublicKeyFromSecret,
-	getAddressFromPublicKey,
-	getKeys,
-} from './keys';
-import {
-	getSha256Hash,
-	getHash,
-} from './hash';
+import * as convert from './convert';
+import * as sign from './sign';
+import * as keys from './keys';
+import * as hash from './hash';
 
-module.exports = {
-	bufferToHex,
-	hexToBuffer,
-	useFirstEightBufferEntriesReversed,
-	getAddress,
-	getId,
-	toAddress,
-	verifyMessageWithPublicKey,
-	signMessageWithSecret,
-	signAndPrintMessage,
-	printSignedMessage,
-	encryptMessageWithSecret,
-	decryptMessageWithSecret,
-	convertPublicKeyEd2Curve,
-	convertPrivateKeyEd2Curve,
-	signMessageWithTwoSecrets,
-	verifyMessageWithTwoPublicKeys,
-	sign,
-	multiSign,
-	verify,
-	verifySecondSignature,
-	getPrivateAndPublicKeyFromSecret,
-	getRawPrivateAndPublicKeyFromSecret,
-	getAddressFromPublicKey,
-	getKeys,
-	getSha256Hash,
-	getHash,
-};
+export default Object.assign({}, convert, sign, keys, hash);

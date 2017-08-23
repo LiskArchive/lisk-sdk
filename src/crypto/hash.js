@@ -22,24 +22,33 @@ import { getBytes } from './../transactions/transactionBytes';
  *
  * @return {string}
  */
-
-// TODO: Discuss behaviour with format and hashing
 export function getSha256Hash(stringToSign, format) {
-	const encodedString = (!format || format === 'utf8')
-		? naclInstance.encode_utf8(stringToSign)
-		: naclInstance.from_hex(stringToSign);
 
-	return naclInstance.crypto_hash_sha256(encodedString);
+	if(typeof stringToSign === 'object') {
+		return naclInstance.crypto_hash_sha256(stringToSign)
+	}
+
+	if(typeof stringToSign === 'string' && format === 'utf8') {
+		const encoded = naclInstance.encode_utf8(stringToSign);
+		return naclInstance.crypto_hash_sha256(encoded);
+	}
+
+	if(typeof stringToSign === 'string' && format === 'hex') {
+		const encoded = naclInstance.from_hex(stringToSign);
+		return naclInstance.crypto_hash_sha256(encoded);
+	}
+
+	throw Error(`Unknown input format, use buffer as default, 'hex' or 'utf8' as format`);
 }
 
 /**
- * @method getHash
+ * @method getTransactionHash
  * @param transaction Object
  *
  * @return {string}
  */
 
-export function getHash(transaction) {
+export function getTransactionHash(transaction) {
 	const bytes = getBytes(transaction);
-	return crypto.createHash('sha256').update(bytes).digest();
+	return getSha256Hash(bytes);
 }

@@ -41,15 +41,13 @@ export function hexToBuffer(hex) {
 }
 
 /**
- * @method useFirstEightBufferEntriesReversed
+ * @method getFirstEightBytesReversed
  * @param publicKeyBytes
  *
  * @return {buffer}
  */
 
-
-// TODO: Discuss behaviour and output format
-export function useFirstEightBufferEntriesReversed(publicKeyBytes) {
+export function getFirstEightBytesReversed(publicKeyBytes) {
 	return Buffer.from(publicKeyBytes)
 		.slice(0, 8)
 		.reverse();
@@ -75,7 +73,7 @@ export function toAddress(buffer) {
 
 export function getAddress(publicKey) {
 	const publicKeyHash = getSha256Hash(publicKey, 'hex');
-	const firstEntriesReversed = useFirstEightBufferEntriesReversed(publicKeyHash);
+	const firstEntriesReversed = getFirstEightBytesReversed(publicKeyHash);
 
 	return toAddress(firstEntriesReversed);
 }
@@ -89,7 +87,7 @@ export function getAddress(publicKey) {
 
 export function getId(transaction) {
 	const transactionBytes = getBytes(transaction);
-	const transactionHash = crypto.createHash('sha256').update(transactionBytes).digest();
+	const transactionHash = getSha256Hash(transactionBytes);
 	const bufferFromFirstEntriesReversed = transactionHash.slice(0, 8).reverse();
 	const firstEntriesToNumber = bignum.fromBuffer(bufferFromFirstEntriesReversed);
 

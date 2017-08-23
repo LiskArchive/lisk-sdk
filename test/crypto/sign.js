@@ -141,7 +141,7 @@ ${defaultSignature}
 		});
 	});
 
-	describe('#signMessageWithTwoSecrets @now', () => {
+	describe('#signMessageWithTwoSecrets', () => {
 		it('should sign a message using two secrets', () => {
 			const signature = cryptoModule.signMessageWithTwoSecrets(
 				notSecretMessage, defaultSecret, defaultSecondSecret,
@@ -151,7 +151,7 @@ ${defaultSignature}
 		});
 	});
 
-	describe('#verifyMessageWithTwoPublicKeys @now', () => {
+	describe('#verifyMessageWithTwoPublicKeys', () => {
 		const publicKey1 = defaultPublicKey;
 		const publicKey2 = defaultSecondPublicKey;
 		const invalidPublicKey1 = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96fe';
@@ -203,7 +203,7 @@ ${defaultSignature}
 		});
 	});
 
-	describe('sign and verify @now', () => {
+	describe('sign and verify', () => {
 		const sign = cryptoModule.sign;
 		const verify = cryptoModule.verify;
 		const keys = cryptoModule.getKeys('123');

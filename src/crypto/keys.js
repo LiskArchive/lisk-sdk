@@ -14,8 +14,9 @@
  */
 import { Buffer } from 'buffer';
 import bignum from 'browserify-bignum';
+import crypto from 'crypto-browserify';
 import { getSha256Hash } from './hash';
-import { bufferToHex, useFirstEightBufferEntriesReversed } from './convert';
+import { bufferToHex, getFirstEightBytesReversed } from './convert';
 
 /**
  * @method getPrivateAndPublicKeyFromSecret
@@ -25,12 +26,11 @@ import { bufferToHex, useFirstEightBufferEntriesReversed } from './convert';
  */
 
 export function getPrivateAndPublicKeyFromSecret(secret) {
-	const sha256Hash = getSha256Hash(secret, 'utf8');
-	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
+	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
 
 	return {
-		privateKey: bufferToHex(Buffer.from(signSk)),
-		publicKey: bufferToHex(Buffer.from(signPk)),
+		privateKey: bufferToHex(Buffer.from(privateKey)),
+		publicKey: bufferToHex(Buffer.from(publicKey)),
 	};
 }
 
@@ -42,7 +42,7 @@ export function getPrivateAndPublicKeyFromSecret(secret) {
  */
 
 export function getRawPrivateAndPublicKeyFromSecret(secret) {
-	const sha256Hash = getSha256Hash(secret, 'utf8');
+	const sha256Hash = crypto.createHash('sha256').update(secret).digest();
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
 	return {
@@ -61,7 +61,7 @@ export function getRawPrivateAndPublicKeyFromSecret(secret) {
 export function getAddressFromPublicKey(publicKey) {
 	const publicKeyHash = getSha256Hash(publicKey, 'hex');
 
-	const publicKeyTransform = useFirstEightBufferEntriesReversed(publicKeyHash);
+	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
 	const address = `${bignum.fromBuffer(publicKeyTransform).toString()}L`;
 
 	return address;

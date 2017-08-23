@@ -20,7 +20,7 @@ import {
 	getRawPrivateAndPublicKeyFromSecret,
 	getPrivateAndPublicKeyFromSecret,
 } from './keys';
-import { getHash } from './hash';
+import { getTransactionHash, getSha256Hash } from './hash';
 
 /**
  * @method signMessageWithSecret
@@ -86,14 +86,12 @@ export function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondP
 		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
 	}
 
-	// Give appropriate error messages from crypto_sign_open
 	const openSignature = naclInstance.crypto_sign_open(signedMessageBytes, secondPublicKeyBytes);
 
 	if (openSignature) {
 		const openSecondSignature = naclInstance.crypto_sign_open(openSignature, publicKeyBytes);
 
 		if (openSecondSignature) {
-			// Returns original message
 			return naclInstance.decode_utf8(openSecondSignature);
 		}
 		throw new Error('Invalid signature second publicKey, cannot verify message');
@@ -111,27 +109,10 @@ export function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondP
  */
 
 export function signAndPrintMessage(message, secret) {
-	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
-	const messageHeader = '-----MESSAGE-----';
-	const plainMessage = message;
-	const pubklicKeyHeader = '-----PUBLIC KEY-----';
-	const publicKey = getPrivateAndPublicKeyFromSecret(secret).publicKey;
-	const signatureHeader = '-----SIGNATURE-----';
+	const { publicKey } = getPrivateAndPublicKeyFromSecret(secret);
 	const signedMessage = signMessageWithSecret(message, secret);
-	const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
 
-	const outputArray = [
-		signedMessageHeader,
-		messageHeader,
-		plainMessage,
-		pubklicKeyHeader,
-		publicKey,
-		signatureHeader,
-		signedMessage,
-		signatureFooter,
-	];
-
-	return outputArray.join('\n');
+	return printSignedMessage(message, signedMessage, publicKey);
 }
 
 /**
@@ -276,7 +257,7 @@ export function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey)
  */
 
 export function sign(transaction, givenKeys) {
-	const transactionHash = getHash(transaction);
+	const transactionHash = getTransactionHash(transaction);
 	const signature = naclInstance.crypto_sign_detached(transactionHash, Buffer.from(givenKeys.privateKey, 'hex'));
 	return Buffer.from(signature).toString('hex');
 }
@@ -295,7 +276,7 @@ export function multiSign(transaction, givenKeys) {
 	delete signTransaction.signSignature;
 	const { privateKey } = givenKeys;
 	const bytes = getBytes(signTransaction);
-	const transactionHash = crypto.createHash('sha256').update(bytes).digest();
+	const transactionHash = getSha256Hash(bytes);
 	const signature = naclInstance.crypto_sign_detached(
 		transactionHash, hexToBuffer(privateKey),
 	);
@@ -314,7 +295,7 @@ export function verify(transaction) {
 	const remove = transaction.signSignature ? 128 : 64;
 	const bytes = getBytes(transaction);
 	const data2 = Buffer.alloc(bytes.length - remove).fill(bytes);
-	const transactionHash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
+	const transactionHash = getSha256Hash(data2);
 
 	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
 	const senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
@@ -336,7 +317,7 @@ export function verify(transaction) {
 export function verifySecondSignature(transaction, publicKey) {
 	const bytes = getBytes(transaction);
 	const data2 = Buffer.alloc(bytes.length - 64).fill(bytes);
-	const transactionHash = crypto.createHash('sha256').update(data2.toString('hex'), 'hex').digest();
+	const transactionHash = getSha256Hash(data2);
 
 	const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
 	const publicKeyBuffer = Buffer.from(publicKey, 'hex');

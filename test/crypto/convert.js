@@ -31,10 +31,10 @@ describe('convert', () => {
 		});
 	});
 
-	describe('#useFirstEightBufferEntriesReversed', () => {
+	describe('#getFirstEightBytesReversed', () => {
 		it('should use a Buffer, cut after first 8 entries and reverse them', () => {
 			const bufferEntry = Buffer.from('0123456789');
-			const reversedAndCut = cryptoModule.useFirstEightBufferEntriesReversed(bufferEntry);
+			const reversedAndCut = cryptoModule.getFirstEightBytesReversed(bufferEntry);
 			(reversedAndCut).should.be.eql(Buffer.from('76543210'));
 		});
 	});

@@ -12,28 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../src/crypto/index';
+import { getTransactionHash, getSha256Hash } from '../../src/crypto/hash';
 
 describe('hash', () => {
-	describe('#getSha256Hash hash.js', () => {
-		const defaultHash = 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
-		const defaultString = '123';
-		it('should get a correct Sha256 hash', () => {
-			const hashString = cryptoModule.bufferToHex(cryptoModule.getSha256Hash(defaultString));
 
-			(hashString).should.be.equal(defaultHash);
+	describe('#getSha256Hash', () => {
+		it('should be ok', () => {
+			(getSha256Hash).should.be.ok();
 		});
 	});
 
-	describe('#getHash', () => {
-		const getHash = cryptoModule.getHash;
-
+	describe('#getTransactionHash', () => {
 		it('should be ok', () => {
-			(getHash).should.be.ok();
+			(getTransactionHash).should.be.ok();
 		});
 
 		it('should be a function', () => {
-			(getHash).should.be.type('function');
+			(getTransactionHash).should.be.type('function');
 		});
 
 		it('should return Buffer and Buffer most be 32 bytes length', () => {
@@ -48,7 +43,7 @@ describe('hash', () => {
 				id: '13987348420913138422',
 			};
 
-			const result = getHash(transaction);
+			const result = getTransactionHash(transaction);
 			(result).should.be.ok();
 			(result).should.be.type('object');
 			(result.length).should.be.equal(32);
