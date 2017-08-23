@@ -746,7 +746,7 @@ describe('blocks/verify', function () {
 
 				blocksVerify.processBlock(block2, false, function (err, result) {
 					if (err) {
-						expect(err).equal('Included transactions do not match block transactions count');
+						expect(err).equal('Invalid total fee');
 						block2.transactions = transactions;
 						done();
 					}
