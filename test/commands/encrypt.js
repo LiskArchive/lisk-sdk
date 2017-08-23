@@ -1,24 +1,33 @@
-import Vorpal from 'vorpal';
+/*
+ * LiskHQ/lisky
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import encrypt from '../../src/commands/encrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
 import tablify from '../../src/utils/tablify';
+import { setUpVorpalWithCommand } from './utils';
 
 describe('lisky encrypt command palette', () => {
 	let vorpal;
-	let capturedOutput = '';
+	let capturedOutput;
 
 	beforeEach(() => {
-		vorpal = new Vorpal();
-		vorpal.use(encrypt);
-		vorpal.pipe((output) => {
-			capturedOutput += output;
-			return '';
-		});
-		vorpal.delimiter('lisky>');
+		capturedOutput = [];
+		vorpal = setUpVorpalWithCommand(encrypt, capturedOutput);
 	});
 
 	afterEach(() => {
-		capturedOutput = '';
 		vorpal.ui.removeAllListeners();
 	});
 
@@ -55,41 +64,47 @@ describe('lisky encrypt command palette', () => {
 		const tableOutput = tablify(cryptoEncryptReturnObject).toString();
 		const jsonOutput = JSON.stringify(cryptoEncryptReturnObject);
 
+		let encryptStub;
+
 		beforeEach(() => {
-			sinon
+			encryptStub = sinon
 				.stub(cryptoModule, 'encrypt')
 				.returns(cryptoEncryptReturnObject);
 		});
 
 		afterEach(() => {
-			cryptoModule.encrypt.restore();
+			encryptStub.restore();
 		});
 
 		it('should handle valid parameters', () => {
-			vorpal.execSync(command);
-			(cryptoModule.encrypt.calledWithExactly(message, secret, recipient))
-				.should.be.true();
+			return vorpal.exec(command)
+				.then(() => {
+					(cryptoModule.encrypt.calledWithExactly(message, secret, recipient))
+						.should.be.true();
+				});
 		});
 
-		it('should print the returned object', () => vorpal.exec(command)
-			.then(() => (capturedOutput).should.equal(tableOutput)));
+		it('should print the returned object', () => {
+			return vorpal.exec(command)
+				.then(() => (capturedOutput[0]).should.equal(tableOutput));
+		});
 
 		it('should print json with --json option', () => {
 			const jsonCommand = `${command} --json`;
 			return vorpal.exec(jsonCommand)
-				.then(() => (capturedOutput).should.equal(jsonOutput));
+				.then(() => (capturedOutput[0]).should.equal(jsonOutput));
 		});
 
 		it('should handle a -j shorthand for --json option', () => {
 			const jCommand = `${command} -j`;
 			return vorpal.exec(jCommand)
-				.then(() => (capturedOutput).should.equal(jsonOutput));
+				.then(() => (capturedOutput[0]).should.equal(jsonOutput));
 		});
 
 		it('should print a table with --no-json option', () => {
 			const noJsonCommand = `${command} --no-json`;
 			return vorpal.exec(noJsonCommand)
-				.then(() => (capturedOutput).should.equal(tableOutput));
+				.then(() => (capturedOutput[0]).should.equal(tableOutput));
 		});
 	});
 });
