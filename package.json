@@ -34,7 +34,7 @@
 	"devDependencies": {
 		"babel-cli": "=6.24.1",
 		"babel-plugin-istanbul": "=4.1.4",
-		"babel-plugin-rewire": "^1.1.0",
+		"babel-plugin-rewire": "=1.1.0",
 		"babel-preset-env": "=1.6.0",
 		"chokidar-cli": "=1.2.0",
 		"coveralls": "=2.13.1",
