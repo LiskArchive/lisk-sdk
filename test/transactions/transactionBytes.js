@@ -12,17 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getBytes } from '../../src/transactions/transactionBytes';
+import { getTransactionBytes } from '../../src/transactions/transactionBytes';
 
-describe('#getBytes', () => {
+describe('#getTransactionBytes', () => {
 	let bytes = null;
 
 	it('should be ok', () => {
-		(getBytes).should.be.ok();
+		(getTransactionBytes).should.be.ok();
 	});
 
 	it('should be a function', () => {
-		(getBytes).should.be.type('function');
+		(getTransactionBytes).should.be.type('function');
 	});
 
 	it('should return Buffer of simply transaction and buffer most be 117 length', () => {
@@ -37,7 +37,7 @@ describe('#getBytes', () => {
 			id: '13987348420913138422',
 		};
 
-		bytes = getBytes(transaction);
+		bytes = getTransactionBytes(transaction);
 		(bytes).should.be.ok();
 		(bytes).should.be.type('object');
 		(bytes.length).should.be.equal(117);
@@ -56,7 +56,7 @@ describe('#getBytes', () => {
 			id: '13987348420913138422',
 		};
 
-		bytes = getBytes(transaction);
+		bytes = getTransactionBytes(transaction);
 		(bytes).should.be.ok();
 		(bytes).should.be.type('object');
 		(bytes.length).should.be.equal(181);

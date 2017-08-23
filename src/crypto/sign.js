@@ -12,10 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import ed2curve from 'ed2curve';
-import crypto from 'crypto-browserify';
-import { getBytes } from '../transactions/transactionBytes';
-import { hexToBuffer, bufferToHex } from './convert';
+import { getTransactionBytes } from '../transactions/transactionBytes';
+import {
+	hexToBuffer,
+	bufferToHex,
+	convertPrivateKeyEd2Curve,
+	convertPublicKeyEd2Curve
+} from './convert';
 import {
 	getRawPrivateAndPublicKeyFromSecret,
 	getPrivateAndPublicKeyFromSecret,
@@ -62,6 +65,30 @@ export function signMessageWithTwoSecrets(message, secret, secondSecret) {
 	const hexSignedMessage = bufferToHex(doubleSignedMessage);
 
 	return hexSignedMessage;
+}
+
+/**
+ * @method verifyMessageWithPublicKey
+ * @param signedMessage
+ * @param publicKey
+ *
+ * @return {string}
+ */
+
+export function verifyMessageWithPublicKey(signedMessage, publicKey) {
+	const signedMessageBytes = hexToBuffer(signedMessage);
+	const publicKeyBytes = hexToBuffer(publicKey);
+
+	if (publicKeyBytes.length !== 32) {
+		throw new Error('Invalid publicKey, expected 32-byte publicKey');
+	}
+
+	const openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+
+	if (openSignature) {
+		return naclInstance.decode_utf8(openSignature);
+	}
+	throw new Error('Invalid signature publicKey combination, cannot verify message');
 }
 
 /**
@@ -146,54 +173,6 @@ export function printSignedMessage(message, signedMessage, publicKey) {
 }
 
 /**
- * @method verifyMessageWithPublicKey
- * @param signedMessage
- * @param publicKey
- *
- * @return {string}
- */
-
-export function verifyMessageWithPublicKey(signedMessage, publicKey) {
-	const signedMessageBytes = hexToBuffer(signedMessage);
-	const publicKeyBytes = hexToBuffer(publicKey);
-
-	if (publicKeyBytes.length !== 32) {
-		throw new Error('Invalid publicKey, expected 32-byte publicKey');
-	}
-
-	// Give appropriate error messages from crypto_sign_open
-	const openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
-
-	if (openSignature) {
-		// Returns original message
-		return naclInstance.decode_utf8(openSignature);
-	}
-	throw new Error('Invalid signature publicKey combination, cannot verify message');
-}
-
-/**
- * @method convertPublicKeyEd2Curve
- * @param publicKey
- *
- * @return {object}
- */
-
-export function convertPublicKeyEd2Curve(publicKey) {
-	return ed2curve.convertPublicKey(publicKey);
-}
-
-/**
- * @method convertPrivateKeyEd2Curve
- * @param privateKey
- *
- * @return {object}
- */
-
-export function convertPrivateKeyEd2Curve(privateKey) {
-	return ed2curve.convertSecretKey(privateKey);
-}
-
-/**
  * @method encryptMessageWithSecret
  * @param message
  * @param secret
@@ -203,19 +182,19 @@ export function convertPrivateKeyEd2Curve(privateKey) {
  */
 
 export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
-	const senderPrivateKey = getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
-	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKey);
+	const senderPrivateKeyBytes = getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
-	const utf8Message = naclInstance.encode_utf8(message);
+	const messageInBytes = naclInstance.encode_utf8(message);
 
 	const nonce = naclInstance.crypto_box_random_nonce();
-	const packet = naclInstance.crypto_box(
-		utf8Message, nonce, convertedPublicKey, convertedPrivateKey);
-
+	const cipherBytes = naclInstance.crypto_box(
+		messageInBytes, nonce, convertedPublicKey, convertedPrivateKey
+	);
 
 	const nonceHex = bufferToHex(nonce);
-	const encryptedMessage = bufferToHex(packet);
+	const encryptedMessage = bufferToHex(cipherBytes);
 
 	return {
 		nonce: nonceHex,
@@ -225,7 +204,7 @@ export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 
 /**
  * @method decryptMessageWithSecret
- * @param packet
+ * @param cipherHex
  * @param nonce
  * @param secret
  * @param senderPublicKey
@@ -233,16 +212,16 @@ export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
  * @return {string}
  */
 
-export function decryptMessageWithSecret(packet, nonce, secret, senderPublicKey) {
-	const recipientPrivateKey = getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
-	const convertedPrivateKey = convertPrivateKeyEd2Curve(recipientPrivateKey);
+export function decryptMessageWithSecret(cipherHex, nonce, secret, senderPublicKey) {
+	const recipientPrivateKeyBytes = getRawPrivateAndPublicKeyFromSecret(secret).privateKey;
+	const convertedPrivateKey = convertPrivateKeyEd2Curve(recipientPrivateKeyBytes);
 	const senderPublicKeyBytes = hexToBuffer(senderPublicKey);
 	const convertedPublicKey = convertPublicKeyEd2Curve(senderPublicKeyBytes);
-	const packetBytes = hexToBuffer(packet);
+	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 
 	const decoded = naclInstance.crypto_box_open(
-		packetBytes, nonceBytes, convertedPublicKey, convertedPrivateKey,
+		cipherBytes, nonceBytes, convertedPublicKey, convertedPrivateKey,
 	);
 
 	return naclInstance.decode_utf8(decoded);
@@ -275,7 +254,7 @@ export function multiSign(transaction, givenKeys) {
 	delete signTransaction.signature;
 	delete signTransaction.signSignature;
 	const { privateKey } = givenKeys;
-	const bytes = getBytes(signTransaction);
+	const bytes = getTransactionBytes(signTransaction);
 	const transactionHash = getSha256Hash(bytes);
 	const signature = naclInstance.crypto_sign_detached(
 		transactionHash, hexToBuffer(privateKey),
@@ -293,17 +272,17 @@ export function multiSign(transaction, givenKeys) {
 
 export function verify(transaction) {
 	const remove = transaction.signSignature ? 128 : 64;
-	const bytes = getBytes(transaction);
-	const data2 = Buffer.alloc(bytes.length - remove).fill(bytes);
-	const transactionHash = getSha256Hash(data2);
+	const transactionBytes = getTransactionBytes(transaction);
+	const transactionBytesWithoutSignature = Buffer.alloc(transactionBytes.length - remove).fill(transactionBytes);
+	const transactionHash = getSha256Hash(transactionBytesWithoutSignature);
 
 	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
 	const senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
-	const res = naclInstance.crypto_sign_verify_detached(
+	const verification = naclInstance.crypto_sign_verify_detached(
 		signatureBuffer, transactionHash, senderPublicKeyBuffer,
 	);
 
-	return res;
+	return verification;
 }
 
 /**
@@ -315,15 +294,15 @@ export function verify(transaction) {
  */
 
 export function verifySecondSignature(transaction, publicKey) {
-	const bytes = getBytes(transaction);
-	const data2 = Buffer.alloc(bytes.length - 64).fill(bytes);
-	const transactionHash = getSha256Hash(data2);
+	const transactionBytes = getTransactionBytes(transaction);
+	const transactionBytesWithoutSignature = Buffer.alloc(transactionBytes.length - 64).fill(transactionBytes);
+	const transactionHash = getSha256Hash(transactionBytesWithoutSignature);
 
 	const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
 	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	const res = naclInstance.crypto_sign_verify_detached(
+	const verification = naclInstance.crypto_sign_verify_detached(
 		signSignatureBuffer, transactionHash, publicKeyBuffer,
 	);
 
-	return res;
+	return verification;
 }

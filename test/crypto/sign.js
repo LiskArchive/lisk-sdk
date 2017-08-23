@@ -119,28 +119,6 @@ ${defaultSignature}
 		});
 	});
 
-	describe('#convertPublicKeyEd2Curve', () => {
-		const keyPair = cryptoModule.getRawPrivateAndPublicKeyFromSecret('123');
-
-		it('should convert publicKey ED25519 to Curve25519 key', () => {
-			let curveRepresentation = cryptoModule.convertPublicKeyEd2Curve(keyPair.publicKey);
-			curveRepresentation = cryptoModule.bufferToHex(curveRepresentation);
-
-			(curveRepresentation).should.be.equal('f65170b330e5ae94fe6372e0ff8b7c709eb8dfe78c816ffac94e7d3ed1729715');
-		});
-	});
-
-	describe('#convertPrivateKeyEd2Curve', () => {
-		const keyPair = cryptoModule.getRawPrivateAndPublicKeyFromSecret('123');
-
-		it('should convert privateKey ED25519 to Curve25519 key', () => {
-			let curveRepresentation = cryptoModule.convertPrivateKeyEd2Curve(keyPair.privateKey);
-			curveRepresentation = cryptoModule.bufferToHex(curveRepresentation);
-
-			(curveRepresentation).should.be.equal('a05621ba2d3f69f054abb1f3c155338bb44ec8b718928cf9d5b206bafd364356');
-		});
-	});
-
 	describe('#signMessageWithTwoSecrets', () => {
 		it('should sign a message using two secrets', () => {
 			const signature = cryptoModule.signMessageWithTwoSecrets(
@@ -263,7 +241,7 @@ ${defaultSignature}
 				(verify).should.be.type('function');
 			});
 
-			it('should verify a transaction', () => {
+			it('should verify a transaction @now', () => {
 				const verification = verify(transactionToVerify);
 				(verification).should.be.true();
 			});

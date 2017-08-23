@@ -42,7 +42,7 @@ export function getPrivateAndPublicKeyFromSecret(secret) {
  */
 
 export function getRawPrivateAndPublicKeyFromSecret(secret) {
-	const sha256Hash = crypto.createHash('sha256').update(secret).digest();
+	const sha256Hash = getSha256Hash(secret, 'utf8');
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
 	return {

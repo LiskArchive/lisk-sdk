@@ -13,7 +13,7 @@
  *
  */
 import crypto from 'crypto-browserify';
-import { getBytes } from './../transactions/transactionBytes';
+import { getTransactionBytes } from './../transactions/transactionBytes';
 
 /**
  * @method getSha256Hash
@@ -49,6 +49,6 @@ export function getSha256Hash(stringToSign, format) {
  */
 
 export function getTransactionHash(transaction) {
-	const bytes = getBytes(transaction);
+	const bytes = getTransactionBytes(transaction);
 	return getSha256Hash(bytes);
 }
