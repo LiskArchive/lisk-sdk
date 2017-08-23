@@ -251,4 +251,47 @@ describe('privateApi', () => {
 			(requestObject).should.be.eql(expectedObject);
 		});
 	});
+
+
+	describe('#constructRequestData', () => {
+		const address = '18160565574430594874L';
+		const defaultRequestLimit = 10;
+		const defaultRequestOffset = 101;
+		const optionsObject = {
+			limit: defaultRequestLimit,
+			offset: defaultRequestOffset,
+		};
+		const expectedObject = {
+			address,
+			limit: defaultRequestLimit,
+			offset: defaultRequestOffset,
+		};
+		const optionsWithConflictObject = {
+			address: '123L',
+			limit: 4,
+			offset: 5,
+		};
+		const resolvedConflictObject = {
+			address: '123L',
+			limit: defaultRequestLimit,
+			offset: defaultRequestOffset,
+		};
+
+		it('should merge a data object with an options object', () => {
+			const requestData = privateApi.constructRequestData({ address }, optionsObject);
+			(requestData).should.be.eql(expectedObject);
+		});
+
+		it('should recognise when a callback function is passed instead of an options object', () => {
+			const requestData = privateApi.constructRequestData({ address }, () => true);
+			(requestData).should.be.eql({ address });
+		});
+
+		it('should prioritise values from the data object when the data object and options object conflict', () => {
+			const requestData = privateApi.constructRequestData(
+				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, optionsWithConflictObject,
+			);
+			(requestData).should.be.eql(resolvedConflictObject);
+		});
+	});
 });
