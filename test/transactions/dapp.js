@@ -170,13 +170,13 @@ describe('dapp module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(dappTransaction);
+					const result = cryptoModule.verifyTransaction(dappTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					dappTransaction.amount = 100;
-					const result = cryptoModule.verify(dappTransaction);
+					const result = cryptoModule.verifyTransaction(dappTransaction);
 					(result).should.be.not.ok();
 				});
 

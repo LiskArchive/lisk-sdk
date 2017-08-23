@@ -109,13 +109,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(inTransferTransaction);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					inTransferTransaction.amount = 100;
-					const result = cryptoModule.verify(inTransferTransaction);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -226,13 +226,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(outTransferTransaction);
+					const result = cryptoModule.verifyTransaction(outTransferTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					outTransferTransaction.amount = 100;
-					const result = cryptoModule.verify(outTransferTransaction);
+					const result = cryptoModule.verifyTransaction(outTransferTransaction);
 					(result).should.be.not.ok();
 				});
 

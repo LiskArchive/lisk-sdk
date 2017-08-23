@@ -64,7 +64,7 @@ function createTransaction(
 
 function signTransaction(trs, secret) {
 	const keys = crypto.getKeys(secret);
-	const signature = crypto.multiSign(trs, keys);
+	const signature = crypto.multiSignTransaction(trs, keys);
 
 	return signature;
 }

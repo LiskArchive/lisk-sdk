@@ -113,18 +113,18 @@ export function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondP
 		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
 	}
 
-	const openSignature = naclInstance.crypto_sign_open(signedMessageBytes, secondPublicKeyBytes);
+	const secondSignatureVerified = naclInstance.crypto_sign_open(signedMessageBytes, secondPublicKeyBytes);
 
-	if (openSignature) {
-		const openSecondSignature = naclInstance.crypto_sign_open(openSignature, publicKeyBytes);
-
-		if (openSecondSignature) {
-			return naclInstance.decode_utf8(openSecondSignature);
-		}
+	if(!secondSignatureVerified) {
 		throw new Error('Invalid signature second publicKey, cannot verify message');
-	} else {
-		throw new Error('Invalid signature primary publicKey, cannot verify message');
 	}
+
+	const firstSignatureVerified = naclInstance.crypto_sign_open(secondSignatureVerified, publicKeyBytes);
+
+	if (!firstSignatureVerified) {
+		throw new Error('Invalid signature first publicKey, cannot verify message');
+	}
+	return naclInstance.decode_utf8(firstSignatureVerified);
 }
 
 /**
@@ -228,29 +228,29 @@ export function decryptMessageWithSecret(cipherHex, nonce, secret, senderPublicK
 }
 
 /**
- * @method sign
+ * @method signTransaction
  * @param transaction Object
  * @param givenKeys Object
  *
  * @return {string}
  */
 
-export function sign(transaction, givenKeys) {
+export function signTransaction(transaction, givenKeys) {
 	const transactionHash = getTransactionHash(transaction);
 	const signature = naclInstance.crypto_sign_detached(transactionHash, Buffer.from(givenKeys.privateKey, 'hex'));
 	return Buffer.from(signature).toString('hex');
 }
 
 /**
- * @method multiSign
+ * @method multiSignTransaction
  * @param transaction Object
  * @param givenKeys Object
  *
  * @return {string}
  */
 
-export function multiSign(transaction, givenKeys) {
-	const signTransaction = transaction;
+export function multiSignTransaction(transaction, givenKeys) {
+	const signTransaction = Object.assign({}, transaction);
 	delete signTransaction.signature;
 	delete signTransaction.signSignature;
 	const { privateKey } = givenKeys;
@@ -264,13 +264,13 @@ export function multiSign(transaction, givenKeys) {
 }
 
 /**
- * @method verify
+ * @method verifyTransaction
  * @param transaction Object
  *
  * @return {boolean}
  */
 
-export function verify(transaction) {
+export function verifyTransaction(transaction) {
 	const remove = transaction.signSignature ? 128 : 64;
 	const transactionBytes = getTransactionBytes(transaction);
 	const transactionBytesWithoutSignature = Buffer

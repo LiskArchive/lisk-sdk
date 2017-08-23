@@ -109,13 +109,13 @@ describe('vote module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(voteTransaction);
+					const result = cryptoModule.verifyTransaction(voteTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					voteTransaction.amount = 100;
-					const result = cryptoModule.verify(voteTransaction);
+					const result = cryptoModule.verifyTransaction(voteTransaction);
 					(result).should.be.not.ok();
 				});
 

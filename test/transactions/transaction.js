@@ -114,13 +114,13 @@ describe('transaction module', () => {
 					});
 
 					it('should be signed correctly', () => {
-						const result = cryptoModule.verify(transactionTransaction);
+						const result = cryptoModule.verifyTransaction(transactionTransaction);
 						(result).should.be.ok();
 					});
 
 					it('should not be signed correctly if modified', () => {
 						transactionTransaction.amount = 100;
-						const result = cryptoModule.verify(transactionTransaction);
+						const result = cryptoModule.verifyTransaction(transactionTransaction);
 						(result).should.be.not.ok();
 					});
 
