@@ -12,21 +12,21 @@ var crypto = require('crypto');
 var bson = require('../../../../helpers/bson.js');
 
 var previousBlock = {
-	blockSignature:'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
+	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
 	generatorPublicKey:'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
-	height:488,
-	id:'11850828211026019525',
-	numberOfTransactions:0,
-	payloadHash:'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-	payloadLength:0,
-	previousBlock:'8805727971083409014',
-	relays:1,
-	reward:0,
-	timestamp:32578360,
-	totalAmount:0,
-	totalFee:0,
+	height: 488,
+	id: '11850828211026019525',
+	numberOfTransactions: 0,
+	payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+	payloadLength: 0,
+	previousBlock: '8805727971083409014',
+	relays: 1,
+	reward: 0,
+	timestamp: 32578360,
+	totalAmount: 0,
+	totalFee: 0,
 	transactions: [],
-	version:0,
+	version: 0,
 };
 
 var validBlock = {
@@ -146,21 +146,21 @@ var userAccount = {
 };
 
 var previousBlock1 = {
-	blockSignature:'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
-	generatorPublicKey:'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
-	height:488,
-	id:'6524861224470851795',
+	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
+	generatorPublicKey: '86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
+	height: 488,
+	id: '6524861224470851795',
 	numberOfTransactions:0,
-	payloadHash:'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-	payloadLength:0,
-	previousBlock:'8805727971083409014',
-	relays:1,
-	reward:0,
-	timestamp:32578360,
-	totalAmount:0,
-	totalFee:0,
+	payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+	payloadLength: 0,
+	previousBlock: '8805727971083409014',
+	relays: 1,
+	reward: 0,
+	timestamp: 32578360,
+	totalAmount: 0,
+	totalFee: 0,
 	transactions: [],
-	version:0,
+	version: 0,
 };
 
 var block1;
