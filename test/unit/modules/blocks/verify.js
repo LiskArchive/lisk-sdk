@@ -614,6 +614,16 @@ describe('blocks/verify', function () {
 		describe('calling verifyBlockSlot()', testVerifyBlockSlot.bind(null, 'verifyBlock'));
 	});
 
+	describe('addBlockProperties()', function () {
+
+		it('should be ok');
+	});
+
+	describe('deleteBlockProperties()', function () {
+
+		it('should be ok');
+	});
+
 	// Sends a block to network, save it locally.
 	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', function () {
 

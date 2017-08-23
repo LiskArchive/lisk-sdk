@@ -102,6 +102,10 @@ describe('blocks/process', function () {
  		});
 	});
 
+	describe('getCommonBlock()', function () {
+		it('should be ok');
+	});
+
 	describe('loadBlocksOffset({verify: true}) - no errors', function () {
 
 		it('should load block 2 from database: block without transactions', function (done) {
@@ -333,6 +337,33 @@ describe('blocks/process', function () {
 				done();
 			});
 		});
+	});
+
+	describe('loadBlocksFromPeer()', function () {
+		it('should be ok');
+	});
+
+	describe('generateBlock()', function () {
+		it('should be ok');
+	});
+
+	describe('onReceiveBlock()', function () {
+
+		describe('calling receiveBlock()', function () {
+			it('should be ok');
+		});
+
+		describe('calling receiveForkOne()', function () {
+			it('should be ok');
+		});
+
+		describe('calling receiveForkFive()', function () {
+			it('should be ok');
+		});
+	});
+
+	describe('onBind()', function () {
+		it('should be ok');
 	});
 
 	after(function (done) {
