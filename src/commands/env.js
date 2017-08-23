@@ -13,13 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../../config.json';
+import config from '../utils/env';
 
 const env = vorpal => () => Promise.resolve(vorpal.log(JSON.stringify(config, null, '\t')));
 
 export default function envCommand(vorpal) {
 	vorpal
 		.command('env')
-		.description('Print environmental configuration')
+		.description('Print environmental configuration.')
 		.action(env(vorpal));
 }

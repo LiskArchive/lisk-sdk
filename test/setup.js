@@ -13,8 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const should = require('should');
-const sinon = require('sinon');
+import should from 'should';
+import sinon from 'sinon';
+import '../src/utils/env';
 
 process.env.NODE_ENV = 'test';
 

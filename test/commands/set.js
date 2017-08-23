@@ -14,24 +14,17 @@
  *
  */
 /* eslint-disable global-require, import/no-dynamic-require */
+import os from 'os';
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import get from '../../src/commands/get';
 import liskInstance from '../../src/utils/liskInstance';
 import { setUpVorpalWithCommand } from './utils';
 
-const configPath = '../../config.json';
-const deleteConfigCache = () => delete require.cache[require.resolve(configPath)];
-const stringifyConfig = config => JSON.stringify(config, null, '\t');
-const writeConfig = (config) => {
-	const configString = typeof config === 'string'
-		? config
-		: stringifyConfig(config);
-	fse.writeFileSync('config.json', `${configString}\n`, 'utf8');
-};
+const configFilePath = `${os.homedir()}/.lisky/config.json`;
+const writeConfig = config => fse.writeJsonSync(configFilePath, config, { spaces: '\t' });
 
-const initialConfig = stringifyConfig(require(configPath));
-deleteConfigCache();
+const initialConfig = fse.readJsonSync(configFilePath);
 
 const defaultConfig = {
 	name: 'lisky',
@@ -45,11 +38,8 @@ describe('set command', () => {
 	let vorpal;
 	let capturedOutput = [];
 
-	before(() => {
-		writeConfig(defaultConfig);
-	});
-
 	beforeEach(() => {
+		writeConfig(defaultConfig);
 		vorpal = setUpVorpalWithCommand(set, capturedOutput);
 	});
 
@@ -57,7 +47,6 @@ describe('set command', () => {
 		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
 		capturedOutput = [];
-		writeConfig(defaultConfig);
 	});
 
 	after(() => {
@@ -104,12 +93,11 @@ describe('set command', () => {
 		const jsonProperty = 'json';
 
 		afterEach(() => {
-			deleteConfigCache();
 		});
 
 		it('should set json to true', () => {
 			return vorpal.exec(setJsonTrueCommand, () => {
-				const config = require(configPath);
+				const config = fse.readJsonSync(configFilePath);
 
 				(config).should.have.property(jsonProperty).be.true();
 				(capturedOutput).should.be.eql([setJsonTrueResult]);
@@ -118,7 +106,7 @@ describe('set command', () => {
 
 		it('should set json to false', () => {
 			return vorpal.exec(setJsonFalseCommand, () => {
-				const config = require(configPath);
+				const config = fse.readJsonSync(configFilePath);
 
 				(config).should.have.property(jsonProperty).be.false();
 				(capturedOutput).should.be.eql([setJsonFalseResult]);
@@ -128,7 +116,7 @@ describe('set command', () => {
 		it('should set json to true and then to false', () => {
 			return vorpal.exec(setJsonTrueCommand, () =>
 				vorpal.exec(setJsonFalseCommand, () => {
-					const config = require(configPath);
+					const config = fse.readJsonSync(configFilePath);
 
 					(config).should.have.property(jsonProperty).be.false();
 					(capturedOutput).should.be.eql([setJsonTrueResult, setJsonFalseResult]);
@@ -139,7 +127,7 @@ describe('set command', () => {
 		it('should not set json to non-boolean values', () => {
 			return vorpal.exec(setJsonTrueCommand, () =>
 				vorpal.exec(invalidValueCommand, () => {
-					const config = require(configPath);
+					const config = fse.readJsonSync(configFilePath);
 
 					(config).should.have.property(jsonProperty).be.true();
 					(capturedOutput).should.be.eql([setJsonTrueResult, invalidValueResult]);
@@ -181,12 +169,11 @@ describe('set command', () => {
 
 		afterEach(() => {
 			stub.restore();
-			deleteConfigCache();
 		});
 
 		it('should set testnet to true', () => {
 			return vorpal.exec(setTestnetTrueCommand, () => {
-				const config = require(configPath);
+				const config = fse.readJsonSync(configFilePath);
 
 				(stub.calledWithExactly(true)).should.be.true();
 				(config)
@@ -199,7 +186,7 @@ describe('set command', () => {
 
 		it('should set testnet to false', () => {
 			return vorpal.exec(setTestnetFalseCommand, () => {
-				const config = require(configPath);
+				const config = fse.readJsonSync(configFilePath);
 
 				(stub.calledWithExactly(false)).should.be.true();
 				(config)
@@ -213,7 +200,7 @@ describe('set command', () => {
 		it('should not set testnet to non-boolean values', () => {
 			return vorpal.exec(setTestnetTrueCommand, () =>
 				vorpal.exec(invalidValueCommand, () => {
-					const config = require(configPath);
+					const config = fse.readJsonSync(configFilePath);
 
 					(stub.calledWithExactly(true)).should.be.true();
 					(config)
