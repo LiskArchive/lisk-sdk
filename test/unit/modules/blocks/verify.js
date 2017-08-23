@@ -144,6 +144,7 @@ var userAccount = {
 	},
 	secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
 };
+
 var previousBlock1 = {
 	blockSignature:'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
 	generatorPublicKey:'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
@@ -161,6 +162,7 @@ var previousBlock1 = {
 	transactions: [],
 	version:0,
 };
+
 var block1;
 var transactionsBlock1 = [
 	{
@@ -202,7 +204,7 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 		previousBlock: blocksModule.lastBlock.get(),
 		transactions: transactions
 	});
-	//newBlock.id = blockLogic.getId(newBlock);
+	// newBlock.id = blockLogic.getId(newBlock);
 	return newBlock;
 }
 
@@ -218,7 +220,7 @@ describe('blocks/verify', function () {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
 			if (err) {
 				return done(err);
-			}			
+			}
 			blockLogic = __blockLogic;
 
 			modulesLoader.initModules([
@@ -614,7 +616,7 @@ describe('blocks/verify', function () {
 
 	// Sends a block to network, save it locally.
 	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', function () {
-		
+
 		it('should clear database', function (done) {
 			async.every([
 				'blocks where height > 1',
@@ -644,7 +646,7 @@ describe('blocks/verify', function () {
 
 		it('should generate block 1', function (done) {
 			var secret = 'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
-			
+
 			block1 = createBlock(blocks, blockLogic, secret, 32578370, transactionsBlock1, previousBlock1);
 			expect(block1.version).to.equal(0);
 			expect(block1.timestamp).to.equal(32578370);
@@ -679,7 +681,7 @@ describe('blocks/verify', function () {
 	});
 
 	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', function () {
-		
+
 		it('should fail when process block 1 again (checkExists)', function (done) {
 			blocks.lastBlock.set(previousBlock1);
 
@@ -690,15 +692,15 @@ describe('blocks/verify', function () {
 			}, true);
 		});
 	});
-	
+
 	// Receives a block from network, save it locally.
 	describe('processBlock() for invalid block {broadcast: false, saveBlock: true}', function () {
-		
+
 		var invalidBlock2;
 
 		it('should generate block 2 with invalid generator slot', function (done) {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
-			
+
 			block2 = createBlock(blocks, blockLogic, secret, 33772882, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772882);
@@ -779,7 +781,7 @@ describe('blocks/verify', function () {
 
 		it('should generate block 2 with valid generator slot and processed trs', function (done) {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
-			
+
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock1, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772862);
@@ -809,7 +811,7 @@ describe('blocks/verify', function () {
 
 		it('should generate block 2 with valid generator slot', function (done) {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
-			
+
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock2, block1);
 			expect(block2.version).to.equal(0);
 			expect(block2.timestamp).to.equal(33772862);
@@ -864,7 +866,7 @@ describe('blocks/verify', function () {
 
 		it('should generate block 3', function (done) {
 			var secret = 'term stable snap size half hotel unique biology amateur fortune easily tribe';
-			
+
 			block3 = createBlock(blocks, blockLogic, secret, 33942637, [], block2);
 			expect(block3.version).to.equal(0);
 			done();
@@ -895,7 +897,7 @@ describe('blocks/verify', function () {
 
 		it('should be ok when broadcast block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
-			
+
 			blocksVerify.processBlock(block3, true, function (err, result) {
 				if (err) {
 					return done(err);

@@ -134,7 +134,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method loadBlocksOffset
@@ -315,7 +315,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 /**
  * Generate new block
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method generateBlock
@@ -378,7 +378,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
  * @public
  * @method  onReceiveBlock
  * @listens module:transport~event:receiveBlock
- * @param   {block}   block New block
+ * @param   {block} block New block
  */
 Process.prototype.onReceiveBlock = function (block) {
 	var lastBlock;

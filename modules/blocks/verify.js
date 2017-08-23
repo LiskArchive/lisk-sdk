@@ -494,7 +494,7 @@ Verify.prototype.deleteBlockProperties = function (block) {
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
  * - Apply the block to database if both verifications are ok
- * 
+ *
  * @async
  * @public
  * @method processBlock
