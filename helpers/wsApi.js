@@ -28,7 +28,7 @@ var middleware = {
 				if (!system.nonceCompatible(headers.nonce)) {
 					return setImmediate(cb, {
 						code: failureCodes.INCOMPATIBLE_NONCE,
-						description: 'Expected nonce different than: ' + system.getNonce() + ' but received: ' + headers.nonce
+						description: 'Expected nonce to be not equal to: ' + system.getNonce()
 					}, peer);
 				}
 

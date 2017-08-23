@@ -37,11 +37,11 @@ module.exports.errorMessages = {
 	4200: 'Failed to check if peer is already present',
 	4201: 'Unable to match an address to the peer',
 	4202: 'Transport error while invoking update procedure',
-	4210: 'Peer is not on a peers list',
+	4210: 'Peer is not listed',
 	4211: 'Attempting to remove a frozen peer',
-	4230: 'Insert only update failed - peer is on a list',
+	4230: 'Insert only update failed - peer is already listed',
 	4231: 'Cannot accept a peer - private ip address or itself',
-	4232: 'Attempting to insert a peer with nonce that is on a list already',
+	4232: 'Attempting to insert a peer with nonce already listed'
 };
 
 /**
