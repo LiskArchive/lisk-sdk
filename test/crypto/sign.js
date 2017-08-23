@@ -27,10 +27,10 @@ import {
 } from '../../src/crypto/sign';
 import {
 	getKeys,
-	getRawPrivateAndPublicKeyFromSecret
+	getRawPrivateAndPublicKeyFromSecret,
 } from '../../src/crypto/keys';
 import {
-	bufferToHex
+	bufferToHex,
 } from '../../src/crypto/convert';
 
 describe('sign', () => {
@@ -102,8 +102,8 @@ ${defaultSignature}
 		});
 
 		it('#signAndPrintMessage should wrap the signed message into a printed Lisk template', () => {
-			const printSignedMessage = signAndPrintMessage(notSecretMessage, defaultSecret);
-			(printSignedMessage).should.be.equal(signedMessageExample);
+			const signedAndPrintedMessage = signAndPrintMessage(notSecretMessage, defaultSecret);
+			(signedAndPrintedMessage).should.be.equal(signedMessageExample);
 		});
 	});
 	describe('#encryptMessageWithSecret', () => {
@@ -224,6 +224,7 @@ ${defaultSignature}
 		const transactionToVerify = Object.assign({}, transaction, {
 			signature: signTransaction(transaction, keys),
 		});
+		/* eslint-disable no-unused-vars */
 		const transactionToSecondVerify = Object.assign({}, transactionToVerify, {
 			signSignature: signTransaction(transactionToVerify, secondKeys),
 		});
@@ -259,21 +260,6 @@ ${defaultSignature}
 
 			it('should verify a transaction', () => {
 				const verification = verifyTransaction(transactionToVerify);
-				(verification).should.be.true();
-			});
-		});
-
-		describe.skip('#verifySecondSignature', () => {
-			it('should be ok', () => {
-				(verifySecondSignature).should.be.ok();
-			});
-
-			it('should be function', () => {
-				(verifySecondSignature).should.be.type('function');
-			});
-
-			it('should verify a second signed transaction', () => {
-				const verification = verifySecondSignature(transactionToSecondVerify, secondKeys.publicKey);
 				(verification).should.be.true();
 			});
 		});

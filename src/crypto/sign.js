@@ -113,13 +113,17 @@ export function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondP
 		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
 	}
 
-	const secondSignatureVerified = naclInstance.crypto_sign_open(signedMessageBytes, secondPublicKeyBytes);
+	const secondSignatureVerified = naclInstance.crypto_sign_open(
+		signedMessageBytes, secondPublicKeyBytes,
+	);
 
-	if(!secondSignatureVerified) {
+	if (!secondSignatureVerified) {
 		throw new Error('Invalid signature second publicKey, cannot verify message');
 	}
 
-	const firstSignatureVerified = naclInstance.crypto_sign_open(secondSignatureVerified, publicKeyBytes);
+	const firstSignatureVerified = naclInstance.crypto_sign_open(
+		secondSignatureVerified, publicKeyBytes,
+	);
 
 	if (!firstSignatureVerified) {
 		throw new Error('Invalid signature first publicKey, cannot verify message');
@@ -250,11 +254,11 @@ export function signTransaction(transaction, givenKeys) {
  */
 
 export function multiSignTransaction(transaction, givenKeys) {
-	const signTransaction = Object.assign({}, transaction);
-	delete signTransaction.signature;
-	delete signTransaction.signSignature;
+	const transactionToSign = Object.assign({}, transaction);
+	delete transactionToSign.signature;
+	delete transactionToSign.signSignature;
 	const { privateKey } = givenKeys;
-	const bytes = getTransactionBytes(signTransaction);
+	const bytes = getTransactionBytes(transactionToSign);
 	const transactionHash = getSha256Hash(bytes);
 	const signature = naclInstance.crypto_sign_detached(
 		transactionHash, hexToBuffer(privateKey),
