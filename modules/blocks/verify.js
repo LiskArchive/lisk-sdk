@@ -356,40 +356,6 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	return result;
 };
-
-/**
- * Verify block before processing and return all possible errors related to block
- *
- * @public
- * @method verifyBlock
- * @param  {Object}  block Full block
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
- */
-Verify.prototype.verifyBlock = function (block) {
-	var lastBlock = modules.blocks.lastBlock.get();
-
-	block = __private.setHeight(block, lastBlock);
-
-	var result = { verified: false, errors: [] };
-
-	result = __private.verifySignature(block, result);
-	result = __private.verifyPreviousBlock(block, result);
-	result = __private.verifyVersion(block, result);
-	result = __private.verifyReward(block, result);
-	result = __private.verifyId(block, result);
-	result = __private.verifyPayload(block, result);
-
-	result = __private.verifyForkOne(block, lastBlock, result);
-	result = __private.verifyBlockSlot(block, lastBlock, result);
-
-	result.verified = result.errors.length === 0;
-	result.errors.reverse();
-
-	return result;
-};
-
 /**
  * Verify block before processing and return all possible errors related to block
  *
