@@ -14,7 +14,6 @@
  */
 import { Buffer } from 'buffer';
 import bignum from 'browserify-bignum';
-import crypto from 'crypto-browserify';
 import { getSha256Hash } from './hash';
 import { bufferToHex, getFirstEightBytesReversed } from './convert';
 

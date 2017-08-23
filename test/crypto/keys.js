@@ -12,7 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../src/crypto/index';
+import {
+	getPrivateAndPublicKeyFromSecret,
+	getRawPrivateAndPublicKeyFromSecret,
+	getAddressFromPublicKey,
+	getKeys,
+} from '../../src/crypto/keys';
+import {
+	bufferToHex,
+} from '../../src/crypto/convert';
 
 describe('keys', () => {
 	const defaultSecret = 'secret';
@@ -20,7 +28,7 @@ describe('keys', () => {
 	const expectedPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const expectedPrivateKey = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	describe('#getPrivateAndPublicKeyFromSecret', () => {
-		const keypair = cryptoModule.getPrivateAndPublicKeyFromSecret(defaultSecret);
+		const keypair = getPrivateAndPublicKeyFromSecret(defaultSecret);
 
 		it('should generate the correct publicKey from a secret', () => {
 			(keypair.publicKey).should.be.equal(expectedPublicKey);
@@ -32,22 +40,22 @@ describe('keys', () => {
 	});
 
 	describe('#getRawPrivateAndPublicKeyFromSecret', () => {
-		const keypair = cryptoModule.getRawPrivateAndPublicKeyFromSecret(defaultSecret);
+		const keypair = getRawPrivateAndPublicKeyFromSecret(defaultSecret);
 
 		it('should create buffer publicKey', () => {
-			(cryptoModule.bufferToHex(
+			(bufferToHex(
 				Buffer.from(keypair.publicKey))
 			).should.be.equal(expectedPublicKey);
 		});
 
 		it('should create buffer privateKey', () => {
-			(cryptoModule.bufferToHex(Buffer.from(keypair.privateKey)))
+			(bufferToHex(Buffer.from(keypair.privateKey)))
 				.should.be.equal(expectedPrivateKey);
 		});
 	});
 
 	describe('#getAddressFromPublicKey', () => {
-		const address = cryptoModule.getAddressFromPublicKey(expectedPublicKey);
+		const address = getAddressFromPublicKey(expectedPublicKey);
 
 		it('should generate address from publicKey', () => {
 			(address).should.be.equal(defaultAddress);
@@ -55,8 +63,6 @@ describe('keys', () => {
 	});
 
 	describe('#getKeys', () => {
-		const getKeys = cryptoModule.getKeys;
-
 		it('should return two keys in hex', () => {
 			const keys = getKeys('secret');
 
