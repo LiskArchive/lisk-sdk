@@ -251,281 +251,365 @@ describe('blocks/verify', function () {
 		});
 	});
 
-	describe('verifyBlock() for valid block', function () {
-
-		it('should be ok', function (done) {
+	function testValid (functionName) {
+		it('should be ok', function () {
 			blocks.lastBlock.set(previousBlock);
-			
-			blocksVerify.verifyBlock(validBlock, function (err) {
-				expect(err).to.be.null;
-				done();
-			});
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.verified).to.be.true;
+			expect(result.errors).to.be.an('array').that.is.empty;
 		});
-		
-		it('should be ok when block is invalid but block id is excepted for having invalid block reward', function (done) {
+
+		it('should be ok when block is invalid but block id is excepted for having invalid block reward', function () {
 			exceptions.blockRewards.push(blockRewardInvalid.id);
-			
-			blocksVerify.verifyBlock(blockRewardInvalid, function (err) {
-				expect(err).to.be.null;
-				done();
-			});
+
+			var result = blocksVerify[functionName](blockRewardInvalid);
+
+			expect(result.verified).to.be.true;
+			expect(result.errors).to.be.an('array').that.is.empty;
 		});
+	}
+
+	function testSetHeight (functionName) {
+		it('should set height from lastBlock', function () {
+			blocks.lastBlock.set(previousBlock);
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.verified).to.be.true;
+			expect(result.errors).to.be.an('array').that.is.empty;
+			expect(validBlock.height).to.equal(previousBlock.height + 1);
+		});
+	}
+
+	function testVerifySignature (functionName) {
+		it('should fail when blockSignature property is not a hex string', function () {
+			var blockSignature = validBlock.blockSignature;
+			validBlock.blockSignature = 'invalidBlockSignature';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(3);
+
+			expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+			expect(result.errors[2]).to.equal('TypeError: Invalid hex string');
+
+			validBlock.blockSignature = blockSignature;
+		});
+
+		it('should fail when blockSignature property is an invalid hex string', function () {
+			var blockSignature = validBlock.blockSignature;
+			validBlock.blockSignature = 'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(1);
+			expect(result.errors[0]).to.equal('Failed to verify block signature');
+
+			validBlock.blockSignature = blockSignature;
+		});
+
+		it('should fail when generatorPublicKey property is not a hex string', function () {
+			var generatorPublicKey = validBlock.generatorPublicKey;
+			validBlock.generatorPublicKey = 'invalidBlockSignature';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(3);
+			expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+			expect(result.errors[2]).to.equal('TypeError: Invalid hex string');
+
+			validBlock.generatorPublicKey = generatorPublicKey;
+		});
+
+		it('should fail when generatorPublicKey property is an invalid hex string', function () {
+			var generatorPublicKey = validBlock.generatorPublicKey;
+			validBlock.generatorPublicKey = '948b8b509579306694c00db2206ddb1517bfeca2b0dc833ec1c0f81e9644871b';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(1);
+			expect(result.errors[0]).to.equal('Failed to verify block signature');
+
+			validBlock.generatorPublicKey = generatorPublicKey;
+		});
+	}
+
+	function testPreviousBlock (functionName) {
+		it('should fail when previousBlock property is missing', function () {
+			var previousBlock = validBlock.previousBlock;
+			delete validBlock.previousBlock;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.verified).to.be.false;
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Invalid previous block');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.previousBlock = previousBlock;
+		});
+	}
+
+	function testVerifyVersion (functionName) {
+		it('should fail when block version != 0', function () {
+			var version = validBlock.version;
+			validBlock.version = 99;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.verified).to.be.false;
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Invalid block version');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.version = version;
+		});
+	}
+
+	function testVerifyReward (functionName) {
+		it('should fail when block reward is invalid', function () {
+			validBlock.reward = 99;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal(['Invalid block reward:', 99, 'expected:', 0].join(' '));
+
+			validBlock.reward = 0;
+		});
+	}
+
+	function testVerifyId (functionName) {
+		it('should reset block id when block id is an invalid alpha-numeric string value', function () {
+			var blockId = '884740302254229983';
+			validBlock.id = 'invalid-block-id';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(validBlock.id).to.equal(blockId);
+			expect(validBlock.id).to.not.equal('invalid-block-id');
+		});
+
+		it('should reset block id when block id is an invalid numeric string value', function () {
+			var blockId = '884740302254229983';
+			validBlock.id = '11850828211026019526';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(validBlock.id).to.equal(blockId);
+			expect(validBlock.id).to.not.equal('11850828211026019526');
+		});
+
+		it('should reset block id when block id is an invalid integer value', function () {
+			var blockId = '884740302254229983';
+			validBlock.id = 11850828211026019526;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(validBlock.id).to.equal(blockId);
+			expect(validBlock.id).to.not.equal(11850828211026019526);
+		});
+
+		it('should reset block id when block id is a valid integer value', function () {
+			var blockId = '884740302254229983';
+			validBlock.id = 11850828211026019525;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(validBlock.id).to.equal(blockId);
+			expect(validBlock.id).to.not.equal(11850828211026019525);
+		});
+	}
+
+	function testVerifyPayload (functionName) {
+		it('should fail when payload length greater than maxPayloadLength constant value', function () {
+			var payloadLength = validBlock.payloadLength;
+			validBlock.payloadLength = 1024 * 1024 * 2;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Payload length is too long');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.payloadLength = payloadLength;
+		});
+
+		it('should fail when transactions length is not equal to numberOfTransactions property', function () {
+			validBlock.numberOfTransactions = validBlock.transactions.length + 1;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Included transactions do not match block transactions count');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.numberOfTransactions = validBlock.transactions.length;
+		});
+
+		it('should fail when transactions length greater than maxTxsPerBlock constant value', function () {
+			var transactions = validBlock.transactions;
+			validBlock.transactions = new Array(26);
+			validBlock.numberOfTransactions = validBlock.transactions.length;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(4);
+			expect(result.errors[0]).to.equal('Invalid total amount');
+			expect(result.errors[1]).to.equal('Invalid payload hash');
+			expect(result.errors[2]).to.equal('Number of transactions exceeds maximum per block');
+			expect(result.errors[3]).to.equal('Failed to verify block signature');
+
+			validBlock.transactions = transactions;
+			validBlock.numberOfTransactions = transactions.length;
+		});
+
+		it('should fail when a transaction is of an unknown type', function () {
+			var trsType = validBlock.transactions[0].type;
+			validBlock.transactions[0].type = 555;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Invalid payload hash');
+			expect(result.errors[1]).to.equal('Unknown transaction type ' + validBlock.transactions[0].type);
+
+			validBlock.transactions[0].type = trsType;
+		});
+
+		it('should fail when a transaction is duplicated', function () {
+			var secondTrs = validBlock.transactions[1];
+			validBlock.transactions[1] = validBlock.transactions[0];
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(3);
+			expect(result.errors[0]).to.equal('Invalid total amount');
+			expect(result.errors[1]).to.equal('Invalid payload hash');
+			expect(result.errors[2]).to.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
+
+			validBlock.transactions[1] = secondTrs;
+		});
+
+		it('should fail when payload hash is invalid', function () {
+			var payloadHash = validBlock.payloadHash;
+			validBlock.payloadHash = 'invalidPayloadHash';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Invalid payload hash');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.payloadHash = payloadHash;
+		});
+
+		it('should fail when summed transaction amounts do not match totalAmount property', function () {
+			var totalAmount = validBlock.totalAmount;
+			validBlock.totalAmount = 99;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Invalid total amount');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.totalAmount = totalAmount;
+		});
+
+		it('should fail when summed transaction fees do not match totalFee property', function () {
+			var totalFee = validBlock.totalFee;
+			validBlock.totalFee = 99;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Invalid total fee');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.totalFee = totalFee;
+		});
+	}
+
+	function testVerifyForkOne (functionName) {
+		it('should fail when previousBlock value is invalid', function () {
+			var previousBlock = blocks.lastBlock.get().id;
+			validBlock.previousBlock = '10937893559311260102';
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal(['Invalid previous block:', validBlock.previousBlock, 'expected:', previousBlock].join(' '));
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.previousBlock = previousBlock;
+		});
+	}
+
+	function testVerifyBlockSlot (functionName) {
+		it('should fail when block timestamp is less than previousBlock timestamp', function () {
+			var timestamp = validBlock.timestamp;
+			validBlock.timestamp = 32578350;
+
+			var result = blocksVerify[functionName](validBlock);
+
+			expect(result.verified).to.be.false;
+			expect(result.errors).to.be.an('array').with.lengthOf(2);
+			expect(result.errors[0]).to.equal('Invalid block timestamp');
+			expect(result.errors[1]).to.equal('Failed to verify block signature');
+
+			validBlock.timestamp  = timestamp;
+		});
+	}
+
+	describe('verifyReceipt() when block is valid', testValid.bind(null, 'verifyReceipt'));
+
+	describe('verifyReceipt() when block is invalid', function () {
+
+		describe('calling setHeight()', testSetHeight.bind(null, 'verifyReceipt'));
+
+		describe('calling verifySignature()', testVerifySignature.bind(null, 'verifyReceipt'));
+
+		describe('calling verifyPreviousBlock()', testPreviousBlock.bind(null, 'verifyReceipt'));
+
+		describe('calling verifyVersion()', testVerifyVersion.bind(null, 'verifyReceipt'));
+
+		describe('calling verifyReward()', testVerifyReward.bind(null, 'verifyReceipt'));
+
+		describe('calling verifyId()', testVerifyId.bind(null, 'verifyReceipt'));
+
+		describe('calling verifyPayload()', testVerifyPayload.bind(null, 'verifyReceipt'));
+
+		describe.skip('calling verifyForkOne()', testVerifyForkOne);
+
+		describe.skip('calling verifyBlockSlot()', testVerifyBlockSlot);
 	});
 
-	describe('verifyBlock() for invalid block', function () {
-		
-		describe('base validations', function () {
+	describe('verifyBlock() when block is valid', testValid.bind(null, 'verifyBlock'));
 
-			it('should fail when block version != 0', function (done) {
-				var version = validBlock.version;
-				validBlock.version = 99;
+	describe('verifyBlock() when block is invalid', function () {
 
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Invalid block version');
-					validBlock.version = version;
-					done();
-				});
-			});
+		describe('calling setHeight()', testSetHeight.bind(null, 'verifyBlock'));
 
-			it('should fail when block timestamp is less than previous block timestamp', function (done) {
-				var timestamp = validBlock.timestamp;
-				validBlock.timestamp = 32578350;
+		describe('calling verifySignature()', testVerifySignature.bind(null, 'verifyBlock'));
 
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Invalid block timestamp');
-					validBlock.timestamp  = timestamp;
-					done();
-				});
-			});
-			
-			it('should fail when previousBlock property is missing', function (done) {
-				var previousBlock = validBlock.previousBlock;
-				delete validBlock.previousBlock;
+		describe('calling verifyPreviousBlock()', testPreviousBlock.bind(null, 'verifyBlock'));
 
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Invalid previous block');
-					validBlock.previousBlock = previousBlock;
-					done();
-				});
-			});
+		describe('calling verifyVersion()', testVerifyVersion.bind(null, 'verifyBlock'));
 
-			it('should fail when previousBlock value is invalid (fork:1)', function (done) {
-				var prevBlock = validBlock.previousBlock;
-				validBlock.previousBlock = '10937893559311260102';
+		describe('calling verifyReward()', testVerifyReward.bind(null, 'verifyBlock'));
 
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal(['Invalid previous block:', validBlock.previousBlock, 'expected:', previousBlock.id].join(' '));
-					validBlock.previousBlock = prevBlock;
-					done();
-				});
-			});
+		describe('calling verifyId()', testVerifyId.bind(null, 'verifyBlock'));
 
-			it('should fail when payload length greater than maxPayloadLength constant value', function (done) {
-				var payloadLength = validBlock.payloadLength;
-				validBlock.payloadLength = 1024 * 1024 * 2;
+		describe('calling verifyPayload()', testVerifyPayload.bind(null, 'verifyBlock'));
 
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Payload length is too long');
-					validBlock.payloadLength = payloadLength;
-					done();
-				});
-			});
+		describe('calling verifyForkOne()', testVerifyForkOne.bind(null, 'verifyBlock'));
 
-			it('should fail when transactions length is not equal to numberOfTransactions property', function (done) {
-				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
-				
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Included transactions do not match block transactions count');
-					validBlock.numberOfTransactions = validBlock.transactions.length;
-					done();
-				});
-			});
-
-			it('should fail when transactions length greater than maxTxsPerBlock constant value', function (done) {
-				var transactions = validBlock.transactions;
-				validBlock.transactions = new Array(26);
-				validBlock.numberOfTransactions = validBlock.transactions.length;
-				
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Number of transactions exceeds maximum per block');
-					validBlock.transactions = transactions;
-					validBlock.numberOfTransactions = transactions.length;
-					done();
-				});
-			});
-		});
-
-		describe('transaction validations', function () {
-
-			it('should fail when a transaction is of an unknown type', function (done) {
-				var trsType = validBlock.transactions[0].type;
-				validBlock.transactions[0].type = 555;
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Unknown transaction type ' + validBlock.transactions[0].type);
-					validBlock.transactions[0].type = trsType;
-					done();
-				});
-			});
-
-			it('should fail when a transaction is duplicated', function (done) {
-				var secondTrs = validBlock.transactions[1];
-				validBlock.transactions[1] = validBlock.transactions[0];
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
-					validBlock.transactions[1] = secondTrs;
-					done();
-				});
-			});
-
-			it('should fail when payload hash is invalid', function (done) {
-				var payloadHash = validBlock.payloadHash;
-				validBlock.payloadHash = 'invalidpayloadhash';
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Invalid payload hash');
-					validBlock.payloadHash = payloadHash;
-					done();
-				});
-			});
-
-			it('should fail when summed transaction amounts do not match totalAmount property', function (done) {
-				var totalAmount = validBlock.totalAmount;
-				validBlock.totalAmount = 99;
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Invalid total amount');
-					validBlock.totalAmount = totalAmount;
-					done();
-				});
-			});
-
-			it('should fail when summed transaction fees do not match totalFee property', function (done) {
-				var totalFee = validBlock.totalFee;
-				validBlock.totalFee = 99;
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Invalid total fee');
-					validBlock.totalFee = totalFee;
-					done();
-				});
-			});
-		});
-
-		describe('signature validations', function () {
-
-			it('should fail when blockSignature property is not a hex string', function (done) {
-				var blockSignature = validBlock.blockSignature;
-				validBlock.blockSignature = 'invalidblocksignature';
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('TypeError: Invalid hex string');
-					validBlock.blockSignature = blockSignature;
-					done();
-				});
-			});
-
-			it('should fail when blockSignature property is an invalid hex string', function (done) {
-				var blockSignature = validBlock.blockSignature;
-				validBlock.blockSignature = 'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Failed to verify block signature');
-					validBlock.blockSignature = blockSignature;
-					done();
-				});
-			});
-
-			it('should fail when generatorPublicKey property is not a hex string', function (done) {
-				var generatorPublicKey = validBlock.generatorPublicKey;
-				validBlock.generatorPublicKey = 'invalidblocksignature';
-
-				var check = blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('TypeError: Invalid hex string');
-					validBlock.generatorPublicKey = generatorPublicKey;
-					done();
-				});
-			});		
-
-			it('should fail when generatorPublicKey property is an invalid hex string', function (done) {
-				var generatorPublicKey = validBlock.generatorPublicKey;
-				validBlock.generatorPublicKey = '948b8b509579306694c00db2206ddb1517bfeca2b0dc833ec1c0f81e9644871b';
-
-				blocksVerify.verifyBlock(validBlock, function (err) {
-					expect(err).to.equal('Failed to verify block signature');
-					validBlock.generatorPublicKey = generatorPublicKey;
-					done();
-				});
-			});
-		});
-		
-		describe('setBlockId validations', function () {
-
-			it('should reset block id when block id is an invalid alpha-numeric string value', function (done) {
-				var blockId = validBlock.id;
-				validBlock.id = 'invalid-block-id';
-
-				blocksVerify.verifyBlock(validBlock, function (err, result) {
-					if (err) {
-						return done(err);
-					}
-					expect(validBlock.id).to.equal(blockId);
-					done();
-				});
-			});
-
-			it('should reset block id when block id is an invalid numeric string value', function (done) {
-				var blockId = validBlock.id;
-				validBlock.id = '11850828211026019526';
-
-				blocksVerify.verifyBlock(validBlock, function (err, result) {
-					if (err) {
-						return done(err);
-					}
-					expect(validBlock.id).to.equal(blockId);
-					done();
-				});
-			});
-
-			it('should reset block id when block id is an invalid integer value', function (done) {
-				var blockId = validBlock.id;
-				validBlock.id = 11850828211026019526;
-
-				blocksVerify.verifyBlock(validBlock, function (err, result) {
-					if (err) {
-						return done(err);
-					}
-					expect(validBlock.id).to.equal(blockId);
-					done();
-				});
-			});
-
-			it('should reset block id when block id is a valid integer value', function (done) {
-				var blockId = validBlock.id;
-				validBlock.id = 11850828211026019525;
-
-				blocksVerify.verifyBlock(validBlock, function (err, result) {
-					if (err) {
-						return done(err);
-					}
-					expect(validBlock.id).to.equal(blockId);
-					done();
-				});
-			});
-		});
-
-		describe('blockReward validations', function () {
-
-			it('should fail when block reward is invalid', function (done) {
-				exceptions.blockRewards.pop();
-
-				blocksVerify.verifyBlock(blockRewardInvalid, function (err) {
-					expect(err).to.equal(['Invalid block reward:', blockRewardInvalid.reward, 'expected:', validBlock.reward].join(' '));
-					done();
-				});
-			});
-		});
+		describe('calling verifyBlockSlot()', testVerifyBlockSlot.bind(null, 'verifyBlock'));
 	});
 
 	// Sends a block to network, save it locally.
