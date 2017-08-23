@@ -31,6 +31,8 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
+var WAIT_BEFORE_CONNECT_MS = 10000;
+
 var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
@@ -174,7 +176,7 @@ function killTestNodes (cb) {
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', '99999999', 'test/api/blocks.js', 'test/api/transactions.js'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', '1000000', 'test/api/blocks.js', 'test/api/transactions.js'], {
 		cwd: __dirname + '/../..'
 	});
 
@@ -183,10 +185,9 @@ function runFunctionalTests (cb) {
 	child.on('close', function (code) {
 		if (code === 0) {
 			return cb();
+		} else {
+			return cb('Functional tests failed');
 		}
-		killTestNodes(function () {
-			return cb(code);
-		});
 	});
 
 	child.on('error', function (err) {
@@ -250,9 +251,9 @@ function establishWSConnectionsToNodes (sockets, done) {
 			socket.on('connectAbort', function () {
 				eachCb('Failed to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
 			});
-			socket.on('disconnect', eachCb);
+			socket.on('disconnect', function (err) {});
 		}, done);
-	}, 1000);
+	}, WAIT_BEFORE_CONNECT_MS);
 }
 
 describe('integration', function () {
@@ -285,6 +286,7 @@ describe('integration', function () {
 
 	before(function (done) {
 		establishWSConnectionsToNodes(sockets, done);
+		this.timeout(WAIT_BEFORE_CONNECT_MS * 2);
 	});
 
 	after(function (done) {
@@ -315,7 +317,7 @@ describe('integration', function () {
 		});
 	});
 
-	describe.skip('forging', function () {
+	describe('forging', function () {
 
 		function getNetworkStatus (cb) {
 			Promise.all(sockets.map(function (socket) {

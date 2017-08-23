@@ -9,8 +9,6 @@ node('node-06'){
 			try {
 				sh '''#!/bin/bash
 				sudo service postgresql restart
-				dropdb lisk_test || true
-				createdb lisk_test
 				'''
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
@@ -44,7 +42,8 @@ node('node-06'){
 			try {
 				sh '''#!/bin/bash
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run test-integration | tee integrationTests.logs
+					npm run test-integration > >(tee integrationTests.logs) 2> >(tee integrationTests.logs >&2)
+
 				'''
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
