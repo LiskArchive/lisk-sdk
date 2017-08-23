@@ -79,7 +79,7 @@ describe('lisky encrypt command palette', () => {
 		it('should handle valid parameters', () => {
 			return vorpal.exec(command)
 				.then(() => {
-					(cryptoModule.encrypt.calledWithExactly(message, secret, recipient))
+					(encryptStub.calledWithExactly(message, secret, recipient))
 						.should.be.true();
 				});
 		});
