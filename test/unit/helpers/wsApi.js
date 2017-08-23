@@ -190,7 +190,7 @@ describe('handshake', function () {
 		validHeaders.nonce = validConfig.config.nonce;
 		handshake(validHeaders, function (err) {
 			expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NONCE);
-			expect(err).to.have.property('description').contain('Expected nonce different than: ' + validConfig.config.nonce + ' but received: ' + validHeaders.nonce);
+			expect(err).to.have.property('description').contain('Expected nonce to be not equal to: ' + validConfig.config.nonce);
 			done();
 		});
 	});
