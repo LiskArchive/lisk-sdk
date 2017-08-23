@@ -85,7 +85,6 @@ PeersUpdateRules.prototype.internal = {
 	 * @param {function} cb
 	 */
 	update: function (updateType, peer, connectionId, cb) {
-		//ToDo: Peer headers and connectionId validation
 		self.slaveToMasterSender.getPeer(peer.nonce, function (err, onMasterPresence) {
 			if (err) {
 				return setImmediate(cb, new PeerUpdateError(

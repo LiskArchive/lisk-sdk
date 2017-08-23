@@ -12,7 +12,7 @@ module.exports = {
 		UPDATE: {
 			CHECK_PRESENCE: 4200,
 			INVALID_PEER: 4201,
-			TRANSPORT: 4202,
+			TRANSPORT: 4202
 		},
 		REMOVE: {
 			NOT_ON_LIST: 4210,
@@ -21,7 +21,7 @@ module.exports = {
 		INSERT: {
 			INSERT_ONLY_FAILURE: 4230,
 			NOT_ACCEPTED: 4231,
-			NONCE_EXISTS: 4232,
+			NONCE_EXISTS: 4232
 		}
 	}
 };
@@ -60,6 +60,6 @@ PeerUpdateError.prototype.toString = function () {
 	return JSON.stringify({code: this.code, message: this.message, description: this.description});
 };
 
-PeerUpdateError.prototype = Error.prototype;
+PeerUpdateError.prototype = new Error();
 
 module.exports.PeerUpdateError = PeerUpdateError;
