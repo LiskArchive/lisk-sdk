@@ -15,7 +15,6 @@
 import { getTransactionHash, getSha256Hash } from '../../src/crypto/hash';
 
 describe('hash', () => {
-
 	describe('#getSha256Hash', () => {
 		it('should be ok', () => {
 			(getSha256Hash).should.be.ok();

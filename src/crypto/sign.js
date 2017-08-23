@@ -17,7 +17,7 @@ import {
 	hexToBuffer,
 	bufferToHex,
 	convertPrivateKeyEd2Curve,
-	convertPublicKeyEd2Curve
+	convertPublicKeyEd2Curve,
 } from './convert';
 import {
 	getRawPrivateAndPublicKeyFromSecret,
@@ -128,21 +128,6 @@ export function verifyMessageWithTwoPublicKeys(signedMessage, publicKey, secondP
 }
 
 /**
- * @method signAndPrintMessage
- * @param message
- * @param secret
- *
- * @return {string}
- */
-
-export function signAndPrintMessage(message, secret) {
-	const { publicKey } = getPrivateAndPublicKeyFromSecret(secret);
-	const signedMessage = signMessageWithSecret(message, secret);
-
-	return printSignedMessage(message, signedMessage, publicKey);
-}
-
-/**
  * @method printSignedMessage
  * @param message
  * @param signedMessage
@@ -173,6 +158,21 @@ export function printSignedMessage(message, signedMessage, publicKey) {
 }
 
 /**
+ * @method signAndPrintMessage
+ * @param message
+ * @param secret
+ *
+ * @return {string}
+ */
+
+export function signAndPrintMessage(message, secret) {
+	const { publicKey } = getPrivateAndPublicKeyFromSecret(secret);
+	const signedMessage = signMessageWithSecret(message, secret);
+
+	return printSignedMessage(message, signedMessage, publicKey);
+}
+
+/**
  * @method encryptMessageWithSecret
  * @param message
  * @param secret
@@ -190,7 +190,7 @@ export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 
 	const nonce = naclInstance.crypto_box_random_nonce();
 	const cipherBytes = naclInstance.crypto_box(
-		messageInBytes, nonce, convertedPublicKey, convertedPrivateKey
+		messageInBytes, nonce, convertedPublicKey, convertedPrivateKey,
 	);
 
 	const nonceHex = bufferToHex(nonce);
@@ -273,7 +273,9 @@ export function multiSign(transaction, givenKeys) {
 export function verify(transaction) {
 	const remove = transaction.signSignature ? 128 : 64;
 	const transactionBytes = getTransactionBytes(transaction);
-	const transactionBytesWithoutSignature = Buffer.alloc(transactionBytes.length - remove).fill(transactionBytes);
+	const transactionBytesWithoutSignature = Buffer
+		.alloc(transactionBytes.length - remove)
+		.fill(transactionBytes);
 	const transactionHash = getSha256Hash(transactionBytesWithoutSignature);
 
 	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
@@ -295,7 +297,9 @@ export function verify(transaction) {
 
 export function verifySecondSignature(transaction, publicKey) {
 	const transactionBytes = getTransactionBytes(transaction);
-	const transactionBytesWithoutSignature = Buffer.alloc(transactionBytes.length - 64).fill(transactionBytes);
+	const transactionBytesWithoutSignature = Buffer
+		.alloc(transactionBytes.length - 64)
+		.fill(transactionBytes);
 	const transactionHash = getSha256Hash(transactionBytesWithoutSignature);
 
 	const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');

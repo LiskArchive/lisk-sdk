@@ -18,22 +18,6 @@ import { getSha256Hash } from './hash';
 import { bufferToHex, getFirstEightBytesReversed } from './convert';
 
 /**
- * @method getPrivateAndPublicKeyFromSecret
- * @param secret
- *
- * @return {object}
- */
-
-export function getPrivateAndPublicKeyFromSecret(secret) {
-	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
-
-	return {
-		privateKey: bufferToHex(Buffer.from(privateKey)),
-		publicKey: bufferToHex(Buffer.from(publicKey)),
-	};
-}
-
-/**
  * @method getRawPrivateAndPublicKeyFromSecret
  * @param secret
  *
@@ -47,6 +31,22 @@ export function getRawPrivateAndPublicKeyFromSecret(secret) {
 	return {
 		privateKey: signSk,
 		publicKey: signPk,
+	};
+}
+
+/**
+ * @method getPrivateAndPublicKeyFromSecret
+ * @param secret
+ *
+ * @return {object}
+ */
+
+export function getPrivateAndPublicKeyFromSecret(secret) {
+	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
+
+	return {
+		privateKey: bufferToHex(Buffer.from(privateKey)),
+		publicKey: bufferToHex(Buffer.from(publicKey)),
 	};
 }
 

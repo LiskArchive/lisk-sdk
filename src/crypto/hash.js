@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import crypto from 'crypto-browserify';
 import { getTransactionBytes } from './../transactions/transactionBytes';
 
 /**
@@ -23,22 +22,21 @@ import { getTransactionBytes } from './../transactions/transactionBytes';
  * @return {string}
  */
 export function getSha256Hash(stringToSign, format) {
-
-	if(typeof stringToSign === 'object') {
-		return naclInstance.crypto_hash_sha256(stringToSign)
+	if (typeof stringToSign === 'object') {
+		return naclInstance.crypto_hash_sha256(stringToSign);
 	}
 
-	if(typeof stringToSign === 'string' && format === 'utf8') {
+	if (typeof stringToSign === 'string' && format === 'utf8') {
 		const encoded = naclInstance.encode_utf8(stringToSign);
 		return naclInstance.crypto_hash_sha256(encoded);
 	}
 
-	if(typeof stringToSign === 'string' && format === 'hex') {
+	if (typeof stringToSign === 'string' && format === 'hex') {
 		const encoded = naclInstance.from_hex(stringToSign);
 		return naclInstance.crypto_hash_sha256(encoded);
 	}
 
-	throw Error(`Unknown input format, use buffer as default, 'hex' or 'utf8' as format`);
+	throw Error('Unknown input format, use buffer as default, \'hex\' or \'utf8\' as format');
 }
 
 /**
