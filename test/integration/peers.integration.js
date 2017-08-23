@@ -1,5 +1,7 @@
 'use strict';
+
 var _ = require('lodash');
+var async = require('async');
 var child_process = require('child_process');
 var chai = require('chai');
 var expect = require('chai').expect;
@@ -154,32 +156,37 @@ var monitorWSClient = {
 };
 
 function clearLogs (cb) {
-	child_process.exec('rm -rf test/integration/logs/*', function (err, stdout) {
+	child_process.exec('rm -rf test/integration/logs/*', function (err) {
 		return cb(err);
 	});
 }
 
 function launchTestNodes (cb) {
-	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err) {
 		return cb(err);
 	});
 }
 
 function killTestNodes (cb) {
-	child_process.exec('node_modules/.bin/pm2 delete all', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 delete all', function (err) {
 		return cb(err);
 	});
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('node_modules/.bin/_mocha', ['test/api/transactions', 'test/api/blocks'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', '99999999', 'test/api/blocks.js', 'test/api/transactions.js'], {
 		cwd: __dirname + '/../..'
 	});
 
 	child.stdout.pipe(process.stdout);
 
 	child.on('close', function (code) {
-		return cb(code === 0 ? undefined : code);
+		if (code === 0) {
+			return cb();
+		}
+		killTestNodes(function () {
+			return cb(code);
+		});
 	});
 
 	child.on('error', function (err) {
@@ -188,18 +195,9 @@ function runFunctionalTests (cb) {
 }
 
 function recreateDatabases (done) {
-	var recreatedCnt = 0;
-	testNodeConfigs.forEach(function (nodeConfig) {
-		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, function (err, stdout) {
-			if (err) {
-				return done(err);
-			}
-			recreatedCnt += 1;
-			if (recreatedCnt === testNodeConfigs.length) {
-				done();
-			}
-		});
-	});
+	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
+		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, eachCb);
+	}, done);
 }
 
 function enableForgingOnDelegates (done) {
@@ -221,7 +219,6 @@ function enableForgingOnDelegates (done) {
 			enableForgingPromises.push(enableForgingPromise);
 		});
 	});
-
 	Promise.all(enableForgingPromises).then(function () {
 		done();
 	}).catch(function () {
@@ -230,20 +227,9 @@ function enableForgingOnDelegates (done) {
 }
 
 function waitForAllNodesToBeReady (done) {
-	var nodesReadyCnt = 0;
-	var nodeReadyCb = function (err) {
-		if (err) {
-			return done(err);
-		}
-		nodesReadyCnt += 1;
-		if (nodesReadyCnt === testNodeConfigs.length) {
-			done();
-		}
-	};
-
-	testNodeConfigs.forEach(function (testNodeConfig) {
-		waitUntilBlockchainReady(nodeReadyCb, 20, 2000, 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000));
-	});
+	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
+		waitUntilBlockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
+	}, done);
 }
 
 function establishWSConnectionsToNodes (sockets, done) {
@@ -251,26 +237,25 @@ function establishWSConnectionsToNodes (sockets, done) {
 	var wampClient = new WAMPClient();
 	// TODO: Find a better way for waiting until all test nodes are able to receive connections
 	setTimeout(function () {
-		testNodeConfigs.forEach(function (testNodeConfig) {
+		async.forEachOf(testNodeConfigs, function (testNodeConfig, index, eachCb) {
 			monitorWSClient.port = testNodeConfig.port;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			socket.on('connect', function () {
 				sockets.push(socket);
 				connectedTo += 1;
-				if (connectedTo === testNodeConfigs.length) {
-					done();
-				}
+				eachCb();
 			});
 			socket.on('error', function (err) {});
 			socket.on('connectAbort', function () {
-				done('Failed to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+				eachCb('Failed to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
 			});
-		});
-	}, 10000);
+			socket.on('disconnect', eachCb);
+		}, done);
+	}, 1000);
 }
 
-describe('integration', function (integrationDone) {
+describe('integration', function () {
 
 	var sockets = [];
 
@@ -310,35 +295,27 @@ describe('integration', function (integrationDone) {
 
 		it('should return a list of peer mutually interconnected', function (done) {
 			Promise.all(sockets.map(function (socket) {
-				return socket.wampSend('list');
+				return socket.wampSend('list', {});
 			})).then(function (results) {
-				var resultsFrom = 0;
 				results.forEach(function (result) {
-					resultsFrom += 1;
 					expect(result).to.have.property('success').to.be.ok;
 					expect(result).to.have.property('peers').to.be.a('array');
 					var peerPorts = result.peers.map(function (p) {
 						return p.port;
 					});
-
 					var allPeerPorts = testNodeConfigs.map(function (testNodeConfig) {
 						return testNodeConfig.port;
 					});
-
 					expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
-					if (resultsFrom === testNodeConfigs.length) {
-						done();
-					}
 				});
-
+				done();
 			}).catch(function (err) {
 				done(err);
-				integrationDone(err);
 			});
 		});
 	});
 
-	describe('forging', function () {
+	describe.skip('forging', function () {
 
 		function getNetworkStatus (cb) {
 			Promise.all(sockets.map(function (socket) {
