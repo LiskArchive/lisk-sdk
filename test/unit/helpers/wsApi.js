@@ -6,6 +6,7 @@ var async = require('async');
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
+var randomstring = require('randomstring');
 var sinon = require('sinon');
 
 var wsApi = require('../../../helpers/wsApi');
@@ -19,6 +20,8 @@ describe('handshake', function () {
 	var handshake;
 	var validConfig;
 	var validHeaders;
+	var validPeerNonce = randomstring.generate(16);
+	var validNodeNonce = randomstring.generate(16);
 	var minVersion = '1.0.0';
 	var nonStrings = [{}, [], 1, 0.1, NaN, true];
 	var nonNumbers = [{}, [], 'A', '1', NaN, true];
@@ -29,7 +32,7 @@ describe('handshake', function () {
 				version: config.version,
 				minVersion: minVersion,
 				nethash: config.nethash,
-				nonce: 'ABCDEF0123456789'
+				nonce: validNodeNonce
 			}
 		};
 		new System(function (err, __system) {
@@ -42,7 +45,7 @@ describe('handshake', function () {
 			port: 5000,
 			nethash: config.nethash,
 			version: minVersion,
-			nonce: '0123456789ABCDEF',
+			nonce: validPeerNonce,
 			height: 1
 		};
 	});

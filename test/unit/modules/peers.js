@@ -76,7 +76,7 @@ describe('peers', function () {
 		});
 
 
-		it('should insert new peer with only ip and port and state defined', function (done) {
+		it('should insert new peer with only ip, port and state', function (done) {
 
 			var ipAndPortPeer = {
 				ip: '40.40.40.43',
@@ -128,23 +128,6 @@ describe('peers', function () {
 
 		});
 
-		it('should not insert new peer if address changed but nonce is the same', function (done) {
-
-			peers.update(randomPeer);
-
-			getPeers(function (err, __peers) {
-				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
-				var toUpdate = _.clone(randomPeer);
-				toUpdate.port += 1;
-				peers.update(toUpdate);
-				getPeers(function (err, __peers) {
-					expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
-					done();
-				});
-			});
-		});
-
-
 		it('should insert new peer if address and nonce changed', function (done) {
 
 			peers.update(randomPeer);
@@ -181,35 +164,38 @@ describe('peers', function () {
 			});
 		});
 
-		it('should list the inserted peer after insert', function (done) {
-			peers.update(randomPeer);
-			peers.list({}, function (err, __peers) {
-				expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
-				done();
-			});
-		});
+		describe('when inserted', function () {
 
-		it('should list the inserted peer as Peer instance with normalized parameter set to false', function (done) {
-			peers.update(randomPeer);
-			peers.list({normalized: false}, function (err, __peers) {
-				expect(__peers[0]).to.be.an.instanceof(Peer);
-				done();
+			beforeEach(function () {
+				peers.update(randomPeer);
 			});
-		});
 
-		it('should list the inserted peer as object with normalized parameter set to true', function (done) {
-			peers.update(randomPeer);
-			peers.list({normalized: true}, function (err, __peers) {
-				expect(__peers[0]).to.be.an.instanceof(Object);
-				done();
+			it('should list the inserted peer after insert', function (done) {
+				peers.list({}, function (err, __peers) {
+					expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
+					done();
+				});
 			});
-		});
 
-		it('should list the inserted peer as object without set normalized parameter', function (done) {
-			peers.update(randomPeer);
-			peers.list({}, function (err, __peers) {
-				expect(__peers[0]).to.be.an.instanceof(Object);
-				done();
+			it('should list the inserted peer as Peer instance with normalized parameter set to false', function (done) {
+				peers.list({normalized: false}, function (err, __peers) {
+					expect(__peers[0]).to.be.an.instanceof(Peer);
+					done();
+				});
+			});
+
+			it('should list the inserted peer as object with normalized parameter set to true', function (done) {
+				peers.list({normalized: true}, function (err, __peers) {
+					expect(__peers[0]).to.be.an.instanceof(Object);
+					done();
+				});
+			});
+
+			it('should list the inserted peer as object without set normalized parameter', function (done) {
+				peers.list({}, function (err, __peers) {
+					expect(__peers[0]).to.be.an.instanceof(Object);
+					done();
+				});
 			});
 		});
 	});
