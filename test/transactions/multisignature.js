@@ -184,14 +184,14 @@ describe('multisignature module', () => {
 
 				it('should be second signed correctly', () => {
 					const result = cryptoModule
-						.verifySecondSignature(multisignatureTransaction, secondKeys.publicKey);
+						.verifyTransaction(multisignatureTransaction, secondKeys.publicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					multisignatureTransaction.amount = 100;
 					const result = cryptoModule
-						.verifySecondSignature(multisignatureTransaction, secondKeys.publicKey);
+						.verifyTransaction(multisignatureTransaction, secondKeys.publicKey);
 					(result).should.not.be.ok();
 				});
 			});
@@ -325,14 +325,14 @@ describe('multisignature module', () => {
 
 				it('should be second signed correctly', () => {
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondKeys.publicKey);
+						.verifyTransaction(transactionTransaction, secondKeys.publicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					transactionTransaction.amount = 100;
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondKeys.publicKey);
+						.verifyTransaction(transactionTransaction, secondKeys.publicKey);
 					(result).should.not.be.ok();
 				});
 			});

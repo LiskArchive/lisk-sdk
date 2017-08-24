@@ -151,13 +151,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(inTransferTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					inTransferTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(inTransferTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});
@@ -279,14 +279,14 @@ describe('transfer module', () => {
 
 					it('should be second signed correctly', () => {
 						const result = cryptoModule
-							.verifySecondSignature(outTransferTransaction, secondPublicKey);
+							.verifyTransaction(outTransferTransaction, secondPublicKey);
 						(result).should.be.ok();
 					});
 
 					it('should not be second signed correctly if modified', () => {
 						outTransferTransaction.amount = 100;
 						const result = cryptoModule
-							.verifySecondSignature(outTransferTransaction, secondPublicKey);
+							.verifyTransaction(outTransferTransaction, secondPublicKey);
 						(result).should.not.be.ok();
 					});
 				});

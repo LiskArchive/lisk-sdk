@@ -145,13 +145,13 @@ describe('delegate module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(delegateTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					delegateTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(delegateTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

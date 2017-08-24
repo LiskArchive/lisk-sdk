@@ -193,7 +193,7 @@ describe('transaction module', () => {
 
 				it('should be second signed correctly', () => {
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondPublicKey);
+						.verifyTransaction(transactionTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
@@ -206,14 +206,14 @@ describe('transaction module', () => {
 						testData,
 					);
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, emptyPublicKey);
+						.verifyTransaction(transactionTransaction, emptyPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					transactionTransaction.amount = 100;
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondPublicKey);
+						.verifyTransaction(transactionTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

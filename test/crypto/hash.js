@@ -13,11 +13,37 @@
  *
  */
 import { getTransactionHash, getSha256Hash } from '../../src/crypto/hash';
+import { bufferToHex } from '../../src/crypto/convert';
 
 describe('hash', () => {
 	describe('#getSha256Hash', () => {
+		const defaultText = 'text123*';
+		const defaultHash = '7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971';
 		it('should be ok', () => {
 			(getSha256Hash).should.be.ok();
+		});
+
+		it('should generate a sha256 hash from buffer', () => {
+			const testBuffer = Buffer.from(defaultText);
+			const hash = getSha256Hash(testBuffer);
+			(bufferToHex(hash)).should.be.eql(defaultHash);
+		});
+
+		it('should generate a sha256 hash from utf8', () => {
+			const hash = getSha256Hash(defaultText, 'utf8');
+			(bufferToHex(hash)).should.be.eql(defaultHash);
+		});
+
+		it('should generate a sha256 hash from hex', () => {
+			const testHex = bufferToHex(Buffer.from(defaultText));
+			const hash = getSha256Hash(testHex, 'hex');
+			(bufferToHex(hash)).should.be.eql(defaultHash);
+		});
+
+		it('should throw on unknown format', () => {
+			(function getSha256HashfromInvalidFormat() {
+				getSha256Hash(defaultText, 'utf32');
+			}).should.throw('Unknown input format, use buffer as default, \'hex\' or \'utf8\' as format');
 		});
 	});
 

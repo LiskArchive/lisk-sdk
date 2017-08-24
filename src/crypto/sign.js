@@ -270,46 +270,28 @@ export function multiSignTransaction(transaction, givenKeys) {
 /**
  * @method verifyTransaction
  * @param transaction Object
+ * @param secondPublicKey
  *
  * @return {boolean}
  */
 
-export function verifyTransaction(transaction) {
-	const remove = transaction.signSignature ? 128 : 64;
+export function verifyTransaction(transaction, secondPublicKey) {
+	let remove = transaction.signSignature ? 128 : 64;
+	if (secondPublicKey) remove = 64;
 	const transactionBytes = getTransactionBytes(transaction);
 	const transactionBytesWithoutSignature = Buffer
 		.alloc(transactionBytes.length - remove)
 		.fill(transactionBytes);
 	const transactionHash = getSha256Hash(transactionBytesWithoutSignature);
 
-	const signatureBuffer = Buffer.from(transaction.signature, 'hex');
-	const senderPublicKeyBuffer = Buffer.from(transaction.senderPublicKey, 'hex');
+	const signatureBuffer = transaction.signSignature
+		? Buffer.from(transaction.signSignature, 'hex')
+		: Buffer.from(transaction.signature, 'hex');
+	const senderPublicKeyBuffer = transaction.signSignature
+		?  Buffer.from(secondPublicKey, 'hex')
+		: Buffer.from(transaction.senderPublicKey, 'hex');
 	const verification = naclInstance.crypto_sign_verify_detached(
 		signatureBuffer, transactionHash, senderPublicKeyBuffer,
-	);
-
-	return verification;
-}
-
-/**
- * @method verifySecondSignature
- * @param transaction Object
- * @param publicKey Object
- *
- * @return {boolean}
- */
-
-export function verifySecondSignature(transaction, publicKey) {
-	const transactionBytes = getTransactionBytes(transaction);
-	const transactionBytesWithoutSignature = Buffer
-		.alloc(transactionBytes.length - 64)
-		.fill(transactionBytes);
-	const transactionHash = getSha256Hash(transactionBytesWithoutSignature);
-
-	const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
-	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	const verification = naclInstance.crypto_sign_verify_detached(
-		signSignatureBuffer, transactionHash, publicKeyBuffer,
 	);
 
 	return verification;

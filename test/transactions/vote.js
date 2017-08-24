@@ -168,13 +168,13 @@ describe('vote module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					voteTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});
