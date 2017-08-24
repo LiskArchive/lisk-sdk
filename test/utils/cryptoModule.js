@@ -16,35 +16,109 @@
 const lisk = require('lisk-js');
 const cryptoModule = require('../../src/utils/cryptoModule');
 
-describe('cryptoModule class', () => {
-	const message = 'Hello Lisker';
-	const secret = 'pass phrase';
-	const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
+describe('cryptoModule', () => {
+	describe('exports', () => {
+		it('should export an object', () => {
+			(cryptoModule).should.be.type('object');
+		});
 
-	let encryptMessageWithSecretStub;
+		it('should export a Crypto instance', () => {
+			(cryptoModule.constructor).should.have.property('name').and.be.equal('Crypto');
+		});
 
-	beforeEach(() => {
-		encryptMessageWithSecretStub = sinon.stub(lisk.crypto, 'encryptMessageWithSecret');
+		it('should have lisk-js as a property', () => {
+			(cryptoModule).should.have.property('lisk').and.be.equal(lisk);
+		});
 	});
 
-	afterEach(() => {
-		encryptMessageWithSecretStub.restore();
+	describe('#encrypt', () => {
+		const message = 'Hello Lisker';
+		const secret = 'pass phrase';
+		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
+		const encryptMessageWithSecretResult = {
+			nonce: 'abc123',
+			encryptedMessage: 'def456',
+		};
+
+		let encryptMessageWithSecretStub;
+
+		beforeEach(() => {
+			encryptMessageWithSecretStub = sinon
+				.stub(lisk.crypto, 'encryptMessageWithSecret')
+				.returns(Object.assign({}, encryptMessageWithSecretResult));
+		});
+
+		afterEach(() => {
+			encryptMessageWithSecretStub.restore();
+		});
+
+		it('should use lisk-js encryptMessageWithSecret', () => {
+			cryptoModule.encrypt(message, secret, recipient);
+
+			(encryptMessageWithSecretStub.calledWithExactly(message, secret, recipient))
+				.should.be.true();
+		});
+
+		it('should return the result of lisk-js encryptMessageWithSecret', () => {
+			const result = cryptoModule.encrypt(message, secret, recipient);
+			(result).should.be.eql(encryptMessageWithSecretResult);
+		});
+
+		it('should handle error responses', () => {
+			const errorMessage = 'Cannot read property \'length\' of null';
+			const error = new TypeError(errorMessage);
+			encryptMessageWithSecretStub.throws(error);
+
+			const result = cryptoModule.encrypt(errorMessage, secret, recipient);
+
+			(result).should.have.property('error', errorMessage);
+		});
 	});
 
-	it('should use lisk-js encryptMessageWithSecret', () => {
-		cryptoModule.encrypt(message, secret, recipient);
+	describe('#decrypt', () => {
+		const encryptedMessage = '4728715ed4463a37d8e90720a27377f04a84911b95520c2582a8b6da';
+		const nonce = '682be05eeb73a794163b5584cac6b33769c2abd867459cae';
+		const secret = 'recipient secret';
+		// sender secret: 'sender secret'
+		const senderPublicKey = '38433137692948be1c05bbae686c9c850d3c8d9c52c1aebb4a7c1d5dd6d010d7';
+		const decryptMessageWithSecretResult = 'abc123';
 
-		(encryptMessageWithSecretStub.calledWithExactly(message, secret, recipient))
-			.should.be.true();
-	});
+		let decryptMessageWithSecretStub;
 
-	it('should handle error responses', () => {
-		const errorMessage = 'Cannot read property \'length\' of null';
-		const error = new TypeError(errorMessage);
-		encryptMessageWithSecretStub.throws(error);
+		beforeEach(() => {
+			decryptMessageWithSecretStub = sinon
+				.stub(lisk.crypto, 'decryptMessageWithSecret')
+				.returns(decryptMessageWithSecretResult);
+		});
 
-		const result = cryptoModule.encrypt(errorMessage, secret, recipient);
+		afterEach(() => {
+			decryptMessageWithSecretStub.restore();
+		});
 
-		(result).should.have.property('error', errorMessage);
+		it('should use lisk-js decryptMessageWithSecret', () => {
+			cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
+
+			(decryptMessageWithSecretStub.calledWithExactly(
+				encryptedMessage, nonce, secret, senderPublicKey,
+			))
+				.should.be.true();
+		});
+
+		it('should return the processed result of lisk-js encryptMessageWithSecret', () => {
+			const result = cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
+			(result).should.be.eql({
+				message: decryptMessageWithSecretResult,
+			});
+		});
+
+		it('should handle error responses', () => {
+			const errorMessage = 'Cannot read property \'length\' of null';
+			const error = new TypeError(errorMessage);
+			decryptMessageWithSecretStub.throws(error);
+
+			const result = cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
+
+			(result).should.have.property('error', errorMessage);
+		});
 	});
 });

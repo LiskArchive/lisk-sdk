@@ -13,73 +13,66 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import encrypt from '../../src/commands/encrypt';
+import decrypt from '../../src/commands/decrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
 import tablify from '../../src/utils/tablify';
 import { setUpVorpalWithCommand } from './utils';
 
-describe('lisky encrypt command palette', () => {
-	let vorpal;
+describe('lisky decrypt command palette', () => {
 	let capturedOutput;
+	let vorpal;
 
 	beforeEach(() => {
 		capturedOutput = [];
-		vorpal = setUpVorpalWithCommand(encrypt, capturedOutput);
+		vorpal = setUpVorpalWithCommand(decrypt, capturedOutput);
 	});
 
-	afterEach(() => {
-		vorpal.ui.removeAllListeners();
-	});
+	// eslint-disable-next-line no-underscore-dangle
+	const commandFilter = command => command._name === 'decrypt';
+	const argsFilter = arg => arg.required;
 
 	describe('setup', () => {
-		// eslint-disable-next-line no-underscore-dangle
-		const commandFilter = command => command._name === 'encrypt';
-
 		it('should be available', () => {
-			const encryptCommands = vorpal.commands.filter(commandFilter);
-			(encryptCommands).should.have.length(1);
+			const decryptCommands = vorpal.commands.filter(commandFilter);
+			(decryptCommands).should.have.length(1);
 		});
 
-		it('should require 3 inputs', () => {
-			const argsFilter = arg => arg.required;
+		it('should require 4 inputs', () => {
 			const encryptCommand = vorpal.commands.filter(commandFilter)[0];
 			// eslint-disable-next-line no-underscore-dangle
 			const requiredArgs = encryptCommand._args.filter(argsFilter);
-			(requiredArgs).should.have.length(3);
+			(requiredArgs).should.have.length(4);
 		});
 	});
 
 	describe('when executed', () => {
-		const message = 'Hello Lisker';
-		const secret = 'pass phrase';
-		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
-		const command = `encrypt "${message}" "${secret}" "${recipient}"`;
-
-		const nonce = '60ee6cbb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
-		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
-		const cryptoEncryptReturnObject = {
-			nonce,
-			encryptedMessage,
+		// message: 'Hello Lisker'
+		const encryptedMessage = '4728715ed4463a37d8e90720a27377f04a84911b95520c2582a8b6da';
+		const nonce = '682be05eeb73a794163b5584cac6b33769c2abd867459cae';
+		const secret = 'recipient secret';
+		// sender secret: 'sender secret'
+		const senderPublicKey = '38433137692948be1c05bbae686c9c850d3c8d9c52c1aebb4a7c1d5dd6d010d7';
+		const command = `decrypt "${encryptedMessage}" "${nonce}" "${secret}" "${senderPublicKey}"`;
+		const cryptoDecryptReturnObject = {
+			message: 'Hello Lisker',
 		};
-		const tableOutput = tablify(cryptoEncryptReturnObject).toString();
-		const jsonOutput = JSON.stringify(cryptoEncryptReturnObject);
+		const tableOutput = tablify(cryptoDecryptReturnObject).toString();
+		const jsonOutput = JSON.stringify(cryptoDecryptReturnObject);
 
-		let encryptStub;
+		let decryptStub;
 
 		beforeEach(() => {
-			encryptStub = sinon
-				.stub(cryptoModule, 'encrypt')
-				.returns(cryptoEncryptReturnObject);
+			decryptStub = sinon.stub(cryptoModule, 'decrypt').returns(cryptoDecryptReturnObject);
 		});
 
 		afterEach(() => {
-			encryptStub.restore();
+			decryptStub.restore();
 		});
 
 		it('should handle valid parameters', () => {
 			return vorpal.exec(command)
 				.then(() => {
-					(encryptStub.calledWithExactly(message, secret, recipient))
+					(decryptStub.calledWithExactly(encryptedMessage, nonce, secret, senderPublicKey))
 						.should.be.true();
 				});
 		});

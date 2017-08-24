@@ -27,6 +27,16 @@ class Crypto {
 			return { error };
 		}
 	}
+
+	decrypt(encryptedMessage, nonce, secret, senderPublicKey) {
+		try {
+			const message = this.lisk.crypto
+				.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);
+			return { message };
+		} catch ({ message: error }) {
+			return { error };
+		}
+	}
 }
 
 module.exports = new Crypto();
