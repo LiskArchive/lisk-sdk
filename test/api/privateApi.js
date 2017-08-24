@@ -12,26 +12,38 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { PopsicleError } from 'popsicle';
 import privateApi from '../../src/api/privateApi';
+import utils from '../../src/api/utils';
 
-describe('privateApi', () => {
+describe('privateApi module', () => {
 	const port = 7000;
 	const localNode = 'localhost';
 	const externalNode = 'external';
+	const sslNode = 'sslPeer';
 	const externalTestnetNode = 'testnet';
-	const defaultData = 'testData';
+	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const GET = 'GET';
 	const POST = 'POST';
+	const defaultMethod = POST;
+	const defaultEndpoint = 'transactions';
+	const defaultData = 'testData';
+	const defaultPeers = [localNode, externalNode];
+	const defaultSSLPeers = [localNode, externalNode, sslNode];
+	const defaultTestnetPeers = [localNode, externalTestnetNode];
 
 	let LSK;
+	let sendRequestResult;
+	let sendRequestStub;
 
 	beforeEach(() => {
 		LSK = {
 			randomPeer: false,
 			currentPeer: localNode,
-			defaultPeers: [localNode, externalNode],
-			defaultSSLPeers: [localNode, externalNode],
-			defaultTestnetPeers: [localNode, externalTestnetNode],
+			defaultPeers: [].concat(defaultPeers),
+			defaultSSLPeers: [].concat(defaultSSLPeers),
+			defaultTestnetPeers: [].concat(defaultTestnetPeers),
 			bannedPeers: [],
 			port,
 			options: {
@@ -42,219 +54,525 @@ describe('privateApi', () => {
 			},
 
 			parseOfflineRequests: () => ({
-				requestMethod: 'GET',
+				requestMethod: GET,
 			}),
 			setTestnet: () => {},
+			setNode: () => {},
+			sendRequest: () => {},
 		};
+		sendRequestResult = { success: true, sendRequest: true };
+		sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
 	});
 
-	describe('#selectNode', () => {
-		it('should return the node from initial settings when set', () => {
-			(privateApi.selectNode.call(LSK)).should.be.equal(localNode);
-		});
+	afterEach(() => {
+		sendRequestStub.restore();
 	});
 
-	describe('#getRandomPeer', () => {
-		it('should give a random peer', () => {
-			(privateApi.getRandomPeer.call(LSK)).should.be.ok();
-		});
-	});
+	describe('#netHashOptions', () => {
+		const { netHashOptions } = privateApi;
+		let result;
 
-	describe('#banNode', () => {
-		it('should add current node to banned peers', () => {
-			const currentNode = LSK.currentPeer;
-			privateApi.banNode.call(LSK);
-
-			(LSK.bannedPeers).should.containEql(currentNode);
-		});
-	});
-
-	describe('#getFullUrl', () => {
-		it('should give the full url inclusive port', () => {
-			const fullUrl = `http://${localNode}:${port}`;
-
-			(privateApi.getFullUrl.call(LSK)).should.be.equal(fullUrl);
+		beforeEach(() => {
+			result = netHashOptions.call(LSK);
 		});
 
-		it('should give the full url without port and with SSL', () => {
-			LSK.port = '';
-			LSK.ssl = true;
-			const fullUrl = `https://${localNode}`;
-
-			(privateApi.getFullUrl.call(LSK)).should.be.equal(fullUrl);
+		it('should return an object with a testnet nethash', () => {
+			const { testnet } = result;
+			(testnet).should.have.property('Content-Type').and.be.type('string');
+			(testnet).should.have.property('nethash').and.be.type('string');
+			(testnet).should.have.property('broadhash').and.be.type('string');
+			(testnet).should.have.property('os').and.be.type('string');
+			(testnet).should.have.property('version').and.be.type('string');
+			(testnet).should.have.property('minVersion').and.be.type('string');
+			(testnet).should.have.property('port').and.be.type('number');
+		});
+		it('should return an object with a mainnet nethash', () => {
+			const { mainnet } = result;
+			(mainnet).should.have.property('Content-Type').and.be.type('string');
+			(mainnet).should.have.property('nethash').and.be.type('string');
+			(mainnet).should.have.property('broadhash').and.be.type('string');
+			(mainnet).should.have.property('os').and.be.type('string');
+			(mainnet).should.have.property('version').and.be.type('string');
+			(mainnet).should.have.property('minVersion').and.be.type('string');
+			(mainnet).should.have.property('port').and.be.type('number');
 		});
 	});
 
 	describe('#getURLPrefix', () => {
-		it('should be http when ssl is false', () => {
+		const { getURLPrefix } = privateApi;
+
+		it('should return http when ssl is set to false', () => {
 			LSK.ssl = false;
-
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('http');
+			const result = getURLPrefix.call(LSK);
+			(result).should.be.equal('http');
 		});
 
-		it('should be https when ssl is true', () => {
+		it('should return https when ssl is set to true', () => {
 			LSK.ssl = true;
-
-			(privateApi.getURLPrefix.call(LSK)).should.be.equal('https');
+			const result = getURLPrefix.call(LSK);
+			(result).should.be.equal('https');
 		});
 	});
 
-	describe('#serialiseHttpData', () => {
-		it('should create a http string from an object and trim.', () => {
-			const myObj = {
-				obj: ' myval',
-				key: 'my2ndval ',
-			};
+	describe('#getFullURL', () => {
+		const { getFullURL } = privateApi;
+		const URLPrefix = 'ftp';
 
-			const serialised = privateApi.serialiseHttpData(myObj);
+		let getURLPrefixStub;
+		let restoreGetURLPrefixStub;
+		let result;
 
-			(serialised).should.be.equal('?obj=myval&key=my2ndval');
+		beforeEach(() => {
+			getURLPrefixStub = sinon.stub().returns(URLPrefix);
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetURLPrefixStub = privateApi.__set__('getURLPrefix', getURLPrefixStub);
+			result = getFullURL.call(LSK);
+		});
+
+		afterEach(() => {
+			restoreGetURLPrefixStub();
+		});
+
+		it('should get the URL prefix', () => {
+			(getURLPrefixStub.calledOn(LSK)).should.be.true();
+		});
+
+		it('should add the prefix to the node URL and the port', () => {
+			(result).should.equal(`${URLPrefix}://${LSK.currentPeer}:${port}`);
+		});
+
+		it('should not include a port if not set', () => {
+			delete LSK.port;
+			result = getFullURL.call(LSK);
+			(result).should.equal(`${URLPrefix}://${LSK.currentPeer}`);
 		});
 	});
 
-	describe.skip('#checkOptions', () => {
-		it('should not accept falsy options like undefined', () => {
-			(function sendRequestWithUndefinedLimit() {
-				LSK.sendRequest('delegates/', { limit: undefined }, () => {});
-			}).should.throw('parameter value "limit" should not be undefined');
+	describe('#getPeers', () => {
+		const { getPeers } = privateApi;
+
+		describe('with SSL set to true', () => {
+			beforeEach(() => {
+				LSK.ssl = true;
+			});
+
+			it('should return default testnet peers if testnet is set to true', () => {
+				LSK.testnet = true;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultTestnetPeers);
+			});
+
+			it('should return default SSL peers if testnet is not set to true', () => {
+				LSK.testnet = false;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultSSLPeers);
+			});
 		});
 
-		it('should not accept falsy options like NaN', () => {
-			(function sendRequestWithNaNLimit() {
-				LSK.sendRequest('delegates/', { limit: NaN }, () => {});
-			}).should.throw('parameter value "limit" should not be NaN');
+		describe('with SSL set to false', () => {
+			beforeEach(() => {
+				LSK.ssl = false;
+			});
+
+			it('should return default testnet peers if testnet is set to true', () => {
+				LSK.testnet = true;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultTestnetPeers);
+			});
+
+			it('should return default mainnet peers if testnet is not set to true', () => {
+				LSK.testnet = false;
+				const peers = getPeers.call(LSK);
+				(peers).should.be.eql(defaultPeers);
+			});
+		});
+	});
+
+	describe('#getRandomPeer', () => {
+		const { getRandomPeer } = privateApi;
+		let getPeersStub;
+		let restoreGetPeersStub;
+
+		beforeEach(() => {
+			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
+		});
+
+		afterEach(() => {
+			restoreGetPeersStub();
+		});
+
+		it('should throw an error if all relevant peers are banned', () => {
+			LSK.bannedPeers = [].concat(defaultPeers);
+			(getRandomPeer.bind(LSK)).should.throw('Cannot get random peer: all relevant peers have been banned.');
+		});
+
+		it('should get peers', () => {
+			getRandomPeer.call(LSK);
+			(getPeersStub.calledOn(LSK)).should.be.true();
+		});
+
+		it('should return a peer', () => {
+			const result = getRandomPeer.call(LSK);
+			(LSK.defaultPeers).should.containEql(result);
+		});
+
+		it('should randomly select the peer', () => {
+			const firstResult = getRandomPeer.call(LSK);
+			let nextResult = getRandomPeer.call(LSK);
+			// Test will almost certainly time out if not random
+			while (nextResult === firstResult) {
+				nextResult = getRandomPeer.call(LSK);
+			}
+		});
+	});
+
+	describe('#selectNode', () => {
+		const { selectNode } = privateApi;
+		const customNode = 'customPeer';
+		const getRandomPeerResult = externalNode;
+
+		let getRandomPeerStub;
+		let restoreGetRandomPeer;
+
+		beforeEach(() => {
+			getRandomPeerStub = sinon.stub().returns(getRandomPeerResult);
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetRandomPeer = privateApi.__set__('getRandomPeer', getRandomPeerStub);
+		});
+
+		afterEach(() => {
+			restoreGetRandomPeer();
+		});
+
+		describe('if a node was provided in the options', () => {
+			beforeEach(() => {
+				LSK.options.node = customNode;
+			});
+			describe('if randomPeer is set to false', () => {
+				beforeEach(() => {
+					LSK.randomPeer = false;
+				});
+
+				it('should throw an error if the provided node is banned', () => {
+					LSK.bannedPeers = [customNode];
+					(selectNode.bind(LSK)).should.throw('Cannot select node: provided node has been banned and randomPeer is not set to true.');
+				});
+
+				it('should return the provided node if it is not banned', () => {
+					const result = selectNode.call(LSK);
+					(result).should.be.equal(customNode);
+				});
+			});
+
+			describe('if randomPeer is set to true', () => {
+				beforeEach(() => {
+					LSK.randomPeer = true;
+				});
+
+				it('should call getRandomPeer', () => {
+					selectNode.call(LSK);
+					(getRandomPeerStub.calledOn(LSK)).should.be.true();
+				});
+
+				it('should return a random peer', () => {
+					const result = selectNode.call(LSK);
+					(result).should.be.equal(getRandomPeerResult);
+				});
+			});
+		});
+
+		describe('if a node was not provided in the options', () => {
+			beforeEach(() => {
+				LSK.options.node = undefined;
+			});
+
+			describe('if randomPeer is set to false', () => {
+				beforeEach(() => {
+					LSK.randomPeer = false;
+				});
+
+				it('should throw an error', () => {
+					(selectNode.bind(LSK)).should.throw('Cannot select node: no node provided and randomPeer is not set to true.');
+				});
+			});
+
+			describe('if randomPeer is set to true', () => {
+				beforeEach(() => {
+					LSK.randomPeer = true;
+				});
+
+				it('should call getRandomPeer', () => {
+					selectNode.call(LSK);
+					(getRandomPeerStub.calledOn(LSK)).should.be.true();
+				});
+
+				it('should return a random peer', () => {
+					const result = selectNode.call(LSK);
+					(result).should.be.equal(getRandomPeerResult);
+				});
+			});
+		});
+	});
+
+	describe('#banNode', () => {
+		const { banNode } = privateApi;
+		let currentNode;
+
+		beforeEach(() => {
+			currentNode = LSK.currentPeer;
+		});
+
+		it('should add current node to banned peers', () => {
+			banNode.call(LSK);
+
+			(LSK.bannedPeers).should.containEql(currentNode);
+		});
+
+		it('should not duplicate a banned peer', () => {
+			const bannedPeers = [currentNode];
+			LSK.bannedPeers = bannedPeers;
+			banNode.call(LSK);
+
+			(LSK.bannedPeers).should.be.eql(bannedPeers);
 		});
 	});
 
 	describe('#checkReDial', () => {
+		const { checkReDial } = privateApi;
+		let getPeersStub;
+		let restoreGetPeersStub;
+		let netHashOptionsStub;
+		let setTestnetStub;
+
 		beforeEach(() => {
-			LSK.randomPeer = true;
+			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
+			netHashOptionsStub = sinon.stub(privateApi, 'netHashOptions');
+			setTestnetStub = sinon.stub(LSK, 'setTestnet');
 		});
 
-		it('should check if all the peers are already banned', () => {
-			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
+		afterEach(() => {
+			restoreGetPeersStub();
+			netHashOptionsStub.restore();
+			setTestnetStub.restore();
 		});
 
-		it.skip('should be able to get a new node when current one is not reachable', () => {
-			return LSK.sendRequest('blocks/getHeight', {}, (result) => {
-				(result).should.be.type('object');
+		describe('with random peer', () => {
+			let result;
+
+			beforeEach(() => {
+				LSK.randomPeer = true;
+			});
+
+			it('should get peers', () => {
+				checkReDial.call(LSK);
+				(getPeersStub.calledOn(LSK)).should.be.true();
+			});
+
+			describe('when nethash is set', () => {
+				describe('when the nethash matches the testnet', () => {
+					beforeEach(() => {
+						LSK.options.nethash = testnetNethash;
+						result = checkReDial.call(LSK);
+					});
+
+					it('should set testnet to true', () => {
+						(setTestnetStub.calledOn(LSK)).should.be.true();
+						(setTestnetStub.calledWithExactly(true)).should.be.true();
+					});
+
+					it('should return true', () => {
+						(result).should.be.true();
+					});
+				});
+
+				describe('when the nethash matches the mainnet', () => {
+					beforeEach(() => {
+						LSK.options.nethash = mainnetNethash;
+						result = checkReDial.call(LSK);
+					});
+
+					it('should set testnet to false', () => {
+						(setTestnetStub.calledOn(LSK)).should.be.true();
+						(setTestnetStub.calledWithExactly(false)).should.be.true();
+					});
+
+					it('should return true', () => {
+						(result).should.be.true();
+					});
+				});
+
+				describe('when the nethash matches neither the mainnet nor the testnet', () => {
+					beforeEach(() => {
+						LSK.options.nethash = 'abc123';
+						result = checkReDial.call(LSK);
+					});
+
+					it('should return false', () => {
+						(result).should.be.false();
+					});
+				});
+			});
+
+			describe('when nethash is not set', () => {
+				beforeEach(() => {
+					LSK.options.nethash = undefined;
+				});
+
+				it('should return true if there are peers which are not banned', () => {
+					LSK.bannedPeers = ['bannedPeer'].concat(LSK.defaultPeers.slice(1));
+					result = checkReDial.call(LSK);
+
+					(result).should.be.true();
+				});
+
+				it('should return false if there are no peers which are not banned', () => {
+					LSK.bannedPeers = [].concat(LSK.defaultPeers);
+					result = checkReDial.call(LSK);
+
+					(result).should.be.false();
+				});
 			});
 		});
 
-		it('should recognize that now all the peers are banned for mainnet', () => {
-			LSK.bannedPeers = LSK.defaultPeers;
+		describe('without random peer', () => {
+			beforeEach(() => {
+				LSK.randomPeer = false;
+			});
 
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
-		});
-
-		it('should recognize that now all the peers are banned for testnet', () => {
-			LSK.testnet = true;
-			LSK.bannedPeers = LSK.defaultTestnetPeers;
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
-		});
-
-		it('should recognize that now all the peers are banned for ssl', () => {
-			LSK.ssl = true;
-			LSK.bannedPeers = LSK.defaultSSLPeers;
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
-		});
-
-		it.skip('should stop redial when all the peers are banned already', () => {
-			LSK.bannedPeers = LSK.defaultPeers;
-			LSK.currentPeer = '';
-
-			return LSK.sendRequest('blocks/getHeight').then((e) => {
-				(e.message).should.be.equal('could not create http request to any of the given peers');
+			it('should return false', () => {
+				const result = checkReDial.call(LSK);
+				(result).should.be.false();
 			});
 		});
+	});
 
-		it('should redial to new node when randomPeer is set true', () => {
-			LSK.randomPeer = true;
+	describe('#checkOptions', () => {
+		const { checkOptions } = privateApi;
+		const goodOptions = {
+			key1: 'value 1',
+			key2: 2,
+		};
 
-			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
+		it('should throw an error if any option is undefined', () => {
+			const optionsWithUndefined = Object.assign({
+				badKey: undefined,
+			}, goodOptions);
+
+			(checkOptions.bind(null, optionsWithUndefined)).should.throw('"badKey" option should not be undefined');
 		});
 
-		it('should not redial to new node when randomPeer is set to true but unknown nethash provided', () => {
-			LSK.options.nethash = '123';
+		it('should throw an error if any option is NaN', () => {
+			const optionsWithNaN = Object.assign({
+				badKey: NaN,
+			}, goodOptions);
 
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
+			(checkOptions.bind(null, optionsWithNaN)).should.throw('"badKey" option should not be NaN');
 		});
 
-		it('should redial to mainnet nodes when nethash is set and randomPeer is true', () => {
-			LSK.options.nethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-			const stub = sinon.stub(LSK, 'setTestnet');
+		it('should return the options if they are all ok', () => {
+			const result = checkOptions(Object.assign({}, goodOptions));
+			(result).should.be.eql(goodOptions);
+		});
+	});
 
-			(privateApi.checkReDial.call(LSK)).should.be.true();
-			(stub.calledWithExactly(false)).should.be.true();
-			stub.restore();
+	describe('#serialiseHTTPData', () => {
+		const { serialiseHTTPData } = privateApi;
+		const queryStringData = 'key%2F1=value%20%252&key3=4';
+
+		let data;
+		let trimmedData;
+		let trimObjStub;
+		let toQueryStringStub;
+		let serialisedData;
+
+		beforeEach(() => {
+			data = {
+				' key/1 ': '  value %2',
+				key3: 4,
+			};
+			trimmedData = {
+				'key%2F': 'value%20%252',
+				key3: 4,
+			};
+			trimObjStub = sinon.stub(utils, 'trimObj').returns(trimmedData);
+			toQueryStringStub = sinon.stub(utils, 'toQueryString').returns(queryStringData);
+			serialisedData = serialiseHTTPData(data);
 		});
 
-		it('should redial to testnet nodes when nethash is set and randomPeer is true', () => {
-			LSK.options.nethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-			const stub = sinon.stub(LSK, 'setTestnet');
-
-			(privateApi.checkReDial.call(LSK)).should.be.equal(true);
-			(stub.calledWithExactly(true)).should.be.true();
-			stub.restore();
+		afterEach(() => {
+			trimObjStub.restore();
+			toQueryStringStub.restore();
 		});
 
-		it('should not redial when randomPeer is set false', () => {
-			LSK.randomPeer = false;
+		it('should trim the object', () => {
+			(trimObjStub.calledWithExactly(data)).should.be.true();
+		});
 
-			(privateApi.checkReDial.call(LSK)).should.be.equal(false);
+		it('should convert the trimmed object to a query string', () => {
+			(toQueryStringStub.calledWithExactly(trimmedData)).should.be.true();
+		});
+
+		it('should prepend a question mark to the query string', () => {
+			(serialisedData).should.equal(`?${queryStringData}`);
 		});
 	});
 
 	describe('#createRequestObject', () => {
-		const requestType = 'transaction';
 		let options;
 		let expectedObject;
 
 		beforeEach(() => {
-			options = { limit: 5, offset: 3, details: defaultData };
+			options = {
+				limit: 5,
+				offset: 3,
+				details: defaultData,
+			};
 			expectedObject = {
 				method: GET,
-				url: `http://${localNode}:${port}/api/${requestType}`,
+				url: `http://${localNode}:${port}/api/${defaultEndpoint}`,
 				headers: LSK.nethash,
 				body: {},
 			};
 		});
 
-		it('should create a valid request Object for GET request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, GET, requestType, options);
+		it('should create a valid request object for GET request', () => {
 			expectedObject.url += `?limit=${options.limit}&offset=${options.offset}&details=${options.details}`;
 
+			const requestObject = privateApi.createRequestObject.call(LSK, GET, defaultEndpoint, options);
 			(requestObject).should.be.eql(expectedObject);
 		});
 
-		it('should create a valid request Object for POST request', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, POST, requestType, options);
-			expectedObject.body = { limit: 5, offset: 3, details: 'testData' };
+		it('should create a valid request object for POST request', () => {
+			expectedObject.body = Object.assign({}, options);
 			expectedObject.method = POST;
 
+			const requestObject = privateApi.createRequestObject
+				.call(LSK, POST, defaultEndpoint, options);
 			(requestObject).should.be.eql(expectedObject);
 		});
 
-		it('should create a valid request Object for POST request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, POST, requestType);
+		it('should create a valid request object for POST request without options', () => {
 			expectedObject.method = POST;
 
+			const requestObject = privateApi.createRequestObject.call(LSK, POST, defaultEndpoint);
 			(requestObject).should.be.eql(expectedObject);
 		});
 
-		it('should create a valid request Object for undefined request without options', () => {
-			const requestObject = privateApi.createRequestObject.call(LSK, undefined, requestType);
+		it('should create a valid request object for undefined request method without options', () => {
 			expectedObject.method = undefined;
 
+			const requestObject = privateApi.createRequestObject.call(LSK, undefined, defaultEndpoint);
 			(requestObject).should.be.eql(expectedObject);
 		});
 	});
 
-
 	describe('#constructRequestData', () => {
 		const address = '18160565574430594874L';
+		const customAddress = '123l';
 		const defaultRequestLimit = 10;
 		const defaultRequestOffset = 101;
 		const optionsObject = {
@@ -267,12 +585,12 @@ describe('privateApi', () => {
 			offset: defaultRequestOffset,
 		};
 		const optionsWithConflictObject = {
-			address: '123L',
+			address: customAddress,
 			limit: 4,
 			offset: 5,
 		};
 		const resolvedConflictObject = {
-			address: '123L',
+			address: customAddress,
 			limit: defaultRequestLimit,
 			offset: defaultRequestOffset,
 		};
@@ -283,8 +601,9 @@ describe('privateApi', () => {
 		});
 
 		it('should recognise when a callback function is passed instead of an options object', () => {
-			const requestData = privateApi.constructRequestData({ address }, () => true);
-			(requestData).should.be.eql({ address });
+			const providedObj = { address };
+			const requestData = privateApi.constructRequestData(providedObj, () => true);
+			(requestData).should.be.eql(providedObj);
 		});
 
 		it('should prioritise values from the data object when the data object and options object conflict', () => {
@@ -292,6 +611,345 @@ describe('privateApi', () => {
 				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, optionsWithConflictObject,
 			);
 			(requestData).should.be.eql(resolvedConflictObject);
+		});
+	});
+
+	describe('#sendRequestPromise', () => {
+		const { sendRequestPromise } = privateApi;
+
+		let options;
+		let createRequestObjectResult;
+		let createRequestObjectStub;
+		let restoreCreateRequestObject;
+		let sendRequestPromiseResult;
+
+		beforeEach(() => {
+			options = {
+				key1: 'value 2',
+				key3: 4,
+			};
+			createRequestObjectResult = {
+				method: defaultMethod,
+				url: `http://${localNode}:${port}/api/bad_endpoint?k=v`,
+				headers: {},
+				body: {},
+			};
+			createRequestObjectStub = sinon.stub().returns(Object.assign({}, createRequestObjectResult));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreCreateRequestObject = privateApi.__set__('createRequestObject', createRequestObjectStub);
+			sendRequestPromiseResult = sendRequestPromise
+				.call(LSK, defaultMethod, defaultEndpoint, options)
+				.catch(result => result);
+			return sendRequestPromiseResult;
+		});
+
+		afterEach(() => {
+			restoreCreateRequestObject();
+		});
+
+		it('should create a request object', () => {
+			(createRequestObjectStub.calledOn(LSK)).should.be.true();
+			(createRequestObjectStub.calledWithExactly(defaultMethod, defaultEndpoint, options))
+				.should.be.true();
+		});
+
+		it('should return the result of a popsicle request', () => {
+			return sendRequestPromiseResult
+				.then((result) => {
+					(result).should.be.instanceof(PopsicleError);
+				});
+		});
+	});
+
+	describe('#wrapSendRequest', () => {
+		const { wrapSendRequest } = privateApi;
+		const value = '123';
+
+		let options;
+		let getDataFnResult;
+		let getDataFnStub;
+		let constructRequestDataResult;
+		let constructRequestDataStub;
+		let restoreConstructRequestDataStub;
+		let callback;
+		let returnedFunction;
+
+		beforeEach(() => {
+			options = {
+				key1: 'value 1',
+				key2: 2,
+			};
+			getDataFnResult = {
+				key3: 'value3',
+				key4: 4,
+			};
+			constructRequestDataResult = {
+				key5: 'value 5',
+				key6: 6,
+			};
+			getDataFnStub = sinon.stub().returns(Object.assign({}, getDataFnResult));
+			constructRequestDataStub = sinon.stub()
+				.returns(Object.assign({}, constructRequestDataResult));
+			// eslint-disable-next-line no-underscore-dangle
+			restoreConstructRequestDataStub = privateApi.__set__('constructRequestData', constructRequestDataStub);
+			returnedFunction = wrapSendRequest(defaultMethod, defaultEndpoint, getDataFnStub);
+			callback = () => {};
+		});
+
+		afterEach(() => {
+			restoreConstructRequestDataStub();
+		});
+
+		it('should return a function', () => {
+			(returnedFunction).should.be.type('function');
+		});
+
+		describe('returned function', () => {
+			it('should call the provided getData function on the provided value and options', () => {
+				return returnedFunction.call(LSK, value, options)
+					.then(() => {
+						(getDataFnStub.calledWithExactly(value, options)).should.be.true();
+					});
+			});
+
+			it('should construct request data using the provided data and options', () => {
+				return returnedFunction.call(LSK, value, options)
+					.then(() => {
+						(constructRequestDataStub.calledWithExactly(getDataFnResult, options)).should.be.true();
+					});
+			});
+
+			it('should send a request with the constructed data and a callback if options are provided', () => {
+				return returnedFunction.call(LSK, value, options, callback)
+					.then(() => {
+						(sendRequestStub.calledWithExactly(
+							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
+						)).should.be.true();
+					});
+			});
+
+			it('should send a request with the constructed data and a callback if options are not provided', () => {
+				return returnedFunction.call(LSK, value, callback)
+					.then(() => {
+						(sendRequestStub.calledWithExactly(
+							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
+						)).should.be.true();
+					});
+			});
+
+			it('should return the result of the sent request', () => {
+				return returnedFunction.call(LSK, value, callback)
+					.then((result) => {
+						(result).should.be.eql(sendRequestResult);
+					});
+			});
+		});
+	});
+
+	describe('#handleTimestampIsInFutureFailures', () => {
+		const { handleTimestampIsInFutureFailures } = privateApi;
+		let result;
+		let options;
+
+		beforeEach(() => {
+			result = {
+				success: false,
+				message: 'Timestamp is in the future',
+			};
+			options = {
+				key1: 'value 1',
+				key2: 2,
+				timeOffset: 40,
+			};
+		});
+
+		it('should resolve the result if success is true', () => {
+			result.success = true;
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resolve the result if there is no message', () => {
+			delete result.message;
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resolve the result if the message is not about the timestamp being in the future', () => {
+			result.message = 'Timestamp is in the past';
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resolve the result if the time offset is greater than 40 seconds', () => {
+			options.timeOffset = 41;
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.equal(result);
+				});
+		});
+
+		it('should resend the request with a time offset of 10 seconds if all those conditions are met and the time offset is not specified', () => {
+			delete options.timeOffset;
+			const expectedOptions = Object.assign({}, options, { timeOffset: 10 });
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.be.eql(sendRequestResult);
+					(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions))
+						.should.be.true();
+				});
+		});
+
+		it('should resend the request with the time offset increased by 10 seconds if all those conditions are met and the time offset is specified', () => {
+			const expectedOptions = Object.assign({}, options, { timeOffset: 50 });
+			return handleTimestampIsInFutureFailures
+				.call(LSK, defaultMethod, defaultEndpoint, options, result)
+				.then((returnValue) => {
+					(returnValue).should.be.eql(sendRequestResult);
+					(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions))
+						.should.be.true();
+				});
+		});
+	});
+
+	describe('#handleSendRequestFailures', () => {
+		const { handleSendRequestFailures } = privateApi;
+
+		let options;
+		let error;
+		let setNodeSpy;
+		let banNodeSpy;
+		let restoreBanNodeSpy;
+		let checkReDialStub;
+		let restoreCheckReDialStub;
+
+		beforeEach(() => {
+			options = {
+				key1: 'value 1',
+				key2: 2,
+			};
+			error = new Error('Test error.');
+			setNodeSpy = sinon.spy(LSK, 'setNode');
+			banNodeSpy = sinon.spy();
+			// eslint-disable-next-line no-underscore-dangle
+			restoreBanNodeSpy = privateApi.__set__('banNode', banNodeSpy);
+		});
+
+		afterEach(() => {
+			setNodeSpy.restore();
+			restoreBanNodeSpy();
+		});
+
+		describe('if a redial is possible', () => {
+			beforeEach(() => {
+				checkReDialStub = sinon.stub().returns(true);
+				// eslint-disable-next-line no-underscore-dangle
+				restoreCheckReDialStub = privateApi.__set__('checkReDial', checkReDialStub);
+			});
+
+			afterEach(() => {
+				restoreCheckReDialStub();
+			});
+
+			it('should ban the node', () => {
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(() => {
+						(banNodeSpy.calledOn(LSK)).should.be.true();
+					});
+			});
+
+			it('should set a new node', () => {
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(() => {
+						(setNodeSpy.calledOnce).should.be.true();
+					});
+			});
+
+			it('should send the request again with the same arguments', () => {
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(() => {
+						(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, options))
+							.should.be.true();
+					});
+			});
+
+			it('should resolve to the result of the request', () => {
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then((result) => {
+						(result).should.be.eql(sendRequestResult);
+					});
+			});
+		});
+
+		describe('if no redial is possible', () => {
+			beforeEach(() => {
+				checkReDialStub = sinon.stub(privateApi, 'checkReDial').returns(false);
+			});
+
+			afterEach(() => {
+				checkReDialStub.restore();
+			});
+
+			it('should resolve to an object with success set to false', () => {
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then((result) => {
+						(result).should.have.property('success').and.be.equal(false);
+					});
+			});
+
+			it('should resolve to an object with the provided error if no redial is possible', () => {
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then((result) => {
+						(result).should.have.property('error').and.be.equal(error);
+					});
+			});
+
+			it('should resolve to an object with a helpful message', () => {
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then((result) => {
+						(result).should.have.property('message').and.be.equal('Could not create an HTTP request to any known peers.');
+					});
+			});
+		});
+	});
+
+	describe('#optionallyCallCallback', () => {
+		const { optionallyCallCallback } = privateApi;
+		const result = 'result';
+		const spy = sinon.spy();
+
+		it('should return the result with a callback', () => {
+			const returnValue = optionallyCallCallback(spy, result);
+			(returnValue).should.equal(result);
+		});
+
+		it('should return the result without a callback', () => {
+			const returnValue = optionallyCallCallback(undefined, result);
+			(returnValue).should.equal(result);
+		});
+
+		it('should not call the callback if it is not a function', () => {
+			(optionallyCallCallback.bind(null, { foo: 'bar' }, result)).should.not.throw();
+		});
+
+		it('should not call the callback if it is undefined', () => {
+			(optionallyCallCallback.bind(null, undefined, result)).should.not.throw();
+		});
+
+		it('should call the callback with the result if callback is a function', () => {
+			optionallyCallCallback(spy, result);
+			(spy.calledWithExactly(result)).should.be.true();
 		});
 	});
 });
