@@ -188,7 +188,7 @@ describe('peers', function () {
 			differentIpPeer.ip = '40.40.40.41';
 			differentIpPeer.nonce = 'differentNonce';
 
-			console.log(peers.upsert(differentIpPeer));
+			peers.upsert(differentIpPeer);
 			var list = peers.list();
 			expect(list.length).equal(2);
 
