@@ -4,7 +4,6 @@ require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
 require('./helpers/ed');
-require('./helpers/jobs-queue');
 require('./helpers/peersManager');
 require('./helpers/pg-notify');
 require('./helpers/request-limiter');
@@ -35,3 +34,6 @@ require('./modules/transactions');
 require('./sql/blockRewards');
 require('./sql/delegatesList');
 require('./sql/rounds');
+
+require('./modules/blocks/process'); // ToDo: solve these 2 tests dependency
+require('./helpers/jobs-queue');

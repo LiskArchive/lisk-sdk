@@ -76,6 +76,10 @@ describe('wsRPC', function () {
 			wsRPC.setServer(null);
 		});
 
+		after(function () {
+			wsRPC.setServer(null);
+		});
+
 		it('should throw an error when WS server has not been initialized', function () {
 			expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 		});
@@ -85,13 +89,19 @@ describe('wsRPC', function () {
 			expect(wsRPC.getServer).not.to.throw;
 			expect(wsRPC.getServer()).to.a('object').eql({name: 'my ws server'});
 		});
-
-		after(function () {
-			wsRPC.setServer(null);
-		});
 	});
 
 	describe('getClientRPCStub', function () {
+
+		var initializeNewConnectionStub;
+
+		beforeEach(function () {
+			initializeNewConnectionStub = sinon.stub(ClientRPCStub.prototype, 'initializeNewConnection');
+		});
+
+		afterEach(function () {
+			initializeNewConnectionStub.restore();
+		});
 
 		var validPort = 4000, validIp = '127.0.0.1';
 
@@ -120,9 +130,8 @@ describe('wsRPC', function () {
 		});
 
 		it('should not initialize new connection just after getting RPC stub', function () {
-			ClientRPCStub.prototype.initializeNewConnection = sinon.spy();
 			wsRPC.getClientRPCStub(validIp, validPort);
-			expect(ClientRPCStub.prototype.initializeNewConnection.called).not.to.be.ok;
+			expect(initializeNewConnectionStub.called).to.be.false;
 		});
 
 		it('should add new entry in clientsConnectionsMap after getting stub', function () {
@@ -136,18 +145,24 @@ describe('wsRPC', function () {
 		});
 
 		describe('stub', function () {
+
 			var validRPCEndpoint = {
 				'rpcProcedure': function (param) {
 					return param;
 				}
 			};
-
-			var masterWAMPServer, masterWAMPServerConfig = {};
+			var masterWAMPServer;
+			var masterWAMPServerConfig;
 
 			beforeEach(function () {
+				masterWAMPServerConfig = {};
 				wsRPC.clientsConnectionsMap = {};
 				masterWAMPServer = new MasterWAMPServer(socketClusterMock, masterWAMPServerConfig);
 				wsRPC.setServer(masterWAMPServer);
+			});
+
+			after(function () {
+				wsRPC.setServer(null);
 			});
 
 			it('should return client stub with rpc methods registered on MasterWAMPServer', function () {

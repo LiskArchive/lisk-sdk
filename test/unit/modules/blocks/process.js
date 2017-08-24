@@ -2,6 +2,7 @@
 
 var expect = require('chai').expect;
 var async = require('async');
+var sinon = require('sinon');
 
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var BlockLogic = require('../../../../logic/block.js');
@@ -9,6 +10,7 @@ var VoteLogic = require('../../../../logic/vote.js');
 var genesisBlock = require('../../../../genesisBlock.json');
 var loadTables = require('./processTablesData.json');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
+var recreateZeroState = require('../../../common/globalBefore').recreateZeroState;
 
 describe('blocks/process', function () {
 
@@ -58,20 +60,7 @@ describe('blocks/process', function () {
 
 				async.series({
 					clearTables: function (seriesCb) {
-						async.every([
-							'blocks where height > 1',
-							'trs where "blockId" != \'6524861224470851795\'',
-							'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
-							'forks_stat',
-							'votes where "transactionId" = \'17502993173215211070\''
-						], function (table, seriesCb) {
-							clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-						}, function (err, result) {
-							if (err) {
-								return setImmediate(err);
-							}
-							return setImmediate(seriesCb);
-						});
+						recreateZeroState(db, modulesLoader.logger, seriesCb);
 					},
 					loadTables: function (seriesCb) {
 						async.everySeries(loadTables, function (table, seriesCb) {
