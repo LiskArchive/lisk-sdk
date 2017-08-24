@@ -49,6 +49,10 @@ describe('handshake', function () {
 			currentConnectedSocket = socket;
 			clientSocket.off('connect', connectHandler);
 			setTimeout(function () {
+				if (disconnectStub.called) {
+					var errCode = disconnectStub.args[0][0];
+					expect('socket had been disconnected with error code: ' + errCode + ' - ' + failureCodes.errorMessages[errCode]).equal('socket should stay connected');
+				}
 				expect(disconnectStub.notCalled).to.be.true;
 				return cb(null, socket);
 			}, 500);
@@ -200,6 +204,7 @@ describe('handshake', function () {
 				it('should succeed when connectionId is not present', function (done) {
 					// Change query to obtain new id assignment during next connection
 					validClientSocketOptions.query.height += 1;
+					connect();
 					expectConnect(this, done);
 				});
 			});
@@ -228,7 +233,7 @@ describe('handshake', function () {
 				setTimeout(function () {
 					validClientSocketOptions.query.state = 1;
 					clientSocket.wampSend('updateMyself', validClientSocketOptions.query)
-						.then(function (peer) {
+						.then(function () {
 							done();
 						})
 						.catch(function (err) {
