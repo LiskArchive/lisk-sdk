@@ -288,7 +288,7 @@ export function verifyTransaction(transaction, secondPublicKey) {
 		? Buffer.from(transaction.signSignature, 'hex')
 		: Buffer.from(transaction.signature, 'hex');
 	const senderPublicKeyBuffer = transaction.signSignature
-		?  Buffer.from(secondPublicKey, 'hex')
+		? Buffer.from(secondPublicKey, 'hex')
 		: Buffer.from(transaction.senderPublicKey, 'hex');
 	const verification = naclInstance.crypto_sign_verify_detached(
 		signatureBuffer, transactionHash, senderPublicKeyBuffer,
