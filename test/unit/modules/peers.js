@@ -14,15 +14,11 @@ var modulesLoader = require('../../common/initModule').modulesLoader;
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 
-var currentPeers = [];
-
 describe('peers', function () {
 
-	before(function () {
-		process.env['NODE_ENV'] = 'TEST';
-	});
-
-	var peers, modules, NONCE;
+	var peers;
+	var modules;
+	var NONCE;
 
 	function getPeers (cb) {
 		peers.list({normalized: false}, function (err, __peers) {
@@ -33,15 +29,21 @@ describe('peers', function () {
 	}
 
 	function removeAll (done) {
-		peers.list({}, function (err, __peers) {
+		peers.list({normalized: false}, function (err, __peers) {
 			__peers.forEach(function (peer) {
 				peers.remove(peer);
 			});
-			done();
+			getPeers(function (err, __peers) {
+				expect(__peers).to.have.a.lengthOf(0);
+				done();
+			});
 		});
 	}
 
 	before(function (done) {
+
+		process.env['NODE_ENV'] = 'TEST';
+
 		modulesLoader.initAllModules(function (err, __modules) {
 			if (err) {
 				return done(err);
@@ -55,16 +57,10 @@ describe('peers', function () {
 	});
 
 	beforeEach(function (done) {
-		currentPeers = [];
 		removeAll(done);
 	});
 
 	describe('update', function () {
-
-		beforeEach(function (done) {
-			removeAll(done);
-			currentPeers = [];
-		});
 
 		it('should insert new peer', function (done) {
 			peers.update(randomPeer);
@@ -74,7 +70,6 @@ describe('peers', function () {
 				done();
 			});
 		});
-
 
 		it('should insert new peer with only ip, port and state', function (done) {
 
