@@ -51,7 +51,7 @@ describe('transactions', function () {
 	var inTansferAccount = node.randomAccount();
 	var dappAccount = node.randomAccount();
 
-	function attachAllAssets (transactionLogic, delegatesModule, accountsModule) {
+	function attachAllAssets (transactionLogic, accountLogic, delegatesModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
 		sendLogic.bind(accountsModule);
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
@@ -68,7 +68,7 @@ describe('transactions', function () {
 		signatureLogic.bind(accountsModule);
 		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
-		var multiLogic = transactionLogic.attachAssetType(transactionTypes.MULTI, new MultisignatureLogic(modulesLoader.scope.schema, modulesLoader.scope.network, transactionLogic, modulesLoader.logger));
+		var multiLogic = transactionLogic.attachAssetType(transactionTypes.MULTI, new MultisignatureLogic(modulesLoader.scope.schema, modulesLoader.scope.network, transactionLogic, accountLogic, modulesLoader.logger));
 		multiLogic.bind(accountsModule);
 		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
@@ -159,7 +159,7 @@ describe('transactions', function () {
 					loader: result.loaderModule
 				});
 
-				attachAllAssets(result.transactionLogic, result.delegateModule, result.accountsModule);
+				attachAllAssets(result.transactionLogic, result.accountLogic, result.delegateModule, result.accountsModule);
 				done();
 			});
 		});
