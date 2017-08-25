@@ -44,20 +44,25 @@ describe('handshake', function () {
 	}
 
 	function expectConnect (testContext, cb) {
-		var connectHandler = function (socket) {
-			// Prevent from calling done() multiple times
-			currentConnectedSocket = socket;
-			clientSocket.off('connect', connectHandler);
-			setTimeout(function () {
-				if (disconnectStub.called) {
-					var errCode = disconnectStub.args[0][0];
-					expect('socket had been disconnected with error code: ' + errCode + ' - ' + failureCodes.errorMessages[errCode]).equal('socket should stay connected');
-				}
-				expect(disconnectStub.notCalled).to.be.true;
-				return cb(null, socket);
-			}, 500);
+		var disconnectHandler = function (code, description) {
+			currentConnectedSocket = null;
+			clientSocket.off('connect', disconnectHandler);
+			expect('socket had been disconnected with error code: ' + code + ' - ' + (description || failureCodes.errorMessages[code]))
+				.equal('socket should stay connected');
+			return cb(code);
 		};
-		clientSocket.on('connect', connectHandler);
+		var acceptedHandler = function () {
+			clientSocket.off('accepted', acceptedHandler);
+			clientSocket.off('disconnect', disconnectHandler);
+			return cb(null, currentConnectedSocket);
+		};
+		var connectedHandler = function (socket) {
+			currentConnectedSocket = socket;
+			clientSocket.off('connect', connectedHandler);
+		};
+		clientSocket.on('accepted', acceptedHandler);
+		clientSocket.on('connect', connectedHandler);
+		clientSocket.on('disconnect', disconnectHandler);
 		testContext.timeout(1000);
 	}
 
