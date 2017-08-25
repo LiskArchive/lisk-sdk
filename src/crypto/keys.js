@@ -44,8 +44,8 @@ export function getPrivateAndPublicKeyFromSecret(secret) {
 	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
 
 	return {
-		privateKey: bufferToHex(Buffer.from(privateKey)),
-		publicKey: bufferToHex(Buffer.from(publicKey)),
+		privateKey: bufferToHex(privateKey),
+		publicKey: bufferToHex(publicKey),
 	};
 }
 
