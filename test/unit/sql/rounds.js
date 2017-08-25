@@ -178,7 +178,7 @@ describe('Rounds-related SQL triggers', function () {
 				}
 				return accounts;
 			}, []);
-		})
+		});
 
 		it('should not populate mem_accounts', function () {
 			return getMemAccounts().then(function (accounts) {
