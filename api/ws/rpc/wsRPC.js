@@ -6,6 +6,7 @@ var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
+var PeerUpdateError = require('../../../api/ws/rpc/failureCodes').PeerUpdateError;
 var PromiseDefer = require('../../../helpers/promiseDefer');
 var System = require('../../../modules/system');
 
@@ -144,7 +145,9 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
 	clientSocket.on('connect', function () {
-		return connectionState.resolve(clientSocket);
+		clientSocket.on('accepted', function () {
+			return connectionState.resolve(clientSocket);
+		});
 	});
 
 	clientSocket.on('error', function () {
@@ -152,7 +155,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	});
 
 	clientSocket.on('connectAbort', function () {
-		connectionState.reject('Connection rejected while attempting to establish connection');
+		connectionState.reject(new PeerUpdateError(failureCodes.HANDSHAKE_ERROR, failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]));
 	});
 
 	clientSocket.on('disconnect', function (code, description) {
@@ -181,15 +184,18 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 				ClientRPCStub.prototype.initializeNewConnection(connectionState);
 			}
 
-			connectionState.socketDefer.promise.then(function (socket) {
+			connectionState.socketDefer.promise.timeout(1000).then(function (socket) {
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
 					})
 					.catch(function (err) {
-						return setImmediate(cb, err.toString());
+						return setImmediate(cb, err);
 					});
 			}).catch(function (err) {
+				if (err && err.name === 'TimeoutError') {
+					err = new PeerUpdateError(failureCodes.CONNECTOIN_TIMEOUT, failureCodes.errorMessages[failureCodes.CONNECTOIN_TIMEOUT]);
+				}
 				return setImmediate(cb, err);
 			});
 		};

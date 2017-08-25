@@ -76,6 +76,8 @@ module.exports.run = function (worker) {
 				updatePeerConnection(Rules.UPDATES.INSERT, socket, peer.object(), function (onUpdateError) {
 					if (onUpdateError) {
 						socket.disconnect(onUpdateError.code, onUpdateError.description);
+					} else {
+						socket.emit('accepted');
 					}
 				});
 			});

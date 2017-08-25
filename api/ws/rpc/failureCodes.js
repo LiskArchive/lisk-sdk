@@ -8,6 +8,8 @@ module.exports = {
 	ALREADY_ADDED: 4104,
 	ALREADY_REMOVED: 4105,
 	DIFFERENT_CONN_ID: 4106,
+	HANDSHAKE_ERROR: 4107,
+	CONNECTOIN_TIMEOUT: 4108,
 	ON_MASTER: {
 		UPDATE: {
 			CHECK_PRESENCE: 4200,
@@ -34,6 +36,8 @@ module.exports.errorMessages = {
 	4104: 'Attempting to insert an already active peer',
 	4105: 'Attempting to remove a non-existent peer',
 	4106: 'Attempting to change peer data from different connection',
+	4107: 'Cannot connect - handshake error',
+	4108: 'Connection timeout exceeded',
 	4200: 'Failed to check if peer is already present',
 	4201: 'Unable to match an address to the peer',
 	4202: 'Transport error while invoking update procedure',
