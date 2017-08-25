@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Buffer } from 'buffer';
 import { getSha256Hash } from './hash';
 import { bufferToHex } from './convert';
 
