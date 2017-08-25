@@ -65,6 +65,23 @@ export function toAddress(buffer) {
 }
 
 /**
+ * @method getAddressFromPublicKey
+ * @param publicKey
+ *
+ * @return {string}
+ */
+
+export function getAddressFromPublicKey(publicKey) {
+	const publicKeyHash = getSha256Hash(publicKey, 'hex');
+
+	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
+	const address = toAddress(publicKeyTransform);
+
+	return address;
+}
+
+
+/**
  * @method getAddress
  * @param publicKey string
  *
@@ -72,10 +89,7 @@ export function toAddress(buffer) {
  */
 
 export function getAddress(publicKey) {
-	const publicKeyHash = getSha256Hash(publicKey, 'hex');
-	const firstEntriesReversed = getFirstEightBytesReversed(publicKeyHash);
-
-	return toAddress(firstEntriesReversed);
+	return getAddressFromPublicKey(publicKey);
 }
 
 /**

@@ -17,6 +17,7 @@ import {
 	hexToBuffer,
 	getFirstEightBytesReversed,
 	toAddress,
+	getAddressFromPublicKey,
 	getAddress,
 	getId,
 	convertPublicKeyEd2Curve,
@@ -32,6 +33,8 @@ describe('convert', () => {
 	const defaultSecret = 'secret';
 	const defaultBuffer = naclInstance.encode_utf8('\xe5\xe4\xf6');
 	const defaultHex = 'c3a5c3a4c3b6';
+	const defaultAddress = '18160565574430594874L';
+	const expectedPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	describe('#bufferToHex', () => {
 		it('should create Hex from Buffer type', () => {
 			const hex = bufferToHex(defaultBuffer);
@@ -83,6 +86,14 @@ describe('convert', () => {
 
 			const id = getId(transaction);
 			(id).should.be.type('string').and.equal('13987348420913138422');
+		});
+	});
+
+	describe('#getAddressFromPublicKey', () => {
+		const address = getAddressFromPublicKey(expectedPublicKey);
+
+		it('should generate address from publicKey', () => {
+			(address).should.be.equal(defaultAddress);
 		});
 	});
 

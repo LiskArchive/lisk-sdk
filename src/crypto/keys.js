@@ -13,9 +13,8 @@
  *
  */
 import { Buffer } from 'buffer';
-import bignum from 'browserify-bignum';
 import { getSha256Hash } from './hash';
-import { bufferToHex, getFirstEightBytesReversed } from './convert';
+import { bufferToHex } from './convert';
 
 /**
  * @method getRawPrivateAndPublicKeyFromSecret
@@ -48,22 +47,6 @@ export function getPrivateAndPublicKeyFromSecret(secret) {
 		privateKey: bufferToHex(Buffer.from(privateKey)),
 		publicKey: bufferToHex(Buffer.from(publicKey)),
 	};
-}
-
-/**
- * @method getAddressFromPublicKey
- * @param publicKey
- *
- * @return {string}
- */
-
-export function getAddressFromPublicKey(publicKey) {
-	const publicKeyHash = getSha256Hash(publicKey, 'hex');
-
-	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
-	const address = `${bignum.fromBuffer(publicKeyTransform).toString()}L`;
-
-	return address;
 }
 
 /**
