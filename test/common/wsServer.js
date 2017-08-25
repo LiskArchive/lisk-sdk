@@ -1,5 +1,6 @@
 'use strict';
 
+var randomstring = require('randomstring');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster').SocketCluster;
@@ -7,7 +8,7 @@ var testConfig = require('../config.json');
 
 var wsServer = {
 	port: 9999,
-	validNonce: 'Ffcdeewz4hBYMkwu',
+	validNonce: randomstring.generate(16),
 	testSocketCluster: null,
 	testWampServer: null,
 
@@ -31,8 +32,7 @@ var wsServer = {
 	run: function (worker) {
 		var scServer = worker.scServer;
 		this.testWampServer = new WAMPServer();
-		scServer.on('connection', function (socket) {
-			this.testWampServer.upgradeToWAMP(socket);
+		scServer.on('connection', function () {
 			this.testWampServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
 		}.bind(this));
 	},
