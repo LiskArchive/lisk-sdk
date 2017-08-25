@@ -4,8 +4,8 @@ require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
 require('./helpers/ed');
+require('./helpers/jobs-queue');
 require('./helpers/peersManager');
-require('./helpers/pg-notify');
 require('./helpers/request-limiter');
 require('./helpers/RPC');
 require('./helpers/slots');
@@ -13,13 +13,13 @@ require('./helpers/wsApi');
 require('./helpers/z_schema');
 
 require('./logic/account');
-require('./logic/blockReward');
 require('./logic/peer');
 require('./logic/peers');
 require('./logic/transaction');
 require('./logic/transfer');
 require('./logic/vote');
 
+require('./modules/blocks/process');
 require('./modules/blocks/verify');
 require('./modules/accounts');
 require('./modules/app');
@@ -27,11 +27,14 @@ require('./modules/blocks');
 require('./modules/cache');
 require('./modules/loader');
 require('./modules/peers');
-require('./modules/transactions');
 
-require('./sql/blockRewards');
 require('./sql/delegatesList');
 require('./sql/rounds');
 
-require('./modules/blocks/process'); // ToDo: solve these 2 tests dependency
-require('./helpers/jobs-queue');
+
+// with long timeouts
+require('./modules/transactions');
+require('./helpers/pg-notify');
+require('./logic/blockReward');
+require('./sql/blockRewards');
+
