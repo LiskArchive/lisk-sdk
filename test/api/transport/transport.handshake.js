@@ -44,7 +44,7 @@ describe('handshake', function () {
 	function expectConnect (testContext, cb) {
 		var disconnectHandler = function (code, description) {
 			currentConnectedSocket = null;
-			clientSocket.off('connect', disconnectHandler);
+			clientSocket.off('disconnect', disconnectHandler);
 			expect('socket had been disconnected with error code: ' + code + ' - ' + (description || failureCodes.errorMessages[code]))
 				.equal('socket should stay connected');
 			return cb(code);
@@ -240,7 +240,7 @@ describe('handshake', function () {
 				});
 			});
 
-			describe('when nonce is not present', function () {
+			describe('when nonce is present', function () {
 
 				it('should succeed when connectionId is present', function (done) {
 					connect();
