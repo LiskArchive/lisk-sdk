@@ -25,6 +25,7 @@ function clearDatabaseTable (db, logger, table, cb) {
 }
 
 /**
+ * ToDo: Not really 0 state - needs to perform another queries
  * @param {Object} db
  * @param {Function} cb
  */
