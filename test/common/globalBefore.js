@@ -1,5 +1,6 @@
 'use strict';
 
+var async = require('async');
 var popsicle = require('popsicle');
 var config = require('../../config.json');
 
@@ -14,8 +15,34 @@ function clearDatabaseTable (db, logger, table, cb) {
 	db.query('DELETE FROM ' + table).then(function (result) {
 		cb(null, result);
 	}).catch(function (err) {
-		logger.err('Failed to clear database table: ' + table);
+		if (logger) {
+			logger.err('Failed to clear database table: ' + table);
+		} else {
+			console.error('Failed to clear database table: ' + table);
+		}
 		throw err;
+	});
+}
+
+/**
+ * ToDo: Not really 0 state - needs to perform another queries
+ * @param {Object} db
+ * @param {Function} cb
+ */
+function recreateZeroState (db, logger, cb) {
+	async.every([
+		'blocks where height > 1',
+		'trs where "blockId" != \'6524861224470851795\'',
+		'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
+		'forks_stat',
+		'votes where "transactionId" = \'17502993173215211070\''
+	], function (table, cb) {
+		clearDatabaseTable(db, logger, table, cb);
+	}, function (err) {
+		if (err) {
+			return setImmediate(err);
+		}
+		return setImmediate(cb);
 	});
 }
 
@@ -65,5 +92,6 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 
 module.exports = {
 	clearDatabaseTable: clearDatabaseTable,
+	recreateZeroState: recreateZeroState,
 	waitUntilBlockchainReady: waitUntilBlockchainReady
 };

@@ -20,7 +20,6 @@ var ed = require('../../helpers/ed');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
-var Sequence = require('../../helpers/sequence.js');
 
 var modulesLoader = new function () {
 
@@ -77,6 +76,7 @@ var modulesLoader = new function () {
 	 * @param {Function} cb
 	 */
 	this.initLogic = function (Logic, scope, cb) {
+		jobsQueue.jobs = {};
 		switch (Logic.name) {
 			case 'Account':
 				new Logic(scope.db, scope.schema, scope.logger, cb);
@@ -118,6 +118,7 @@ var modulesLoader = new function () {
 	 * @param {Function} cb
 	 */
 	this.initModule = function (Module, scope, cb) {
+		jobsQueue.jobs = {};
 		return new Module(cb, scope);
 	};
 
@@ -169,10 +170,6 @@ var modulesLoader = new function () {
 		], cb);
 	};
 
-	this.clear = function () {
-		jobsQueue.jobs = {};
-	};
-
 	/**
 	 * Initializes all created Modules in directory
 	 *
@@ -180,7 +177,6 @@ var modulesLoader = new function () {
 	 * @param {object} [scope={}] scope
 	 */
 	this.initAllModules = function (cb, scope) {
-		this.clear();
 		this.initModules([
 			{accounts: require('../../modules/accounts')},
 			{blocks: require('../../modules/blocks')},
