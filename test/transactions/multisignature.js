@@ -378,12 +378,8 @@ describe('multisignature module', () => {
 			(signedTransaction).should.have.lengthOf(length);
 		});
 
-		it('should use crypto.getKeys to get the keys for signing', () => {
-			(cryptoGetKeysStub.calledWithExactly(secret)).should.be.true();
-		});
-
 		it('should use crypto.multiSignTransaction to get the signature', () => {
-			(cryptoMultiSignStub.calledWithExactly(transaction, keys)).should.be.true();
+			(cryptoMultiSignStub.calledWithExactly(transaction, secret)).should.be.true();
 		});
 	});
 });

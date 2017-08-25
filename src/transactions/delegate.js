@@ -48,7 +48,7 @@ function createDelegate(secret, username, secondSecret, timeOffset) {
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

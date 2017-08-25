@@ -16,27 +16,27 @@ import { getTransactionBytes } from './../transactions/transactionBytes';
 
 /**
  * @method getSha256Hash
- * @param stringToSign
+ * @param data
  * @param format
  *
  * @return {string}
  */
-export function getSha256Hash(stringToSign, format) {
-	if (typeof stringToSign === 'object') {
-		return naclInstance.crypto_hash_sha256(stringToSign);
+export function getSha256Hash(data, format) {
+	if (Buffer.isBuffer(data)) {
+		return naclInstance.crypto_hash_sha256(data);
 	}
 
-	if (typeof stringToSign === 'string' && format === 'utf8') {
-		const encoded = naclInstance.encode_utf8(stringToSign);
+	if (typeof data === 'string') {
+		if (!['utf8', 'hex'].includes(format)) {
+			throw new Error('Unsupported string format. Currently only `hex` and `utf8` are supported.');
+		}
+		const encoded = format === 'utf8'
+			? naclInstance.encode_utf8(data)
+			: naclInstance.from_hex(data);
 		return naclInstance.crypto_hash_sha256(encoded);
 	}
 
-	if (typeof stringToSign === 'string' && format === 'hex') {
-		const encoded = naclInstance.from_hex(stringToSign);
-		return naclInstance.crypto_hash_sha256(encoded);
-	}
-
-	throw Error('Unknown input format, use buffer as default, \'hex\' or \'utf8\' as format');
+	throw new Error('Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.');
 }
 
 /**

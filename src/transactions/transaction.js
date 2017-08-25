@@ -51,7 +51,7 @@ function createTransaction(recipientId, amount, secret, secondSecret, data, time
 		transaction.asset.data = data;
 	}
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

@@ -14,16 +14,14 @@
  */
 import crypto from '../crypto/index';
 
-const secondSignTransaction = (transactionObject, secondSecret) => {
-	const secondKeys = crypto.getKeys(secondSecret);
-	return Object.assign({}, transactionObject, {
-		signSignature: crypto.signTransaction(transactionObject, secondKeys),
+const secondSignTransaction = (transactionObject, secondSecret) => Object.assign(
+	{}, transactionObject, {
+		signSignature: crypto.signTransaction(transactionObject, secondSecret),
 	});
-};
 
-const prepareTransaction = (transaction, keys, secondSecret) => {
+const prepareTransaction = (transaction, secret, secondSecret) => {
 	const singleSignedTransaction = Object.assign({}, transaction, {
-		signature: crypto.signTransaction(transaction, keys),
+		signature: crypto.signTransaction(transaction, secret),
 	});
 
 	const signedTransaction = (typeof secondSecret === 'string' && transaction.type !== 1)

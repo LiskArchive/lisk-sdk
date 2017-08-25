@@ -88,7 +88,7 @@ export function getAddress(publicKey) {
 export function getId(transaction) {
 	const transactionBytes = getTransactionBytes(transaction);
 	const transactionHash = getSha256Hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = transactionHash.slice(0, 8).reverse();
+	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(transactionHash);
 	const firstEntriesToNumber = bignum.fromBuffer(bufferFromFirstEntriesReversed);
 
 	return firstEntriesToNumber.toString();

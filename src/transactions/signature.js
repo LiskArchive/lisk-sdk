@@ -58,7 +58,7 @@ function createSignature(secret, secondSecret, timeOffset) {
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

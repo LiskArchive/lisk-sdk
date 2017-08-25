@@ -83,10 +83,10 @@ export function verifyMessageWithPublicKey(signedMessage, publicKey) {
 		throw new Error('Invalid publicKey, expected 32-byte publicKey');
 	}
 
-	const openSignature = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
+	const signatureVerified = naclInstance.crypto_sign_open(signedMessageBytes, publicKeyBytes);
 
-	if (openSignature) {
-		return naclInstance.decode_utf8(openSignature);
+	if (signatureVerified) {
+		return naclInstance.decode_utf8(signatureVerified);
 	}
 	throw new Error('Invalid signature publicKey combination, cannot verify message');
 }
@@ -234,37 +234,38 @@ export function decryptMessageWithSecret(cipherHex, nonce, secret, senderPublicK
 /**
  * @method signTransaction
  * @param transaction Object
- * @param givenKeys Object
+ * @param secret Object
  *
  * @return {string}
  */
 
-export function signTransaction(transaction, givenKeys) {
+export function signTransaction(transaction, secret) {
+	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
 	const transactionHash = getTransactionHash(transaction);
-	const signature = naclInstance.crypto_sign_detached(transactionHash, Buffer.from(givenKeys.privateKey, 'hex'));
-	return Buffer.from(signature).toString('hex');
+	const signature = naclInstance.crypto_sign_detached(transactionHash, privateKey);
+	return bufferToHex(signature);
 }
 
 /**
  * @method multiSignTransaction
  * @param transaction Object
- * @param givenKeys Object
+ * @param secret Object
  *
  * @return {string}
  */
 
-export function multiSignTransaction(transaction, givenKeys) {
+export function multiSignTransaction(transaction, secret) {
 	const transactionToSign = Object.assign({}, transaction);
 	delete transactionToSign.signature;
 	delete transactionToSign.signSignature;
-	const { privateKey } = givenKeys;
+	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
 	const bytes = getTransactionBytes(transactionToSign);
 	const transactionHash = getSha256Hash(bytes);
 	const signature = naclInstance.crypto_sign_detached(
-		transactionHash, hexToBuffer(privateKey),
+		transactionHash, privateKey,
 	);
 
-	return Buffer.from(signature).toString('hex');
+	return bufferToHex(signature);
 }
 
 /**
@@ -276,23 +277,23 @@ export function multiSignTransaction(transaction, givenKeys) {
  */
 
 export function verifyTransaction(transaction, secondPublicKey) {
-	let remove = transaction.signSignature ? 128 : 64;
-	if (secondPublicKey) remove = 64;
-	const transactionBytes = getTransactionBytes(transaction);
-	const transactionBytesWithoutSignature = Buffer
-		.alloc(transactionBytes.length - remove)
-		.fill(transactionBytes);
-	const transactionHash = getSha256Hash(transactionBytesWithoutSignature);
+	const secondSignaturePresent = !!transaction.signSignature;
+	if (secondSignaturePresent && !secondPublicKey) {
+		throw new Error('Cannot verify signSignature without secondPublicKey.');
+	}
 
-	const signatureBuffer = transaction.signSignature
-		? Buffer.from(transaction.signSignature, 'hex')
-		: Buffer.from(transaction.signature, 'hex');
-	const senderPublicKeyBuffer = transaction.signSignature
-		? Buffer.from(secondPublicKey, 'hex')
-		: Buffer.from(transaction.senderPublicKey, 'hex');
-	const verification = naclInstance.crypto_sign_verify_detached(
-		signatureBuffer, transactionHash, senderPublicKeyBuffer,
+	const transactionWithoutSignature = Object.assign({}, transaction);
+	if (secondSignaturePresent) delete transactionWithoutSignature.signSignature;
+	else delete transactionWithoutSignature.signature;
+
+	const transactionBytes = getTransactionBytes(transactionWithoutSignature);
+
+	const publicKey = secondSignaturePresent ? secondPublicKey : transaction.senderPublicKey;
+	const signature = secondSignaturePresent ? transaction.signSignature : transaction.signature;
+
+	const verified = naclInstance.crypto_sign_verify_detached(
+		hexToBuffer(signature), getSha256Hash(transactionBytes), hexToBuffer(publicKey),
 	);
 
-	return verification;
+	return secondSignaturePresent ? verifyTransaction(transactionWithoutSignature) : verified;
 }

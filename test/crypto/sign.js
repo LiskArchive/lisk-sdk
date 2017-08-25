@@ -200,47 +200,31 @@ ${defaultSignature}
 	});
 
 	describe('signTransaction and verify', () => {
-		const keys = getKeys('123');
-		const secondKeys = getKeys('345');
-		const expectedSignature = '05383e756598172785843f5f165a8bef3632d6a0f6b7a3429201f83e5d60a5b57faa1fa383c4f33bb85d5804848e5313aa7b0cf1058873bc8576d206bdb9c804';
-		const transaction = {
-			type: 0,
-			amount: 1000,
-			recipientId: '58191285901858109L',
-			timestamp: 141738,
-			asset: {},
-			id: '13987348420913138422',
-			senderPublicKey: keys.publicKey,
-		};
-		const alterTransaction = {
-			type: 0,
-			amount: '100',
-			recipientId: '58191285901858109L',
-			timestamp: 141738,
-			asset: {},
-			id: '13987348420913138422',
-			senderPublicKey: keys.publicKey,
-		};
-		const transactionToVerify = Object.assign({}, transaction, {
-			signature: signTransaction(transaction, keys),
-		});
-		/* eslint-disable no-unused-vars */
-		const transactionToSecondVerify = Object.assign({}, transactionToVerify, {
-			signSignature: signTransaction(transactionToVerify, secondKeys),
-		});
-
+		const firstSecret = '123';
 		describe('#signTransaction', () => {
-			const signature = signTransaction(transaction, keys);
-			const alterSignature = signTransaction(alterTransaction, keys);
-			it('should be ok', () => {
-				(signTransaction).should.be.ok();
-			});
-
-			it('should be a function', () => {
-				(signTransaction).should.be.type('function');
-			});
-
-			it('should signTransaction a transaction', () => {
+			const keys = getKeys(firstSecret);
+			const expectedSignature = '05383e756598172785843f5f165a8bef3632d6a0f6b7a3429201f83e5d60a5b57faa1fa383c4f33bb85d5804848e5313aa7b0cf1058873bc8576d206bdb9c804';
+			const transaction = {
+				type: 0,
+				amount: 1000,
+				recipientId: '58191285901858109L',
+				timestamp: 141738,
+				asset: {},
+				id: '13987348420913138422',
+				senderPublicKey: keys.publicKey,
+			};
+			const alterTransaction = {
+				type: 0,
+				amount: '100',
+				recipientId: '58191285901858109L',
+				timestamp: 141738,
+				asset: {},
+				id: '13987348420913138422',
+				senderPublicKey: keys.publicKey,
+			};
+			const signature = signTransaction(transaction, firstSecret);
+			const alterSignature = signTransaction(alterTransaction, firstSecret);
+			it('should sign a transaction', () => {
 				(signature).should.be.equal(expectedSignature);
 			});
 
@@ -250,29 +234,65 @@ ${defaultSignature}
 		});
 
 		describe('#verify', () => {
-			it('should be ok', () => {
-				(verifyTransaction).should.be.ok();
-			});
+			const transactionForVerifyTwoSignatures = {
+				type: 0,
+				amount: '10',
+				fee: 10000000,
+				recipientId: '13356260975429434553L',
+				senderPublicKey: '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+				senderSecondPublicKey: '922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+				timestamp: 39541109,
+				asset: {},
+				signature: 'e7027dbe9bb8ebcc1738c560fe0a09161d781d9bfc5df4e9b4ccba2d7a1febcd25ba663938c8d22d4902d37435be149cfb0fd69e7a59daf53469abe8f6509e0c',
+				signSignature: 'e88b4bd56a80de3b15220bdf0d1df0aa024a7a127ef07b8dc36a4e12d50e8eb338bc61ebe510ab15839e23f073cffda2a8c8b3d1fc1f0db5eed114230ecffe0a',
+				id: '6950565552966532158',
+			};
 
-			it('should be function', () => {
-				(verifyTransaction).should.be.type('function');
-			});
-
-			it('should verify a transaction', () => {
-				const verification = verifyTransaction(transactionToVerify);
+			const transactionForVerifyOneSignature = {
+				type: 0,
+				amount: '10',
+				fee: 10000000,
+				recipientId: '13356260975429434553L',
+				senderPublicKey: '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+				timestamp: 39541109,
+				asset: {},
+				signature: 'e7027dbe9bb8ebcc1738c560fe0a09161d781d9bfc5df4e9b4ccba2d7a1febcd25ba663938c8d22d4902d37435be149cfb0fd69e7a59daf53469abe8f6509e0c',
+				id: '6950565552966532158',
+			};
+			it('should verify a single signed transaction', () => {
+				const verification = verifyTransaction(transactionForVerifyOneSignature);
 				(verification).should.be.true();
+			});
+			it('should verify a second signed transaction', () => {
+				const verification = verifyTransaction(
+					transactionForVerifyTwoSignatures,
+					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+				);
+				(verification).should.be.true();
+			});
+			it('should not verify a single signed tampered transaction', () => {
+				transactionForVerifyOneSignature.amount = 20;
+				const verification = verifyTransaction(transactionForVerifyOneSignature);
+				(verification).should.be.false();
+			});
+			it('should not verify a second signed tampered transaction', () => {
+				transactionForVerifyTwoSignatures.asset.data = '123';
+				const verification = verifyTransaction(
+					transactionForVerifyTwoSignatures,
+					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+				);
+				(verification).should.be.false();
+			});
+			it('should throw if try to verify a second sign transaction without secondPublicKey', () => {
+				(function throwOnVerifyWithSecondSignatureWithoutSecondPublicKey() {
+					verifyTransaction(
+						transactionForVerifyTwoSignatures,
+					);
+				}).should.throw('Cannot verify signSignature without secondPublicKey.');
 			});
 		});
 
 		describe('#multiSignTransaction', () => {
-			it('should be ok', () => {
-				(multiSignTransaction).should.be.ok();
-			});
-
-			it('should be function', () => {
-				(multiSignTransaction).should.be.type('function');
-			});
-
 			it('should signTransaction a multisignature transaction', () => {
 				const expectedMultiSignature = '9eb6ea53f0fd5079b956625a4f1c09e3638ab3378b0e7847cfcae9dde5a67121dfc49b5e51333296002d70166d0a93d2f4b5eef9eae4e040b83251644bb49409';
 				const multiSigtransaction = {
@@ -286,7 +306,7 @@ ${defaultSignature}
 					id: '13987348420913138422',
 				};
 
-				const multiSignature = multiSignTransaction(multiSigtransaction, keys);
+				const multiSignature = multiSignTransaction(multiSigtransaction, firstSecret);
 
 				(multiSignature).should.be.eql(expectedMultiSignature);
 			});

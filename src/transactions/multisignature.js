@@ -51,7 +51,7 @@ function createTransaction(
 		signatures: [],
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 /**
@@ -63,10 +63,7 @@ function createTransaction(
  */
 
 function signTransaction(trs, secret) {
-	const keys = crypto.getKeys(secret);
-	const signature = crypto.multiSignTransaction(trs, keys);
-
-	return signature;
+	return crypto.multiSignTransaction(trs, secret);
 }
 
 /**
@@ -101,7 +98,7 @@ function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, ti
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

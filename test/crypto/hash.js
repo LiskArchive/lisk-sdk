@@ -19,6 +19,7 @@ describe('hash', () => {
 	describe('#getSha256Hash', () => {
 		const defaultText = 'text123*';
 		const defaultHash = '7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971';
+		const arrayToHash = [1, 2, 3];
 		it('should be ok', () => {
 			(getSha256Hash).should.be.ok();
 		});
@@ -43,7 +44,13 @@ describe('hash', () => {
 		it('should throw on unknown format', () => {
 			(function getSha256HashfromInvalidFormat() {
 				getSha256Hash(defaultText, 'utf32');
-			}).should.throw('Unknown input format, use buffer as default, \'hex\' or \'utf8\' as format');
+			}).should.throw('Unsupported string format. Currently only `hex` and `utf8` are supported.');
+		});
+
+		it('should throw on unknown format', () => {
+			(function getSha256HashfromInvalidFormat() {
+				getSha256Hash(arrayToHash);
+			}).should.throw('Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.');
 		});
 	});
 
