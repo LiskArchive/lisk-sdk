@@ -17,12 +17,12 @@ import ByteBuffer from 'bytebuffer';
 import bignum from 'browserify-bignum';
 
 /**
- * @method transactionBytes
+ * @method getEmptyBytesForTransaction
  * @param transaction Object
  * @return {object}
  */
 
-function transactionBytes(transaction) {
+function getEmptyBytesForTransaction(transaction) {
 	/**
 	 * @method isSendTransaction
 	 * @return {object}
@@ -306,7 +306,7 @@ function createTransactionBuffer(transaction) {
 	}
 
 	// Get Transaction Size and Bytes
-	const transactionAssetSizeBuffer = transactionBytes(transaction);
+	const transactionAssetSizeBuffer = getEmptyBytesForTransaction(transaction);
 	const assetSize = transactionAssetSizeBuffer.assetSize;
 	const assetBytes = transactionAssetSizeBuffer.assetBytes;
 
