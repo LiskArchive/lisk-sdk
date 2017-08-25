@@ -837,7 +837,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should subtract balance from sender account on valid transaction', function (done) {
+		it('should subtract balance from sender account on valid transaction', function (done) {
 			accountModule.getAccount({publicKey: transaction.senderPublicKey}, function (err, accountBefore) {
 				var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
@@ -871,8 +871,7 @@ describe('transaction', function () {
 			expect(transactionLogic.undo).to.throw();
 		});
 
-		// ToDo: test is crushing
-		it.skip('should not update sender balance when transaction is invalid', function (done) {
+		it('should not update sender balance when transaction is invalid', function (done) {
 			var trs = _.cloneDeep(transaction);
 			var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 			delete trs.recipientId;
@@ -892,7 +891,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it.skip('should be okay with valid params', function (done) {
+		it('should be okay with valid params', function (done) {
 			var trs = transaction;
 			var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 
