@@ -27,14 +27,12 @@ require('./modules/blocks');
 require('./modules/cache');
 require('./modules/loader');
 require('./modules/peers');
+require('./modules/transactions');
 
 require('./sql/delegatesList');
 require('./sql/rounds');
 
-
 // with long timeouts
-require('./modules/transactions');
 require('./helpers/pg-notify');
 require('./logic/blockReward');
 require('./sql/blockRewards');
-
