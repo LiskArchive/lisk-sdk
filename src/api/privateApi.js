@@ -24,25 +24,26 @@ const GET = 'GET';
  */
 
 function netHashOptions() {
+	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+
+	const commonNethash = {
+		'Content-Type': 'application/json',
+		os: 'lisk-js-api',
+		version: '1.0.0',
+		minVersion: '>=0.5.0',
+		port: this.port,
+	};
+
 	return {
-		testnet: {
-			'Content-Type': 'application/json',
-			nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			broadhash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			os: 'lisk-js-api',
-			version: '1.0.0',
-			minVersion: '>=0.5.0',
-			port: this.port,
-		},
-		mainnet: {
-			'Content-Type': 'application/json',
-			nethash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			broadhash: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			os: 'lisk-js-api',
-			version: '1.0.0',
-			minVersion: '>=0.5.0',
-			port: this.port,
-		},
+		testnet: Object.assign({}, commonNethash, {
+			nethash: testnetNethash,
+			broadhash: testnetNethash,
+		}),
+		mainnet: Object.assign({}, commonNethash, {
+			nethash: mainnetNethash,
+			broadhash: mainnetNethash,
+		}),
 	};
 }
 
@@ -53,26 +54,35 @@ function netHashOptions() {
  */
 
 function getURLPrefix() {
-	if (this.ssl) {
-		return 'https';
-	}
-	return 'http';
+	return this.ssl
+		? 'https'
+		: 'http';
 }
 
 /**
- * @method getFullUrl
+ * @method getFullURL
  * @return url string
  * @private
  */
 
-function getFullUrl() {
-	let nodeUrl = this.currentPeer;
-
-	if (this.port) {
-		nodeUrl += `:${this.port}`;
-	}
+function getFullURL() {
+	const nodeUrl = this.port
+		? `${this.currentPeer}:${this.port}`
+		: this.currentPeer;
 
 	return `${getURLPrefix.call(this)}://${nodeUrl}`;
+}
+
+/**
+ * @method getPeers
+ * @return peers Array
+ * @private
+ */
+
+function getPeers() {
+	if (this.testnet) return this.defaultTestnetPeers;
+	if (this.ssl) return this.defaultSSLPeers;
+	return this.defaultPeers;
 }
 
 /**
@@ -82,11 +92,15 @@ function getFullUrl() {
  */
 
 function getRandomPeer() {
-	let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
-	if (this.testnet) peers = this.defaultTestnetPeers;
+	const peers = getPeers.call(this)
+		.filter(peer => !this.bannedPeers.includes(peer));
 
-	const getRandomNumberForPeer = Math.floor((Math.random() * peers.length));
-	return peers[getRandomNumberForPeer];
+	if (!peers.length) {
+		throw new Error('Cannot get random peer: all relevant peers have been banned.');
+	}
+
+	const randomIndex = Math.floor((Math.random() * peers.length));
+	return peers[randomIndex];
 }
 
 /**
@@ -96,24 +110,18 @@ function getRandomPeer() {
  */
 
 function selectNode() {
-	let currentRandomPeer;
-
-	if (this.options.node) {
-		currentRandomPeer = this.currentPeer;
-	}
+	const providedNode = this.options.node;
 
 	if (this.randomPeer) {
-		currentRandomPeer = getRandomPeer.call(this);
-		let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
-		if (this.testnet) peers = this.defaultTestnetPeers;
-
-		peers.forEach(() => {
-			if (this.bannedPeers.indexOf(currentRandomPeer) === -1) return;
-			currentRandomPeer = getRandomPeer.call(this);
-		});
+		return getRandomPeer.call(this);
+	} else if (providedNode) {
+		if (this.bannedPeers.includes(providedNode)) {
+			throw new Error('Cannot select node: provided node has been banned and randomPeer is not set to true.');
+		}
+		return providedNode;
 	}
 
-	return currentRandomPeer;
+	throw new Error('Cannot select node: no node provided and randomPeer is not set to true.');
 }
 
 /**
@@ -122,8 +130,9 @@ function selectNode() {
  */
 
 function banNode() {
-	if (this.bannedPeers.indexOf(this.currentPeer) === -1) this.bannedPeers.push(this.currentPeer);
-	selectNode.call(this);
+	if (!this.bannedPeers.includes(this.currentPeer)) {
+		this.bannedPeers.push(this.currentPeer);
+	}
 }
 
 /**
@@ -133,10 +142,7 @@ function banNode() {
  */
 
 function checkReDial() {
-	let peers = (this.ssl) ? this.defaultSSLPeers : this.defaultPeers;
-	if (this.testnet) peers = this.defaultTestnetPeers;
-
-	let reconnect = true;
+	const peers = getPeers.call(this);
 
 	// RandomPeer discovery explicitly set
 	if (this.randomPeer === true) {
@@ -145,26 +151,21 @@ function checkReDial() {
 			// Nethash is equal to testnet nethash, we can proceed to get testnet peers
 			if (this.options.nethash === netHashOptions.call(this).testnet.nethash) {
 				this.setTestnet(true);
-				reconnect = true;
+				return true;
 			// Nethash is equal to mainnet nethash, we can proceed to get mainnet peers
 			} else if (this.options.nethash === netHashOptions.call(this).mainnet.nethash) {
 				this.setTestnet(false);
-				reconnect = true;
-			// Nethash is neither mainnet nor testnet, do not proceed to get peers
-			} else {
-				reconnect = false;
+				return true;
 			}
-		// No nethash set, we can take the usual approach:
-		// just when there are not-banned peers, take one
-		} else {
-			reconnect = (peers.length !== this.bannedPeers.length);
+			// Nethash is neither mainnet nor testnet, do not proceed to get peers
+			return false;
 		}
-	// RandomPeer is not explicitly set, no peer discovery
-	} else {
-		reconnect = false;
+		// No nethash set, we can take the usual approach:
+		// take a random peer if there is any that is not banned
+		return peers.some(peer => !this.bannedPeers.includes(peer));
 	}
-
-	return reconnect;
+	// RandomPeer is not explicitly set, no peer discovery
+	return false;
 }
 
 /**
@@ -173,33 +174,29 @@ function checkReDial() {
  * @private
  */
 
-function checkOptions(options) {
+const checkOptions = (options) => {
 	Object.entries(options)
 		.forEach(([key, value]) => {
 			if (value === undefined || Number.isNaN(value)) {
-				throw new Error(`parameter value "${key}" should not be ${value}`);
+				throw new Error(`"${key}" option should not be ${value}`);
 			}
 		});
 
 	return options;
-}
+};
 
 /**
- * @method serialiseHttpData
+ * @method serialiseHTTPData
  * @param data
  *
  * @return serialisedData string
  */
 
-function serialiseHttpData(data) {
-	let serialised;
-
-	serialised = utils.trimObj(data);
-	serialised = utils.toQueryString(serialised);
-	serialised = encodeURI(serialised);
-
-	return `?${serialised}`;
-}
+const serialiseHTTPData = (data) => {
+	const trimmed = utils.trimObj(data);
+	const queryString = utils.toQueryString(trimmed);
+	return `?${queryString}`;
+};
 
 /**
  * @method createRequestObject
@@ -214,8 +211,8 @@ function serialiseHttpData(data) {
 function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
 	const url = method === GET
-		? `${getFullUrl.call(this)}/api/${requestType}${serialiseHttpData.call(this, options)}`
-		: `${getFullUrl.call(this)}/api/${requestType}`;
+		? `${getFullURL.call(this)}/api/${requestType}${serialiseHTTPData.call(this, options)}`
+		: `${getFullURL.call(this)}/api/${requestType}`;
 
 	return {
 		method,
@@ -223,22 +220,6 @@ function createRequestObject(method, requestType, providedOptions) {
 		headers: this.nethash,
 		body: method === GET ? {} : options,
 	};
-}
-
-/**
- * @method sendRequestPromise
- * @param requestMethod
- * @param requestType
- * @param options
- * @private
- *
- * @return APIcall Promise
- */
-
-function sendRequestPromise(requestMethod, requestType, options) {
-	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
-
-	return popsicle.request(requestObject).use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
 
 /**
@@ -253,6 +234,24 @@ const constructRequestData = (providedObject, optionsOrCallback) => {
 	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
 	return Object.assign({}, providedOptions, providedObject);
 };
+
+/**
+ * @method sendRequestPromise
+ * @param requestMethod
+ * @param requestType
+ * @param options
+ * @private
+ *
+ * @return APIcall Promise
+ */
+
+function sendRequestPromise(requestMethod, requestType, options) {
+	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
+
+	return popsicle
+		.request(requestObject)
+		.use(popsicle.plugins.parse(['json', 'urlencoded']));
+}
 
 /**
  * @method wrapSendRequest
@@ -272,12 +271,9 @@ const wrapSendRequest = (method, endpoint, getDataFn) =>
 
 function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
 	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
-		const newOptions = {};
-
-		Object.keys(options).forEach((key) => {
-			newOptions[key] = options[key];
+		const newOptions = Object.assign({}, options, {
+			timeOffset: (options.timeOffset || 0) + 10,
 		});
-		newOptions.timeOffset = (options.timeOffset || 0) + 10;
 
 		return this.sendRequest(requestMethod, requestType, newOptions);
 	}
@@ -299,12 +295,12 @@ function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	return Promise.resolve({
 		success: false,
 		error,
-		message: 'could not create http request to any of the given peers',
+		message: 'Could not create an HTTP request to any known peers.',
 	});
 }
 
 function optionallyCallCallback(callback, result) {
-	if (callback && (typeof callback === 'function')) {
+	if (typeof callback === 'function') {
 		callback(result);
 	}
 	return result;
@@ -312,15 +308,16 @@ function optionallyCallCallback(callback, result) {
 
 module.exports = {
 	netHashOptions,
-	getFullUrl,
+	getFullURL,
 	getURLPrefix,
 	selectNode,
+	getPeers,
 	getRandomPeer,
 	banNode,
 	checkReDial,
 	checkOptions,
 	sendRequestPromise,
-	serialiseHttpData,
+	serialiseHTTPData,
 	createRequestObject,
 	constructRequestData,
 	wrapSendRequest,

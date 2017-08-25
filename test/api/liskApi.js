@@ -69,7 +69,7 @@ describe('Lisk API module', () => {
 	let checkOptionsStub;
 	let handleTimestampIsInFutureFailuresStub;
 	let handleSendRequestFailuresStub;
-	let getFullUrlStub;
+	let getFullURLStub;
 	let LSK;
 
 	beforeEach(() => {
@@ -87,8 +87,8 @@ describe('Lisk API module', () => {
 			.resolves(Object.assign({}, defaultRequestPromiseResult.body));
 		handleSendRequestFailuresStub = sinon
 			.stub(privateApi, 'handleSendRequestFailures');
-		getFullUrlStub = sinon
-			.stub(privateApi, 'getFullUrl')
+		getFullURLStub = sinon
+			.stub(privateApi, 'getFullURL')
 			.returns(defaultUrl);
 
 		LSK = new LiskAPI();
@@ -100,7 +100,7 @@ describe('Lisk API module', () => {
 		checkOptionsStub.restore();
 		handleTimestampIsInFutureFailuresStub.restore();
 		handleSendRequestFailuresStub.restore();
-		getFullUrlStub.restore();
+		getFullURLStub.restore();
 	});
 
 	describe('LiskAPI()', () => {
@@ -369,12 +369,12 @@ describe('Lisk API module', () => {
 	});
 
 	describe('#broadcastSignedTransaction', () => {
-		it('should use getFullUrl to get the url', () => {
+		it('should use getFullURL to get the url', () => {
 			return new Promise((resolve) => {
 				LSK.broadcastSignedTransaction({}, resolve);
 			})
 				.then(() => {
-					(getFullUrlStub.calledOn(LSK)).should.be.true();
+					(getFullURLStub.calledOn(LSK)).should.be.true();
 				});
 		});
 
@@ -491,38 +491,6 @@ describe('Lisk API module', () => {
 						method, endpoint, defaultCheckedOptions, error,
 					))
 						.should.be.true();
-				});
-		});
-
-		it.skip('should retry timestamp in future failures', () => {
-			const successResponse = { body: { success: true } };
-			const futureTimestampResponse = {
-				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
-			};
-			const spy = sinon.spy(LSK, 'sendRequest');
-			sendRequestPromiseStub.resolves(futureTimestampResponse);
-			sendRequestPromiseStub.onThirdCall().resolves(successResponse);
-
-			return LSK.sendRequest(GET, 'transactions')
-				.then(() => {
-					(spy.callCount).should.equal(3);
-					(spy.args[1][2]).should.have.property('timeOffset').equal(10);
-					(spy.args[2][2]).should.have.property('timeOffset').equal(20);
-					spy.restore();
-				});
-		});
-
-		it.skip('should not retry timestamp in future failures forever', () => {
-			const futureTimestampResponse = {
-				body: { success: false, message: 'Invalid transaction timestamp. Timestamp is in the future' },
-			};
-			const spy = sinon.spy(LSK, 'sendRequest');
-			sendRequestPromiseStub.resolves(futureTimestampResponse);
-
-			return LSK.sendRequest(GET, 'transactions')
-				.then((response) => {
-					(response).should.equal(futureTimestampResponse.body);
-					spy.restore();
 				});
 		});
 	});
