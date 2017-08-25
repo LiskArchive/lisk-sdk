@@ -206,10 +206,10 @@ describe('ClientRPCStub', function () {
 				validClientRPCStub = wsRPC.getClientRPCStub(invalisServerIp, invalisServerPort);
 			});
 
-			it('should call RPC callback with CONNECTOIN_TIMEOUT error', function (done) {
+			it('should call RPC callback with CONNECTION_TIMEOUT error', function (done) {
 				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.CONNECTOIN_TIMEOUT);
-					expect(err).to.have.property('message').equal(failureCodes.errorMessages[failureCodes.CONNECTOIN_TIMEOUT]);
+					expect(err).to.have.property('code').equal(failureCodes.CONNECTION_TIMEOUT);
+					expect(err).to.have.property('message').equal(failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
 					done();
 				});
 			});

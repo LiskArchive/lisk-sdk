@@ -87,9 +87,9 @@ describe('handshake', function () {
 
 	describe('with invalid headers', function () {
 
-		describe('failing with INVALID_HEADERS code', function () {
+		describe('should fail with INVALID_HEADERS code and description', function () {
 
-			it('should fail without headers', function (done) {
+			it('without headers', function (done) {
 				delete validClientSocketOptions.query;
 				connect();
 				expectDisconnect(this, function (code) {
@@ -98,27 +98,7 @@ describe('handshake', function () {
 				});
 			});
 
-			it('should fail with null headers', function (done) {
-				validClientSocketOptions.query = null;
-				connect();
-				expectDisconnect(this, function (code, description) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('Missing required property');
-					done();
-				});
-			});
-
-			it('should fail with undefined headers', function (done) {
-				validClientSocketOptions.query = undefined;
-				connect();
-				expectDisconnect(this, function (code, description) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('Missing required property');
-					done();
-				});
-			});
-
-			it('should fail with empty headers', function (done) {
+			it('with empty headers', function (done) {
 				validClientSocketOptions.query = {};
 				connect();
 				expectDisconnect(this, function (code, description) {
@@ -127,11 +107,8 @@ describe('handshake', function () {
 					done();
 				});
 			});
-		});
 
-		describe('failing with INVALID_HEADERS code and description', function () {
-
-			it('should fail with without port', function (done) {
+			it('without port', function (done) {
 				delete validClientSocketOptions.query.port;
 				connect();
 				expectDisconnect(this, function (code, description) {
@@ -141,7 +118,7 @@ describe('handshake', function () {
 				});
 			});
 
-			it('should fail without height', function (done) {
+			it('without height', function (done) {
 				delete validClientSocketOptions.query.height;
 				connect();
 				expectDisconnect(this, function (code, description) {
@@ -151,7 +128,7 @@ describe('handshake', function () {
 				});
 			});
 
-			it('should fail without version', function (done) {
+			it('without version', function (done) {
 				delete validClientSocketOptions.query.version;
 				connect();
 				expectDisconnect(this, function (code, description) {
@@ -161,7 +138,7 @@ describe('handshake', function () {
 				});
 			});
 
-			it('should fail without nethash', function (done) {
+			it('without nethash', function (done) {
 				delete validClientSocketOptions.query.nethash;
 				connect();
 				expectDisconnect(this, function (code, description) {

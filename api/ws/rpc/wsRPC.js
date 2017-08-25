@@ -194,7 +194,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 					});
 			}).catch(function (err) {
 				if (err && err.name === 'TimeoutError') {
-					err = new PeerUpdateError(failureCodes.CONNECTOIN_TIMEOUT, failureCodes.errorMessages[failureCodes.CONNECTOIN_TIMEOUT]);
+					err = new PeerUpdateError(failureCodes.CONNECTION_TIMEOUT, failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
 				}
 				return setImmediate(cb, err);
 			});
