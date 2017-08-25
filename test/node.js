@@ -486,7 +486,21 @@ node.initApplication = function (cb) {
 				var pg_notify = require('../helpers/pg-notify.js');
 				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
 			}],
-			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
+			rpc: ['db', 'bus', 'logger', function () {
+				var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
+				var transport = require('../api/ws/transport');
+				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+				var socketClusterMock = {
+					on: sinon.spy()
+				};
+				wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
+
+				// Register RPC
+				var transportModuleMock = {internal: {}, shared: {}};
+				transport(transportModuleMock);
+			}],
+			logic: ['db', 'bus', 'schema', 'genesisblock', 'rpc', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
 				var Block = require('../logic/block.js');
 				var Account = require('../logic/account.js');
@@ -527,7 +541,7 @@ node.initApplication = function (cb) {
 					}]
 				}, cb);
 			}],
-			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'rpc', function (scope, cb) {
 				var tasks = {};
 				scope.rewiredModules = {};
 
