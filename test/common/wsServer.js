@@ -38,15 +38,14 @@ var wsServer = {
 	},
 
 	necessaryRPCEndpoints: {
-		status: function (cb) {
+		status: function (query, cb) {
 			return cb(null, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash});
 		},
 
-		list: function (cb) {
+		list: function (query, cb) {
 			return cb(null, {success: true, peers: []});
 		},
-
-		updateMyself: function (cb) {
+		updateMyself: function (query, cb) {
 			return cb(null);
 		}
 	},
