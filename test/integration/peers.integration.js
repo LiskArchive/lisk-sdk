@@ -176,7 +176,7 @@ function killTestNodes (cb) {
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', '1000000', 'test/api/blocks.js', 'test/api/transactions.js'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', '5000000', 'test/api/blocks.js', 'test/api/transactions.js'], {
 		cwd: __dirname + '/../..'
 	});
 

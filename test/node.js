@@ -219,7 +219,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 			});
 		},
 		function () {
-			return actualHeight === height;
+			return actualHeight >= height;
 		},
 		function (err) {
 			if (err) {
