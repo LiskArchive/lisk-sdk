@@ -69,16 +69,12 @@ describe('sign', () => {
 
 		it('should detect invalid publicKeys', () => {
 			const invalidPublicKey = `${defaultPublicKey}ERROR`;
-			(function verifyMessageWithInvalidPublicKey() {
-				verifyMessageWithPublicKey(signedMessage, invalidPublicKey);
-			}).should.throw('Invalid publicKey, expected 32-byte publicKey');
+			(verifyMessageWithPublicKey.bind(null, signedMessage, invalidPublicKey)).should.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect not verifiable signature', () => {
 			const invalidSignedMessage = `${signMessageWithSecret(notSecretMessage, defaultSecret)}ERROR`;
-			(function verifyInvalidMessageWithPublicKey() {
-				verifyMessageWithPublicKey(invalidSignedMessage, defaultPublicKey);
-			}).should.throw('Invalid signature publicKey combination, cannot verify message');
+			(verifyMessageWithPublicKey.bind(null, invalidSignedMessage, defaultPublicKey)).should.throw('Invalid signature publicKey combination, cannot verify message');
 		});
 	});
 
@@ -161,41 +157,27 @@ ${defaultSignature}
 		});
 
 		it('should throw on invalid first publicKey', () => {
-			(function verifyMessageWithFirstInvalidPublicKey() {
-				verifyMessageWithTwoPublicKeys(
-					defaultTwoSignSignature, invalidPublicKey1, publicKey2,
-				);
-			}).should.throw('Invalid first publicKey, expected 32-byte publicKey');
+			(verifyMessageWithTwoPublicKeys.bind(null, defaultTwoSignSignature, invalidPublicKey1, publicKey2)).should.throw('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid second publicKey', () => {
-			(function verifyMessageWithSecondInvalidPublicKey() {
-				verifyMessageWithTwoPublicKeys(
-					defaultTwoSignSignature, publicKey1, invalidPublicKey2,
-				);
-			}).should.throw('Invalid second publicKey, expected 32-byte publicKey');
+			(verifyMessageWithTwoPublicKeys.bind(null, defaultTwoSignSignature, publicKey1, invalidPublicKey2)).should.throw('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid primary signature', () => {
-			(function verifyMessageWithSecondInvalidPublicKey() {
-				const invalidTwoSignSignature = defaultTwoSignSignature.slice(0, 20);
-				verifyMessageWithTwoPublicKeys(
-					invalidTwoSignSignature, publicKey1, publicKey2,
-				);
-			}).should.throw('Invalid signature second publicKey, cannot verify message');
+			const invalidTwoSignSignature = defaultTwoSignSignature.slice(0, 20);
+			(verifyMessageWithTwoPublicKeys.bind(null, invalidTwoSignSignature, publicKey1, publicKey2)).should.throw('Invalid signature second publicKey, cannot verify message');
 		});
 
 		it('should throw on invalid secondary signature', () => {
-			(function verifyMessageWithSecondInvalidPublicKey() {
-				const msgBytes = naclInstance.encode_utf8(notSecretMessage);
-				const firstKeys = getRawPrivateAndPublicKeyFromSecret(defaultSecret);
-				const secondKeys = getRawPrivateAndPublicKeyFromSecret(defaultSecondSecret);
-				const signedMessage = naclInstance.crypto_sign(msgBytes, firstKeys.privateKey).slice(0, 20);
-				const doubleSignedMessage = bufferToHex(naclInstance.crypto_sign(
-					signedMessage, secondKeys.privateKey,
-				));
-				verifyMessageWithTwoPublicKeys(doubleSignedMessage, publicKey1, publicKey2);
-			}).should.throw('Invalid signature first publicKey, cannot verify message');
+			const msgBytes = naclInstance.encode_utf8(notSecretMessage);
+			const firstKeys = getRawPrivateAndPublicKeyFromSecret(defaultSecret);
+			const secondKeys = getRawPrivateAndPublicKeyFromSecret(defaultSecondSecret);
+			const signedMessage = naclInstance.crypto_sign(msgBytes, firstKeys.privateKey).slice(0, 20);
+			const doubleSignedMessage = bufferToHex(naclInstance.crypto_sign(
+				signedMessage, secondKeys.privateKey,
+			));
+			(verifyMessageWithTwoPublicKeys.bind(null, doubleSignedMessage, publicKey1, publicKey2)).should.throw('Invalid signature first publicKey, cannot verify message');
 		});
 	});
 
@@ -284,11 +266,7 @@ ${defaultSignature}
 				(verification).should.be.false();
 			});
 			it('should throw if try to verify a second sign transaction without secondPublicKey', () => {
-				(function throwOnVerifyWithSecondSignatureWithoutSecondPublicKey() {
-					verifyTransaction(
-						transactionForVerifyTwoSignatures,
-					);
-				}).should.throw('Cannot verify signSignature without secondPublicKey.');
+				(verifyTransaction.bind(null, transactionForVerifyTwoSignatures)).should.throw('Cannot verify signSignature without secondPublicKey.');
 			});
 		});
 

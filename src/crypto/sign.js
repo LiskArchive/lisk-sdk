@@ -283,8 +283,12 @@ export function verifyTransaction(transaction, secondPublicKey) {
 	}
 
 	const transactionWithoutSignature = Object.assign({}, transaction);
-	if (secondSignaturePresent) delete transactionWithoutSignature.signSignature;
-	else delete transactionWithoutSignature.signature;
+
+	if (secondSignaturePresent) {
+		delete transactionWithoutSignature.signSignature;
+	} else {
+		delete transactionWithoutSignature.signature;
+	}
 
 	const transactionBytes = getTransactionBytes(transactionWithoutSignature);
 

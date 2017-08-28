@@ -80,7 +80,6 @@ export function getAddressFromPublicKey(publicKey) {
 	return address;
 }
 
-
 /**
  * @method getAddress
  * @param publicKey string

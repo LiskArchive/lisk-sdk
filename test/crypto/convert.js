@@ -35,6 +35,7 @@ describe('convert', () => {
 	const defaultHex = 'c3a5c3a4c3b6';
 	const defaultAddress = '18160565574430594874L';
 	const expectedPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+
 	describe('#bufferToHex', () => {
 		it('should create Hex from Buffer type', () => {
 			const hex = bufferToHex(defaultBuffer);
