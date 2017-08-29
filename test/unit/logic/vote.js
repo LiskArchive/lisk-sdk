@@ -595,7 +595,7 @@ describe('vote', function () {
 
 		it('should return error when votes array is longer than 33', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = new Array(34).map(function () {
+			trs.asset.votes = new Array(34).fill(0).map(function () {
 				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			});
 			expect(function () {
