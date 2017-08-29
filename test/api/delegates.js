@@ -365,7 +365,7 @@ describe('PUT /api/delegates with funds', function () {
 			it('with the same transaction id should fail for the the second transaction', function (done) {
 				var firstTransaction;
 
-				node.async.parallel({
+				node.async.series({
 					first: function (cb) {
 						return putDelegates(validParams, cb);
 					},
@@ -382,7 +382,7 @@ describe('PUT /api/delegates with funds', function () {
 			});
 
 			it('with different timestamp should fail for the the second transaction', function (done) {
-				node.async.parallel({
+				node.async.series({
 					first: function (cb) {
 						return putDelegates(validParams, cb);
 					},
@@ -412,6 +412,149 @@ describe('PUT /api/delegates with funds', function () {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					node.expect(res.body).to.have.property('error');
 					done();
+				});
+			});
+		});
+	});
+});
+
+describe('POST /peer/transactions', function () {
+
+	var account, validParams;
+
+	beforeEach(function () {
+		account = node.randomAccount();
+		validParams = {
+			secret: account.password,
+			username: account.username
+		};
+	});
+
+	beforeEach(function (done) {
+		sendLISK({
+			secret: node.gAccount.password,
+			amount: node.LISK,
+			recipientId: account.address
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transactionId');
+			node.expect(res.body.transactionId).to.be.not.empty;
+			node.onNewBlock(function (err) {
+				done(err);
+			});
+		});
+	});
+
+	function expectSecondConfirmedTransactionNotToBeFound (err, firstTransaction, secondTransaction, done) {
+		node.expect(err).to.be.null;
+		node.onNewBlock(function () {
+			node.async.series({
+				firstConfirmedTransaction: function (cb) {
+					return node.get('/api/transactions/get?id=' + firstTransaction.id, cb);
+				},
+				secondConfirmedTransaction: function (cb) {
+					return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
+				}
+			}, function (err, res) {
+				node.expect(err).to.be.null;
+				node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.true;
+				node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.transaction.id').to.equal(firstTransaction.id);
+
+				node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.false;
+				node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.error').to.be.equal('Transaction not found');
+				done();
+			});
+		});
+	}
+
+	describe('registering same username twice', function () {
+
+		describe('using same account', function () {
+
+			it('should not confirm the second transaction with different timestamp', function (done) {
+
+				var firstTransaction;
+				var secondTransaction;
+
+				node.async.series({
+					first: function (cb) {
+						firstTransaction = node.lisk.delegate.createDelegate(validParams.secret, validParams.username);
+						node.post('/peer/transactions', {transaction: firstTransaction}, cb);
+					},
+					second: function (cb) {
+						setTimeout(function () {
+							secondTransaction = node.lisk.delegate.createDelegate(validParams.secret, validParams.username);
+							node.post('/peer/transactions', {transaction: secondTransaction}, cb);
+						}, 1001);
+					}
+				}, function (err) {
+					expectSecondConfirmedTransactionNotToBeFound(err, firstTransaction, secondTransaction, done);
+				});
+			});
+		});
+
+		describe('using two different accounts', function () {
+
+			var secondAccount;
+			var validSecondParams;
+
+			beforeEach(function () {
+				secondAccount = node.randomAccount();
+				validSecondParams = {
+					secret: secondAccount.password,
+					username: account.username
+				};
+			});
+
+			beforeEach(function (done) {
+				sendLISK({
+					secret: node.gAccount.password,
+					amount: node.LISK,
+					recipientId: secondAccount.address
+				}, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transactionId');
+					node.expect(res.body.transactionId).to.be.not.empty;
+					node.onNewBlock(function (err) {
+						done(err);
+					});
+				});
+			});
+
+			it('should not confirm the first transaction', function (done) {
+
+				var firstTransaction;
+				var secondTransaction;
+
+				node.async.series({
+					first: function (cb) {
+						firstTransaction = node.lisk.delegate.createDelegate(validParams.secret, validParams.username);
+						node.post('/peer/transactions', {transaction: firstTransaction}, cb);
+					},
+					second: function (cb) {
+						secondTransaction = node.lisk.delegate.createDelegate(validSecondParams.secret, validParams.username);
+						node.post('/peer/transactions', {transaction: secondTransaction}, cb);
+					}
+				}, function (err) {
+					node.expect(err).to.be.null;
+					node.onNewBlock(function () {
+						node.async.series({
+							firstConfirmedTransaction: function (cb) {
+								return node.get('/api/transactions/get?id=' + firstTransaction.id, cb);
+							},
+							secondConfirmedTransaction: function (cb) {
+								return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
+							}
+						}, function (err, res) {
+							node.expect(err).to.be.null;
+							node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.true;
+							node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.transaction.id').to.equal(secondTransaction.id);
+
+							node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.false;
+							node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.error').to.be.equal('Transaction not found');
+							done();
+						});
+					});
 				});
 			});
 		});
