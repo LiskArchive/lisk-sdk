@@ -71,7 +71,7 @@ module.exports = {
 			min: {
 				type: 'integer',
 				minimum: 1,
-				maximum: 16
+				maximum: 15
 			},
 			lifetime: {
 				type: 'integer',
@@ -80,8 +80,8 @@ module.exports = {
 			},
 			keysgroup: {
 				type: 'array',
-				minLength: 1,
-				maxLength: 10
+				minItems: 1,
+				maxItems: 15
 			}
 		},
 		required: ['min', 'lifetime', 'keysgroup', 'secret']
