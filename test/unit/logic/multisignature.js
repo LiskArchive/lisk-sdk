@@ -245,16 +245,18 @@ describe('multisignature', function () {
 		it('should return error when min value is smaller than minimum acceptable value', function (done) {
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 0);
 
-			multisignature.verify.call(transaction, trs, function (err) {
+			multisignature.verify(trs, node.gAccount, function (err) {
 				expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
+				done();
 			});
 		});
 
-		it('should return error when min value is greater than maximum acceptable value', function () {
+		it('should return error when min value is greater than maximum acceptable value', function (done) {
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 16);
 
-			multisignature.verify.call(transaction, trs, function (err) {
+			multisignature.verify(trs, node.gAccount, function (err) {
 				expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
+				done();
 			});
 		});
 
