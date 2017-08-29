@@ -13,8 +13,8 @@ var testConfig = require('../config.json');
 var validHeaders;
 
 before(function (done) {
-	wsServer.port = 9998;
-	validHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port);
+	wsServer.options.port = 9998;
+	validHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.options.port);
 	wsServer.start();
 	var validClientSocketOptions = {
 		protocol: 'http',

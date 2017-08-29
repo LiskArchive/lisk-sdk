@@ -1,13 +1,14 @@
 'use strict';
 
 var randomstring = require('randomstring');
+var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster').SocketCluster;
+
 var testConfig = require('../config.json');
 
 var wsServer = {
-	port: 9999,
 	validNonce: randomstring.generate(16),
 	testSocketCluster: null,
 	testWampServer: null,
@@ -30,29 +31,29 @@ var wsServer = {
 
 	// Invoked by each worker
 	run: function (worker) {
+		console.log('run invoked');
 		var scServer = worker.scServer;
 		this.testWampServer = new WAMPServer();
-		scServer.on('connection', function () {
-			this.testWampServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
+		this.testWampServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
+		scServer.on('connection', function (socket) {
+			this.testWampServer.upgradeToWAMP(socket);
+			socket.emit('accepted');
 		}.bind(this));
 	},
 
 	necessaryRPCEndpoints: {
-		status: function (query, cb) {
-			return cb(null, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash});
-		},
-
-		list: function (query, cb) {
-			return cb(null, {success: true, peers: []});
-		},
-		updateMyself: function (query, cb) {
-			return cb(null);
-		}
+		status: sinon.stub().callsArgWith(1, sinon.stub().callsArgWith(1, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash})),
+		list: sinon.stub().callsArgWith(1, null),
+		updateMyself:  sinon.stub().callsArgWith(1, null),
+		postTransactions: sinon.stub().callsArgWith(1, null),
+		postSignatures: sinon.stub().callsArgWith(1, null),
+		postBlock: sinon.stub().callsArgWith(1, null),
+		blocksCommon: sinon.stub().callsArgWith(1, {success: true, common: null})
 	},
 
 	options: {
 		workers: 1,
-		port: this.port,
+		port: 9999,
 		wsEngine: 'uws',
 		appName: 'testWSServer',
 		workerController: __dirname + '/wsServer.js'

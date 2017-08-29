@@ -144,10 +144,10 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	var clientSocket = wsRPC.scClient.connect(options);
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
-	clientSocket.on('connect', function () {
-		clientSocket.on('accepted', function () {
-			return connectionState.resolve(clientSocket);
-		});
+	clientSocket.on('connect', function () {});
+
+	clientSocket.on('accepted', function () {
+		return connectionState.resolve(clientSocket);
 	});
 
 	clientSocket.on('error', function () {
