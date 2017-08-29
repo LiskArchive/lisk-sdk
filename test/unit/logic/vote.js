@@ -590,9 +590,18 @@ describe('vote', function () {
 			trs.asset.votes.push(trs.asset.votes[0]);
 			expect(function () {
 				vote.objectNormalize.call(transaction, trs);
-			}).to.throw('Failed to validate vote schema'); 
+			}).to.throw('Failed to validate vote schema: Array items are not unique (indexes 0 and 3)');
 		});
 
+		it('should return error when votes array is longer than 33', function () {
+			var trs = _.cloneDeep(validTransaction);
+			trs.asset.votes = new Array(34).map(function () {
+				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			});
+			expect(function () {
+				vote.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
+		});
 	});
 	describe('dbRead', function () {
 

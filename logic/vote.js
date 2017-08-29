@@ -324,8 +324,8 @@ Vote.prototype.schema = {
 	properties: {
 		votes: {
 			type: 'array',
-			minLength: 1,
-			maxLength: constants.activeDelegates,
+			minItems: 1,
+			maxItems: 33,
 			uniqueItems: true
 		}
 	},
