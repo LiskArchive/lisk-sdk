@@ -387,28 +387,28 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
 		modules.system.update(function () {
-			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
-				modules.peers.list({normalized: false}, function (err, peers) {
-					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
-						peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
-							if (err) {
-								library.logger.debug('Failed to update peer after new block applied', peer.string + ':' + err.toString());
-								cb({errorMsg: err, peer: peer});
-								__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
-							} else {
-								library.logger.debug('Peer notified correctly after update', peer.string);
-								cb();
-							}
-						});
-					}, function (err) {
-						if (err) {
-							library.logger.debug('Broadcasting block aborted - cannot update info at peer: ', err.peer.ip + ':' + err.peer.port);
-						} else {
-							__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}, {api: 'postBlock', data: {block: block}, immediate: true});
-						}
-					});
-				});
+			if (__private.broadcaster.maxRelays(block)) {
+				return library.logger.debug('Broadcasting block aborted - max block relays exceeded');
+			} else if (modules.loader.syncing()) {
+				return library.logger.debug('Broadcasting block aborted - blockchain synchronization in progress');
 			}
+			modules.peers.list({normalized: false}, function (err, peers) {
+				if (!peers || peers.length === 0) {
+					return library.logger.debug('Broadcasting block aborted - active peer list empty');
+				}
+				async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
+					peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
+						if (err) {
+							__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
+						} else {
+							library.logger.debug('Peer notified correctly after update: ' + peer.string);
+						}
+						return cb();
+					});
+				}, function () {
+					__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}, {api: 'postBlock', data: {block: block}, immediate: true});
+				});
+			});
 		});
 		library.network.io.sockets.emit('blocks/change', block);
 	}
