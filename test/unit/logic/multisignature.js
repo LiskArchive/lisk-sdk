@@ -165,8 +165,8 @@ describe('multisignature', function () {
 		});
 
 		it('should return error when keysgroup array length is greater than maximum acceptable value', function () {
-			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, new Array(16).map(function () {
-				return node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, new Array(16).fill(0).map(function () {
+				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			}), 1, 2);
 			trs.asset.multisignature.min = 0;
 
@@ -176,8 +176,8 @@ describe('multisignature', function () {
 		});
 
 		it('should return transaction when asset is valid', function () {
-			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, new Array(10).map(function () {
-				return node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, new Array(10).fill(0).map(function () {
+				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			}), 1, 2);
 
 			expect(multisignature.objectNormalize(trs)).to.eql(trs);
