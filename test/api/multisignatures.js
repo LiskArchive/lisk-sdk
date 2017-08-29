@@ -3,7 +3,7 @@
 var async = require('async');
 var node = require('./../node.js');
 
-var totalMembers = node.randomNumber(2, 16);
+var totalMembers = node.randomNumber(2, 15);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);
 var multisigAccount = node.randomAccount();
 
@@ -113,19 +113,19 @@ describe('PUT /api/multisignatures', function () {
 
 	before(function (done) {
 		Keys = makeKeysGroup();
+
 		done();
 	});
 
 	var validParams;
 
-	beforeEach(function (done) {
+	beforeEach(function () {
 		validParams = {
 			secret: multisigAccount.password,
 			lifetime: parseInt(node.randomNumber(1,72)),
 			min: requiredSignatures,
-			keysgroup: Keys
+			keysgroup: makeKeysGroup()
 		};
-		done();
 	});
 
 	it('using random passphase should fail', function (done) {
@@ -138,14 +138,98 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
-	it('using owner\'s public key in keysgroup should fail', function (done) {
-		validParams.secret = accounts[accounts.length - 1].password;
+	it('using empty keysgroup should fail', function (done) {
+		validParams.keysgroup = [];
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.equal('Array is too short (0), minimum 1');
 			done();
 		});
+	});
+
+	it('using sender in the keysgroup should fail', function (done) {
+		validParams.keysgroup.push('+' + multisigAccount.publicKey);
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid multisignature keysgroup. Can not contain sender');
+			done();
+		});
+	});
+
+	it('using no math operator in keysgroup should fail', function (done) {
+		validParams.keysgroup = validParams.keysgroup.map(function (v) {
+			return v.substring(1);
+		});
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid math operator in multisignature keysgroup');
+			done();
+		});
+	});
+
+	it('using invalid math operator in keysgroup should fail', function (done) {
+		validParams.keysgroup = validParams.keysgroup.map(function (v) {
+			return '-' + v.substring(1);
+		});
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid math operator in multisignature keysgroup');
+			done();
+		});
+	});
+
+	it('using same member twice should fail', function (done) {
+		validParams.keysgroup.push(validParams.keysgroup[1]);
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Encountered duplicate public key in multisignature keysgroup');
+			done();
+		}, true);
+	});
+
+	it('using null member in keysgroup should fail', function (done) {
+		validParams.keysgroup.push(null);
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid member in keysgroup');
+			done();
+		});
+	});
+
+	it('using min bigger than keysgroup size plus 1 should fail', function (done) {
+		validParams.min = validParams.keysgroup.length + 1;
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid multisignature min. Must be less than or equal to keysgroup size');
+			done();
+		});
+	});
+
+	it('using min more than maximum(15) should fail', function (done) {
+		validParams.min = 16;
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Value 16 is greater than maximum 15');
+			done();
+		});
+	});
+
+	it('using min less than minimum(1) should fail', function (done) {
+		validParams.min = 0;
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
+			done();
+		}, true);
 	});
 
 	it('using empty keysgroup should fail', function (done) {
@@ -397,7 +481,6 @@ describe('GET /api/multisignatures/pending', function () {
 				node.expect(pending.transaction.asset.multisignature).to.have.property('lifetime').that.is.a('number');
 				node.expect(pending.transaction).to.have.property('signature').that.is.a('string');
 				node.expect(pending.transaction).to.have.property('id').that.is.equal(multiSigTx.txId);
-				node.expect(pending.transaction).to.have.property('fee').that.is.equal(node.fees.multisignatureRegistrationFee * (Keys.length + 1));
 				node.expect(pending.transaction).to.have.property('senderId').that.is.eql(multisigAccount.address);
 				node.expect(pending.transaction).to.have.property('receivedAt').that.is.a('string');
 			}
@@ -422,7 +505,9 @@ describe('PUT /api/transactions', function () {
 			});
 		});
 	});
+
 });
+
 
 describe('POST /api/multisignatures/sign (group)', function () {
 
