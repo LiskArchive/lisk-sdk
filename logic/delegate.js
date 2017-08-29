@@ -1,5 +1,6 @@
 'use strict';
 
+var async = require('async');
 var constants = require('../helpers/constants.js');
 
 // Private fields
@@ -115,17 +116,24 @@ Delegate.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Username can only contain alphanumeric characters with the exception of !@$&_.');
 	}
 
-	modules.accounts.getAccount({
-		username: username
-	}, function (err, account) {
+	async.parallel({
+		confirmedUsername: function (eachCb) {
+			return modules.accounts.getAccount({
+				username: username
+			}, eachCb);
+		},
+		unconfirmedUsername: function (eachCb) {
+			return modules.accounts.getAccount({
+				u_username: username
+			}, eachCb);
+		}
+	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-
-		if (account) {
+		if (res.confirmedUsername || res.unconfirmedUsername) {
 			return setImmediate(cb, 'Username already exists');
 		}
-
 		return setImmediate(cb, null, trs);
 	});
 };
@@ -185,7 +193,26 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 		data.username = trs.asset.delegate.username;
 	}
 
-	modules.accounts.setAccountAndGet(data, cb);
+	async.series([
+		function (seriesCb) {
+			modules.accounts.getAccount({
+				username: data.username
+			}, function (err, account) {
+				if (err) {
+					return setImmediate(seriesCb, err);
+				}
+
+				if (account) {
+					return setImmediate(seriesCb, 'Username already exists');
+				}
+
+				return setImmediate(seriesCb, null, trs);
+			});
+		},
+		function (seriesCb) {
+			modules.accounts.setAccountAndGet(data, seriesCb);
+		}
+	], cb);
 };
 
 /**
@@ -231,7 +258,24 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		data.u_username = trs.asset.delegate.username;
 	}
 
-	modules.accounts.setAccountAndGet(data, cb);
+	async.series([
+		function (seriesCb) {
+			modules.accounts.getAccount({
+				u_username: data.u_username
+			}, function (err, account) {
+				if (err) {
+					return setImmediate(seriesCb, err);
+				}
+				if (account) {
+					return setImmediate(seriesCb, 'Username already exists');
+				}
+				return setImmediate(seriesCb, null, trs);
+			});
+		},
+		function (seriesCb) {
+			modules.accounts.setAccountAndGet(data, seriesCb);
+		}
+	], cb);
 };
 
 /**
