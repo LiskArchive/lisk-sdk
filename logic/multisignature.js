@@ -97,12 +97,12 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Must not be empty');
 	}
 
-	if (trs.asset.multisignature.min <= 1 || trs.asset.multisignature.min > 16) {
-		return setImmediate(cb, 'Invalid multisignature min. Must be between 1 and 16');
+	if (trs.asset.multisignature.min < 1 || trs.asset.multisignature.min > 15) {
+		return setImmediate(cb, 'Invalid multisignature min. Must be between 1 and 15');
 	}
 
 	if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length) {
-		var err = 'Invalid multisignature min. Must be less than keysgroup size';
+		var err = 'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
 		if (exceptions.multisignatures.indexOf(trs.id) > -1) {
 			this.scope.logger.debug(err);
@@ -354,8 +354,8 @@ Multisignature.prototype.schema = {
 		},
 		keysgroup: {
 			type: 'array',
-			minLength: 1,
-			maxLength: 16
+			minItems: 1,
+			maxItems: 15
 		},
 		lifetime: {
 			type: 'integer',

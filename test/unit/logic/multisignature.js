@@ -7,6 +7,7 @@ var async = require('async');
 
 var chai = require('chai');
 var expect = require('chai').expect;
+var sinon = require('sinon');
 var _  = require('lodash');
 var transactionTypes = require('../../../helpers/transactionTypes');
 
@@ -94,6 +95,95 @@ describe('multisignature', function () {
 		sender = _.cloneDeep(validSender);
 	});
 
+	describe('objectNormalize', function () {
+
+		it('should return error when min value is not an integer', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
+			trs.asset.multisignature.min = '2';
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Expected type integer but found type string');
+		});
+
+		it('should return error when min value is smaller than minimum acceptable value', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 0);
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Value 0 is less than minimum 1');
+		});
+
+		it('should return error when min value is greater than maximum acceptable value', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 17);
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Value 17 is greater than maximum 15');
+		});
+
+		it('should return error when lifetime value is not an integer', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
+			trs.asset.multisignature.lifetime = '2';
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Expected type integer but found type string');
+		});
+
+		it('should return error when lifetime value is smaller than minimum acceptable value', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 0, 2);
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Value 0 is less than minimum 1');
+		});
+
+		it('should return error when lifetime value is greater than maximum acceptable value', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 73, 2);
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Value 73 is greater than maximum 72');
+		});
+
+		it('should return error when keysgroup is not an array', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, [''], 1, 2);
+			trs.asset.multisignature.keysgroup = '';
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Expected type array but found type string');
+		});
+
+		it('should return error when keysgroup array length is smaller than minimum acceptable value', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, [], 1, 2);
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Array is too short (0), minimum 1');
+		});
+
+		it('should return error when keysgroup array length is greater than maximum acceptable value', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, new Array(16).map(function () {
+				return node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			}), 1, 2);
+			trs.asset.multisignature.min = 0;
+
+			expect(function () {
+				multisignature.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate multisignature schema: Array is too long (16), maximum 15, Value 0 is less than minimum 1');
+		});
+
+		it('should return transaction when asset is valid', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, new Array(10).map(function () {
+				return node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			}), 1, 2);
+
+			expect(multisignature.objectNormalize(trs)).to.eql(trs);
+		});
+	});
+
 	describe('verify', function () {
 
 		describe('from transaction.verify tests', function () {
@@ -151,6 +241,22 @@ describe('multisignature', function () {
 	});
 
 	describe('from multisignature.verify tests', function () {
+
+		it('should return error when min value is smaller than minimum acceptable value', function (done) {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 0);
+
+			multisignature.verify.call(transaction, trs, function (err) {
+				expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
+			});
+		});
+
+		it('should return error when min value is greater than maximum acceptable value', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 16);
+
+			multisignature.verify.call(transaction, trs, function (err) {
+				expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
+			});
+		});
 
 		it('should return error when multisignature keysgroup has an entry which does not start with + character', function (done) {
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
