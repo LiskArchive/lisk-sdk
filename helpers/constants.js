@@ -4,6 +4,7 @@
  * @namespace constants
  * @memberof module:helpers
  * @property {number} activeDelegates - The default number of delegates.
+ * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
  * @property {number} addressLength - The default address length.
  * @property {number} blockHeaderLength - The default block header length.
  * @property {number} blockReceiptTimeOut
@@ -42,6 +43,7 @@
  */
 module.exports = {
 	activeDelegates: 101,
+	maxVotesPerTransaction: 33,
 	addressLength: 208,
 	blockHeaderLength: 248,
 	blockReceiptTimeOut: 20, // 2 blocks
