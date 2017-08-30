@@ -81,7 +81,7 @@ describe('delegate', function () {
 				});
 			});
 
-			it('should check if not confirmed username already exists', function (done) {
+			it('should check if unconfirmed username already exists', function (done) {
 				delegate.verify(validTransaction, validSender, function () {
 					expect(accountsMock.getAccount.calledWith({u_username: validTransaction.asset.delegate.username})).to.be.true;
 					done();
@@ -89,7 +89,7 @@ describe('delegate', function () {
 			});
 		});
 
-		describe('when username is not confirmed', function () {
+		describe('when username already exists as unconfirmed', function () {
 
 			beforeEach(function () {
 				accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);
@@ -104,7 +104,7 @@ describe('delegate', function () {
 			});
 		});
 
-		describe('when username is confirmed', function () {
+		describe('when username already exists as confirmed', function () {
 
 			beforeEach(function () {
 				accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
@@ -122,7 +122,7 @@ describe('delegate', function () {
 
 	describe('apply', function () {
 
-		describe('when username is was not registered before', function () {
+		describe('when username was not registered before', function () {
 
 			var validConfirmedAccount;
 
@@ -147,7 +147,7 @@ describe('delegate', function () {
 			});
 		});
 
-		describe('when username was confirmed before', function () {
+		describe('when username is already confirmed', function () {
 
 			beforeEach(function () {
 				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);
@@ -171,7 +171,7 @@ describe('delegate', function () {
 
 	describe('applyUnconfirmed', function () {
 
-		describe('when username is was not registered before', function () {
+		describe('when username was not registered before', function () {
 
 			var validUnconfirmedAccount;
 
@@ -195,7 +195,7 @@ describe('delegate', function () {
 			});
 		});
 
-		describe('when username was confirmed before', function () {
+		describe('when username is already unconfirmed', function () {
 
 			beforeEach(function () {
 				accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);

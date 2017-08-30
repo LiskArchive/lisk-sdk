@@ -351,7 +351,7 @@ describe('PUT /api/delegates with funds', function () {
 			node.onNewBlock(function () {
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
+					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
 					done();
 				});
 			});
@@ -362,7 +362,7 @@ describe('PUT /api/delegates with funds', function () {
 
 		describe('using same account', function () {
 
-			it('with the same transaction id should fail for the the second transaction', function (done) {
+			it('second transaction with same id should fail', function (done) {
 				var firstTransaction;
 
 				node.async.series({
@@ -381,7 +381,7 @@ describe('PUT /api/delegates with funds', function () {
 				});
 			});
 
-			it('with different timestamp should fail for the the second transaction', function (done) {
+			it('second transaction with different timestamp should fail', function (done) {
 				node.async.series({
 					first: function (cb) {
 						return putDelegates(validParams, cb);
@@ -410,7 +410,7 @@ describe('PUT /api/delegates with funds', function () {
 				validParams.username = validParams.username.toUpperCase();
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
+					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
 					done();
 				});
 			});
