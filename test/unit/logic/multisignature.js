@@ -121,7 +121,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when min value is smaller than minimum acceptable value', function () {
-				var min = constants.multiTxSchema.min.minimum - 1;
+				var min = constants.multisigSchema.min.minimum - 1;
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, min);
 
 				expect(function () {
@@ -130,7 +130,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when min value is greater than maximum acceptable value', function () {
-				var min = constants.multiTxSchema.min.maximum + 1;
+				var min = constants.multisigSchema.min.maximum + 1;
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, min);
 
 				expect(function () {
@@ -162,7 +162,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when lifetime value is smaller than minimum acceptable value', function () {
-				var lifetime = node.constants.multiTxSchema.lifetime.minimum - 1;
+				var lifetime = node.constants.multisigSchema.lifetime.minimum - 1;
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], lifetime, 2);
 
 				expect(function () {
@@ -171,7 +171,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when lifetime value is greater than maximum acceptable value', function () {
-				var lifetime = node.constants.multiTxSchema.lifetime.maximum + 1;
+				var lifetime = node.constants.multisigSchema.lifetime.maximum + 1;
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], lifetime, 2);
 
 				expect(function () {
@@ -211,7 +211,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when keysgroup array length is greater than maximum acceptable value', function () {
-				var keysgroup = new Array(constants.multiTxSchema.keysgroup.maxItems + 1).fill(0).map(function () {
+				var keysgroup = new Array(constants.multisigSchema.keysgroup.maxItems + 1).fill(0).map(function () {
 					return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 				});
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, keysgroup, 1, 2);
@@ -290,7 +290,7 @@ describe('multisignature', function () {
 	describe('from multisignature.verify tests', function () {
 
 		it('should return error when min value is smaller than minimum acceptable value', function (done) {
-			var min = constants.multiTxSchema.min.minimum - 1;
+			var min = constants.multisigSchema.min.minimum - 1;
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 1);
 			trs.asset.multisignature.min = min;
 
@@ -301,7 +301,7 @@ describe('multisignature', function () {
 		});
 
 		it('should return error when min value is greater than maximum acceptable value', function (done) {
-			var min = constants.multiTxSchema.min.maximum + 1;
+			var min = constants.multisigSchema.min.maximum + 1;
 			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, min);
 
 			multisignature.verify(trs, node.gAccount, function (err) {
