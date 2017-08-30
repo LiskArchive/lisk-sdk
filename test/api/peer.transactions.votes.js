@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('./../node.js');
+var constants = require('../../helpers/constants.js');
 
 var account = node.randomAccount();
 
@@ -252,13 +253,13 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('voting for 34 delegates at once should fail', function (done) {
-		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, constants.maxVotesPerTransaction).map(function (delegate) {
 			return '+' + delegate;
 		}));
 
 		postVote(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+			node.expect(res.body).to.have.property('message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33');
 			node.onNewBlock(function (err) {
 				return done(err);
 			});
