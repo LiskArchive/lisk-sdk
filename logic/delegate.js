@@ -14,10 +14,11 @@ var modules, library, self;
  * @classdesc Main delegate logic.
  * @param {ZSchema} schema
  */
-function Delegate (schema) {
+function Delegate (logger, schema) {
 	self = this;
 	library = {
 		schema: schema,
+		logger: logger
 	};
 }
 
@@ -174,6 +175,11 @@ Delegate.prototype.getBytes = function (trs) {
 	return buf;
 };
 
+/**
+ * Calls cb with error when account already exists
+ * @param {Object} query
+ * @param {function} cb
+ */
 Delegate.prototype.checkDuplicates = function (query, cb) {
 	modules.accounts.getAccount(query, function (err, account) {
 		if (err) {
@@ -186,6 +192,12 @@ Delegate.prototype.checkDuplicates = function (query, cb) {
 	});
 };
 
+/**
+ * Checks if confirmed delegate is already registered
+ * @param {transaction} trs
+ * @param {account} account
+ * @param {function} cb
+ */
 Delegate.prototype.checkConfirmed = function (trs, account, cb) {
 	this.checkDuplicates({username: account.username}, function (err) {
 		if (err === 'Username already exists' && exceptions.delegates.indexOf(trs.id) > -1) {
@@ -197,7 +209,12 @@ Delegate.prototype.checkConfirmed = function (trs, account, cb) {
 	});
 };
 
-Delegate.prototype.checkUnconfirmed = function (trs, account, cb) {
+/**
+ * Checks if unconfirmed delegate is already registered
+ * @param {account} account
+ * @param {function} cb
+ */
+Delegate.prototype.checkUnconfirmed = function (account, cb) {
 	this.checkDuplicates({u_username: account.u_username}, cb);
 };
 
@@ -277,7 +294,7 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 
 	async.series([
 		function (seriesCb) {
-			self.checkUnconfirmed(trs, data, seriesCb);
+			self.checkUnconfirmed(data, seriesCb);
 		},
 		function (seriesCb) {
 			modules.accounts.setAccountAndGet(data, seriesCb);
