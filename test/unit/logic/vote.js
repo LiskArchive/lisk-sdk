@@ -597,12 +597,13 @@ describe('vote', function () {
 
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = new Array(constants.maxVotesPerTransaction + 1).fill(0).map(function () {
+			// this checks for 101 dele
+			trs.asset.votes = new Array(constants.activeDelegates + 1).fill(0).map(function () {
 				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			});
 			expect(function () {
 				vote.objectNormalize.call(transaction, trs);
-			}).to.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
+			}).to.throw('Failed to validate vote schema: Array is too long (102), maximum 101');
 		});
 	});
 
@@ -623,6 +624,7 @@ describe('vote', function () {
 			})).to.eql(null);
 		});
 	});
+
 	describe('dbSave', function () {
 
 		it('should create return db save promise', function () {

@@ -325,7 +325,8 @@ Vote.prototype.schema = {
 		votes: {
 			type: 'array',
 			minItems: 1,
-			maxItems: constants.maxVotesPerTransaction,
+			// We set maximum items to 101 because the gensisBlock contains transaction with 101 votes
+			maxItems: constants.activeDelegates,
 			uniqueItems: true
 		}
 	},
