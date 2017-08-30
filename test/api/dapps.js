@@ -1205,6 +1205,26 @@ describe('POST /api/dapps/launch', function () {
 		});
 	});
 
+	it('using empty params array should fail', function (done) {
+		validParams.params = [];
+
+		postLaunch(validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('using empty params array should fail', function (done) {
+		validParams.params = [];
+
+		postLaunch(validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
 	it('using valid params should be ok', function (done) {
 		postLaunch(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
