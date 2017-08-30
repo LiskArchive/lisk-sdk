@@ -2,9 +2,10 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
+var exceptions = require('../helpers/exceptions.js');
 
 // Private fields
-var modules, library;
+var modules, library, self;
 
 /**
  * Initializes library.
@@ -14,6 +15,7 @@ var modules, library;
  * @param {ZSchema} schema
  */
 function Delegate (schema) {
+	self = this;
 	library = {
 		schema: schema,
 	};
@@ -172,6 +174,33 @@ Delegate.prototype.getBytes = function (trs) {
 	return buf;
 };
 
+Delegate.prototype.checkDuplicates = function (query, cb) {
+	modules.accounts.getAccount(query, function (err, account) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		if (account) {
+			return setImmediate(cb, 'Username already exists');
+		}
+		return setImmediate(cb);
+	});
+};
+
+Delegate.prototype.checkConfirmed = function (trs, account, cb) {
+	this.checkDuplicates({username: account.username}, function (err) {
+		if (err === 'Username already exists' && exceptions.delegates.indexOf(trs.id) > -1) {
+			library.logger.debug(err);
+			library.logger.debug(JSON.stringify(trs));
+			err = null;
+		}
+		return setImmediate(cb, err);
+	});
+};
+
+Delegate.prototype.checkUnconfirmed = function (trs, account, cb) {
+	this.checkDuplicates({u_username: account.u_username}, cb);
+};
+
 /**
  * Checks trs delegate and calls modules.accounts.setAccountAndGet() with username.
  * @implements module:accounts#Accounts~setAccountAndGet
@@ -195,19 +224,7 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 
 	async.series([
 		function (seriesCb) {
-			modules.accounts.getAccount({
-				username: data.username
-			}, function (err, account) {
-				if (err) {
-					return setImmediate(seriesCb, err);
-				}
-
-				if (account) {
-					return setImmediate(seriesCb, 'Username already exists');
-				}
-
-				return setImmediate(seriesCb, null, trs);
-			});
+			self.checkConfirmed(trs, data, seriesCb);
 		},
 		function (seriesCb) {
 			modules.accounts.setAccountAndGet(data, seriesCb);
@@ -260,17 +277,7 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 
 	async.series([
 		function (seriesCb) {
-			modules.accounts.getAccount({
-				u_username: data.u_username
-			}, function (err, account) {
-				if (err) {
-					return setImmediate(seriesCb, err);
-				}
-				if (account) {
-					return setImmediate(seriesCb, 'Username already exists');
-				}
-				return setImmediate(seriesCb, null, trs);
-			});
+			self.checkUnconfirmed(trs, data, seriesCb);
 		},
 		function (seriesCb) {
 			modules.accounts.setAccountAndGet(data, seriesCb);
