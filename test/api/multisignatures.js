@@ -3,6 +3,8 @@
 var async = require('async');
 var node = require('./../node.js');
 
+var constants = require('../../helpers/constants.js');
+
 var totalMembers = node.randomNumber(2, 15);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);
 var multisigAccount = node.randomAccount();
@@ -213,7 +215,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using keysgroup length greater than maximum acceptable length should fail', function (done) {
-		validParams.keysgroup = new Array(16).fill(0).map(function () {
+		validParams.keysgroup = new Array(constants.multiTxSchema.keysgroup.maxItems + 1).fill(0).map(function () {
 			return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 		});
 
@@ -235,7 +237,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using min more than maximum acceptable should fail', function (done) {
-		validParams.min = 16;
+		validParams.min = constants.multiTxSchema.min.maximum + 1;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -325,11 +327,11 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using lifetime greater than maximum allowed should fail', function (done) {
-		validParams.lifetime = 73;
+		validParams.lifetime = constants.multiTxSchema.lifetime.maximum + 1;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
+			node.expect(res.body).to.have.property('error').to.equal('Value 73 is greater than maximum 72');
 			done();
 		});
 	});

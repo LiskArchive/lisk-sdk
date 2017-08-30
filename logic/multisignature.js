@@ -97,7 +97,7 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Must not be empty');
 	}
 
-	if (trs.asset.multisignature.min < 1 || trs.asset.multisignature.min > 15) {
+	if (trs.asset.multisignature.min < constants.multiTxSchema.min.minimum || trs.asset.multisignature.min > constants.multiTxSchema.min.maximum) {
 		return setImmediate(cb, 'Invalid multisignature min. Must be between 1 and 15');
 	}
 
@@ -112,7 +112,8 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		}
 	}
 
-	if (trs.asset.multisignature.lifetime < 1 || trs.asset.multisignature.lifetime > 72) {
+	if (trs.asset.multisignature.lifetime < constants.multiTxSchema.lifetime.minimum  ||
+		trs.asset.multisignature.lifetime > constants.multiTxSchema.lifetime.maximum) {
 		return setImmediate(cb, 'Invalid multisignature lifetime. Must be between 1 and 72');
 	}
 
@@ -349,18 +350,18 @@ Multisignature.prototype.schema = {
 	properties: {
 		min: {
 			type: 'integer',
-			minimum: 1,
-			maximum: 15
+			minimum: constants.multiTxSchema.min.minimum,
+			maximum: constants.multiTxSchema.min.maximum
 		},
 		keysgroup: {
 			type: 'array',
-			minItems: 1,
-			maxItems: 15
+			minItems: constants.multiTxSchema.keysgroup.minItems,
+			maxItems: constants.multiTxSchema.keysgroup.maxItems
 		},
 		lifetime: {
 			type: 'integer',
-			minimum: 1,
-			maximum: 72
+			minimum: constants.multiTxSchema.lifetime.minimum,
+			maximum: constants.multiTxSchema.lifetime.maximum
 		}
 	},
 	required: ['min', 'keysgroup', 'lifetime']
