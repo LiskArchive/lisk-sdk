@@ -5,7 +5,7 @@ var node = require('./../node.js');
 
 var constants = require('../../helpers/constants.js');
 
-var totalMembers = node.randomNumber(2, 15);
+var totalMembers = node.randomNumber(1, 15);
 var requiredSignatures = node.randomNumber(2, totalMembers + 1);
 var multisigAccount = node.randomAccount();
 
