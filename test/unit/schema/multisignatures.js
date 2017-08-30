@@ -22,52 +22,58 @@ describe('multisignatures', function () {
 			};
 		});
 
-		it('should return error when min is not an integer', function () {
-			testBody.min = '';
-			validator.validate(testBody, schema.addMultisignature);
-			expect(validator.getLastErrors().map(function (e) {
-				return e.message;
-			})).to.eql(['Expected type integer but found type string']);
+		describe('min', function () {
+
+			it('should return error when min is not an integer', function () {
+				testBody.min = '';
+				validator.validate(testBody, schema.addMultisignature);
+				expect(validator.getLastErrors().map(function (e) {
+					return e.message;
+				})).to.eql(['Expected type integer but found type string']);
+			});
+
+			it('should return error when min value is less than acceptable value', function () {
+				testBody.min = 0;
+				validator.validate(testBody, schema.addMultisignature);
+				expect(validator.getLastErrors().map(function (e) {
+					return e.message;
+				})).to.eql(['Value 0 is less than minimum 1']);
+			});
+
+			it('should return error when min value is greater than acceptable value', function () {
+				testBody.min = 16;
+				validator.validate(testBody, schema.addMultisignature);
+				expect(validator.getLastErrors().map(function (e) {
+					return e.message;
+				})).to.eql(['Value 16 is greater than maximum 15']);
+			});
 		});
 
-		it('should return error when min value is less than acceptable value', function () {
-			testBody.min = 0; 
-			validator.validate(testBody, schema.addMultisignature);
-			expect(validator.getLastErrors().map(function (e) {
-				return e.message;
-			})).to.eql(['Value 0 is less than minimum 1']);
-		});
+		describe('keysgroup', function () {
 
-		it('should return error when min value is greater than acceptable value', function () {
-			testBody.min = 16; 
-			validator.validate(testBody, schema.addMultisignature);
-			expect(validator.getLastErrors().map(function (e) {
-				return e.message;
-			})).to.eql(['Value 16 is greater than maximum 15']);
-		});
+			it('should return error when keysgroup is not an array', function () {
+				testBody.keysgroup = '';
+				validator.validate(testBody, schema.addMultisignature);
+				expect(validator.getLastErrors().map(function (e) {
+					return e.message;
+				})).to.eql(['Expected type array but found type string']);
+			});
 
-		it('should return error when keysgroup is not an array', function () {
-			testBody.keysgroup = '';
-			validator.validate(testBody, schema.addMultisignature);
-			expect(validator.getLastErrors().map(function (e) {
-				return e.message;
-			})).to.eql(['Expected type array but found type string']);
-		});
+			it('should return error when keysgroup length is less than minimum acceptable length', function () {
+				testBody.keysgroup = [];
+				validator.validate(testBody, schema.addMultisignature);
+				expect(validator.getLastErrors().map(function (e) {
+					return e.message;
+				})).to.eql(['Array is too short (0), minimum 1']);
+			});
 
-		it('should return error when keysgroup length is less than minimum acceptable length', function () {
-			testBody.keysgroup = []; 
-			validator.validate(testBody, schema.addMultisignature);
-			expect(validator.getLastErrors().map(function (e) {
-				return e.message;
-			})).to.eql(['Array is too short (0), minimum 1']);
-		});
-
-		it('should return error when keysgroup length is greater than maximum acceptable length', function () {
-			testBody.keysgroup = new Array(16).fill(0).map(function () { return node.lisk.crypto.getKeys(node.randomPassword()).publicKey; }); 
-			validator.validate(testBody, schema.addMultisignature);
-			expect(validator.getLastErrors().map(function (e) {
-				return e.message;
-			})).to.eql(['Array is too long (16), maximum 15']);
+			it('should return error when keysgroup length is greater than maximum acceptable length', function () {
+				testBody.keysgroup = new Array(16).fill(0).map(function () { return node.lisk.crypto.getKeys(node.randomPassword()).publicKey; });
+				validator.validate(testBody, schema.addMultisignature);
+				expect(validator.getLastErrors().map(function (e) {
+					return e.message;
+				})).to.eql(['Array is too long (16), maximum 15']);
+			});
 		});
 
 		it('should be ok when params field length valid', function () {

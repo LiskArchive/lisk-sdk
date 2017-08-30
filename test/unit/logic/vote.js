@@ -1,15 +1,17 @@
 'use strict';/*eslint*/
 
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var diff = require('../../../helpers/diff.js');
 var crypto = require('crypto');
 var async = require('async');
 
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
+
+var node = require('./../../node.js');
+var ed = require('../../../helpers/ed');
+var diff = require('../../../helpers/diff.js');
 var transactionTypes = require('../../../helpers/transactionTypes');
+var constants = require('../../../helpers/constants.js');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var TransactionLogic = require('../../../logic/transaction.js');
@@ -593,9 +595,9 @@ describe('vote', function () {
 			}).to.throw('Failed to validate vote schema: Array items are not unique (indexes 0 and 3)');
 		});
 
-		it('should return error when votes array is longer than 33', function () {
+		it('should return error when votes array is longer than maximum acceptable', function () {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = new Array(34).fill(0).map(function () {
+			trs.asset.votes = new Array(constants.maxVotesPerTransaction + 1).fill(0).map(function () {
 				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			});
 			expect(function () {
@@ -603,6 +605,7 @@ describe('vote', function () {
 			}).to.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
 		});
 	});
+
 	describe('dbRead', function () {
 
 		it('should read votes correct', function () {
