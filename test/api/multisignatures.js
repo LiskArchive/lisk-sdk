@@ -202,6 +202,28 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
+	it('using keysgroup length less than minimum acceptable length should fail', function (done) {
+		validParams.keysgroup = [];
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Array is too short (0), minimum 1');
+			done();
+		});
+	});
+
+	it('using keysgroup length greater than maximum acceptable length should fail', function (done) {
+		validParams.keysgroup = new Array(16).fill(0).map(function () {
+			return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+		});
+
+		node.put('/api/multisignatures', validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Array is too long (16), maximum 15');
+			done();
+		});
+	});
+
 	it('using min bigger than keysgroup size plus 1 should fail', function (done) {
 		validParams.min = validParams.keysgroup.length + 1;
 
@@ -212,7 +234,7 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
-	it('using min more than maximum(15) should fail', function (done) {
+	it('using min more than maximum acceptable should fail', function (done) {
 		validParams.min = 16;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
@@ -222,7 +244,7 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
-	it('using min less than minimum(1) should fail', function (done) {
+	it('using min less than minimum acceptable should fail', function (done) {
 		validParams.min = 0;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
