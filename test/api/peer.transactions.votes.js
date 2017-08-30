@@ -259,7 +259,7 @@ describe('POST /peer/transactions', function () {
 
 		postVote(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+			node.expect(res.body).to.have.property('message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33');
 			node.onNewBlock(function (err) {
 				return done(err);
 			});
@@ -285,7 +285,7 @@ describe('POST /peer/transactions', function () {
 
 		postVote(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+			node.expect(res.body).to.have.property('message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33');
 			node.onNewBlock(function (err) {
 				return done(err);
 			});

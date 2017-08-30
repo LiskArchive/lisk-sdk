@@ -210,7 +210,12 @@ describe('POST /peer/blocks', function () {
 			if (transaction.asset && transaction.asset.delegate) {
 				transaction.asset.delegate.publicKey = transaction.senderPublicKey;
 			}
+
+			if (transaction.asset && transaction.asset.votes) {
+				transaction.asset.votes = transaction.asset.votes.slice(0, 33);
+			}
 		});
+
 		node.post('/peer/blocks', { block: genesisblock })
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
