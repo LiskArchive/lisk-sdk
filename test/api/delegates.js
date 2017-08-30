@@ -373,7 +373,6 @@ describe('PUT /api/delegates with funds', function () {
 						return putDelegates(validParams, cb);
 					}
 				}, function (err, res) {
-					node.expect(err).to.be.null;
 					node.expect(res).to.have.deep.property('first.body.transaction');
 					firstTransaction = res.first.body.transaction;
 					node.expect(res).to.have.deep.property('second.body.error').equal('Transaction is already processed: ' + firstTransaction.id);
@@ -392,7 +391,6 @@ describe('PUT /api/delegates with funds', function () {
 						}, 1001);
 					}
 				}, function (err, res) {
-					node.expect(err).to.be.null;
 					node.expect(res).to.have.deep.property('first.body.transaction');
 					node.expect(res).to.have.deep.property('second.body.error').equal('Username already exists');
 					done();
