@@ -585,7 +585,7 @@ describe('transaction', function () {
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete trs.signature;
-			trs.signatures = Array(2).fill(transaction.sign(validKeypair, trs));
+			trs.signatures = Array.apply(null, Array(2)).map(function () { return transaction.sign(validKeypair, trs); });
 			trs.signature = transaction.sign(senderKeypair, trs);
 			transaction.verify(trs, vs, {}, function (err) {
 				expect(err).to.equal('Encountered duplicate signature in transaction');
