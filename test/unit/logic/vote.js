@@ -284,8 +284,8 @@ describe('vote', function () {
 
 		it('should return error when voting for an account twice', function (done) {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = Array(2).fill(votedDelegates[0]).map(function (v, i) {
-				return (i % 2 ? '+': '-') + v;
+			trs.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
+				return (i % 2 ? '+': '-') + votedDelegates[0];
 			});
 
 			vote.verify(trs, validSender, function (err) {
@@ -365,7 +365,9 @@ describe('vote', function () {
 
 		it('should return error for casting multiple votes for same account in a transaction', function (done) {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = Array(2).fill('+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37');
+			trs.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
+				return '+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37';
+			});
 			vote.verify(trs, validSender, function (err) {
 				expect(err).to.equal('Multiple votes for same delegate are not allowed');
 				done();
@@ -598,12 +600,12 @@ describe('vote', function () {
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var trs = _.cloneDeep(validTransaction);
 			// this checks for 101 dele
-			trs.asset.votes = new Array(constants.activeDelegates + 1).fill(0).map(function () {
+			trs.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
 				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			});
 			expect(function () {
 				vote.objectNormalize.call(transaction, trs);
-			}).to.throw('Failed to validate vote schema: Array is too long (102), maximum 101');
+			}).to.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
 		});
 	});
 
