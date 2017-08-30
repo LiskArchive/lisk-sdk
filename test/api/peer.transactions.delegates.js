@@ -37,7 +37,7 @@ describe('POST /peer/transactions', function () {
 		});
 
 		it('using undefined transaction.asset', function (done) {
-			var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+			var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
 			transaction.fee = node.fees.delegateRegistrationFee;
 
 			delete transaction.asset;
@@ -52,7 +52,7 @@ describe('POST /peer/transactions', function () {
 		describe('when account has no funds', function () {
 
 			it('should fail', function (done) {
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
 				transaction.fee = node.fees.delegateRegistrationFee;
 
 				postTransaction(transaction, function (err, res) {
@@ -123,7 +123,7 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using lowercase username should be ok', function (done) {
-				account.username = node.randomDelegateName().toLowerCase();
+				account.username = node.randomDelegateName();
 				var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 				postTransaction(transaction, function (err, res) {
@@ -136,10 +136,10 @@ describe('POST /peer/transactions', function () {
 			describe('twice for the same account in different blocks', function () {
 
 				it('should fail', function (done) {
-					account.username = node.randomDelegateName().toLowerCase();
+					account.username = node.randomDelegateName();
 					var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
-					account.username = node.randomDelegateName().toLowerCase();
+					account.username = node.randomDelegateName();
 					var transaction2 = node.lisk.delegate.createDelegate(account.password, account.username);
 
 					postTransaction(transaction, function (err, res) {
@@ -186,7 +186,6 @@ describe('POST /peer/transactions', function () {
 										return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
 									}
 								}, function (err, res) {
-									node.expect(err).to.be.null;
 									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.true;
 									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.transaction.id').to.equal(firstTransaction.id);
 
@@ -252,7 +251,6 @@ describe('POST /peer/transactions', function () {
 										return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
 									}
 								}, function (err, res) {
-									node.expect(err).to.be.null;
 									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.true;
 									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.transaction.id').to.equal(secondTransaction.id);
 

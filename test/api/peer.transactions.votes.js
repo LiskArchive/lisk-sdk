@@ -58,7 +58,7 @@ function sendLISK (params, done) {
 }
 
 function registerDelegate (account, done) {
-	account.username = node.randomDelegateName().toLowerCase();
+	account.username = node.randomDelegateName();
 	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 	node.post('/peer/transactions', { transaction: transaction }, function (err, res) {
