@@ -8,6 +8,7 @@ var validator = new ZSchema();
 
 describe('multisignatures', function () {
 
+	// TODO: Add tests for other multisignature schemas
 	describe('addMultisignatures', function () {
 		var testBody;
 
@@ -18,7 +19,7 @@ describe('multisignatures', function () {
 				publicKey: node.lisk.crypto.getKeys(secret).publicKey,
 				min: 2,
 				lifetime: 1,
-				keysgroup: new Array(4).fill(0).map(function () { return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;})
+				keysgroup: Array.apply(null, Array(4)).map(function () { return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;})
 			};
 		});
 
@@ -68,7 +69,7 @@ describe('multisignatures', function () {
 			});
 
 			it('should return error when keysgroup length is greater than maximum acceptable length', function () {
-				testBody.keysgroup = new Array(16).fill(0).map(function () { return node.lisk.crypto.getKeys(node.randomPassword()).publicKey; });
+				testBody.keysgroup = Array.apply(null, Array(16)).map(function () { return node.lisk.crypto.getKeys(node.randomPassword()).publicKey; });
 				validator.validate(testBody, schema.addMultisignature);
 				expect(validator.getLastErrors().map(function (e) {
 					return e.message;

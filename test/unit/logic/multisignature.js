@@ -211,7 +211,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when keysgroup array length is greater than maximum acceptable value', function () {
-				var keysgroup = new Array(constants.multisigSchema.keysgroup.maxItems + 1).fill(0).map(function () {
+				var keysgroup = Array.apply(null, Array(constants.multisigSchema.keysgroup.maxItems + 1)).map(function () {
 					return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 				});
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, keysgroup, 1, 2);
@@ -223,7 +223,7 @@ describe('multisignature', function () {
 		});
 
 		it('should return transaction when asset is valid', function () {
-			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, new Array(10).fill(0).map(function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, Array.apply(null, Array(10)).map(function () {
 				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			}), 1, 2);
 

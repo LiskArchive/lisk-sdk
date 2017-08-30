@@ -215,7 +215,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using keysgroup length greater than maximum acceptable length should fail', function (done) {
-		validParams.keysgroup = new Array(constants.multisigSchema.keysgroup.maxItems + 1).fill(0).map(function () {
+		validParams.keysgroup = Array.apply(null, new Array(constants.multisigSchema.keysgroup.maxItems + 1)).map(function () {
 			return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 		});
 
