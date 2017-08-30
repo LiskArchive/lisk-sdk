@@ -93,5 +93,19 @@ module.exports = {
 	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+	multiTxSchema: {
+		min: {
+			minimum: 1,
+			maximum: 15
+		},
+		lifetime: {
+			minimum: 1,
+			maximum: 72
+		},
+		keysgroup: {
+			minItems: 1,
+			maxItems: 15
+		}
+	}
 };
