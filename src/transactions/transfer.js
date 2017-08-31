@@ -17,7 +17,7 @@
  * an individual dapp account).
  * @class transfer
  */
-import crypto from './crypto';
+import crypto from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -50,7 +50,7 @@ function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 /**
@@ -86,7 +86,7 @@ function createOutTransfer(
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

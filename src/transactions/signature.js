@@ -16,7 +16,7 @@
  * Signature module provides functions for creating second signature registration transactions.
  * @class signature
  */
-import crypto from './crypto';
+import crypto from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -58,7 +58,7 @@ function createSignature(secret, secondSecret, timeOffset) {
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

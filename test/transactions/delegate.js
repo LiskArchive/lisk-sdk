@@ -14,7 +14,7 @@
  */
 import delegate from '../../src/transactions/delegate';
 import slots from '../../src/time/slots';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 
 describe('delegate module', () => {
 	describe('exports', () => {
@@ -102,13 +102,13 @@ describe('delegate module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(delegateTransaction);
+					const result = cryptoModule.verifyTransaction(delegateTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					delegateTransaction.amount = 100;
-					const result = cryptoModule.verify(delegateTransaction);
+					const result = cryptoModule.verifyTransaction(delegateTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -145,13 +145,13 @@ describe('delegate module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(delegateTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					delegateTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(delegateTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

@@ -13,7 +13,7 @@
  *
  */
 import vote from '../../src/transactions/vote';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 describe('vote module', () => {
@@ -109,13 +109,13 @@ describe('vote module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(voteTransaction);
+					const result = cryptoModule.verifyTransaction(voteTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					voteTransaction.amount = 100;
-					const result = cryptoModule.verify(voteTransaction);
+					const result = cryptoModule.verifyTransaction(voteTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -168,13 +168,13 @@ describe('vote module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					voteTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

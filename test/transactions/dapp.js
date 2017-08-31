@@ -14,7 +14,7 @@
  */
 import dapp from '../../src/transactions/dapp';
 import slots from '../../src/time/slots';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 
 describe('dapp module', () => {
 	describe('exports', () => {
@@ -170,13 +170,13 @@ describe('dapp module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(dappTransaction);
+					const result = cryptoModule.verifyTransaction(dappTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					dappTransaction.amount = 100;
-					const result = cryptoModule.verify(dappTransaction);
+					const result = cryptoModule.verifyTransaction(dappTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -237,13 +237,13 @@ describe('dapp module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(dappTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(dappTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					dappTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(dappTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(dappTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

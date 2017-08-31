@@ -13,7 +13,7 @@
  *
  */
 import multisignature from '../../src/transactions/multisignature';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 describe('multisignature module', () => {
@@ -119,13 +119,13 @@ describe('multisignature module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(multisignatureTransaction);
+					const result = cryptoModule.verifyTransaction(multisignatureTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					multisignatureTransaction.amount = 100;
-					const result = cryptoModule.verify(multisignatureTransaction);
+					const result = cryptoModule.verifyTransaction(multisignatureTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -184,14 +184,14 @@ describe('multisignature module', () => {
 
 				it('should be second signed correctly', () => {
 					const result = cryptoModule
-						.verifySecondSignature(multisignatureTransaction, secondKeys.publicKey);
+						.verifyTransaction(multisignatureTransaction, secondKeys.publicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					multisignatureTransaction.amount = 100;
 					const result = cryptoModule
-						.verifySecondSignature(multisignatureTransaction, secondKeys.publicKey);
+						.verifyTransaction(multisignatureTransaction, secondKeys.publicKey);
 					(result).should.not.be.ok();
 				});
 			});
@@ -274,13 +274,13 @@ describe('multisignature module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(transactionTransaction);
+					const result = cryptoModule.verifyTransaction(transactionTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					transactionTransaction.amount = 100;
-					const result = cryptoModule.verify(transactionTransaction);
+					const result = cryptoModule.verifyTransaction(transactionTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -325,14 +325,14 @@ describe('multisignature module', () => {
 
 				it('should be second signed correctly', () => {
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondKeys.publicKey);
+						.verifyTransaction(transactionTransaction, secondKeys.publicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					transactionTransaction.amount = 100;
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondKeys.publicKey);
+						.verifyTransaction(transactionTransaction, secondKeys.publicKey);
 					(result).should.not.be.ok();
 				});
 			});
@@ -361,7 +361,7 @@ describe('multisignature module', () => {
 
 		beforeEach(() => {
 			cryptoGetKeysStub = sinon.stub(cryptoModule, 'getKeys').returns(keys);
-			cryptoMultiSignStub = sinon.stub(cryptoModule, 'multiSign').returns(signature);
+			cryptoMultiSignStub = sinon.stub(cryptoModule, 'multiSignTransaction').returns(signature);
 			signedTransaction = signTransaction(transaction, secret);
 		});
 
@@ -378,12 +378,8 @@ describe('multisignature module', () => {
 			(signedTransaction).should.have.lengthOf(length);
 		});
 
-		it('should use crypto.getKeys to get the keys for signing', () => {
-			(cryptoGetKeysStub.calledWithExactly(secret)).should.be.true();
-		});
-
-		it('should use crypto.multiSign to get the signature', () => {
-			(cryptoMultiSignStub.calledWithExactly(transaction, keys)).should.be.true();
+		it('should use crypto.multiSignTransaction to get the signature', () => {
+			(cryptoMultiSignStub.calledWithExactly(transaction, secret)).should.be.true();
 		});
 	});
 });

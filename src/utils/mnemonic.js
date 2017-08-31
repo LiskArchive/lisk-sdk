@@ -28,7 +28,7 @@
  * @class mnemonic
  */
 import bignum from 'browserify-bignum';
-import crypto from 'crypto-browserify';
+import crypto from 'crypto';
 import { Buffer } from 'buffer';
 import wordList from './words';
 

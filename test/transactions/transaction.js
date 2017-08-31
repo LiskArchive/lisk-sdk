@@ -14,7 +14,7 @@
  */
 import transaction from '../../src/transactions/transaction';
 import slots from '../../src/time/slots';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 
 describe('transaction module', () => {
 	describe('exports', () => {
@@ -114,13 +114,13 @@ describe('transaction module', () => {
 					});
 
 					it('should be signed correctly', () => {
-						const result = cryptoModule.verify(transactionTransaction);
+						const result = cryptoModule.verifyTransaction(transactionTransaction);
 						(result).should.be.ok();
 					});
 
 					it('should not be signed correctly if modified', () => {
 						transactionTransaction.amount = 100;
-						const result = cryptoModule.verify(transactionTransaction);
+						const result = cryptoModule.verifyTransaction(transactionTransaction);
 						(result).should.be.not.ok();
 					});
 
@@ -193,7 +193,7 @@ describe('transaction module', () => {
 
 				it('should be second signed correctly', () => {
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondPublicKey);
+						.verifyTransaction(transactionTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
@@ -206,14 +206,14 @@ describe('transaction module', () => {
 						testData,
 					);
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, emptyPublicKey);
+						.verifyTransaction(transactionTransaction, emptyPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					transactionTransaction.amount = 100;
 					const result = cryptoModule
-						.verifySecondSignature(transactionTransaction, secondPublicKey);
+						.verifyTransaction(transactionTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

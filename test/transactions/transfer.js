@@ -13,7 +13,7 @@
  *
  */
 import transfer from '../../src/transactions/transfer';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 describe('transfer module', () => {
@@ -109,13 +109,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(inTransferTransaction);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					inTransferTransaction.amount = 100;
-					const result = cryptoModule.verify(inTransferTransaction);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -151,13 +151,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(inTransferTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					inTransferTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(inTransferTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});
@@ -226,13 +226,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(outTransferTransaction);
+					const result = cryptoModule.verifyTransaction(outTransferTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					outTransferTransaction.amount = 100;
-					const result = cryptoModule.verify(outTransferTransaction);
+					const result = cryptoModule.verifyTransaction(outTransferTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -279,14 +279,14 @@ describe('transfer module', () => {
 
 					it('should be second signed correctly', () => {
 						const result = cryptoModule
-							.verifySecondSignature(outTransferTransaction, secondPublicKey);
+							.verifyTransaction(outTransferTransaction, secondPublicKey);
 						(result).should.be.ok();
 					});
 
 					it('should not be second signed correctly if modified', () => {
 						outTransferTransaction.amount = 100;
 						const result = cryptoModule
-							.verifySecondSignature(outTransferTransaction, secondPublicKey);
+							.verifyTransaction(outTransferTransaction, secondPublicKey);
 						(result).should.not.be.ok();
 					});
 				});

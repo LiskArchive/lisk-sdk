@@ -16,7 +16,7 @@
  * Dapp module provides functions used to create dapp registration transactions.
  * @class dapp
  */
-import crypto from './crypto';
+import crypto from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -78,7 +78,7 @@ function createDapp(secret, secondSecret, options, timeOffset) {
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

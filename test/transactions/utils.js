@@ -13,6 +13,7 @@ describe('transactions utils module', () => {
 
 	describe('#prepareTransaction', () => {
 		const { prepareTransaction } = utils;
+		const secret = 'secret';
 		const keys = {
 			privateKey: '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 			publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -37,7 +38,7 @@ describe('transactions utils module', () => {
 
 		describe('without second signature', () => {
 			beforeEach(() => {
-				preparedTransaction = prepareTransaction(inputTransaction, keys);
+				preparedTransaction = prepareTransaction(inputTransaction, secret);
 			});
 
 			it('should not mutate the original transaction', () => {
@@ -55,7 +56,7 @@ describe('transactions utils module', () => {
 
 		describe('with second signature', () => {
 			beforeEach(() => {
-				preparedTransaction = prepareTransaction(inputTransaction, keys, secondSecret);
+				preparedTransaction = prepareTransaction(inputTransaction, secret, secondSecret);
 			});
 
 			it('should not mutate the original transaction', () => {
@@ -75,7 +76,7 @@ describe('transactions utils module', () => {
 						},
 					},
 				});
-				preparedTransaction = prepareTransaction(inputTransaction, keys, secondSecret);
+				preparedTransaction = prepareTransaction(inputTransaction, secret, secondSecret);
 				(preparedTransaction).should.not.have.property('signSignature');
 			});
 		});

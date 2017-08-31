@@ -12,16 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as convert from './convert';
+import * as sign from './sign';
+import * as keys from './keys';
+import * as hash from './hash';
 
-// TODO: Discuss behaviour with format and hashing
-function getSha256Hash(stringToSign, format) {
-	const encodedString = (!format || format === 'utf8')
-		? naclInstance.encode_utf8(stringToSign)
-		: naclInstance.from_hex(stringToSign);
-
-	return naclInstance.crypto_hash_sha256(encodedString);
-}
-
-module.exports = {
-	getSha256Hash,
-};
+export default Object.assign({}, convert, sign, keys, hash);
