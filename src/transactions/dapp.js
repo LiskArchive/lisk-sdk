@@ -16,7 +16,7 @@
  * Dapp module provides functions used to create dapp registration transactions.
  * @class dapp
  */
-import crypto from '../crypto';
+import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -56,7 +56,7 @@ const validateOptions = (options) => {
 function createDapp(secret, secondSecret, options, timeOffset) {
 	validateOptions(options);
 
-	const keys = crypto.getKeys(secret);
+	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
 		type: 5,
