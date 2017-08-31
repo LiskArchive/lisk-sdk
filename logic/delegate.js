@@ -120,24 +120,15 @@ Delegate.prototype.verify = function (trs, sender, cb) {
 	}
 
 	async.parallel({
-		confirmedUsername: function (eachCb) {
-			return modules.accounts.getAccount({
-				username: username
-			}, eachCb);
+		checkConfirmedError: function (eachCb) {
+			return self.checkConfirmed(trs, {username: username}, eachCb);
 		},
-		unconfirmedUsername: function (eachCb) {
-			return modules.accounts.getAccount({
-				u_username: username
-			}, eachCb);
+		checkUnconfirmedError: function (eachCb) {
+			return self.checkUnconfirmed({u_username: username}, eachCb);
 		}
 	}, function (err, res) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		if (res.confirmedUsername || res.unconfirmedUsername) {
-			return setImmediate(cb, 'Username already exists');
-		}
-		return setImmediate(cb, null, trs);
+		err = err || res.checkConfirmedError || res.checkUnconfirmedError || null;
+		return setImmediate(cb, err, trs);
 	});
 };
 
