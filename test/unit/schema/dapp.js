@@ -6,7 +6,7 @@ var validator = new ZSchema();
 
 describe('dapp', function () {
 
-	// TODO: We need to add tests for the rest of the dapps schemas
+	// TODO: Add tests for other dapps schemas
 	describe('launch', function () {
 		var testBody;
 

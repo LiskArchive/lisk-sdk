@@ -37,9 +37,9 @@ function sendLISK (account, i, done) {
 	});
 }
 
-function sendLISKFromMultisigAccount (amount, recipient, done) {
+function sendLISKFromMultisigAccount (password, amount, recipient, done) {
 	node.put('/api/transactions/', {
-		secret: multisigAccount.password,
+		secret: password,
 		amount: amount,
 		recipientId: recipient
 	}, function (err, res) {
@@ -113,10 +113,8 @@ before(function (done) {
 
 describe('PUT /api/multisignatures', function () {
 
-	before(function (done) {
+	before(function () {
 		Keys = makeKeysGroup();
-
-		done();
 	});
 
 	var validParams;
@@ -193,7 +191,7 @@ describe('PUT /api/multisignatures', function () {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error').to.equal('Encountered duplicate public key in multisignature keysgroup');
 			done();
-		}, true);
+		});
 	});
 
 	it('using null member in keysgroup should fail', function (done) {
@@ -218,7 +216,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using keysgroup length greater than maximum acceptable length should fail', function (done) {
-		validParams.keysgroup = Array.apply(null, new Array(constants.multisigSchema.keysgroup.maxItems + 1)).map(function () {
+		validParams.keysgroup = Array.apply(null, new Array(constants.multisigConstraints.keysgroup.maxItems + 1)).map(function () {
 			return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 		});
 
@@ -241,7 +239,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using min more than maximum acceptable should fail', function (done) {
-		validParams.min = constants.multisigSchema.min.maximum + 1;
+		validParams.min = constants.multisigConstraints.min.maximum + 1;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -290,6 +288,40 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
+	it('using null member in keysgroup should fail', function (done) {
+		var multiSigTx = {
+			secret: multisigAccount.password,
+			lifetime: parseInt(node.randomNumber(1,72)),
+			min: requiredSignatures,
+			keysgroup: makeKeysGroup()
+		};
+		multiSigTx.keysgroup.pop();
+		multiSigTx.keysgroup.push(null);
+
+		node.put('/api/multisignatures', multiSigTx, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid member in keysgroup');
+			done();
+		});
+	});
+
+	it('using invalid member in keysgroup should fail', function (done) {
+		var multiSigTx = {
+			secret: multisigAccount.password,
+			lifetime: parseInt(node.randomNumber(1,72)),
+			min: requiredSignatures,
+			keysgroup: makeKeysGroup()
+		};
+		multiSigTx.keysgroup.pop();
+		multiSigTx.keysgroup.push('+' + node.eAccount.publicKey + 'A');
+
+		node.put('/api/multisignatures', multiSigTx, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.not.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Invalid public key in multisignature keysgroup');
+			done();
+		});
+	});
+
 	it('using no passphase should fail', function (done) {
 		delete validParams.secret;
 
@@ -331,7 +363,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using lifetime greater than maximum allowed should fail', function (done) {
-		validParams.lifetime = constants.multisigSchema.lifetime.maximum + 1;
+		validParams.lifetime = constants.multisigConstraints.lifetime.maximum + 1;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -410,7 +442,53 @@ describe('PUT /api/multisignatures', function () {
 		});
 	});
 
-	it('using valid params should be ok', function (done) {
+	describe('valid multisigs transactions with different min and keysgroup values', function () {
+		var multisigAccount1 = node.randomAccount();
+		var multisigAccount2 = node.randomAccount();
+		var multisigAccount3 = node.randomAccount();
+
+		before(function (done) {
+			async.every([multisigAccount1, multisigAccount2, multisigAccount3], function (acc, cb) {
+				sendLISK(acc, 0, cb);
+			}, done);
+		});
+
+		before(function (done) {
+			node.onNewBlock(done);
+		});
+
+		it('using valid params should be ok for min 1 and keysgroup array 1', function (done) {
+			var params = {
+				secret: multisigAccount1.password,
+				lifetime: 11,
+				min: 1,
+				keysgroup: ['+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey]
+			};
+
+			node.put('/api/multisignatures', params, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+				done();
+			});
+		});
+
+		it('using valid params should be ok when min 5 and keysgroup array 5', function (done) {
+			var params = {
+				secret: multisigAccount2.password,
+				lifetime: 11,
+				min: 5,
+				keysgroup: Array.apply(null, Array(5)).map(function () { return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey; })
+			};
+
+			node.put('/api/multisignatures', params, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+				done();
+			});
+		});
+	});
+
+	it('using valid params should be ok when min 15 and keysgroup array is 15', function (done) {
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
@@ -490,7 +568,7 @@ describe('GET /api/multisignatures/pending', function () {
 describe('PUT /api/transactions', function () {
 
 	it('when group transaction is pending should be ok', function (done) {
-		sendLISKFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
+		sendLISKFromMultisigAccount(multisigAccount.password, 100000000, node.gAccount.address, function (err, transactionId) {
 			node.onNewBlock(function (err) {
 				node.get('/api/transactions/get?id=' + transactionId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
@@ -503,7 +581,6 @@ describe('PUT /api/transactions', function () {
 	});
 
 });
-
 
 describe('POST /api/multisignatures/sign (group)', function () {
 
@@ -601,7 +678,7 @@ describe('POST /api/multisignatures/sign (transaction)', function () {
 	});
 
 	before(function (done) {
-		sendLISKFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
+		sendLISKFromMultisigAccount(multisigAccount.password, 100000000, node.gAccount.address, function (err, transactionId) {
 			multiSigTx.txId = transactionId;
 			node.onNewBlock(function (err) {
 				done();

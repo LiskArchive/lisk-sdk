@@ -72,18 +72,18 @@ module.exports = {
 			},
 			min: {
 				type: 'integer',
-				minimum: constants.multisigSchema.min.minimum,
-				maximum: constants.multisigSchema.min.maximum
+				minimum: constants.multisigConstraints.min.minimum,
+				maximum: constants.multisigConstraints.min.maximum
 			},
 			lifetime: {
 				type: 'integer',
-				minimum: constants.multisigSchema.lifetime.minimum,
-				maximum: constants.multisigSchema.lifetime.maximum
+				minimum: constants.multisigConstraints.lifetime.minimum,
+				maximum: constants.multisigConstraints.lifetime.maximum
 			},
 			keysgroup: {
 				type: 'array',
-				minItems: constants.multisigSchema.keysgroup.minItems,
-				maxItems: constants.multisigSchema.keysgroup.maxItems
+				minItems: constants.multisigConstraints.keysgroup.minItems,
+				maxItems: constants.multisigConstraints.keysgroup.maxItems
 			}
 		},
 		required: ['min', 'lifetime', 'keysgroup', 'secret']

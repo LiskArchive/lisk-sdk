@@ -599,7 +599,6 @@ describe('vote', function () {
 
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var trs = _.cloneDeep(validTransaction);
-			// this checks for 101 dele
 			trs.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
 				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			});

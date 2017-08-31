@@ -9,9 +9,9 @@ var validator = new ZSchema();
 
 describe('transactions', function () {
 
-	// TODO: Add unit tests for other transaction schemas
+	// TODO: Add tests for other transaction schemas
 	describe('getTransactions', function () {
-		// TODO: Add unit tests for other schemas properties
+		// TODO: Add tests for other schemas properties
 		var testBody;
 
 		beforeEach(function () {
