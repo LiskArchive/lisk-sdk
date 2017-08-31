@@ -102,7 +102,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 	});
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = Array(2).fill('+' + node.eAccount.publicKey);
+		var votedDelegate = Array.apply(null, Array(2)).map(function () { return '+' + node.eAccount.publicKey;});
 
 		putAccountsDelegates({
 			secret: account.password,
@@ -115,7 +115,7 @@ describe('PUT /api/accounts/delegates with funds', function () {
 	});
 
 	it('when downvoting same delegate multiple times should fail', function (done) {
-		var votedDelegate = Array(2).fill('-' + node.eAccount.publicKey);
+		var votedDelegate = Array.apply(null, Array(2)).map(function () { return '-' + node.eAccount.publicKey;});
 
 		putAccountsDelegates({
 			secret: account.password,

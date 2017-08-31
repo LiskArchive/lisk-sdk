@@ -1,5 +1,7 @@
 'use strict';
 
+var constants = require('../helpers/constants.js');
+
 module.exports = {
 	getAccounts: {
 		id: 'multisignatures.getAccounts',
@@ -70,18 +72,18 @@ module.exports = {
 			},
 			min: {
 				type: 'integer',
-				minimum: 1,
-				maximum: 16
+				minimum: constants.multisigConstraints.min.minimum,
+				maximum: constants.multisigConstraints.min.maximum
 			},
 			lifetime: {
 				type: 'integer',
-				minimum: 1,
-				maximum: 72
+				minimum: constants.multisigConstraints.lifetime.minimum,
+				maximum: constants.multisigConstraints.lifetime.maximum
 			},
 			keysgroup: {
 				type: 'array',
-				minLength: 1,
-				maxLength: 10
+				minItems: constants.multisigConstraints.keysgroup.minItems,
+				maxItems: constants.multisigConstraints.keysgroup.maxItems
 			}
 		},
 		required: ['min', 'lifetime', 'keysgroup', 'secret']

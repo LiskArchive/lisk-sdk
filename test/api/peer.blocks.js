@@ -1,8 +1,27 @@
 'use strict';
 
 var node = require('./../node.js');
-
 var genesisblock = require('../../genesisBlock.json');
+
+var testBlock = {
+	id: '2807833455815592401',
+	version: 0,
+	timestamp: 39997040,
+	height: 1258,
+	previousBlock: '3863141986505461614',
+	numberOfTransactions: 0,
+	transactions: [],
+	totalAmount: 0,
+	totalFee: 0,
+	reward: 0,
+	payloadLength: 0,
+	payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+	generatorPublicKey: 'bf9f5cfc548d29983cc0dfa5c4ec47c66c31df0f87aa669869678996902ab47f',
+	generatorId: '9950029393097476480L',
+	blockSignature: 'd54ac91d2f712f408e16ff5057f7ceaa2e3a1ad4bde759e1025b16ec48bdd8ea1d3adaf5e8b94ef205f9f365f6ebae0f178a3cb3f6354c28e74ba7a05fce600c',
+	confirmations: 2,
+	totalForged: '0'
+};
 
 describe('GET /peer/blocks', function () {
 
@@ -206,16 +225,11 @@ describe('POST /peer/blocks', function () {
 	});
 
 	it('using valid block schema should be ok', function (done) {
-		genesisblock.transactions.forEach(function (transaction) {
-			if (transaction.asset && transaction.asset.delegate) {
-				transaction.asset.delegate.publicKey = transaction.senderPublicKey;
-			}
-		});
-		node.post('/peer/blocks', { block: genesisblock })
+		node.post('/peer/blocks', { block: testBlock })
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blockId').to.equal('6524861224470851795');
+				node.expect(res.body).to.have.property('blockId').to.equal('2807833455815592401');
 				done();
 			});
 	});

@@ -125,7 +125,7 @@ module.exports = {
 		properties: {
 			params: {
 				type: 'array',
-				minLength: 1
+				minItems: 1
 			},
 			id: {
 				type: 'string',

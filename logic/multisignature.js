@@ -97,12 +97,13 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Must not be empty');
 	}
 
-	if (trs.asset.multisignature.min <= 1 || trs.asset.multisignature.min > 16) {
-		return setImmediate(cb, 'Invalid multisignature min. Must be between 1 and 16');
+	if (trs.asset.multisignature.min < constants.multisigConstraints.min.minimum || trs.asset.multisignature.min > constants.multisigConstraints.min.maximum) {
+		return setImmediate(cb, ['Invalid multisignature min. Must be between', constants.multisigConstraints.min.minimum,
+			'and', constants.multisigConstraints.min.maximum].join(' '));
 	}
 
 	if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length) {
-		var err = 'Invalid multisignature min. Must be less than keysgroup size';
+		var err = 'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
 		if (exceptions.multisignatures.indexOf(trs.id) > -1) {
 			this.scope.logger.debug(err);
@@ -112,8 +113,10 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		}
 	}
 
-	if (trs.asset.multisignature.lifetime < 1 || trs.asset.multisignature.lifetime > 72) {
-		return setImmediate(cb, 'Invalid multisignature lifetime. Must be between 1 and 72');
+	if (trs.asset.multisignature.lifetime < constants.multisigConstraints.lifetime.minimum  ||
+		trs.asset.multisignature.lifetime > constants.multisigConstraints.lifetime.maximum) {
+		return setImmediate(cb, ['Invalid multisignature lifetime. Must be between', constants.multisigConstraints.lifetime.minimum, 'and',
+			constants.multisigConstraints.lifetime.maximum].join(' '));
 	}
 
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
@@ -349,18 +352,18 @@ Multisignature.prototype.schema = {
 	properties: {
 		min: {
 			type: 'integer',
-			minimum: 1,
-			maximum: 15
+			minimum: constants.multisigConstraints.min.minimum,
+			maximum: constants.multisigConstraints.min.maximum
 		},
 		keysgroup: {
 			type: 'array',
-			minLength: 1,
-			maxLength: 16
+			minItems: constants.multisigConstraints.keysgroup.minItems,
+			maxItems: constants.multisigConstraints.keysgroup.maxItems
 		},
 		lifetime: {
 			type: 'integer',
-			minimum: 1,
-			maximum: 72
+			minimum: constants.multisigConstraints.lifetime.minimum,
+			maximum: constants.multisigConstraints.lifetime.maximum
 		}
 	},
 	required: ['min', 'keysgroup', 'lifetime']
