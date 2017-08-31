@@ -23,7 +23,6 @@ var testBlock = {
 	totalForged: '0'
 };
 
-
 describe('GET /peer/blocks', function () {
 
 	it('using valid headers should be ok', function (done) {

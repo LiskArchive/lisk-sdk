@@ -31,7 +31,6 @@ describe('POST /peer/transactions', function () {
 		describe('when account has no funds', function () {
 
 			it('should fail', function (done) {
-
 				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, [node.lisk.crypto.getKeys(node.randomPassword()).publicKey], 1, 2);
 
 				postTransaction(multiSigTx, function (err, res) {

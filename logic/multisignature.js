@@ -97,9 +97,9 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Must not be empty');
 	}
 
-	if (trs.asset.multisignature.min < constants.multisigSchema.min.minimum || trs.asset.multisignature.min > constants.multisigSchema.min.maximum) {
-		return setImmediate(cb, ['Invalid multisignature min. Must be between', constants.multisigSchema.min.minimum,
-			'and', constants.multisigSchema.min.maximum].join(' '));
+	if (trs.asset.multisignature.min < constants.multisigConstraints.min.minimum || trs.asset.multisignature.min > constants.multisigConstraints.min.maximum) {
+		return setImmediate(cb, ['Invalid multisignature min. Must be between', constants.multisigConstraints.min.minimum,
+			'and', constants.multisigConstraints.min.maximum].join(' '));
 	}
 
 	if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length) {
@@ -113,10 +113,10 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		}
 	}
 
-	if (trs.asset.multisignature.lifetime < constants.multisigSchema.lifetime.minimum  ||
-		trs.asset.multisignature.lifetime > constants.multisigSchema.lifetime.maximum) {
-		return setImmediate(cb, ['Invalid multisignature lifetime. Must be between', constants.multisigSchema.lifetime.minimum, 'and',
-			constants.multisigSchema.lifetime.maximum].join(' '));
+	if (trs.asset.multisignature.lifetime < constants.multisigConstraints.lifetime.minimum  ||
+		trs.asset.multisignature.lifetime > constants.multisigConstraints.lifetime.maximum) {
+		return setImmediate(cb, ['Invalid multisignature lifetime. Must be between', constants.multisigConstraints.lifetime.minimum, 'and',
+			constants.multisigConstraints.lifetime.maximum].join(' '));
 	}
 
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
@@ -352,18 +352,18 @@ Multisignature.prototype.schema = {
 	properties: {
 		min: {
 			type: 'integer',
-			minimum: constants.multisigSchema.min.minimum,
-			maximum: constants.multisigSchema.min.maximum
+			minimum: constants.multisigConstraints.min.minimum,
+			maximum: constants.multisigConstraints.min.maximum
 		},
 		keysgroup: {
 			type: 'array',
-			minItems: constants.multisigSchema.keysgroup.minItems,
-			maxItems: constants.multisigSchema.keysgroup.maxItems
+			minItems: constants.multisigConstraints.keysgroup.minItems,
+			maxItems: constants.multisigConstraints.keysgroup.maxItems
 		},
 		lifetime: {
 			type: 'integer',
-			minimum: constants.multisigSchema.lifetime.minimum,
-			maximum: constants.multisigSchema.lifetime.maximum
+			minimum: constants.multisigConstraints.lifetime.minimum,
+			maximum: constants.multisigConstraints.lifetime.maximum
 		}
 	},
 	required: ['min', 'keysgroup', 'lifetime']
