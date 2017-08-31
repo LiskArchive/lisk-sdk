@@ -42,11 +42,11 @@ describe('hash', () => {
 			(bufferToHex(hash)).should.be.eql(defaultHash);
 		});
 
-		it('should throw on unknown format', () => {
+		it('should throw on unknown format when trying utf32', () => {
 			(getSha256Hash.bind(null, defaultText, 'utf32')).should.throw('Unsupported string format. Currently only `hex` and `utf8` are supported.');
 		});
 
-		it('should throw on unknown format', () => {
+		it('should throw on unknown format when using an array instead of Buffer', () => {
 			(getSha256Hash.bind(null, arrayToHash)).should.throw('Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.');
 		});
 	});

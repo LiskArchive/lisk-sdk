@@ -46,10 +46,6 @@ describe('sign', () => {
 	describe('#signMessageWithSecret', () => {
 		const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
 
-		it('should signTransaction a message with message and secret provided', () => {
-			(signedMessage).should.be.ok();
-		});
-
 		it('should signTransaction the message correctly', () => {
 			(signedMessage).should.be.equal(defaultSignature);
 		});
@@ -58,10 +54,6 @@ describe('sign', () => {
 	describe('#verifyMessageWithPublicKey', () => {
 		const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
 		const verifyMessage = verifyMessageWithPublicKey(signedMessage, defaultPublicKey);
-
-		it('should verify the message correctly', () => {
-			(verifyMessage).should.be.ok();
-		});
 
 		it('should output the original signed message', () => {
 			(verifyMessage).should.be.equal(notSecretMessage);
@@ -107,9 +99,8 @@ ${defaultSignature}
 			secretMessage, defaultSecret, defaultPublicKey,
 		);
 
-		it('should encrypt a message', () => {
-			(encryptedMessage).should.be.ok();
-			(encryptedMessage).should.be.type('object');
+		it('should encrypt a message and not throw with expected parameters', () => {
+			(encryptedMessage).should.be.ok().and.type('object');
 		});
 
 		it('encrypted message should have nonce and encrypted message hex', () => {
