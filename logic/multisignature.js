@@ -98,7 +98,8 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 	}
 
 	if (trs.asset.multisignature.min < constants.multisigSchema.min.minimum || trs.asset.multisignature.min > constants.multisigSchema.min.maximum) {
-		return setImmediate(cb, 'Invalid multisignature min. Must be between 1 and 15');
+		return setImmediate(cb, ['Invalid multisignature min. Must be between', constants.multisigSchema.min.minimum,
+			'and', constants.multisigSchema.min.maximum].join(' '));
 	}
 
 	if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length) {
@@ -114,7 +115,8 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 
 	if (trs.asset.multisignature.lifetime < constants.multisigSchema.lifetime.minimum  ||
 		trs.asset.multisignature.lifetime > constants.multisigSchema.lifetime.maximum) {
-		return setImmediate(cb, 'Invalid multisignature lifetime. Must be between 1 and 72');
+		return setImmediate(cb, ['Invalid multisignature lifetime. Must be between', constants.multisigSchema.lifetime.minimum, 'and',
+			constants.multisigSchema.lifetime.maximum].join(' '));
 	}
 
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
