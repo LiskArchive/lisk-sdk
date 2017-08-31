@@ -345,15 +345,17 @@ node.randomPassword = function () {
 
 
 // Init whole application inside tests
-node.initApplication = function (cb) {
+node.initApplication = function (cb, db) {
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
 	    promiseLib: Promise
 	};
-	var pgp = require('pg-promise')(options);
-	node.config.db.user = node.config.db.user || process.env.USER;
-	var db = pgp(node.config.db);
+	if (!db) {
+		var pgp = require('pg-promise')(options);
+		node.config.db.user = node.config.db.user || process.env.USER;
+		db = pgp(node.config.db);
+	}
 
 	// Clear tables
 	db.task(function (t) {
@@ -486,7 +488,7 @@ node.initApplication = function (cb) {
 				var pg_notify = require('../helpers/pg-notify.js');
 				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
 			}],
-			rpc: ['db', 'bus', 'logger', function () {
+			rpc: ['db', 'bus', 'logger', function (scope, cb) {
 				var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 				var transport = require('../api/ws/transport');
 				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
@@ -499,6 +501,7 @@ node.initApplication = function (cb) {
 				// Register RPC
 				var transportModuleMock = {internal: {}, shared: {}};
 				transport(transportModuleMock);
+				cb();
 			}],
 			logic: ['db', 'bus', 'schema', 'genesisblock', 'rpc', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
@@ -541,7 +544,7 @@ node.initApplication = function (cb) {
 					}]
 				}, cb);
 			}],
-			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'rpc', function (scope, cb) {
+			modules: ['network', 'webSocket', 'rpc', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'rpc', function (scope, cb) {
 				var tasks = {};
 				scope.rewiredModules = {};
 
@@ -570,7 +573,7 @@ node.initApplication = function (cb) {
 			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
 
-			cb(scope);
+			cb(err, scope);
 		});
 	});
 };

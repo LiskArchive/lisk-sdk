@@ -1,9 +1,14 @@
 'use strict';
 
 var async = require('async');
+var child_process = require('child_process');
 var popsicle = require('popsicle');
-var config = require('../../config.json');
 
+var config = require('../../config.json');
+var database = require('../../helpers/database.js');
+var genesisblock = require('../genesisBlock.json');
+var ed = require('../../helpers/ed.js');
+var z_schema = require('../../helpers/z_schema.js');
 
 /**
  * @param {string} table
@@ -24,27 +29,22 @@ function clearDatabaseTable (db, logger, table, cb) {
 	});
 }
 
-/**
- * ToDo: Not really 0 state - needs to perform another queries
- * @param {Object} db
- * @param {Function} cb
- */
-function recreateZeroState (db, logger, cb) {
-	async.every([
-		'blocks where height > 1',
-		'trs where "blockId" != \'6524861224470851795\'',
-		'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
-		'forks_stat',
-		'votes where "transactionId" = \'17502993173215211070\''
-	], function (table, cb) {
-		clearDatabaseTable(db, logger, table, cb);
-	}, function (err) {
-		if (err) {
-			return setImmediate(err);
-		}
-		return setImmediate(cb);
-	});
+function DBSandbox (dbConfig) {
+	this.dbConfig = dbConfig;
 }
+
+DBSandbox.prototype.create = function (cb) {
+	child_process.exec('createdb ' + this.dbConfig.database, function () {
+		database.connect(this.dbConfig, console, cb);
+	}.bind(this));
+};
+
+DBSandbox.prototype.destroy = function () {
+	process.on('exit', function () {
+		database.disconnect();
+		child_process.exec('dropdb ' + this.dbConfig.database);
+	}.bind(this));
+};
 
 /**
  * @param {Function} cb
@@ -92,6 +92,6 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 
 module.exports = {
 	clearDatabaseTable: clearDatabaseTable,
-	recreateZeroState: recreateZeroState,
+	DBSandbox: DBSandbox,
 	waitUntilBlockchainReady: waitUntilBlockchainReady
 };

@@ -246,7 +246,7 @@ var modulesLoader = new function () {
 		if (this.db) {
 			return cb(null, this.db);
 		}
-		database.connect(config.db, this.logger, function (err, db) {
+		database.connect(this.scope.config.db, this.logger, function (err, db) {
 			if (err) {
 				return cb(err);
 			}

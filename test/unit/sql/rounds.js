@@ -16,11 +16,13 @@ var constants = require('../../../helpers/constants');
 var jobsQueue    = require('../../../helpers/jobsQueue.js');
 var node      = require('../../node.js');
 var slots     = require('../../../helpers/slots.js');
-var recreateZeroState    = require('../../common/globalBefore').recreateZeroState;
+var DBSandbox     = require('../../common/globalBefore').DBSandbox;
 
 //ToDo: Assertions are failing if run after different tests
 describe('Rounds-related SQL triggers', function () {
 
+	var db;
+	var dbSandbox;
 	var library;
 	var mem_state, delegates_state, round_blocks = [];
 	var round_transactions = [];
@@ -144,11 +146,24 @@ describe('Rounds-related SQL triggers', function () {
 	}
 
 	before(function (done) {
-		jobsQueue.jobs = {};
-		node.initApplication(function (scope) {
-			library = scope;
-			recreateZeroState(library.db, library.logger, done);
+		node.config.db.database = 'lisk_test_sql_rounds';
+		dbSandbox = new DBSandbox(node.config.db);
+		dbSandbox.create(function (err, __db) {
+			db = __db;
+			done(err);
 		});
+	});
+
+	before(function (done) {
+		jobsQueue.jobs = {};
+		node.initApplication(function (err, scope) {
+			library = scope;
+			done();
+		}, db);
+	});
+
+	after(function () {
+		dbSandbox.destroy();
 	});
 
 	afterEach(function () {
@@ -158,6 +173,7 @@ describe('Rounds-related SQL triggers', function () {
 				expect(results.length).to.equal(0);
 			});
 	});
+
 
 	describe('genesisBlock', function () {
 		var genesisBlock;
@@ -207,7 +223,7 @@ describe('Rounds-related SQL triggers', function () {
 					expect(delegate.name).to.equal(found.asset.delegate.username);
 					expect(delegate.address).to.equal(found.senderId);
 					expect(delegate.pk).to.equal(found.senderPublicKey);
-					
+
 					// Data populated by trigger
 					expect(delegate.rank).that.is.an('number');
 					expect(delegate.voters_balance).to.equal(10000000000000000);

@@ -4,6 +4,7 @@ var async = require('async');
 var bignum = require('./bignum');
 var fs = require('fs');
 var path = require('path');
+var monitor = require('pg-monitor');
 
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
@@ -180,12 +181,17 @@ function Migrator (pgp, db) {
  * @return {function} error|cb
  */
 module.exports.connect = function (config, logger, cb) {
+	try {
+		monitor.detach();
+	} catch (s) {
+
+	}
+
 	var pgOptions = {
 		pgNative: true
 	};
 
 	var pgp = require('pg-promise')(pgOptions);
-	var monitor = require('pg-monitor');
 
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
@@ -210,4 +216,8 @@ module.exports.connect = function (config, logger, cb) {
 	], function (err) {
 		return cb(err, db);
 	});
+};
+
+module.exports.disconnect = function () {
+	monitor.detach();
 };
