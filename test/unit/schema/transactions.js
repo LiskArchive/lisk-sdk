@@ -10,10 +10,21 @@ var validator = new ZSchema();
 describe('transactions', function () {
 
 	// TODO: Add tests for other transaction schemas
-	describe.skip('getTransaction', function () {});
-	describe.skip('getPooledTransaction', function () {});
-	describe.skip('getPooledTransactions', function () {});
-	describe.skip('addTransactions', function () {});
+	describe('getTransaction', function () {
+		it('tests for schema');
+	});
+
+	describe('getPooledTransaction', function () {
+		it('tests for schema');
+	});
+
+	describe('getPooledTransactions', function () {
+		it('tests for schema');
+	});
+
+	describe('addTransactions', function () {
+		it('tests for schema');
+	});
 
 	describe('getTransactions', function () {
 		// TODO: Add tests for other schemas properties

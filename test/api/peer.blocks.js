@@ -225,7 +225,6 @@ describe('POST /peer/blocks', function () {
 	});
 
 	it('using valid block schema should be ok', function (done) {
-
 		node.post('/peer/blocks', { block: testBlock })
 			.end(function (err, res) {
 				node.debug('> Response:'.grey, JSON.stringify(res.body));

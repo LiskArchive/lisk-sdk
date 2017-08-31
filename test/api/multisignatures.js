@@ -579,7 +579,6 @@ describe('PUT /api/transactions', function () {
 			});
 		});
 	});
-
 });
 
 describe('POST /api/multisignatures/sign (group)', function () {

@@ -7,15 +7,41 @@ var validator = new ZSchema();
 describe('dapp', function () {
 
 	// TODO: Add tests for other dapps schemas
-	describe.skip('put', function () {});
-	describe.skip('get', function () {});
-	describe.skip('list', function () {});
-	describe.skip('addTransactions', function () {});
-	describe.skip('sendWithdrawal', function () {});
-	describe.skip('search', function () {});
-	describe.skip('install', function () {});
-	describe.skip('uninstall', function () {});
-	describe.skip('stop', function () {});
+	describe('put', function () {
+		it('tests for schema');
+	});
+
+	describe('get', function () {
+		it('tests for schema');
+	});
+
+	describe('list', function () {
+		it('tests for schema');
+	});
+
+	describe('addTransactions', function () {
+		it('tests for schema');
+	});
+
+	describe('sendWithdrawal', function () {
+		it('tests for schema');
+	});
+
+	describe('search', function () {
+		it('tests for schema');
+	});
+
+	describe('install', function () {
+		it('tests for schema');
+	});
+
+	describe('uninstall', function () {
+		it('tests for schema');
+	});
+
+	describe('stop', function () {
+		it('tests for schema');
+	});
 
 	describe('launch', function () {
 		var testBody;
