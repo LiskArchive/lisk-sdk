@@ -24,6 +24,8 @@ import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
+	aesDecrypt,
+	aesEncrypt,
 } from '../../src/crypto/sign';
 import {
 	getKeys,
@@ -278,6 +280,47 @@ ${defaultSignature}
 				const multiSignature = multiSignTransaction(multiSigtransaction, firstSecret);
 
 				(multiSignature).should.be.eql(expectedMultiSignature);
+			});
+		});
+
+		describe('#aesEncrypt @now', () => {
+			it('should encrypt a message', () => {
+				const plainText = 'Hello Lisk';
+				const password = '123';
+				const cipher = aesEncrypt(plainText, password);
+
+				(cipher).should.be.type('string').and.length(65);
+			});
+		});
+
+		describe('#aesDecrypt', () => {
+			it('should decrypt a message', () => {
+				const cipher = 'eca6ab05837efb15dcbd500b211d95b9$4a378aebc4969d74c1db0c55420bf909';
+				const password = '123';
+				const decrypted = aesDecrypt(cipher, password);
+
+				(decrypted).should.be.eql('Hello Lisk');
+			});
+		});
+
+		describe('encrypting passphrase integration test @now', () => {
+			const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
+			const password = 'myTotal53cr3t%&';
+			const encryptString = aesEncrypt(secretPassphrase, password);
+
+			describe('#aesEncrypt', () => {
+				it('should encrypt a given secret with a password', () => {
+					(encryptString).should.be.ok();
+					(encryptString).should.be.type('string');
+					(encryptString).should.containEql('$');
+				});
+			});
+
+			describe('#aesDecrypt', () => {
+				it('should decrypt a given cipher with a password', () => {
+					const decryptedString = aesDecrypt(encryptString, password);
+					(decryptedString).should.be.eql(secretPassphrase);
+				});
 			});
 		});
 	});

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import crypto from 'crypto';
 import { getTransactionBytes } from '../transactions/transactionBytes';
 import {
 	hexToBuffer,
@@ -300,4 +301,43 @@ export function verifyTransaction(transaction, secondPublicKey) {
 	);
 
 	return secondSignaturePresent ? verifyTransaction(transactionWithoutSignature) : verified;
+}
+
+/**
+ * @method aesEncrypt
+ * @param plaintext
+ * @param password
+ *
+ * @return {string}
+ */
+
+export function aesEncrypt(plaintext, password) {
+	const iv = crypto.randomBytes(16);
+	const passHash = getSha256Hash(password, 'utf8');
+	const cipherInit = crypto.createCipheriv('aes-256-cbc', passHash, iv);
+	const textCipher = cipherInit.update(plaintext);
+	const finishedCipher = Buffer.concat([textCipher, cipherInit.final()]);
+	const cipherText = ''.concat(iv.toString('hex'), '$', finishedCipher.toString('hex'));
+
+	return cipherText;
+}
+
+/**
+ * @method aesDecrypt
+ * @param cipherText
+ * @param password
+ *
+ * @return {string}
+ */
+
+export function aesDecrypt(cipherText, password) {
+	const passHash = getSha256Hash(password, 'utf8');
+	const encryptedParts = cipherText.split('$');
+	const iv = Buffer.from(encryptedParts.shift(), 'hex');
+	const encryptedPass = Buffer.from(encryptedParts.join('$'), 'hex');
+	const decipherInit = crypto.createDecipheriv('aes-256-cbc', Buffer.from(passHash), iv);
+	const decryptedPass = decipherInit.update(encryptedPass);
+	const decrypted = Buffer.concat([decryptedPass, decipherInit.final()]);
+
+	return decrypted.toString();
 }
