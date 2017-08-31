@@ -3,6 +3,7 @@ require('./unit/logic/blockReward.js');
 require('./unit/sql/blockRewards.js');
 require('./unit/modules/peers.js');
 require('./unit/modules/blocks.js');
+require('./unit/modules/blocks/verify.js');
 
 require('./api/accounts');
 require('./api/blocks');
@@ -14,6 +15,7 @@ require('./api/peer');
 require('./api/peer.transactions.main');
 require('./api/peer.transactions.collision');
 require('./api/peer.transactions.delegates');
+require('./api/peer.transactions.multisignatures');
 require('./api/peer.transactions.signatures');
 require('./api/peer.transactions.votes');
 require('./api/peers');

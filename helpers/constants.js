@@ -4,6 +4,7 @@
  * @namespace constants
  * @memberof module:helpers
  * @property {number} activeDelegates - The default number of delegates.
+ * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
  * @property {number} addressLength - The default address length.
  * @property {number} blockHeaderLength - The default block header length.
  * @property {number} blockReceiptTimeOut
@@ -42,6 +43,7 @@
  */
 module.exports = {
 	activeDelegates: 101,
+	maxVotesPerTransaction: 33,
 	addressLength: 208,
 	blockHeaderLength: 248,
 	blockReceiptTimeOut: 20, // 2 blocks
@@ -91,5 +93,19 @@ module.exports = {
 	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+	multisigConstraints: {
+		min: {
+			minimum: 1,
+			maximum: 15
+		},
+		lifetime: {
+			minimum: 1,
+			maximum: 72
+		},
+		keysgroup: {
+			minItems: 1,
+			maxItems: 15
+		}
+	}
 };

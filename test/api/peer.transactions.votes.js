@@ -1,9 +1,9 @@
 'use strict';
 
 var node = require('./../node.js');
+var constants = require('../../helpers/constants.js');
 
-var account = node.randomAccount();
-
+var account;
 var delegate;
 var delegates = [];
 var votedDelegates = [];
@@ -58,7 +58,7 @@ function sendLISK (params, done) {
 }
 
 function registerDelegate (account, done) {
-	account.username = node.randomDelegateName().toLowerCase();
+	account.username = node.randomDelegateName();
 	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 	node.post('/peer/transactions', { transaction: transaction }, function (err, res) {
@@ -69,36 +69,37 @@ function registerDelegate (account, done) {
 	});
 }
 
+beforeEach(function (done) {
+	getDelegates(function (err, res) {
+		delegates = res.body.delegates.map(function (delegate) {
+			return delegate.publicKey;
+		}).slice(0, 101);
+
+		delegate = res.body.delegates[0].publicKey;
+
+		done();
+	});
+});
+
+beforeEach(function (done) {
+	getVotes(account.address, function (err, res) {
+		votedDelegates = res.body.delegates.map(function (delegate) {
+			return delegate.publicKey;
+		});
+
+		done();
+	});
+});
+
 describe('POST /peer/transactions', function () {
 
 	before(function (done) {
+		account = node.randomAccount();
 		sendLISK({
 			secret: node.gAccount.password,
 			amount: 100000000000,
 			recipientId: account.address
 		}, done);
-	});
-
-	beforeEach(function (done) {
-		getDelegates(function (err, res) {
-			delegates = res.body.delegates.map(function (delegate) {
-				return delegate.publicKey;
-			}).slice(0, 101);
-
-			delegate = res.body.delegates[0].publicKey;
-
-			done();
-		});
-	});
-
-	beforeEach(function (done) {
-		getVotes(account.address, function (err, res) {
-			votedDelegates = res.body.delegates.map(function (delegate) {
-				return delegate.publicKey;
-			});
-
-			done();
-		});
 	});
 
 	before(function (done) {
@@ -223,8 +224,8 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('voting for 33 delegates at once should be ok', function (done) {
-		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
+	it(['voting for ', constants.maxVotesPerTransaction, 'delegates at once should be ok'].join(' '), function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, constants.maxVotesPerTransaction).map(function (delegate) {
 			return '+' + delegate;
 		}));
 
@@ -237,8 +238,8 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('removing votes from 33 delegates at once should be ok', function (done) {
-		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
+	it(['removing votes from', constants.maxVotesPerTransaction, 'delegates at once should be ok'].join(' '), function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, constants.maxVotesPerTransaction).map(function (delegate) {
 			return '-' + delegate;
 		}));
 
@@ -251,14 +252,14 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('voting for 34 delegates at once should fail', function (done) {
-		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
+	it(['voting for', constants.maxVotesPerTransaction + 1, 'delegates at once should fail'].join(' '), function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, constants.maxVotesPerTransaction + 1).map(function (delegate) {
 			return '+' + delegate;
 		}));
 
 		postVote(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+			node.expect(res.body).to.have.property('message').to.equal(['Invalid transaction body - Failed to validate vote schema: Array is too long (', constants.maxVotesPerTransaction + 1, '), maximum ', constants.maxVotesPerTransaction].join(''));
 			node.onNewBlock(function (err) {
 				return done(err);
 			});
@@ -277,14 +278,14 @@ describe('POST /peer/transactions', function () {
 		}, done);
 	});
 
-	it('removing votes from 34 delegates at once should fail', function (done) {
-		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
+	it(['removing votes from', constants.maxVotesPerTransaction + 1, 'delegates at once should fail'].join(' '), function (done) {
+		var transaction = node.lisk.vote.createVote(account.password, delegates.slice(0, constants.maxVotesPerTransaction + 1).map(function (delegate) {
 			return '-' + delegate;
 		}));
 
 		postVote(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('message').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+			node.expect(res.body).to.have.property('message').to.equal(['Invalid transaction body - Failed to validate vote schema: Array is too long (', constants.maxVotesPerTransaction + 1, '), maximum ', constants.maxVotesPerTransaction].join(''));
 			node.onNewBlock(function (err) {
 				return done(err);
 			});
@@ -307,16 +308,7 @@ describe('POST /peer/transactions', function () {
 describe('POST /peer/transactions after registering a new delegate', function () {
 
 	before(function (done) {
-		getDelegates(function (err, res) {
-			delegates = res.body.delegates.map(function (delegate) {
-				return delegate.publicKey;
-			}).slice(0, 101);
-
-			done();
-		});
-	});
-
-	before(function (done) {
+		account = node.randomAccount();
 		sendLISK({
 			secret: node.gAccount.password,
 			amount: 100000000000,

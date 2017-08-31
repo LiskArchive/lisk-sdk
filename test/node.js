@@ -80,7 +80,7 @@ node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 node.randomDelegateName = function () {
 	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for (var i = 0; i < size; i++) {
 		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
