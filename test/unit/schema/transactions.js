@@ -10,6 +10,11 @@ var validator = new ZSchema();
 describe('transactions', function () {
 
 	// TODO: Add tests for other transaction schemas
+	describe.skip('getTransaction', function () {});
+	describe.skip('getPooledTransaction', function () {});
+	describe.skip('getPooledTransactions', function () {});
+	describe.skip('addTransactions', function () {});
+
 	describe('getTransactions', function () {
 		// TODO: Add tests for other schemas properties
 		var testBody;

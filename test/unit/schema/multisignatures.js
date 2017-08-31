@@ -9,6 +9,10 @@ var validator = new ZSchema();
 describe('multisignatures', function () {
 
 	// TODO: Add tests for other multisignature schemas
+	describe.skip('getAccounts', function () {});
+	describe.skip('pending', function () {});
+	describe.skip('sign', function () {});
+
 	describe('addMultisignatures', function () {
 		var testBody;
 

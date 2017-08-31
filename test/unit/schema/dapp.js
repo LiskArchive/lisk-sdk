@@ -7,6 +7,16 @@ var validator = new ZSchema();
 describe('dapp', function () {
 
 	// TODO: Add tests for other dapps schemas
+	describe.skip('put', function () {});
+	describe.skip('get', function () {});
+	describe.skip('list', function () {});
+	describe.skip('addTransactions', function () {});
+	describe.skip('sendWithdrawal', function () {});
+	describe.skip('search', function () {});
+	describe.skip('install', function () {});
+	describe.skip('uninstall', function () {});
+	describe.skip('stop', function () {});
+
 	describe('launch', function () {
 		var testBody;
 
