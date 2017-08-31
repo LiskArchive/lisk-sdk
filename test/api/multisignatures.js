@@ -5,8 +5,8 @@ var node = require('./../node.js');
 
 var constants = require('../../helpers/constants.js');
 
-var totalMembers = node.randomNumber(1, 15);
-var requiredSignatures = node.randomNumber(2, totalMembers + 1);
+var totalMembers = 15;
+var requiredSignatures = 15;
 var multisigAccount = node.randomAccount();
 
 var accounts = [];
@@ -151,6 +151,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using sender in the keysgroup should fail', function (done) {
+		validParams.keysgroup.pop();
 		validParams.keysgroup.push('+' + multisigAccount.publicKey);
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
@@ -185,6 +186,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using same member twice should fail', function (done) {
+		validParams.keysgroup.pop();
 		validParams.keysgroup.push(validParams.keysgroup[1]);
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
@@ -195,6 +197,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using null member in keysgroup should fail', function (done) {
+		validParams.keysgroup.pop();
 		validParams.keysgroup.push(null);
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
@@ -227,6 +230,7 @@ describe('PUT /api/multisignatures', function () {
 	});
 
 	it('using min bigger than keysgroup size plus 1 should fail', function (done) {
+		validParams.keysgroup.pop();
 		validParams.min = validParams.keysgroup.length + 1;
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
