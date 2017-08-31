@@ -24,8 +24,8 @@ import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
-	aesDecrypt,
-	aesEncrypt,
+	decryptPassphraseWithPassword,
+	encryptPassphraseWithPassword,
 } from '../../src/crypto/sign';
 import {
 	getKeys,
@@ -283,11 +283,11 @@ ${defaultSignature}
 			});
 		});
 
-		describe('#aesEncrypt @now', () => {
+		describe('#encryptPassphraseWithPassword @now', () => {
 			it('should encrypt a message', () => {
 				const plainText = 'Hello Lisk';
 				const password = '123';
-				const cipher = aesEncrypt(plainText, password);
+				const cipher = encryptPassphraseWithPassword(plainText, password);
 
 				(cipher).should.be.type('string').and.length(65);
 			});
@@ -297,7 +297,7 @@ ${defaultSignature}
 			it('should decrypt a message', () => {
 				const cipher = 'eca6ab05837efb15dcbd500b211d95b9$4a378aebc4969d74c1db0c55420bf909';
 				const password = '123';
-				const decrypted = aesDecrypt(cipher, password);
+				const decrypted = decryptPassphraseWithPassword(cipher, password);
 
 				(decrypted).should.be.eql('Hello Lisk');
 			});
@@ -306,9 +306,9 @@ ${defaultSignature}
 		describe('encrypting passphrase integration test @now', () => {
 			const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 			const password = 'myTotal53cr3t%&';
-			const encryptString = aesEncrypt(secretPassphrase, password);
+			const encryptString = encryptPassphraseWithPassword(secretPassphrase, password);
 
-			describe('#aesEncrypt', () => {
+			describe('#encryptPassphraseWithPassword', () => {
 				it('should encrypt a given secret with a password', () => {
 					(encryptString).should.be.ok();
 					(encryptString).should.be.type('string');
@@ -316,9 +316,9 @@ ${defaultSignature}
 				});
 			});
 
-			describe('#aesDecrypt', () => {
+			describe('#decryptPassphraseWithPassword', () => {
 				it('should decrypt a given cipher with a password', () => {
-					const decryptedString = aesDecrypt(encryptString, password);
+					const decryptedString = decryptPassphraseWithPassword(encryptString, password);
 					(decryptedString).should.be.eql(secretPassphrase);
 				});
 			});

@@ -304,14 +304,14 @@ export function verifyTransaction(transaction, secondPublicKey) {
 }
 
 /**
- * @method aesEncrypt
+ * @method encryptPassphraseWithPassword
  * @param plaintext
  * @param password
  *
  * @return {string}
  */
 
-export function aesEncrypt(plaintext, password) {
+export function encryptPassphraseWithPassword(plaintext, password) {
 	const iv = crypto.randomBytes(16);
 	const passHash = getSha256Hash(password, 'utf8');
 	const cipherInit = crypto.createCipheriv('aes-256-cbc', passHash, iv);
@@ -323,14 +323,14 @@ export function aesEncrypt(plaintext, password) {
 }
 
 /**
- * @method aesDecrypt
+ * @method decryptPassphraseWithPassword
  * @param cipherText
  * @param password
  *
  * @return {string}
  */
 
-export function aesDecrypt(cipherText, password) {
+export function decryptPassphraseWithPassword(cipherText, password) {
 	const passHash = getSha256Hash(password, 'utf8');
 	const encryptedParts = cipherText.split('$');
 	const iv = Buffer.from(encryptedParts.shift(), 'hex');
