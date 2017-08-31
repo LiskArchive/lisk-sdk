@@ -93,7 +93,7 @@ Vote.prototype.verify = function (trs, sender, cb) {
 	}
 
 	if (trs.asset.votes && trs.asset.votes.length > constants.maxVotesPerTransaction) {
-		return setImmediate(cb, 'Voting limit exceeded. Maximum is 33 votes per transaction');
+		return setImmediate(cb, ['Voting limit exceeded. Maximum is', constants.maxVotesPerTransaction, 'votes per transaction'].join(' '));
 	}
 
 	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
