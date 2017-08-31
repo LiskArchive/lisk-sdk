@@ -36,25 +36,6 @@ describe('transactions', function () {
 	var transactionsModule;
 	var dbStub;
 
-	var voteTrs;
-	var signatureTrs;
-	var transferTrs;
-	var delegateTrs;
-	var multiTrs;
-	var inTransferTrs;
-	var outTransferTrs;
-	var dappTrs;
-
-	var voteAccount = node.randomAccount();
-	var delegateAccount = node.randomAccount();
-	var multiAccount1 = node.randomAccount();
-	var multiAccount2 = node.randomAccount();
-	var multiAccount3 = node.randomAccount();
-	var transferAccount = node.randomAccount();
-	var signatureAccount = node.randomAccount();
-	var inTansferAccount = node.randomAccount();
-	var dappAccount = node.randomAccount();
-
 	function attachAllAssets (transactionLogic, delegatesModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
 		sendLogic.bind(accountsModule);
