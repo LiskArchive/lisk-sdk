@@ -39,7 +39,8 @@ var validTransaction = {
 	senderPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	asset: {
 		delegate: {
-			username: 'genesis_100'
+			username: 'genesis_100',
+			publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
 		}
 	},
 	signature: '5495bea66b026b0d6b72bab8611fca9c655c1f023267f3c51453c950aa3d0e0eb08b0bc04e6355909abd75cd1d4df8c3048a55c3a98d0719b4b71e5d527e580a',
@@ -137,7 +138,7 @@ describe('delegate', function () {
 
 	describe('verify', function () {
 
-		it('should return error if recipientId does not exist', function (done) {
+		it('should return error if recipientId exist', function (done) {
 			trs.recipientId = '123456';
 
 			delegate.verify(trs, sender, function (err) {
@@ -209,11 +210,21 @@ describe('delegate', function () {
 			});
 		});
 
-		it.skip('should return error if username is address like', function (done) {
+		it.skip('should return error if username is empty', function (done) {
+			// This test fails `trs.asset.delegate.username ? true: false;` returns false, which is previously checked. So, we receive 'Username is undefined' when username is empty.
 			trs.asset.delegate.username = '';
 
 			delegate.verify(trs, sender, function (err) {
 				expect(err).to.equal('Empty username');
+				done();
+			});
+		});
+
+		it('should return error if username is address like', function (done) {
+			trs.asset.delegate.username = '163137396616706346l';
+
+			delegate.verify(trs, sender, function (err) {
+				expect(err).to.equal('Username can not be a potential address');
 				done();
 			});
 		});
@@ -238,8 +249,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error when account module returns an error', function (done) {
-
+		it('should return error when username already exists', function (done) {
 			var expectedError = 'Error: could not connect to server: Connection refused';
 			accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(expectedError);
 
@@ -287,17 +297,9 @@ describe('delegate', function () {
 			expect(delegate.getBytes(trs)).to.eql(null);
 		});
 
-		it.skip('should throw error when username is not utf-8', function () {
-			trs.asset.delegate.username = 'Zażółć gęślą jaźń';
-
-			expect(function () {
-				delegate.getBytes(trs);
-			}).to.throw();
-		});
-
 		it('should return bytes for signature asset', function () {
 			var delegateBytes = delegate.getBytes(trs);
-			expect(delegateBytes).to.eql(Buffer.from(trs.asset.delegate.username, 'utf8'));
+			expect(delegateBytes.toString()).to.equal(trs.asset.delegate.username);
 		});
 	});
 
@@ -448,21 +450,30 @@ describe('delegate', function () {
 		});
 
 		it.skip('should return error asset schema is invalid', function () {
+			// It should have a schema check for username
 			trs.asset.delegate.username = '';
 
 			expect(function () {
 				delegate.objectNormalize(trs);
-			}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
+			}).to.throw();
 		});
 
-		it.skip('should return transaction when asset is valid', function () {
+		it('should return error asset schema is invalid', function () {
+			trs.asset.delegate.publicKey = 'invalid-public-key';
+
+			expect(function () {
+				delegate.objectNormalize(trs);
+			}).to.throw('Failed to validate delegate schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
+		});
+
+		it('should return transaction when asset is valid', function () {
 			expect(delegate.objectNormalize(trs)).to.eql(trs);
 		});
 	});
 
 	describe('dbRead', function () {
 
-		it('should return null username is not set ', function () {
+		it('should return null when username is not set ', function () {
 			delete rawTrs.d_username;
 
 			expect(delegate.dbRead(rawTrs)).to.eql(null);
