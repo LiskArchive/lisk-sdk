@@ -583,6 +583,7 @@ Process.prototype.onBind = function (scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
+		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
 	};
