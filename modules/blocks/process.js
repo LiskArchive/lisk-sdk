@@ -47,6 +47,148 @@ function Process (logger, block, peers, transaction, schema, db, dbSequence, seq
 }
 
 /**
+ * Receive block - logs info about received block, updates last receipt, processes block
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block Full normalized block
+ * @param {Function} cb Callback function
+ */
+__private.receiveBlock = function (block, cb) {
+	library.logger.info([
+		'Received new block id:', block.id,
+		'height:', block.height,
+		'round:',  slots.calcRound(block.height),
+		'slot:', slots.getSlotNumber(block.timestamp),
+		'reward:', block.reward
+	].join(' '));
+
+	// Update last receipt
+	modules.blocks.lastReceipt.update();
+	// Start block processing - broadcast: true, saveBlock: true
+	modules.blocks.verify.processBlock(block, true, cb, true);
+};
+
+/**
+ * Receive block detected as fork cause 1: Consecutive height but different previous block id
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block Received block
+ * @param {Function} cb Callback function
+ */
+__private.receiveForkOne = function (block, lastBlock, cb) {
+	var tmp_block = _.clone(block);
+
+	// Fork: Consecutive height but different previous block id
+	modules.delegates.fork(block, 1);
+
+	// Keep the oldest block, or if both have same age, keep block with lower id
+	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+		library.logger.info('Last block stands');
+		return setImmediate(cb); // Discard received block
+	} else {
+		library.logger.info('Last block and parent loses');
+		async.series([
+			function (seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Check received block before any deletion
+			function (seriesCb) {
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			},
+			// Delete last 2 blocks
+			modules.blocks.chain.deleteLastBlock,
+			modules.blocks.chain.deleteLastBlock
+		], function (err) {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return setImmediate(cb, err);
+		});
+	}
+};
+
+/**
+ * Receive block detected as fork cause 5: Same height and previous block id, but different block id
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block Received block
+ * @param {Function} cb Callback function
+ */
+__private.receiveForkFive = function (block, lastBlock, cb) {
+	var tmp_block = _.clone(block);
+
+	// Fork: Same height and previous block id, but different block id
+	modules.delegates.fork(block, 5);
+
+	// Check if delegate forged on more than one node
+	if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
+		library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
+	}
+
+	// Keep the oldest block, or if both have same age, keep block with lower id
+	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+		library.logger.info('Last block stands');
+		return setImmediate(cb); // Discard received block
+	} else {
+		library.logger.info('Last block loses');
+		async.series([
+			function (seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Check received block before any deletion
+			function (seriesCb) {
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			},
+			// Delete last block
+			function (seriesCb) {
+				modules.blocks.chain.deleteLastBlock(seriesCb);
+			},
+			// Process received block
+			function (seriesCb) {
+				return __private.receiveBlock(block, seriesCb);
+			}
+		], function (err) {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return setImmediate(cb, err);
+		});
+	}
+};
+
+/**
  * Performs chain comparison with remote peer
  * WARNING: Can trigger chain recovery
  *
@@ -369,10 +511,6 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 };
 
 /**
- * EVENTS
- */
-
-/**
  * Handle newly received block
  *
  * @public
@@ -422,148 +560,6 @@ Process.prototype.onReceiveBlock = function (block) {
 			return setImmediate(cb);
 		}
 	});
-};
-
-/**
- * Receive block - logs info about received block, updates last receipt, processes block
- *
- * @private
- * @async
- * @method receiveBlock
- * @param {Object}   block Full normalized block
- * @param {Function} cb Callback function
- */
-__private.receiveBlock = function (block, cb) {
-	library.logger.info([
-		'Received new block id:', block.id,
-		'height:', block.height,
-		'round:',  slots.calcRound(block.height),
-		'slot:', slots.getSlotNumber(block.timestamp),
-		'reward:', block.reward
-	].join(' '));
-
-	// Update last receipt
-	modules.blocks.lastReceipt.update();
-	// Start block processing - broadcast: true, saveBlock: true
-	modules.blocks.verify.processBlock(block, true, cb, true);
-};
-
-/**
- * Receive block detected as fork cause 1: Consecutive height but different previous block id
- *
- * @private
- * @async
- * @method receiveBlock
- * @param {Object}   block Received block
- * @param {Function} cb Callback function
- */
-__private.receiveForkOne = function (block, lastBlock, cb) {
-	var tmp_block = _.clone(block);
-
-	// Fork: Consecutive height but different previous block id
-	modules.delegates.fork(block, 1);
-
-	// Keep the oldest block, or if both have same age, keep block with lower id
-	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-		library.logger.info('Last block stands');
-		return setImmediate(cb); // Discard received block
-	} else {
-		library.logger.info('Last block and parent loses');
-		async.series([
-			function (seriesCb) {
-				try {
-					tmp_block = library.logic.block.objectNormalize(tmp_block);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
-				return setImmediate(seriesCb);
-			},
-			// Check received block before any deletion
-			function (seriesCb) {
-				var check = modules.blocks.verify.verifyReceipt(tmp_block);
-
-				if (!check.verified) {
-					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
-					// Return first error from checks
-					return setImmediate(seriesCb, check.errors[0]);
-				} else {
-					return setImmediate(seriesCb);
-				}
-			},
-			// Delete last 2 blocks
-			modules.blocks.chain.deleteLastBlock,
-			modules.blocks.chain.deleteLastBlock
-		], function (err) {
-			if (err) {
-				library.logger.error('Fork recovery failed', err);
-			}
-			return setImmediate(cb, err);
-		});
-	}
-};
-
-/**
- * Receive block detected as fork cause 5: Same height and previous block id, but different block id
- *
- * @private
- * @async
- * @method receiveBlock
- * @param {Object}   block Received block
- * @param {Function} cb Callback function
- */
-__private.receiveForkFive = function (block, lastBlock, cb) {
-	var tmp_block = _.clone(block);
-
-	// Fork: Same height and previous block id, but different block id
-	modules.delegates.fork(block, 5);
-
-	// Check if delegate forged on more than one node
-	if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
-		library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
-	}
-
-	// Keep the oldest block, or if both have same age, keep block with lower id
-	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-		library.logger.info('Last block stands');
-		return setImmediate(cb); // Discard received block
-	} else {
-		library.logger.info('Last block loses');
-		async.series([
-			function (seriesCb) {
-				try {
-					tmp_block = library.logic.block.objectNormalize(tmp_block);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
-				return setImmediate(seriesCb);
-			},
-			// Check received block before any deletion
-			function (seriesCb) {
-				var check = modules.blocks.verify.verifyReceipt(tmp_block);
-
-				if (!check.verified) {
-					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
-					// Return first error from checks
-					return setImmediate(seriesCb, check.errors[0]);
-				} else {
-					return setImmediate(seriesCb);
-				}
-			},
-			// Delete last block
-			function (seriesCb) {
-				modules.blocks.chain.deleteLastBlock(seriesCb);
-			},
-			// Process received block
-			function (seriesCb) {
-				return __private.receiveBlock(block, seriesCb);
-			}
-		], function (err) {
-			if (err) {
-				library.logger.error('Fork recovery failed', err);
-			}
-			return setImmediate(cb, err);
-		});
-	}
 };
 
 /**

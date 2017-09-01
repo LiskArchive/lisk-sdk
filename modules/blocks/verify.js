@@ -356,6 +356,7 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	return result;
 };
+
 /**
  * Verify block before processing and return all possible errors related to block
  *
