@@ -54,3 +54,6 @@ dist-node
 # Built test files
 browsertest/browsertest.js
 browsertest/browsertest.min.js
+
+# Coverage in test folder
+test/.coverage-unit
