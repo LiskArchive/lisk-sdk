@@ -183,9 +183,7 @@ function Migrator (pgp, db) {
 module.exports.connect = function (config, logger, cb) {
 	try {
 		monitor.detach();
-	} catch (s) {
-
-	}
+	} catch (ex) {}
 
 	var pgOptions = {
 		pgNative: true

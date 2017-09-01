@@ -11,18 +11,10 @@ var sinon = require('sinon');
 var chai = require('chai');
 var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
-var ws = require('../../common/wsCommunication.js');
-
-var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
-var TransactionLogic = require('../../../logic/transaction.js');
-var TransactionModule = require('../../../modules/transactions.js');
-var DelegateModule = require('../../../modules/delegates.js');
-var BlocksModule = require('../../../modules/blocks.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
-
-var accountSecret = 'actress route auction pudding shiver crater forum liquid blouse imitate seven front';
 var validAccount = {
 	username: 'genesis_100',
 	isDelegate: 1,
@@ -55,73 +47,34 @@ var validAccount = {
 
 describe('account', function () {
 
-	var account;
+	var accounts;
 	var accountLogic;
-	var accountModuleDependencies;
+
+	var db;
+	var dbSandbox;
 
 	before(function (done) {
-		async.auto({
-			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb);
-			},
-			blockModule: ['accountLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(BlocksModule, cb, {
-					logic : { /* dependencies not included */},
-				});
-			}],
-			transactionLogic: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(TransactionLogic, cb, {
-					account: result.accountLogic
-				});
-			}],
-			delegateModule: ['transactionLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(DelegateModule, cb, {
-					logic: {
-						transaction: result.transactionLogic
-					}
-				});
-			}],
-			transactionModule: ['transactionLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(TransactionModule, cb, {
-					transaction: result.transactionLogic
-				});
-			}]
-		}, function (err, result) {
-			modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
-				expect(err).to.not.exist;
-
-				account = __accountModule;
-				accountLogic = result.accountLogic;
-
-				// for correctly initializing setting blocks module
-				result.blockModule.lastBlock.set({height: 10});
-
-				result.delegateModule.onBind({
-					accounts: __accountModule,
-					transactions: result.transactionModule,
-					blocks: result.blockModule
-				});
-
-				result.transactionModule.onBind({
-					accounts: __accountModule,
-					transactions: result.transactionModule,
-				});
-
-				account.onBind({
-					delegates: result.delegateModule,
-					accounts: account,
-					transactions: result.transactionModule
-				});
-
-				accountModuleDependencies = result;
-				done();
-			}, {
-				logic: {
-					account: result.accountLogic,
-					transaction: result.transactionLogic
-				}
-			});
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_accounts');
+		dbSandbox.create(function (err, __db) {
+			modulesLoader.db = __db;
+			db = __db;
+			done(err);
 		});
+	});
+
+	after(function () {
+		dbSandbox.destroy();
+	});
+
+	before(function (done) {
+		node.initApplication(function (err, scope) {
+			setTimeout(function () {
+				scope.modules.blocks.lastBlock.set({height: 10});
+				accounts = scope.modules.accounts;
+				accountLogic = scope.logic.account;
+				done();
+			}, 5000);
+		}, db);
 	});
 
 	describe('Accounts', function () {
@@ -136,14 +89,14 @@ describe('account', function () {
 	describe('generateAddressByPublicKey', function () {
 
 		it('should generate correct address for the publicKey provided', function () {
-			expect(account.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
+			expect(accounts.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
 		it.skip('should throw error for invalid publicKey', function () {
 			var invalidPublicKey = 'invalidPublicKey';
 
 			expect(function () {
-				account.generateAddressByPublicKey(invalidPublicKey);
+				accounts.generateAddressByPublicKey(invalidPublicKey);
 			}).to.throw('Invalid public key: ', invalidPublicKey);
 		});
 	});
@@ -153,7 +106,7 @@ describe('account', function () {
 		it('should convert publicKey filter to address and call account.get', function (done) {
 			var getAccountStub = sinon.stub(accountLogic, 'get');
 
-			account.getAccount({publicKey: validAccount.publicKey});
+			accounts.getAccount({publicKey: validAccount.publicKey});
 			expect(getAccountStub.calledOnce).to.be.ok;
 			expect(getAccountStub.calledWith({address: validAccount.address})).to.be.ok;
 			getAccountStub.restore();
@@ -161,7 +114,7 @@ describe('account', function () {
 		});
 
 		it('should get correct account for address', function (done) {
-			account.getAccount({address: validAccount.address}, function (err, res) {
+			accounts.getAccount({address: validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.address).to.equal(validAccount.address);
 				expect(res.publicKey).to.equal(validAccount.publicKey);
@@ -174,7 +127,7 @@ describe('account', function () {
 	describe('getAccounts', function () {
 
 		it('should get accounts for the filter provided', function (done) {
-			account.getAccounts({secondSignature: 0}, function (err, res) {
+			accounts.getAccounts({secondSignature: 0}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
 				expect(res.filter(function (a) {
@@ -187,7 +140,7 @@ describe('account', function () {
 		it('should internally call logic/account.getAll method', function (done) {
 			var getAllSpy = sinon.spy(accountLogic, 'getAll');
 
-			account.getAccounts({address : validAccount.address}, function (err, res) {
+			accounts.getAccounts({address : validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array').to.have.length(1);
 				expect(getAllSpy.withArgs({address : validAccount.address})).to.be.ok;
@@ -200,14 +153,14 @@ describe('account', function () {
 	describe('onBind', function () {
 
 		it('should throw error with empty params', function () {
-			expect(account.onBind).to.throw();
+			expect(accounts.onBind).to.throw();
 		});
 	});
 
 	describe('isLoaded', function () {
 
 		it('should return true when modules are loaded', function () {
-			expect(account.isLoaded).to.be.ok;
+			expect(accounts.isLoaded).to.be.ok;
 		});
 	});
 
@@ -216,7 +169,7 @@ describe('account', function () {
 		describe('getBalance', function () {
 
 			it('should throw if parameter doesnt have correct schema', function (done) {
-				account.shared.getBalance({
+				accounts.shared.getBalance({
 					body: {
 						address: 5
 					}
@@ -227,7 +180,7 @@ describe('account', function () {
 			});
 
 			it('should get 0 balance for new account', function (done) {
-				account.shared.getBalance({
+				accounts.shared.getBalance({
 					body: {
 						address: node.randomAccount().address
 					}
@@ -241,7 +194,7 @@ describe('account', function () {
 			});
 
 			it('should return balance for existing account', function (done) {
-				account.shared.getBalance({
+				accounts.shared.getBalance({
 					body: {
 						address: node.gAccount.address
 					}
@@ -257,7 +210,7 @@ describe('account', function () {
 		describe('getPublickey', function () {
 
 			it('should throw if parameter doesnt have correct schema', function (done) {
-				account.shared.getPublickey({
+				accounts.shared.getPublickey({
 					body: {
 						address: 5
 					}
@@ -268,7 +221,7 @@ describe('account', function () {
 			});
 
 			it('should return error if account does not exist', function (done) {
-				account.shared.getPublickey({
+				accounts.shared.getPublickey({
 					body: {
 						address: node.randomAccount().address
 					}
@@ -279,7 +232,7 @@ describe('account', function () {
 			});
 
 			it('should return publicKey for an existing account', function (done) {
-				account.shared.getPublickey({
+				accounts.shared.getPublickey({
 					body: {
 						address: validAccount.address
 					}
@@ -294,7 +247,7 @@ describe('account', function () {
 		describe('getDelegates', function () {
 
 			it('should throw if parameter doesn\'t have correct schema', function (done) {
-				account.shared.getPublickey({
+				accounts.shared.getPublickey({
 					body: {
 						address: 5
 					}
@@ -305,7 +258,7 @@ describe('account', function () {
 			});
 
 			it('should return error if account does not exist', function (done) {
-				account.shared.getDelegates({
+				accounts.shared.getDelegates({
 					body: {
 						address: node.randomAccount().address
 					}
@@ -316,7 +269,7 @@ describe('account', function () {
 			});
 
 			it('should return empty array of an account which dont have any delegate', function (done) {
-				account.shared.getDelegates({
+				accounts.shared.getDelegates({
 					body: {
 						address: node.eAccount.address
 					}
@@ -328,7 +281,7 @@ describe('account', function () {
 			});
 
 			it('should return delegates of an account', function (done) {
-				account.shared.getDelegates({
+				accounts.shared.getDelegates({
 					body: {
 						address: node.gAccount.address
 					}
@@ -343,7 +296,7 @@ describe('account', function () {
 		describe('getDelegatesFee', function () {
 
 			it('should return the correct fee for delegate', function (done) {
-				account.shared.getDelegatesFee({}, function (err, res) {
+				accounts.shared.getDelegatesFee({}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.fee).to.equal(constants.fees.delegate);
 					done();
@@ -354,7 +307,7 @@ describe('account', function () {
 		describe('getAccount', function () {
 
 			it('should throw if parameter doesnt have correct schema', function (done) {
-				account.shared.getAccount({
+				accounts.shared.getAccount({
 					body: {
 						address: 5
 					}
@@ -365,7 +318,7 @@ describe('account', function () {
 			});
 
 			it('should return error if account does not exist', function (done) {
-				account.shared.getAccount({
+				accounts.shared.getAccount({
 					body: {
 						address: node.randomAccount().address
 					}
@@ -376,7 +329,7 @@ describe('account', function () {
 			});
 
 			it('should return error if neither publicKey nor address are supplied', function (done) {
-				account.shared.getAccount({
+				accounts.shared.getAccount({
 					body: {
 					}
 				}, function (err, res){
@@ -386,7 +339,7 @@ describe('account', function () {
 			});
 
 			it('should return error if publicKey does not match address supplied', function (done) {
-				account.shared.getAccount({
+				accounts.shared.getAccount({
 					body: {
 						publicKey: validAccount.publicKey,
 						address: node.randomAccount().address
@@ -398,7 +351,7 @@ describe('account', function () {
 			});
 
 			it('should return account using publicKey', function (done) {
-				account.shared.getAccount({
+				accounts.shared.getAccount({
 					body: {
 						publicKey: validAccount.publicKey
 					}
@@ -410,7 +363,7 @@ describe('account', function () {
 			});
 
 			it('should return account using address', function (done) {
-				account.shared.getAccount({
+				accounts.shared.getAccount({
 					body: {
 						address: validAccount.address
 					}
@@ -429,7 +382,7 @@ describe('account', function () {
 
 			var allAccounts;
 			before(function (done) {
-				account.getAccounts({}, function (err, res) {
+				accounts.getAccounts({}, function (err, res) {
 					expect(err).to.not.exist;
 					allAccounts = res;
 					done();
@@ -439,7 +392,7 @@ describe('account', function () {
 			it('should return top 10 accounts ordered by descending balance', function (done) {
 				var limit = 10;
 
-				account.internal.top({
+				accounts.internal.top({
 					limit: limit
 				}, function (err, res) {
 					expect(err).to.not.exist;
@@ -455,7 +408,7 @@ describe('account', function () {
 				var limit = 10;
 				var offset = 10;
 
-				account.internal.top({
+				accounts.internal.top({
 					limit: limit,
 					offset: offset
 				}, function (err, res) {

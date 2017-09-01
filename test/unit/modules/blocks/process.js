@@ -21,8 +21,7 @@ describe('blocks/process', function () {
 	var dbSandbox;
 
 	before(function (done) {
-		modulesLoader.scope.config.db.database = 'lisk_test_blocks_process';
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db);
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_blocks_process');
 		dbSandbox.create(function (err, __db) {
 			modulesLoader.db = __db;
 			db = __db;
@@ -35,7 +34,6 @@ describe('blocks/process', function () {
 	});
 
 	before(function (done) {
-
 		node.initApplication(function (err, scope) {
 			accounts = scope.modules.accounts;
 			blocksProcess = scope.modules.blocks.process;
@@ -43,49 +41,53 @@ describe('blocks/process', function () {
 			blockLogic = scope.logic.block;
 			blocks = scope.modules.blocks;
 
-			async.series({
-				clearTables: function (seriesCb) {
-					async.every([
-						'blocks where height > 1',
-						'trs where "blockId" != \'6524861224470851795\'',
-						'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
-						'forks_stat',
-						'votes where "transactionId" = \'17502993173215211070\''
-					], function (table, seriesCb) {
-						clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-					}, function (err) {
-						if (err) {
-							return setImmediate(err);
-						}
-						return setImmediate(seriesCb);
-					});
-				},
-				loadTables: function (seriesCb) {
-					async.everySeries(loadTables, function (table, seriesCb) {
-						var cs = new db.$config.pgp.helpers.ColumnSet(
-							table.fields, {table: table.name}
-						);
-						var insert = db.$config.pgp.helpers.insert(table.data, cs);
-						db.none(insert)
-							.then(function () {
-								seriesCb(null, true);
-							}).catch(function (err) {
-								return setImmediate(err);
-							});
-					}, function (err) {
-						if (err) {
-							return setImmediate(err);
-						}
-						return setImmediate(seriesCb);
-					});
-				}
-			}, function (err) {
-				if (err) {
-					return done(err);
-				}
-				done();
-			});
+			done();
 		}, db);
+	});
+
+	beforeEach(function (done) {
+		async.series({
+			clearTables: function (seriesCb) {
+				async.every([
+					'blocks where height > 1',
+					'trs where "blockId" != \'6524861224470851795\'',
+					'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
+					'forks_stat',
+					'votes where "transactionId" = \'17502993173215211070\''
+				], function (table, seriesCb) {
+					clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+				}, function (err) {
+					if (err) {
+						return setImmediate(err);
+					}
+					return setImmediate(seriesCb);
+				});
+			},
+			loadTables: function (seriesCb) {
+				async.everySeries(loadTables, function (table, seriesCb) {
+					var cs = new db.$config.pgp.helpers.ColumnSet(
+						table.fields, {table: table.name}
+					);
+					var insert = db.$config.pgp.helpers.insert(table.data, cs);
+					db.none(insert)
+						.then(function () {
+							seriesCb(null, true);
+						}).catch(function (err) {
+							return setImmediate(err);
+						});
+				}, function (err) {
+					if (err) {
+						return setImmediate(err);
+					}
+					return setImmediate(seriesCb);
+				});
+			}
+		}, function (err) {
+			if (err) {
+				return done(err);
+			}
+			done();
+		});
 	});
 
 	describe('getCommonBlock()', function () {

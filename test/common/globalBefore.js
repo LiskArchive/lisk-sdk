@@ -29,21 +29,33 @@ function clearDatabaseTable (db, logger, table, cb) {
 	});
 }
 
-function DBSandbox (dbConfig) {
+var testDatabaseNames = [];
+
+function DBSandbox (dbConfig, testDatabaseName) {
 	this.dbConfig = dbConfig;
+	this.originalDatabaseName = dbConfig.database;
+	this.testDatabaseName = testDatabaseName || this.originalDatabaseName;
+	testDatabaseNames.push(this.testDatabaseName);
+
+	process.on('exit', function () {
+		testDatabaseNames.forEach(function (testDatabaseName) {
+			console.log('dropping test db -', testDatabaseName);
+			child_process.exec('dropdb ' + testDatabaseName);
+		});
+	});
 }
 
 DBSandbox.prototype.create = function (cb) {
+	this.dbConfig.database = this.testDatabaseName;
 	child_process.exec('createdb ' + this.dbConfig.database, function () {
 		database.connect(this.dbConfig, console, cb);
 	}.bind(this));
 };
 
 DBSandbox.prototype.destroy = function () {
-	process.on('exit', function () {
-		database.disconnect();
-		child_process.exec('dropdb ' + this.dbConfig.database);
-	}.bind(this));
+	database.disconnect();
+	console.log('restoring original database -', this.originalDatabaseName);
+	this.dbConfig.database = this.originalDatabaseName;
 };
 
 /**

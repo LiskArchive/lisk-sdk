@@ -3,10 +3,12 @@
 var expect = require('chai').expect;
 var async = require('async');
 
+var node = require('../../../node');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var BlockLogic = require('../../../../logic/block.js');
 var exceptions = require('../../../../helpers/exceptions.js');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
+var DBSandbox = require('../../../common/globalBefore').DBSandbox;
 
 var crypto = require('crypto');
 var bson = require('../../../../helpers/bson.js');
@@ -210,11 +212,27 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 
 describe('blocks/verify', function () {
 
+	var accounts;
 	var blocksVerify;
 	var blocks;
 	var blockLogic;
-	var accounts;
 	var delegates;
+
+	var db;
+	var dbSandbox;
+
+	before(function (done) {
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_blocks_verify');
+		dbSandbox.create(function (err, __db) {
+			modulesLoader.db = __db;
+			db = __db;
+			done(err);
+		});
+	});
+
+	after(function () {
+		dbSandbox.destroy();
+	});
 
 	before(function (done) {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {

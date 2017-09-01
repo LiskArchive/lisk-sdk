@@ -13,12 +13,10 @@ var sinon   = require('sinon');
 var bignum    = require('../../../helpers/bignum.js');
 var config    = require('../../../config.json');
 var constants = require('../../../helpers/constants');
-var jobsQueue    = require('../../../helpers/jobsQueue.js');
 var node      = require('../../node.js');
 var slots     = require('../../../helpers/slots.js');
 var DBSandbox     = require('../../common/globalBefore').DBSandbox;
 
-//ToDo: Assertions are failing if run after different tests
 describe('Rounds-related SQL triggers', function () {
 
 	var db;
@@ -146,20 +144,17 @@ describe('Rounds-related SQL triggers', function () {
 	}
 
 	before(function (done) {
-		node.config.db.database = 'lisk_test_sql_rounds';
-		dbSandbox = new DBSandbox(node.config.db);
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_rounds');
 		dbSandbox.create(function (err, __db) {
 			db = __db;
-			done(err);
+			if (err) {
+				return done(err);
+			}
+			node.initApplication(function (err, scope) {
+				library = scope;
+				done(err);
+			}, db);
 		});
-	});
-
-	before(function (done) {
-		jobsQueue.jobs = {};
-		node.initApplication(function (err, scope) {
-			library = scope;
-			done();
-		}, db);
 	});
 
 	after(function () {
@@ -173,7 +168,6 @@ describe('Rounds-related SQL triggers', function () {
 				expect(results.length).to.equal(0);
 			});
 	});
-
 
 	describe('genesisBlock', function () {
 		var genesisBlock;
