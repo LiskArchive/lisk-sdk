@@ -2,12 +2,7 @@
 
 var node = require('../node.js');
 var http = require('../common/httpCommunication.js');
-var ws = require('../common/wsCommunication.js');
 var peersSortFields = require('../../sql/peers').sortFields;
-
-before(function (done) {
-	ws.addPeer('127.0.0.1', 5000, done);
-});
 
 describe('GET /api/peers/version', function () {
 
@@ -483,7 +478,7 @@ describe('GET /api/peers', function () {
 	});
 });
 
-describe('GET /api/peers/get', function () {
+describe.skip('GET /api/peers/get', function () {
 
 	var validParams;
 
