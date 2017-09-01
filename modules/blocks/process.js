@@ -412,7 +412,7 @@ Process.prototype.onReceiveBlock = function (block) {
 				library.logger.warn([
 					'Discarded block that does not match with current chain:', block.id,
 					'height:', block.height,
-					'round:',  modules.rounds.calc(block.height),
+					'round:',  slots.calcRound(block.height),
 					'slot:', slots.getSlotNumber(block.timestamp),
 					'generator:', block.generatorPublicKey
 				].join(' '));
@@ -583,7 +583,6 @@ Process.prototype.onBind = function (scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
 	};
