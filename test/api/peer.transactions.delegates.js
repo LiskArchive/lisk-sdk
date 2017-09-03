@@ -4,6 +4,7 @@ var crypto = require('crypto');
 var node = require('./../node.js');
 
 var account = node.randomAccount();
+var account2 = node.randomAccount();
 
 function postTransaction (transaction, done) {
 	node.post('/peer/transactions', {
@@ -37,7 +38,7 @@ describe('POST /peer/transactions', function () {
 		});
 
 		it('using undefined transaction.asset', function (done) {
-			var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
+			var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 			transaction.fee = node.fees.delegateRegistrationFee;
 
 			delete transaction.asset;
@@ -52,7 +53,7 @@ describe('POST /peer/transactions', function () {
 		describe('when account has no funds', function () {
 
 			it('should fail', function (done) {
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
+				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 				transaction.fee = node.fees.delegateRegistrationFee;
 
 				postTransaction(transaction, function (err, res) {
@@ -65,30 +66,12 @@ describe('POST /peer/transactions', function () {
 
 		describe('when account has funds', function () {
 
-			var account;
-			var validParams;
-
-			beforeEach(function () {
-				account = node.randomAccount();
-				validParams = {
-					secret: account.password,
-					username: account.username
-				};
-			});
-
-			beforeEach(function (done) {
+			before(function (done) {
 				sendLISK({
 					secret: node.gAccount.password,
-					amount: node.LISK,
+					amount: node.fees.delegateRegistrationFee,
 					recipientId: account.address
-				}, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionId');
-					node.expect(res.body.transactionId).to.be.not.empty;
-					node.onNewBlock(function (err) {
-						done(err);
-					});
-				});
+				}, done);
 			});
 
 			it('using invalid username should fail', function (done) {
@@ -113,7 +96,7 @@ describe('POST /peer/transactions', function () {
 
 			describe('when lowercased username already registered', function () {
 				it('using uppercase username should fail', function (done) {
-					var transaction = node.lisk.delegate.createDelegate(account.password, account.username.toUpperCase());
+					var transaction = node.lisk.delegate.createDelegate(account2.password, account.username.toUpperCase());
 
 					postTransaction(transaction, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -123,7 +106,7 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using lowercase username should be ok', function (done) {
-				account.username = node.randomDelegateName();
+				account.username = node.randomDelegateName().toLowerCase();
 				var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 				postTransaction(transaction, function (err, res) {
@@ -132,133 +115,32 @@ describe('POST /peer/transactions', function () {
 					done();
 				});
 			});
+		});
 
-			describe('twice for the same account in different blocks', function () {
+		describe('twice for the same account', function () {
 
-				it('should fail', function (done) {
-					account.username = node.randomDelegateName();
-					var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
-
-					account.username = node.randomDelegateName();
-					var transaction2 = node.lisk.delegate.createDelegate(account.password, account.username);
-
-					postTransaction(transaction, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-
-						node.onNewBlock(function () {
-							postTransaction(transaction2, function (err, res) {
-								node.expect(res.body).to.have.property('success').to.be.not.ok;
-								done();
-							});
-						});
-					});
-				});
+			before(function (done) {
+				sendLISK({
+					secret: node.gAccount.password,
+					amount: (node.fees.delegateRegistrationFee * 2),
+					recipientId: account2.address
+				}, done);
 			});
 
-			describe('registering same username twice in the same block', function () {
+			it('should fail', function (done) {
+				account2.username = node.randomDelegateName().toLowerCase();
+				var transaction = node.lisk.delegate.createDelegate(account2.password, account2.username);
 
-				describe('using same account', function () {
+				account2.username = node.randomDelegateName().toLowerCase();
+				var transaction2 = node.lisk.delegate.createDelegate(account2.password, account2.username);
 
-					it('should not confirm the second transaction with different timestamp', function (done) {
+				postTransaction(transaction, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
 
-						var firstTransaction;
-						var secondTransaction;
-
-						node.async.series({
-							first: function (cb) {
-								firstTransaction = node.lisk.delegate.createDelegate(validParams.secret, validParams.username);
-								node.post('/peer/transactions', {transaction: firstTransaction}, cb);
-							},
-							second: function (cb) {
-								setTimeout(function () {
-									secondTransaction = node.lisk.delegate.createDelegate(validParams.secret, validParams.username);
-									node.post('/peer/transactions', {transaction: secondTransaction}, cb);
-								}, 1001);
-							}
-						}, function (err) {
-							node.expect(err).to.be.null;
-							node.onNewBlock(function () {
-								node.async.series({
-									firstConfirmedTransaction: function (cb) {
-										return node.get('/api/transactions/get?id=' + firstTransaction.id, cb);
-									},
-									secondConfirmedTransaction: function (cb) {
-										return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
-									}
-								}, function (err, res) {
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.true;
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.transaction.id').to.equal(firstTransaction.id);
-
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.false;
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.error').to.be.equal('Transaction not found');
-									done();
-								});
-							});
-						});
-					});
-				});
-
-				describe('using two different accounts', function () {
-
-					var secondAccount;
-					var validSecondParams;
-
-					beforeEach(function () {
-						secondAccount = node.randomAccount();
-						validSecondParams = {
-							secret: secondAccount.password,
-							username: account.username
-						};
-					});
-
-					beforeEach(function (done) {
-						sendLISK({
-							secret: node.gAccount.password,
-							amount: node.LISK,
-							recipientId: secondAccount.address
-						}, function (err, res) {
-							node.expect(res.body).to.have.property('success').to.be.ok;
-							node.expect(res.body).to.have.property('transactionId');
-							node.expect(res.body.transactionId).to.be.not.empty;
-							node.onNewBlock(function (err) {
-								done(err);
-							});
-						});
-					});
-
-					it('should not confirm the first transaction', function (done) {
-
-						var firstTransaction;
-						var secondTransaction;
-
-						node.async.series({
-							first: function (cb) {
-								firstTransaction = node.lisk.delegate.createDelegate(validParams.secret, validParams.username);
-								node.post('/peer/transactions', {transaction: firstTransaction}, cb);
-							},
-							second: function (cb) {
-								secondTransaction = node.lisk.delegate.createDelegate(validSecondParams.secret, validParams.username);
-								node.post('/peer/transactions', {transaction: secondTransaction}, cb);
-							}
-						}, function (err) {
-							node.expect(err).to.be.null;
-							node.onNewBlock(function () {
-								node.async.series({
-									firstConfirmedTransaction: function (cb) {
-										return node.get('/api/transactions/get?id=' + firstTransaction.id, cb);
-									},
-									secondConfirmedTransaction: function (cb) {
-										return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
-									}
-								}, function (err, res) {
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.true;
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.transaction.id').to.equal(secondTransaction.id);
-
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.false;
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.error').to.be.equal('Transaction not found');
-									done();
-								});
-							});
+					node.onNewBlock(function () {
+						postTransaction(transaction2, function (err, res) {
+							node.expect(res.body).to.have.property('success').to.be.not.ok;
+							done();
 						});
 					});
 				});
