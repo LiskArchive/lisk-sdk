@@ -343,7 +343,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
+				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
@@ -362,7 +362,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName());
+				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], function (err) {
