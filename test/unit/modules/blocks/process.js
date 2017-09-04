@@ -11,7 +11,7 @@ var loadTables = require('./processTablesData.json');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
 
 describe('blocks/process', function () {
-	
+
 	var blocksProcess;
 	var blockLogic;
 	var blocks;
@@ -23,7 +23,7 @@ describe('blocks/process', function () {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
 			if (err) {
 				return done(err);
-			}			
+			}
 			blockLogic = __blockLogic;
 
 			modulesLoader.initModules([
@@ -31,7 +31,6 @@ describe('blocks/process', function () {
 				{accounts: require('../../../../modules/accounts')},
 				{delegates: require('../../../../modules/delegates')},
 				{transactions: require('../../../../modules/transactions')},
-				{rounds: require('../../../../modules/rounds')},
 				{multisignatures: require('../../../../modules/multisignatures')},
 				{signatures: require('../../../../modules/signatures')},
 			], [
@@ -49,7 +48,6 @@ describe('blocks/process', function () {
 				__modules.accounts.onBind(__modules);
 				__modules.transactions.onBind(__modules);
 				__modules.blocks.chain.onBind(__modules);
-				__modules.rounds.onBind(__modules);
 				__modules.multisignatures.onBind(__modules);
 				__modules.signatures.onBind(__modules);
 				__modules.blocks.process.onBind(__modules);
@@ -104,15 +102,20 @@ describe('blocks/process', function () {
  		});
 	});
 
-	describe('loadBlocksOffset {verify: true} - no errors', function () {
-		
+	describe('getCommonBlock()', function () {
+
+		it('should be ok');
+	});
+
+	describe('loadBlocksOffset({verify: true}) - no errors', function () {
+
 		it('should load block 2 from database: block without transactions', function (done) {
 			blocks.lastBlock.set(genesisBlock);
 			blocksProcess.loadBlocksOffset(1, 2, true, function (err, loadedBlock) {
 				if (err) {
 					return done(err);
 				}
-				
+
 				blocks.lastBlock.set(loadedBlock);
 				expect(loadedBlock.height).to.be.equal(2);
 				done();
@@ -132,15 +135,15 @@ describe('blocks/process', function () {
 		});
 	});
 
-	describe('loadBlocksOffset {verify: true} - block/trs errors', function () {
-		
+	describe('loadBlocksOffset({verify: true}) - block/trs errors', function () {
+
 		it('should load block 4 from db and return blockSignature error', function (done) {
 			blocksProcess.loadBlocksOffset(1, 4, true, function (err, loadedBlock) {
 				if (err) {
 					expect(err).equal('Failed to verify block signature');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
@@ -153,7 +156,7 @@ describe('blocks/process', function () {
 					expect(err).equal('Invalid payload hash');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
@@ -166,7 +169,7 @@ describe('blocks/process', function () {
 					expect(err).equal('Invalid block timestamp');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
@@ -179,7 +182,7 @@ describe('blocks/process', function () {
 					expect(err).equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
@@ -192,7 +195,7 @@ describe('blocks/process', function () {
 					expect(err).equal('Invalid block version');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
@@ -205,7 +208,7 @@ describe('blocks/process', function () {
 					expect(err).equal('Invalid previous block: 15335393038826825161 expected: 13068833527549895884');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
@@ -218,13 +221,13 @@ describe('blocks/process', function () {
 					expect(err).equal('Failed to validate vote schema: Array items are not unique (indexes 0 and 4)');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
 	});
 
-	describe('loadBlocksOffset {verify: false} - rerun block/trs errors', function () {
+	describe('loadBlocksOffset({verify: false}) - rerun block/trs errors', function () {
 
 		it('should clear fork_stat db table', function (done) {
 			async.every([
@@ -246,7 +249,7 @@ describe('blocks/process', function () {
 				if (err) {
 					return done(err);
 				}
-				
+
 				expect(loadedBlock.id).equal(loadTables[0].data[2].id);
 				expect(loadedBlock.previousBlock).equal(loadTables[0].data[2].previousBlock);
 				done();
@@ -289,7 +292,7 @@ describe('blocks/process', function () {
 					expect(err).equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
 					return done();
 				}
-				
+
 				done(loadedBlock);
 			});
 		});
@@ -301,7 +304,7 @@ describe('blocks/process', function () {
 				if (err) {
 					done(err);
 				}
-				
+
 				expect(loadedBlock.id).equal(loadTables[0].data[6].id);
 				expect(loadedBlock.previousBlock).equal(loadTables[0].data[6].previousBlock);
 				done();
@@ -315,7 +318,7 @@ describe('blocks/process', function () {
 				if (err) {
 					done(err);
 				}
-				
+
 				expect(loadedBlock.id).equal(loadTables[0].data[7].id);
 				expect(loadedBlock.previousBlock).equal(loadTables[0].data[7].previousBlock);
 				done();
@@ -329,12 +332,45 @@ describe('blocks/process', function () {
 				if (err) {
 					done(err);
 				}
-				
+
 				expect(loadedBlock.id).equal(loadTables[0].data[8].id);
 				expect(loadedBlock.previousBlock).equal(loadTables[0].data[8].previousBlock);
 				done();
 			});
 		});
+	});
+
+	describe('loadBlocksFromPeer()', function () {
+
+		it('should be ok');
+	});
+
+	describe('generateBlock()', function () {
+
+		it('should be ok');
+	});
+
+	describe('onReceiveBlock()', function () {
+
+		describe('calling receiveBlock()', function () {
+
+			it('should be ok');
+		});
+
+		describe('calling receiveForkOne()', function () {
+
+			it('should be ok');
+		});
+
+		describe('calling receiveForkFive()', function () {
+
+			it('should be ok');
+		});
+	});
+
+	describe('onBind()', function () {
+
+		it('should be ok');
 	});
 
 	after(function (done) {

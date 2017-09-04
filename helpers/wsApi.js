@@ -25,6 +25,7 @@ var middleware = {
 					return setImmediate(cb, {
 						success: false,
 						error: error,
+						message: error.toString(),
 						code: 'EHEADERS'
 					}, peer);
 				}
@@ -74,6 +75,10 @@ var extractHeaders = function (request) {
 
 	headers.ip = request.remoteAddress.split(':').pop();
 	headers.port = parseInt(headers.port);
+
+	if (!headers.nonce || headers.nonce.length !== 16) {
+		throw new Error('Received empty or unmatched nonce');
+	}
 
 	return headers;
 };

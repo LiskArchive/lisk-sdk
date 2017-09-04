@@ -325,6 +325,25 @@ describe('transactions', function () {
 				});
 			});
 
+			it('should get transaction with delegate asset for transaction id', function (done) {
+				var trsId = transactionsByType[transactionTypes.DELEGATE].transactionId;
+				var trs = transactionsByType[transactionTypes.DELEGATE].transaction;
+
+				getTransactionById(trsId, function (err, res) {
+					expect(err).to.not.exist;
+					expect(res).to.have.property('transaction').which.is.an('object');
+					expect(res.transaction.id).to.equal(trs.id);
+					expect(res.transaction.amount).to.equal(trs.amount);
+					expect(res.transaction.asset.username).to.equal(trs.asset.username);
+					expect(res.transaction.asset.publicKey).to.equal(trs.asset.publicKey);
+					expect(res.transaction.asset.address).to.equal(trs.asset.address);
+					expect(res.transaction.fee).to.equal(trs.fee);
+					expect(res.transaction.type).to.equal(trs.type);
+					expect(res.transaction.type).to.equal(transactionTypes.DELEGATE);
+					done();
+				});
+			});
+
 			it('should get transaction with vote asset for transaction id', function (done) {
 				var trsId = transactionsByType[transactionTypes.VOTE].transactionId;
 				var trs = transactionsByType[transactionTypes.VOTE].transaction;
