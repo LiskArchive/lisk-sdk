@@ -18,3 +18,4 @@ sftp-config.json
 test/integration/logs/
 test/integration/configs/
 !test/integration/configs/config.non-forge.json
+package-lock.json
