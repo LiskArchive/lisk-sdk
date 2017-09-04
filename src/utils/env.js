@@ -23,13 +23,11 @@ const homedir = os.homedir();
 const configDirPath = `${homedir}/${configDirName}`;
 const configFilePath = `${configDirPath}/${configFileName}`;
 
-const getWriteErrorMessage = path => `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
-
 const attemptCallWithWarning = (fn, path) => {
 	try {
 		return fn();
 	} catch (_) {
-		const warning = getWriteErrorMessage(path);
+		const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
 		console.warn(warning);
 		return null;
 	}
@@ -42,11 +40,6 @@ const attemptCallWithError = (fn, code, error) => {
 		console.error(error);
 		return process.exit(code);
 	}
-};
-
-const checkWriteAccess = (path) => {
-	const fn = fse.accessSync.bind(null, path, fse.constants.W_OK);
-	return attemptCallWithWarning(fn, path);
 };
 
 const attemptToCreateDir = (path) => {
@@ -84,7 +77,6 @@ const getConfig = () => {
 	}
 
 	checkReadAccess(configFilePath);
-	checkWriteAccess(configFilePath);
 
 	return attemptToReadJsonFile(configFilePath);
 };

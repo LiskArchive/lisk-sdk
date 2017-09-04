@@ -164,7 +164,6 @@ describe('env util', () => {
 			describe('when lisky config file is not writable', () => {
 				beforeEach(() => {
 					writeJsonSyncStub.throws('Cannot write to file');
-					accessSyncStub.withArgs(configFilePath, fse.constants.W_OK).throws('Cannot write to file');
 					exportedConfig = reloadConfig();
 				});
 
@@ -249,13 +248,8 @@ describe('env util', () => {
 					describe('when lisky config file is not writable', () => {
 						beforeEach(() => {
 							writeJsonSyncStub.throws('Cannot write JSON');
-							accessSyncStub.withArgs(configFilePath, fse.constants.W_OK).throws('Cannot write to file');
 							exportedConfig = reloadConfig();
 						});
-
-						it('should warn the user that the config will not be persisted',
-							() => shouldWarnTheUserThatTheConfigWillNotBePersisted(consoleWarnStub),
-						);
 
 						it('should not write to the config file',
 							() => shouldNotWriteToTheConfigFile(writeJsonSyncStub),
