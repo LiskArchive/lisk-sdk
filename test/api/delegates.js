@@ -254,13 +254,12 @@ describe('PUT /api/accounts/delegates with funds', function () {
 describe('PUT /api/delegates with funds', function () {
 	var account, validParams;
 
-	beforeEach(function (done) {
+	beforeEach(function () {
 		account = node.randomAccount();
 		validParams = {
 			secret: account.password,
 			username: account.username
 		};
-		done();
 	});
 
 	beforeEach(function (done) {
@@ -272,9 +271,16 @@ describe('PUT /api/delegates with funds', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactionId');
 			node.expect(res.body.transactionId).to.be.not.empty;
-			node.onNewBlock(function (err) {
+			node.onNewBlock(function () {
 				done();
 			});
+		});
+	});
+
+	it('using valid params should succeed', function (done) {
+		putDelegates(validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			done();
 		});
 	});
 
@@ -344,16 +350,75 @@ describe('PUT /api/delegates with funds', function () {
 		});
 	});
 
-	it('using same account twice should fail', function (done) {
+	it('using same account twice in two different blocks should fail', function (done) {
 		putDelegates(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 
-			node.onNewBlock(function (err) {
+			node.onNewBlock(function () {
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
+					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
 					done();
+				});
+			});
+		});
+	});
+
+	describe('registering same username twice', function () {
+
+		describe('using same account', function () {
+
+			it('second transaction with same id should fail', function (done) {
+				var firstTransaction;
+
+				node.async.series({
+					first: function (cb) {
+						return putDelegates(validParams, cb);
+					},
+					second: function (cb) {
+						return putDelegates(validParams, cb);
+					}
+				}, function (err, res) {
+					node.expect(res).to.have.deep.property('first.body.transaction');
+					firstTransaction = res.first.body.transaction;
+					node.expect(res).to.have.deep.property('second.body.error').equal('Transaction is already processed: ' + firstTransaction.id);
+					done();
+				});
+			});
+
+			it('second transaction with different timestamp should succeed and fail silently on apply step', function (done) {
+				node.async.series({
+					first: function (cb) {
+						return putDelegates(validParams, cb);
+					},
+					second: function (cb) {
+						setTimeout(function () {
+							return putDelegates(validParams, cb);
+						}, 1001);
+					}
+				}, function (err, res) {
+					node.expect(res).to.have.deep.property('first.body.success').to.be.true;
+					node.expect(res).to.have.deep.property('second.body.success').to.be.true;
+					var firstTransactionId = res.first.body.transaction.id;
+					var secondTransactionId = res.second.body.transaction.id;
+					node.onNewBlock(function () {
+						node.async.series({
+							firstConfirmedTransaction: function (cb) {
+								return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
+							},
+							secondConfirmedTransaction: function (cb) {
+								return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+							}
+						}, function (err, res) {
+							node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.true;
+							node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.transaction.id').to.equal(firstTransactionId);
+
+							node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.false;
+							node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.error').to.be.equal('Transaction not found');
+							done();
+						});
+					});
 				});
 			});
 		});
@@ -364,11 +429,11 @@ describe('PUT /api/delegates with funds', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 
-			node.onNewBlock(function (err) {
+			node.onNewBlock(function () {
 				validParams.username = validParams.username.toUpperCase();
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
+					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
 					done();
 				});
 			});

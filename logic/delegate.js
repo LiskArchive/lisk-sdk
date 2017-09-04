@@ -1,9 +1,11 @@
 'use strict';
 
+var async = require('async');
 var constants = require('../helpers/constants.js');
+var exceptions = require('../helpers/exceptions.js');
 
 // Private fields
-var modules, library;
+var modules, library, self;
 
 /**
  * Initializes library.
@@ -12,9 +14,11 @@ var modules, library;
  * @classdesc Main delegate logic.
  * @param {ZSchema} schema
  */
-function Delegate (schema) {
+function Delegate (logger, schema) {
+	self = this;
 	library = {
 		schema: schema,
+		logger: logger
 	};
 }
 
@@ -115,18 +119,8 @@ Delegate.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Username can only contain alphanumeric characters with the exception of !@$&_.');
 	}
 
-	modules.accounts.getAccount({
-		username: username
-	}, function (err, account) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		if (account) {
-			return setImmediate(cb, 'Username already exists');
-		}
-
-		return setImmediate(cb, null, trs);
+	self.checkConfirmed(trs, {username: username}, function (err) {
+		return setImmediate(cb, err, trs);
 	});
 };
 
@@ -165,6 +159,49 @@ Delegate.prototype.getBytes = function (trs) {
 };
 
 /**
+ * Calls cb with error when account already exists
+ * @param {Object} query
+ * @param {function} cb
+ */
+Delegate.prototype.checkDuplicates = function (query, cb) {
+	modules.accounts.getAccount(query, function (err, account) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		if (account) {
+			return setImmediate(cb, 'Username already exists');
+		}
+		return setImmediate(cb);
+	});
+};
+
+/**
+ * Checks if confirmed delegate is already registered
+ * @param {transaction} trs
+ * @param {account} account
+ * @param {function} cb
+ */
+Delegate.prototype.checkConfirmed = function (trs, account, cb) {
+	this.checkDuplicates({username: account.username}, function (err) {
+		if (err === 'Username already exists' && exceptions.delegates.indexOf(trs.id) > -1) {
+			library.logger.debug(err);
+			library.logger.debug(JSON.stringify(trs));
+			err = null;
+		}
+		return setImmediate(cb, err);
+	});
+};
+
+/**
+ * Checks if unconfirmed delegate is already registered
+ * @param {account} account
+ * @param {function} cb
+ */
+Delegate.prototype.checkUnconfirmed = function (account, cb) {
+	this.checkDuplicates({u_username: account.u_username}, cb);
+};
+
+/**
  * Checks trs delegate and calls modules.accounts.setAccountAndGet() with username.
  * @implements module:accounts#Accounts~setAccountAndGet
  * @param {transaction} trs
@@ -185,7 +222,14 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 		data.username = trs.asset.delegate.username;
 	}
 
-	modules.accounts.setAccountAndGet(data, cb);
+	async.series([
+		function (seriesCb) {
+			self.checkConfirmed(trs, data, seriesCb);
+		},
+		function (seriesCb) {
+			modules.accounts.setAccountAndGet(data, seriesCb);
+		}
+	], cb);
 };
 
 /**
@@ -231,7 +275,14 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		data.u_username = trs.asset.delegate.username;
 	}
 
-	modules.accounts.setAccountAndGet(data, cb);
+	async.series([
+		function (seriesCb) {
+			self.checkUnconfirmed(data, seriesCb);
+		},
+		function (seriesCb) {
+			modules.accounts.setAccountAndGet(data, seriesCb);
+		}
+	], cb);
 };
 
 /**
