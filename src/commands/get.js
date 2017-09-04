@@ -46,7 +46,7 @@ const get = vorpal => ({ options, type, input }) => {
 	return COMMAND_TYPES.includes(type)
 		? handlers[type](input)
 			.then(processResult.bind(null, useJsonOutput, vorpal, deAlias(type)))
-		: Promise.resolve(vorpal.log('Unsupported type.'));
+		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'));
 };
 
 export default function getCommand(vorpal) {

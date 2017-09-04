@@ -15,7 +15,7 @@
  */
 import config from '../utils/env';
 
-const env = vorpal => () => Promise.resolve(vorpal.log(JSON.stringify(config, null, '\t')));
+const env = vorpal => () => Promise.resolve(vorpal.activeCommand.log(JSON.stringify(config, null, '\t')));
 
 export default function envCommand(vorpal) {
 	vorpal

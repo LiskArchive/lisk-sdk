@@ -31,12 +31,14 @@ describe('print utils', () => {
 
 	describe('#printResult', () => {
 		const vorpal = {
-			log: () => {},
+			activeCommand: {
+				log: () => {},
+			},
 		};
 		let stub;
 
 		beforeEach(() => {
-			stub = sinon.stub(vorpal, 'log');
+			stub = sinon.stub(vorpal.activeCommand, 'log');
 		});
 
 		afterEach(() => {

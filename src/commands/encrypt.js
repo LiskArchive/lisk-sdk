@@ -22,7 +22,7 @@ const encrypt = vorpal => ({ message, secret, recipient, options }) => {
 		? JSON.stringify(result)
 		: tablify(result).toString();
 
-	vorpal.log(output);
+	vorpal.activeCommand.log(output);
 	return Promise.resolve(result);
 };
 
