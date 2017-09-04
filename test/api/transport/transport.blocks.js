@@ -1,11 +1,10 @@
 'use strict';
 
-var node = require('../../node.js');
-var ws = require('../../common/wsCommunication');
-
-var genesisblock = require('../../genesisBlock.json');
-var verify = require('../../../modules/blocks/verify.js');
-var bson = require('../../../helpers/bson.js');
+var node 					= alias.require('test/node.js');
+var ws 						= alias.require('test/common/wsCommunication');
+var verify 				= alias.require('modules/blocks/verify.js');
+var bson 					= alias.require('helpers/bson.js');
+var genesisblock 	= alias.genesisblock;
 
 describe('blocks', function () {
 
@@ -84,7 +83,7 @@ describe('blocksCommon', function () {
 	it('using ids == \'\',\'\',\'\' should fail', function (done) {
 		ws.call('blocksCommon',  {ids: '\'\',\'\',\'\''}, function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-			
+
 			node.expect(err).to.equal('Invalid block id sequence');
 			done();
 		});
@@ -109,7 +108,7 @@ describe('blocksCommon', function () {
 	it('using ids == "1","2","3" should be ok and return null common block', function (done) {
 		ws.call('blocksCommon', {ids: '"1","2","3"'}, function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-			
+
 			node.expect(res).to.have.property('common').to.be.null;
 			done();
 		});
@@ -118,7 +117,7 @@ describe('blocksCommon', function () {
 	it('using ids == \'1\',\'2\',\'3\' should be ok and return null common block', function (done) {
 		ws.call('blocksCommon', {ids: '\'1\',\'2\',\'3\''}, function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-			
+
 			node.expect(res).to.have.property('common').to.be.null;
 			done();
 		});
@@ -127,7 +126,7 @@ describe('blocksCommon', function () {
 	it('using ids == 1,2,3 should be ok and return null common block', function (done) {
 		ws.call('blocksCommon', {ids: '1,2,3'}, function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-			
+
 			node.expect(res).to.have.property('common').to.be.null;
 			done();
 		});
@@ -136,7 +135,7 @@ describe('blocksCommon', function () {
 	it('using ids which include genesisblock.id should be ok', function (done) {
 		ws.call('blocksCommon', {ids: [genesisblock.id.toString(),'2','3'].join(',')}, function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-			
+
 			node.expect(res).to.have.property('common').to.be.an('object');
 			node.expect(res.common).to.have.property('height').that.is.a('number');
 			node.expect(res.common).to.have.property('id').that.is.a('string');
@@ -148,7 +147,7 @@ describe('blocksCommon', function () {
 });
 
 describe('postBlock', function () {
-	
+
 	it('using no block should fail', function (done) {
 		ws.call('postBlock', function (err, res) {
 			node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));

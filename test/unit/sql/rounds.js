@@ -1,21 +1,21 @@
 'use strict';
 
 // Utils
-var _       = require('lodash');
-var async   = require('async');
-var chai    = require('chai');
-var expect  = require('chai').expect;
-var Promise = require('bluebird');
-var rewire  = require('rewire');
-var sinon   = require('sinon');
+var _       	= require('lodash');
+var async   	= require('async');
+var chai    	= require('chai');
+var expect  	= require('chai').expect;
+var Promise 	= require('bluebird');
+var rewire  	= require('rewire');
+var sinon   	= require('sinon');
 
 // Application specific
-var bignum    = require('../../../helpers/bignum.js');
-var config    = require('../../../config.json');
-var constants = require('../../../helpers/constants');
-var node      = require('../../node.js');
-var Sequence  = require('../../../helpers/sequence.js');
-var slots     = require('../../../helpers/slots.js');
+var bignum    = alias.require('helpers/bignum.js');
+var constants = alias.require('helpers/constants');
+var node      = alias.require('test/node.js');
+var Sequence  = alias.require('helpers/sequence.js');
+var slots     = alias.require('helpers/slots.js');
+var config    = alias.config;
 
 describe('Rounds-related SQL triggers', function () {
 	var library;
@@ -120,7 +120,7 @@ describe('Rounds-related SQL triggers', function () {
 		var feesRemaining   = new bignum(feesTotal.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates));
 
 		node.debug('	Total fees: ' + feesTotal.toString() + ' Fees per delegates: ' + feesPerDelegate.toString() + ' Remaining fees: ' + feesRemaining + 'Total rewards: ' + rewardsTotal);
-		
+
 		_.each(blocks, function (block, index) {
 			var pk = block.generatorPublicKey.toString('hex');
 			if (rewards[pk]) {
@@ -203,7 +203,7 @@ describe('Rounds-related SQL triggers', function () {
 					expect(delegate.name).to.equal(found.asset.delegate.username);
 					expect(delegate.address).to.equal(found.senderId);
 					expect(delegate.pk).to.equal(found.senderPublicKey);
-					
+
 					// Data populated by trigger
 					expect(delegate.rank).that.is.an('number');
 					expect(delegate.voters_balance).to.equal(10000000000000000);

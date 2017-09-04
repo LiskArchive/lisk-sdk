@@ -1,18 +1,16 @@
 'use strict';
 
-var config = require('../../../config.json');
-
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
 var sinon = require('sinon');
 
-var constants = require('../../../helpers/constants');
-var WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var constants 				= alias.require('helpers/constants');
+var WAMPClient 				= require('wamp-socket-cluster/WAMPClient');
 
-var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
-var ClientRPCStub = require('../../../api/ws/rpc/wsRPC').ClientRPCStub;
-var ConnectionState = require('../../../api/ws/rpc/wsRPC').ConnectionState;
+var wsRPC 						= alias.require('api/ws/rpc/wsRPC').wsRPC;
+var ClientRPCStub 		= alias.require('api/ws/rpc/wsRPC').ClientRPCStub;
+var ConnectionState 	= alias.require('api/ws/rpc/wsRPC').ConnectionState;
 
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 

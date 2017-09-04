@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('../../../config.json');
+var config = alias.config;
 
 var chai = require('chai');
 var expect = require('chai').expect;
@@ -8,9 +8,8 @@ var express = require('express');
 var _  = require('lodash');
 var sinon = require('sinon');
 
-var wsApi = require('../../../helpers/wsApi');
-
-var System = require('../../../modules/system');
+var wsApi = alias.require('helpers/wsApi');
+var System = alias.require('modules/system');
 
 describe('handshake', function () {
 
