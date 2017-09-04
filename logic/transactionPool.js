@@ -1,11 +1,11 @@
 'use strict';
 
 var async = require('async');
-var config = require('../config.json');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
+var config = alias.config;
 // Private fields
 var modules, library, self, __private = {};
 
@@ -314,7 +314,7 @@ TransactionPool.prototype.addQueuedTransaction = function (transaction) {
 };
 
 /**
- * Removes id from queued index and transactions. 
+ * Removes id from queued index and transactions.
  * @param {string} id
  */
 TransactionPool.prototype.removeQueuedTransaction = function (id) {
@@ -347,7 +347,7 @@ TransactionPool.prototype.addMultisignatureTransaction = function (transaction) 
 };
 
 /**
- * Removes id from multisignature index and transactions. 
+ * Removes id from multisignature index and transactions.
  * @param {string} id
  */
 TransactionPool.prototype.removeMultisignatureTransaction = function (id) {
