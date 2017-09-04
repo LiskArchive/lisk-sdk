@@ -1,5 +1,4 @@
 'use strict';
-
 var async = require('async');
 var url = require('url');
 
@@ -13,14 +12,15 @@ var PeersUpdateRules = require('./api/ws/workers/peersUpdateRules');
 var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failureCodes');
 var Logger = require('./logger');
-var config = require('./config.json');
 
 /**
  * Function is invoked by SocketCluster
  * @param {Worker} worker
  */
 module.exports.run = function (worker) {
-
+	// Needs to be here and not above.
+	require('./alias');
+	var config = alias.config;
 	var scServer = worker.getSCServer();
 
 	async.auto({
