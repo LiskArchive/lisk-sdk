@@ -35,7 +35,7 @@ import {
 	bufferToHex,
 } from '../../src/crypto/convert';
 
-describe('sign @now', () => {
+describe('sign', () => {
 	const secretMessage = 'secret message';
 	const notSecretMessage = 'not secret message';
 	const defaultSignature = '5fd698d33c009fc358f2085f66465ae50ac3774d1a5c36d5167fbd7f9bac6b648b26bb2976d360b6286fea1c367dd128dad7f0cc241a0301fbcfff4ca77b9e0b6e6f7420736563726574206d657373616765';
