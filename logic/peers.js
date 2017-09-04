@@ -4,12 +4,15 @@ var _ = require('lodash');
 var async = require('async');
 var Peer = require('../logic/peer.js');
 var schema = require('../schema/peers.js');
+var System = require('../modules/system.js');
+var peersManager = require('../helpers/peersManager.js');
 
 // Private fields
 var __private = {};
 var self;
 var library;
 var modules;
+
 /**
  * Initializes library.
  * @memberof module:peers
@@ -25,9 +28,18 @@ function Peers (logger, cb) {
 		logger: logger
 	};
 	self = this;
-	__private.peers = {};
+	__private.me = null;
+
+	this.peersManager = peersManager;
+
 	return setImmediate(cb, null, this);
 }
+
+Peers.prototype.me = function () {
+	var me = _.extend(System.getHeaders(), {state: Peer.STATE.CONNECTED});
+	delete me.ip;
+	return me;
+};
 
 /**
  * Returns a peer instance.
@@ -49,7 +61,7 @@ Peers.prototype.create = function (peer) {
  */
 Peers.prototype.exists = function (peer) {
 	peer = self.create(peer);
-	return !!__private.peers[peer.string];
+	return !!self.peersManager.getByAddress(peer.string);
 };
 
 /**
@@ -59,10 +71,10 @@ Peers.prototype.exists = function (peer) {
  */
 Peers.prototype.get = function (peer) {
 	if (typeof peer === 'string') {
-		return __private.peers[peer];
+		return self.peersManager.getByAddress(peer);
 	} else {
 		peer = self.create(peer);
-		return __private.peers[peer.string];
+		return self.peersManager.getByAddress(peer.string);
 	}
 };
 
@@ -77,8 +89,10 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	var insert = function (peer) {
 		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
 			peer.updated = Date.now();
-			__private.peers[peer.string] = peer;
-			library.logger.debug('Inserted new peer', peer.string);
+			if (self.peersManager.add(peer)) {
+				return library.logger.debug('Inserted new peer', peer.string);
+			}
+			library.logger.debug('Cannot insert peer (nonce exists / empty address field)', peer.string);
 		} else {
 			library.logger.debug('Rejecting unacceptable peer', peer.string);
 		}
@@ -90,12 +104,12 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 
 		var diff = {};
 		_.each(peer, function (value, key) {
-			if (key !== 'updated' && __private.peers[peer.string][key] !== value) {
+			if (key !== 'updated' && self.peersManager.getByAddress(peer.string)[key] !== value) {
 				diff[key] = value;
 			}
 		});
 
-		__private.peers[peer.string].update(peer);
+		self.peersManager.getByAddress(peer.string).update(peer);
 
 		if (Object.keys(diff).length) {
 			library.logger.debug('Updated peer ' + peer.string, diff);
@@ -105,12 +119,12 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	};
 
 	peer = self.create(peer);
-	
+	peer.string = peer.string || self.peersManager.getAddress(peer.nonce);
+
 	if (!peer.string) {
-		library.logger.warn('Upsert invalid peer rejected', {peer: peer});
+		console.trace('Upsert invalid peer rejected', {peer: peer});
 		return false;
 	}
-
 	// Performing insert or update
 	if (self.exists(peer)) {
 		// Skip update if insert-only is forced
@@ -131,7 +145,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 
 	_.each(__private.peers, function (peer, index) {
 		++cnt_total;
-		if (peer.state === 2) {
+		if (peer.state === Peer.STATE.CONNECTED) {
 			++cnt_active;
 		}
 		if (!peer.height) {
@@ -157,9 +171,8 @@ Peers.prototype.remove = function (peer) {
 	// Remove peer if exists
 	if (self.exists(peer)) {
 		library.logger.info('Removed peer', peer.string);
-		library.logger.debug('Removed peer', {peer: __private.peers[peer.string]});
-		__private.peers[peer.string] = null; // Possible memory leak prevention
-		delete __private.peers[peer.string];
+		library.logger.debug('Removed peer', {peer: peer});
+		self.peersManager.remove(peer);
 		return true;
 	} else {
 		library.logger.debug('Failed to remove peer', {err: 'AREMOVED', peer: peer});
@@ -174,9 +187,9 @@ Peers.prototype.remove = function (peer) {
  */
 Peers.prototype.list = function (normalize) {
 	if (normalize) {
-		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].object(); });
+		return Object.keys(self.peersManager.addressToNonceMap).map(function (key) { return self.peersManager.getByAddress(key).object(); });
 	} else {
-		return Object.keys(__private.peers).map(function (key) { return __private.peers[key]; });
+		return Object.keys(self.peersManager.addressToNonceMap).map(function (key) { return self.peersManager.getByAddress(key); });
 	}
 };
 

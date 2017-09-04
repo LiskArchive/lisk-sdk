@@ -58,6 +58,7 @@ Chain.prototype.saveGenesisBlock = function (cb) {
 		if (!blockId) {
 			// If there is no block with genesis ID - save to database
 			// WARNING: DB_WRITE
+			// FIXME: This will fail if we already have genesis block in database, but with different ID
 			self.saveBlock(library.genesisblock.block, function (err) {
 				return setImmediate(cb, err);
 			});
@@ -120,8 +121,6 @@ Chain.prototype.saveBlock = function (block, cb) {
  */
 __private.afterSave = function (block, cb) {
 	library.bus.message('transactionsSaved', block.transactions);
-	// Execute afterSave callbacks for each transaction, depends on tx type
-	// see: logic.outTransfer.afterSave, logic.dapp.afterSave
 	async.eachSeries(block.transactions, function (transaction, cb) {
 		return library.logic.transaction.afterSave(transaction, cb);
 	}, function (err) {
@@ -275,9 +274,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 		} else {
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
-			// Tick round
-			// WARNING: DB_WRITE
-			modules.rounds.tick(block, cb);
+			return cb();
 		}
 	});
 };
@@ -327,13 +324,12 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
  * @method applyBlock
  * @emits  SIGTERM
  * @param  {Object}   block Full normalized block
- * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
- * @param  {Function} cb Callback function
  * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
+ * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
+Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 	// Prevent shutdown during database writes.
 	modules.blocks.isActive.set(true);
 
@@ -458,16 +454,11 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
-					library.bus.message('newBlock', block, broadcast);
 
-					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(block, seriesCb);
+					return seriesCb();
 				});
 			} else {
-				library.bus.message('newBlock', block, broadcast);
-
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(block, seriesCb);
+				return seriesCb();
 			}
 		},
 		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
@@ -497,6 +488,16 @@ Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
 	});
 };
 
+/**
+ * Broadcast reduced block to increase network performance.
+ * @param {Object} reducedBlock reduced block
+ * @param {Number} blockId
+ * @param {boolean} broadcast Indicator that block needs to be broadcasted
+ */
+Chain.prototype.broadcastReducedBlock = function (reducedBlock, blockId, broadcast) {
+	library.bus.message('newBlock', reducedBlock, broadcast);
+	library.logger.debug(['reducedBlock', blockId, 'broadcasted correctly'].join(' '));
+};
 
 /**
  * Deletes last block, undo transactions, recalculate round
@@ -549,28 +550,17 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					return process.exit(0);
 				}
 
-				// Perform backward tick on rounds
+				// Delete last block from blockchain
 				// WARNING: DB_WRITE
-				modules.rounds.backwardTick(oldLastBlock, previousBlock, function (err) {
+				self.deleteBlock(oldLastBlock.id, function (err) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
-						library.logger.error('Failed to perform backwards tick', err);
+						library.logger.error('Failed to delete block', err);
 
 						return process.exit(0);
 					}
 
-					// Delete last block from blockchain
-					// WARNING: Db_WRITE
-					self.deleteBlock(oldLastBlock.id, function (err) {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to delete block', err);
-
-							return process.exit(0);
-						}
-
-						return setImmediate(cb, null, previousBlock);
-					});
+					return setImmediate(cb, null, previousBlock);
 				});
 			});
 		});
@@ -634,7 +624,6 @@ Chain.prototype.recoverChain = function (cb) {
  * Handle modules initialization:
  * - accounts
  * - blocks
- * - rounds
  * - transactions
  * @param {modules} scope Exposed modules
  */
@@ -643,7 +632,6 @@ Chain.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
 		blocks: scope.blocks,
-		rounds: scope.rounds,
 		transactions: scope.transactions,
 	};
 

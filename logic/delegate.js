@@ -30,27 +30,6 @@ Delegate.prototype.bind = function (accounts) {
 };
 
 /**
- * Creates a delegate.
- * @param {Object} data - Entry information: username, publicKey.
- * @param {transaction} trs - Transaction to assign the delegate.
- * @returns {Object} trs with new data
- */
-Delegate.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = 0;
-	trs.asset.delegate = {
-		username: data.username,
-		publicKey: data.sender.publicKey
-	};
-
-	if (trs.asset.delegate.username) {
-		trs.asset.delegate.username = trs.asset.delegate.username.toLowerCase().trim();
-	}
-
-	return trs;
-};
-
-/**
  * Obtains constant fee delegate.
  * @see {@link module:helpers/constants}
  * @returns {number} constants.fees.delegate
@@ -309,8 +288,10 @@ Delegate.prototype.dbRead = function (raw) {
 Delegate.prototype.dbTable = 'delegates';
 
 Delegate.prototype.dbFields = [
-	'username',
-	'transactionId'
+	'tx_id',
+	'name',
+	'pk',
+	'address'
 ];
 
 /**
@@ -323,8 +304,10 @@ Delegate.prototype.dbSave = function (trs) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			username: trs.asset.delegate.username,
-			transactionId: trs.id
+			tx_id: trs.id,
+			name: trs.asset.delegate.username,
+			pk: Buffer.from(trs.senderPublicKey, 'hex'),
+			address: trs.senderId
 		}
 	};
 };

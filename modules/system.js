@@ -3,7 +3,8 @@
 var async = require('async');
 var crypto = require('crypto');
 var os = require('os');
-var sandboxHelper = require('../helpers/sandbox.js');
+var _ = require('lodash');
+var constants = require('../helpers/constants.js');
 var semver = require('semver');
 var sql = require('../sql/system.js');
 
@@ -33,24 +34,26 @@ function System (cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
-		nonce: scope.nonce,
 		config: {
 			version: scope.config.version,
 			port: scope.config.port,
 			nethash: scope.config.nethash,
 			minVersion: scope.config.minVersion,
-		},
+			nonce: scope.config.nonce
+		}
 	};
+
 	self = this;
 
 	__private.os = os.platform() + os.release();
 	__private.version = library.config.version;
 	__private.port = library.config.port;
+	__private.httpPort = library.config.httpPort;
 	__private.height = 1;
 	__private.nethash = library.config.nethash;
 	__private.broadhash = library.config.nethash;
 	__private.minVersion = library.config.minVersion;
-	__private.nonce = library.nonce;
+	__private.nonce = library.config.nonce;
 
 	if (rcRegExp.test(__private.minVersion)) {
 		this.minVersion = __private.minVersion.replace(rcRegExp, '');
@@ -63,6 +66,23 @@ function System (cb, scope) {
 }
 
 // Public methods
+
+/**
+ * Sets the entire __private variable
+ * @param {object} headers
+ */
+System.setHeaders = function (headers) {
+	__private = headers;
+};
+
+/**
+ * Returns all headers from __private variable
+ * @returns {*} __private
+ */
+System.getHeaders = function () {
+	return __private;
+};
+
 /**
  * Returns private variables object content.
  * @return {Object}
@@ -105,7 +125,7 @@ System.prototype.getHeight = function () {
 
 /**
  * Gets private variable `nethash`
- * @return {hash}
+ * @return {string} hash
  */
 System.prototype.getNethash = function () {
 	return __private.nethash;
@@ -113,18 +133,37 @@ System.prototype.getNethash = function () {
 
 /**
  * Gets private variable `nonce`
- * @return {nonce}
+ * @return {string} nonce
  */
 System.prototype.getNonce = function () {
 	return __private.nonce;
 };
+
 /**
- * Gets private variable `nethash` and compares with input param.
- * @param {hash}
- * @return {boolean} True if input param is equal to private value.
+ * Invokes cb with broadhash
+ * @param {function} cb
+ * @callback broadhashCallback
+ * @param {Error} err
+ * @param {string} broadhash
  */
-System.prototype.networkCompatible = function (nethash) {
-	return __private.nethash === nethash;
+System.prototype.getBroadhash = function (cb) {
+	if (typeof cb !== 'function') {
+		return __private.broadhash;
+	}
+
+	library.db.query(sql.getBroadhash, { limit: 5 }).then(function (rows) {
+		if (rows.length <= 1) {
+			return setImmediate(cb, null, __private.nethash);
+		} else {
+			var seed = rows.map(function (row) { return row.id; }).join('');
+			var hash = crypto.createHash('sha256').update(seed, 'utf8').digest();
+
+			return setImmediate(cb, null, hash.toString('hex'));
+		}
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, err);
+	});
 };
 
 /**
@@ -133,6 +172,15 @@ System.prototype.networkCompatible = function (nethash) {
  */
 System.prototype.getMinVersion = function () {
 	return __private.minVersion;
+};
+
+/**
+ * Checks nethash (network) compatibility.
+ * @param {string} nethash
+ * @returns {boolean}
+ */
+System.prototype.networkCompatible = function (nethash) {
+	return __private.nethash === nethash;
 };
 
 /**
@@ -160,30 +208,12 @@ System.prototype.versionCompatible = function (version) {
 };
 
 /**
- * Gets private nethash or creates a new one, based on input param and data.
- * @implements {library.db.query}
- * @implements {crypto.createHash}
- * @param {*} cb
- * @return {hash|setImmediateCallback} err | private nethash or new hash.
+ * Checks nonce (unique app id) compatibility- compatible when different than given.
+ * @param nonce
+ * @returns {boolean}
  */
-System.prototype.getBroadhash = function (cb) {
-	if (typeof cb !== 'function') {
-		return __private.broadhash;
-	}
-
-	library.db.query(sql.getBroadhash, { limit: 5 }).then(function (rows) {
-		if (rows.length <= 1) {
-			return setImmediate(cb, null, __private.nethash);
-		} else {
-			var seed = rows.map(function (row) { return row.id; }).join('');
-			var hash = crypto.createHash('sha256').update(seed, 'utf8').digest();
-
-			return setImmediate(cb, null, hash.toString('hex'));
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, err);
-	});
+System.prototype.nonceCompatible = function (nonce) {
+	return nonce && __private.nonce !== nonce;
 };
 
 /**
@@ -215,17 +245,6 @@ System.prototype.update = function (cb) {
 		modules.transport.headers(__private);
 		return setImmediate(cb, err);
 	});
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-System.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events

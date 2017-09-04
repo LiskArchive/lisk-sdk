@@ -8,8 +8,6 @@ var httpApi = require('../../helpers/httpApi');
  * - End point: `/api/multisignatures`
  * - Public API:
  * 	- get	/pending
- * 	- post	/sign
- * 	- put	/
  * 	- get	/accounts
  * @memberof module:multisignatures
  * @requires helpers/Router
@@ -20,18 +18,16 @@ var httpApi = require('../../helpers/httpApi');
  * @todo correct typo mutlisignaturesModule
  */
 // Constructor
-function MultisignaturesHttpApi (mutlisignaturesModule, app) {
+function MultisignaturesHttpApi (multisignaturesModule, app) {
 
 	var router = new Router();
 
-	router.map(mutlisignaturesModule.shared, {
+	router.map(multisignaturesModule.shared, {
 		'get /pending': 'pending',
-		'post /sign': 'sign',
-		'put /': 'addMultisignature',
 		'get /accounts': 'getAccounts'
 	});
 
-	httpApi.registerEndpoint('/api/multisignatures', app, router, mutlisignaturesModule.isLoaded);
+	httpApi.registerEndpoint('/api/multisignatures', app, router, multisignaturesModule.isLoaded);
 }
 
 module.exports = MultisignaturesHttpApi;

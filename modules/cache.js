@@ -165,11 +165,13 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 };
 
 /**
- * This function will be triggered when a round finishes, it will clear all cache entires.
- * @param {Round} round
+ * This function will be triggered when round has changed, it will clear all cache entries.
+ * @param {object} data Data received from postgres
+ * @param {object} data.round Current round
+ * @param {object} data.list Delegates list used for slot calculations
  * @param {Function} cb
  */
-Cache.prototype.onFinishRound = function (round, cb) {
+Cache.prototype.onRoundChanged = function (data, cb) {
 	cb = cb || function () {};
 
 	if(!self.isReady()) { return cb(errorCacheDisabled); }

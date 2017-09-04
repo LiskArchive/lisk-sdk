@@ -7,6 +7,10 @@ module.exports = {
 		id: 'transport.headers',
 		type: 'object',
 		properties: {
+			ip: {
+				type: 'string',
+				format: 'ip'
+			},
 			port: {
 				type: 'integer',
 				minimum: 1,
@@ -42,7 +46,7 @@ module.exports = {
 				max: 16
 			}
 		},
-		required: ['port', 'version', 'nethash']
+		required: ['ip', 'port', 'version', 'nethash']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',
@@ -113,5 +117,52 @@ module.exports = {
 			}
 		},
 		required: ['signature']
+	},
+	internalAccess: {
+		id: 'transport.internalAccess',
+		type: 'object',
+		properties: {
+			peer: {
+				type: 'object'
+			},
+			authKey: {
+				type: 'string'
+			}
+		},
+		required: ['authKey', 'peer']
+	},
+	update: {
+		id: 'transport.update',
+		type: 'object',
+		properties: {
+			data: {
+				type: 'object',
+				properties: {
+					nethash: {
+						type: 'string',
+						maxLength: 64
+					},
+					broadhash: {
+						type: 'string',
+						format: 'hex'
+					},
+					height: {
+						type: 'integer',
+						minimum: 1
+					},
+					nonce: {
+						type: 'string'
+					}
+				},
+				required: ['nonce']
+			},
+			socketId: {
+				type: 'string'
+			},
+			workerId: {
+				type: 'number'
+			}
+		},
+		required: ['socketId', 'data']
 	}
 };

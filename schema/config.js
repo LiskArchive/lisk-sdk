@@ -237,6 +237,9 @@ module.exports = {
 					force: {
 						type: 'boolean'
 					},
+					defaultKey: {
+						type: 'string'
+					},
 					secret: {
 						type: 'array'
 					},
@@ -294,26 +297,11 @@ module.exports = {
 				},
 				required: ['enabled', 'options']
 			},
-			dapp: {
-				type: 'object',
-				properties: {
-					masterrequired: {
-						type: 'boolean'
-					},
-					masterpassword: {
-						type: 'string'
-					},
-					autoexec: {
-						type: 'array'
-					}
-				},
-				required: ['masterrequired', 'masterpassword', 'autoexec']
-			},
 			nethash: {
 				type: 'string',
 				format: 'hex'
 			}
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash', 'cacheEnabled', 'redis']
+		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
 	}
 };

@@ -2,7 +2,6 @@
 
 var crypto = require('crypto');
 var fs = require('fs');
-var sandboxHelper = require('../helpers/sandbox.js');
 
 // Private fields
 var self, __private = {}, shared = {};
@@ -21,18 +20,6 @@ function Crypto (cb, scope) {
 
 	setImmediate(cb, null, self);
 }
-
-// Public methods
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Crypto.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
 
 // Events
 /**

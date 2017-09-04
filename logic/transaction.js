@@ -11,7 +11,7 @@ var slots = require('../helpers/slots.js');
 var sql = require('../sql/transactions.js');
 
 // Private fields
-var self, modules, __private = {};
+var self, __private = {};
 
 /**
  * @typedef {Object} privateTypes
@@ -58,54 +58,6 @@ function Transaction (db, ed, schema, genesisblock, account, logger, cb) {
 
 // Public methods
 /**
- * Creates transaction:
- * - Analyzes data types
- * - calls `create` based on data type (see privateTypes)
- * - calls `calculateFee` based on data type (see privateTypes)
- * - creates signatures
- * @see privateTypes
- * @implements {sign}
- * @implements {getId}
- * @param {Object} data
- * @return {transaction} trs
- */
-Transaction.prototype.create = function (data) {
-	if (!__private.types[data.type]) {
-		throw 'Unknown transaction type ' + data.type;
-	}
-
-	if (!data.sender) {
-		throw 'Invalid sender';
-	}
-
-	if (!data.keypair) {
-		throw 'Invalid keypair';
-	}
-
-	var trs = {
-		type: data.type,
-		amount: 0,
-		senderPublicKey: data.sender.publicKey,
-		requesterPublicKey: data.requester ? data.requester.publicKey.toString('hex') : null,
-		timestamp: slots.getTime(),
-		asset: {}
-	};
-
-	trs = __private.types[trs.type].create.call(this, data, trs);
-	trs.signature = this.sign(data.keypair, trs);
-
-	if (data.sender.secondSignature && data.secondKeypair) {
-		trs.signSignature = this.sign(data.secondKeypair, trs);
-	}
-
-	trs.id = this.getId(trs);
-
-	trs.fee = __private.types[trs.type].calculateFee.call(this, trs, data.sender) || false;
-
-	return trs;
-};
-
-/**
  * Sets private type based on type id after instance object validation.
  * @param {number} typeId
  * @param {Object} instance
@@ -113,7 +65,7 @@ Transaction.prototype.create = function (data) {
  * @throws {string} Invalid instance interface if validations are wrong
  */
 Transaction.prototype.attachAssetType = function (typeId, instance) {
-	if (instance && typeof instance.create === 'function' && typeof instance.getBytes === 'function' &&
+	if (instance && typeof instance.getBytes === 'function' &&
 		typeof instance.calculateFee === 'function' && typeof instance.verify === 'function' &&
 		typeof instance.objectNormalize === 'function' && typeof instance.dbRead === 'function' &&
 		typeof instance.apply === 'function' && typeof instance.undo === 'function' &&
@@ -137,7 +89,7 @@ Transaction.prototype.attachAssetType = function (typeId, instance) {
  */
 Transaction.prototype.sign = function (keypair, trs) {
 	var hash = this.getHash(trs);
-	return this.scope.ed.sign(hash, keypair).toString('hex');
+	return this.scope.ed.sign(hash, keypair.privateKey).toString('hex');
 };
 
 /**
@@ -152,7 +104,7 @@ Transaction.prototype.sign = function (keypair, trs) {
 Transaction.prototype.multisign = function (keypair, trs) {
 	var bytes = this.getBytes(trs, true, true);
 	var hash = crypto.createHash('sha256').update(bytes).digest();
-	return this.scope.ed.sign(hash, keypair).toString('hex');
+	return this.scope.ed.sign(hash, keypair.privateKey).toString('hex');
 };
 
 /**
@@ -491,7 +443,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	if (trs.requesterPublicKey) {
 		multisignatures.push(trs.senderPublicKey);
 
-		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
+		if (!Array.isArray(sender.multisignatures) || sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
 			return setImmediate(cb, 'Account does not belong to multisignature group');
 		}
 	}
@@ -695,7 +647,7 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
  * @see privateTypes
  * @implements {checkBalance}
  * @implements {account.merge}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -717,11 +669,11 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 
 	amount = amount.toNumber();
 
-	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: modules.rounds.calc(block.height)});
+	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: slots.calcRound(block.height)});
 	this.scope.account.merge(sender.address, {
 		balance: -amount,
 		blockId: block.id,
-		round: modules.rounds.calc(block.height)
+		round: slots.calcRound(block.height)
 	}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -735,7 +687,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 				this.scope.account.merge(sender.address, {
 					balance: amount,
 					blockId: block.id,
-					round: modules.rounds.calc(block.height)
+					round: slots.calcRound(block.height)
 				}, function (err) {
 					return setImmediate(cb, err);
 				});
@@ -751,7 +703,7 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
  * @see privateTypes
  * @implements {bignum}
  * @implements {account.merge}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -762,11 +714,11 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
-	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: modules.rounds.calc(block.height)});
+	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height)});
 	this.scope.account.merge(sender.address, {
 		balance: amount,
 		blockId: block.id,
-		round: modules.rounds.calc(block.height)
+		round: slots.calcRound(block.height)
 	}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -777,7 +729,7 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 				this.scope.account.merge(sender.address, {
 					balance: -amount,
 					blockId: block.id,
-					round: modules.rounds.calc(block.height)
+					round: slots.calcRound(block.height)
 				}, function (err) {
 					return setImmediate(cb, err);
 				});
@@ -1064,6 +1016,9 @@ Transaction.prototype.schema = {
  * @throws {string} error message
  */
 Transaction.prototype.objectNormalize = function (trs) {
+	if (_.isEmpty(trs)) {
+		throw 'Empty trs passed';
+	}
 	if (!__private.types[trs.type]) {
 		throw 'Unknown transaction type ' + trs.type;
 	}
@@ -1134,18 +1089,6 @@ Transaction.prototype.dbRead = function (raw) {
 
 		return tx;
 	}
-};
-
-// Events
-/**
- * Binds input parameters to private variables modules.
- * @param {Object} __modules
- */
-Transaction.prototype.bindModules = function (__modules) {
-	this.scope.logger.trace('Logic/Transaction->bindModules');
-	modules = {
-		rounds: __modules.rounds
-	};
 };
 
 // Export

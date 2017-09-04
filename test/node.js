@@ -2,8 +2,14 @@
 
 // Root object
 var node = {};
-var Rounds = require('../modules/rounds.js');
-var slots = require('../helpers/slots.js');
+
+var Promise = require('bluebird');
+var rewire  = require('rewire');
+var sinon   = require('sinon');
+
+// Application specific
+var Sequence  = require('../helpers/sequence.js');
+var slots     = require('../helpers/slots.js');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -12,7 +18,6 @@ node.constants = require('../helpers/constants.js');
 node.dappCategories = require('../helpers/dappCategories.js');
 node.dappTypes = require('../helpers/dappTypes.js');
 node.txTypes = require('../helpers/transactionTypes.js');
-
 node._ = require('lodash');
 node.async = require('async');
 node.popsicle = require('popsicle');
@@ -20,18 +25,20 @@ node.expect = require('chai').expect;
 node.chai = require('chai');
 node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
-node.lisk = require('./lisk-js');
+node.lisk = require('lisk-js');
 node.supertest = require('supertest');
+var randomString = require('randomstring');
 require('colors');
 
 // Node configuration
-node.baseUrl = 'http://' + node.config.address + ':' + node.config.port;
+node.baseUrl = 'http://' + node.config.address + ':' + node.config.httpPort;
 node.api = node.supertest(node.baseUrl);
 
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
+node.nonce = randomString.generate(16);
 
 // Transaction fees
 node.fees = {
@@ -40,13 +47,30 @@ node.fees = {
 	secondPasswordFee: node.constants.fees.secondsignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappAddFee: node.constants.fees.dapp
+	dappRegistrationFee: node.constants.fees.dapp,
+	dataFee: node.constants.fees.data
 };
 
 // Test application
 node.guestbookDapp = {
-	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
-	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip'
+	category: 0,
+	name: 'Lisk Guestbook',
+	description: 'The official Lisk guestbook',
+	tags: 'guestbook message sidechain',
+	type: 0,
+	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
+	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png'
+};
+
+// Test application
+node.blockDataDapp = {
+	category: 1,
+	name: 'BlockData',
+	description: 'Blockchain based home monitoring tool',
+	tags: 'monitoring temperature power sidechain',
+	type: 0,
+	link: 'https://github.com/MaxKK/blockDataDapp/archive/master.zip',
+	icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
 };
 
 // Existing delegate account
@@ -80,7 +104,7 @@ node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 node.randomDelegateName = function () {
 	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
 	var delegateName = '';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for (var i = 0; i < size; i++) {
 		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -130,7 +154,7 @@ node.onNewRound = function (cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			var nextRound = Math.ceil(height / slots.delegates);
+			var nextRound = slots.calcRound(height);
 			var blocksToWait = nextRound * slots.delegates - height;
 			node.debug('blocks to wait: '.grey, blocksToWait);
 			node.waitForNewBlock(height, blocksToWait, cb);
@@ -207,53 +231,23 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 	);
 };
 
-// Adds peers to local node
-node.addPeers = function (numOfPeers, ip, cb) {
+node.generatePeerHeaders = function (ip, port) {
+	port = port || 9999;
+	ip = ip || '127.0.0.1';
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var port = 9999; // Frozen peer port
-	var os, version;
-	var i = 0;
+	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
+	var version = node.version;
 
-	node.async.whilst(function () {
-		return i < numOfPeers;
-	}, function (next) {
-		os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
-		version = node.version;
-
-		var request = node.popsicle.get({
-			url: node.baseUrl + '/peer/height',
-			headers: {
-				broadhash: node.config.nethash,
-				height: 1,
-				nethash: node.config.nethash,
-				os: os,
-				ip: ip,
-				port: port,
-				version: version,
-				nonce: 'randomNonce'
-			}
-		});
-
-		request.use(node.popsicle.plugins.parse(['json']));
-
-		request.then(function (res) {
-			if (res.status !== 200) {
-				return next(['Received bad response code', res.status, res.url].join(' '));
-			} else {
-				i++;
-				next();
-			}
-		});
-
-		request.catch(function (err) {
-			return next(err);
-		});
-	}, function (err) {
-		// Wait for peer to be swept to db
-		setTimeout(function () {
-			return cb(err, {os: os, version: version, port: port});
-		}, 3000);
-	});
+	return {
+		broadhash: node.config.nethash,
+		height: 1,
+		nethash: node.config.nethash,
+		os: os,
+		ip: ip,
+		port: port,
+		version: version,
+		nonce: randomString.generate(16)
+	};
 };
 
 // Returns a random index for an array
@@ -271,11 +265,16 @@ node.expectedFee = function (amount) {
 	return parseInt(node.fees.transactionFee);
 };
 
+// Returns the expected fee for the given amount with data property
+node.expectedFeeForTrsWithData = function (amount) {
+	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
+};
+
 // Returns a random username
 node.randomUsername = function () {
 	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
 	var username = '';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
 	for (var i = 0; i < size; i++) {
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -321,6 +320,7 @@ node.randomAccount = function () {
 	account.username = node.randomDelegateName();
 	account.publicKey = node.lisk.crypto.getKeys(account.password).publicKey;
 	account.address = node.lisk.crypto.getAddress(account.publicKey);
+	account.secondPublicKey = node.lisk.crypto.getKeys(account.secondPassword).publicKey;
 
 	return account;
 };
@@ -340,52 +340,222 @@ node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
 };
 
-// Abstract request
-function abstractRequest (options, done) {
-	var request = node.api[options.verb.toLowerCase()](options.path);
 
-	request.set('Accept', 'application/json');
-	request.set('version', node.version);
-	request.set('nethash', node.config.nethash);
-	request.set('ip', '0.0.0.0');
-	request.set('port', node.config.port);
+// Init whole application inside tests
+node.initApplication = function (cb) {
+	var modules = [], rewiredModules = {};
+	// Init dummy connection with database - valid, used for tests here
+	var options = {
+	    promiseLib: Promise
+	};
+	var pgp = require('pg-promise')(options);
+	node.config.db.user = node.config.db.user || process.env.USER;
+	var db = pgp(node.config.db);
 
-	request.expect('Content-Type', /json/);
-	request.expect(200);
+	// Clear tables
+	db.task(function (t) {
+		return t.batch([
+			t.none('DELETE FROM blocks WHERE height > 1'),
+			t.none('DELETE FROM blocks'),
+			t.none('DELETE FROM mem_accounts')
+		]);
+	}).then(function () {
+		// Force rewards start at 150-th block
+		node.constants.rewards.offset = 150;
 
-	if (options.params) {
-		request.send(options.params);
-	}
+		var logger = {
+			trace: sinon.spy(),
+			debug: sinon.spy(),
+			info:  sinon.spy(),
+			log:   sinon.spy(),
+			warn:  sinon.spy(),
+			error: sinon.spy()
+		};
 
-	var verb = options.verb.toUpperCase();
-	node.debug(['> Path:'.grey, verb, options.path].join(' '));
-	if (verb === 'POST' || verb === 'PUT') {
-		node.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
-	}
+		var modulesInit = {
+			accounts: '../modules/accounts.js',
+			transactions: '../modules/transactions.js',
+			blocks: '../modules/blocks.js',
+			signatures: '../modules/signatures.js',
+			transport: '../modules/transport.js',
+			loader: '../modules/loader.js',
+			system: '../modules/system.js',
+			peers: '../modules/peers.js',
+			delegates: '../modules/delegates.js',
+			multisignatures: '../modules/multisignatures.js',
+			dapps: '../modules/dapps.js',
+			crypto: '../modules/crypto.js',
+			// cache: '../modules/cache.js'
+		};
 
-	if (done) {
-		request.end(function (err, res) {
-			node.debug('> Response:'.grey, JSON.stringify(res.body));
-			done(err, res);
+		// Init limited application layer
+		node.async.auto({
+			config: function (cb) {
+				cb(null, node.config);
+			},
+			genesisblock: function (cb) {
+				var genesisblock = require('../genesisBlock.json');
+				cb(null, {block: genesisblock});
+			},
+
+			schema: function (cb) {
+				var z_schema = require('../helpers/z_schema.js');
+				cb(null, new z_schema());
+			},
+			network: function (cb) {
+				// Init with empty function
+				cb(null, {io: {sockets: {emit: function () {}}}});
+			},
+			webSocket: ['config', 'logger', 'network', function (scope, cb) {
+				// Init with empty functions
+				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+				var dummySocketCluster = {on: function () {}};
+				var dummyWAMPServer = new MasterWAMPServer(dummySocketCluster, {});
+				var wsRPC = require('../api/ws/rpc/wsRPC.js').wsRPC;
+
+				wsRPC.setServer(dummyWAMPServer);
+				wsRPC.getServer().registerRPCEndpoints({status: function () {}});
+
+				cb();
+			}],
+			logger: function (cb) {
+				cb(null, logger);
+			},
+			dbSequence: ['logger', function (scope, cb) {
+				var sequence = new Sequence({
+					onWarning: function (current, limit) {
+						scope.logger.warn('DB queue', current);
+					}
+				});
+				cb(null, sequence);
+			}],
+			sequence: ['logger', function (scope, cb) {
+				var sequence = new Sequence({
+					onWarning: function (current, limit) {
+						scope.logger.warn('Main queue', current);
+					}
+				});
+				cb(null, sequence);
+			}],
+			balancesSequence: ['logger', function (scope, cb) {
+				var sequence = new Sequence({
+					onWarning: function (current, limit) {
+						scope.logger.warn('Balance queue', current);
+					}
+				});
+				cb(null, sequence);
+			}],
+			ed: function (cb) {
+				cb(null, require('../helpers/ed.js'));
+			},
+
+			bus: ['ed', function (scope, cb) {
+				var changeCase = require('change-case');
+				var bus = function () {
+					this.message = function () {
+						var args = [];
+						Array.prototype.push.apply(args, arguments);
+						var topic = args.shift();
+						var eventName = 'on' + changeCase.pascalCase(topic);
+
+						// Iterate over modules and execute event functions (on*)
+						modules.forEach(function (module) {
+							if (typeof(module[eventName]) === 'function') {
+								module[eventName].apply(module[eventName], args);
+							}
+							if (module.submodules) {
+								node.async.each(module.submodules, function (submodule) {
+									if (submodule && typeof(submodule[eventName]) === 'function') {
+										submodule[eventName].apply(submodule[eventName], args);
+									}
+								});
+							}
+						});
+					};
+				};
+				cb(null, new bus());
+			}],
+			db: function (cb) {
+				cb(null, db);
+			},
+			pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
+				var pg_notify = require('../helpers/pg-notify.js');
+				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
+			}],
+			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
+				var Transaction = require('../logic/transaction.js');
+				var Block = require('../logic/block.js');
+				var Account = require('../logic/account.js');
+				var Peers = require('../logic/peers.js');
+
+				node.async.auto({
+					bus: function (cb) {
+						cb(null, scope.bus);
+					},
+					db: function (cb) {
+						cb(null, scope.db);
+					},
+					ed: function (cb) {
+						cb(null, scope.ed);
+					},
+					logger: function (cb) {
+						cb(null, scope.logger);
+					},
+					schema: function (cb) {
+						cb(null, scope.schema);
+					},
+					genesisblock: function (cb) {
+						cb(null, {
+							block: scope.genesisblock.block
+						});
+					},
+					account: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'logger', function (scope, cb) {
+						new Account(scope.db, scope.schema, scope.logger, cb);
+					}],
+					transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
+						new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
+					}],
+					block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
+						new Block(scope.ed, scope.schema, scope.transaction, cb);
+					}],
+					peers: ['logger', function (scope, cb) {
+						new Peers(scope.logger, cb);
+					}]
+				}, cb);
+			}],
+			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+				var tasks = {};
+				scope.rewiredModules = {};
+
+				Object.keys(modulesInit).forEach(function (name) {
+					tasks[name] = function (cb) {
+						var Instance = rewire(modulesInit[name]);
+						rewiredModules[name] = Instance;
+						var obj = new rewiredModules[name](cb, scope);
+						modules.push(obj);
+					};
+				});
+
+				node.async.parallel(tasks, function (err, results) {
+					cb(err, results);
+				});
+			}],
+			ready: ['modules', 'bus', 'logic', function (scope, cb) {
+				// Fire onBind event in every module
+				scope.bus.message('bind', scope.modules);
+
+				scope.logic.peers.bindModules(scope.modules);
+				cb();
+			}]
+		}, function (err, scope) {
+			// Overwrite onBlockchainReady function to prevent automatic forging
+			scope.modules.delegates.onBlockchainReady = function () {};
+			scope.rewiredModules = rewiredModules;
+
+			cb(scope);
 		});
-	} else {
-		return request;
-	}
-}
-
-// Get the given path
-node.get = function (path, done) {
-	return abstractRequest({ verb: 'GET', path: path, params: null }, done);
-};
-
-// Post to the given path
-node.post = function (path, params, done) {
-	return abstractRequest({ verb: 'POST', path: path, params: params }, done);
-};
-
-// Put to the given path
-node.put = function (path, params, done) {
-	return abstractRequest({ verb: 'PUT', path: path, params: params }, done);
+	});
 };
 
 before(function (done) {

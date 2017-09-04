@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var ip = require('ip');
+var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
 /**
  * Creates a peer.
@@ -14,6 +15,15 @@ var ip = require('ip');
  */
 // Constructor
 function Peer (peer) {
+
+	Object.defineProperties(this, {
+		rpc: {
+			get: function () {
+				return wsRPC.getClientRPCStub(this.ip, this.port);
+			}.bind(this)
+		}
+	});
+
 	return this.accept(peer || {});
 }
 
@@ -24,7 +34,6 @@ function Peer (peer) {
  * @property {number} state - Between 0 and 2. (banned = 0, unbanned = 1, active = 2)
  * @property {string} os - Between 1 and 64 chars
  * @property {string} version - Between 5 and 12 chars
- * @property {string} dappid
  * @property {hash} broadhash
  * @property {number} height - Minimum 1
  * @property {Date} clock
@@ -39,24 +48,24 @@ Peer.prototype.properties = [
 	'state',
 	'os',
 	'version',
-	'dappid',
 	'broadhash',
 	'height',
 	'clock',
 	'updated',
-	'nonce'
+	'nonce',
+	'httpPort'
 ];
 
 Peer.prototype.immutable = [
 	'ip',
 	'port',
+	'httpPort',
 	'string'
 ];
 
 Peer.prototype.headers = [
 	'os',
 	'version',
-	'dappid',
 	'broadhash',
 	'height',
 	'nonce'
@@ -65,7 +74,6 @@ Peer.prototype.headers = [
 Peer.prototype.nullable = [
 	'os',
 	'version',
-	'dappid',
 	'broadhash',
 	'height',
 	'clock',
@@ -110,15 +118,9 @@ Peer.prototype.accept = function (peer) {
 /**
  * Normalizes peer data.
  * @param {peer} peer
- * @return {peer} 
+ * @return {peer}
  */
 Peer.prototype.normalize = function (peer) {
-	if (peer.dappid && !Array.isArray(peer.dappid)) {
-		var dappid = peer.dappid;
-		peer.dappid = [];
-		peer.dappid.push(dappid);
-	}
-
 	if (peer.height) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
@@ -189,6 +191,7 @@ Peer.prototype.object = function () {
 		}
 	});
 
+	delete copy.rpc;
 	return copy;
 };
 

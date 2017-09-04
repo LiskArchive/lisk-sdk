@@ -2,6 +2,7 @@
 
 var constants = require('../helpers/constants.js');
 var sql = require('../sql/dapps.js');
+var slots = require('../helpers/slots.js');
 
 // Private fields
 var modules, library, shared;
@@ -26,33 +27,13 @@ function InTransfer (db, schema) {
 /**
  * Binds input parameters to private variables modules and shared.
  * @param {Accounts} accounts
- * @param {Rounds} rounds
  * @param {Object} sharedApi
  */
-InTransfer.prototype.bind = function (accounts, rounds, sharedApi) {
+InTransfer.prototype.bind = function (accounts, sharedApi) {
 	modules = {
-		accounts: accounts,
-		rounds: rounds,
+		accounts: accounts
 	};
 	shared = sharedApi;
-};
-
-/**
- * Assigns data to transaction recipientId and amount.
- * Generates inTransfer data into transaction asset.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-InTransfer.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = data.amount;
-
-	trs.asset.inTransfer = {
-		dappId: data.dappId
-	};
-
-	return trs;
 };
 
 /**
@@ -137,7 +118,7 @@ InTransfer.prototype.getBytes = function (trs) {
  * address.
  * @implements {shared.getGenesis}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -154,7 +135,7 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
 			balance: trs.amount,
 			u_balance: trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -167,7 +148,7 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
  * trs amount and balance both negatives.
  * @implements {shared.getGenesis}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -184,7 +165,7 @@ InTransfer.prototype.undo = function (trs, block, sender, cb) {
 			balance: -trs.amount,
 			u_balance: -trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});

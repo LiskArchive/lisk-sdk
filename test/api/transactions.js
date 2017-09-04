@@ -1,47 +1,47 @@
 'use strict';
 
-var node = require('./../node.js');
-var modulesLoader = require('./../common/initModule.js').modulesLoader;
+var node = require('../node.js');
+var http = require('../common/httpCommunication.js');
+var ws = require('../common/wsCommunication');
+var sendLiskTrs = require('../common/complexTransactions.js').sendLISK;
 var transactionSortFields = require('../../sql/transactions').sortFields;
+var modulesLoader = require('../common/initModule').modulesLoader;
+var transactionTypes = require('../../helpers/transactionTypes.js');
+var genesisblock = require('../genesisBlock.json');
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();
-var account3 = node.randomTxAccount();
 
 var transactionList = [];
 var offsetTimestamp = 0;
 
-function openAccount (params, done) {
-	node.post('/api/accounts/open', params, function (err, res) {
-		done(err, res);
-	});
-}
-
-function putTransaction (params, done) {
-	node.put('/api/transactions', params, done);
-}
-
 function sendLISK (account, amount, done) {
 	var expectedFee = node.expectedFee(amount);
 
-	putTransaction({
+	sendLiskTrs({
 		secret: node.gAccount.password,
 		amount: amount,
-		recipientId: account.address
+		address: account.address
 	}, function (err, res) {
-		node.expect(res.body).to.have.property('success').to.be.ok;
-		node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+		node.expect(res).to.have.property('success').to.be.ok;
+		node.expect(res).to.have.property('transactionId').that.is.not.empty;
 		transactionList.push({
 			'sender': node.gAccount.address,
 			'recipient': account.address,
 			'grossSent': (amount + expectedFee) / node.normalizer,
 			'fee': expectedFee / node.normalizer,
 			'netSent': amount / node.normalizer,
-			'txId': res.body.transactionId,
+			'txId': res.transactionId,
 			'type': node.txTypes.SEND
 		});
 		done(err, res);
 	});
+}
+
+function postTransaction (transaction, done) {
+	ws.call('postTransactions', {
+		transaction: transaction
+	}, done, true);
 }
 
 before(function (done) {
@@ -115,7 +115,7 @@ describe('GET /api/transactions (cache)', function () {
 			'recipientId=' + account.address,
 		];
 
-		node.get(url + params.join('&'), function (err, res) {
+		http.get(url + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			var response = res.body;
@@ -134,7 +134,7 @@ describe('GET /api/transactions (cache)', function () {
 			'whatever:senderId=' + node.gAccount.address
 		];
 
-		node.get(url + params.join('&'), function (err, res) {
+		http.get(url + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			cache.getJsonForKey(url + params, function (err, res) {
@@ -166,7 +166,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=' + orderBy
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
@@ -193,7 +193,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=' + orderBy
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
@@ -221,7 +221,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=' + orderBy
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(2, limit);
@@ -254,7 +254,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=' + orderBy
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
@@ -283,7 +283,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=' + orderBy
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
@@ -310,7 +310,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=' + orderBy
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -322,7 +322,7 @@ describe('GET /api/transactions', function () {
 			'whatever:senderId=' + node.gAccount.address
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -334,7 +334,7 @@ describe('GET /api/transactions', function () {
 			'or:whatever:senderId=' + node.gAccount.address
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -346,7 +346,7 @@ describe('GET /api/transactions', function () {
 			'and:publicKey='
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -357,7 +357,7 @@ describe('GET /api/transactions', function () {
 		var type = node.txTypes.SEND;
 		var params = 'type=' + type;
 
-		node.get('/api/transactions?' + params, function (err, res) {
+		http.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			for (var i = 0; i < res.body.transactions.length; i++) {
@@ -370,7 +370,7 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using no params should be ok', function (done) {
-		node.get('/api/transactions', function (err, res) {
+		http.get('/api/transactions', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			for (var i = 0; i < res.body.transactions.length; i++) {
@@ -385,7 +385,7 @@ describe('GET /api/transactions', function () {
 	it('using too small fromUnixTime should fail', function (done) {
 		var params = 'fromUnixTime=1464109199';
 
-		node.get('/api/transactions?' + params, function (err, res) {
+		http.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -395,7 +395,7 @@ describe('GET /api/transactions', function () {
 	it('using too small toUnixTime should fail', function (done) {
 		var params = 'toUnixTime=1464109200';
 
-		node.get('/api/transactions?' + params, function (err, res) {
+		http.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -406,7 +406,7 @@ describe('GET /api/transactions', function () {
 		var limit = 1001;
 		var params = 'limit=' + limit;
 
-		node.get('/api/transactions?' + params, function (err, res) {
+		http.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -417,7 +417,7 @@ describe('GET /api/transactions', function () {
 		var orderBy = 'timestamp:asc';
 		var params = 'orderBy=' + orderBy;
 
-		node.get('/api/transactions?' + params, function (err, res) {
+		http.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 
@@ -440,7 +440,7 @@ describe('GET /api/transactions', function () {
 		var offset = 1;
 		var params = 'offset=' + offset;
 
-		node.get('/api/transactions?' + params, function (err, res) {
+		http.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			if (res.body.transactions.length > 0) {
@@ -454,11 +454,11 @@ describe('GET /api/transactions', function () {
 		var offset = 'one';
 		var params = 'offset=' + offset;
 
-		node.get('/api/transactions?' + params, function (err, res) {
+		http.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
-		 });
+		});
 	});
 
 	it('using completely invalid fields should fail', function (done) {
@@ -471,7 +471,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=invalid'
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -488,7 +488,7 @@ describe('GET /api/transactions', function () {
 			'orderBy=blockId:asc'
 		];
 
-		node.get('/api/transactions?' + params.join('&'), function (err, res) {
+		http.get('/api/transactions?' + params.join('&'), function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
 			done();
@@ -497,7 +497,7 @@ describe('GET /api/transactions', function () {
 
 	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
 		node.async.each(transactionSortFields, function (sortField, cb) {
-			node.get('/api/transactions?orderBy=' + sortField, function (err, res) {
+			http.get('/api/transactions?orderBy=' + sortField, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactions').that.is.an('array');
 
@@ -528,7 +528,7 @@ describe('GET /api/transactions/get?id=', function () {
 		var transactionInCheck = transactionList[0];
 		var params = 'id=' + transactionInCheck.txId;
 
-		node.get('/api/transactions/get?' + params, function (err, res) {
+		http.get('/api/transactions/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 			node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
@@ -544,9 +544,31 @@ describe('GET /api/transactions/get?id=', function () {
 	it('using invalid id should fail', function (done) {
 		var params = 'id=invalid';
 
-		node.get('/api/transactions/get?' + params, function (err, res) {
+		http.get('/api/transactions/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
 			node.expect(res.body).to.have.property('error');
+			done();
+		});
+	});
+
+	it('should get transaction with asset for id', function (done) {
+		var transactionInCheck = genesisblock.transactions.find(function (trs) {
+			return trs.id === '9314232245035524467';
+		});
+
+		var params = 'id=' + transactionInCheck.id;
+		http.get('/api/transactions/get?' + params, function (err, res) {
+			node.expect(res.body.transaction.type).to.equal(transactionTypes.VOTE);
+			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+
+			node.expect(res.body).to.have.property('success').to.be.ok;
+			node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			node.expect(res.body.transaction.id).to.equal(transactionInCheck.id);
+			node.expect(res.body.transaction.amount).to.equal(transactionInCheck.amount);
+			node.expect(res.body.transaction.fee).to.equal(transactionInCheck.fee);
+			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipientId);
+			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
+			node.expect(res.body.transaction.asset).to.eql(transactionInCheck.asset);
 			done();
 		});
 	});
@@ -555,7 +577,7 @@ describe('GET /api/transactions/get?id=', function () {
 describe('GET /api/transactions/count', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/transactions/count', function (err, res) {
+		http.get('/api/transactions/count', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('confirmed').that.is.an('number');
 			node.expect(res.body).to.have.property('queued').that.is.an('number');
@@ -571,10 +593,57 @@ describe('GET /api/transactions/queued/get?id=', function () {
 	it('using unknown id should be ok', function (done) {
 		var params = 'id=' + '1234';
 
-		node.get('/api/transactions/queued/get?' + params, function (err, res) {
+		http.get('/api/transactions/queued/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.false;
 			node.expect(res.body).to.have.property('error').that.is.equal('Transaction not found');
 			done();
+		});
+	});
+
+	describe('for transaction with data field', function () {
+
+		function createTransactionWithData (done) {
+			var amountToSend = 123456789;
+			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
+			var data = 'extra information';
+			var transferTrs = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
+
+			postTransaction(transferTrs, function (err, res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('transactionId').that.is.not.empty;
+				var transaction = {
+					'sender': account.address,
+					'recipient': account2.address,
+					'grossSent': (amountToSend + expectedFee) / node.normalizer,
+					'fee': expectedFee / node.normalizer,
+					'netSent': amountToSend / node.normalizer,
+					'txId': res.transactionId,
+					'type': node.txTypes.SEND,
+					'data': data
+				};
+				transactionList.push(transaction);
+				done(transaction);
+			});
+		}
+
+		it('using valid id should be ok', function (done) {
+			createTransactionWithData(function (transactionInCheck) {
+				var trsId = transactionInCheck.txId;
+				var params = 'id=' + trsId;
+
+				http.get('/api/transactions/queued/get?' + params, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transaction').that.is.an('object');
+					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
+					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
+					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
+					node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
+					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
+					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
+					node.expect(res.body.transaction.asset.data).to.equal(transactionInCheck.data);
+					done();
+				});
+			});
 		});
 	});
 });
@@ -582,7 +651,7 @@ describe('GET /api/transactions/queued/get?id=', function () {
 describe('GET /api/transactions/queued', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/transactions/queued', function (err, res) {
+		http.get('/api/transactions/queued', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body).to.have.property('count').that.is.an('number');
@@ -596,7 +665,7 @@ describe('GET /api/transactions/multisignatures/get?id=', function () {
 	it('using unknown id should be ok', function (done) {
 		var params = 'id=' + '1234';
 
-		node.get('/api/transactions/multisignatures/get?' + params, function (err, res) {
+		http.get('/api/transactions/multisignatures/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.false;
 			node.expect(res.body).to.have.property('error').that.is.equal('Transaction not found');
 			done();
@@ -607,7 +676,7 @@ describe('GET /api/transactions/multisignatures/get?id=', function () {
 describe('GET /api/transactions/multisignatures', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/transactions/multisignatures', function (err, res) {
+		http.get('/api/transactions/multisignatures', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body).to.have.property('count').that.is.an('number');
@@ -621,7 +690,7 @@ describe('GET /api/transactions/unconfirmed/get?id=', function () {
 	it('using valid id should be ok', function (done) {
 		var params = 'id=' + transactionList[transactionList.length - 1].txId;
 
-		node.get('/api/transactions/unconfirmed/get?' + params, function (err, res) {
+		http.get('/api/transactions/unconfirmed/get?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success');
 			if (res.body.success && res.body.transaction != null) {
 				node.expect(res.body).to.have.property('transaction').that.is.an('object');
@@ -637,196 +706,11 @@ describe('GET /api/transactions/unconfirmed/get?id=', function () {
 describe('GET /api/transactions/unconfirmed', function () {
 
 	it('should be ok', function (done) {
-		node.get('/api/transactions/unconfirmed', function (err, res) {
+		http.get('/api/transactions/unconfirmed', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body).to.have.property('count').that.is.an('number');
 			done();
-		});
-	});
-});
-
-describe('PUT /api/transactions', function () {
-
-	it('using valid parameters should be ok', function (done) {
-		var amountToSend = 100000000;
-		var expectedFee = node.expectedFee(amountToSend);
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
-			transactionList.push({
-				'sender': account.address,
-				'recipient': account2.address,
-				'grossSent': (amountToSend + expectedFee) / node.normalizer,
-				'fee': expectedFee / node.normalizer,
-				'netSent': amountToSend / node.normalizer,
-				'txId': res.body.transactionId,
-				'type': node.txTypes.SEND
-			});
-			done();
-		});
-	});
-
-	it('using negative amount should fail', function (done) {
-		var amountToSend = -100000000;
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using float amount should fail', function (done) {
-		var amountToSend = 1.2;
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using entire balance should fail', function (done) {
-		openAccount({ secret: account.password }, function (err, res) {
-			node.expect(res.body).to.have.property('account').that.is.an('object');
-			node.expect(res.body.account).to.have.property('balance').that.is.a('string');
-			account.balance = res.body.account.balance;
-
-			putTransaction({
-				secret: account.password,
-				amount: Math.floor(account.balance),
-				recipientId: account2.address
-			}, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.match(/Account does not have enough LSK: [0-9]+L balance: [0-9.]+/);
-				done();
-			});
-		});
-	});
-
-	it('using zero amount should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: 0,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using positive overflown amount should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using negative overflown amount should fail', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using small fractional amount should be ok', function (done) {
-		putTransaction({
-			secret: account.password,
-			amount: 1,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId');
-			done();
-		});
-	});
-
-	it('using no passphase should fail', function (done) {
-		var amountToSend = 100000000;
-
-		putTransaction({
-			amount: amountToSend,
-			recipientId: account2.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using no recipient should fail', function (done) {
-		var amountToSend = 100000000;
-
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	describe('to a cold address', function (done) {
-		var recipientId = '13896491535841206186L';
-
-		it('should be ok', function (done) {
-			var amountToSend = 110000000;
-
-			putTransaction({
-				secret: node.gAccount.password,
-				amount: amountToSend,
-				recipientId: recipientId
-			}, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				done();
-			});
-		});
-	});
-
-	describe('from a cold address', function (done) {
-		var passphrase = 'fiber diet blind uncover crunch breeze bicycle globe attack chalk cousin divert';
-
-		before(function (done) {
-			node.onNewBlock(done);
-		});
-
-		it('should be ok', function (done) {
-			var amountToSend = 100000000;
-
-			putTransaction({
-				secret: passphrase,
-				amount: amountToSend,
-				recipientId: account2.address
-			}, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				done();
-			});
 		});
 	});
 });

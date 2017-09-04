@@ -24,20 +24,22 @@
  */
 
 var async = require('async');
-var checkIpInList = require('./helpers/checkIpInList.js');
 var extend = require('extend');
 var fs = require('fs');
+var https = require('https');
+var path = require('path');
+var SocketCluster = require('socketcluster').SocketCluster;
+var util = require('util');
 
 var genesisblock = require('./genesisBlock.json');
-var git = require('./helpers/git.js');
-var https = require('https');
 var Logger = require('./logger.js');
-var packageJson = require('./package.json');
-var path = require('path');
-var program = require('commander');
+var workersController = require('./workersController');
+var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
+
+var AppConfig = require('./helpers/config.js');
+var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
-var util = require('util');
 var z_schema = require('./helpers/z_schema.js');
 
 process.stdin.resume();
@@ -55,57 +57,11 @@ if (typeof gc !== 'undefined') {
 	}, 60000);
 }
 
-program
-	.version(packageJson.version)
-	.option('-c, --config <path>', 'config file path')
-	.option('-p, --port <port>', 'listening port number')
-	.option('-a, --address <ip>', 'listening host name or ip')
-	.option('-x, --peers [peers...]', 'peers list')
-	.option('-l, --log <level>', 'log level')
-	.option('-s, --snapshot <round>', 'verify snapshot')
-	.parse(process.argv);
-
 /**
  * @property {object} - The default list of configuration options. Can be updated by CLI.
  * @default 'config.json'
  */
-var appConfig = require('./helpers/config.js')(program.config);
-
-if (program.port) {
-	appConfig.port = program.port;
-}
-
-if (program.address) {
-	appConfig.address = program.address;
-}
-
-if (program.peers) {
-	if (typeof program.peers === 'string') {
-		appConfig.peers.list = program.peers.split(',').map(function (peer) {
-			peer = peer.split(':');
-			return {
-				ip: peer.shift(),
-				port: peer.shift() || appConfig.port
-			};
-		});
-	} else {
-		appConfig.peers.list = [];
-	}
-}
-
-if (program.log) {
-	appConfig.consoleLogLevel = program.log;
-}
-
-if (program.snapshot) {
-	appConfig.loading.snapshot = Math.abs(
-		Math.floor(program.snapshot)
-	);
-}
-
-if (process.env.NODE_ENV === 'test') {
-	appConfig.coverage = true;
-}
+var appConfig = AppConfig(require('./package.json'));
 
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
@@ -123,7 +79,6 @@ var config = {
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
-		server: './modules/server.js',
 		accounts: './modules/accounts.js',
 		transactions: './modules/transactions.js',
 		blocks: './modules/blocks.js',
@@ -133,11 +88,9 @@ var config = {
 		system: './modules/system.js',
 		peers: './modules/peers.js',
 		delegates: './modules/delegates.js',
-		rounds: './modules/rounds.js',
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
 		crypto: './modules/crypto.js',
-		sql: './modules/sql.js',
 		cache: './modules/cache.js'
 	},
 	api: {
@@ -148,10 +101,9 @@ var config = {
 		loader: { http: './api/http/loader.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
 		peers: { http: './api/http/peers.js' },
-		server: { http: './api/http/server.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		transport: { http: './api/http/transport.js' }
+		transport: { ws: './api/ws/transport.js' }
 	}
 };
 
@@ -160,7 +112,7 @@ var config = {
  * The Object is initialized here and pass to others as parameter.
  * @property {object} - Logger instance.
  */
-var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, 
+var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel,
 	filename: appConfig.logFileName });
 
 // Trying to get last git commit
@@ -186,7 +138,7 @@ d.run(function () {
 	var modules = [];
 	async.auto({
 		/**
-		 * Loads `payloadHash` and generate dapp password if it is empty and required.
+		 * Loads `payloadHash`.
 		 * Then updates config.json with new random  password.
 		 * @method config
 		 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`.
@@ -199,26 +151,7 @@ d.run(function () {
 				logger.error('Failed to assign nethash from genesis block');
 				throw Error(e);
 			}
-
-			if (appConfig.dapp.masterrequired && !appConfig.dapp.masterpassword) {
-				var randomstring = require('randomstring');
-
-				appConfig.dapp.masterpassword = randomstring.generate({
-					length: 12,
-					readable: true,
-					charset: 'alphanumeric'
-				});
-
-				if (appConfig.loading.snapshot != null) {
-					delete appConfig.loading.snapshot;
-				}
-
-				fs.writeFileSync('./config.json', JSON.stringify(appConfig, null, 4));
-
-				cb(null, appConfig);
-			} else {
-				cb(null, appConfig);
-			}
+			cb(null, appConfig);
 		},
 
 		logger: function (cb) {
@@ -244,10 +177,6 @@ d.run(function () {
 			});
 		},
 
-		public: function (cb) {
-			cb(null, path.join(__dirname, 'public'));
-		},
-
 		schema: function (cb) {
 			cb(null, new z_schema());
 		},
@@ -257,7 +186,7 @@ d.run(function () {
 		 * @method network
 		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
-		 * @param {nodeStyleCallback} cb - Callback function with created Object: 
+		 * @param {nodeStyleCallback} cb - Callback function with created Object:
 		 * `{express, app, server, io, https, https_io}`.
 		 */
 		network: ['config', function (scope, cb) {
@@ -307,6 +236,58 @@ d.run(function () {
 			});
 		}],
 
+		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
+			var webSocketConfig = {
+				workers: scope.config.wsWorkers,
+				port: scope.config.port,
+				wsEngine: 'uws',
+				appName: 'lisk',
+				workerController: workersController.path,
+				perMessageDeflate: false,
+				secretKey: 'liskSecretKey',
+				pingInterval: 5000,
+				// How many milliseconds to wait without receiving a ping
+				// before closing the socket
+				pingTimeout: 60000,
+				// Maximum amount of milliseconds to wait before force-killing
+				// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
+				processTermTimeout: 10000,
+				logLevel: 0
+			};
+
+			if (scope.config.ssl.enabled) {
+				extend(webSocketConfig, {
+					protocol: 'https',
+					// This is the same as the object provided to Node.js's https server
+					protocolOptions: {
+						key: fs.readFileSync(scope.config.ssl.options.key),
+						cert: fs.readFileSync(scope.config.ssl.options.cert),
+						ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
+					}
+				});
+			}
+
+			var childProcessOptions = {
+				version: scope.config.version,
+				minVersion: scope.config.minVersion,
+				nethash: scope.config.nethash,
+				port: scope.config.port,
+				nonce: scope.config.nonce
+			};
+
+			var socketCluster = new SocketCluster(webSocketConfig);
+
+			var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+			scope.network.app.rpc = wsRPC.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
+
+			socketCluster.on('ready', function (err, result) {
+				scope.logger.info('Socket Cluster ready for incoming connections');
+				cb();
+			});
+
+		}],
+
 		dbSequence: ['logger', function (scope, cb) {
 			var sequence = new Sequence({
 				onWarning: function (current, limit) {
@@ -335,26 +316,22 @@ d.run(function () {
 		}],
 
 		/**
-		 * Once config, public, genesisblock, logger, build and network are completed,
+		 * Once config, genesisblock, logger, build and network are completed,
 		 * adds configuration to `network.app`.
 		 * @method connect
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
-		connect: ['config', 'public', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
+		connect: ['config', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
 			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
 			var randomString = require('randomstring');
 
-			scope.nonce = randomString.generate(16);
-			scope.network.app.engine('html', require('ejs').renderFile);
+			scope.config.nonce = randomString.generate(16);
 			scope.network.app.use(require('express-domain-middleware'));
-			scope.network.app.set('view engine', 'ejs');
-			scope.network.app.set('views', path.join(__dirname, 'public'));
-			scope.network.app.use(scope.network.express.static(path.join(__dirname, 'public')));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
 			scope.network.app.use(bodyParser.json({limit: '2mb'}));
@@ -417,7 +394,7 @@ d.run(function () {
 					var topic = args.shift();
 					var eventName = 'on' + changeCase.pascalCase(topic);
 
-					// executes the each module onBind function
+					// Iterate over modules and execute event functions (on*)
 					modules.forEach(function (module) {
 						if (typeof(module[eventName]) === 'function') {
 							module[eventName].apply(module[eventName], args);
@@ -438,6 +415,10 @@ d.run(function () {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
+		pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
+			var pg_notify = require('./helpers/pg-notify.js');
+			pg_notify.init(scope.db, scope.bus, scope.logger, cb);
+		}],
 		/**
 		 * It tries to connect with redis server based on config. provided in config.json file
 		 * @param {function} cb
@@ -450,10 +431,10 @@ d.run(function () {
 		 * Once db, bus, schema and genesisblock are completed,
 		 * loads transaction, block, account and peers from logic folder.
 		 * @method logic
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
-		 */	
+		 */
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
 			var Block = require('./logic/block.js');
@@ -504,7 +485,7 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
+		modules: ['network', 'connect', 'webSocket', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
 
 			var tasks = {};
 
@@ -534,11 +515,11 @@ d.run(function () {
 		 * Loads api from `api` folder using `config.api`, once modules, logger and
 		 * network are completed.
 		 * @method api
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
-		 */	
-		api: ['modules', 'logger', 'network', function (scope, cb) {
+		 */
+		api: ['modules', 'logger', 'network', 'webSocket', function (scope, cb) {
 			Object.keys(config.api).forEach(function (moduleName) {
 				Object.keys(config.api[moduleName]).forEach(function (protocol) {
 					var apiEndpointPath = config.api[moduleName][protocol];
@@ -546,7 +527,7 @@ d.run(function () {
 						var ApiEndpoint = require(apiEndpointPath);
 						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
 					} catch (e) {
-						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e);
+						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e.message);
 					}
 				});
 			});
@@ -556,8 +537,9 @@ d.run(function () {
 		}],
 
 		ready: ['modules', 'bus', 'logic', function (scope, cb) {
+			// Fire onBind event in every module
 			scope.bus.message('bind', scope.modules);
-			scope.logic.transaction.bindModules(scope.modules);
+
 			scope.logic.peers.bindModules(scope.modules);
 			cb();
 		}],
@@ -566,13 +548,13 @@ d.run(function () {
 		 * Once 'ready' is completed, binds and listens for connections on the
 		 * specified host and port for `scope.network.server`.
 		 * @method listen
-		 * @param {object} scope - The results from current execution, 
+		 * @param {object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
 		 */
 		listen: ['ready', function (scope, cb) {
-			scope.network.server.listen(scope.config.port, scope.config.address, function (err) {
-				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.port);
+			scope.network.server.listen(scope.config.httpPort, scope.config.address, function (err) {
+				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.httpPort);
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {
@@ -614,7 +596,6 @@ d.run(function () {
 			 * @property {Object} modules - Several modules functions.
 			 * @property {Object} network - Several network functions.
 			 * @property {string} nonce
-			 * @property {string} public - Path to lisk public folder.
 			 * @property {undefined} ready
 			 * @property {Object} schema - ZSchema with objects.
 			 * @property {Object} sequence - Sequence function, sequence Array.

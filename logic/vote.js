@@ -5,6 +5,7 @@ var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 var Diff = require('../helpers/diff.js');
 var _ = require('lodash');
+var slots = require('../helpers/slots.js');
 
 // Private fields
 var modules, library, self;
@@ -33,27 +34,11 @@ function Vote (logger, schema) {
 /**
  * Binds module content to private object modules.
  * @param {Delegates} delegates
- * @param {Rounds} rounds
  */
-Vote.prototype.bind = function (delegates, rounds) {
+Vote.prototype.bind = function (delegates) {
 	modules = {
-		delegates: delegates,
-		rounds: rounds,
+		delegates: delegates
 	};
-};
-
-/**
- * Sets recipientId with sender address.
- * Creates transaction.asset.votes based on data.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with new data
- */
-Vote.prototype.create = function (data, trs) {
-	trs.recipientId = data.sender.address;
-	trs.asset.votes = data.votes;
-
-	return trs;
 };
 
 /**
@@ -213,7 +198,7 @@ Vote.prototype.getBytes = function (trs) {
  * merges account to sender address with votes as delegates.
  * @implements {checkConfirmedDelegates}
  * @implements {scope.account.merge}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -231,7 +216,7 @@ Vote.prototype.apply = function (trs, block, sender, cb) {
 			parent.scope.account.merge(sender.address, {
 				delegates: trs.asset.votes,
 				blockId: block.id,
-				round: modules.rounds.calc(block.height)
+				round: slots.calcRound(block.height)
 			}, function (err) {
 				return setImmediate(cb, err);
 			});
@@ -244,7 +229,7 @@ Vote.prototype.apply = function (trs, block, sender, cb) {
  * sender address with inverted votes as delegates.
  * @implements {Diff}
  * @implements {scope.account.merge}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -259,7 +244,7 @@ Vote.prototype.undo = function (trs, block, sender, cb) {
 	this.scope.account.merge(sender.address, {
 		delegates: votesInvert,
 		blockId: block.id,
-		round: modules.rounds.calc(block.height)
+		round: slots.calcRound(block.height)
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
@@ -297,7 +282,7 @@ Vote.prototype.applyUnconfirmed = function (trs, sender, cb) {
  * sender address with inverted votes as unconfirmed delegates.
  * @implements {Diff}
  * @implements {scope.account.merge}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {account} sender
  * @param {function} cb - Callback function
@@ -358,8 +343,6 @@ Vote.prototype.objectNormalize = function (trs) {
  * @return {null|votes} votes object
  */
 Vote.prototype.dbRead = function (raw) {
-	// console.log(raw.v_votes);
-
 	if (!raw.v_votes) {
 		return null;
 	} else {

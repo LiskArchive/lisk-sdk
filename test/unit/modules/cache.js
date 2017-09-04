@@ -125,9 +125,9 @@ describe('cache', function () {
 						return callback(err, result);
 					});
 				}],
-				function (err) {
-					done(err);
-				}
+			function (err) {
+				done(err);
+			}
 			);
 		});
 	});
@@ -253,7 +253,7 @@ describe('cache', function () {
 		});
 	});
 
-	describe('onFinishRound', function (done) {
+	describe('onRoundChanged', function (done) {
 
 		it('should remove all keys matching pattern /api/delegates', function (done) {
 			var key = '/api/delegates?123';
@@ -262,7 +262,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onFinishRound(null, function (err) {
+				cache.onRoundChanged(null, function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -281,7 +281,7 @@ describe('cache', function () {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onFinishRound(null, function (err) {
+				cache.onRoundChanged(null, function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -301,7 +301,7 @@ describe('cache', function () {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onFinishRound(null, function (err) {
+				cache.onRoundChanged(null, function (err) {
 					expect(err).to.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {

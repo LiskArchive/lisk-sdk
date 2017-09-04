@@ -2,6 +2,7 @@
 
 var constants = require('../helpers/constants.js');
 var sql = require('../sql/dapps.js');
+var slots = require('../helpers/slots.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -30,34 +31,13 @@ function OutTransfer (db, schema, logger) {
 /**
  * Binds input modules to private variable module.
  * @param {Accounts} accounts
- * @param {Rounds} rounds
  * @param {Dapps} dapps
  */
-OutTransfer.prototype.bind = function (accounts, rounds, dapps) {
+OutTransfer.prototype.bind = function (accounts, dapps) {
 	modules = {
 		accounts: accounts,
-		rounds: rounds,
 		dapps: dapps,
 	};
-};
-
-/**
- * Assigns data to transaction recipientId and amount.
- * Generates outTransfer data into transaction asset.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-OutTransfer.prototype.create = function (data, trs) {
-	trs.recipientId = data.recipientId;
-	trs.amount = data.amount;
-
-	trs.asset.outTransfer = {
-		dappId: data.dappId,
-		transactionId: data.transactionId
-	};
-
-	return trs;
 };
 
 /**
@@ -102,7 +82,7 @@ OutTransfer.prototype.verify = function (trs, sender, cb) {
 };
 
 /**
- * Finds application into `dapps` table. Checks if transaction is already 
+ * Finds application into `dapps` table. Checks if transaction is already
  * processed. Checks if transaction is already confirmed.
  * @implements {library.db.one}
  * @param {transaction} trs
@@ -167,7 +147,7 @@ OutTransfer.prototype.getBytes = function (trs) {
  * mergeAccountAndGet with unconfirmed trs amount.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -187,7 +167,7 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 			balance: trs.amount,
 			u_balance: trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -200,7 +180,7 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
  * mergeAccountAndGet with unconfirmed trs amount and balance both negatives.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -219,7 +199,7 @@ OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 			balance: -trs.amount,
 			u_balance: -trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -316,7 +296,7 @@ OutTransfer.prototype.dbFields = [
 ];
 
 /**
- * Creates db operation object to 'outtransfer' table based on 
+ * Creates db operation object to 'outtransfer' table based on
  * outTransfer data.
  * @param {transaction} trs
  * @return {Object[]} table, fields, values.
@@ -334,31 +314,10 @@ OutTransfer.prototype.dbSave = function (trs) {
 };
 
 /**
- * Sends a 'withdrawal' message with dapp id and transaction id.
- * @implements {modules.dapps.message}
- * @param {transaction} trs
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-OutTransfer.prototype.afterSave = function (trs, cb) {
-	modules.dapps.message(trs.asset.outTransfer.dappId, {
-		topic: 'withdrawal',
-		message: {
-			transactionId: trs.id
-		}
-	}, function (err) {
-		if (err) {
-			library.logger.debug(err);
-		}
-		return setImmediate(cb);
-	});
-};
-
-/**
  * Checks sender multisignatures and transaction signatures.
  * @param {transaction} trs
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
+ * @return {boolean} True if transaction signatures greather than
  * sender multimin or there are not sender multisignatures.
  */
 OutTransfer.prototype.ready = function (trs, sender) {

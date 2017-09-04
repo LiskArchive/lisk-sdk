@@ -37,6 +37,7 @@ var middleware = {
 	errorLogger: function (logger, err, req, res, next) {
 		if (!err) { return next(); }
 		logger.error('API error ' + req.url, err.message);
+		console.trace(err);
 		res.status(500).send({success: false, error: 'API error: ' + err.message});
 	},
 
@@ -156,7 +157,7 @@ var middleware = {
 
 		var key = req.originalUrl;
 		cache.getJsonForKey(key, function (err, cachedValue) {
-			//there was an error or value doesn't exist for key
+			// There was an error or value doesn't exist for key
 			if (err || !cachedValue) {
 				// Monkey patching res.json function only if we expect to cache response
 				var expressSendJson = res.json;

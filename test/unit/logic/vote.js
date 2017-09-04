@@ -16,7 +16,6 @@ var TransactionLogic = require('../../../logic/transaction.js');
 var Vote = require('../../../logic/vote.js');
 var Transfer = require('../../../logic/transfer.js');
 var Delegate = require('../../../logic/delegate.js');
-var Rounds = require('../../../modules/rounds.js');
 var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 var DelegateModule = require('../../../modules/delegates.js');
@@ -121,15 +120,11 @@ describe('vote', function () {
 
 	before(function (done) {
 		async.auto({
-			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope, cb);
-			},
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb, {});
 			},
-			transactionLogic: ['rounds', 'accountLogic', function (result, cb) {
+			transactionLogic: ['accountLogic', function (result, cb) {
 				modulesLoader.initLogicWithDb(TransactionLogic, function (err, __transaction) {
-					__transaction.bindModules(result);
 					cb(err, __transaction);
 				}, {
 					ed: require('../../../helpers/ed'),
@@ -148,7 +143,6 @@ describe('vote', function () {
 				modulesLoader.initModuleWithDb(DelegateModule, function (err, __delegates) {
 					// not all required bindings, only the ones required for votes
 					__delegates.onBind({
-						rounds: result.rounds,
 						accounts: result.accountModule,
 					});
 					cb(err, __delegates);
@@ -166,10 +160,9 @@ describe('vote', function () {
 			vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
 			voteBindings = {
 				delegate: result.delegateModule,
-				rounds: result.rounds,
 				account: result.accountModule
 			};
-			vote.bind(result.delegateModule, result.rounds);
+			vote.bind(result.delegateModule);
 			transaction = result.transactionLogic;
 			transaction.attachAssetType(transactionTypes.VOTE, vote);
 			accountsModule = result.accountModule;
@@ -180,7 +173,7 @@ describe('vote', function () {
 	before(function (done) {
 		// create new account for testing;
 		var transfer = new Transfer();
-		transfer.bind(voteBindings.account, voteBindings.rounds);
+		transfer.bind(voteBindings.account);
 		transaction.attachAssetType(transactionTypes.SEND, transfer);
 
 		var sendTrs = {
@@ -224,25 +217,12 @@ describe('vote', function () {
 
 		it('should be okay with correct params', function () {
 			expect(function () {
-				vote.bind(voteBindings.delegate, voteBindings.rounds);
+				vote.bind(voteBindings.delegate);
 			}).to.not.throw();
 		});
 
 		after(function () {
-			vote.bind(voteBindings.delegate, voteBindings.rounds);
-		});
-	});
-
-	describe('create', function () {
-
-		it('should throw with empty parameters', function () {
-			expect(function () {
-				vote.create();
-			}).to.throw();
-		});
-
-		it('should be okay with valid parameters', function () {
-			expect(vote.create(validTransactionData, validTransaction)).to.be.an('object');
+			vote.bind(voteBindings.delegate);
 		});
 	});
 
