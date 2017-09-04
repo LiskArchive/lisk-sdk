@@ -254,12 +254,13 @@ describe('PUT /api/accounts/delegates with funds', function () {
 describe('PUT /api/delegates with funds', function () {
 	var account, validParams;
 
-	beforeEach(function () {
+	beforeEach(function (done) {
 		account = node.randomAccount();
 		validParams = {
 			secret: account.password,
 			username: account.username
 		};
+		done();
 	});
 
 	beforeEach(function (done) {
@@ -343,56 +344,15 @@ describe('PUT /api/delegates with funds', function () {
 		});
 	});
 
-	it('using same account twice in two different blocks should fail', function (done) {
+	it('using same account twice should fail', function (done) {
 		putDelegates(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 
-			node.onNewBlock(function () {
+			node.onNewBlock(function (err) {
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
-					done();
-				});
-			});
-		});
-	});
-
-	describe('registering same username twice', function () {
-
-		describe('using same account', function () {
-
-			it('second transaction with same id should fail', function (done) {
-				var firstTransaction;
-
-				node.async.series({
-					first: function (cb) {
-						return putDelegates(validParams, cb);
-					},
-					second: function (cb) {
-						return putDelegates(validParams, cb);
-					}
-				}, function (err, res) {
-					node.expect(res).to.have.deep.property('first.body.transaction');
-					firstTransaction = res.first.body.transaction;
-					node.expect(res).to.have.deep.property('second.body.error').equal('Transaction is already processed: ' + firstTransaction.id);
-					done();
-				});
-			});
-
-			it('second transaction with different timestamp should fail', function (done) {
-				node.async.series({
-					first: function (cb) {
-						return putDelegates(validParams, cb);
-					},
-					second: function (cb) {
-						setTimeout(function () {
-							return putDelegates(validParams, cb);
-						}, 1001);
-					}
-				}, function (err, res) {
-					node.expect(res).to.have.deep.property('first.body.transaction');
-					node.expect(res).to.have.deep.property('second.body.error').equal('Username already exists');
+					node.expect(res.body).to.have.property('error');
 					done();
 				});
 			});
@@ -404,11 +364,11 @@ describe('PUT /api/delegates with funds', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 
-			node.onNewBlock(function () {
+			node.onNewBlock(function (err) {
 				validParams.username = validParams.username.toUpperCase();
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
+					node.expect(res.body).to.have.property('error');
 					done();
 				});
 			});
