@@ -22,25 +22,26 @@
  * CLI options available.
  * @module app
  */
+// Must load up the alias as a global before any other file.
+require('./alias');
+var async 						= require('async');
+var extend 						= require('extend');
+var fs 								= require('fs');
+var https 						= require('https');
+var path 							= require('path');
+var SocketCluster 		= require('socketcluster').SocketCluster;
+var util 							= require('util');
 
-var async = require('async');
-var extend = require('extend');
-var fs = require('fs');
-var https = require('https');
-var path = require('path');
-var SocketCluster = require('socketcluster').SocketCluster;
-var util = require('util');
+var Logger 						= alias.require('logger.js');
+var workersController = alias.require('workersController');
+var wsRPC 						= alias.require('api/ws/rpc/wsRPC').wsRPC;
 
-var genesisblock = require('./genesisBlock.json');
-var Logger = require('./logger.js');
-var workersController = require('./workersController');
-var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
-
-var AppConfig = require('./helpers/config.js');
-var git = require('./helpers/git.js');
-var httpApi = require('./helpers/httpApi.js');
-var Sequence = require('./helpers/sequence.js');
-var z_schema = require('./helpers/z_schema.js');
+var AppConfig 				= alias.require('helpers/config.js');
+var git 							= alias.require('helpers/git.js');
+var httpApi 					= alias.require('helpers/httpApi.js');
+var Sequence 					= alias.require('helpers/sequence.js');
+var z_schema 					= alias.require('helpers/z_schema.js');
+var genesisblock 			= alias.genesisblock;
 
 process.stdin.resume();
 
@@ -61,7 +62,7 @@ if (typeof gc !== 'undefined') {
  * @property {object} - The default list of configuration options. Can be updated by CLI.
  * @default 'config.json'
  */
-var appConfig = AppConfig(require('./package.json'));
+var appConfig = AppConfig(alias.require('package.json'));
 
 // Define top endpoint availability
 process.env.TOP = appConfig.topAccounts;
@@ -202,7 +203,7 @@ d.run(function () {
 				app.use('/coverage', im.createHandler());
 			}
 
-			require('./helpers/request-limiter')(app, appConfig);
+			alias.require('helpers/request-limiter')(app, appConfig);
 
 			app.use(compression({ level: 9 }));
 			app.use(cors());
@@ -359,7 +360,7 @@ d.run(function () {
 				}
 			}));
 
-			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.schema));
+			scope.network.app.use(alias.require('helpers/z_schema-express.js')(scope.schema));
 
 			scope.network.app.use(httpApi.middleware.logClientConnections.bind(null, scope.logger));
 
@@ -382,7 +383,7 @@ d.run(function () {
 		}],
 
 		ed: function (cb) {
-			cb(null, require('./helpers/ed.js'));
+			cb(null, alias.require('helpers/ed.js'));
 		},
 
 		bus: ['ed', function (scope, cb) {
@@ -412,11 +413,11 @@ d.run(function () {
 			cb(null, new bus());
 		}],
 		db: function (cb) {
-			var db = require('./helpers/database.js');
+			var db = alias.require('helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
 		pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
-			var pg_notify = require('./helpers/pg-notify.js');
+			var pg_notify = alias.require('helpers/pg-notify.js');
 			pg_notify.init(scope.db, scope.bus, scope.logger, cb);
 		}],
 		/**
@@ -424,7 +425,7 @@ d.run(function () {
 		 * @param {function} cb
 		 */
 		cache: function (cb) {
-			var cache = require('./helpers/cache.js');
+			var cache = alias.require('helpers/cache.js');
 			cache.connect(config.cacheEnabled, config.cache, logger, cb);
 		},
 		/**
@@ -436,10 +437,10 @@ d.run(function () {
 		 * @param {function} cb - Callback function.
 		 */
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
-			var Transaction = require('./logic/transaction.js');
-			var Block = require('./logic/block.js');
-			var Account = require('./logic/account.js');
-			var Peers = require('./logic/peers.js');
+			var Transaction = alias.require('logic/transaction.js');
+			var Block = alias.require('logic/block.js');
+			var Account = alias.require('logic/account.js');
+			var Peers = alias.require('logic/peers.js');
 
 			async.auto({
 				bus: function (cb) {
