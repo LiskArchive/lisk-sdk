@@ -304,22 +304,54 @@ export function verifyTransaction(transaction, secondPublicKey) {
 }
 
 /**
+ * @method encryptAES256CBCWithPassword
+ * @param plaintext utf8
+ * @param password
+ *
+ * @return {string}
+ */
+
+function encryptAES256CBCWithPassword(plaintext, password) {
+	const iv = crypto.randomBytes(16);
+	const passHash = getSha256Hash(password, 'utf8');
+	const cipherInit = crypto.createCipheriv('aes-256-cbc', passHash, iv);
+	const textCipher = cipherInit.update(plaintext, 'utf8');
+	const finishedCipher = Buffer.concat([textCipher, cipherInit.final()]);
+	const cipherText = ''.concat(iv.toString('hex'), '$', finishedCipher.toString('hex'));
+
+	return cipherText;
+}
+
+/**
+ * @method decryptAES256CBCWithPassword
+ * @param cipherText
+ * @param password
+ *
+ * @return {string}
+ */
+
+function decryptAES256CBCWithPassword(cipherText, password) {
+	const passHash = getSha256Hash(password, 'utf8');
+	const encryptedParts = cipherText.split('$');
+	const iv = Buffer.from(encryptedParts.shift(), 'hex');
+	const encryptedPass = Buffer.from(encryptedParts.join('$'), 'hex');
+	const decipherInit = crypto.createDecipheriv('aes-256-cbc', Buffer.from(passHash), iv);
+	const decryptedPass = decipherInit.update(encryptedPass);
+	const decrypted = Buffer.concat([decryptedPass, decipherInit.final()]);
+
+	return decrypted.toString();
+}
+
+/**
  * @method encryptPassphraseWithPassword
- * @param plaintext
+ * @param plaintext utf8
  * @param password
  *
  * @return {string}
  */
 
 export function encryptPassphraseWithPassword(plaintext, password) {
-	const iv = crypto.randomBytes(16);
-	const passHash = getSha256Hash(password, 'utf8');
-	const cipherInit = crypto.createCipheriv('aes-256-cbc', passHash, iv);
-	const textCipher = cipherInit.update(plaintext);
-	const finishedCipher = Buffer.concat([textCipher, cipherInit.final()]);
-	const cipherText = ''.concat(iv.toString('hex'), '$', finishedCipher.toString('hex'));
-
-	return cipherText;
+	return encryptAES256CBCWithPassword(plaintext, password);
 }
 
 /**
@@ -331,13 +363,5 @@ export function encryptPassphraseWithPassword(plaintext, password) {
  */
 
 export function decryptPassphraseWithPassword(cipherText, password) {
-	const passHash = getSha256Hash(password, 'utf8');
-	const encryptedParts = cipherText.split('$');
-	const iv = Buffer.from(encryptedParts.shift(), 'hex');
-	const encryptedPass = Buffer.from(encryptedParts.join('$'), 'hex');
-	const decipherInit = crypto.createDecipheriv('aes-256-cbc', Buffer.from(passHash), iv);
-	const decryptedPass = decipherInit.update(encryptedPass);
-	const decrypted = Buffer.concat([decryptedPass, decipherInit.final()]);
-
-	return decrypted.toString();
+	decryptAES256CBCWithPassword(cipherText, password);
 }

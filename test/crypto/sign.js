@@ -283,7 +283,7 @@ ${defaultSignature}
 			});
 		});
 
-		describe('#encryptPassphraseWithPassword @now', () => {
+		describe('#encryptPassphraseWithPassword', () => {
 			it('should encrypt a message', () => {
 				const plainText = 'Hello Lisk';
 				const password = '123';
@@ -303,7 +303,7 @@ ${defaultSignature}
 			});
 		});
 
-		describe('encrypting passphrase integration test @now', () => {
+		describe('encrypting passphrase integration test', () => {
 			const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 			const password = 'myTotal53cr3t%&';
 			const encryptString = encryptPassphraseWithPassword(secretPassphrase, password);
