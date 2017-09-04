@@ -1,3 +1,4 @@
+require('./__loadalias.js');
 require('./accounts');
 require('./blocks');
 require('./dapps');
