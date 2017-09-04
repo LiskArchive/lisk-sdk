@@ -262,7 +262,6 @@ ${defaultSignature}
 				(verifyTransaction.bind(null, transactionForVerifyTwoSignatures)).should.throw('Cannot verify signSignature without secondPublicKey.');
 			});
 		});
-
 	});
 
 	describe('#multiSignTransaction', () => {
