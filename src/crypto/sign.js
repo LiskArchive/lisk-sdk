@@ -363,5 +363,5 @@ export function encryptPassphraseWithPassword(plaintext, password) {
  */
 
 export function decryptPassphraseWithPassword(cipherText, password) {
-	decryptAES256CBCWithPassword(cipherText, password);
+	return decryptAES256CBCWithPassword(cipherText, password);
 }

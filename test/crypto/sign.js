@@ -35,7 +35,7 @@ import {
 	bufferToHex,
 } from '../../src/crypto/convert';
 
-describe('sign', () => {
+describe('sign @now', () => {
 	const secretMessage = 'secret message';
 	const notSecretMessage = 'not secret message';
 	const defaultSignature = '5fd698d33c009fc358f2085f66465ae50ac3774d1a5c36d5167fbd7f9bac6b648b26bb2976d360b6286fea1c367dd128dad7f0cc241a0301fbcfff4ca77b9e0b6e6f7420736563726574206d657373616765';
@@ -44,6 +44,7 @@ describe('sign', () => {
 	const defaultSecondSecret = 'second secret';
 	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+	const firstSecret = '123';
 
 	describe('#signMessageWithSecret', () => {
 		const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
@@ -175,7 +176,6 @@ ${defaultSignature}
 	});
 
 	describe('signTransaction and verify', () => {
-		const firstSecret = '123';
 		describe('#signTransaction', () => {
 			const keys = getKeys(firstSecret);
 			const expectedSignature = '05383e756598172785843f5f165a8bef3632d6a0f6b7a3429201f83e5d60a5b57faa1fa383c4f33bb85d5804848e5313aa7b0cf1058873bc8576d206bdb9c804';
@@ -263,64 +263,65 @@ ${defaultSignature}
 			});
 		});
 
-		describe('#multiSignTransaction', () => {
-			it('should signTransaction a multisignature transaction', () => {
-				const expectedMultiSignature = '9eb6ea53f0fd5079b956625a4f1c09e3638ab3378b0e7847cfcae9dde5a67121dfc49b5e51333296002d70166d0a93d2f4b5eef9eae4e040b83251644bb49409';
-				const multiSigtransaction = {
-					type: 0,
-					amount: 1000,
-					recipientId: '58191285901858109L',
-					timestamp: 141738,
-					asset: {},
-					senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-					signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
-					id: '13987348420913138422',
-				};
+	});
 
-				const multiSignature = multiSignTransaction(multiSigtransaction, firstSecret);
+	describe('#multiSignTransaction', () => {
+		it('should signTransaction a multisignature transaction', () => {
+			const expectedMultiSignature = '9eb6ea53f0fd5079b956625a4f1c09e3638ab3378b0e7847cfcae9dde5a67121dfc49b5e51333296002d70166d0a93d2f4b5eef9eae4e040b83251644bb49409';
+			const multiSigtransaction = {
+				type: 0,
+				amount: 1000,
+				recipientId: '58191285901858109L',
+				timestamp: 141738,
+				asset: {},
+				senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				id: '13987348420913138422',
+			};
 
-				(multiSignature).should.be.eql(expectedMultiSignature);
-			});
+			const multiSignature = multiSignTransaction(multiSigtransaction, firstSecret);
+
+			(multiSignature).should.be.eql(expectedMultiSignature);
 		});
+	});
+
+	describe('#encryptPassphraseWithPassword', () => {
+		it('should encrypt a message', () => {
+			const plainText = 'Hello Lisk';
+			const password = '123';
+			const cipher = encryptPassphraseWithPassword(plainText, password);
+
+			(cipher).should.be.type('string').and.length(65);
+		});
+	});
+
+	describe('#decryptPassphraseWithPassword', () => {
+		it('should decrypt a message', () => {
+			const cipher = 'eca6ab05837efb15dcbd500b211d95b9$4a378aebc4969d74c1db0c55420bf909';
+			const password = '123';
+			const decrypted = decryptPassphraseWithPassword(cipher, password);
+
+			(decrypted).should.be.eql('Hello Lisk');
+		});
+	});
+
+	describe('encrypting passphrase integration test', () => {
+		const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
+		const password = 'myTotal53cr3t%&';
+		const encryptString = encryptPassphraseWithPassword(secretPassphrase, password);
 
 		describe('#encryptPassphraseWithPassword', () => {
-			it('should encrypt a message', () => {
-				const plainText = 'Hello Lisk';
-				const password = '123';
-				const cipher = encryptPassphraseWithPassword(plainText, password);
-
-				(cipher).should.be.type('string').and.length(65);
+			it('should encrypt a given secret with a password', () => {
+				(encryptString).should.be.ok();
+				(encryptString).should.be.type('string');
+				(encryptString).should.containEql('$');
 			});
 		});
 
-		describe('#aesDecrypt', () => {
-			it('should decrypt a message', () => {
-				const cipher = 'eca6ab05837efb15dcbd500b211d95b9$4a378aebc4969d74c1db0c55420bf909';
-				const password = '123';
-				const decrypted = decryptPassphraseWithPassword(cipher, password);
-
-				(decrypted).should.be.eql('Hello Lisk');
-			});
-		});
-
-		describe('encrypting passphrase integration test', () => {
-			const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
-			const password = 'myTotal53cr3t%&';
-			const encryptString = encryptPassphraseWithPassword(secretPassphrase, password);
-
-			describe('#encryptPassphraseWithPassword', () => {
-				it('should encrypt a given secret with a password', () => {
-					(encryptString).should.be.ok();
-					(encryptString).should.be.type('string');
-					(encryptString).should.containEql('$');
-				});
-			});
-
-			describe('#decryptPassphraseWithPassword', () => {
-				it('should decrypt a given cipher with a password', () => {
-					const decryptedString = decryptPassphraseWithPassword(encryptString, password);
-					(decryptedString).should.be.eql(secretPassphrase);
-				});
+		describe('#decryptPassphraseWithPassword', () => {
+			it('should decrypt a given cipher with a password', () => {
+				const decryptedString = decryptPassphraseWithPassword(encryptString, password);
+				(decryptedString).should.be.eql(secretPassphrase);
 			});
 		});
 	});
