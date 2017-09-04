@@ -16,7 +16,7 @@
  * Transaction module provides functions for creating balance transfer transactions.
  * @class transaction
  */
-import crypto from '../crypto';
+import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -34,7 +34,7 @@ import { prepareTransaction } from './utils';
  */
 
 function createTransaction(recipientId, amount, secret, secondSecret, data, timeOffset) {
-	const keys = crypto.getKeys(secret);
+	const keys = cryptoModule.getKeys(secret);
 	const fee = data ? (constants.fees.send + constants.fees.data) : constants.fees.send;
 	const transaction = {
 		type: 0,
