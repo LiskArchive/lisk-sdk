@@ -5,6 +5,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
+var PeerUpdateError = require('../../../../../api/ws/rpc/failureCodes').PeerUpdateError;
 var randomPeer = require('../../../../common/objectStubs').randomPeer;
 var connectionsTable = require('../../../../../api/ws/workers/connectionsTable');
 var PeersUpdateRules = require('../../../../../api/ws/workers/peersUpdateRules');
@@ -291,14 +292,13 @@ describe('PeersUpdateRules', function () {
 
 		var validFailureCode = 4100;
 
-		it('should return an error when called', function (done) {
+		it('should return the PeerUpdateError when called', function (done) {
 			peersUpdateRules.block(validFailureCode, validPeer, validConnectionId, function (err) {
-				expect(err).to.have.property('message').equal('Error: Update peer action blocked - malicious behaviour detected');
+				expect(err).to.have.instanceOf(PeerUpdateError);
 				done();
 			});
 		});
 	});
-
 
 	describe('internal.update', function () {
 

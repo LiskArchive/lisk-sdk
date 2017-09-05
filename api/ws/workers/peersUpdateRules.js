@@ -72,9 +72,7 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
  * @param {Function} cb
  */
 PeersUpdateRules.prototype.block = function (code, peer, connectionId, cb) {
-	var err = new Error('Update peer action blocked - malicious behaviour detected');
-	err.code = code;
-	return setImmediate(cb, new Error(err));
+	return setImmediate(cb, new PeerUpdateError(code, failureCodes.errorMessages[code]));
 };
 
 PeersUpdateRules.prototype.internal = {
