@@ -21,7 +21,6 @@ class Query {
 	}
 
 	isBlockQuery(input) {
-		// console.log(this);
 		return this.client.sendRequest('blocks/get', { id: input });
 	}
 

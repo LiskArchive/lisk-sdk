@@ -74,7 +74,7 @@ const set = vorpal => ({ variable, value }) => {
 		? handlers[variable](vorpal, value)
 		: 'Unsupported variable name.';
 
-	return Promise.resolve(vorpal.log(returnValue));
+	return Promise.resolve(vorpal.activeCommand.log(returnValue));
 };
 
 export default function setCommand(vorpal) {

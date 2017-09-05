@@ -57,7 +57,7 @@ const list = vorpal => ({ type, variadic, options }) => {
 		? Promise.all(makeCalls())
 			.then(processResults.bind(null, useJsonOutput, vorpal, deAlias(singularType)))
 			.catch(e => e)
-		: Promise.resolve(vorpal.log('Unsupported type.'));
+		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'));
 };
 
 export default function listCommand(vorpal) {
