@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import readline from 'readline';
 import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
 import tablify from '../utils/tablify';
@@ -25,12 +26,27 @@ const getPassphraseFromFile = path => new Promise((resolve, reject) =>
 	)),
 );
 
+const getPassphraseFromStdIn = () => {
+	const rl = readline.createInterface({
+		input: process.stdin,
+	});
+	return new Promise((resolve) => {
+		rl.on('line', (line) => {
+			resolve(line);
+		});
+	});
+};
+
 const getPassphraseFromPrompt = vorpal => vorpal.activeCommand.prompt({
 	type: 'password',
 	name: 'passphrase',
 	message: 'Please enter your twelve-word pass phrase: ',
 })
 	.then(({ passphrase }) => passphrase);
+
+const getPassphraseFromCommandLine = process.stdin.isTTY
+	? getPassphraseFromPrompt
+	: getPassphraseFromStdIn;
 
 const handlePassphrase = (vorpal, message, recipient, options) => (passphrase) => {
 	const passphraseString = passphrase.toString().trim();
@@ -60,7 +76,7 @@ const encrypt = vorpal => ({ message, recipient, options }) => {
 	const passphraseFilePath = options['passphrase-file'];
 	const getPassphrase = passphraseFilePath
 		? getPassphraseFromFile.bind(null, passphraseFilePath)
-		: getPassphraseFromPrompt.bind(null, vorpal);
+		: getPassphraseFromCommandLine.bind(null, vorpal);
 
 	return getPassphrase()
 		.then(handlePassphrase(vorpal, message, recipient, options))

@@ -14,6 +14,7 @@
  *
  */
 import fse from 'fs-extra';
+import { exec } from 'child_process';
 import encrypt from '../../src/commands/encrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
 import tablify from '../../src/utils/tablify';
@@ -221,6 +222,39 @@ describe('lisky encrypt command palette', () => {
 							.then(() => (capturedOutput[0]).should.equal(tableOutput));
 					});
 				});
+			});
+		});
+
+		describe('with passphrase passed via stdin', function withPassphrasePassedViaStdIn() {
+			this.timeout(5e3);
+
+			const cliCommand = command.replace(/"/g, '\\"');
+			const liskyCommand = `
+				var Vorpal = require('vorpal');
+				var encrypt = require('./src/commands/encrypt').default;
+
+				var vorpal = new Vorpal();
+				vorpal.use(encrypt);
+				vorpal.exec('${cliCommand}');
+			`.trim();
+			const childCommand = `echo "${secret}" | babel-node -e "${liskyCommand}"`;
+			const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
+
+			it('should use the passphrase without a prompt', () => {
+				return new Promise((resolve) => {
+					exec(childCommand, (_, stdout) => {
+						resolve(stdout);
+					});
+				})
+					.then((stdout) => {
+						const rows = stdout.split('\n');
+						const head = prepareRow(rows[1]);
+						const body = prepareRow(rows[3]);
+
+						(head).should.eql(['nonce', 'encryptedMessage']);
+						(body[0]).should.be.hexString().and.have.length(48);
+						(body[1]).should.be.hexString();
+					});
 			});
 		});
 	});
