@@ -38,4 +38,13 @@ require('./modules/transactions');
 require('./sql/delegatesList');
 require('./sql/rounds');
 
+<<<<<<< HEAD
 require('./schema/delegates');
+=======
+require('./sql/blockRewards.js');
+require('./sql/delegatesList.js');
+require('./sql/rounds.js');
+*/
+require('./helpers/checkIpInList');
+require('./helpers/config');
+>>>>>>> b1a06dec... reverting to the original before switching branches
