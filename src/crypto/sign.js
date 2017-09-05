@@ -326,7 +326,8 @@ function encryptAES256CBCWithPassword(passphrase, password) {
 
 /**
  * @method decryptAES256CBCWithPassword
- * @param {Object} cipherAndNonce. The cipher text resulting from the AES-256-CBC encryption, including the nonce { cipher: ..., nonce: ..., }
+ * @param {Object} cipherAndNonce.
+ * The cipher text resulting from the AES-256-CBC encryption, including the nonce { cipher: ..., nonce: ..., }
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {String}
@@ -356,7 +357,8 @@ export function encryptPassphraseWithPassword(passphrase, password) {
 
 /**
  * @method decryptPassphraseWithPassword
- * @param {String} cipherAndNonce. The cipher text resulting from the AES-256-CBC encryption, including the nonce { cipher: ..., nonce: ..., }
+ * @param {String} cipherAndNonce.
+ * The cipher text resulting from the AES-256-CBC encryption, including the nonce { cipher: ..., nonce: ..., }
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {String}
