@@ -179,6 +179,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},
+			"Functional Transport - Handshake" : {
+				node('node-02'){
+					sh '''
+					export TEST=test/api/transport/transport.handshake.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},
 			"Functional Multisignatures" : {
 				node('node-01'){
 					sh '''
@@ -219,6 +228,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-02'){
 					sh '''
 					export TEST=test/api/transport/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},
+			"Functional Transport - Client" : {
+				node('node-02'){
+					sh '''
+					export TEST=test/api/transport/transport.client.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
 					'''

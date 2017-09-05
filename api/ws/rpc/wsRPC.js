@@ -4,8 +4,11 @@ var _ = require('lodash');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var System = require('../../../modules/system');
+
+var failureCodes = require('../../../api/ws/rpc/failureCodes');
+var PeerUpdateError = require('../../../api/ws/rpc/failureCodes').PeerUpdateError;
 var PromiseDefer = require('../../../helpers/promiseDefer');
+var System = require('../../../modules/system');
 
 var wsServer = null;
 
@@ -141,7 +144,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	var clientSocket = wsRPC.scClient.connect(options);
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
-	clientSocket.on('connect', function () {
+	clientSocket.on('accepted', function () {
 		return connectionState.resolve(clientSocket);
 	});
 
@@ -150,11 +153,11 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	});
 
 	clientSocket.on('connectAbort', function () {
-		connectionState.reject('Connection rejected by failed handshake procedure');
+		connectionState.reject(new PeerUpdateError(failureCodes.HANDSHAKE_ERROR, failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]));
 	});
 
-	clientSocket.on('disconnect', function () {
-		connectionState.reject('Connection disconnected');
+	clientSocket.on('disconnect', function (code, description) {
+		connectionState.reject(new PeerUpdateError(code, failureCodes.errorMessages[code], description));
 	});
 };
 
@@ -176,7 +179,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 				ClientRPCStub.prototype.initializeNewConnection(connectionState);
 			}
 
-			connectionState.socketDefer.promise.then(function (socket) {
+			connectionState.socketDefer.promise.timeout(1000).then(function (socket) {
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
@@ -185,6 +188,9 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 						return setImmediate(cb, err);
 					});
 			}).catch(function (err) {
+				if (err && err.name === 'TimeoutError') {
+					err = new PeerUpdateError(failureCodes.CONNECTION_TIMEOUT, failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
+				}
 				return setImmediate(cb, err);
 			});
 		};
