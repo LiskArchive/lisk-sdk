@@ -29,14 +29,7 @@ function Config (packageJson) {
 		.parse(process.argv);
 
 	var configPath = program.config;
-	var appConfig = fs.readFileSync(path.resolve(process.cwd(), (configPath || 'config.json')), 'utf8');
-
-	if (!appConfig.length) {
-		console.log('Failed to read config file');
-		process.exit(1);
-	} else {
-		appConfig = JSON.parse(appConfig);
-	}
+	var appConfig = alias.config;
 
 	if (program.port) {
 		appConfig.port = +program.port;

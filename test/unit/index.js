@@ -1,3 +1,4 @@
+require('./__loadalias.js');
 require('./helpers/RPC');
 require('./helpers/request-limiter.js');
 require('./helpers/wsApi');
@@ -18,4 +19,5 @@ require('./modules/peers.js');
 
 require('./sql/blockRewards.js');
 require('./sql/delegatesList.js');
+
 require('./sql/rounds.js');

@@ -10,7 +10,7 @@ var scClient = require('socketcluster-client');
 var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockchainReady;
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
-var baseConfig = require('../../test/config.json');
+var baseConfig = alias.config;
 var Logger = require('../../logger');
 
 var SYNC_MODE = {
@@ -485,4 +485,3 @@ describe('integration', function () {
 		});
 	});
 });
-

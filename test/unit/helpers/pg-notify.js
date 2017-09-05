@@ -6,13 +6,13 @@ var expect = require('chai').expect;
 var sinon  = require('sinon');
 var rewire = require('rewire');
 
-// Load config file - global (not one from test directory)
-var config = require('../../../config.json');
-var sql    = require('../../sql/pgNotify.js');
-var slots  = require('../../../helpers/slots.js');
+var config = alias.config;
+var sql    = alias.require('test/sql/pgNotify.js');
+var slots  = alias.require('helpers/slots.js');
 
 // Init tests subject
 var pg_notify = rewire('../../../helpers/pg-notify.js');
+
 
 // Init global variables
 var db, invalid_db, logger, bus;
@@ -199,7 +199,7 @@ describe('helpers/pg-notify', function () {
 
 					// Last error - function should fail to reconnect
 					expect(logger.error.args[11][0]).to.equal('pg-notify: Failed to reconnect - connection lost');
-					
+
 					// Connection should be cleared
 					connection = pg_notify.__get__('connection');
 					expect(connection).to.be.an('null');

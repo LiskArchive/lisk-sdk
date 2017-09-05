@@ -1,7 +1,7 @@
 'use strict';
 
 var popsicle = require('popsicle');
-var config = require('../../config.json');
+var config = alias.config;
 
 
 /**

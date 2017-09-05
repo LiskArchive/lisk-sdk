@@ -100,32 +100,27 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 Before running any tests, please ensure Lisk is configured to run on the same testnet that is used by the test-suite.
 
-Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test** directory:
-
-```
-cp test/config.json test/genesisBlock.json .
-```
-
-**NOTE:** If the node was started with a different genesis block previous, trauncate the database before running tests.
-
-```
-dropdb lisk_test
-createdb lisk_test
-```
-
 **NOTE:** The master passphrase for this genesis block is as follows:
 
 ```
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
 ```
 
-Launch Lisk (runs on port 4000):
+If you have not yet created the test database, run the following command.
 
 ```
-node app.js
+createdb lisk_test
 ```
 
-Run the test suite:
+Launch Lisk (runs on port 4000). This command will set the NODE_ENV=TEST.
+Additionally, it will load the configuration from the 'test' folder rather than the main folder.
+Finally. it will drop the list_test DB and recreate it.
+
+```
+npm run start-test-server
+```
+
+In a separate command window, from the root directory, run the test suite:
 
 ```
 npm test
