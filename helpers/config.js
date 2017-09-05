@@ -18,7 +18,6 @@ function Config (packageJson) {
 
 	program
 		.version(packageJson.version)
-		.option('-c, --config <path>', 'config file path')
 		.option('-p, --port <port>', 'listening port number')
 		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
 		.option('-d, --database <database>', 'database name')
@@ -28,7 +27,6 @@ function Config (packageJson) {
 		.option('-s, --snapshot <round>', 'verify snapshot')
 		.parse(process.argv);
 
-	var configPath = program.config;
 	var appConfig = alias.config;
 
 	if (program.port) {
