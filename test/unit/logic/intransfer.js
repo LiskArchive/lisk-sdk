@@ -9,6 +9,7 @@ var sinon   = require('sinon');
 
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
+var slots = require('../../../helpers/slots.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 
 var InTransfer = rewire('../../../logic/inTransfer.js');
@@ -18,74 +19,67 @@ var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
 var validSender = {
-	password: 'yjyhgnu32jmwuii442t9',
-	secondPassword: 'kub8gm2w330pvptx1or',
-	username: 'mix8',
-	publicKey: '5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
-	address: '4835566122337813671L',
-	secondPublicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7' 
+	balance: '0',
+	password: 'zdv72jrts9y8613e4s4i',
+	secondPassword: '33ibzztls7xlrocpzxgvi',
+	username: '9bzuu',
+	publicKey: '967e00fbf215b6227a6521226decfdc14c92cb88d35268787a47ff0e6b92f94a',
+	address: '17603529232728446942L',
+	secondPublicKey: 'b9aa5c8d1e1cbcf97eb6393cda8315b7d35cecbc8e2eb0629fa3cf80df4cdda7'
 };
 
 var senderHash = crypto.createHash('sha256').update(validSender.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
-var validTransaction = {
-	id: '1907088915785679339',
-	height: 371,
-	blockId: '17233974955873751907',
-	type: 5,
-	timestamp: 40081792,
-	senderPublicKey: '644485a01cb11e06a1f4ffef90a7ba251e56d54eb06a0cb2ecb5693a8cc163a2',
-	senderId: '5519106118231224961L',
+var validTransaction =  { 
+	id: '2273003018673898961',
+	height: 843,
+	blockId: '11870363750006389009',
+	type: 6,
+	timestamp: 40420761,
+	senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
+	requesterPublicKey: undefined,
+	senderId: '2623857243537009424L',
 	recipientId: null,
 	recipientPublicKey: null,
-	amount: 0,
-	fee: 2500000000,
-	signature: 'b024f90f73e53c9fee943f3c3ef7a9e3da99bab2f9fa3cbfd5ad05ed79cdbbe21130eb7b27698692bf491a1cf573a518dfa63607dc88bc0c01925fda18304905',
+	amount: 999,
+	fee: 10000000,
+	signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
+	signSignature: undefined,
 	signatures: [],
-	confirmations: 717,
+	confirmations: 113,
 	asset: {
-		dapp: {
-			name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
-			description: null,
-			tags: null,
-			type: 1,
-			link: 'http://www.lisk.io/AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi.zip',
-			category: 2,
-			icon: null
+		inTransfer:{
+			dappId: '7400202127695414450'
 		}
 	}
 };
 
 var rawValidTransaction = {
-	t_id: '1907088915785679339',
-	b_height: 371,
-	t_blockId: '17233974955873751907',
-	t_type: 5,
-	t_timestamp: 40081792,
-	t_senderPublicKey: '644485a01cb11e06a1f4ffef90a7ba251e56d54eb06a0cb2ecb5693a8cc163a2',
+	t_id: '2273003018673898961',
+	b_height: 843,
+	t_blockId: '11870363750006389009',
+	t_type: 6,
+	t_timestamp: 40420761,
+	t_senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
 	m_recipientPublicKey: null,
-	t_senderId: '5519106118231224961L',
+	t_senderId: '2623857243537009424L',
 	t_recipientId: null,
-	t_amount: '0',
-	t_fee: '2500000000',
-	t_signature: 'b024f90f73e53c9fee943f3c3ef7a9e3da99bab2f9fa3cbfd5ad05ed79cdbbe21130eb7b27698692bf491a1cf573a518dfa63607dc88bc0c01925fda18304905',
+	t_amount: '999',
+	t_fee: '10000000',
+	t_signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
 	t_SignSignature: null,
 	t_signatures: null,
-	confirmations: 717,
-	dapp_name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
-	dapp_description: null,
-	dapp_tags: null,
-	dapp_link: 'http://www.lisk.io/AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi.zip',
-	dapp_type: 1,
-	dapp_category: 2,
-	dapp_icon: null
+	confirmations: 113,
+	in_dappId: '7400202127695414450'
 };
 
 describe('inTransfer', function () {
 
 	var inTransfer;
 	var dbStub;
+	var sharedStub;
+	var accountsStub;
 
 	var trs;
 	var rawTrs; 
@@ -93,13 +87,28 @@ describe('inTransfer', function () {
 
 	before(function () {
 		dbStub = {
-			query: sinon.stub()
+			query: sinon.stub(),
+			one: sinon.stub()
 		};
-		inTransfer = new InTransfer(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
+
+		sharedStub = {
+			getGenesis: sinon.stub()
+		};
+
+		accountsStub = {
+			mergeAccountAndGet: sinon.stub(),
+			getAccount: sinon.stub()
+		};
+		inTransfer = new InTransfer(dbStub, modulesLoader.scope.schema);
+		inTransfer.bind(accountsStub, sharedStub);
 	});
 
 	beforeEach(function () {
+		dbStub.one.reset();
 		dbStub.query.reset();
+		sharedStub.getGenesis.reset();
+		accountsStub.mergeAccountAndGet.reset();
+		accountsStub.getAccount.reset();
 	});
 
 	beforeEach(function () {
@@ -111,14 +120,13 @@ describe('inTransfer', function () {
 	describe('constructor', function () {
 
 		it('should be attach schema and logger to library variable', function () {
-			new InTransfer(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
+			new InTransfer(dbStub, modulesLoader.scope.schema);
 			var library = InTransfer.__get__('library');
+
 
 			expect(library).to.eql({
 				db: dbStub,
-				logger: modulesLoader.scope.logger,
 				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network
 			});
 		});
 	});
@@ -128,12 +136,22 @@ describe('inTransfer', function () {
 		it('should be okay with empty params', function () {
 			inTransfer.bind();
 		});
+
+		it('should bind dependent module mocks', function () {
+			inTransfer.bind(accountsStub, sharedStub);
+			var privateShared = InTransfer.__get__('shared');
+			var privateModules = InTransfer.__get__('modules');
+			expect(privateShared).to.eql(sharedStub);
+			expect(privateModules).to.eql({
+				accounts: accountsStub
+			});
+		});
 	});
 
 	describe('calculateFee', function () {
 
 		it('should return the correct fee for second signature transaction', function () {
-			expect(inTransfer.calculateFee(trs)).to.equal(node.constants.fees.dapp);
+			expect(inTransfer.calculateFee(trs)).to.equal(node.constants.fees.send);
 		});
 	});
 
@@ -148,8 +166,8 @@ describe('inTransfer', function () {
 			});
 		});
 
-		it('should return error if amount is not equal to 0', function (done) {
-			trs.amount = 1;
+		it('should return error if amount is undefined', function (done) {
+			trs.amount = undefined;
 
 			inTransfer.verify(trs, sender, function (err) {
 				expect(err).to.equal('Invalid transaction amount');
@@ -157,170 +175,70 @@ describe('inTransfer', function () {
 			});
 		});
 
-		it('should return error if dapp cateogry is undefined', function (done) {
-			trs.asset.inTransfer.category = undefined;
+		it('should return error if amount is equal to 0', function (done) {
+			trs.amount = 0;
 
 			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application category');
+				expect(err).to.equal('Invalid transaction amount');
 				done();
 			});
 		});
 
-		it('should return error if dapp cateogry not found', function (done) {
-			trs.asset.dapp.category = 9;
+		it('should return error if asset is undefined', function (done) {
+			trs.asset.inTransfer = undefined;
 
 			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application category not found');
+				expect(err).to.equal('Invalid transaction asset');
 				done();
 			});
 		});
 
-		it('should return error if dapp icon is not link', function (done) {
-			trs.asset.dapp.icon = 'random string';
+		it('should return error if intransfer property is undefined', function (done) {
+			trs.asset.inTransfer = undefined;
 
 			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application icon link');
+				expect(err).to.equal('Invalid transaction asset');
 				done();
 			});
 		});
 
-		it('should return error if dapp icon link is invalid', function (done) {
-			trs.asset.dapp.icon = 'https://www.youtube.com/watch?v=de1-igivvda';
+		it('should return error if intransfer property is equal to 0', function (done) {
+			trs.asset.inTransfer = 0;
 
 			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application icon file type');
+				expect(err).to.equal('Invalid transaction asset');
 				done();
 			});
 		});
 
-		it('should return error if dapp type is invalid', function (done) {
-			trs.asset.dapp.type = -1;
+		it('should return error if dapp does not exist', function (done) {
+			trs.asset.inTransfer.dappId = '10223892440757987952';
+			console.log(' sql.countByTransactionId');
+			console.log( sql.countByTransactionId);
+			console.log('{ id: trs.asset.inTransfer.dappId } ');
+			console.log({ id: trs.asset.inTransfer.dappId } );
+
+			dbStub.one.withArgs(sql.countByTransactionId, {
+				id: trs.asset.inTransfer.dappId
+			}).resolves({
+				count: 0
+			});
 
 			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application type');
+				expect(err).to.equal('Application not found: ' + trs.asset.inTransfer.dappId);
 				done();
 			});
 		});
 
-		it('should not return error for valid type', function (done) {
-			trs.asset.dapp.type = 2;
+		it('should be okay with valid transaction', function (done) {
+			dbStub.one.withArgs(sql.countByTransactionId, {
+				id: trs.asset.inTransfer.dappId
+			}).resolves({
+				count: 1
+			});
 
 			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application type');
-				done();
-			});
-		});
-
-		it('should return error if dapp link is not actually a link', function (done) {
-			trs.asset.inTransfer.link = 'random string';
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application link');
-				done();
-			});
-		});
-
-		it('should return error if dapp link is invalid', function (done) {
-			trs.asset.dapp.link = 'https://www.youtube.com/watch?v=de1-igivvda';
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application file type');
-				done();
-			});
-		});
-
-		it('should return error if dapp name is blank', function (done) {
-			trs.asset.dapp.name = '  ';
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name must not be blank');
-				done();
-			});
-		});
-
-		it('should return error if dapp name starts and ends with spac', function (done) {
-			trs.asset.dapp.name = ' randomname ';
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name must not be blank');
-				done();
-			});
-		});
-
-		it('should return error if dapp name is longer than 32 characters', function (done) {
-			trs.asset.dapp.name = new Array(33).fill('a').join('');
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name is too long. Maximum is 32 characters');
-				done();
-			});
-		});
-
-		it('should return error if dapp description is longer than 160 characters', function (done) {
-			trs.asset.dapp.description = new Array(161).fill('a').join('');
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application description is too long. Maximum is 160 characters');
-				done();
-			});
-		});
-
-		it('should return error if dapp tags are longer than 160 characters', function (done) {
-			trs.asset.dapp.tags = new Array(161).fill('a').join('');
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
-				done();
-			});
-		});
-
-		it('should return error if dapp tags duplicate', function (done) {
-			trs.asset.dapp.tags = new Array(2).fill('a').join(',');
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Encountered duplicate tag: a in application');
-				done();
-			});
-		});
-
-		it('should return error if application name already exists', function (done) {
-			dbStub.query.withArgs(sql.getExisting, {
-				name: trs.asset.dapp.name,
-				link: trs.asset.dapp.link || null,
-				transactionId: trs.id
-			}).resolves([{
-				name: trs.asset.dapp.name
-			}]);
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name already exists: ' + trs.asset.dapp.name);
-				done();
-			});
-		});
-
-		it('should return error if application link already exists', function (done) {
-			dbStub.query.withArgs(sql.getExisting, {
-				name: trs.asset.dapp.name,
-				link: trs.asset.dapp.link || null,
-				transactionId: trs.id
-			}).resolves([{}]);
-
-			inTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application already exists');
-				done();
-			});
-		});
-
-		it('should return error if application link already exists', function (done) {
-			dbStub.query.withArgs(sql.getExisting, {
-				name: trs.asset.dapp.name,
-				link: trs.asset.dapp.link || null,
-				transactionId: trs.id
-			}).resolves([]);
-
-			inTransfer.verify(trs, sender, function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(trs);
 				done();
 			});
 		});
@@ -336,12 +254,11 @@ describe('inTransfer', function () {
 	describe('getBytes', function () {
 
 		it('should get bytes of valid transaction', function () {
-			expect(inTransfer.getBytes(trs).toString('hex')).to.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
+			expect(inTransfer.getBytes(trs).toString('hex')).to.equal('37343030323032313237363935343134343530');
 		});
 
-		// Docs say trs size should vary b/w 150 - 200 bytes, while here it's just 93.
 		it('should get bytes of valid transaction', function () {
-			expect(inTransfer.getBytes(trs).length).to.equal(136);
+			expect(inTransfer.getBytes(trs).length).to.be.lte(20);
 		});
 	});
 
@@ -352,12 +269,36 @@ describe('inTransfer', function () {
 			height: 1
 		};
 
-		it('should update unconfirmed name and links private variables', function (done) {
-			inTransfer.apply(trs, dummyBlock, sender, function () {
-				var unconfirmedNames = InTransfer.__get__('__private.unconfirmedNames');
-				var unconfirmedLinks = InTransfer.__get__('__private.unconfirmedLinks');
-				expect(unconfirmedNames[trs.asset.dapp.name]).to.not.exist;
-				expect(unconfirmedLinks[trs.asset.dapp.link]).to.not.exist;
+		it('should return error if dapp does not exist', function (done) {
+			var error = 'Application genesis block not found';
+			sharedStub.getGenesis.withArgs({
+				dappid: trs.asset.inTransfer.dappId
+			}, sinon.match.any).yields(error);
+
+			inTransfer.apply(trs, dummyBlock, sender, function (err) {
+				expect(err).to.equal(error);
+				done();
+			});
+		});
+
+		it('should update account with correct params', function (done) {
+			sharedStub.getGenesis.withArgs({
+				dappid: trs.asset.inTransfer.dappId
+			}, sinon.match.any).yields(null, {
+				authorId: validSender.address
+			});
+
+			accountsStub.mergeAccountAndGet.withArgs({
+				address: validSender.address,
+				balance: trs.amount,
+				u_balance: trs.amount,
+				blockId: dummyBlock.id,
+				round: slots.calcRound(dummyBlock.height)
+			}).yields(null);
+
+			inTransfer.apply(trs, dummyBlock, sender, function (err) {
+				expect(err).to.not.exist;
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
 				done();
 			});
 		});
@@ -370,8 +311,40 @@ describe('inTransfer', function () {
 			height: 1
 		};
 
-		it('should call the callback function', function (done) {
-			inTransfer.undo(trs, dummyBlock, sender, function () {
+		it('should return error if dapp does not exist', function (done) {
+			var error = 'Application genesis block not found';
+			sharedStub.getGenesis.withArgs({
+				dappid: trs.asset.inTransfer.dappId
+			}, sinon.match.any).yields(error);
+
+			inTransfer.undo(trs, dummyBlock, sender, function (err) {
+				expect(err).to.equal(error);
+				done();
+			});
+		});
+
+		it('should update account with correct params', function (done) {
+			sharedStub.getGenesis.withArgs({
+				dappid: trs.asset.inTransfer.dappId
+			}, sinon.match.any).yields(null, {
+				authorId: validSender.address
+			});
+
+			accountsStub.getAccount.withArgs({
+				address: sender.address 
+			}, sinon.match.any).yields();
+
+			accountsStub.mergeAccountAndGet.withArgs({
+				address: validSender.address,
+				balance: trs.amount,
+				u_balance: trs.amount,
+				blockId: dummyBlock.id,
+				round: slots.calcRound(dummyBlock.height)
+			}).yields(null);
+
+			inTransfer.apply(trs, dummyBlock, sender, function (err) {
+				expect(err).to.not.exist;
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
 				done();
 			});
 		});
@@ -379,74 +352,15 @@ describe('inTransfer', function () {
 
 	describe('applyUnconfirmed', function () {
 
-		it('should return error if unconfirmed names already exists', function (done) {
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = true;
-			dappLinks[trs.asset.dapp.link] = false;
-
-			InTransfer.__set__('__private.unconfirmedNames', dappNames);
-			InTransfer.__set__('__private.unconfirmedLinks', dappLinks);
-
-			inTransfer.applyUnconfirmed(trs, sender, function (err) {
-				expect(err).to.equal('Application name already exists');
-				done();
-			});
-		});
-
-		it('should return error if unconfirmed link already exists', function (done) {
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = false;
-			dappLinks[trs.asset.dapp.link] = true;
-
-			InTransfer.__set__('__private.unconfirmedNames', dappNames);
-			InTransfer.__set__('__private.unconfirmedLinks', dappLinks);
-
-			inTransfer.applyUnconfirmed(trs, sender, function (err) {
-				expect(err).to.equal('Application link already exists');
-				done();
-			});
-		});
-
-		it('should update unconfirmed name and links private variable', function (done) {
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = false;
-			dappLinks[trs.asset.dapp.link] = false;
-
-			InTransfer.__set__('__private.unconfirmedNames', dappNames);
-			InTransfer.__set__('__private.unconfirmedLinks', dappLinks);
-
-			inTransfer.applyUnconfirmed(trs, sender, function () {
-				var unconfirmedNames = InTransfer.__get__('__private.unconfirmedNames');
-				var unconfirmedLinks = InTransfer.__get__('__private.unconfirmedLinks');
-				expect(unconfirmedNames[trs.asset.dapp.name]).to.equal(true);
-				expect(unconfirmedLinks[trs.asset.dapp.link]).to.equal(true);
-				done();
-			});
+		it('should call the callback function', function (done) {
+			inTransfer.applyUnconfirmed(trs, sender, done);
 		});
 	});
 
 	describe('undoUnconfirmed', function () {
 
-		it('should update unconfirmed name and links private variables', function (done) {
-
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = true;
-			dappLinks[trs.asset.dapp.link] = true;
-
-			InTransfer.__set__('__private.unconfirmedNames', dappNames);
-			InTransfer.__set__('__private.unconfirmedLinks', dappLinks);
-
-			inTransfer.undoUnconfirmed(trs, sender, function () {
-				var unconfirmedNames = InTransfer.__get__('__private.unconfirmedNames');
-				var unconfirmedLinks = InTransfer.__get__('__private.unconfirmedLinks');
-				expect(unconfirmedNames[trs.asset.dapp.name]).to.not.exist;
-				expect(unconfirmedLinks[trs.asset.dapp.link]).to.not.exist;
-				done();
-			});
+		it('should call the callback function', function (done) {
+			inTransfer.undoUnconfirmed(trs, sender, done);
 		});
 	});
 
@@ -457,16 +371,16 @@ describe('inTransfer', function () {
 			var schemaSpy = sinon.spy(library.schema, 'validate');
 			inTransfer.objectNormalize(trs);
 			expect(schemaSpy.calledOnce).to.equal(true);
-			expect(schemaSpy.calledWithExactly(trs.asset.dapp, InTransfer.prototype.schema)).to.equal(true);
+			expect(schemaSpy.calledWithExactly(trs.asset.inTransfer, InTransfer.prototype.schema)).to.equal(true);
 			schemaSpy.restore();
 		});
 
 		it('should return error asset schema is invalid', function () {
-			trs.asset.dapp.tags = 2;
+			trs.asset.inTransfer.dappId = 2;
 
 			expect(function () {
 				inTransfer.objectNormalize(trs);
-			}).to.throw('Failed to validate dapp schema: Expected type string but found type integer');
+			}).to.throw('Failed to validate inTransfer schema: Expected type string but found type integer');
 		});
 
 		it('should return transaction when asset is valid', function () {
@@ -476,22 +390,16 @@ describe('inTransfer', function () {
 
 	describe('dbRead', function () {
 
-		it('should return null publicKey is not set ', function () {
-			delete rawTrs.dapp_name;
+		it('should return null dappId does not exist', function () {
+			delete rawTrs.in_dappId;
 
 			expect(inTransfer.dbRead(rawTrs)).to.eql(null);
 		});
 
 		it('should be okay for valid input', function () {
 			expect(inTransfer.dbRead(rawTrs)).to.eql({
-				dapp: {
-					category: 2,
-					description: null,
-					icon: null,
-					link: 'http://www.lisk.io/AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi.zip',
-					name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
-					tags: null,
-					type: 1
+				inTransfer: {
+					dappId: trs.asset.inTransfer.dappId
 				}
 			});
 		});
@@ -501,25 +409,13 @@ describe('inTransfer', function () {
 
 		it('should be okay for valid input', function () {
 			expect(inTransfer.dbSave(trs)).to.eql({
-				table: 'dapps',
+				table: 'intransfer',
 				fields: [
-					'type',
-					'name',
-					'description',
-					'tags',
-					'link',
-					'category',
-					'icon',
+					'dappId',
 					'transactionId'
 				],
 				values: {
-					type: trs.asset.dapp.type,
-					name: trs.asset.dapp.name,
-					description: trs.asset.dapp.description || null,
-					tags: trs.asset.dapp.tags || null,
-					link: trs.asset.dapp.link || null,
-					icon: trs.asset.dapp.icon || null,
-					category: trs.asset.dapp.category,
+					dappId: trs.asset.inTransfer.dappId,
 					transactionId: trs.id
 				}
 			});
