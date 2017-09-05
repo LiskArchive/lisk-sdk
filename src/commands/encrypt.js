@@ -44,9 +44,11 @@ const getPassphraseFromPrompt = vorpal => vorpal.activeCommand.prompt({
 })
 	.then(({ passphrase }) => passphrase);
 
-const getPassphraseFromCommandLine = process.stdin.isTTY
-	? getPassphraseFromPrompt
-	: getPassphraseFromStdIn;
+const getPassphraseFromCommandLine = isTTY => (
+	isTTY
+		? getPassphraseFromPrompt
+		: getPassphraseFromStdIn
+);
 
 const handlePassphrase = (vorpal, message, recipient, options) => (passphrase) => {
 	const passphraseString = passphrase.toString().trim();
@@ -76,7 +78,7 @@ const encrypt = vorpal => ({ message, recipient, options }) => {
 	const passphraseFilePath = options['passphrase-file'];
 	const getPassphrase = passphraseFilePath
 		? getPassphraseFromFile.bind(null, passphraseFilePath)
-		: getPassphraseFromCommandLine.bind(null, vorpal);
+		: getPassphraseFromCommandLine(process.stdin.isTTY).bind(null, vorpal);
 
 	return getPassphrase()
 		.then(handlePassphrase(vorpal, message, recipient, options))

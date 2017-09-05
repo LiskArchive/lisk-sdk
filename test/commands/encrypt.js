@@ -86,7 +86,12 @@ describe('lisky encrypt command palette', () => {
 		});
 
 		describe('with prompt for password', () => {
+			const isTTY = process.stdin.isTTY;
 			let promptStub;
+
+			before(() => {
+				process.stdin.isTTY = true;
+			});
 
 			beforeEach(() => {
 				promptStub = sinon.stub(vorpal, 'prompt').resolves({ passphrase: secret });
@@ -94,6 +99,10 @@ describe('lisky encrypt command palette', () => {
 
 			afterEach(() => {
 				promptStub.restore();
+			});
+
+			after(() => {
+				process.stdin.isTTY = isTTY;
 			});
 
 			it('should call the crypto module encrypt method with correct parameters', () => {
