@@ -1,9 +1,9 @@
 'use strict';
 
-var node 					= alias.require('test/node.js');
-var ws 						= alias.require('test/common/wsCommunication');
-var verify 				= alias.require('modules/blocks/verify.js');
-var bson 					= alias.require('helpers/bson.js');
+var node = alias.require('test/node.js');
+var ws = alias.require('test/common/wsCommunication');
+var verify = alias.require('modules/blocks/verify.js');
+var bson = alias.require('helpers/bson.js');
 var genesisblock 	= alias.genesisblock;
 
 describe('blocks', function () {

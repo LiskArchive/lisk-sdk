@@ -1,13 +1,13 @@
 'use strict';
 
-var node 										= alias.require('test/node.js');
-var http 										= alias.require('test/common/httpCommunication.js');
-var ws 											= alias.require('test/common/wsCommunication');
-var sendLiskTrs 						= alias.require('test/common/complexTransactions.js').sendLISK;
-var transactionSortFields 	= alias.require('sql/transactions').sortFields;
-var modulesLoader 					= alias.require('test/common/initModule').modulesLoader;
-var transactionTypes 				= alias.require('helpers/transactionTypes.js');
-var genesisblock 						= alias.genesisblock;
+var node = alias.require('test/node.js');
+var http = alias.require('test/common/httpCommunication.js');
+var ws = alias.require('test/common/wsCommunication');
+var sendLiskTrs = alias.require('test/common/complexTransactions.js').sendLISK;
+var transactionSortFields = alias.require('sql/transactions').sortFields;
+var modulesLoader = alias.require('test/common/initModule').modulesLoader;
+var transactionTypes = alias.require('helpers/transactionTypes.js');
+var genesisblock = alias.genesisblock;
 
 var account = node.randomTxAccount();
 var account2 = node.randomTxAccount();

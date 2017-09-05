@@ -1,22 +1,22 @@
 'use strict';
-var express 			= require('express');
-var randomString 	= require('randomstring');
-var _ 						= require('lodash');
-var async 				= require('async');
+var express = require('express');
+var randomString = require('randomstring');
+var _ = require('lodash');
+var async = require('async');
 
-var Sequence 			= alias.require('helpers/sequence.js');
-var database 			= alias.require('helpers/database.js');
-var genesisblock 	= alias.genesisblock;
-var Logger 				= alias.require('logger.js');
-var z_schema 			= alias.require('helpers/z_schema.js');
-var cacheHelper 	= alias.require('helpers/cache.js');
-var Cache 				= alias.require('modules/cache.js');
-var ed 						= alias.require('helpers/ed');
-var jobsQueue 		= alias.require('helpers/jobsQueue');
-var Transaction 	= alias.require('logic/transaction.js');
-var Account 			= alias.require('logic/account.js');
-var Sequence 			= alias.require('helpers/sequence.js');
-var config 				= alias.config;
+var Sequence = alias.require('helpers/sequence.js');
+var database = alias.require('helpers/database.js');
+var genesisblock = alias.genesisblock;
+var Logger = alias.require('logger.js');
+var z_schema = alias.require('helpers/z_schema.js');
+var cacheHelper = alias.require('helpers/cache.js');
+var Cache = alias.require('modules/cache.js');
+var ed = alias.require('helpers/ed');
+var jobsQueue = alias.require('helpers/jobsQueue');
+var Transaction = alias.require('logic/transaction.js');
+var Account = alias.require('logic/account.js');
+var Sequence = alias.require('helpers/sequence.js');
+var config = alias.config;
 
 var modulesLoader = new function () {
 
@@ -178,22 +178,22 @@ var modulesLoader = new function () {
 	this.initAllModules = function (cb, scope) {
 		this.clear();
 		this.initModules([
-			{accounts: 					alias.require('modules/accounts')},
-			{blocks: 						alias.require('modules/blocks')},
-			{crypto: 						alias.require('modules/crypto')},
-			{delegates: 				alias.require('modules/delegates')},
-			{loader: 						alias.require('modules/loader')},
-			{multisignatures: 	alias.require('modules/multisignatures')},
-			{peers: 						alias.require('modules/peers')},
-			{signatures: 				alias.require('modules/signatures')},
-			{system: 						alias.require('modules/system')},
-			{transactions: 			alias.require('modules/transactions')},
-			{transport: 				alias.require('modules/transport')}
+			{accounts: alias.require('modules/accounts')},
+			{blocks: alias.require('modules/blocks')},
+			{crypto: alias.require('modules/crypto')},
+			{delegates: alias.require('modules/delegates')},
+			{loader: alias.require('modules/loader')},
+			{multisignatures: alias.require('modules/multisignatures')},
+			{peers: alias.require('modules/peers')},
+			{signatures: alias.require('modules/signatures')},
+			{system: alias.require('modules/system')},
+			{transactions: alias.require('modules/transactions')},
+			{transport: alias.require('modules/transport')}
 		], [
-			{'transaction': 		alias.require('logic/transaction')},
-			{'account': 				alias.require('logic/account')},
-			{'block': 					alias.require('logic/block')},
-			{'peers': 					alias.require('logic/peers.js')}
+			{'transaction': alias.require('logic/transaction')},
+			{'account': alias.require('logic/account')},
+			{'block': alias.require('logic/block')},
+			{'peers': alias.require('logic/peers.js')}
 		], scope || {}, cb);
 	};
 
