@@ -1,4 +1,5 @@
 require('./helpers/bignum');
+require('./helpers/bson');
 require('./helpers/RPC');
 require('./helpers/request-limiter.js');
 require('./helpers/wsApi');
