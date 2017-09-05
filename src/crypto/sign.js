@@ -305,63 +305,63 @@ export function verifyTransaction(transaction, secondPublicKey) {
 
 /**
  * @method encryptAES256CBCWithPassword
- * @param plaintext utf8
- * @param password
+ * @param {String} passphrase utf8 - twelve word secret passphrase
+ * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {string}
  */
 
-function encryptAES256CBCWithPassword(plaintext, password) {
-	const iv = crypto.randomBytes(16);
-	const passHash = getSha256Hash(password, 'utf8');
-	const cipherInit = crypto.createCipheriv('aes-256-cbc', passHash, iv);
-	const textCipher = cipherInit.update(plaintext, 'utf8');
-	const finishedCipher = Buffer.concat([textCipher, cipherInit.final()]);
-	const cipherText = ''.concat(iv.toString('hex'), '$', finishedCipher.toString('hex'));
+function encryptAES256CBCWithPassword(passphrase, password) {
+	const nonce = crypto.randomBytes(16);
+	const passwordHash = getSha256Hash(password, 'utf8');
+	const cipher = crypto.createCipheriv('aes-256-cbc', passwordHash, nonce);
+	const firstBlock = cipher.update(passphrase, 'utf8');
+	const encrypted = Buffer.concat([firstBlock, cipher.final()]);
 
-	return cipherText;
+	return {
+		cipher: encrypted.toString('hex'),
+		nonce: nonce.toString('hex'),
+	};
 }
 
 /**
  * @method decryptAES256CBCWithPassword
- * @param cipherText
- * @param password
+ * @param {Object} cipherAndNonce. The cipher text resulting from the AES-256-CBC encryption, including the nonce { cipher: ..., nonce: ..., }
+ * @param {String} password utf8 - the password used to encrypt the passphrase
  *
- * @return {string}
+ * @return {String}
  */
 
-function decryptAES256CBCWithPassword(cipherText, password) {
-	const passHash = getSha256Hash(password, 'utf8');
-	const encryptedParts = cipherText.split('$');
-	const iv = Buffer.from(encryptedParts.shift(), 'hex');
-	const encryptedPass = Buffer.from(encryptedParts.join('$'), 'hex');
-	const decipherInit = crypto.createDecipheriv('aes-256-cbc', Buffer.from(passHash), iv);
-	const decryptedPass = decipherInit.update(encryptedPass);
-	const decrypted = Buffer.concat([decryptedPass, decipherInit.final()]);
+function decryptAES256CBCWithPassword(cipherAndNonce, password) {
+	const { cipher, nonce } = cipherAndNonce;
+	const passwordHash = getSha256Hash(password, 'utf8');
+	const decipherInit = crypto.createDecipheriv('aes-256-cbc', passwordHash, hexToBuffer(nonce));
+	const decryptedPassword = decipherInit.update(hexToBuffer(cipher));
+	const decrypted = Buffer.concat([decryptedPassword, decipherInit.final()]);
 
 	return decrypted.toString();
 }
 
 /**
  * @method encryptPassphraseWithPassword
- * @param plaintext utf8
- * @param password
+ * @param {String} passphrase utf8 - twelve word secret passphrase
+ * @param {String} password utf8 - the password used to encrypt the passphrase
  *
- * @return {string}
+ * @return {String}
  */
 
-export function encryptPassphraseWithPassword(plaintext, password) {
-	return encryptAES256CBCWithPassword(plaintext, password);
+export function encryptPassphraseWithPassword(passphrase, password) {
+	return encryptAES256CBCWithPassword(passphrase, password);
 }
 
 /**
  * @method decryptPassphraseWithPassword
- * @param cipherText
- * @param password
+ * @param {String} cipherAndNonce. The cipher text resulting from the AES-256-CBC encryption, including the nonce { cipher: ..., nonce: ..., }
+ * @param {String} password utf8 - the password used to encrypt the passphrase
  *
- * @return {string}
+ * @return {String}
  */
 
-export function decryptPassphraseWithPassword(cipherText, password) {
-	return decryptAES256CBCWithPassword(cipherText, password);
+export function decryptPassphraseWithPassword(cipherAndNonce, password) {
+	return decryptAES256CBCWithPassword(cipherAndNonce, password);
 }

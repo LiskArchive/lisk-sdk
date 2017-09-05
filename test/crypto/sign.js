@@ -36,6 +36,7 @@ import {
 } from '../../src/crypto/convert';
 
 describe('sign', () => {
+	const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const secretMessage = 'secret message';
 	const notSecretMessage = 'not secret message';
 	const defaultSignature = '5fd698d33c009fc358f2085f66465ae50ac3774d1a5c36d5167fbd7f9bac6b648b26bb2976d360b6286fea1c367dd128dad7f0cc241a0301fbcfff4ca77b9e0b6e6f7420736563726574206d657373616765';
@@ -45,6 +46,7 @@ describe('sign', () => {
 	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const firstSecret = '123';
+	const defaultPassword = 'myTotal53cr3t%&';
 
 	describe('#signMessageWithSecret', () => {
 		const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
@@ -279,47 +281,42 @@ ${defaultSignature}
 			};
 
 			const multiSignature = multiSignTransaction(multiSigtransaction, firstSecret);
-
 			(multiSignature).should.be.eql(expectedMultiSignature);
 		});
 	});
 
 	describe('#encryptPassphraseWithPassword', () => {
 		it('should encrypt a message', () => {
-			const plainText = 'Hello Lisk';
-			const password = '123';
-			const cipher = encryptPassphraseWithPassword(plainText, password);
-
-			(cipher).should.be.type('string').and.length(65);
+			const cipher = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
+			(cipher).should.be.type('object').and.have.property('cipher');
+			(cipher).should.be.type('object').and.have.property('nonce');
 		});
 	});
 
 	describe('#decryptPassphraseWithPassword', () => {
 		it('should decrypt a message', () => {
-			const cipher = 'eca6ab05837efb15dcbd500b211d95b9$4a378aebc4969d74c1db0c55420bf909';
-			const password = '123';
-			const decrypted = decryptPassphraseWithPassword(cipher, password);
-
-			(decrypted).should.be.eql('Hello Lisk');
+			const cipherAndNonce = {
+				cipher: '1c527b9408e77ae79e2ceb1ad5907ec523cd957d30c6a08dc922686e62ed98271910ca5b605f95aec98c438b6214fa7e83e3689f3fba89bfcaee937b35a3d931640afe79c353499a500f14c35bd3fd08',
+				nonce: '89d0fa0b955219a0e6239339fbb8239f',
+			};
+			const decrypted = decryptPassphraseWithPassword(cipherAndNonce, defaultPassword);
+			(decrypted).should.be.eql(secretPassphrase);
 		});
 	});
 
 	describe('encrypting passphrase integration test', () => {
-		const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
-		const password = 'myTotal53cr3t%&';
-		const encryptString = encryptPassphraseWithPassword(secretPassphrase, password);
+		const encryptString = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
 
 		describe('#encryptPassphraseWithPassword', () => {
 			it('should encrypt a given secret with a password', () => {
-				(encryptString).should.be.ok();
-				(encryptString).should.be.type('string');
-				(encryptString).should.containEql('$');
+				(encryptString).should.be.type('object').and.have.property('cipher');
+				(encryptString).should.be.type('object').and.have.property('nonce');
 			});
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
 			it('should decrypt a given cipher with a password', () => {
-				const decryptedString = decryptPassphraseWithPassword(encryptString, password);
+				const decryptedString = decryptPassphraseWithPassword(encryptString, defaultPassword);
 				(decryptedString).should.be.eql(secretPassphrase);
 			});
 		});
