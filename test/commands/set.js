@@ -17,7 +17,7 @@
 import os from 'os';
 import fse from 'fs-extra';
 import set from '../../src/commands/set';
-import get from '../../src/commands/get';
+import env from '../../src/utils/env';
 import liskInstance from '../../src/utils/liskInstance';
 import { setUpVorpalWithCommand } from './utils';
 
@@ -34,7 +34,7 @@ const defaultConfig = {
 	},
 };
 
-describe('set command', () => {
+describe('lisky set command palette', () => {
 	let vorpal;
 	let capturedOutput = [];
 
@@ -53,7 +53,7 @@ describe('set command', () => {
 		writeConfig(initialConfig);
 	});
 
-	describe('should exist', () => {
+	describe('setup', () => {
 		/* eslint-disable no-underscore-dangle */
 		const filterCommand = vorpalCommand => vorpalCommand._name === 'set';
 		let setCommand;
@@ -74,142 +74,262 @@ describe('set command', () => {
 		/* eslint-enable */
 	});
 
-	it('should handle unknown config variables', () => {
-		const invalidVariableCommand = 'set xxx true';
-		return vorpal.exec(invalidVariableCommand, () => {
-			(capturedOutput).should.be.eql(['Unsupported variable name.']);
-		});
-	});
-
-	describe('should set json parameter', () => {
-		const setJsonTrueCommand = 'set json true';
-		const setJsonFalseCommand = 'set json false';
-		const invalidValueCommand = 'set json tru';
-		const getDelegateCommand = 'get delegate lightcurve';
-		const setJsonTrueResult = 'Successfully set json output to true.';
-		const setJsonFalseResult = 'Successfully set json output to false.';
-		const invalidValueResult = 'Cannot set json output to tru.';
-
-		const jsonProperty = 'json';
-
-		afterEach(() => {
-		});
-
-		it('should set json to true', () => {
-			return vorpal.exec(setJsonTrueCommand, () => {
-				const config = fse.readJsonSync(configFilePath);
-
-				(config).should.have.property(jsonProperty).be.true();
-				(capturedOutput).should.be.eql([setJsonTrueResult]);
+	describe('problems', () => {
+		it('should handle unknown config variables', () => {
+			const invalidVariableCommand = 'set xxx true';
+			return vorpal.exec(invalidVariableCommand, () => {
+				(capturedOutput[0]).should.be.equal('Unsupported variable name.');
 			});
 		});
 
-		it('should set json to false', () => {
-			return vorpal.exec(setJsonFalseCommand, () => {
-				const config = fse.readJsonSync(configFilePath);
+		describe('without write file permissions', () => {
+			const command = 'set json true';
+			let writeJsonSyncStub;
 
-				(config).should.have.property(jsonProperty).be.false();
-				(capturedOutput).should.be.eql([setJsonFalseResult]);
+			beforeEach(() => {
+				writeJsonSyncStub = sinon.stub(fse, 'writeJsonSync').throws('EACCES: permission denied, open \'~/.lisky/config.json\'');
 			});
-		});
 
-		it('should set json to true and then to false', () => {
-			return vorpal.exec(setJsonTrueCommand, () =>
-				vorpal.exec(setJsonFalseCommand, () => {
-					const config = fse.readJsonSync(configFilePath);
+			afterEach(() => {
+				writeJsonSyncStub.restore();
+			});
 
-					(config).should.have.property(jsonProperty).be.false();
-					(capturedOutput).should.be.eql([setJsonTrueResult, setJsonFalseResult]);
-				}),
-			);
-		});
+			it('should show a warning if the config file is not writable', () => {
+				return vorpal.exec(command)
+					.then(() => {
+						(capturedOutput[0]).should.be.equal(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
+					});
+			});
 
-		it('should not set json to non-boolean values', () => {
-			return vorpal.exec(setJsonTrueCommand, () =>
-				vorpal.exec(invalidValueCommand, () => {
-					const config = fse.readJsonSync(configFilePath);
-
-					(config).should.have.property(jsonProperty).be.true();
-					(capturedOutput).should.be.eql([setJsonTrueResult, invalidValueResult]);
-				}),
-			);
-		});
-
-		it('should have an immediate effect', () => {
-			vorpal.use(get);
-
-			return vorpal.exec(setJsonTrueCommand)
-				.then(() => vorpal.exec(getDelegateCommand))
-				.then(() => {
-					(() => JSON.parse(capturedOutput[1])).should.not.throw();
-					return vorpal.exec(setJsonFalseCommand);
-				})
-				.then(() => vorpal.exec(getDelegateCommand))
-				.then(() => {
-					(() => JSON.parse(capturedOutput[3])).should.throw();
+			describe('in interactive mode', () => {
+				before(() => {
+					process.env.NON_INTERACTIVE_MODE = false;
 				});
+
+				after(() => {
+					delete process.env.NON_INTERACTIVE_MODE;
+				});
+
+				it('should inform the user that the option was successfully updated.', () => {
+					return vorpal.exec(command)
+						.then(() => {
+							(capturedOutput[1]).should.be.equal('Successfully set json output to true.');
+						});
+				});
+			});
+
+			describe('in non-interactive mode', () => {
+				before(() => {
+					process.env.NON_INTERACTIVE_MODE = true;
+				});
+
+				after(() => {
+					delete process.env.NON_INTERACTIVE_MODE;
+				});
+
+				it('should inform the user that the option was not successfully updated.', () => {
+					return vorpal.exec(command)
+						.then(() => {
+							(capturedOutput[1]).should.be.equal('Could not set json output to true.');
+						});
+				});
+			});
 		});
 	});
 
-	describe('switch testnet and mainnet', () => {
-		const setTestnetTrueCommand = 'set testnet true';
-		const setTestnetFalseCommand = 'set testnet false';
-		const invalidValueCommand = 'set testnet tru';
-		const setTestnetTrueResult = 'Successfully set testnet to true.';
-		const setTestnetFalseResult = 'Successfully set testnet to false.';
-		const invalidValueResult = 'Cannot set testnet to tru.';
+	describe('options', () => {
+		describe('json option', () => {
+			const setJsonTrueCommand = 'set json true';
+			const setJsonFalseCommand = 'set json false';
+			const invalidValueCommand = 'set json tru';
+			const setJsonTrueResult = 'Successfully set json output to true.';
+			const setJsonFalseResult = 'Successfully set json output to false.';
+			const invalidValueResult = 'Cannot set json output to tru.';
+			const jsonProperty = 'json';
 
-		const testnetProperties = ['liskJS', 'testnet'];
+			describe('to a non-boolean value', () => {
+				beforeEach(() => {
+					return vorpal.exec(setJsonTrueCommand)
+						.then(vorpal.exec.bind(vorpal, invalidValueCommand));
+				});
 
-		let stub;
+				it('should not change the value of json in the in-memory config', () => {
+					(env)
+						.should.have.property(jsonProperty)
+						.be.true();
+				});
 
-		beforeEach(() => {
-			stub = sinon.stub(liskInstance, 'setTestnet');
-		});
-
-		afterEach(() => {
-			stub.restore();
-		});
-
-		it('should set testnet to true', () => {
-			return vorpal.exec(setTestnetTrueCommand, () => {
-				const config = fse.readJsonSync(configFilePath);
-
-				(stub.calledWithExactly(true)).should.be.true();
-				(config)
-					.should.have.property(testnetProperties[0])
-					.have.property(testnetProperties[1])
-					.be.true();
-				(capturedOutput).should.be.eql([setTestnetTrueResult]);
-			});
-		});
-
-		it('should set testnet to false', () => {
-			return vorpal.exec(setTestnetFalseCommand, () => {
-				const config = fse.readJsonSync(configFilePath);
-
-				(stub.calledWithExactly(false)).should.be.true();
-				(config)
-					.should.have.property(testnetProperties[0])
-					.have.property(testnetProperties[1])
-					.be.false();
-				(capturedOutput).should.be.eql([setTestnetFalseResult]);
-			});
-		});
-
-		it('should not set testnet to non-boolean values', () => {
-			return vorpal.exec(setTestnetTrueCommand, () =>
-				vorpal.exec(invalidValueCommand, () => {
+				it('should not change the value of json in the config file', () => {
 					const config = fse.readJsonSync(configFilePath);
 
-					(stub.calledWithExactly(true)).should.be.true();
+					(config)
+						.should.have.property(jsonProperty)
+						.be.true();
+				});
+
+				it('should inform the user that the config has not been updated', () => {
+					(capturedOutput[1]).should.be.equal(invalidValueResult);
+				});
+			});
+
+			describe('to true', () => {
+				beforeEach(() => {
+					return vorpal.exec(setJsonTrueCommand);
+				});
+
+				it('should set json to true in the in-memory config', () => {
+					(env)
+						.should.have.property(jsonProperty)
+						.be.true();
+				});
+
+				it('should set json to true in the config file', () => {
+					const config = fse.readJsonSync(configFilePath);
+
+					(config)
+						.should.have.property(jsonProperty)
+						.be.true();
+				});
+
+				it('should inform the user that the config has been updated to true', () => {
+					(capturedOutput[0]).should.be.equal(setJsonTrueResult);
+				});
+			});
+
+			describe('to false', () => {
+				beforeEach(() => {
+					return vorpal.exec(setJsonFalseCommand);
+				});
+
+				it('should set json to false in the in-memory config', () => {
+					(env)
+						.should.have.property(jsonProperty)
+						.be.false();
+				});
+
+				it('should set json to false in the config file', () => {
+					const config = fse.readJsonSync(configFilePath);
+
+					(config)
+						.should.have.property(jsonProperty)
+						.be.false();
+				});
+
+				it('should inform the user that the config has been updated to false', () => {
+					(capturedOutput[0]).should.be.equal(setJsonFalseResult);
+				});
+			});
+		});
+
+		describe('testnet option', () => {
+			const setTestnetTrueCommand = 'set testnet true';
+			const setTestnetFalseCommand = 'set testnet false';
+			const invalidValueCommand = 'set testnet tru';
+			const setTestnetTrueResult = 'Successfully set testnet to true.';
+			const setTestnetFalseResult = 'Successfully set testnet to false.';
+			const invalidValueResult = 'Cannot set testnet to tru.';
+			const testnetProperties = ['liskJS', 'testnet'];
+
+			let setTestnetStub;
+
+			beforeEach(() => {
+				setTestnetStub = sinon.stub(liskInstance, 'setTestnet');
+			});
+
+			afterEach(() => {
+				setTestnetStub.restore();
+			});
+
+			describe('to a non-boolean value', () => {
+				beforeEach(() => {
+					return vorpal.exec(setTestnetTrueCommand)
+						.then(vorpal.exec.bind(vorpal, invalidValueCommand));
+				});
+
+				it('should not change the value of testnet on the lisk instance', () => {
+					(setTestnetStub.calledTwice).should.be.false();
+				});
+
+				it('should not change the value of testnet in the config file', () => {
+					const config = fse.readJsonSync(configFilePath);
+
 					(config)
 						.should.have.property(testnetProperties[0])
 						.have.property(testnetProperties[1])
 						.be.true();
-					(capturedOutput).should.be.eql([setTestnetTrueResult, invalidValueResult]);
-				}),
-			);
+				});
+
+				it('should not change the value of testnet in the in-memory config', () => {
+					(env)
+						.should.have.property(testnetProperties[0])
+						.have.property(testnetProperties[1])
+						.be.true();
+				});
+
+				it('should inform the user that the config has not been updated', () => {
+					(capturedOutput[1]).should.be.equal(invalidValueResult);
+				});
+			});
+
+			describe('to true', () => {
+				beforeEach(() => {
+					return vorpal.exec(setTestnetTrueCommand);
+				});
+
+				it('should set testnet to true on the lisk instance', () => {
+					(setTestnetStub.calledWithExactly(true)).should.be.true();
+				});
+
+				it('should set json to true in the in-memory config', () => {
+					(env)
+						.should.have.property(testnetProperties[0])
+						.have.property(testnetProperties[1])
+						.be.true();
+				});
+
+				it('should set testnet to true in the config file', () => {
+					const config = fse.readJsonSync(configFilePath);
+
+					(config)
+						.should.have.property(testnetProperties[0])
+						.have.property(testnetProperties[1])
+						.be.true();
+				});
+
+				it('should inform the user that the config has been updated to true', () => {
+					(capturedOutput[0]).should.be.equal(setTestnetTrueResult);
+				});
+			});
+
+			describe('to false', () => {
+				beforeEach(() => {
+					return vorpal.exec(setTestnetFalseCommand);
+				});
+
+				it('should set testnet to false on the lisk instance', () => {
+					(setTestnetStub.calledWithExactly(false)).should.be.true();
+				});
+
+				it('should set json to false in the in-memory config', () => {
+					(env)
+						.should.have.property(testnetProperties[0])
+						.have.property(testnetProperties[1])
+						.be.false();
+				});
+
+				it('should set testnet to false in the config file', () => {
+					const config = fse.readJsonSync(configFilePath);
+
+					(config)
+						.should.have.property(testnetProperties[0])
+						.have.property(testnetProperties[1])
+						.be.false();
+				});
+
+				it('should inform the user that the config has been updated to false', () => {
+					(capturedOutput[0]).should.be.equal(setTestnetFalseResult);
+				});
+			});
 		});
 	});
 });
