@@ -83,6 +83,10 @@ describe('transaction module', () => {
 						(transactionTransaction).should.be.type('object');
 					});
 
+					it('should have id string', () => {
+						(transactionTransaction).should.have.property('id').and.be.type('string');
+					});
+
 					it('should have type number equal to 0', () => {
 						(transactionTransaction).should.have.property('type').and.be.type('number').and.equal(0);
 					});
@@ -122,10 +126,6 @@ describe('transaction module', () => {
 						transactionTransaction.amount = 100;
 						const result = cryptoModule.verifyTransaction(transactionTransaction);
 						(result).should.be.not.ok();
-					});
-
-					it('should have id string', () => {
-						(transactionTransaction).should.have.property('id').and.be.type('string');
 					});
 
 					it('should have an empty asset object', () => {

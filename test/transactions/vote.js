@@ -80,6 +80,10 @@ describe('vote module', () => {
 					(voteTransaction).should.be.type('object');
 				});
 
+				it('should have id string', () => {
+					(voteTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 3', () => {
 					(voteTransaction).should.have.property('type').and.be.type('number').and.equal(3);
 				});

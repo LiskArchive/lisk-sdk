@@ -90,6 +90,10 @@ describe('multisignature module', () => {
 					(multisignatureTransaction).should.be.type('object');
 				});
 
+				it('should have id string', () => {
+					(multisignatureTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 4', () => {
 					(multisignatureTransaction).should.have.property('type').and.be.type('number').and.equal(4);
 				});
@@ -131,10 +135,6 @@ describe('multisignature module', () => {
 
 				it('should have asset', () => {
 					(multisignatureTransaction).should.have.property('asset').and.not.be.empty();
-				});
-
-				it('should have id string', () => {
-					(multisignatureTransaction).should.have.property('id').and.be.type('string');
 				});
 
 				it('should not have a second signature', () => {
@@ -236,6 +236,10 @@ describe('multisignature module', () => {
 					(transactionTransaction).should.be.type('object');
 				});
 
+				it('should have id string', () => {
+					(transactionTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 0', () => {
 					(transactionTransaction).should.have.property('type').and.be.type('number').and.equal(0);
 				});
@@ -286,10 +290,6 @@ describe('multisignature module', () => {
 
 				it('should have empty asset object', () => {
 					(transactionTransaction).should.have.property('asset').and.be.type('object').and.be.empty();
-				});
-
-				it('should have id string', () => {
-					(transactionTransaction).should.have.property('id').and.be.type('string');
 				});
 
 				it('should not have a second signature', () => {

@@ -80,6 +80,10 @@ describe('transfer module', () => {
 					(inTransferTransaction).should.be.type('object');
 				});
 
+				it('should have id string', () => {
+					(inTransferTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 6', () => {
 					(inTransferTransaction).should.have.property('type').and.be.type('number').and.equal(6);
 				});
@@ -195,6 +199,10 @@ describe('transfer module', () => {
 			describe('returned out transfer transaction object', () => {
 				it('should be an object', () => {
 					(outTransferTransaction).should.be.type('object');
+				});
+
+				it('should have id string', () => {
+					(outTransferTransaction).should.have.property('id').and.be.type('string');
 				});
 
 				it('should have type number equal to 7', () => {
