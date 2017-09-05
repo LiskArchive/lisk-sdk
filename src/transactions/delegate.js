@@ -16,7 +16,7 @@
  * Delegate module provides functions to create delegate registration transactions.
  * @class delegate
  */
-import crypto from '../crypto';
+import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -32,7 +32,7 @@ import { prepareTransaction } from './utils';
  */
 
 function createDelegate(secret, username, secondSecret, timeOffset) {
-	const keys = crypto.getKeys(secret);
+	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
 		type: 2,

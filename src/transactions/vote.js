@@ -16,7 +16,7 @@
  * Vote module provides functions for creating vote transactions.
  * @class vote
  */
-import crypto from '../crypto';
+import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -32,13 +32,13 @@ import { prepareTransaction } from './utils';
  */
 
 function createVote(secret, delegates, secondSecret, timeOffset) {
-	const keys = crypto.getKeys(secret);
+	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
 		type: 3,
 		amount: 0,
 		fee: constants.fees.vote,
-		recipientId: crypto.getAddress(keys.publicKey),
+		recipientId: cryptoModule.getAddress(keys.publicKey),
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
