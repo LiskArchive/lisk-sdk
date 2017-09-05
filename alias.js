@@ -24,15 +24,28 @@
  * With alias, you will instead be able to do the following:
  * var awesome = alias.require('src/awesome');
  */
+var program = require('commander');
+
+program
+   .option('-c, --config <path>', 'config file path')
+   .parse(process.argv);
+
 var prefix = '';
 if (process.env.NODE_ENV && ( process.env.NODE_ENV.toLowerCase() === 'test')) {
   prefix = 'test/'
 }
 
-/**
- * Setting up our config and genesisblock objects as singletons.
- */
-var config        = require(process.env.PWD + '/' +prefix + 'config.json');
+// You can override the configuration from the command line.
+var config;
+if (program.config) {
+  if (!program.config.startsWith('/')) {
+    program.config = '/' +program.config;
+  }
+  config = require(process.env.PWD + program.config);
+} else {
+  config = require(process.env.PWD + '/' +prefix + 'config.json');
+}
+
 var genesisblock  = require(process.env.PWD + '/' + prefix + 'genesisBlock.json');
 
 /**
