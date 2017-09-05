@@ -88,7 +88,7 @@ describe('lisky encrypt command palette', () => {
 			let promptStub;
 
 			beforeEach(() => {
-				promptStub = sinon.stub(vorpal, 'prompt').resolves({ secret });
+				promptStub = sinon.stub(vorpal, 'prompt').resolves({ passphrase: secret });
 			});
 
 			afterEach(() => {
