@@ -20,7 +20,6 @@ describe('handshake', function () {
 	var clientSocket;
 	var currentConnectedSocket;
 
-	var connectStub;
 	var connectAbortStub;
 	var disconnectStub;
 	var errorStub;
@@ -28,7 +27,6 @@ describe('handshake', function () {
 	function connect () {
 		clientSocket = scClient.connect(validClientSocketOptions);
 		clientSocket.on('connectAbort', connectAbortStub);
-		clientSocket.on('connect', connectStub);
 		clientSocket.on('disconnect', disconnectStub);
 		clientSocket.on('error', errorStub);
 	}
@@ -73,7 +71,6 @@ describe('handshake', function () {
 			port: testConfig.port,
 			query: _.clone(frozenHeaders)
 		};
-		connectStub = sinon.spy();
 		connectAbortStub = sinon.spy();
 		disconnectStub = sinon.spy();
 		errorStub = sinon.spy();
