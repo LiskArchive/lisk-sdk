@@ -18,25 +18,33 @@ This sections provides details on what you need install on your system in order 
 Tool chain components -- Used for compiling dependencies
 
 - Linux:
+
   `sudo apt-get install -y python build-essential curl automake autoconf libtool`
 
 - Mac:
+
   Make sure that you have both XCode and Brew installed on your machine.
+
   Update homebrew:
+
   ```
   brew update
   brew doctor
   ```
+
   Install Lunchy  for easier starting and stoping of services:
+
   `gem install lunchy`
 
 
 Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
 - Linux:
+
   `sudo apt-get install -y git`
 
 - Mac:
+
   `brew install git`
 
 ### Nodejs Install
@@ -50,6 +58,7 @@ Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for c
   ```
 
 - Mac:
+
   `brew install node`
 
 ### (Optional) Node Version Manager
@@ -58,14 +67,14 @@ Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for c
 
 - Linux
 
-```
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-nvm install v6.10.1
-```
+  ```
+  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+  nvm install v6.10.1
+  ```
 
 - Mac
 
-You can install the optional NVM from [this tutorial.](http://dev.topheman.com/install-nvm-with-homebrew-to-use-multiple-versions-of-node-and-iojs-easily/)
+  You can install the optional NVM from [this tutorial.](http://dev.topheman.com/install-nvm-with-homebrew-to-use-multiple-versions-of-node-and-iojs-easily/)
 
 
 ### NPM Installs
@@ -123,13 +132,13 @@ You can install the optional NVM from [this tutorial.](http://dev.topheman.com/i
 
 Update the redis port configuration in both config.json and test/config.json. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
 
-### Change The Redis Launch configuration
+#### Change The Redis Launch configuration
 
 Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
-1. Stop Redis on your computer. Linux: `redis-server stop` Mac: `lunchy stop redis`
+1. Stop Redis on your computer. [{ Linux: `redis-server stop` },{ Mac: `lunchy stop redis` }]
 2. Open the /usr/local/etc/redis.conf file and change this: `port 6379` to `port 6380`
-3. Restart Redis. Linux: `redis-server` Mac: `lunchy start redis`
+3. Restart Redis. [{ Linux: `redis-server` },{ Mac: `lunchy start redis` }]
 
 Now confirm that your is running on port 6380.
 ```
