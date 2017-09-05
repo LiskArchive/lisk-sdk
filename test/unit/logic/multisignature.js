@@ -12,7 +12,6 @@ var transactionTypes = require('../../../helpers/transactionTypes');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var Transaction = require('../../../logic/transaction.js');
-var Rounds = require('../../../modules/rounds.js');
 var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
 
@@ -55,10 +54,10 @@ describe('multisignature', function () {
 	var trs;
 	var sender;
 
-	var attachMultiSigAsset = function (transaction, accountLogic, rounds, done) {
+	var attachMultiSigAsset = function (transaction, accountLogic, done) {
 		modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
 			multisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transaction, modulesLoader.logger);
-			multisignature.bind(__accountModule, rounds);
+			multisignature.bind(__accountModule);
 			transaction.attachAssetType(transactionTypes.MULTI, multisignature);
 			done();
 		}, {
@@ -71,9 +70,6 @@ describe('multisignature', function () {
 
 	before(function (done) {
 		async.auto({
-			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope,cb);
-			},
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
 			},
@@ -85,8 +81,7 @@ describe('multisignature', function () {
 			}]
 		}, function (err, result) {
 			transaction = result.transaction;
-			transaction.bindModules(result);
-			attachMultiSigAsset(transaction, result.accountLogic, result.rounds, done);
+			attachMultiSigAsset(transaction, result.accountLogic, done);
 		});
 	});
 
