@@ -73,6 +73,10 @@ describe('delegate module', () => {
 					(delegateTransaction).should.be.type('object');
 				});
 
+				it('should have an id string', () => {
+					(delegateTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 2', () => {
 					(delegateTransaction).should.have.property('type').and.be.type('number').and.equal(2);
 				});

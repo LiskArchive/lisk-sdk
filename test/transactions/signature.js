@@ -73,6 +73,10 @@ describe('signature module', () => {
 				(signatureTransaction).should.be.type('object');
 			});
 
+			it('should have an id string', () => {
+				(signatureTransaction).should.have.property('id').and.be.type('string');
+			});
+
 			it('should have type number equal to 1', () => {
 				(signatureTransaction).should.have.property('type').and.be.type('number').and.equal(1);
 			});
@@ -99,10 +103,6 @@ describe('signature module', () => {
 
 			it('should have signature hex string', () => {
 				(signatureTransaction).should.have.property('signature').and.be.hexString();
-			});
-
-			it('should have an id string', () => {
-				(signatureTransaction).should.have.property('id').and.be.type('string');
 			});
 
 			it('should be signed correctly', () => {
