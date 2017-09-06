@@ -288,8 +288,8 @@ ${defaultSignature}
 	describe('#encryptPassphraseWithPassword', () => {
 		it('should encrypt a text with a password', () => {
 			const cipher = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
-			(cipher).should.be.type('object').and.have.property('cipher').and.be.type('string');
-			(cipher).should.be.type('object').and.have.property('iv').and.be.type('string').and.have.length(32);
+			(cipher).should.be.type('object').and.have.property('cipher').and.be.hexString();
+			(cipher).should.be.type('object').and.have.property('iv').and.be.hexString().and.have.length(32);
 		});
 	});
 
