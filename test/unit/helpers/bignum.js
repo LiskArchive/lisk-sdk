@@ -10,6 +10,7 @@ var bignum = require('../../../helpers/bignum');
  */
 describe('bignum', function () {
 
+	const SEED = 1234;
 	/**
 	 * bignum.toBuffer(opts)
 	 */
@@ -17,8 +18,13 @@ describe('bignum', function () {
 
 		var testbignum;
 
+		function standardExpect (buffer) {
+			expect(buffer).to.not.be.null;
+			expect(buffer).to.not.be.instanceof(String);
+		}
+
 		before(function () {
-			testbignum = new bignum(1234);
+			testbignum = new bignum(SEED);
 		});
 
 		it('throws an unsupported Buffer representation', function () {
@@ -44,36 +50,31 @@ describe('bignum', function () {
 
 		it('passes no options', function () {
 			var buffer = testbignum.toBuffer(null);
-			expect(buffer).to.not.be.null;
-			expect(buffer).to.not.be.instanceof(String);
+			standardExpect(buffer);
 		});
 
 		it('pass testing with size 1 and endian big', function () {
 			var opts = {size:1,endian:'big'};
 			var buffer = testbignum.toBuffer(opts);
-			expect(buffer).to.not.be.null;
-			expect(buffer).to.not.be.instanceof(String);
+			standardExpect(buffer);
 		});
 
 		it('pass testing with size 1 and endian big', function () {
 			var opts = {size:2,endian:'little'};
 			var buffer = testbignum.toBuffer(opts);
-			expect(buffer).to.not.be.null;
-			expect(buffer).to.not.be.instanceof(String);
+			standardExpect(buffer);
 		});
 
 		it('pass testing with size option', function () {
 			var opts = {size:1};
 			var buffer = testbignum.toBuffer(opts);
-			expect(buffer).to.not.be.null;
-			expect(buffer).to.not.be.instanceof(String);
+			standardExpect(buffer);
 		});
 
 		it('pass testing with endian option', function () {
 			var opts = {endian:'big'};
 			var buffer = testbignum.toBuffer(opts);
-			expect(buffer).to.not.be.null;
-			expect(buffer).to.not.be.instanceof(String);
+			standardExpect(buffer);
 		});
 	});
 
@@ -84,42 +85,42 @@ describe('bignum', function () {
 
 		var testbignum;
 
+		function standardExpect (result) {
+			expect(result).to.not.be.null;
+			expect(result + '').eq(SEED + '');
+		}
+
 		before(function () {
-			testbignum = new bignum('1234');
+			testbignum = new bignum(SEED);
 		});
 
 		it('pass with no options passed in', function () {
 			var result = bignum.fromBuffer(testbignum.toBuffer());
-			expect(result).to.not.be.null;
-			expect(result + '').eq('1234');
+			standardExpect(result);
 		});
 
 		it('pass with the same options size one endian little', function () {
 			var opts = {size:1,endian:'little'};
 			var result = bignum.fromBuffer(testbignum.toBuffer(opts), opts);
-			expect(result).to.not.be.null;
-			expect(result + '').eq('1234');
+			standardExpect(result);
 		});
 
 		it('pass with the same options size two endian big', function () {
 			var opts = {size:2,endian:'big'};
 			var result = bignum.fromBuffer(testbignum.toBuffer(opts), opts);
-			expect(result).to.not.be.null;
-			expect(result + '').eq('1234');
+			standardExpect(result);
 		});
 
 		it('pass with just the size option', function () {
 			var opts = {size:2};
 			var result = bignum.fromBuffer(testbignum.toBuffer(opts), opts);
-			expect(result).to.not.be.null;
-			expect(result + '').eq('1234');
+			standardExpect(result);
 		});
 
 		it('pass with just the endian option', function () {
 			var opts = {endian:'big'};
 			var result = bignum.fromBuffer(testbignum.toBuffer(opts), opts);
-			expect(result).to.not.be.null;
-			expect(result + '').eq('1234');
+			standardExpect(result);
 		});
 
 		it('error because the from and two buffer sizes varry', function () {
