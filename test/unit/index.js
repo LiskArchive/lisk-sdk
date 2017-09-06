@@ -1,3 +1,4 @@
+require('./helpers/cache');
 require('./helpers/RPC');
 require('./helpers/request-limiter.js');
 require('./helpers/wsApi');
