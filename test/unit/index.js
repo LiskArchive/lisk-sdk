@@ -3,7 +3,9 @@ require('./api/ws/workers/peersUpdateRules');
 require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
+require('./helpers/checkIpInList');
 require('./helpers/cache');
+require('./helpers/config');
 require('./helpers/ed');
 require('./helpers/httpApi');
 require('./helpers/jobs-queue');
@@ -12,6 +14,8 @@ require('./helpers/pg-notify');
 require('./helpers/request-limiter');
 require('./helpers/RPC');
 require('./helpers/slots');
+require('./helpers/RPC');
+require('./helpers/request-limiter.js');
 require('./helpers/wsApi');
 require('./helpers/z_schema');
 
@@ -44,7 +48,10 @@ require('./schema/delegates');
 require('./sql/blockRewards.js');
 require('./sql/delegatesList.js');
 require('./sql/rounds.js');
+<<<<<<< HEAD
 */
 require('./helpers/checkIpInList');
 require('./helpers/config');
 >>>>>>> b1a06dec... reverting to the original before switching branches
+=======
+>>>>>>> 09cf5c1b... Added the two new unit tests to the index.js file.
