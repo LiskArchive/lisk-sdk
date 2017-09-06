@@ -136,16 +136,16 @@ describe('lisky encrypt command palette', () => {
 		});
 
 		describe('with passphrase file passed as option', () => {
-			let readFileStub;
+			let readFileSyncStub;
 
 			describe('if file does not exist', () => {
 				beforeEach(() => {
-					readFileStub = sinon.stub(fse, 'readFile').callsArgWith(1, new Error('ENOENT: no such file or directory'));
+					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws('ENOENT: no such file or directory');
 					return vorpal.exec(passPhraseFileCommand);
 				});
 
 				afterEach(() => {
-					readFileStub.restore();
+					readFileSyncStub.restore();
 				});
 
 				it('should inform the user that the file does not exist', () => {
@@ -159,12 +159,12 @@ describe('lisky encrypt command palette', () => {
 
 			describe('if file cannot be read', () => {
 				beforeEach(() => {
-					readFileStub = sinon.stub(fse, 'readFile').callsArgWith(1, new Error('EACCES: permission denied'));
+					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws('EACCES: permission denied');
 					return vorpal.exec(passPhraseFileCommand);
 				});
 
 				afterEach(() => {
-					readFileStub.restore();
+					readFileSyncStub.restore();
 				});
 
 				it('should inform the user that the file cannot be read', () => {
@@ -180,11 +180,11 @@ describe('lisky encrypt command palette', () => {
 				const unknownError = new Error('unknown error');
 
 				beforeEach(() => {
-					readFileStub = sinon.stub(fse, 'readFile').callsArgWith(1, unknownError);
+					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(unknownError);
 				});
 
 				afterEach(() => {
-					readFileStub.restore();
+					readFileSyncStub.restore();
 				});
 
 				it('should throw an error', () => {
@@ -195,11 +195,11 @@ describe('lisky encrypt command palette', () => {
 
 			describe('if file can be read', () => {
 				beforeEach(() => {
-					readFileStub = sinon.stub(fse, 'readFile').callsArgWith(1, null, `${secret}\n`);
+					readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(Buffer.from(`${secret}\n`));
 				});
 
 				afterEach(() => {
-					readFileStub.restore();
+					readFileSyncStub.restore();
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {

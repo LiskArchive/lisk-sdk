@@ -18,13 +18,7 @@ import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
 import tablify from '../utils/tablify';
 
-const getPassphraseFromFile = path => new Promise((resolve, reject) =>
-	fse.readFile(path, (error, data) => (
-		error
-			? reject(error)
-			: resolve(data)
-	)),
-);
+const getPassphraseFromFile = async path => fse.readFileSync(path);
 
 const getPassphraseFromStdIn = () => {
 	const rl = readline.createInterface({
@@ -63,11 +57,12 @@ const handlePassphrase = (vorpal, message, recipient, options) => (passphrase) =
 };
 
 const handleError = vorpal => (error) => {
-	const { message } = error;
-	if (message.match(/ENOENT/)) {
+	const { name } = error;
+
+	if (name.match(/ENOENT/)) {
 		return vorpal.activeCommand.log('Could not encrypt: passphrase file does not exist.');
 	}
-	if (message.match(/EACCES/)) {
+	if (name.match(/EACCES/)) {
 		return vorpal.activeCommand.log('Could not encrypt: passphrase file could not be read.');
 	}
 
