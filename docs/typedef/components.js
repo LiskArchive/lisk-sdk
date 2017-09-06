@@ -9,7 +9,6 @@
  * @property {Loader} loader
  * @property {Multisignatures} multisignatures
  * @property {Peers} peers
- * @property {Rounds} rounds
  * @property {Server} server
  * @property {Signatures} signatures
  * @property {Sql} sql

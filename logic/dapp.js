@@ -40,29 +40,6 @@ function DApp (db, logger, schema, network) {
 DApp.prototype.bind = function () {};
 
 /**
- * Creates transaction.asset.dapp based on data.
- * @param {dapp} data
- * @param {transaction} trs
- * @return {transaction} trs with new data
- */
-DApp.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = 0;
-
-	trs.asset.dapp = {
-		category: data.category,
-		name: data.name,
-		description: data.description,
-		tags: data.tags,
-		type: data.dapp_type,
-		link: data.link,
-		icon: data.icon
-	};
-
-	return trs;
-};
-
-/**
  * Returns dapp fee from constants.
  * @param {transaction} trs
  * @param {account} sender
@@ -264,6 +241,9 @@ DApp.prototype.getBytes = function (trs) {
  * @return {setImmediateCallback} cb
  */
 DApp.prototype.apply = function (trs, block, sender, cb) {
+	delete __private.unconfirmedNames[trs.asset.dapp.name];
+	delete __private.unconfirmedLinks[trs.asset.dapp.link];
+	
 	return setImmediate(cb);
 };
 

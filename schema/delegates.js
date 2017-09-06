@@ -3,38 +3,6 @@
 var constants = require('../helpers/constants.js');
 
 module.exports = {
-	enableForging: {
-		id: 'delegates.enableForging',
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['secret']
-	},
-	disableForging: {
-		id: 'delegates.disableForging',
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['secret']
-	},
 	forgingStatus: {
 		id: 'delegates.forgingStatus',
 		type: 'object',
@@ -44,6 +12,22 @@ module.exports = {
 				format: 'publicKey'
 			}
 		}
+	},
+	toggleForging: {
+		id: 'delegates.toggleForging',
+		type: 'object',
+		properties: {
+			key: {
+				type: 'string',
+				minLength: 1,
+				maxLength: 100
+			},
+			publicKey: {
+				type: 'string',
+				format: 'publicKey'
+			},
+		},
+		required: ['key', 'publicKey']
 	},
 	getDelegate: {
 		id: 'delegates.getDelegate',
@@ -122,32 +106,5 @@ module.exports = {
 			}
 		},
 		required: ['generatorPublicKey']
-	},
-	addDelegate: {
-		id: 'delegates.addDelegate',
-		type: 'object',
-		properties: {
-			secret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			secondSecret: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			username: {
-				type: 'string',
-				format: 'username',
-				minLength: 1,
-				maxLength: 20
-			}
-		},
-		required: ['secret']
 	}
 };

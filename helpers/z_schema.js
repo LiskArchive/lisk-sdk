@@ -49,13 +49,7 @@ z_schema.registerFormat('username', function (str) {
 });
 
 z_schema.registerFormat('hex', function (str) {
-	try {
-		Buffer.from(str, 'hex');
-	} catch (e) {
-		return false;
-	}
-
-	return true;
+	return /^[a-f0-9]*$/i.test(str);
 });
 
 z_schema.registerFormat('publicKey', function (str) {
@@ -63,13 +57,7 @@ z_schema.registerFormat('publicKey', function (str) {
 		return true;
 	}
 
-	try {
-		var publicKey = Buffer.from(str, 'hex');
-
-		return publicKey.length === 32;
-	} catch (e) {
-		return false;
-	}
+	return /^[a-f0-9]{64}$/i.test(str);
 });
 
 z_schema.registerFormat('csv', function (str) {
@@ -90,12 +78,7 @@ z_schema.registerFormat('signature', function (str) {
 		return true;
 	}
 
-	try {
-		var signature = Buffer.from(str, 'hex');
-		return signature.length === 64;
-	} catch (e) {
-		return false;
-	}
+	return /^[a-f0-9]{128}$/i.test(str);
 });
 
 z_schema.registerFormat('queryList', function (obj) {
@@ -113,7 +96,7 @@ z_schema.registerFormat('parsedInt', function (value) {
 	if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 		return false;
 	}
-    /*eslint-enable eqeqeq */
+	/*eslint-enable eqeqeq */
 	value = parseInt(value);
 	return true;
 });
@@ -137,9 +120,6 @@ z_schema.registerFormat('version', function (str) {
 
 	return /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
 });
-
-// var registeredFormats = z_schema.getRegisteredFormats();
-// console.log(registeredFormats);
 
 // Exports
 module.exports = z_schema;

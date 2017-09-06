@@ -6,7 +6,7 @@
   "rules": {
     "semi": "error",
     "no-eq-null": "off",
-    "indent": ["error", "tab"],
+    "indent": ["error", "tab", { "flatTernaryExpressions": true, "SwitchCase": 1 }],
     "eqeqeq": "off",
     "curly": "error",
     "no-undef": "error",
@@ -20,7 +20,8 @@
     "global-require": "off",
     "handle-callback-err": "off",
     "no-mixed-requires": "off",
-    "no-new-require": "off"
+    "no-new-require": "off",
+    "multiline-ternary": ["off", "never"]
   },
   "env": {
     "browser": true,

@@ -38,17 +38,6 @@ CREATE TABLE IF NOT EXISTS "mem_accounts"(
 
 CREATE INDEX IF NOT EXISTS "mem_accounts_balance" ON "mem_accounts"("balance");
 
-CREATE TABLE IF NOT EXISTS "mem_round"(
-  "address" VARCHAR(22),
-  "amount" BIGINT,
-  "delegate" VARCHAR(64),
-  "blockId" VARCHAR(20),
-  "round" BIGINT
-);
-
-CREATE INDEX IF NOT EXISTS "mem_round_address" ON "mem_round"("address");
-CREATE INDEX IF NOT EXISTS "mem_round_round" ON "mem_round"("round");
-
 CREATE TABLE IF NOT EXISTS "mem_accounts2delegates"(
   "accountId" VARCHAR(22) NOT NULL,
   "dependentId" VARCHAR(64) NOT NULL,

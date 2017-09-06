@@ -6,7 +6,6 @@ var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
 var OrderBy = require('../helpers/orderBy.js');
-var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
@@ -58,7 +57,7 @@ function Transactions (cb, scope) {
 	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
-		transactionTypes.SEND, new Transfer()
+		transactionTypes.SEND, new Transfer(library.logger, library.schema)
 	);
 
 	setImmediate(cb, null, self);
@@ -239,49 +238,52 @@ __private.getById = function (id, cb) {
 			return setImmediate(cb, 'Transaction not found: ' + id);
 		}
 
-		var transacton = library.logic.transaction.dbRead(rows[0]);
+		var rawTransaction = rows[0];
+		var queryNames = {};
+		queryNames[transactionTypes.SEND] = 'getTransferById';
+		queryNames[transactionTypes.SIGNATURE] = 'getSignatureById';
+		queryNames[transactionTypes.DELEGATE] = 'getDelegateById';
+		queryNames[transactionTypes.VOTE] = 'getVotesById';
+		queryNames[transactionTypes.MULTI] = 'getMultiById';
+		queryNames[transactionTypes.DAPP] = 'getDappById';
+		queryNames[transactionTypes.IN_TRANSFER] = 'getInTransferById';
+		queryNames[transactionTypes.OUT_TRANSFER] = 'getOutTransferById';
 
-		return setImmediate(cb, null, transacton);
+		var queryName = queryNames[rawTransaction.t_type];
+
+		if (queryName) {
+			__private.getAssetForRawTrs(rawTransaction, queryName, function (err, rawTrsWithAsset) {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				var transaction = library.logic.transaction.dbRead(rawTrsWithAsset);
+				return setImmediate(cb, null, transaction);
+			});
+		} else {
+			var transaction = library.logic.transaction.dbRead(rawTransaction);
+			return setImmediate(cb, null, transaction);
+		}
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Transactions#getById error');
 	});
 };
 
-/**
- * Gets votes by transaction id from `votes` table.
- * @private
- * @param {transaction} transaction
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error | data: {added, deleted}
- */
-__private.getVotesById = function (transaction, cb) {
-	library.db.query(sql.getVotesById, {id: transaction.id}).then(function (rows) {
+__private.getAssetForRawTrs = function (rawTrs, queryName, cb) {
+	library.db.query(sql[queryName], {id: rawTrs.t_id}).then(function (rows) {
 		if (!rows.length) {
-			return setImmediate(cb, 'Transaction not found: ' + transaction.id);
+			return setImmediate(cb, null, rawTrs);
 		}
 
-		var votes = rows[0].votes.split(',');
-		var added = [];
-		var deleted = [];
+		var rawTrsWithAsset = _.merge(rawTrs, rows[0]);
 
-		for (var i = 0; i < votes.length; i++) {
-			if (votes[i].substring(0, 1) === '+') {
-				added.push (votes[i].substring(1));
-			} else if (votes[i].substring(0, 1) === '-') {
-				deleted.push (votes[i].substring(1));
-			}
-		}
-
-		transaction.votes = {added: added, deleted: deleted};
-
-		return setImmediate(cb, null, transaction);
+		return setImmediate(cb, null, rawTrsWithAsset);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Transactions#getVotesById error');
+		return setImmediate(cb, 'Transactions#getAssetForRawTrs error');
 	});
 };
-
 /**
  * Gets transaction by calling parameter method.
  * @private
@@ -562,17 +564,6 @@ Transactions.prototype.fillPool = function (cb) {
 };
 
 /**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Transactions.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
-};
-
-/**
  * Checks if `modules` is loaded.
  * @return {boolean} True if `modules` is loaded.
  */
@@ -591,6 +582,7 @@ Transactions.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
 		transactions: scope.transactions,
+		transport: scope.transport
 	};
 
 	__private.transactionPool.bind(
@@ -599,8 +591,7 @@ Transactions.prototype.onBind = function (scope) {
 		scope.loader
 	);
 	__private.assetTypes[transactionTypes.SEND].bind(
-		scope.accounts,
-		scope.rounds
+		scope.accounts
 	);
 };
 
@@ -660,13 +651,7 @@ Transactions.prototype.shared = {
 					return setImmediate(cb, 'Transaction not found');
 				}
 
-				if (transaction.type === 3) {
-					__private.getVotesById(transaction, function (err, transaction) {
-						return setImmediate(cb, null, {transaction: transaction});
-					});
-				} else {
-					return setImmediate(cb, null, {transaction: transaction});
-				}
+				return setImmediate(cb, null, {transaction: transaction});
 			});
 		});
 	},
@@ -708,144 +693,8 @@ Transactions.prototype.shared = {
 		return __private.getPooledTransactions('getUnconfirmedTransactionList', req, cb);
 	},
 
-	addTransactions: function (req, cb) {
-		library.schema.validate(req.body, schema.addTransactions, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
-			var keypair = library.ed.makeKeypair(hash);
-
-			if (req.body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-					return setImmediate(cb, 'Invalid passphrase');
-				}
-			}
-
-			var query = {address: req.body.recipientId};
-
-			library.balancesSequence.add(function (cb) {
-				modules.accounts.getAccount(query, function (err, recipient) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					var recipientId = recipient ? recipient.address : req.body.recipientId;
-
-					if (!recipientId) {
-						return setImmediate(cb, 'Invalid recipient');
-					}
-
-					if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-						modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
-							if (err) {
-								return setImmediate(cb, err);
-							}
-
-							if (!account || !account.publicKey) {
-								return setImmediate(cb, 'Multisignature account not found');
-							}
-
-							if (!Array.isArray(account.multisignatures)) {
-								return setImmediate(cb, 'Account does not have multisignatures enabled');
-							}
-
-							if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-								return setImmediate(cb, 'Account does not belong to multisignature group');
-							}
-
-							modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
-								if (err) {
-									return setImmediate(cb, err);
-								}
-
-								if (!requester || !requester.publicKey) {
-									return setImmediate(cb, 'Requester not found');
-								}
-
-								if (requester.secondSignature && !req.body.secondSecret) {
-									return setImmediate(cb, 'Missing requester second passphrase');
-								}
-
-								if (requester.publicKey === account.publicKey) {
-									return setImmediate(cb, 'Invalid requester public key');
-								}
-
-								var secondKeypair = null;
-
-								if (requester.secondSignature) {
-									var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-									secondKeypair = library.ed.makeKeypair(secondHash);
-								}
-
-								var transaction;
-
-								try {
-									transaction = library.logic.transaction.create({
-										type: transactionTypes.SEND,
-										amount: req.body.amount,
-										sender: account,
-										recipientId: recipientId,
-										keypair: keypair,
-										requester: keypair,
-										secondKeypair: secondKeypair
-									});
-								} catch (e) {
-									return setImmediate(cb, e.toString());
-								}
-
-								modules.transactions.receiveTransactions([transaction], true, cb);
-							});
-						});
-					} else {
-						modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-							if (err) {
-								return setImmediate(cb, err);
-							}
-
-							if (!account || !account.publicKey) {
-								return setImmediate(cb, 'Account not found');
-							}
-
-							if (account.secondSignature && !req.body.secondSecret) {
-								return setImmediate(cb, 'Missing second passphrase');
-							}
-
-							var secondKeypair = null;
-
-							if (account.secondSignature) {
-								var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-								secondKeypair = library.ed.makeKeypair(secondHash);
-							}
-
-							var transaction;
-
-							try {
-								transaction = library.logic.transaction.create({
-									type: transactionTypes.SEND,
-									amount: req.body.amount,
-									sender: account,
-									recipientId: recipientId,
-									keypair: keypair,
-									secondKeypair: secondKeypair
-								});
-							} catch (e) {
-								return setImmediate(cb, e.toString());
-							}
-
-							modules.transactions.receiveTransactions([transaction], true, cb);
-						});
-					}
-				});
-			}, function (err, transaction) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				return setImmediate(cb, null, {transactionId: transaction[0].id});
-			});
-		});
+	postTransactions: function (req, cb) {
+		return modules.transport.shared.postTransactions(req.body, cb);
 	}
 };
 

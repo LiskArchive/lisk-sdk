@@ -18,6 +18,17 @@ describe('peer', function () {
 		peer = new Peer({});
 	});
 
+	describe('constructor', function () {
+
+		it('should create Peer with all properties implemented', function () {
+			var __peer = new Peer({ip: '127.0.0.1', port: 4000});
+			expect(__peer).to.have.property('ip').equal('127.0.0.1');
+			expect(__peer).to.have.property('port').equal(4000);
+			expect(__peer).to.have.property('state').equal(1);
+			expect(__peer).to.have.property('string').equal('127.0.0.1:4000');
+		});
+	});
+
 	describe('accept', function () {
 
 		it('should accept valid peer', function () {
@@ -41,13 +52,6 @@ describe('peer', function () {
 		it('should accept peer with ip as long', function () {
 			var __peer = peer.accept({ip: ip.toLong(randomPeer.ip)});
 			expect(__peer.ip).to.equal(randomPeer.ip);
-		});
-
-		it('should convert dappid to array', function () {
-			var __peer = peer.accept({dappid: 'random-dapp-id'});
-			expect(__peer.dappid).to.be.an('array');
-			expect(_.isEqual(__peer.dappid, ['random-dapp-id'])).to.be.ok;
-			delete __peer.dappid;
 		});
 	});
 
@@ -131,16 +135,25 @@ describe('peer', function () {
 			peer.state = initialState;
 		});
 
+		it('should change state of banned peer', function () {
+			var initialState = peer.state;
+			// Ban peer
+			peer.state = 0;
+			// Try to unban peer
+			peer.update({state: 2});
+			expect(peer.state).to.equal(2);
+			peer.state = initialState;
+		});
+
 		it('should update defined values', function () {
 			var updateData = {
 				os: 'test os',
 				version: '0.0.0',
-				dappid: ['test dappid'],
 				broadhash: 'test broadhash',
 				height: 3,
 				nonce: 'ABCD123'
 			};
-			expect(_.isEqual(_.keys(updateData), peer.headers)).to.be.ok;
+			expect(_.difference(_.keys(updateData), peer.headers)).to.have.lengthOf(0);
 			peer.update(updateData);
 			peer.headers.forEach(function (header) {
 				expect(peer[header]).to.exist.and.equals(updateData[header]);
@@ -152,6 +165,7 @@ describe('peer', function () {
 			var updateImmutableData = {
 				ip: randomPeer.ip,
 				port: randomPeer.port,
+				httpPort: randomPeer.port,
 				string: randomPeer.ip + ':' + randomPeer.port
 			};
 
@@ -160,6 +174,22 @@ describe('peer', function () {
 			peer.headers.forEach(function (header) {
 				expect(peer[header]).equals(peerBeforeUpdate[header]).and.not.equal(updateImmutableData);
 			});
+		});
+
+		it('should not delete values which were previously set but are not updated now', function () {
+			var updateData = {
+				os: 'test os',
+				version: '0.0.0',
+				dappid: ['test dappid'],
+				broadhash: 'test broadhash',
+				height: 3,
+				nonce: 'ABCD123'
+			};
+			peer.update(updateData);
+			var peerBeforeUpdate = _.clone(peer);
+			peer.update({height: peer.height += 1});
+			peer.height -= 1;
+			expect(_.isEqual(peer, peerBeforeUpdate)).to.be.ok;
 		});
 	});
 
@@ -170,7 +200,9 @@ describe('peer', function () {
 			var peerCopy = __peer.object();
 			_.keys(randomPeer).forEach(function (property) {
 				if (__peer.properties.indexOf(property) !== -1) {
-					expect(peerCopy[property]).to.equal(randomPeer[property]);
+					if (typeof randomPeer[property] !== 'object') {
+						expect(peerCopy[property]).to.equal(randomPeer[property]);
+					}
 					if (__peer.nullable.indexOf(property) !== -1 && !randomPeer[property]) {
 						expect(peerCopy[property]).to.be.null;
 					}
@@ -185,5 +217,6 @@ describe('peer', function () {
 			expect(peerCopy.state).to.equal(1);
 			peer.state = initialState;
 		});
+
 	});
 });

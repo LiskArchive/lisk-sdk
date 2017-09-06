@@ -5,6 +5,7 @@ var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var Diff = require('../helpers/diff.js');
 var exceptions = require('../helpers/exceptions.js');
+var slots = require('../helpers/slots.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -36,32 +37,12 @@ function Multisignature (schema, network, transaction, logger) {
 // Public methods
 /**
  * Binds input parameters to private variable modules
- * @param {Rounds} rounds
  * @param {Accounts} accounts
  */
-Multisignature.prototype.bind = function (rounds, accounts) {
+Multisignature.prototype.bind = function (accounts) {
 	modules = {
-		rounds: rounds,
-		accounts: accounts,
+		accounts: accounts
 	};
-};
-
-/**
- * Creates a multisignature.
- * @param {multisignature} data - Entry information: min, keysgroup, lifetime.
- * @param {transaction} trs - Transaction to add multisignature data.
- * @returns {transaction} trs with new data
- */
-Multisignature.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = 0;
-	trs.asset.multisignature = {
-		min: data.min,
-		keysgroup: data.keysgroup,
-		lifetime: data.lifetime
-	};
-
-	return trs;
 };
 
 /**
@@ -78,10 +59,10 @@ Multisignature.prototype.calculateFee = function (trs, sender) {
 /**
  * Verifies multisignature fields from transaction asset and sender.
  * @implements module:transactions#Transaction~verifySignature
- * @param {transaction} trs 
+ * @param {transaction} trs
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|transaction} returns error string if invalid parameter | 
+ * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * trs validated.
  */
 Multisignature.prototype.verify = function (trs, sender, cb) {
@@ -153,6 +134,10 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 	}
 
 	async.eachSeries(trs.asset.multisignature.keysgroup, function (key, cb) {
+		if (!key || typeof key !== 'string') {
+			return setImmediate(cb, 'Invalid member in keysgroup');
+		}
+
 		var math = key[0];
 		var publicKey = key.slice(1);
 
@@ -241,7 +226,7 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 		multimin: trs.asset.multisignature.min,
 		multilifetime: trs.asset.multisignature.lifetime,
 		blockId: block.id,
-		round: modules.rounds.calc(block.height)
+		round: slots.calcRound(block.height)
 	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -282,7 +267,7 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 		multimin: -trs.asset.multisignature.min,
 		multilifetime: -trs.asset.multisignature.lifetime,
 		blockId: block.id,
-		round: modules.rounds.calc(block.height)
+		round: slots.calcRound(block.height)
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
@@ -316,7 +301,7 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
  * Turns off unconfirmedSignatures for sender address.
  * Inverts multisignature signs and merges into sender address
  * to unconfirmed fields.
- * 
+ *
  * @param {transaction} trs - Uses multisignature from asset.
  * @param {account} sender
  * @param {function} cb - Callback function.

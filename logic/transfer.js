@@ -1,9 +1,11 @@
 'use strict';
 
 var constants = require('../helpers/constants.js');
+var bignum = require('../helpers/bignum.js');
+var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules;
+var modules, library;
 
 /**
  * Main transfer logic.
@@ -12,33 +14,24 @@ var modules;
  * @classdesc Main transfer logic.
  */
 // Constructor
-function Transfer () {}
+function Transfer (logger, schema) {
+	library = {
+		logger: logger,
+		schema: schema,
+	};
+}
 
 // Public methods
 /**
  * Binds input parameters to private variable modules.
  * @param {Accounts} accounts
- * @param {Rounds} rounds
  */
-Transfer.prototype.bind = function (accounts, rounds) {
+Transfer.prototype.bind = function (accounts) {
 	modules = {
-		accounts: accounts,
-		rounds: rounds,
+		accounts: accounts
 	};
 };
 
-/**
- * Assigns data to transaction recipientId and amount.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-Transfer.prototype.create = function (data, trs) {
-	trs.recipientId = data.recipientId;
-	trs.amount = data.amount;
-
-	return trs;
-};
 /**
  * Returns send fees from constants.
  * @param {transaction} trs
@@ -46,7 +39,12 @@ Transfer.prototype.create = function (data, trs) {
  * @return {number} fee
  */
 Transfer.prototype.calculateFee = function (trs, sender) {
-	return constants.fees.send;
+	var fee = new bignum(constants.fees.send);
+	if (trs.asset && trs.asset.data) {
+		fee = fee.plus(constants.fees.data);
+	}
+
+	return Number(fee.toString());
 };
 
 /**
@@ -79,11 +77,21 @@ Transfer.prototype.process = function (trs, sender, cb) {
 };
 
 /**
+ * Creates a buffer with asset.transfer.data.
  * @param {transaction} trs
- * @return {null}
+ * @return {buffer} buf
+ * @throws {error} error
  */
 Transfer.prototype.getBytes = function (trs) {
-	return null;
+	var buf;
+
+	try {
+		buf = (trs.asset && trs.asset.data) ? Buffer.from(trs.asset.data, 'utf8') : null;
+	} catch (ex) {
+		throw ex;
+	}
+
+	return buf;
 };
 
 /**
@@ -91,7 +99,7 @@ Transfer.prototype.getBytes = function (trs) {
  * mergeAccountAndGet with unconfirmed trs amount.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -109,7 +117,7 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
 			balance: trs.amount,
 			u_balance: trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -121,7 +129,7 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
  * mergeAccountAndGet with unconfirmed trs amount and balance negative.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
+ * @implements {slots.calcRound}
  * @param {transaction} trs
  * @param {block} block
  * @param {account} sender
@@ -139,7 +147,7 @@ Transfer.prototype.undo = function (trs, block, sender, cb) {
 			balance: -trs.amount,
 			u_balance: -trs.amount,
 			blockId: block.id,
-			round: modules.rounds.calc(block.height)
+			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
 		});
@@ -166,29 +174,107 @@ Transfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	return setImmediate(cb);
 };
 
+
 /**
- * Deletes blockId from transaction 
+ * @typedef {Object} transfer 
+ * @property {String} data
+ */
+Transfer.prototype.schema = {
+	id: 'transfer',
+	type: 'object',
+	properties: {
+		data: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 64
+		}
+	}
+};
+
+/**
+ * Deletes blockId from transaction, and validates schema if asset exists.
  * @param {transaction} trs
  * @return {transaction}
  */
 Transfer.prototype.objectNormalize = function (trs) {
 	delete trs.blockId;
+
+	if (!trs.asset) {
+		return trs;
+	}
+
+	if (trs.asset.data === null || typeof trs.asset.data === 'undefined') {
+		delete trs.asset.data;
+	}
+
+	var report = library.schema.validate(trs.asset, Transfer.prototype.schema);
+
+	if (!report) {
+		throw 'Failed to validate transfer schema: ' + library.schema.getLastErrors().map(function (err) {
+			return err.message;
+		}).join(', ');
+	}
+
 	return trs;
 };
 
+Transfer.prototype.dbTable = 'transfer';
+
+Transfer.prototype.dbFields = [
+	'data',
+	'transactionId'
+];
+
 /**
+ * @typedef transferAsset
+ * @property {String} data
+ */
+
+/**
+ * Checks if asset exists, if so, returns value, otherwise returns null.
  * @param {Object} raw
- * @return {null}
+ * @return {transferAsset|null}
  */
 Transfer.prototype.dbRead = function (raw) {
+	if (raw.tf_data) {
+		return {data: raw.tf_data};
+	}
+
 	return null;
 };
 
 /**
+ * @typedef trsPromise
+ * @property {string} table
+ * @property {array} fields
+ * @property {object} values
+ */
+
+/**
+ * Checks if asset exists, if so, returns transfer table promise, otherwise returns null.
  * @param {transaction} trs
- * @return {null}
+ * @return {trsPromise|null}
  */
 Transfer.prototype.dbSave = function (trs) {
+	if (trs.asset && trs.asset.data) {
+		var data;
+
+		try {
+			data = Buffer.from(trs.asset.data, 'utf8');
+		} catch (ex) {
+			throw ex;
+		}
+
+		return {
+			table: this.dbTable,
+			fields: this.dbFields,
+			values: {
+				data: data,
+				transactionId: trs.id
+			}
+		};
+	}
+
 	return null;
 };
 

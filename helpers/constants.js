@@ -41,7 +41,7 @@
  * @property {number} totalAmount
  * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
  */
-module.exports = {
+var constants = {
 	activeDelegates: 101,
 	maxVotesPerTransaction: 33,
 	addressLength: 208,
@@ -55,7 +55,8 @@ module.exports = {
 		secondsignature: 500000000,
 		delegate: 2500000000,
 		multisignature: 500000000,
-		dapp: 2500000000
+		dapp: 2500000000,
+		data: 10000000
 	},
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
@@ -109,3 +110,5 @@ module.exports = {
 		}
 	}
 };
+
+module.exports = constants;

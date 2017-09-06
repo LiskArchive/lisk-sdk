@@ -18,28 +18,28 @@ var DelegatesSql = {
 
   count: 'SELECT COUNT(*)::int FROM delegates',
 
+  delegateList: 'SELECT getDelegatesList() AS list;',
+
   search: function (params) {
     var sql = [
       'WITH',
       'supply AS (SELECT calcSupply((SELECT height FROM blocks ORDER BY height DESC LIMIT 1))::numeric),',
-      'delegates AS (SELECT row_number() OVER (ORDER BY vote DESC, m."publicKey" ASC)::int AS rank,',
-        'm.username,',
-        'm.address,',
-        'ENCODE(m."publicKey", \'hex\') AS "publicKey",',
-        'm.vote,',
-        'm.producedblocks,',
-        'm.missedblocks,',
-        'ROUND(vote / (SELECT * FROM supply) * 100, 2)::float AS approval,',
-        '(CASE WHEN producedblocks + missedblocks = 0 THEN 0.00 ELSE',
-          'ROUND(100 - (missedblocks::numeric / (producedblocks + missedblocks) * 100), 2)',
+      'delegates AS (SELECT ',
+        'd.rank,',
+        'd.name AS username,',
+        'd.address,',
+        'ENCODE(d."pk", \'hex\') AS "publicKey",',
+        'd.voters_balance AS vote,',
+        'd.blocks_forged_cnt AS producedblocks,',
+        'd.blocks_missed_cnt AS missedblocks,',
+        'ROUND(d.voters_balance / (SELECT * FROM supply) * 100, 2)::float AS approval,',
+        '(CASE WHEN d.blocks_forged_cnt + d.blocks_missed_cnt = 0 THEN 0.00 ELSE',
+          'ROUND(100 - (d.blocks_missed_cnt::numeric / (d.blocks_forged_cnt + d.blocks_missed_cnt) * 100), 2)',
         'END)::float AS productivity,',
-        'COALESCE(v.voters_cnt, 0) AS voters_cnt,',
+        'd.voters_cnt,',
         't.timestamp AS register_timestamp',
       'FROM delegates d',
-      'LEFT JOIN mem_accounts m ON d.username = m.username',
-      'LEFT JOIN trs t ON d."transactionId" = t.id',
-      'LEFT JOIN (SELECT "dependentId", COUNT(1)::int AS voters_cnt from mem_accounts2delegates GROUP BY "dependentId") v ON v."dependentId" = ENCODE(m."publicKey", \'hex\')',
-      'WHERE m."isDelegate" = 1',
+      'LEFT JOIN trs t ON d.tx_id = t.id',
       'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') + ')',
       'SELECT * FROM delegates WHERE username LIKE ${q} LIMIT ${limit}'
     ].join(' ');

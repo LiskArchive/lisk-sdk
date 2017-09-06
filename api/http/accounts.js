@@ -8,14 +8,11 @@ var schema = require('../../schema/accounts.js');
  * Binds api with modules and creates common url.
  * - End point: `/api/accounts`
  * - Public API:
-	- post 	/open
-	- get 	/getBalance
-	- get 	/getPublicKey
-	- post 	/generatePublicKey
-	- get 	/delegates
-	- get 	/delegates/fee
-	- put 	/delegates
-	- get 	/
+ * 	- get 	/getBalance
+ * 	- get 	/getPublicKey
+ * 	- get 	/delegates
+ * 	- get 	/delegates/fee
+ * 	- get 	/
  * - Private API:
  * 	- get 	/count
  * @memberof module:accounts
@@ -31,23 +28,12 @@ function AccountsHttpApi (accountsModule, app) {
 	var router = new Router();
 
 	router.map(accountsModule.shared, {
-		'post /open': 'open',
+		'get /': 'getAccount',
 		'get /getBalance': 'getBalance',
 		'get /getPublicKey': 'getPublickey',
-		'post /generatePublicKey': 'generatePublicKey',
 		'get /delegates': 'getDelegates',
-		'get /delegates/fee': 'getDelegatesFee',
-		'put /delegates': 'addDelegates',
-		'get /': 'getAccount'
+		'get /delegates/fee': 'getDelegatesFee'
 	});
-
-	router.map(accountsModule.internal, {
-		'get /count': 'count'
-	});
-
-	if (process.env.DEBUG && process.env.DEBUG.toUpperCase() === 'TRUE') {
-		router.map(accountsModule.internal, {'get /getAllAccounts': 'getAllAccounts'});
-	}
 
 	if (process.env.TOP && process.env.TOP.toUpperCase() === 'TRUE') {
 		router.get('/top', httpApi.middleware.sanitize('query', schema.top, accountsModule.internal.top));

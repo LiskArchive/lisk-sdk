@@ -3,11 +3,9 @@
 .idea/
 .project
 __MACOSX/
-dapps/
 docs/jsdoc/
 logs/*.log
 node_modules
-nodejs/
 npm-debug.log
 release
 ssl/
@@ -17,3 +15,6 @@ tmp
 sftp-config.json
 *.swp
 *.swo
+test/integration/logs/
+test/integration/configs/
+!test/integration/configs/config.non-forge.json
