@@ -289,7 +289,7 @@ ${defaultSignature}
 		it('should encrypt a message', () => {
 			const cipher = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
 			(cipher).should.be.type('object').and.have.property('cipher');
-			(cipher).should.be.type('object').and.have.property('nonce');
+			(cipher).should.be.type('object').and.have.property('iv');
 		});
 	});
 
@@ -297,7 +297,7 @@ ${defaultSignature}
 		it('should decrypt a message', () => {
 			const cipherAndNonce = {
 				cipher: '1c527b9408e77ae79e2ceb1ad5907ec523cd957d30c6a08dc922686e62ed98271910ca5b605f95aec98c438b6214fa7e83e3689f3fba89bfcaee937b35a3d931640afe79c353499a500f14c35bd3fd08',
-				nonce: '89d0fa0b955219a0e6239339fbb8239f',
+				iv: '89d0fa0b955219a0e6239339fbb8239f',
 			};
 			const decrypted = decryptPassphraseWithPassword(cipherAndNonce, defaultPassword);
 			(decrypted).should.be.eql(secretPassphrase);
@@ -310,7 +310,7 @@ ${defaultSignature}
 		describe('#encryptPassphraseWithPassword', () => {
 			it('should encrypt a given secret with a password', () => {
 				(encryptString).should.be.type('object').and.have.property('cipher');
-				(encryptString).should.be.type('object').and.have.property('nonce');
+				(encryptString).should.be.type('object').and.have.property('iv');
 			});
 		});
 
