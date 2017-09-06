@@ -1,6 +1,6 @@
 {
   "name": "lisk",
-  "version": "0.9.2",
+  "version": "0.9.7",
   "private": true,
   "scripts": {
     "start": "node app.js",
@@ -59,7 +59,7 @@
     "valid-url": "=1.0.9",
     "validator": "=7.0.0",
     "validator.js": "=2.0.3",
-    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#dd6d5d71d61fa9f48cc3f75ea334577ca1711b9b",
+    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#4baed373622cc2f081600d2fdad22cfa61aea086",
     "z-schema": "=3.18.2"
   },
   "devDependencies": {
