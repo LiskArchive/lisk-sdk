@@ -35,6 +35,7 @@
   "homepage": "https://github.com/LiskHQ/lisky#readme",
   "devDependencies": {
     "babel-cli": "=6.24.1",
+    "babel-plugin-istanbul": "=4.1.4",
     "babel-preset-env": "=1.6.0",
     "babel-register": "=6.24.1",
     "coveralls": "=2.13.1",
