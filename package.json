@@ -8,9 +8,9 @@
   },
   "scripts": {
     "start": "babel-node src/index.js",
-    "test": "NODE_ENV=test nyc mocha --compilers js:babel-register",
+    "test": "NODE_ENV=test nyc mocha",
     "test:watch": "npm test -- --watch",
-    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register",
+    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
     "build": "babel src -d dist",
     "jenkins": "npm test && nyc report --reporter=text-lcov | coveralls",
     "prepush": "grunt eslint && npm test",
