@@ -197,6 +197,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},
+			"Functional Multisignatures POST" : {
+				node('node-01'){
+					sh '''
+					export TEST=test/api/multisignatures.post.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},
 			"Functional Transactions" : {
 				node('node-01'){
 					sh '''
