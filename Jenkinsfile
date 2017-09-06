@@ -281,6 +281,9 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 
 					export TEST=test/unit/modules/blocks/verify.js TEST_TYPE='UNIT' NODE_ENV='TEST'
 					npm run jenkins
+
+					export TEST=test/unit/modules/delegates.js TEST_TYPE='UNIT' NODE_ENV='TEST'
+					npm run jenkins
 					'''
 				}
 			},
@@ -303,6 +306,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-03'){
 					sh '''
 					export TEST=test/unit/helpers TEST_TYPE='UNIT' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},
+			"Unit - Schema" : {
+				node('node-03'){
+					sh '''
+					export TEST=test/unit/schema TEST_TYPE='UNIT' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					npm run jenkins
 					'''
