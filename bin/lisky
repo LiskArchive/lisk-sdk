@@ -22,9 +22,7 @@ var lisky = require('../dist').default;
 const runCommand = () => {
 	lisky
 		.delimiter('')
-		.parse(process.argv);
-
-	lisky
+		.parse(process.argv)
 		.exec('exit');
 };
 
