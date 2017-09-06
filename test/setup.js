@@ -27,6 +27,13 @@ should.use((_, Assertion) => {
 		(Buffer.from(this.obj, 'hex').toString('hex'))
 			.should.equal(this.obj);
 	});
+
+	Assertion.add('integer', function integer() {
+		this.params = {
+			operator: 'to be an integer',
+		};
+		(parseInt(this.obj, 10)).should.equal(this.obj);
+	});
 });
 
 // See https://github.com/shouldjs/should.js/issues/41
