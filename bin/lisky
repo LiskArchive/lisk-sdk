@@ -19,13 +19,9 @@ process.env.NON_INTERACTIVE_MODE = process.argv[1].endsWith('lisky') && process.
 // eslint-disable-next-line vars-on-top
 var lisky = require('../dist').default;
 
-const runCommand = () => {
-	lisky
+module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
+	? lisky
 		.delimiter('')
 		.parse(process.argv)
-		.exec('exit');
-};
-
-module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
-	? runCommand()
+		.exec('exit')
 	: lisky;
