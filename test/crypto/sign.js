@@ -306,8 +306,8 @@ ${defaultSignature}
 
 	describe('encrypting passphrase integration test', () => {
 		it('should encrypt a given secret with a password and decrypt it back to the original passphrase', () => {
-			const encryptString = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
-			const decryptedString = decryptPassphraseWithPassword(encryptString, defaultPassword);
+			const encryptedString = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
+			const decryptedString = decryptPassphraseWithPassword(encryptedString, defaultPassword);
 			(decryptedString).should.be.eql(secretPassphrase);
 		});
 	});

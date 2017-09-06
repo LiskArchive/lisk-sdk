@@ -326,20 +326,21 @@ function encryptAES256CBCWithPassword(plainText, password) {
 
 /**
  * @method decryptAES256CBCWithPassword
- * @param {Object} cipherAndIv
+ * @param {Object} Object - Object with cipher and iv as hex strings
+ * @param {String} Object.cipher - hex string AES-256-CBC cipher
+ * @param {String} Object.iv - hex string for the initialisation vector
  * The cipher text resulting from the AES-256-CBC encryption,
  * including the nonce { cipher: ..., nonce: ..., }
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
- * @return {String}
+ * @return {String} utf8
  */
 
-function decryptAES256CBCWithPassword(cipherAndIv, password) {
-	const { cipher, iv } = cipherAndIv;
+function decryptAES256CBCWithPassword({ cipher, iv }, password) {
 	const passwordHash = getSha256Hash(password, 'utf8');
 	const decipherInit = crypto.createDecipheriv('aes-256-cbc', passwordHash, hexToBuffer(iv));
-	const decryptedPassword = decipherInit.update(hexToBuffer(cipher));
-	const decrypted = Buffer.concat([decryptedPassword, decipherInit.final()]);
+	const firstBlock = decipherInit.update(hexToBuffer(cipher));
+	const decrypted = Buffer.concat([firstBlock, decipherInit.final()]);
 
 	return decrypted.toString();
 }
