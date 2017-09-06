@@ -10,7 +10,11 @@ var bignum = require('../../../helpers/bignum');
  */
 describe('bignum', function () {
 
+	/**
+	 * Our seed number when creating and evaluating bignum.
+	 */
 	const SEED = 1234;
+
 	/**
 	 * bignum.toBuffer(opts)
 	 */
@@ -28,20 +32,17 @@ describe('bignum', function () {
 		});
 
 		it('throws an unsupported Buffer representation', function () {
-			var opts = 'notmpint';
-			expect(testbignum.toBuffer(opts)).eq('Unsupported Buffer representation');
+			expect(testbignum.toBuffer('notmpint')).eq('Unsupported Buffer representation');
 		});
 
 		it('passes uses the string mpint option', function () {
-			var opts = 'mpint';
-			expect(testbignum.toBuffer(opts)).to.not.be.null;
+			expect(testbignum.toBuffer('mpint')).to.not.be.null;
 		});
 
 		it('throws an error because the number is negative', function () {
-			var opts = {size:16,endian:'big'};
 			var error = false;
 			try {
-				new bignum(-1234).toBuffer(opts);
+				new bignum(-1234).toBuffer({size:16,endian:'big'});
 			} catch ( err ) {
 				error = true;
 			}
@@ -54,26 +55,22 @@ describe('bignum', function () {
 		});
 
 		it('pass testing with size 1 and endian big', function () {
-			var opts = {size:1,endian:'big'};
-			var buffer = testbignum.toBuffer(opts);
+			var buffer = testbignum.toBuffer({size:1,endian:'big'});
 			standardExpect(buffer);
 		});
 
 		it('pass testing with size 1 and endian big', function () {
-			var opts = {size:2,endian:'little'};
-			var buffer = testbignum.toBuffer(opts);
+			var buffer = testbignum.toBuffer({size:2,endian:'little'});
 			standardExpect(buffer);
 		});
 
 		it('pass testing with size option', function () {
-			var opts = {size:1};
-			var buffer = testbignum.toBuffer(opts);
+			var buffer = testbignum.toBuffer({size:1});
 			standardExpect(buffer);
 		});
 
 		it('pass testing with endian option', function () {
-			var opts = {endian:'big'};
-			var buffer = testbignum.toBuffer(opts);
+			var buffer = testbignum.toBuffer({endian:'big'});
 			standardExpect(buffer);
 		});
 	});
@@ -124,10 +121,9 @@ describe('bignum', function () {
 		});
 
 		it('error because the from and two buffer sizes varry', function () {
-			var opts = {size:3, endian:'big'};
 			var error = false;
 			try {
-				bignum.fromBuffer(testbignum.toBuffer({size:4, endian:'big'}), opts);
+				bignum.fromBuffer(testbignum.toBuffer({size:4, endian:'big'}), {size:3, endian:'big'});
 			} catch ( err ) {
 				error = true;
 			}
