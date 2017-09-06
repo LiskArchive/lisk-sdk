@@ -21,6 +21,7 @@ require('./logic/transaction');
 require('./logic/transfer');
 require('./logic/vote');
 
+require('./modules/delegates.js');
 require('./modules/blocks/process');
 require('./modules/blocks/verify');
 require('./modules/accounts');
