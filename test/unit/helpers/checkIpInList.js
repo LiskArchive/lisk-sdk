@@ -1,9 +1,9 @@
 'use strict';
 
-var chai          = require('chai');
-var expect        = require('chai').expect;
-var sinon         = require('sinon');
-var ip 						= require('ip');
+var chai = require('chai');
+var expect = require('chai').expect;
+var sinon = require('sinon');
+var ip = require('ip');
 
 var checkIpInList = require('../../../helpers/checkIpInList');
 
@@ -18,7 +18,7 @@ describe('checkIpInList', function () {
 	});
 
 	it('return true to finding a subnet', function () {
-		var ipmock = sinon.mock(ip); 
+		var ipmock = sinon.mock(ip);
 
 		ipmock.expects('isV4Format').once().withArgs('127.0.0.1').returns(true);
 		ipmock.expects('isV6Format').never();
