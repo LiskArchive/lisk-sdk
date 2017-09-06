@@ -41,7 +41,7 @@ describe('bignum', function () {
 			);
 		});
 
-		it('passes no options', function () {
+		it('passes without passing any options', function () {
 			standardExpect(testbignum.toBuffer(null), BUFFER_SEED);
 		});
 
@@ -79,7 +79,7 @@ describe('bignum', function () {
 			testbignum = new bignum(SEED);
 		});
 
-		it('pass with no options passed in', function () {
+		it('passes without passing any options', function () {
 			standardExpect(bignum.fromBuffer(BUFFER_SEED));
 		});
 
