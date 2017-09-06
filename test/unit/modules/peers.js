@@ -1,16 +1,16 @@
 'use strict';
 
-var chai 							= require('chai');
-var expect 						= require('chai').expect;
-var express 					= require('express');
-var sinon 						= require('sinon');
-var _  								= require('lodash');
-var MasterWAMPServer 	= require('wamp-socket-cluster/MasterWAMPServer');
+var chai = require('chai');
+var expect = require('chai').expect;
+var express = require('express');
+var sinon = require('sinon');
+var _ = require('lodash');
+var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-var Peer 							= alias.require('logic/peer');
-var modulesLoader 		= alias.require('test/common/initModule').modulesLoader;
-var randomPeer 				= alias.require('test/common/objectStubs').randomPeer;
-var wsRPC 						= alias.require('api/ws/rpc/wsRPC').wsRPC;
+var Peer = alias.require('logic/peer');
+var modulesLoader = alias.require('test/common/initModule').modulesLoader;
+var randomPeer = alias.require('test/common/objectStubs').randomPeer;
+var wsRPC = alias.require('api/ws/rpc/wsRPC').wsRPC;
 
 var currentPeers = [];
 

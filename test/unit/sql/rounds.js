@@ -1,21 +1,21 @@
 'use strict';
 
 // Utils
-var _       	= require('lodash');
-var async   	= require('async');
-var chai    	= require('chai');
-var expect  	= require('chai').expect;
-var Promise 	= require('bluebird');
-var rewire  	= require('rewire');
-var sinon   	= require('sinon');
+var _ = require('lodash');
+var async = require('async');
+var chai = require('chai');
+var expect = require('chai').expect;
+var Promise = require('bluebird');
+var rewire = require('rewire');
+var sinon = require('sinon');
 
 // Application specific
-var bignum    = alias.require('helpers/bignum.js');
+var bignum = alias.require('helpers/bignum.js');
 var constants = alias.require('helpers/constants');
-var node      = alias.require('test/node.js');
-var Sequence  = alias.require('helpers/sequence.js');
-var slots     = alias.require('helpers/slots.js');
-var config    = alias.config;
+var node = alias.require('test/node.js');
+var Sequence = alias.require('helpers/sequence.js');
+var slots = alias.require('helpers/slots.js');
+var config = alias.config;
 
 describe('Rounds-related SQL triggers', function () {
 	var library;

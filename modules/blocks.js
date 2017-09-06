@@ -1,12 +1,12 @@
 'use strict';
 
-var constants     = require('../helpers/constants.js');
+var constants = require('../helpers/constants.js');
 // Submodules
-var blocksAPI     = require('./blocks/api');
-var blocksVerify  = require('./blocks/verify');
+var blocksAPI = require('./blocks/api');
+var blocksVerify = require('./blocks/verify');
 var blocksProcess = require('./blocks/process');
-var blocksUtils   = require('./blocks/utils');
-var blocksChain   = require('./blocks/chain');
+var blocksUtils = require('./blocks/utils');
+var blocksChain = require('./blocks/chain');
 
 // Private fields
 var modules, library, self, __private = {};

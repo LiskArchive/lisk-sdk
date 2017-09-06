@@ -24,24 +24,24 @@
  */
 // Must load up the alias as a global before any other file.
 require('./alias');
-var async 						= require('async');
-var extend 						= require('extend');
-var fs 								= require('fs');
-var https 						= require('https');
-var path 							= require('path');
-var SocketCluster 		= require('socketcluster').SocketCluster;
-var util 							= require('util');
+var async = require('async');
+var extend = require('extend');
+var fs = require('fs');
+var https = require('https');
+var path = require('path');
+var SocketCluster = require('socketcluster').SocketCluster;
+var util = require('util');
 
-var Logger 						= alias.require('logger.js');
+var Logger = alias.require('logger.js');
 var workersController = alias.require('workersController');
-var wsRPC 						= alias.require('api/ws/rpc/wsRPC').wsRPC;
+var wsRPC = alias.require('api/ws/rpc/wsRPC').wsRPC;
 
-var AppConfig 				= alias.require('helpers/config.js');
-var git 							= alias.require('helpers/git.js');
-var httpApi 					= alias.require('helpers/httpApi.js');
-var Sequence 					= alias.require('helpers/sequence.js');
-var z_schema 					= alias.require('helpers/z_schema.js');
-var genesisblock 			= alias.genesisblock;
+var AppConfig = alias.require('helpers/config.js');
+var git = alias.require('helpers/git.js');
+var httpApi = alias.require('helpers/httpApi.js');
+var Sequence = alias.require('helpers/sequence.js');
+var z_schema = alias.require('helpers/z_schema.js');
+var genesisblock = alias.genesisblock;
 
 process.stdin.resume();
 

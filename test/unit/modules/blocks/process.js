@@ -1,15 +1,15 @@
 'use strict';
 
-var expect 							= require('chai').expect;
-var async 							= require('async');
+var expect = require('chai').expect;
+var async = require('async');
 
-var modulesLoader 			= alias.require('test/common/initModule').modulesLoader;
-var BlockLogic 					= alias.require('logic/block.js');
-var VoteLogic 					= alias.require('logic/vote.js');
+var modulesLoader = alias.require('test/common/initModule').modulesLoader;
+var BlockLogic = alias.require('logic/block.js');
+var VoteLogic = alias.require('logic/vote.js');
 
-var loadTables 					= require('./processTablesData.json');
-var clearDatabaseTable 	= alias.require('test/common/globalBefore').clearDatabaseTable;
-var genesisblock 				= alias.genesisblock;
+var loadTables = require('./processTablesData.json');
+var clearDatabaseTable = alias.require('test/common/globalBefore').clearDatabaseTable;
+var genesisblock = alias.genesisblock;
 
 describe('blocks/process', function () {
 

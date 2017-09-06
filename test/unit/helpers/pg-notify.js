@@ -1,14 +1,14 @@
 'use strict';
 
 // Init tests dependencies
-var chai   = require('chai');
+var chai = require('chai');
 var expect = require('chai').expect;
-var sinon  = require('sinon');
+var sinon = require('sinon');
 var rewire = require('rewire');
 
 var config = alias.config;
-var sql    = alias.require('test/sql/pgNotify.js');
-var slots  = alias.require('helpers/slots.js');
+var sql = alias.require('test/sql/pgNotify.js');
+var slots = alias.require('helpers/slots.js');
 
 // Init tests subject
 var pg_notify = rewire('../../../helpers/pg-notify.js');

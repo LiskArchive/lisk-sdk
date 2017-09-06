@@ -3,45 +3,58 @@
   "version": "0.9.2",
   "private": true,
   "scripts": {
-    "start":            "better-npm-run start",
-    "jenkins":          "better-npm-run jenkins",
-    "eslint":           "./node_modules/.bin/grunt eslint-nofix --verbose",
-    "fetchCoverage":    "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
-    "coverageReport":   "./node_modules/.bin/grunt coverageReport --verbose",
-    "test":             "better-npm-run test",
-    "start-test-server":"better-npm-run start-test-server",
-    "test-unit":        "better-npm-run test-unit",
+    "start": "better-npm-run start",
+    "jenkins": "better-npm-run jenkins",
+    "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
+    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
+    "coverageReport": "./node_modules/.bin/grunt coverageReport --verbose",
+    "test": "better-npm-run test",
+    "start-test-server": "better-npm-run start-test-server",
+    "test-unit": "better-npm-run test-unit",
     "test-integration": "better-npm-run test-integration",
-    "test-functional":  "grunt test-functional",
-    "jsdoc":            "jsdoc -c docs/conf.json --verbose --pedantic",
-    "create-bundles":   "webpack",
-    "server-docs":      "npm run jsdoc && http-server docs/jsdoc/",
-    "precommit":        "npm run eslint"
+    "test-functional": "grunt test-functional",
+    "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
+    "create-bundles": "webpack",
+    "server-docs": "npm run jsdoc && http-server docs/jsdoc/",
+    "precommit": "npm run eslint"
   },
   "betterScripts": {
     "start": {
       "command": "node app.js",
-      "env": {"NODE_ENV": "PROD"}
+      "env": {
+        "NODE_ENV": "PROD"
+      }
     },
     "jenkins": {
       "command": "./node_modules/.bin/grunt jenkins",
-      "env": {"NODE_ENV": "TEST"}
+      "env": {
+        "NODE_ENV": "TEST"
+      }
     },
     "start-test-server": {
       "command": "dropdb lisk_test && createdb lisk_test && node app.js",
-      "env": {"NODE_ENV": "TEST"}
+      "env": {
+        "NODE_ENV": "TEST"
+      }
     },
     "test": {
       "command": "./node_modules/.bin/grunt test --verbose",
-      "env": {"NODE_ENV": "TEST"}
+      "env": {
+        "NODE_ENV": "TEST"
+      }
     },
     "test-unit": {
       "command": "./node_modules/.bin/grunt test-unit --verbose",
-      "env": {"NODE_ENV": "TEST"}
+      "env": {
+        "NODE_ENV": "TEST"
+      }
     },
     "test-integration": {
       "command": "./node_modules/.bin/grunt jenkins",
-      "env": {"TEST": "test/integration/peers.integration.js","NODE_ENV": "TEST"}
+      "env": {
+        "TEST": "test/integration/peers.integration.js",
+        "NODE_ENV": "TEST"
+      }
     }
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",

@@ -4,31 +4,31 @@
 require('../alias');
 var node = {};
 
-var Promise 									= require('bluebird');
-var rewire  									= require('rewire');
-var sinon   									= require('sinon');
+var Promise = require('bluebird');
+var rewire = require('rewire');
+var sinon = require('sinon');
 
 // Application specific
-var Sequence  								= alias.require('helpers/sequence.js');
-var slots     								= alias.require('helpers/slots.js');
+var Sequence = alias.require('helpers/sequence.js');
+var slots = alias.require('helpers/slots.js');
 
 // Requires
-node.bignum 									= alias.require('helpers/bignum.js');
-node.config 									= alias.config;
-node.constants 								= alias.require('helpers/constants.js');
-node.dappCategories 					= alias.require('helpers/dappCategories.js');
-node.dappTypes 								= alias.require('helpers/dappTypes.js');
-node.txTypes 									= alias.require('helpers/transactionTypes.js');
-node._ 												= require('lodash');
-node.async 										= require('async');
-node.popsicle 								= require('popsicle');
-node.expect 									= require('chai').expect;
-node.chai 										= require('chai');
+node.bignum = alias.require('helpers/bignum.js');
+node.config = alias.config;
+node.constants = alias.require('helpers/constants.js');
+node.dappCategories = alias.require('helpers/dappCategories.js');
+node.dappTypes = alias.require('helpers/dappTypes.js');
+node.txTypes = alias.require('helpers/transactionTypes.js');
+node._ = require('lodash');
+node.async = require('async');
+node.popsicle = require('popsicle');
+node.expect = require('chai').expect;
+node.chai = require('chai');
 node.chai.config.includeStack	= true;
 node.chai.use(require('chai-bignumber')(node.bignum));
-node.lisk 										= require('lisk-js');
-node.supertest 								= require('supertest');
-var randomString 							= require('randomstring');
+node.lisk = require('lisk-js');
+node.supertest = require('supertest');
+var randomString = require('randomstring');
 require('colors');
 
 // Node configuration
