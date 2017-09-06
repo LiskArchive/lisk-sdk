@@ -34,7 +34,7 @@ const getPassphraseFromStdIn = () => {
 const getPassphraseFromPrompt = vorpal => vorpal.activeCommand.prompt({
 	type: 'password',
 	name: 'passphrase',
-	message: 'Please enter your twelve-word pass phrase: ',
+	message: 'Please enter your secret passphrase: ',
 })
 	.then(({ passphrase }) => passphrase);
 
@@ -83,7 +83,7 @@ const encrypt = vorpal => ({ message, recipient, options }) => {
 function encryptCommand(vorpal) {
 	vorpal
 		.command('encrypt <message> <recipient>')
-		.option('-f, --passphrase-file <path>', 'Path to a file containing your twelve-word passphrase.')
+		.option('-f, --passphrase-file <path>', 'Path to a file containing your secret passphrase.')
 		.option('-j, --json', 'Sets output to json')
 		.option('--no-json', 'Default: sets output to text. You can change this in the config.json')
 		.description('Encrypt a message for a given recipient public key using your secret passphrase. \n E.g. encrypt "Hello world" bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0')

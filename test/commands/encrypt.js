@@ -55,7 +55,7 @@ describe('lisky encrypt command palette', () => {
 		const message = 'Hello Lisker';
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
-		const command = `encrypt "${message}" "${recipient}"`;
+		const command = `encrypt "${message}" ${recipient}`;
 		const jsonCommand = `${command} --json`;
 		const jCommand = `${command} -j`;
 		const noJsonCommand = `${command} --no-json`;
@@ -86,7 +86,7 @@ describe('lisky encrypt command palette', () => {
 		});
 
 		describe('with prompt for password', () => {
-			const isTTY = process.stdin.isTTY;
+			const initialIsTTY = process.stdin.isTTY;
 			let promptStub;
 
 			before(() => {
@@ -102,7 +102,7 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			after(() => {
-				process.stdin.isTTY = isTTY;
+				process.stdin.isTTY = initialIsTTY;
 			});
 
 			it('should call the crypto module encrypt method with correct parameters', () => {
