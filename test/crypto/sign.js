@@ -305,20 +305,10 @@ ${defaultSignature}
 	});
 
 	describe('encrypting passphrase integration test', () => {
-		const encryptString = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
-
-		describe('#encryptPassphraseWithPassword', () => {
-			it('should encrypt a given secret with a password', () => {
-				(encryptString).should.be.type('object').and.have.property('cipher');
-				(encryptString).should.be.type('object').and.have.property('iv');
-			});
-		});
-
-		describe('#decryptPassphraseWithPassword', () => {
-			it('should decrypt a given cipher with a password', () => {
-				const decryptedString = decryptPassphraseWithPassword(encryptString, defaultPassword);
-				(decryptedString).should.be.eql(secretPassphrase);
-			});
+		it('should encrypt a given secret with a password and decrypt it back to the original passphrase', () => {
+			const encryptString = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
+			const decryptedString = decryptPassphraseWithPassword(encryptString, defaultPassword);
+			(decryptedString).should.be.eql(secretPassphrase);
 		});
 	});
 });
