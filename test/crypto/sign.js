@@ -286,15 +286,15 @@ ${defaultSignature}
 	});
 
 	describe('#encryptPassphraseWithPassword', () => {
-		it('should encrypt a message', () => {
+		it('should encrypt a text with a password', () => {
 			const cipher = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
-			(cipher).should.be.type('object').and.have.property('cipher');
-			(cipher).should.be.type('object').and.have.property('iv');
+			(cipher).should.be.type('object').and.have.property('cipher').and.be.type('string');
+			(cipher).should.be.type('object').and.have.property('iv').and.be.type('string').and.have.length(32);
 		});
 	});
 
 	describe('#decryptPassphraseWithPassword', () => {
-		it('should decrypt a message', () => {
+		it('should decrypt a text with a password', () => {
 			const cipherAndNonce = {
 				cipher: '1c527b9408e77ae79e2ceb1ad5907ec523cd957d30c6a08dc922686e62ed98271910ca5b605f95aec98c438b6214fa7e83e3689f3fba89bfcaee937b35a3d931640afe79c353499a500f14c35bd3fd08',
 				iv: '89d0fa0b955219a0e6239339fbb8239f',
