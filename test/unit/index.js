@@ -3,6 +3,7 @@ require('./api/ws/workers/peersUpdateRules');
 require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
+require('./helpers/cache');
 require('./helpers/ed');
 require('./helpers/httpApi');
 require('./helpers/jobs-queue');
