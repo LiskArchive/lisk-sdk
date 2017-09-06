@@ -45,8 +45,8 @@ describe('sign', () => {
 	const defaultSecondSecret = 'second secret';
 	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+	const defaultSignatureFirstSecret = '123';
 	const defaultPassword = 'myTotal53cr3t%&';
-	const defaultSignatureSecret = '123';
 
 	describe('#signMessageWithSecret', () => {
 		const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
@@ -77,15 +77,15 @@ describe('sign', () => {
 
 	describe('signTransaction and print messages', () => {
 		const signedMessageExample = `
-			-----BEGIN LISK SIGNED MESSAGE-----
-			-----MESSAGE-----
-			not secret message
-			-----PUBLIC KEY-----
-			${defaultPublicKey}
-			-----SIGNATURE-----
-			${defaultSignature}
-			-----END LISK SIGNED MESSAGE-----
-			`.trim();
+-----BEGIN LISK SIGNED MESSAGE-----
+-----MESSAGE-----
+not secret message
+-----PUBLIC KEY-----
+${defaultPublicKey}
+-----SIGNATURE-----
+${defaultSignature}
+-----END LISK SIGNED MESSAGE-----
+`.trim();
 
 		it('#printSignedMessage should wrap the signed message into a printed Lisk template', () => {
 			const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
@@ -179,7 +179,7 @@ describe('sign', () => {
 
 	describe('signTransaction and verify', () => {
 		describe('#signTransaction', () => {
-			const keys = getKeys(defaultSignatureSecret);
+			const keys = getKeys(defaultSignatureFirstSecret);
 			const expectedSignature = '05383e756598172785843f5f165a8bef3632d6a0f6b7a3429201f83e5d60a5b57faa1fa383c4f33bb85d5804848e5313aa7b0cf1058873bc8576d206bdb9c804';
 			const transaction = {
 				type: 0,
@@ -199,8 +199,8 @@ describe('sign', () => {
 				id: '13987348420913138422',
 				senderPublicKey: keys.publicKey,
 			};
-			const signature = signTransaction(transaction, defaultSignatureSecret);
-			const alterSignature = signTransaction(alterTransaction, defaultSignatureSecret);
+			const signature = signTransaction(transaction, defaultSignatureFirstSecret);
+			const alterSignature = signTransaction(alterTransaction, defaultSignatureFirstSecret);
 			it('should sign a transaction', () => {
 				(signature).should.be.equal(expectedSignature);
 			});
@@ -280,7 +280,7 @@ describe('sign', () => {
 				id: '13987348420913138422',
 			};
 
-			const multiSignature = multiSignTransaction(multiSigtransaction, defaultSignatureSecret);
+			const multiSignature = multiSignTransaction(multiSigtransaction, defaultSignatureFirstSecret);
 			(multiSignature).should.be.eql(expectedMultiSignature);
 		});
 	});
