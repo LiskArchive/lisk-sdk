@@ -11,32 +11,85 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 ## Prerequisites - In order
 
-- Tool chain components -- Used for compiling dependencies
+This sections provides details on what you need install on your system in order to run Lisk.
+
+### System Install
+
+Tool chain components -- Used for compiling dependencies
+
+- Linux:
 
   `sudo apt-get install -y python build-essential curl automake autoconf libtool`
 
-- Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
+- Mac:
+
+  Make sure that you have both XCode and Brew installed on your machine.
+
+  Update homebrew:
+
+  ```
+  brew update
+  brew doctor
+  ```
+
+  Install Lunchy  for easier starting and stoping of services:
+
+  `gem install lunchy`
+
+
+Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
+
+- Linux:
 
   `sudo apt-get install -y git`
 
-- Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for code execution.
+- Mac:
 
-  System wide via package manager:
+  `brew install git`
 
+### Nodejs Install
+
+Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for code execution.
+
+- Linux:
   ```
   curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
   sudo apt-get install -y nodejs
   ```
 
-  Locally using [nvm](https://github.com/creationix/nvm):
+- Mac:
+
+  `brew install node`
+
+### (Optional) Node Version Manager
+
+[nvm](https://github.com/creationix/nvm)
+
+- Linux
 
   ```
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
   nvm install v6.10.1
   ```
 
-- Install PostgreSQL (version 9.6.2):
+- Mac
 
+  You can install the optional NVM from [this tutorial.](http://dev.topheman.com/install-nvm-with-homebrew-to-use-multiple-versions-of-node-and-iojs-easily/)
+
+
+### NPM Installs
+
+- Bower (<http://bower.io/>): Bower helps to install required JavaScript dependencies.
+- Grunt.js (<http://gruntjs.com/>): Grunt is used to compile the frontend code and serves other functions.
+- PM2 (<https://github.com/Unitech/pm2>): PM2 manages the node process for Lisk (Optional)
+
+    `npm install -g bower grunt-cli pm2`
+
+### Install PostgreSQL (version 9.6.2):
+
+**NOTE:** Database user requires privileges to `CREATE EXTENSION pgcrypto`.
+
+- Linux
   ```
   curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
   sudo -u postgres createuser --createdb $USER
@@ -46,19 +99,53 @@ Lisk is a next generation crypto-currency and decentralized application platform
   sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
   ```
 
-  **NOTE:** Database user requires privileges to `CREATE EXTENSION pgcrypto`.
+- Mac
+  ```
+  brew install postgresql
+  initdb /usr/local/var/postgres -E utf8
+  mkdir -p ~/Library/LaunchAgents
+  cp /usr/local/Cellar/postgresql/9.2.1/homebrew.mxcl.postgresql.plist ~/Library/LaunchAgents/
+  lunchy start postgres
+  createdb lisk_test
+  createdb lisk_main
+  ```
+### Installing redis
 
-- Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
+- Linux:
+  ```
+  wget http://download.redis.io/redis-stable.tar.gz
+  tar xvzf redis-stable.tar.gz
+  cd redis-stable
+  make
+  redis-server
+  ```
 
-  `npm install -g bower`
+- Mac:
+  ```
+  brew install redis
+  lunchy start redis
+  ```
 
-- Grunt.js (<http://gruntjs.com/>) -- Grunt is used to compile the frontend code and serves other functions.
+**NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
-  `npm install -g grunt-cli`
+#### Change The Lisk Configuration
 
-- PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk (Optional)
+Update the redis port configuration in both config.json and test/config.json. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
 
-  `npm install -g pm2`
+#### Change The Redis Launch configuration
+
+Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+
+1. Stop Redis on your computer. [{ Linux: `redis-server stop` },{ Mac: `lunchy stop redis` }]
+2. Open the /usr/local/etc/redis.conf file and change this: `port 6379` to `port 6380`
+3. Restart Redis. [{ Linux: `redis-server` },{ Mac: `lunchy start redis` }]
+
+Now confirm that your is running on port 6380.
+```
+redis-cli -p 6380
+ping
+```
+and you should get the result of 'PONG'
 
 ## Installation Steps
 
@@ -100,27 +187,34 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 Before running any tests, please ensure Lisk is configured to run on the same testnet that is used by the test-suite.
 
+Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test** directory
+
+```
+cp test/config.json test/genesisBlock.json .
+```
+
+**NOTE:** If the node was started with a different genesis block previous, trauncate the database before running tests.
+
+```
+dropdb lisk_test
+createdb lisk_test
+```
+
+**NOTE:** Remember to manage the Redis non-default port setting of 6380 as described above.
+
 **NOTE:** The master passphrase for this genesis block is as follows:
 
 ```
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
 ```
 
-If you have not yet created the test database, run the following command.
+Launch Lisk (runs on port 4000):
 
 ```
-createdb lisk_test
+node app.js
 ```
 
-Launch Lisk (runs on port 4000). This command will set the NODE_ENV=TEST.
-Additionally, it will load the configuration from the 'test' folder rather than the main folder.
-Finally. it will drop the list_test DB and recreate it.
-
-```
-npm run start-test-server
-```
-
-In a separate command window, from the root directory, run the test suite:
+Run the test suite:
 
 ```
 npm test
