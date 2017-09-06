@@ -14,10 +14,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+var lisky;
+
 process.env.NON_INTERACTIVE_MODE = !(process.argv[1].endsWith('lisky') && process.argv.length === 2);
 
-// eslint-disable-next-line vars-on-top
-var lisky = require('../dist').default;
+lisky = require('../dist').default;
 
 module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
 	? lisky
