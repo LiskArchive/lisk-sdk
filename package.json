@@ -24,7 +24,6 @@
 	"dependencies": {
 		"babel-polyfill": "=6.23.0",
 		"browserify-bignum": "=1.3.0-2",
-		"buffer": "=5.0.6",
 		"bytebuffer": "=5.0.1",
 		"ed2curve": "=0.2.1",
 		"js-nacl": "LiskHQ/js-nacl#6dc1417",
