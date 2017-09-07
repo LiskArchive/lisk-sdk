@@ -21,6 +21,7 @@ describe('Rounds-related SQL triggers', function () {
 
 	var db;
 	var dbSandbox;
+	var originalBlockRewardsOffset;
 	var library;
 	var mem_state, delegates_state, round_blocks = [];
 	var round_transactions = [];
@@ -61,7 +62,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 	}
 
-	function getDelegates (normalize) {
+	function getDelegates () {
 		return library.db.query('SELECT * FROM delegates').then(function (rows) {
 			delegates_state = normalizeDelegates(rows);
 			return rows;
@@ -147,18 +148,20 @@ describe('Rounds-related SQL triggers', function () {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_rounds');
 		dbSandbox.create(function (err, __db) {
 			db = __db;
-			if (err) {
-				return done(err);
-			}
+			// Force rewards start at 150-th block
+			originalBlockRewardsOffset = node.constants.rewards.offset;
+			node.constants.rewards.offset = 150;
 			node.initApplication(function (err, scope) {
 				library = scope;
 				done(err);
-			}, db);
+			}, {db: db});
 		});
 	});
 
-	after(function () {
+	after(function (done) {
+		node.constants.rewards.offset = originalBlockRewardsOffset;
 		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	afterEach(function () {

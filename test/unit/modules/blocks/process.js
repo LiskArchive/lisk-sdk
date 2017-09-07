@@ -19,30 +19,37 @@ describe('blocks/process', function () {
 	var accounts;
 	var db;
 	var dbSandbox;
+	var scope;
+	var originalBlockRewardsOffset;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_blocks_process');
 		dbSandbox.create(function (err, __db) {
 			modulesLoader.db = __db;
 			db = __db;
-			done(err);
+			// Force rewards start at 150-th block
+			originalBlockRewardsOffset = node.constants.rewards.offset;
+			node.constants.rewards.offset = 150;
+			// wait for mem_accounts to be populated
+			node.initApplication(function (err, __scope) {
+				setTimeout(function () {
+					scope = __scope;
+					accounts = __scope.modules.accounts;
+					blocksProcess = __scope.modules.blocks.process;
+					blocksVerify = __scope.modules.blocks.verify;
+					blockLogic = __scope.logic.block;
+					blocks = __scope.modules.blocks;
+					db = __scope.db;
+					done(err);
+				}, 5000);
+			}, {db: db});
 		});
 	});
 
-	after(function () {
+	after(function (done) {
+		node.constants.rewards.offset = originalBlockRewardsOffset;
 		dbSandbox.destroy();
-	});
-
-	before(function (done) {
-		node.initApplication(function (err, scope) {
-			accounts = scope.modules.accounts;
-			blocksProcess = scope.modules.blocks.process;
-			blocksVerify = scope.modules.blocks.verify;
-			blockLogic = scope.logic.block;
-			blocks = scope.modules.blocks;
-
-			done();
-		}, db);
+		node.appCleanup(done);
 	});
 
 	beforeEach(function (done) {

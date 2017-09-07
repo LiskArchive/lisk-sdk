@@ -20,11 +20,7 @@ function clearDatabaseTable (db, logger, table, cb) {
 	db.query('DELETE FROM ' + table).then(function (result) {
 		cb(null, result);
 	}).catch(function (err) {
-		if (logger) {
-			logger.err('Failed to clear database table: ' + table);
-		} else {
-			console.error('Failed to clear database table: ' + table);
-		}
+		console.error('Failed to clear database table: ' + table);
 		throw err;
 	});
 }
@@ -35,26 +31,30 @@ function DBSandbox (dbConfig, testDatabaseName) {
 	this.dbConfig = dbConfig;
 	this.originalDatabaseName = dbConfig.database;
 	this.testDatabaseName = testDatabaseName || this.originalDatabaseName;
+	this.dbConfig.database = this.testDatabaseName;
 	testDatabaseNames.push(this.testDatabaseName);
 
-	process.on('exit', function () {
+	var dropCreatedDatabases = function () {
 		testDatabaseNames.forEach(function (testDatabaseName) {
-			console.log('dropping test db -', testDatabaseName);
 			child_process.exec('dropdb ' + testDatabaseName);
 		});
+	};
+
+	process.on('exit', function () {
+		dropCreatedDatabases();
 	});
 }
 
 DBSandbox.prototype.create = function (cb) {
-	this.dbConfig.database = this.testDatabaseName;
-	child_process.exec('createdb ' + this.dbConfig.database, function () {
-		database.connect(this.dbConfig, console, cb);
+	child_process.exec('dropdb ' + this.dbConfig.database, function () {
+		child_process.exec('createdb ' + this.dbConfig.database, function () {
+			database.connect(this.dbConfig, console, cb);
+		}.bind(this));
 	}.bind(this));
 };
 
 DBSandbox.prototype.destroy = function () {
 	database.disconnect();
-	console.log('restoring original database -', this.originalDatabaseName);
 	this.dbConfig.database = this.originalDatabaseName;
 };
 

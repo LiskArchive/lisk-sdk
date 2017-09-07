@@ -62,19 +62,21 @@ describe('account', function () {
 		});
 	});
 
-	after(function () {
-		dbSandbox.destroy();
-	});
-
 	before(function (done) {
-		node.initApplication(function (err, scope) {
+		node.initApplication(function (err, __scope) {
+			// wait for mem_accounts to be populated
 			setTimeout(function () {
-				scope.modules.blocks.lastBlock.set({height: 10});
-				accounts = scope.modules.accounts;
-				accountLogic = scope.logic.account;
+				__scope.modules.blocks.lastBlock.set({height: 10});
+				accounts = __scope.modules.accounts;
+				accountLogic = __scope.logic.account;
 				done();
 			}, 5000);
 		}, db);
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	describe('Accounts', function () {

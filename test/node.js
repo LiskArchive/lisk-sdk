@@ -346,15 +346,17 @@ node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
 };
 
+var currentAppScope;
 
 // Init whole application inside tests
-node.initApplication = function (cb, db) {
+node.initApplication = function (cb, initScope) {
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
 	    promiseLib: Promise
 	};
+	var db = initScope.db;
 	if (!db) {
 		var pgp = require('pg-promise')(options);
 		node.config.db.user = node.config.db.user || process.env.USER;
@@ -369,10 +371,7 @@ node.initApplication = function (cb, db) {
 			t.none('DELETE FROM mem_accounts')
 		]);
 	}).then(function () {
-		// Force rewards start at 150-th block
-		node.constants.rewards.offset = 150;
-
-		var logger = {
+		var logger = initScope.logger || {
 			trace: sinon.spy(),
 			debug: sinon.spy(),
 			info:  sinon.spy(),
@@ -460,7 +459,8 @@ node.initApplication = function (cb, db) {
 
 			bus: ['ed', function (scope, cb) {
 				var changeCase = require('change-case');
-				var bus = function () {
+
+				var bus = initScope.bus || new (function () {
 					this.message = function () {
 						var args = [];
 						Array.prototype.push.apply(args, arguments);
@@ -470,6 +470,7 @@ node.initApplication = function (cb, db) {
 						// Iterate over modules and execute event functions (on*)
 						modules.forEach(function (module) {
 							if (typeof(module[eventName]) === 'function') {
+								jobsQueue.jobs = {};
 								module[eventName].apply(module[eventName], args);
 							}
 							if (module.submodules) {
@@ -481,8 +482,8 @@ node.initApplication = function (cb, db) {
 							}
 						});
 					};
-				};
-				cb(null, new bus());
+				})();
+				cb(null, bus);
 			}],
 			db: function (cb) {
 				cb(null, db);
@@ -574,9 +575,26 @@ node.initApplication = function (cb, db) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
-
+			currentAppScope = scope;
 			cb(err, scope);
 		});
+	});
+};
+
+node.appCleanup = function (done) {
+	node.async.eachSeries(currentAppScope.modules, function (module, cb) {
+		if (typeof(module.cleanup) === 'function') {
+			module.cleanup(cb);
+		} else {
+			cb();
+		}
+	}, function (err) {
+		if (err) {
+			currentAppScope.logger.error(err);
+		} else {
+			currentAppScope.logger.info('Cleaned up successfully');
+		}
+		done();
 	});
 };
 

@@ -6,6 +6,20 @@ var fs = require('fs');
 var path = require('path');
 var monitor = require('pg-monitor');
 
+var pgOptions = {
+	pgNative: true
+};
+var pgp = require('pg-promise')(pgOptions);
+var db;
+
+/**
+ * Stores all db queries created using pgp.QueryFile to avoid
+ * "Creating a duplicate QueryFile object for the same file"
+ * while running multiple times
+ * @type {{}}
+ */
+var queryFilesCommands = {};
+
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
 
@@ -17,6 +31,7 @@ var monitor = require('pg-monitor');
  * @param {Object} db - pg connection
  */
 function Migrator (pgp, db) {
+
 	/**
 	 * Gets one record from `migrations` trable
 	 * @method
@@ -111,10 +126,12 @@ function Migrator (pgp, db) {
 	this.applyPendingMigrations = function (pendingMigrations, waterCb) {
 		var appliedMigrations = [];
 
-		async.eachSeries(pendingMigrations, function (file, eachCb) {
-			var sql = new pgp.QueryFile(file.path, {minify: true});
 
-			db.query(sql).then(function () {
+		async.eachSeries(pendingMigrations, function (file, eachCb) {
+			if (!queryFilesCommands[file.path]) {
+				queryFilesCommands[file.path] = new pgp.QueryFile(file.path, {minify: true});
+			}
+			db.query(queryFilesCommands[file.path]).then(function () {
 				appliedMigrations.push(file);
 				return eachCb();
 			}).catch(function (err) {
@@ -152,9 +169,11 @@ function Migrator (pgp, db) {
 	 */
 	this.applyRuntimeQueryFile = function (waterCb) {
 		var dirname = path.basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
-		var sql = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
-
-		db.query(sql).then(function () {
+		var runtimeQueryPath = path.join(dirname, 'sql', 'runtime.sql');
+		if (!queryFilesCommands[runtimeQueryPath]) {
+			queryFilesCommands[runtimeQueryPath] = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
+		}
+		db.query(queryFilesCommands[runtimeQueryPath]).then(function () {
 			return waterCb();
 		}).catch(function (err) {
 			return waterCb(err);
@@ -184,13 +203,7 @@ module.exports.connect = function (config, logger, cb) {
 	try {
 		monitor.detach();
 	} catch (ex) {}
-
-	var pgOptions = {
-		pgNative: true
-	};
-
-	var pgp = require('pg-promise')(pgOptions);
-
+	
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
 
@@ -201,7 +214,9 @@ module.exports.connect = function (config, logger, cb) {
 
 	config.user = config.user || process.env.USER;
 
-	var db = pgp(config);
+	pgp.end();
+	db = pgp(config);
+
 	var migrator = new Migrator(pgp, db);
 
 	async.waterfall([
@@ -217,5 +232,9 @@ module.exports.connect = function (config, logger, cb) {
 };
 
 module.exports.disconnect = function () {
-	monitor.detach();
+	try {
+		monitor.detach();
+	} catch (ex) {
+		console.log('database disconnect exception - ', ex);
+	}
 };
