@@ -21,14 +21,14 @@ import { CONFIG_VARIABLES } from '../utils/constants';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 
-const writeConfigToFile = (newConfig) => {
+const writeConfigToFile = (vorpal, newConfig) => {
 	try {
 		fse.writeJsonSync(configFilePath, newConfig, {
 			spaces: '\t',
 		});
 		return true;
 	} catch (e) {
-		console.warn(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
+		vorpal.log(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
 		return false;
 	}
 };
@@ -44,7 +44,7 @@ const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	return obj[pathComponent];
 };
 
-const setBoolean = (variable, path) => (value) => {
+const setBoolean = (variable, path) => (vorpal, value) => {
 	if (!checkBoolean(value)) {
 		return `Cannot set ${variable} to ${value}.`;
 	}
@@ -56,9 +56,9 @@ const setBoolean = (variable, path) => (value) => {
 		liskInstance.setTestnet(newValue);
 	}
 
-	const writeSuccess = writeConfigToFile(config);
+	const writeSuccess = writeConfigToFile(vorpal, config);
 
-	if (!writeSuccess && process.argv.length > 2) {
+	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
 		return `Could not set ${variable} to ${value}.`;
 	}
 	return `Successfully set ${variable} to ${value}.`;
@@ -71,10 +71,10 @@ const handlers = {
 
 const set = vorpal => ({ variable, value }) => {
 	const returnValue = CONFIG_VARIABLES.includes(variable)
-		? handlers[variable](value)
+		? handlers[variable](vorpal, value)
 		: 'Unsupported variable name.';
 
-	return Promise.resolve(vorpal.log(returnValue));
+	return Promise.resolve(vorpal.activeCommand.log(returnValue));
 };
 
 export default function setCommand(vorpal) {
