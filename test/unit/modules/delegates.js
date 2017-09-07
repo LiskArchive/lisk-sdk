@@ -12,7 +12,6 @@ var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var constants = require('../../../helpers/constants.js');
-var ws = require('../../common/wsCommunication.js');
 var genesisDelegates = require('../../genesisDelegates.json');
 
 describe('delegates', function () {
@@ -24,14 +23,14 @@ describe('delegates', function () {
 	var __private;
 
 	before(function (done) {
-		node.initApplication(function (scope) {
+		node.initApplication(function (err, scope) {
 			library = scope;
 
 			// Set delegates module as loaded to allow manual forging
 			library.rewiredModules.delegates.__set__('__private.loaded', true);
 
 			setTimeout(done, 10000);
-		});
+		}, {});
 	});
 
 	before(function (done) {
