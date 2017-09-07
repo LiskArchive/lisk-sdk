@@ -74,6 +74,7 @@
     "jsdox": "=0.4.10",
     "mocha": "=3.2.0",
     "moment": "=2.17.1",
+    "promisify-any": "=2.0.1",
     "sinon": "=1.17.7",
     "supertest": "=3.0.0"
   }
