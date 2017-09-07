@@ -7,10 +7,6 @@ module.exports = {
 		id: 'transport.headers',
 		type: 'object',
 		properties: {
-			ip: {
-				type: 'string',
-				format: 'ip'
-			},
 			port: {
 				type: 'integer',
 				minimum: 1,
@@ -42,11 +38,11 @@ module.exports = {
 			},
 			nonce: {
 				type: 'string',
-				minimum: 16,
-				max: 16
+				minLength: 16,
+				maxLength: 16
 			}
 		},
-		required: ['ip', 'port', 'version', 'nethash']
+		required: ['port', 'version', 'nonce', 'nethash', 'height']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',
@@ -127,9 +123,14 @@ module.exports = {
 			},
 			authKey: {
 				type: 'string'
+			},
+			updateType: {
+				type: 'integer',
+				minimum: 0,
+				maximum: 1
 			}
 		},
-		required: ['authKey', 'peer']
+		required: ['authKey', 'peer', 'updateType']
 	},
 	update: {
 		id: 'transport.update',
