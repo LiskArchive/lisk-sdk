@@ -68,7 +68,6 @@ describe('bignum', function () {
 	describe('fromBuffer', function () {
 
 		function standardExpect (result) {
-			expect(result).to.be.instanceof(bignum);
 			expect(result.eq(new bignum(SEED))).to.be.true;
 		}
 
