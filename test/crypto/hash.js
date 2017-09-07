@@ -12,56 +12,60 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionHash, getSha256Hash } from '../../src/crypto/hash';
-import { bufferToHex } from '../../src/crypto/convert';
+import {
+	getSha256Hash,
+	getTransactionHash,
+} from '../../src/crypto/hash';
+
+const getTransactionBytes = require('../../src/transactions/utils/getTransactionBytes');
 
 describe('hash', () => {
 	describe('#getSha256Hash', () => {
 		const defaultText = 'text123*';
-		const defaultHash = '7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971';
-		const arrayToHash = [1, 2, 3];
+		let arrayToHash;
+		let defaultHash;
 
-		it('should be ok', () => {
-			(getSha256Hash).should.be.ok();
+		beforeEach(() => {
+			defaultHash = Buffer.from('7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971', 'hex');
+			arrayToHash = [1, 2, 3];
 		});
 
-		it('should generate a sha256 hash from buffer', () => {
+		it('should generate a sha256 hash from a Buffer', () => {
 			const testBuffer = Buffer.from(defaultText);
 			const hash = getSha256Hash(testBuffer);
-			(bufferToHex(hash)).should.be.eql(defaultHash);
+			(hash).should.be.eql(defaultHash);
 		});
 
-		it('should generate a sha256 hash from utf8', () => {
+		it('should generate a sha256 hash from a utf8 string', () => {
 			const hash = getSha256Hash(defaultText, 'utf8');
-			(bufferToHex(hash)).should.be.eql(defaultHash);
+			(hash).should.be.eql(defaultHash);
 		});
 
-		it('should generate a sha256 hash from hex', () => {
-			const testHex = bufferToHex(Buffer.from(defaultText));
+		it('should generate a sha256 hash from a hex string', () => {
+			const testHex = Buffer.from(defaultText).toString('hex');
 			const hash = getSha256Hash(testHex, 'hex');
-			(bufferToHex(hash)).should.be.eql(defaultHash);
+			(hash).should.be.eql(defaultHash);
 		});
 
-		it('should throw on unknown format when trying utf32', () => {
+		it('should throw on unknown format when trying a string with format "utf32"', () => {
 			(getSha256Hash.bind(null, defaultText, 'utf32')).should.throw('Unsupported string format. Currently only `hex` and `utf8` are supported.');
 		});
 
-		it('should throw on unknown format when using an array instead of Buffer', () => {
+		it('should throw on unknown format when using an array', () => {
 			(getSha256Hash.bind(null, arrayToHash)).should.throw('Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.');
 		});
 	});
 
 	describe('#getTransactionHash', () => {
-		it('should be ok', () => {
-			(getTransactionHash).should.be.ok();
-		});
+		let defaultTransactionBytes;
+		let transactionBytesStub;
+		let transaction;
+		let result;
 
-		it('should be a function', () => {
-			(getTransactionHash).should.be.type('function');
-		});
-
-		it('should return Buffer and Buffer most be 32 bytes length', () => {
-			const transaction = {
+		beforeEach(() => {
+			defaultTransactionBytes = Buffer.from('00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a', 'hex');
+			transactionBytesStub = sandbox.stub(getTransactionBytes, 'default').returns(defaultTransactionBytes);
+			transaction = {
 				type: 0,
 				amount: 1000,
 				recipientId: '58191285901858109L',
@@ -71,12 +75,16 @@ describe('hash', () => {
 				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 				id: '13987348420913138422',
 			};
+			result = getTransactionHash(transaction);
+		});
 
-			const result = getTransactionHash(transaction);
-			(result).should.be.ok();
-			(result).should.be.type('object');
-			(result.length).should.be.equal(32);
+		it('should get transaction bytes', () => {
+			(transactionBytesStub.calledWithExactly(transaction)).should.be.true();
+		});
+
+		it('should return a hash for a transaction object as a Buffer', () => {
+			const expected = Buffer.from('f60a26da470b1dc233fd526ed7306c1d84836f9e2ecee82c9ec47319e0910474', 'hex');
+			(result).should.be.eql(expected);
 		});
 	});
 });
-
