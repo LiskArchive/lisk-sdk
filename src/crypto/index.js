@@ -13,8 +13,8 @@
  *
  */
 import * as convert from './convert';
-import * as sign from './sign';
-import * as keys from './keys';
 import * as hash from './hash';
+import * as keys from './keys';
+import * as sign from './sign';
 
-export default Object.assign({}, convert, sign, keys, hash);
+export default Object.assign({}, convert, hash, keys, sign);
