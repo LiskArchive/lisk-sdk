@@ -16,7 +16,6 @@ describe('bignum', function () {
 		var testbignum;
 
 		function standardExpect (buffer, shouldEqual) {
-			expect(buffer).to.be.instanceof(Buffer);
 			expect(buffer.equals(shouldEqual)).to.be.true;
 		}
 
@@ -68,16 +67,10 @@ describe('bignum', function () {
 
 	describe('fromBuffer', function () {
 
-		var testbignum;
-
 		function standardExpect (result) {
 			expect(result).to.be.instanceof(bignum);
 			expect(result.eq(new bignum(SEED))).to.be.true;
 		}
-
-		before(function () {
-			testbignum = new bignum(SEED);
-		});
 
 		it('passes without passing any options', function () {
 			standardExpect(bignum.fromBuffer(BUFFER_SEED));
@@ -99,7 +92,7 @@ describe('bignum', function () {
 			standardExpect(bignum.fromBuffer(BUFFER_SEED, {endian:'big'}));
 		});
 
-		it('error because the from and two buffer sizes varry', function () {
+		it('throw an error if the options provide an incorrect size', function () {
 			expect(
 				function (){bignum.fromBuffer(BUFFER_SEED, {size:3, endian:'big'});}
 			).to.throw(
