@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import crypto from 'crypto';
 import { getTransactionBytes } from '../transactions/transactionBytes';
 import {
 	hexToBuffer,
@@ -300,4 +301,72 @@ export function verifyTransaction(transaction, secondPublicKey) {
 	);
 
 	return secondSignaturePresent ? verifyTransaction(transactionWithoutSignature) : verified;
+}
+
+/**
+ * @method encryptAES256CBCWithPassword
+ * @param {String} plainText utf8 - any utf8 string
+ * @param {String} password utf8 - the password used to encrypt the passphrase
+ *
+ * @return {Object} - { cipher: '...', iv: '...' }
+ */
+
+function encryptAES256CBCWithPassword(plainText, password) {
+	const iv = crypto.randomBytes(16);
+	const passwordHash = getSha256Hash(password, 'utf8');
+	const cipher = crypto.createCipheriv('aes-256-cbc', passwordHash, iv);
+	const firstBlock = cipher.update(plainText, 'utf8');
+	const encrypted = Buffer.concat([firstBlock, cipher.final()]);
+
+	return {
+		cipher: encrypted.toString('hex'),
+		iv: iv.toString('hex'),
+	};
+}
+
+/**
+ * @method decryptAES256CBCWithPassword
+ * @param {Object} Object - Object with cipher and iv as hex strings
+ * @param {String} Object.cipher - hex string AES-256-CBC cipher
+ * @param {String} Object.iv - hex string for the initialisation vector
+ * The cipher text resulting from the AES-256-CBC encryption,
+ * including the nonce { cipher: ..., nonce: ..., }
+ * @param {String} password utf8 - the password used to encrypt the passphrase
+ *
+ * @return {String} utf8
+ */
+
+function decryptAES256CBCWithPassword({ cipher, iv }, password) {
+	const passwordHash = getSha256Hash(password, 'utf8');
+	const decipherInit = crypto.createDecipheriv('aes-256-cbc', passwordHash, hexToBuffer(iv));
+	const firstBlock = decipherInit.update(hexToBuffer(cipher));
+	const decrypted = Buffer.concat([firstBlock, decipherInit.final()]);
+
+	return decrypted.toString();
+}
+
+/**
+ * @method encryptPassphraseWithPassword
+ * @param {String} passphrase utf8 - twelve word secret passphrase
+ * @param {String} password utf8 - the password used to encrypt the passphrase
+ *
+ * @return {Object} - { cipher: '...', iv: '...' }
+ */
+
+export function encryptPassphraseWithPassword(passphrase, password) {
+	return encryptAES256CBCWithPassword(passphrase, password);
+}
+
+/**
+ * @method decryptPassphraseWithPassword
+ * @param {Object} cipherAndIv - Object containing the encryption cipher and the iv
+ * The cipher text resulting from the AES-256-CBC encryption,
+ * including the nonce { cipher: ..., nonce: ..., }
+ * @param {String} password utf8 - the password used to encrypt the passphrase
+ *
+ * @return {String}
+ */
+
+export function decryptPassphraseWithPassword(cipherAndIv, password) {
+	return decryptAES256CBCWithPassword(cipherAndIv, password);
 }
