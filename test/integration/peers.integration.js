@@ -206,8 +206,8 @@ function enableForgingOnDelegates (done) {
 
 	testNodeConfigs.forEach(function (testNodeConfig) {
 		testNodeConfig.secrets.forEach(function (keys) {
-			var enableForgingPromise = popsicle.post({
-				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging/enable',
+			var enableForgingPromise = popsicle.put({
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging',
 				headers: {
 					'Accept': 'application/json',
 					'Content-Type': 'application/x-www-form-urlencoded'
