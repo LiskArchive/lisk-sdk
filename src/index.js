@@ -19,7 +19,6 @@
  */
 import 'babel-polyfill';
 import naclFactory from 'js-nacl';
-import buffer from 'buffer';
 import crypto from './crypto';
 import dapp from './transactions/dapp';
 import delegate from './transactions/delegate';
@@ -31,8 +30,6 @@ import vote from './transactions/vote';
 import api from './api/liskApi';
 import slots from './time/slots';
 import mnemonic from './utils/mnemonic';
-
-global.Buffer = global.Buffer || buffer.Buffer;
 
 global.naclFactory = naclFactory;
 
