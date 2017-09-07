@@ -217,6 +217,8 @@ function sendRequestPromise(requestMethod, requestType, options) {
  * @param options
  * @param result
  * @private
+ *
+ * @return result object
  */
 
 function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
@@ -236,7 +238,9 @@ function handleTimestampIsInFutureFailures(requestMethod, requestType, options, 
  * @param requestType
  * @param options
  * @param result
- * @private 
+ * @private
+ *
+ * @return error promise
  */
 
 function handleSendRequestFailures(requestMethod, requestType, options, error) {
