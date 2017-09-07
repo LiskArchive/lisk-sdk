@@ -1,5 +1,19 @@
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import transfer from '../../src/transactions/transfer';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 describe('transfer module', () => {
@@ -66,6 +80,10 @@ describe('transfer module', () => {
 					(inTransferTransaction).should.be.type('object');
 				});
 
+				it('should have id string', () => {
+					(inTransferTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 6', () => {
 					(inTransferTransaction).should.have.property('type').and.be.type('number').and.equal(6);
 				});
@@ -95,13 +113,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(inTransferTransaction);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					inTransferTransaction.amount = 100;
-					const result = cryptoModule.verify(inTransferTransaction);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -137,13 +155,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(inTransferTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					inTransferTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(inTransferTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});
@@ -183,6 +201,10 @@ describe('transfer module', () => {
 					(outTransferTransaction).should.be.type('object');
 				});
 
+				it('should have id string', () => {
+					(outTransferTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 7', () => {
 					(outTransferTransaction).should.have.property('type').and.be.type('number').and.equal(7);
 				});
@@ -212,13 +234,13 @@ describe('transfer module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(outTransferTransaction);
+					const result = cryptoModule.verifyTransaction(outTransferTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					outTransferTransaction.amount = 100;
-					const result = cryptoModule.verify(outTransferTransaction);
+					const result = cryptoModule.verifyTransaction(outTransferTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -265,14 +287,14 @@ describe('transfer module', () => {
 
 					it('should be second signed correctly', () => {
 						const result = cryptoModule
-							.verifySecondSignature(outTransferTransaction, secondPublicKey);
+							.verifyTransaction(outTransferTransaction, secondPublicKey);
 						(result).should.be.ok();
 					});
 
 					it('should not be second signed correctly if modified', () => {
 						outTransferTransaction.amount = 100;
 						const result = cryptoModule
-							.verifySecondSignature(outTransferTransaction, secondPublicKey);
+							.verifyTransaction(outTransferTransaction, secondPublicKey);
 						(result).should.not.be.ok();
 					});
 				});

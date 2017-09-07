@@ -1,5 +1,19 @@
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import vote from '../../src/transactions/vote';
-import cryptoModule from '../../src/transactions/crypto';
+import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 describe('vote module', () => {
@@ -66,6 +80,10 @@ describe('vote module', () => {
 					(voteTransaction).should.be.type('object');
 				});
 
+				it('should have id string', () => {
+					(voteTransaction).should.have.property('id').and.be.type('string');
+				});
+
 				it('should have type number equal to 3', () => {
 					(voteTransaction).should.have.property('type').and.be.type('number').and.equal(3);
 				});
@@ -95,13 +113,13 @@ describe('vote module', () => {
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(voteTransaction);
+					const result = cryptoModule.verifyTransaction(voteTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
 					voteTransaction.amount = 100;
-					const result = cryptoModule.verify(voteTransaction);
+					const result = cryptoModule.verifyTransaction(voteTransaction);
 					(result).should.be.not.ok();
 				});
 
@@ -154,13 +172,13 @@ describe('vote module', () => {
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
 					voteTransaction.amount = 100;
-					const result = cryptoModule.verifySecondSignature(voteTransaction, secondPublicKey);
+					const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

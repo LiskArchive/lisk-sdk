@@ -1,4 +1,8 @@
 {
-	"plugins": ["babel-polyfill"],
-	"presets": ["env"]
+	"presets": ["env"],
+	"env": {
+		"test": {
+			"plugins": ["istanbul", "rewire"]
+		}
+	}
 }

@@ -1,152 +1,162 @@
-import slots from '../../src/time/slots';
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import delegate from '../../src/transactions/delegate';
-import cryptoModule from '../../src/transactions/crypto';
+import slots from '../../src/time/slots';
+import cryptoModule from '../../src/crypto';
 
-describe('delegate.js', () => {
-	it('should be ok', () => {
-		(delegate).should.be.ok();
-	});
+describe('delegate module', () => {
+	describe('exports', () => {
+		it('should be an object', () => {
+			(delegate).should.be.type('object');
+		});
 
-	it('should be function', () => {
-		(delegate).should.be.type('object');
-	});
-
-	it('should have property createDelegate', () => {
-		(delegate).should.have.property('createDelegate');
+		it('should export createDelegate function', () => {
+			(delegate).should.have.property('createDelegate').be.type('function');
+		});
 	});
 
 	describe('#createDelegate', () => {
-		const createDelegate = delegate.createDelegate;
-		let trs = null;
+		const { createDelegate } = delegate;
+		const secret = 'secret';
+		const secondSecret = 'second secret';
+		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+		const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+		const username = 'test_delegate_1@\\';
+		const fee = 25e8;
+		const timeWithOffset = 38350076;
 
-		it('should be ok', () => {
-			(createDelegate).should.be.ok();
+		let getTimeWithOffsetStub;
+		let delegateTransaction;
+
+		beforeEach(() => {
+			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
-		it('should be function', () => {
-			(createDelegate).should.be.type('function');
+		afterEach(() => {
+			getTimeWithOffsetStub.restore();
 		});
 
-		it('should create delegate', () => {
-			trs = createDelegate('secret', 'delegate', 'secret 2');
-		});
-
-		describe('timestamp', () => {
-			const timeWithOffset = 38350086;
-			let stub;
-
+		describe('without second secret', () => {
 			beforeEach(() => {
-				stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+				delegateTransaction = createDelegate(secret, username);
 			});
 
-			afterEach(() => {
-				stub.restore();
+			it('should create a delegate transaction', () => {
+				(delegateTransaction).should.be.ok();
 			});
 
-			it('should use time slots to get the time for the timestamp', () => {
-				trs = createDelegate('secret', 'delegate', null);
-				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
-				(stub.calledWithExactly(undefined)).should.be.true();
+			it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+				(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 			});
 
-			it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
+			it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 				const offset = -10;
+				createDelegate(secret, username, null, offset);
 
-				trs = createDelegate('secret', 'delegate', null, offset);
+				(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
+			});
 
-				(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
-				(stub.calledWithExactly(offset)).should.be.true();
+			describe('returned delegate transaction', () => {
+				it('should be an object', () => {
+					(delegateTransaction).should.be.type('object');
+				});
+
+				it('should have an id string', () => {
+					(delegateTransaction).should.have.property('id').and.be.type('string');
+				});
+
+				it('should have type number equal to 2', () => {
+					(delegateTransaction).should.have.property('type').and.be.type('number').and.equal(2);
+				});
+
+				it('should have amount number equal to 0', () => {
+					(delegateTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
+				});
+
+				it('should have fee number equal to 25 LSK', () => {
+					(delegateTransaction).should.have.property('fee').and.be.type('number').and.equal(fee);
+				});
+
+				it('should have recipientId equal to null', () => {
+					(delegateTransaction).should.have.property('recipientId').and.be.null();
+				});
+
+				it('should have senderPublicKey hex string equal to sender public key', () => {
+					(delegateTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+				});
+
+				it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+					(delegateTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				});
+
+				it('should have signature hex string', () => {
+					(delegateTransaction).should.have.property('signature').and.be.hexString();
+				});
+
+				it('should be signed correctly', () => {
+					const result = cryptoModule.verifyTransaction(delegateTransaction);
+					(result).should.be.ok();
+				});
+
+				it('should not be signed correctly if modified', () => {
+					delegateTransaction.amount = 100;
+					const result = cryptoModule.verifyTransaction(delegateTransaction);
+					(result).should.be.not.ok();
+				});
+
+				it('should have asset', () => {
+					(delegateTransaction).should.have.property('asset').and.not.be.empty();
+				});
+
+				describe('delegate asset', () => {
+					it('should be an object', () => {
+						(delegateTransaction.asset).should.have.property('delegate').and.be.type('object');
+					});
+
+					it('should have the provided username as a string', () => {
+						(delegateTransaction.asset.delegate).should.have.property('username').and.be.type('string').and.equal(username);
+					});
+				});
 			});
 		});
 
-		describe('returned delegate', () => {
-			const keys = {
-				publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				privateKey: '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-			};
-			const secondKeys = {
-				publicKey: '653d60e438792fe89b8d6831e0627277025f48015b972cf6bcf10e6e75b7857f',
-				privateKey: 'ded6c02a4bc1fb712f3b71efcb883ad5b31f4cef6a327b079573143ec9c71fb3653d60e438792fe89b8d6831e0627277025f48015b972cf6bcf10e6e75b7857f',
-			};
-
+		describe('with second secret', () => {
 			beforeEach(() => {
-				trs = createDelegate('secret', 'delegate', 'secret 2');
+				delegateTransaction = createDelegate(secret, username, secondSecret);
 			});
 
-			it('should be ok', () => {
-				(trs).should.be.ok();
+			it('should create a delegate transaction with a second secret', () => {
+				const delegateTransactionWithoutSecondSecret = createDelegate(secret, username);
+				(delegateTransaction).should.be.ok();
+				(delegateTransaction).should.not.be.equal(delegateTransactionWithoutSecondSecret);
 			});
 
-			it('should be object', () => {
-				(trs).should.be.type('object');
-			});
-
-			it('should have recipientId equal null', () => {
-				(trs).should.have.property('recipientId').and.be.null();
-			});
-
-			it('shoud have amount equal 0', () => {
-				(trs).should.have.property('amount').and.type('number').and.equal(0);
-			});
-
-			it('should have type equal 0', () => {
-				(trs).should.have.property('type').and.type('number').and.equal(2);
-			});
-
-			it('should have timestamp number', () => {
-				(trs).should.have.property('timestamp').and.type('number');
-			});
-
-			it('should have senderPublicKey in hex', () => {
-				(trs).should.have.property('senderPublicKey').and.type('string').and.equal(keys.publicKey).and.be.hexString();
-			});
-
-			it('should have signature in hex', () => {
-				(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
-			});
-
-			it('should have second signature in hex', () => {
-				(trs).should.have.property('signSignature').and.type('string').and.be.hexString();
-			});
-
-			it('should have delegate asset', () => {
-				(trs).should.have.property('asset').and.type('object');
-				(trs.asset).should.have.have.property('delegate');
-			});
-
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verify(trs, keys.publicKey);
-				(result).should.be.ok();
-			});
-
-			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifySecondSignature(trs, secondKeys.publicKey);
-				(result).should.be.ok();
-			});
-
-			it('should not be signed correctly now', () => {
-				trs.amount = 100;
-				const result = cryptoModule.verify(trs, keys.publicKey);
-				(result).should.be.not.ok();
-			});
-
-			it('should not be second signed correctly now', () => {
-				trs.amount = 100;
-				const result = cryptoModule.verify(trs, secondKeys.publicKey);
-				(result).should.be.not.ok();
-			});
-
-			describe('delegate asset', () => {
-				it('should be ok', () => {
-					(trs.asset.delegate).should.be.ok();
+			describe('returned delegate transaction', () => {
+				it('should have second signature hex string', () => {
+					(delegateTransaction).should.have.property('signSignature').and.be.hexString();
 				});
 
-				it('should be object', () => {
-					(trs.asset.delegate).should.be.type('object');
+				it('should be second signed correctly', () => {
+					const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
+					(result).should.be.ok();
 				});
 
-				it('should be have property username', () => {
-					(trs.asset.delegate).should.have.property('username').and.be.type('string').and.equal('delegate');
+				it('should not be second signed correctly if modified', () => {
+					delegateTransaction.amount = 100;
+					const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
+					(result).should.not.be.ok();
 				});
 			});
 		});

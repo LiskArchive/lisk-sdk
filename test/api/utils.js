@@ -1,81 +1,81 @@
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import utils from '../../src/api/utils';
 
-describe('api utils', () => {
-	const port = 7000;
-
-	describe('#trimObj', () => {
-		const untrimmedObj = {
-			' my_Obj ': ' myval ',
-		};
-
-		const trimmedObj = {
-			my_Obj: 'myval', // eslint-disable-line camelcase
-		};
-
-		it('should not be equal before trim', () => {
-			(untrimmedObj).should.not.be.equal(trimmedObj);
+describe('api utils module', () => {
+	describe('exports', () => {
+		it('should be an object', () => {
+			(utils).should.be.type('object');
 		});
 
-		it('should be equal after trim an Object in keys and value', () => {
-			const trimIt = utils.trimObj(untrimmedObj);
-
-			(trimIt).should.be.eql(trimmedObj);
+		it('should export trimObj function', () => {
+			(utils).should.have.property('trimObj').be.type('function');
 		});
 
-		it('should accept numbers and strings as value', () => {
-			const obj = {
-				myObj: 2,
-			};
-
-			const trimmedObjWithNumberValue = utils.trimObj(obj);
-			(trimmedObjWithNumberValue).should.be.ok();
-			(trimmedObjWithNumberValue).should.be.eql({ myObj: '2' });
+		it('should export toQueryString function', () => {
+			(utils).should.have.property('toQueryString').be.type('function');
 		});
 	});
 
-	describe('#extend', () => {
-		const defaultOptions = {
-			testnet: false,
-			ssl: false,
-			randomPeer: true,
-			node: null,
-			port: null,
-			nethash: null,
-			bannedPeers: [],
-		};
+	describe('#trimObj', () => {
+		const { trimObj } = utils;
 
-		const options = {
-			ssl: true,
-			port,
-			testnet: true,
-		};
+		it('should not trim strings', () => {
+			const str = '  string ';
+			const trimmedString = trimObj(str);
+			(trimmedString).should.be.equal(str);
+		});
 
-		it('should extend obj1 by obj2 and not modify original obj1', () => {
-			const result = utils.extend(defaultOptions, options);
+		it('should convert integers to strings', () => {
+			const trimmedInteger = trimObj(123);
+			(trimmedInteger).should.be.eql('123');
+		});
 
-			(result).should.be.eql({
-				testnet: true,
-				ssl: true,
-				randomPeer: true,
-				node: null,
-				port,
-				nethash: null,
-				bannedPeers: [],
-			});
-			(result).should.be.not.eql(defaultOptions);
+		it('should convert nested integers to strings', () => {
+			const trimmedObject = trimObj({ myObj: 2 });
+			(trimmedObject).should.be.eql({ myObj: '2' });
+		});
+
+		it('should remove whitespace from keys and values', () => {
+			const trimmedObject = trimObj({ '  my_Obj ': '  my val ' });
+			(trimmedObject).should.be.eql({ my_Obj: 'my val' }); // eslint-disable-line camelcase
+		});
+
+		it('should trim each member of an array', () => {
+			const trimmedArray = trimObj(['  string ', { ' key  ': ' value   ' }, ['  array item ']]);
+			(trimmedArray).should.be.eql(['string', { key: 'value' }, ['array item']]);
 		});
 	});
 
 	describe('#toQueryString', () => {
-		it('should create a http string from an object. Like { obj: "myval", key: "myval" } -> obj=myval&key=myval', () => {
-			const myObj = {
-				obj: 'myval',
-				key: 'my2ndval',
-			};
+		const { toQueryString } = utils;
 
-			const serialised = utils.toQueryString(myObj);
+		it('should create a query string from an object', () => {
+			const queryString = toQueryString({
+				key1: 'value1',
+				key2: 'value2',
+				key3: 'value3',
+			});
+			(queryString).should.be.equal('key1=value1&key2=value2&key3=value3');
+		});
 
-			(serialised).should.be.equal('obj=myval&key=my2ndval');
+		it('should escape invalid special characters', () => {
+			const queryString = toQueryString({
+				'key:/;?': 'value:/;?',
+			});
+			(queryString).should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
 		});
 	});
 });

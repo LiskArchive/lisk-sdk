@@ -16,10 +16,32 @@
  * Dapp module provides functions used to create dapp registration transactions.
  * @class dapp
  */
-import crypto from './crypto';
+import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+
+const isInt = n => parseInt(n, 10) === n;
+
+const validateOptions = (options) => {
+	if (typeof options !== 'object') {
+		throw new Error('Options must be an object.');
+	}
+	const { category, name, type, link } = options;
+
+	if (!isInt(category)) {
+		throw new Error('Dapp category must be an integer.');
+	}
+	if (typeof name !== 'string') {
+		throw new Error('Dapp name must be a string.');
+	}
+	if (!isInt(type)) {
+		throw new Error('Dapp type must be an integer.');
+	}
+	if (typeof link !== 'string') {
+		throw new Error('Dapp link must be a string.');
+	}
+};
 
 /**
  * @method createDapp
@@ -32,7 +54,9 @@ import { prepareTransaction } from './utils';
  */
 
 function createDapp(secret, secondSecret, options, timeOffset) {
-	const keys = crypto.getKeys(secret);
+	validateOptions(options);
+
+	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
 		type: 5,
@@ -54,7 +78,7 @@ function createDapp(secret, secondSecret, options, timeOffset) {
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

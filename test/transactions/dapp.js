@@ -1,20 +1,39 @@
-import slots from '../../src/time/slots';
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import dapp from '../../src/transactions/dapp';
-import cryptoModule from '../../src/transactions/crypto';
+import slots from '../../src/time/slots';
+import cryptoModule from '../../src/crypto';
 
-describe('dapp.js', () => {
-	it('should be object', () => {
-		(dapp).should.be.type('object');
-	});
+describe('dapp module', () => {
+	describe('exports', () => {
+		it('should be an object', () => {
+			(dapp).should.be.type('object');
+		});
 
-	it('should have properties', () => {
-		(dapp).should.have.property('createDapp');
+		it('should export createDapp function', () => {
+			(dapp).should.have.property('createDapp').be.type('function');
+		});
 	});
 
 	describe('#createDapp', () => {
-		const createDapp = dapp.createDapp;
-		let trs;
-		const options = {
+		const { createDapp } = dapp;
+		const secret = 'secret';
+		const secondSecret = 'second secret';
+		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+		const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+		const defaultOptions = {
 			category: 0,
 			name: 'Lisk Guestbook',
 			description: 'The official Lisk guestbook',
@@ -23,168 +42,209 @@ describe('dapp.js', () => {
 			link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
 			icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
 		};
+		const fee = 25e8;
+		const timeWithOffset = 38350076;
+		const noOptionsError = 'Options must be an object.';
+		const categoryIntegerError = 'Dapp category must be an integer.';
+		const nameStringError = 'Dapp name must be a string.';
+		const typeIntegerError = 'Dapp type must be an integer.';
+		const linkStringError = 'Dapp link must be a string.';
 
-		it('should be a function', () => {
-			(createDapp).should.be.type('function');
+		let getTimeWithOffsetStub;
+		let options;
+		let dappTransaction;
+
+		beforeEach(() => {
+			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+			options = Object.assign({}, defaultOptions);
 		});
 
-		describe('without second signature', () => {
+		afterEach(() => {
+			getTimeWithOffsetStub.restore();
+		});
+
+		describe('without second secret', () => {
 			beforeEach(() => {
-				trs = createDapp('secret', null, options);
+				dappTransaction = createDapp(secret, null, options);
 			});
 
-			it('should create dapp without second signature', () => {
-				(trs).should.be.ok();
+			it('should create a dapp transaction', () => {
+				(dappTransaction).should.be.ok();
 			});
 
-			describe('returned dapp', () => {
-				it('should be object', () => {
-					(trs).should.be.type('object');
+			it('should throw an error if no options are provided', () => {
+				(createDapp.bind(null, secret)).should.throw(noOptionsError);
+			});
+
+			it('should throw an error if no category is provided', () => {
+				delete options.category;
+				(createDapp.bind(null, secret, null, options)).should.throw(categoryIntegerError);
+			});
+
+			it('should throw an error if provided category is not an integer', () => {
+				options.category = 'not an integer';
+				(createDapp.bind(null, secret, null, options)).should.throw(categoryIntegerError);
+			});
+
+			it('should throw an error if no name is provided', () => {
+				delete options.name;
+				(createDapp.bind(null, secret, null, options)).should.throw(nameStringError);
+			});
+
+			it('should throw an error if provided name is not a string', () => {
+				options.name = 123;
+				(createDapp.bind(null, secret, null, options)).should.throw(nameStringError);
+			});
+
+			it('should throw an error if no type is provided', () => {
+				delete options.type;
+				(createDapp.bind(null, secret, null, options)).should.throw(typeIntegerError);
+			});
+
+			it('should throw an error if provided type is not an integer', () => {
+				options.type = 'not an integer';
+				(createDapp.bind(null, secret, null, options)).should.throw(typeIntegerError);
+			});
+
+			it('should throw an error if no link is provided', () => {
+				delete options.link;
+				(createDapp.bind(null, secret, null, options)).should.throw(linkStringError);
+			});
+
+			it('should throw an error if provided link is not a string', () => {
+				options.link = 123;
+				(createDapp.bind(null, secret, null, options)).should.throw(linkStringError);
+			});
+
+			it('should not require description, tags, or icon', () => {
+				['description', 'tags', 'icon'].forEach(key => delete options[key]);
+				(createDapp.bind(null, secret, null, options)).should.not.throw();
+			});
+
+			it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+				(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
+			});
+
+			it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+				const offset = -10;
+				createDapp(secret, null, options, offset);
+
+				(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
+			});
+
+			describe('returned dapp transaction', () => {
+				it('should be an object', () => {
+					(dappTransaction).should.be.type('object');
 				});
 
-				it('should have id as string', () => {
-					(trs).should.have.property('id').be.type('string');
+				it('should have an id string', () => {
+					(dappTransaction).should.have.property('id').and.be.type('string');
 				});
 
-				it('should have type as number and equal 9', () => {
-					(trs).should.have.property('type').be.type('number').and.equal(5);
+				it('should have type number equal to 5', () => {
+					(dappTransaction).should.have.property('type').and.be.type('number').and.equal(5);
 				});
 
-				it('should have amount as number and equal 0', () => {
-					(trs).should.have.property('amount').be.type('number').and.equal(0);
+				it('should have amount number equal to 0', () => {
+					(dappTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 				});
 
-				it('should have fee as number and equal 2500000000', () => {
-					(trs).should.have.property('fee').be.type('number').and.equal(2500000000);
+				it('should have fee number equal to 25 LSK', () => {
+					(dappTransaction).should.have.property('fee').and.be.type('number').and.equal(fee);
 				});
 
-				it('should have null recipientId', () => {
-					trs.should.have.property('recipientId').equal(null);
+				it('should have recipientId equal to null', () => {
+					(dappTransaction).should.have.property('recipientId').and.be.null();
 				});
 
-				it('should have senderPublicKey as hex string', () => {
-					(trs).should.have.property('senderPublicKey').and.be.type('string').and.be.hexString();
+				it('should have senderPublicKey hex string equal to sender public key', () => {
+					(dappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 				});
 
-				it('should have timestamp as number', () => {
-					(trs).should.have.property('timestamp').and.be.type('number').and.not.NaN();
+				it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+					(dappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 				});
 
-				describe('timestamp', () => {
-					const timeWithOffset = 38350086;
-					let stub;
-
-					beforeEach(() => {
-						stub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-					});
-
-					afterEach(() => {
-						stub.restore();
-					});
-
-					it('should use time slots to get the time for the timestamp', () => {
-						trs = createDapp('secret', null, options);
-
-						(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
-						(stub.calledWithExactly(undefined)).should.be.true();
-					});
-
-					it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
-						const offset = -10;
-						trs = createDapp('secret', null, options, offset);
-
-						(trs).should.have.property('timestamp').and.be.equal(timeWithOffset);
-						(stub.calledWithExactly(offset)).should.be.true();
-					});
-				});
-
-				it('should have dapp inside asset', () => {
-					(trs).should.have.property('asset').and.have.property('dapp');
-				});
-
-				describe('dapp asset', () => {
-					it('should be ok', () => {
-						(trs.asset.dapp).should.be.ok();
-					});
-
-					it('should be object', () => {
-						(trs.asset.dapp).should.be.type('object');
-					});
-
-					it('should have category property', () => {
-						(trs.asset.dapp).should.have.property('category').and.equal(options.category);
-					});
-
-					it('should have name property', () => {
-						(trs.asset.dapp).should.have.property('name').and.equal(options.name);
-					});
-
-					it('should have tags property', () => {
-						(trs.asset.dapp).should.have.property('tags').and.equal(options.tags);
-					});
-
-					it('should have type property', () => {
-						(trs.asset.dapp).should.have.property('type').and.equal(options.type);
-					});
-
-					it('should have link property', () => {
-						(trs.asset.dapp).should.have.property('link').and.equal(options.link);
-					});
-
-					it('should have icon property', () => {
-						(trs.asset.dapp).should.have.property('icon').and.equal(options.icon);
-					});
-				});
-
-				it('should have signature as hex string', () => {
-					(trs).should.have.property('signature').and.be.type('string');
-					should.doesNotThrow(() => {
-						Buffer.from(trs.signature, 'hex');
-					});
+				it('should have signature hex string', () => {
+					(dappTransaction).should.have.property('signature').and.be.hexString();
 				});
 
 				it('should be signed correctly', () => {
-					const result = cryptoModule.verify(trs);
+					const result = cryptoModule.verifyTransaction(dappTransaction);
 					(result).should.be.ok();
 				});
 
 				it('should not be signed correctly if modified', () => {
-					trs.amount = 10000;
-					const result = cryptoModule.verify(trs);
+					dappTransaction.amount = 100;
+					const result = cryptoModule.verifyTransaction(dappTransaction);
 					(result).should.be.not.ok();
+				});
+
+				it('should have asset', () => {
+					(dappTransaction).should.have.property('asset').and.not.be.empty();
+				});
+
+				describe('dapps asset', () => {
+					it('should be object', () => {
+						(dappTransaction.asset).should.have.property('dapp').and.be.type('object');
+					});
+
+					it('should have a category number equal to provided category', () => {
+						(dappTransaction.asset.dapp).should.have.property('category').and.be.type('number').and.equal(options.category);
+					});
+
+					it('should have a name string equal to provided name', () => {
+						(dappTransaction.asset.dapp).should.have.property('name').and.be.type('string').and.equal(options.name);
+					});
+
+					it('should have a description string equal to provided description', () => {
+						(dappTransaction.asset.dapp).should.have.property('description').and.be.type('string').and.equal(options.description);
+					});
+
+					it('should have a tags string equal to provided tags', () => {
+						(dappTransaction.asset.dapp).should.have.property('tags').and.be.type('string').and.equal(options.tags);
+					});
+
+					it('should have a type number equal to provided type', () => {
+						(dappTransaction.asset.dapp).should.have.property('type').and.be.type('number').and.equal(options.type);
+					});
+
+					it('should have a link string equal to provided link', () => {
+						(dappTransaction.asset.dapp).should.have.property('link').and.be.type('string').and.equal(options.link);
+					});
+
+					it('should have an icon string equal to provided icon', () => {
+						(dappTransaction.asset.dapp).should.have.property('icon').and.be.type('string').and.equal(options.icon);
+					});
 				});
 			});
 		});
 
-		describe('with second signature', () => {
-			const publicKey = '653d60e438792fe89b8d6831e0627277025f48015b972cf6bcf10e6e75b7857f';
-
+		describe('with second secret', () => {
 			beforeEach(() => {
-				trs = createDapp('secret', 'secret 2', options);
+				dappTransaction = createDapp(secret, secondSecret, options);
 			});
 
-			it('should create dapp with second signature', () => {
-				(trs).should.be.ok();
+			it('should create a dapp transaction with a second secret', () => {
+				const dappTransactionWithoutSecondSecret = createDapp(secret, null, options);
+				(dappTransaction).should.be.ok();
+				(dappTransaction).should.not.be.equal(dappTransactionWithoutSecondSecret);
 			});
 
-			describe('returned dapp', () => {
-				it('should have signature as hex string', () => {
-					(trs).should.have.property('signature').and.be.type('string').and.be.hexString();
-				});
-
-				it('should have second signature in hex', () => {
-					(trs).should.have.property('signSignature').and.be.type('string').and.be.hexString();
+			describe('returned dapp transaction', () => {
+				it('should have second signature hex string', () => {
+					(dappTransaction).should.have.property('signSignature').and.be.hexString();
 				});
 
 				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifySecondSignature(trs, publicKey);
+					const result = cryptoModule.verifyTransaction(dappTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
-					trs.amount = 10000;
-					const result = cryptoModule.verifySecondSignature(trs, publicKey);
-					(result).should.be.not.ok();
+					dappTransaction.amount = 100;
+					const result = cryptoModule.verifyTransaction(dappTransaction, secondPublicKey);
+					(result).should.not.be.ok();
 				});
 			});
 		});

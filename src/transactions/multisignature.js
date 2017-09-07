@@ -17,7 +17,7 @@
  * transactions, and signing transactions requiring multisignatures.
  * @class multisignature
  */
-import crypto from './crypto';
+import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
@@ -37,7 +37,7 @@ import { prepareTransaction } from './utils';
 function createTransaction(
 	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
 ) {
-	const keys = crypto.getKeys(secret);
+	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
 		type: 0,
@@ -51,7 +51,7 @@ function createTransaction(
 		signatures: [],
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 /**
@@ -63,10 +63,7 @@ function createTransaction(
  */
 
 function signTransaction(trs, secret) {
-	const keys = crypto.getKeys(secret);
-	const signature = crypto.multiSign(trs, keys);
-
-	return signature;
+	return cryptoModule.multiSignTransaction(trs, secret);
 }
 
 /**
@@ -82,7 +79,7 @@ function signTransaction(trs, secret) {
  */
 
 function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
-	const keys = crypto.getKeys(secret);
+	const keys = cryptoModule.getKeys(secret);
 	const keygroupFees = keysgroup.length + 1;
 
 	const transaction = {
@@ -101,7 +98,7 @@ function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, ti
 		},
 	};
 
-	return prepareTransaction(transaction, keys, secondSecret);
+	return prepareTransaction(transaction, secret, secondSecret);
 }
 
 module.exports = {

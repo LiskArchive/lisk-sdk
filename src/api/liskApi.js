@@ -41,25 +41,25 @@
  */
 import privateApi from './privateApi';
 import config from '../../config.json';
-import { extend } from './utils';
-import cryptoModule from '../transactions/crypto';
+import cryptoModule from '../crypto';
 
-const LiskJS = {
-	crypto: cryptoModule,
-};
 const GET = 'GET';
 const POST = 'POST';
+
+const livePort = 8000;
+const testPort = 7000;
+const sslPort = 443;
 
 function LiskAPI(providedOptions = {}) {
 	if (!(this instanceof LiskAPI)) {
 		return new LiskAPI(providedOptions);
 	}
 
-	const options = extend(config.options, providedOptions);
+	const options = Object.assign({}, config.options, providedOptions);
 	const getDefaultPort = () => {
-		if (options.testnet) return 7000;
-		if (options.ssl) return 443;
-		return 8000;
+		if (options.testnet) return testPort;
+		if (options.ssl) return sslPort;
+		return livePort;
 	};
 
 	this.defaultPeers = options.peers || config.peers.mainnet;
@@ -105,11 +105,11 @@ LiskAPI.prototype.getNethash = function getNethash(providedNethash) {
 };
 
 /**
- * @method listPeers
+ * @method getPeers
  * @return {object}
  */
 
-LiskAPI.prototype.listPeers = function listPeers() {
+LiskAPI.prototype.getPeers = function getPeers() {
 	return {
 		official: this.defaultPeers.map(node => ({ node })),
 		ssl: this.defaultSSLPeers.map(node => ({ node, ssl: true })),
@@ -135,16 +135,12 @@ LiskAPI.prototype.setNode = function setNode(node) {
 
 LiskAPI.prototype.setTestnet = function setTestnet(testnet) {
 	if (this.testnet !== testnet) {
-		this.testnet = testnet;
 		this.bannedPeers = [];
-		this.port = 7000;
-		privateApi.selectNode.call(this);
-	} else {
-		this.testnet = false;
-		this.bannedPeers = [];
-		this.port = 8000;
-		privateApi.selectNode.call(this);
 	}
+	this.testnet = testnet;
+	this.port = testnet ? testPort : livePort;
+
+	privateApi.selectNode.call(this);
 };
 
 /**
@@ -160,45 +156,42 @@ LiskAPI.prototype.setSSL = function setSSL(ssl) {
 	}
 };
 
-function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
-	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
-		const newOptions = {};
+/**
+ * @method getAddressFromSecret
+ * @param secret
+ *
+ * @return keys object
+ */
 
-		Object.keys(options).forEach((key) => {
-			newOptions[key] = options[key];
-		});
-		newOptions.timeOffset = (options.timeOffset || 0) + 10;
+LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
+	const accountKeys = cryptoModule.getKeys(secret);
+	const accountAddress = cryptoModule.getAddress(accountKeys.publicKey);
 
-		return this.sendRequest(requestMethod, requestType, newOptions);
-	}
-	return Promise.resolve(result);
-}
+	return {
+		address: accountAddress,
+		publicKey: accountKeys.publicKey,
+	};
+};
 
-function handleSendRequestFailures(requestMethod, requestType, options, error) {
-	const that = this;
-	if (privateApi.checkReDial.call(that)) {
-		return new Promise(((resolve, reject) => {
-			setTimeout(() => {
-				privateApi.banNode.call(that);
-				that.setNode();
-				that.sendRequest(requestMethod, requestType, options)
-					.then(resolve, reject);
-			}, 1000);
-		}));
-	}
-	return Promise.resolve({
-		success: false,
-		error,
-		message: 'could not create http request to any of the given peers',
-	});
-}
+/**
+ * @method broadcastSignedTransaction
+ * @param transaction
+ * @param callback
+ *
+ * @return API object
+ */
 
-function optionallyCallCallback(callback, result) {
-	if (callback && (typeof callback === 'function')) {
-		callback(result);
-	}
-	return result;
-}
+LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransaction(
+	transaction, callback,
+) {
+	const request = {
+		requestUrl: `${privateApi.getFullURL.call(this)}/api/transactions`,
+		nethash: this.nethash,
+		requestParams: { transaction },
+	};
+
+	privateApi.sendRequestPromise.call(this, POST, request).then(result => callback(result.body));
+};
 
 /**
  * @method sendRequest
@@ -211,190 +204,190 @@ function optionallyCallCallback(callback, result) {
  */
 
 LiskAPI.prototype.sendRequest = function sendRequest(
-	requestMethod = GET, requestType, optionsOrCallback, callbackIfOptions,
+	requestMethod, requestType, optionsOrCallback, callbackIfOptions,
 ) {
 	const callback = callbackIfOptions || optionsOrCallback;
-	const options = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? privateApi.checkOptions.call(this, optionsOrCallback) : {};
+	const options = (typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined')
+		? privateApi.checkOptions.call(this, optionsOrCallback)
+		: {};
 
 	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
 		.then(result => result.body)
-		.then(handleTimestampIsInFutureFailures.bind(this, requestMethod, requestType, options))
-		.catch(handleSendRequestFailures.bind(this, requestMethod, requestType, options))
-		.then(optionallyCallCallback.bind(this, callback));
-};
-
-/**
- * @method getAddressFromSecret
- * @param secret
- *
- * @return keys object
- */
-
-LiskAPI.prototype.getAddressFromSecret = function getAddressFromSecret(secret) {
-	const accountKeys = LiskJS.crypto.getKeys(secret);
-	const accountAddress = LiskJS.crypto.getAddress(accountKeys.publicKey);
-
-	return {
-		address: accountAddress,
-		publicKey: accountKeys.publicKey,
-	};
+		.then(privateApi.handleTimestampIsInFutureFailures.bind(
+			this, requestMethod, requestType, options,
+		))
+		.catch(privateApi.handleSendRequestFailures.bind(this, requestMethod, requestType, options))
+		.then(privateApi.optionallyCallCallback.bind(this, callback));
 };
 
 /**
  * @method getAccount
  * @param address
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getAccount = function getAccount(address, callback) {
-	return this.sendRequest(GET, 'accounts', { address }, result => callback(result));
-};
+LiskAPI.prototype.getAccount = privateApi.wrapSendRequest(GET, 'accounts', address => ({ address }));
 
 /**
- * @method generateAccount
- * @param secret
- * @param callback
- *
- * @return API object
- */
-
-LiskAPI.prototype.generateAccount = function generateAccount(secret, callback) {
-	const keys = LiskJS.crypto.getPrivateAndPublicKeyFromSecret(secret);
-	callback(keys);
-	return this;
-};
-
-/**
- * @method listActiveDelegates
+ * @method getActiveDelegates
  * @param limit
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listActiveDelegates = function listActiveDelegates(limit, callback) {
-	this.sendRequest(GET, 'delegates/', { limit }, result => callback(result));
-};
+LiskAPI.prototype.getActiveDelegates = privateApi.wrapSendRequest(GET, 'delegates', limit => ({ limit }));
 
 /**
- * @method listStandbyDelegates
+ * @method getStandbyDelegates
  * @param limit
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listStandbyDelegates = function listStandbyDelegates(limit, callback) {
-	const standByOffset = 101;
-
-	this.sendRequest(GET, 'delegates/', { limit, orderBy: 'rate:asc', offset: standByOffset }, result => callback(result));
-};
+LiskAPI.prototype.getStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegates', (limit, { orderBy = 'rate:asc', offset = 101 }) => ({ limit, orderBy, offset }));
 
 /**
- * @method searchDelegateByUsername
+ * @method searchDelegatesByUsername
  * @param username
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.searchDelegateByUsername = function searchDelegateByUsername(username, callback) {
-	this.sendRequest(GET, 'delegates/search/', { q: username }, result => callback(result));
-};
+LiskAPI.prototype.searchDelegatesByUsername = privateApi.wrapSendRequest(GET, 'delegates', search => ({ search }));
 
 /**
- * @method listBlocks
- * @param amount
- * @param callback
+ * @method getBlocks
+ * @param limit
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listBlocks = function listBlocks(amount, callback) {
-	this.sendRequest(GET, 'blocks', { limit: amount }, result => callback(result));
-};
+LiskAPI.prototype.getBlocks = privateApi.wrapSendRequest(GET, 'blocks', limit => ({ limit }));
 
 /**
- * @method listForgedBlocks
- * @param publicKey
- * @param callback
+ * @method getForgedBlocks
+ * @param generatorPublicKey
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listForgedBlocks = function listForgedBlocks(publicKey, callback) {
-	this.sendRequest(GET, 'blocks', { generatorPublicKey: publicKey }, result => callback(result));
-};
+LiskAPI.prototype.getForgedBlocks = privateApi.wrapSendRequest(GET, 'blocks', generatorPublicKey => ({ generatorPublicKey }));
 
 /**
  * @method getBlock
- * @param block
- * @param callback
+ * @param height
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getBlock = function getBlock(block, callback) {
-	this.sendRequest(GET, 'blocks', { height: block }, result => callback(result));
-};
+LiskAPI.prototype.getBlock = privateApi.wrapSendRequest(GET, 'blocks', height => ({ height }));
 
 /**
- * @method listTransactions
- * @param address
- * @param limit
- * @param offset
- * @param callback
+ * @method getTransactions
+ * @param recipientId
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listTransactions = function listTransactions(
-	address, limit = '20', offset = '0', callback,
-) {
-	this.sendRequest(GET, 'transactions', { senderId: address, recipientId: address, limit, offset, orderBy: 'timestamp:desc' }, result => callback(result));
-};
+LiskAPI.prototype.getTransactions = privateApi.wrapSendRequest(GET, 'transactions', recipientId => ({ recipientId }));
 
 /**
  * @method getTransaction
  * @param transactionId
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.getTransaction = function getTransaction(transactionId, callback) {
-	this.sendRequest(GET, 'transactions/get', { id: transactionId }, result => callback(result));
-};
+LiskAPI.prototype.getTransaction = privateApi.wrapSendRequest(GET, 'transactions', transactionId => ({ transactionId }));
 
 /**
- * @method listVotes
+ * @method getVotes
  * @param address
- * @param callback
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listVotes = function listVotes(address, callback) {
-	this.sendRequest(GET, 'accounts/delegates', { address }, result => callback(result));
-};
+LiskAPI.prototype.getVotes = privateApi.wrapSendRequest(GET, 'votes', address => ({ address }));
 
 /**
- * @method listVoters
- * @param publicKey
- * @param callback
+ * @method getVoters
+ * @param username
+ * @param optionsOrCallback
+ * @param callbackIfOptions
  *
  * @return API object
  */
 
-LiskAPI.prototype.listVoters = function listVoters(publicKey, callback) {
-	this.sendRequest(GET, 'delegates/voters', { publicKey }, result => callback(result));
-};
+LiskAPI.prototype.getVoters = privateApi.wrapSendRequest(GET, 'voters', username => ({ username }));
+
+/**
+ * @method getUnsignedMultisignatureTransactions
+ * @param data
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return API object
+ */
+
+LiskAPI.prototype.getUnsignedMultisignatureTransactions = privateApi.wrapSendRequest(GET, 'transactions/unsigned', data => data);
+
+/**
+ * @method getDapp
+ * @param transactionId
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return API object
+ */
+
+LiskAPI.prototype.getDapp = privateApi.wrapSendRequest(GET, 'dapps', transactionId => ({ transactionId }));
+
+/**
+ * @method getDapps
+ * @param data
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return API object
+ */
+
+LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => data);
+
+/**
+ * @method getDappsByCategory
+ * @param category
+ * @param optionsOrCallback
+ * @param callbackIfOptions
+ *
+ * @return API object
+ */
+
+LiskAPI.prototype.getDappsByCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
 
 /**
  * @method sendLSK
- * @param recipient
+ * @param recipientId
  * @param amount
  * @param secret
  * @param secondSecret
@@ -403,48 +396,10 @@ LiskAPI.prototype.listVoters = function listVoters(publicKey, callback) {
  * @return API object
  */
 
-LiskAPI.prototype.sendLSK = function sendLSK(recipient, amount, secret, secondSecret, callback) {
-	this.sendRequest(POST, 'transactions', { recipientId: recipient, amount, secret, secondSecret }, response => callback(response));
-};
-
-/**
- * @method listMultisignatureTransactions
- * @param callback
- *
- * @return API object
- */
-
-LiskAPI.prototype.listMultisignatureTransactions = function listMultisignatureTransactions(
-	callback,
+LiskAPI.prototype.sendLSK = function sendLSK(
+	recipientId, amount, secret, secondSecret, callback,
 ) {
-	this.sendRequest(GET, 'transactions/multisignatures', result => callback(result));
-};
-
-/**
- * @method getMultisignatureTransaction
- * @param transactionId
- * @param callback
- *
- * @return API object
- */
-
-LiskAPI.prototype.getMultisignatureTransaction = function getMultisignatureTransaction(
-	transactionId, callback,
-) {
-	this.sendRequest(GET, 'transactions/multisignatures/get', { id: transactionId }, result => callback(result));
-};
-
-LiskAPI.prototype.broadcastSignedTransaction = function broadcastSignedTransaction(
-	transaction, callback,
-) {
-	const request = {
-		requestMethod: POST,
-		requestUrl: `${privateApi.getFullUrl.call(this)}/peer/transactions`,
-		nethash: this.nethash,
-		requestParams: { transaction },
-	};
-
-	privateApi.sendRequestPromise.call(this, POST, request).then(result => callback(result.body));
+	return this.sendRequest(POST, 'transactions', { recipientId, amount, secret, secondSecret }, callback);
 };
 
 module.exports = LiskAPI;

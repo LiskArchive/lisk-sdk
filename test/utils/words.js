@@ -12,16 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import words from '../../src/utils/words';
 
-// TODO: Discuss behaviour with format and hashing
-function getSha256Hash(stringToSign, format) {
-	const encodedString = (!format || format === 'utf8')
-		? naclInstance.encode_utf8(stringToSign)
-		: naclInstance.from_hex(stringToSign);
+describe('words module', () => {
+	it('should export a list of 2048 words', () => {
+		(words).should.have.length(2048);
+	});
 
-	return naclInstance.crypto_hash_sha256(encodedString);
-}
-
-module.exports = {
-	getSha256Hash,
-};
+	it('should export a list of strings', () => {
+		words.forEach(word => (word).should.be.type('string'));
+	});
+});
