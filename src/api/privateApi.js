@@ -169,36 +169,6 @@ function checkReDial() {
 }
 
 /**
- * @method checkOptions
- * @return options object
- * @private
- */
-
-const checkOptions = (options) => {
-	Object.entries(options)
-		.forEach(([key, value]) => {
-			if (value === undefined || Number.isNaN(value)) {
-				throw new Error(`"${key}" option should not be ${value}`);
-			}
-		});
-
-	return options;
-};
-
-/**
- * @method serialiseHTTPData
- * @param data
- *
- * @return serialisedData string
- */
-
-const serialiseHTTPData = (data) => {
-	const trimmed = utils.trimObj(data);
-	const queryString = utils.toQueryString(trimmed);
-	return `?${queryString}`;
-};
-
-/**
  * @method createRequestObject
  * @param method
  * @param requestType
@@ -223,19 +193,6 @@ function createRequestObject(method, requestType, providedOptions) {
 }
 
 /**
- * @method constructRequestData
- * @param providedObject
- * @param optionsOrCallback
- *
- * @return request object
- */
-
-const constructRequestData = (providedObject, optionsOrCallback) => {
-	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
-	return Object.assign({}, providedOptions, providedObject);
-};
-
-/**
  * @method sendRequestPromise
  * @param requestMethod
  * @param requestType
@@ -254,20 +211,13 @@ function sendRequestPromise(requestMethod, requestType, options) {
 }
 
 /**
- * @method wrapSendRequest
- * @param method
- * @param endpoint
- * @param getDataFn
- *
- * @return function wrappedSendRequest
+ * @method handleTimestampIsInFutureFailures
+ * @param requestMethod
+ * @param requestType
+ * @param options
+ * @param result
+ * @private
  */
-
-const wrapSendRequest = (method, endpoint, getDataFn) =>
-	function wrappedSendRequest(value, optionsOrCallback, callbackIfOptions) {
-		const callback = callbackIfOptions || optionsOrCallback;
-		const data = constructRequestData(getDataFn(value, optionsOrCallback), optionsOrCallback);
-		return this.sendRequest(method, endpoint, data, callback);
-	};
 
 function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
 	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
@@ -279,6 +229,15 @@ function handleTimestampIsInFutureFailures(requestMethod, requestType, options, 
 	}
 	return Promise.resolve(result);
 }
+
+/**
+ * @method handleSendRequestFailures
+ * @param requestMethod
+ * @param requestType
+ * @param options
+ * @param result
+ * @private 
+ */
 
 function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	const that = this;
@@ -299,12 +258,6 @@ function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	});
 }
 
-function optionallyCallCallback(callback, result) {
-	if (typeof callback === 'function') {
-		callback(result);
-	}
-	return result;
-}
 
 module.exports = {
 	netHashOptions,
