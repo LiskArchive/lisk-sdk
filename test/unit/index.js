@@ -15,6 +15,7 @@ require('./helpers/z_schema');
 require('./logic/account');
 require('./logic/peer');
 require('./logic/peers');
+require('./logic/multisignature');
 require('./logic/transaction');
 require('./logic/transfer');
 require('./logic/vote');

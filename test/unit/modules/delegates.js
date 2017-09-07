@@ -9,6 +9,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 
 var node = require('./../../node.js');
+var initModule = require('./../../common/initModule.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var constants = require('../../../helpers/constants.js');
@@ -29,8 +30,8 @@ describe('delegates', function () {
 			// Set delegates module as loaded to allow manual forging
 			library.rewiredModules.delegates.__set__('__private.loaded', true);
 
-			setTimeout(done, 10000);
-		}, {});
+			setTimeout(done, 5000);
+		}, {db: initModule.modulesLoader.db});
 	});
 
 	before(function (done) {
