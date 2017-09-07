@@ -13,8 +13,8 @@
  *
  */
 import transaction from '../../src/transactions/transaction';
-import slots from '../../src/time/slots';
 import cryptoModule from '../../src/crypto';
+import slots from '../../src/time/slots';
 
 describe('transaction module', () => {
 	describe('exports', () => {

@@ -35,21 +35,17 @@ describe('signature module', () => {
 		const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 		const emptyStringPublicKey = 'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 		const signatureFee = 5e8;
-		const address = '18160565574430594874L';
 		const timeWithOffset = 38350076;
 
-		let getAddressStub;
 		let getTimeWithOffsetStub;
 		let signatureTransaction;
 
 		beforeEach(() => {
-			getAddressStub = sinon.stub(cryptoModule, 'getAddress').returns(address);
 			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 			signatureTransaction = createSignature(secret, secondSecret);
 		});
 
 		afterEach(() => {
-			getAddressStub.restore();
 			getTimeWithOffsetStub.restore();
 		});
 

@@ -13,8 +13,8 @@
  *
  */
 import delegate from '../../src/transactions/delegate';
-import slots from '../../src/time/slots';
 import cryptoModule from '../../src/crypto';
+import slots from '../../src/time/slots';
 
 describe('delegate module', () => {
 	describe('exports', () => {

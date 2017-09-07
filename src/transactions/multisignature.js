@@ -55,18 +55,6 @@ function createTransaction(
 }
 
 /**
- * @method signTransaction
- * @param trs transaction object
- * @param secret
- *
- * @return {string}
- */
-
-function signTransaction(trs, secret) {
-	return cryptoModule.multiSignTransaction(trs, secret);
-}
-
-/**
  * @method createMultisignature
  * @param secret string
  * @param secondSecret string
@@ -102,7 +90,6 @@ function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, ti
 }
 
 module.exports = {
-	signTransaction,
 	createMultisignature,
 	createTransaction,
 };
