@@ -26,7 +26,7 @@ var booleans = [
 	}
 ];
 
-var integers = [
+var positiveIntegers = [
 	{
 		input: 0,
 		description: 'zero',
@@ -36,7 +36,10 @@ var integers = [
 		input: 1,
 		description: 'integer',
 		expectation: 'integer'
-	},
+	}
+];
+
+var negativeIntegers = [
 	{
 		input: -1,
 		description: 'negative integer',
@@ -44,21 +47,24 @@ var integers = [
 	}
 ];
 
-var numbers = [
+var positiveNumbers = [
 	{
 		input: 0.1,
 		description: 'float',
 		expectation: 'number'
 	},
 	{
-		input: -0.1,
-		description: 'negative float',
-		expectation: 'number'
-	},
-	{
 		input: Infinity,
 		description: 'infinity',
 		expectation: 'unknown-number'
+	}
+];
+
+var negativeNumbers = [
+	{
+		input: -0.1,
+		description: 'negative float',
+		expectation: 'number'
 	},
 	{
 		input: -Infinity,
@@ -141,12 +147,24 @@ var strings = [
 	}
 ];
 
+var allTypes = arrays
+	.concat(booleans)
+	.concat(positiveIntegers)
+	.concat(negativeIntegers)
+	.concat(positiveNumbers)
+	.concat(negativeNumbers)
+	.concat(objects)
+	.concat(others)
+	.concat(strings);
 
 module.exports = {
+	allTypes: allTypes,
 	arrays: arrays,
 	booleans: booleans,
-	integers: integers,
-	numbers: numbers,
+	positiveIntegers: positiveIntegers,
+	negativeIntegers: negativeIntegers,
+	positiveNumbers: positiveNumbers,
+	negativeNumbers: negativeNumbers,
 	objects: objects,
 	others: others,
 	strings: strings

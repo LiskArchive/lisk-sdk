@@ -1,18 +1,21 @@
 'use strict';
 
 var assign = require('lodash').assign;
+var difference = require('lodash').difference;
 var chai = require('chai');
 var expect = require('chai').expect;
 var util = require('util');
 
 var typesRepresentatives = require('./typesRepresentatives');
 
+var allTypes = typesRepresentatives.allTypes;
 var arrays = typesRepresentatives.arrays;
 var booleans = typesRepresentatives.booleans;
-var integers = typesRepresentatives.integers;
-var numbers = typesRepresentatives.numbers;
+var positiveIntegers = typesRepresentatives.positiveIntegers;
+var negativeIntegers = typesRepresentatives.negativeIntegers;
+var positiveNumbers = typesRepresentatives.positiveNumbers;
+var negativeNumbers = typesRepresentatives.negativeNumbers;
 var objects = typesRepresentatives.objects;
-var others = typesRepresentatives.others;
 var strings = typesRepresentatives.strings;
 
 var self;
@@ -29,28 +32,48 @@ function SchemaDynamicTest (config) {
 	self.schema = {
 		shouldFailAgainst: {
 			nonArray: {
-				arguments: self.testArgument.bind(self, 'array', booleans.concat(integers).concat(numbers).concat(objects).concat(others).concat(strings)),
-				property: self.testProperty.bind(self, 'array', booleans.concat(integers).concat(numbers).concat(objects).concat(others).concat(strings))
+				arguments: self.testArgument.bind(self, 'array', difference(allTypes, arrays)),
+				property: self.testProperty.bind(self, 'array', difference(allTypes, arrays))
 			},
 			nonBoolean: {
-				arguments: self.testArgument.bind(self, 'boolean', arrays.concat(integers).concat(numbers).concat(objects).concat(others).concat(strings)),
-				property: self.testProperty.bind(self, 'boolean', arrays.concat(integers).concat(numbers).concat(objects).concat(others).concat(strings))
+				arguments: self.testArgument.bind(self, 'boolean', difference(allTypes, booleans)),
+				property: self.testProperty.bind(self, 'boolean', difference(allTypes, booleans))
 			},
 			nonInteger: {
-				arguments: self.testArgument.bind(self, 'integer', arrays.concat(booleans).concat(numbers).concat(objects).concat(others).concat(strings)),
-				property: self.testProperty.bind(self, 'integer', arrays.concat(booleans).concat(numbers).concat(objects).concat(others).concat(strings))
+				arguments: self.testArgument.bind(self, 'integer', difference(allTypes, positiveIntegers.concat(negativeIntegers))),
+				property: self.testProperty.bind(self, 'integer', difference(allTypes, positiveIntegers.concat(negativeIntegers)))
 			},
 			nonNumber: {
-				arguments: self.testArgument.bind(self, 'number', arrays.concat(booleans).concat(integers).concat(objects).concat(others).concat(strings)),
-				property: self.testProperty.bind(self, 'number', arrays.concat(booleans).concat(integers).concat(objects).concat(others).concat(strings))
+				arguments: self.testArgument.bind(self, 'number', difference(allTypes, positiveNumbers.concat(negativeNumbers))),
+				property: self.testProperty.bind(self, 'number', difference(allTypes, positiveNumbers.concat(negativeNumbers)))
 			},
 			nonObject: {
-				arguments: self.testArgument.bind(self, 'object', arrays.concat(booleans).concat(integers).concat(numbers).concat(others).concat(strings)),
-				property: self.testProperty.bind(self, 'object', arrays.concat(booleans).concat(integers).concat(numbers).concat(others).concat(strings))
+				arguments: self.testArgument.bind(self, 'object', difference(allTypes, objects)),
+				property: self.testProperty.bind(self, 'object', difference(allTypes, objects))
 			},
 			nonString: {
-				arguments: self.testArgument.bind(self, 'string', arrays.concat(booleans).concat(integers).concat(numbers).concat(objects).concat(others)),
-				property: self.testProperty.bind(self, 'string', arrays.concat(booleans).concat(integers).concat(numbers).concat(objects).concat(others))
+				arguments: self.testArgument.bind(self, 'string', difference(allTypes, strings)),
+				property: self.testProperty.bind(self, 'string', difference(allTypes, strings))
+			},
+			positive: {
+				nonInteger: {
+					arguments: self.testArgument.bind(self, 'integer', difference(allTypes, positiveIntegers)),
+					property: self.testProperty.bind(self, 'integer', difference(allTypes, positiveIntegers))
+				},
+				nonNumber: {
+					arguments: self.testArgument.bind(self, 'number', difference(allTypes, positiveNumbers)),
+					property: self.testProperty.bind(self, 'number', difference(allTypes, positiveNumbers))
+				}
+			},
+			negative: {
+				nonInteger: {
+					arguments: self.testArgument.bind(self, 'integer', difference(allTypes, negativeIntegers)),
+					property: self.testProperty.bind(self, 'integer', difference(allTypes, negativeIntegers))
+				},
+				nonNumber: {
+					arguments: self.testArgument.bind(self, 'number', difference(allTypes, negativeNumbers)),
+					property: self.testProperty.bind(self, 'number', difference(allTypes, negativeNumbers))
+				}
 			}
 		},
 		shouldFailWithoutRequiredProperties: self.testRequired
