@@ -231,10 +231,15 @@ module.exports.connect = function (config, logger, cb) {
 	});
 };
 
-module.exports.disconnect = function () {
+/**
+ * Detaches pg-monitor. Should be invoked after connect.
+ * @param {Object} logger
+ */
+module.exports.disconnect = function (logger) {
+	logger = logger || console;
 	try {
 		monitor.detach();
 	} catch (ex) {
-		console.log('database disconnect exception - ', ex);
+		logger.log('database disconnect exception - ', ex);
 	}
 };
