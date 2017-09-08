@@ -15,13 +15,13 @@ describe('bignum', function () {
 
 		var testbignum;
 
-		function standardExpect (buffer, shouldEqual) {
-			expect(buffer.equals(shouldEqual)).to.be.true;
-		}
-
 		beforeEach(function () {
 			testbignum = new bignum(SEED);
 		});
+
+		function standardExpect (buffer, shouldEqual) {
+			expect(buffer.equals(shouldEqual)).to.be.true;
+		}
 
 		it('throws an unsupported Buffer representation', function () {
 			expect(testbignum.toBuffer('notmpint')).to.equal('Unsupported Buffer representation');
