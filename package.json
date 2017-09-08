@@ -31,7 +31,7 @@
     "bytebuffer": "=5.0.1",
     "change-case": "=3.0.1",
     "colors": "=1.1.2",
-    "commander": "=2.9.0",
+    "commander": "^2.11.0",
     "compression": "=1.6.2",
     "cors": "=2.8.3",
     "decompress-zip": "LiskHQ/decompress-zip#f46b0a3",
