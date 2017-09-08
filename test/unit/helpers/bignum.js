@@ -19,7 +19,7 @@ describe('bignum', function () {
 			expect(buffer.equals(shouldEqual)).to.be.true;
 		}
 
-		before(function () {
+		beforeEach(function () {
 			testbignum = new bignum(SEED);
 		});
 
