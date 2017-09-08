@@ -398,7 +398,7 @@ describe('Rounds-related SQL triggers', function () {
 			round_delegates = _.clone(delegates_state);
 
 			deleteLastBlockPromise = Promise.promisify(library.modules.blocks.chain.deleteLastBlock);
-		})
+		});
 
 		function addTransaction (transaction, cb) {
 			node.debug('	Add transaction ID: ' + transaction.id);

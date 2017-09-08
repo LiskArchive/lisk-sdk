@@ -92,10 +92,6 @@ describe('blocks/process', function () {
 	});
 
 	after(function (done) {
-		node.constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy(modulesLoader.logger);
-		node.appCleanup(done);
-
 		async.every([
 			'blocks where height > 1',
 			'trs where "blockId" != \'6524861224470851795\'',
@@ -104,11 +100,13 @@ describe('blocks/process', function () {
 			'votes where "transactionId" = \'17502993173215211070\''
 		], function (table, seriesCb) {
 			clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-		}, function (err, result) {
+		}, function (err) {
 			if (err) {
 				done(err);
 			}
-			done();
+			node.constants.rewards.offset = originalBlockRewardsOffset;
+			dbSandbox.destroy(modulesLoader.logger);
+			node.appCleanup(done);
 		});
 	});
 
