@@ -26,13 +26,15 @@ require('./modules/accounts');
 require('./modules/app');
 require('./modules/blocks');
 require('./modules/cache');
-require('./modules/delegates.js');
+require('./modules/delegates');
 require('./modules/loader');
 require('./modules/peers');
 require('./modules/transactions');
 
 require('./sql/delegatesList');
 require('./sql/rounds');
+
+require('./schema/delegates');
 
 // with long timeouts
 require('./helpers/pg-notify');
