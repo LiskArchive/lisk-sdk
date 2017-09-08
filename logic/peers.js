@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var async = require('async');
+var failureCodes = require('../api/ws/rpc/failureCodes.js');
 var Peer = require('../logic/peer.js');
 var schema = require('../schema/peers.js');
 var System = require('../modules/system.js');
@@ -82,20 +83,13 @@ Peers.prototype.get = function (peer) {
  * Inserts or updates a peer
  * @param {peer} peer
  * @param {boolean} insertOnly - true to only insert.
- * @return {boolean} True if operation is success.
+ * @return {boolean|number} True if operation is success, error code in other case
  */
 Peers.prototype.upsert = function (peer, insertOnly) {
 	// Insert new peer
 	var insert = function (peer) {
-		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
-			peer.updated = Date.now();
-			if (self.peersManager.add(peer)) {
-				return library.logger.debug('Inserted new peer', peer.string);
-			}
-			library.logger.debug('Cannot insert peer (nonce exists / empty address field)', peer.string);
-		} else {
-			library.logger.debug('Rejecting unacceptable peer', peer.string);
-		}
+		peer.updated = Date.now();
+		return self.peersManager.add(peer);
 	};
 
 	// Update existing peer
@@ -122,19 +116,29 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 	peer.string = peer.string || self.peersManager.getAddress(peer.nonce);
 
 	if (!peer.string) {
-		console.trace('Upsert invalid peer rejected', {peer: peer});
-		return false;
+		library.logger.trace('Upsert invalid peer rejected', {peer: peer});
+		return failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
 	}
+
 	// Performing insert or update
 	if (self.exists(peer)) {
 		// Skip update if insert-only is forced
 		if (!insertOnly) {
 			update(peer);
 		} else {
-			return false;
+			return failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE;
 		}
 	} else {
-		insert(peer);
+		if (_.isEmpty(modules.peers.acceptable([peer]))) {
+			library.logger.debug('Rejecting unacceptable peer', peer.string);
+			return failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED;
+		}
+		if (insert(peer)) {
+			library.logger.debug('Inserted new peer', peer.string);
+		} else {
+			library.logger.debug('Cannot insert peer (nonce exists / empty address field)', peer.string);
+			return failureCodes.ON_MASTER.INSERT.NONCE_EXISTS;
+		}
 	}
 
 	// Stats for tracking changes
@@ -164,7 +168,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 /**
  * Deletes peer from peers list.
  * @param {peer} peer
- * @return {boolean} True if peer exists
+ * @return {boolean|number} True if peer exists, error code in other case
  */
 Peers.prototype.remove = function (peer) {
 	peer = self.create(peer);
@@ -176,7 +180,7 @@ Peers.prototype.remove = function (peer) {
 		return true;
 	} else {
 		library.logger.debug('Failed to remove peer', {err: 'AREMOVED', peer: peer});
-		return false;
+		return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 	}
 };
 

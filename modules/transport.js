@@ -1,18 +1,21 @@
 'use strict';
 
 var async = require('async');
+var crypto = require('crypto');
+var extend = require('extend');
+var ip = require('ip');
+var zlib = require('zlib');
+
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
 var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
-var crypto = require('crypto');
-var extend = require('extend');
-var ip = require('ip');
-var popsicle = require('popsicle');
+var failureCodes = require('../api/ws/rpc/failureCodes');
+var Peer = require('../logic/peer');
+var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
+var Rules = require('../api/ws/workers/rules');
 var schema = require('../schema/transport.js');
 var sql = require('../sql/transport.js');
-var zlib = require('zlib');
-var Peer = require('../logic/peer');
 var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
@@ -384,28 +387,28 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
 		modules.system.update(function () {
-			if (!__private.broadcaster.maxRelays(block) && !modules.loader.syncing()) {
-				modules.peers.list({normalized: false}, function (err, peers) {
-					async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
-						peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
-							if (err) {
-								library.logger.debug('Failed to update peer after new block applied', peer.string + ':' + err.toString());
-								cb({errorMsg: err, peer: peer});
-								__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
-							} else {
-								library.logger.debug('Peer notified correctly after update', peer.string);
-								cb();
-							}
-						});
-					}, function (err) {
-						if (err) {
-							library.logger.debug('Broadcasting block aborted - cannot update info at peer: ', err.peer.ip + ':' + err.peer.port);
-						} else {
-							__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}, {api: 'postBlock', data: {block: block}, immediate: true});
-						}
-					});
-				});
+			if (__private.broadcaster.maxRelays(block)) {
+				return library.logger.debug('Broadcasting block aborted - max block relays exceeded');
+			} else if (modules.loader.syncing()) {
+				return library.logger.debug('Broadcasting block aborted - blockchain synchronization in progress');
 			}
+			modules.peers.list({normalized: false}, function (err, peers) {
+				if (!peers || peers.length === 0) {
+					return library.logger.debug('Broadcasting block aborted - active peer list empty');
+				}
+				async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
+					peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
+						if (err) {
+							__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
+						} else {
+							library.logger.debug('Peer notified correctly after update: ' + peer.string);
+						}
+						return cb();
+					});
+				}, function () {
+					__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}, {api: 'postBlock', data: {block: block}, immediate: true});
+				});
+			});
 		});
 		library.network.io.sockets.emit('blocks/change', block);
 	}
@@ -597,7 +600,8 @@ Transport.prototype.shared = {
  * @param {Object} query
  * @param {string} query.authKey - key shared between master and slave processes. Not shared with the rest of network.
  * @param {Object} query.peer - peer to update
- * @param {string} cb
+ * @param {number} query.updateType - 0 (insert) or 1 (remove)
+ * @param {function} cb
  */
 __private.checkInternalAccess = function (query, cb) {
 	library.schema.validate(query, schema.internalAccess, function (err) {
@@ -618,31 +622,19 @@ Transport.prototype.internal = {
 	 * @param {Object} query
 	 * @param {Object} query.peer
 	 * @param {string} query.authKey - signed peer data with in hex format
+	 * @param {number} query.updateType - 0 (insert) or 1 (remove)
 	 * @param {function} cb
 	 */
-	acceptPeer: function (query, cb) {
+	updatePeer: function (query, cb) {
 		__private.checkInternalAccess(query, function (err) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			query.peer.state = Peer.STATE.CONNECTED;
-			return setImmediate(cb, modules.peers.update(query.peer) ? null : 'Failed to accept peer');
-		});
-	},
-
-	/**
-	 * Removes peer from peers list
-	 * @param {Object} query
-	 * @param {Object} query.peer
-	 * @param {string} query.signature - signed peer data with in hex format
-	 * @param {function} cb
-	 */
-	removePeer: function (query, cb) {
-		__private.checkInternalAccess(query, function (err) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb, __private.removePeer({peer: query.peer, code: 0}, '') ? null : 'Failed to remove peer');
+			var updates = {};
+			updates[Rules.UPDATES.INSERT] = modules.peers.update;
+			updates[Rules.UPDATES.REMOVE] = modules.peers.remove;
+			var updateResult = updates[query.updateType](query.peer);
+			return setImmediate(cb, updateResult === true ? null : new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult]));
 		});
 	}
 };

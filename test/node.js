@@ -87,7 +87,9 @@ node.gAccount = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	password: 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
-	balance: '10000000000000000'
+	balance: '10000000000000000',
+	encryptedSecret: 'ddbb37d465228d52a78ad13555e609750ec30e8f5912a1b8fbdb091f50e269cbcc3875dad032115e828976f0c7f5ed71ce925e16974233152149e902b48cec51d93c2e40a6c95de75c1c5a2c369e6d24',
+	key: 'elephant tree paris dragon chair galaxy',
 };
 
 // Optional logging
@@ -231,9 +233,10 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 	);
 };
 
-node.generatePeerHeaders = function (ip, port) {
+node.generatePeerHeaders = function (ip, port, nonce) {
 	port = port || 9999;
 	ip = ip || '127.0.0.1';
+	nonce = nonce || randomString.generate(16);
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
 	var version = node.version;
@@ -246,7 +249,7 @@ node.generatePeerHeaders = function (ip, port) {
 		ip: ip,
 		port: port,
 		version: version,
-		nonce: randomString.generate(16)
+		nonce: nonce
 	};
 };
 
