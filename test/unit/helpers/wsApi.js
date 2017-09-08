@@ -112,12 +112,25 @@ describe('handshake', function () {
 
 			schemaDynamicTests.schema.shouldFailAgainst.nonObject.arguments(handshake);
 
-			schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nonce');
-			schemaDynamicTests.schema.shouldFailAgainst.nonInteger.property(handshake, validHeaders, 'height');
-			schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nethash');
-			schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'version');
+			describe('nonce', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nonce');
+			});
 
-			schemaDynamicTests.schema.shouldFailWithoutRequiredProperties(handshake, validHeaders, ['port', 'version', 'nonce', 'nethash', 'height']);
+			describe('height', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonInteger.property(handshake, validHeaders, 'height');
+			});
+
+			describe('nethash', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nethash');
+			});
+
+			describe('version', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'version');
+			});
+
+			describe('required properties', function () {
+				schemaDynamicTests.schema.shouldFailWithoutRequiredProperties(handshake, validHeaders, ['port', 'version', 'nonce', 'nethash', 'height']);
+			});
 		});
 	});
 });
