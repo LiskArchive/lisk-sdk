@@ -42,10 +42,6 @@ describe('wsRPC', function () {
 			wsRPC.setServer(null);
 		});
 
-		after(function () {
-			wsRPC.setServer(null);
-		});
-
 		it('should return server instance after setting it', function () {
 			wsRPC.setServer({name: 'my ws server'});
 			var wsRPCServer = wsRPC.getServer();
@@ -53,6 +49,7 @@ describe('wsRPC', function () {
 		});
 
 		describe('getter', function () {
+
 			it('should throw an error when setting server to null', function () {
 				wsRPC.setServer(null);
 				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
@@ -68,15 +65,15 @@ describe('wsRPC', function () {
 				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 			});
 		});
+
+		after(function () {
+			wsRPC.setServer(null);
+		});
 	});
 
 	describe('getServer', function () {
 
 		before(function () {
-			wsRPC.setServer(null);
-		});
-
-		after(function () {
 			wsRPC.setServer(null);
 		});
 
@@ -89,21 +86,21 @@ describe('wsRPC', function () {
 			expect(wsRPC.getServer).not.to.throw;
 			expect(wsRPC.getServer()).to.a('object').eql({name: 'my ws server'});
 		});
+
+		after(function () {
+			wsRPC.setServer(null);
+		});
 	});
 
 	describe('getClientRPCStub', function () {
 
 		var initializeNewConnectionStub;
 
+		var validPort = 4000, validIp = '127.0.0.1';
+
 		beforeEach(function () {
 			initializeNewConnectionStub = sinon.stub(ClientRPCStub.prototype, 'initializeNewConnection');
 		});
-
-		afterEach(function () {
-			initializeNewConnectionStub.restore();
-		});
-
-		var validPort = 4000, validIp = '127.0.0.1';
 
 		it('should throw error when no arguments specified', function () {
 			expect(wsRPC.getClientRPCStub).to.throw('RPC client needs ip and port to establish WS connection with: undefined:undefined');
@@ -153,16 +150,17 @@ describe('wsRPC', function () {
 			};
 			var masterWAMPServer;
 			var masterWAMPServerConfig;
+			var validEventEndpoint = {
+				'eventProcedure': function (param) {
+					return param;
+				}
+			};
 
 			beforeEach(function () {
 				masterWAMPServerConfig = {};
 				wsRPC.clientsConnectionsMap = {};
 				masterWAMPServer = new MasterWAMPServer(socketClusterMock, masterWAMPServerConfig);
 				wsRPC.setServer(masterWAMPServer);
-			});
-
-			after(function () {
-				wsRPC.setServer(null);
 			});
 
 			it('should return client stub with rpc methods registered on MasterWAMPServer', function () {
@@ -172,12 +170,6 @@ describe('wsRPC', function () {
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 			});
 
-			var validEventEndpoint = {
-				'eventProcedure': function (param) {
-					return param;
-				}
-			};
-
 			it('should return client stub with event and rpc methods registered on MasterWAMPServer', function () {
 				var wsServer = wsRPC.getServer();
 				wsServer.reassignRPCEndpoints(validRPCEndpoint);
@@ -186,6 +178,14 @@ describe('wsRPC', function () {
 				expect(rpcStub).to.have.property('eventProcedure').and.to.be.a('function');
 				expect(rpcStub).to.have.property('rpcProcedure').and.to.be.a('function');
 			});
+
+			after(function () {
+				wsRPC.setServer(null);
+			});
+		});
+
+		afterEach(function () {
+			initializeNewConnectionStub.restore();
 		});
 	});
 });

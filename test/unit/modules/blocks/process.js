@@ -46,12 +46,6 @@ describe('blocks/process', function () {
 		});
 	});
 
-	after(function (done) {
-		node.constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy();
-		node.appCleanup(done);
-	});
-
 	beforeEach(function (done) {
 		async.series({
 			clearTables: function (seriesCb) {
@@ -369,6 +363,10 @@ describe('blocks/process', function () {
 	});
 
 	after(function (done) {
+		node.constants.rewards.offset = originalBlockRewardsOffset;
+		dbSandbox.destroy();
+		node.appCleanup(done);
+
 		async.every([
 			'blocks where height > 1',
 			'trs where "blockId" != \'6524861224470851795\'',

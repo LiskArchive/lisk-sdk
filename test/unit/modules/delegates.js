@@ -1,6 +1,5 @@
 'use strict';/*eslint*/
 
-var _  = require('lodash');
 var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
@@ -163,7 +162,7 @@ describe('delegates', function () {
 
 					delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
 						expect(err).to.not.exist;
-						expect(res).to.eql({ 
+						expect(res).to.eql({
 							publicKey: '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 							forging: false
 						});

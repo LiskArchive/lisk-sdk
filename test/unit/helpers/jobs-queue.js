@@ -73,7 +73,6 @@ describe('helpers/jobsQueue', function () {
 				expect(spy.callCount).to.equal(1);
 
 				// Every next execution should happen after execTimeInterval+recallInterval and not before
-
 				clock.tick(interval-10);
 				expect(spy.callCount).to.equal(1);
 
@@ -108,11 +107,6 @@ describe('helpers/jobsQueue', function () {
 
 			before(function () {
 				clock = sinon.useFakeTimers();
-			});
-
-			after(function () {
-				jobsQueue.jobs = {};
-				clock.restore();
 			});
 
 			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', function () {
@@ -169,6 +163,11 @@ describe('helpers/jobsQueue', function () {
 				testExecution(job, name, spy);
 				// Instances still should be the same
 				expect(jobsQueuePeers).to.equal(jobsQueue);
+			});
+
+			after(function () {
+				jobsQueue.jobs = {};
+				clock.restore();
 			});
 		});
 	});

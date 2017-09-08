@@ -10,6 +10,8 @@ var genesisblock = require('../genesisBlock.json');
 var ed = require('../../helpers/ed.js');
 var z_schema = require('../../helpers/z_schema.js');
 
+var testDatabaseNames = [];
+
 /**
  * @param {string} table
  * @param {Logger} logger
@@ -24,8 +26,6 @@ function clearDatabaseTable (db, logger, table, cb) {
 		throw err;
 	});
 }
-
-var testDatabaseNames = [];
 
 function DBSandbox (dbConfig, testDatabaseName) {
 	this.dbConfig = dbConfig;
@@ -44,19 +44,6 @@ function DBSandbox (dbConfig, testDatabaseName) {
 		dropCreatedDatabases();
 	});
 }
-
-DBSandbox.prototype.create = function (cb) {
-	child_process.exec('dropdb ' + this.dbConfig.database, function () {
-		child_process.exec('createdb ' + this.dbConfig.database, function () {
-			database.connect(this.dbConfig, console, cb);
-		}.bind(this));
-	}.bind(this));
-};
-
-DBSandbox.prototype.destroy = function () {
-	database.disconnect();
-	this.dbConfig.database = this.originalDatabaseName;
-};
 
 /**
  * @param {Function} cb
@@ -101,6 +88,19 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 			});
 	})();
 }
+
+DBSandbox.prototype.create = function (cb) {
+	child_process.exec('dropdb ' + this.dbConfig.database, function () {
+		child_process.exec('createdb ' + this.dbConfig.database, function () {
+			database.connect(this.dbConfig, console, cb);
+		}.bind(this));
+	}.bind(this));
+};
+
+DBSandbox.prototype.destroy = function () {
+	database.disconnect();
+	this.dbConfig.database = this.originalDatabaseName;
+};
 
 module.exports = {
 	clearDatabaseTable: clearDatabaseTable,

@@ -70,17 +70,11 @@ describe('transactions', function () {
 		return transactionLogic;
 	}
 
-	before (function () {
+	before(function (done) {
 		dbStub = {
 			query: sinon.stub()
 		};
-	});
 
-	beforeEach(function () {
-		dbStub.query.reset();
-	});
-
-	before(function (done) {
 		async.auto({
 			accountLogic: function (cb) {
 				modulesLoader.initLogicWithDb(AccountLogic, cb);
@@ -142,6 +136,10 @@ describe('transactions', function () {
 				done();
 			});
 		});
+	});
+
+	beforeEach(function () {
+		dbStub.query.reset();
 	});
 
 	describe('Transaction#shared', function () {
@@ -482,7 +480,7 @@ describe('transactions', function () {
 				}]);
 
 				dbStub.query.withArgs(sql.getVotesById, {id: trsId}).resolves([{
-					v_votes: '+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a' 
+					v_votes: '+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
 				}]);
 
 				getTransactionById(trsId, function (err, res) {

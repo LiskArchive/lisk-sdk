@@ -8,7 +8,6 @@ var sql = require('../../sql/blockRewards.js');
 var constants = require('../../../helpers/constants.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var db;
 
 function calcBlockReward (height, reward, done) {
 	return db.query(sql.calcBlockReward, {height: height}).then(function (rows) {
@@ -68,6 +67,7 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 	}).catch(done);
 }
 
+var db;
 var dbSandbox;
 var originalBlockRewardsOffset;
 
@@ -89,12 +89,6 @@ describe('BlockRewardsSQL', function () {
 				}, 5000);
 			}, {db: db});
 		});
-	});
-
-	after(function (done) {
-		constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy();
-		node.appCleanup(done);
 	});
 
 	describe('checking SQL function getBlockRewards()', function () {
@@ -457,5 +451,11 @@ describe('BlockRewardsSQL', function () {
 				calcSupply_test_fail(13451520, (13451520 + 100), 1, done);
 			});
 		});
+	});
+
+	after(function (done) {
+		constants.rewards.offset = originalBlockRewardsOffset;
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 });
