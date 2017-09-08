@@ -31,12 +31,21 @@ const getPassphraseFromStdIn = () => {
 	});
 };
 
-const getPassphraseFromPrompt = vorpal => vorpal.activeCommand.prompt({
-	type: 'password',
-	name: 'passphrase',
-	message: 'Please enter your secret passphrase: ',
-})
-	.then(({ passphrase }) => passphrase);
+const getPassphraseFromPrompt = (vorpal) => {
+	// IMPORTANT: prompt will exit if UI has no parent, but calling
+	// ui.attach(vorpal) will start a prompt, which will complain when we call
+	// vorpal.activeCommand.prompt(). Therefore set the parent directly.
+	if (!vorpal.ui.parent) {
+		// eslint-disable-next-line no-param-reassign
+		vorpal.ui.parent = vorpal;
+	}
+	return vorpal.activeCommand.prompt({
+		type: 'password',
+		name: 'passphrase',
+		message: 'Please enter your secret passphrase: ',
+	})
+		.then(({ passphrase }) => passphrase);
+};
 
 const getPassphraseFromCommandLine = isTTY => (
 	isTTY
