@@ -18,6 +18,12 @@ import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
 import tablify from '../utils/tablify';
 
+const ERROR_PREFIX = 'Could not encrypt: ';
+const createErrorMessage = str => `${ERROR_PREFIX}${str}`;
+const ERROR_PASSPHRASE_FILE_DOES_NOT_EXIST = createErrorMessage('Passphrase file does not exist.');
+const ERROR_PASSPHRASE_FILE_UNREADABLE = createErrorMessage('Passphrase file could not be read.');
+const ERROR_PASSPHRASE_VERIFICATION_FAIL = createErrorMessage('Passphrase verification failed.');
+
 const getPassphraseFromFile = async path => fse.readFileSync(path);
 
 const getPassphraseFromStdIn = () => {
@@ -39,12 +45,20 @@ const getPassphraseFromPrompt = (vorpal) => {
 		// eslint-disable-next-line no-param-reassign
 		vorpal.ui.parent = vorpal;
 	}
-	return vorpal.activeCommand.prompt({
+	const createPromptOptions = message => ({
 		type: 'password',
 		name: 'passphrase',
-		message: 'Please enter your secret passphrase: ',
-	})
-		.then(({ passphrase }) => passphrase);
+		message,
+	});
+	return vorpal.activeCommand.prompt(createPromptOptions('Please enter your secret passphrase: '))
+		.then(({ passphrase }) => vorpal.activeCommand.prompt(createPromptOptions('Please re-enter your secret passphrase: '))
+			.then(({ passphrase: passphraseRepeat }) => {
+				if (passphrase !== passphraseRepeat) {
+					throw new Error(ERROR_PASSPHRASE_VERIFICATION_FAIL);
+				}
+				return passphrase;
+			}),
+		);
 };
 
 const getPassphraseFromCommandLine = isTTY => (
@@ -66,13 +80,16 @@ const handlePassphrase = (vorpal, message, recipient, options) => (passphrase) =
 };
 
 const handleError = vorpal => (error) => {
-	const { name } = error;
+	const { name, message } = error;
 
 	if (name.match(/ENOENT/)) {
-		return vorpal.activeCommand.log('Could not encrypt: passphrase file does not exist.');
+		return vorpal.activeCommand.log(ERROR_PASSPHRASE_FILE_DOES_NOT_EXIST);
 	}
 	if (name.match(/EACCES/)) {
-		return vorpal.activeCommand.log('Could not encrypt: passphrase file could not be read.');
+		return vorpal.activeCommand.log(ERROR_PASSPHRASE_FILE_UNREADABLE);
+	}
+	if (message.match(new RegExp(ERROR_PASSPHRASE_VERIFICATION_FAIL))) {
+		return vorpal.activeCommand.log(message);
 	}
 
 	throw error;

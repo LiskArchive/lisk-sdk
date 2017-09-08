@@ -20,7 +20,7 @@ import cryptoModule from '../../src/utils/cryptoModule';
 import tablify from '../../src/utils/tablify';
 import { setUpVorpalWithCommand } from './utils';
 
-describe('lisky encrypt command palette', () => {
+describe.only('lisky encrypt command palette', () => {
 	let vorpal;
 	let capturedOutput;
 
@@ -105,32 +105,50 @@ describe('lisky encrypt command palette', () => {
 				process.stdin.isTTY = initialIsTTY;
 			});
 
-			it('should call the crypto module encrypt method with correct parameters', () => {
+			it('should prompt for the password twice', () => {
 				return vorpal.exec(command)
-					.then(() => (encryptStub.calledWithExactly(message, secret, recipient))
-						.should.be.true(),
-					);
+					.then(() => (promptStub.calledTwice).should.be.true());
 			});
 
-			describe('output', () => {
-				it('should print the returned object', () => {
+			describe('with matching passwords', () => {
+				it('should call the crypto module encrypt method with correct parameters', () => {
 					return vorpal.exec(command)
-						.then(() => (capturedOutput[0]).should.equal(tableOutput));
+						.then(() => (encryptStub.calledWithExactly(message, secret, recipient))
+							.should.be.true(),
+						);
 				});
 
-				it('should print json with --json option', () => {
-					return vorpal.exec(jsonCommand)
-						.then(() => (capturedOutput[0]).should.equal(jsonOutput));
+				describe('output', () => {
+					it('should print the returned object', () => {
+						return vorpal.exec(command)
+							.then(() => (capturedOutput[0]).should.equal(tableOutput));
+					});
+
+					it('should print json with --json option', () => {
+						return vorpal.exec(jsonCommand)
+							.then(() => (capturedOutput[0]).should.equal(jsonOutput));
+					});
+
+					it('should handle a -j shorthand for --json option', () => {
+						return vorpal.exec(jCommand)
+							.then(() => (capturedOutput[0]).should.equal(jsonOutput));
+					});
+
+					it('should print a table with --no-json option', () => {
+						return vorpal.exec(noJsonCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutput));
+					});
+				});
+			});
+
+			describe('with incorrect verification', () => {
+				beforeEach(() => {
+					promptStub.onSecondCall().resolves({ passphrase: 'not the secret' });
 				});
 
-				it('should handle a -j shorthand for --json option', () => {
-					return vorpal.exec(jCommand)
-						.then(() => (capturedOutput[0]).should.equal(jsonOutput));
-				});
-
-				it('should print a table with --no-json option', () => {
-					return vorpal.exec(noJsonCommand)
-						.then(() => (capturedOutput[0]).should.equal(tableOutput));
+				it('should inform the user the passwords did not match', () => {
+					return vorpal.exec(command)
+						.then(() => (capturedOutput[0]).should.equal('Could not encrypt: Passphrase verification failed.'));
 				});
 			});
 		});
@@ -149,7 +167,7 @@ describe('lisky encrypt command palette', () => {
 				});
 
 				it('should inform the user that the file does not exist', () => {
-					(capturedOutput[0]).should.equal('Could not encrypt: passphrase file does not exist.');
+					(capturedOutput[0]).should.equal('Could not encrypt: Passphrase file does not exist.');
 				});
 
 				it('should not call the crypto module encrypt method', () => {
@@ -168,7 +186,7 @@ describe('lisky encrypt command palette', () => {
 				});
 
 				it('should inform the user that the file cannot be read', () => {
-					(capturedOutput[0]).should.equal('Could not encrypt: passphrase file could not be read.');
+					(capturedOutput[0]).should.equal('Could not encrypt: Passphrase file could not be read.');
 				});
 
 				it('should not call the crypto module encrypt method', () => {
