@@ -3,7 +3,7 @@
 var assign = require('lodash').assign;
 var chai = require('chai');
 var expect = require('chai').expect;
-require('it-each')({ testPerIteration: true });
+var util = require('util');
 
 var typesRepresentatives = require('./typesRepresentatives');
 
@@ -58,7 +58,11 @@ function SchemaDynamicTest (config) {
 }
 
 SchemaDynamicTest.prototype.carpetTesting = function (test, inputs, description) {
-	it.each(inputs, description, ['description'], test);
+	inputs.forEach(function (input) {
+		it(util.format(description, input.description), function (done) {
+			test(input, done);
+		});
+	});
 };
 
 SchemaDynamicTest.prototype.standardInvalidArgumentAssertion = function (input, expectedType, err) {

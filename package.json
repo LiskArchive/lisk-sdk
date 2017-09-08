@@ -80,7 +80,6 @@
     "husky": "=0.14.3",
     "istanbul": "=0.4.5",
     "istanbul-middleware": "=0.2.2",
-    "it-each": "=0.3.1",
     "jsdoc": "=3.4.3",
     "jsdox": "=0.4.10",
     "lisk-js": "git://github.com/LiskHQ/lisk-js#optional_data_test",
