@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getSha256Hash } from './hash';
 import { bufferToHex, getAddress } from './convert';
+import { getSha256Hash } from './hash';
 
 /**
  * @method getRawPrivateAndPublicKeyFromSecret
@@ -24,6 +24,7 @@ import { bufferToHex, getAddress } from './convert';
 
 export function getRawPrivateAndPublicKeyFromSecret(secret) {
 	const sha256Hash = getSha256Hash(secret, 'utf8');
+
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(sha256Hash);
 
 	return {

@@ -23,7 +23,7 @@ import { getTransactionBytes } from '../transactions/utils';
  */
 export function getSha256Hash(data, format) {
 	if (Buffer.isBuffer(data)) {
-		return naclInstance.crypto_hash_sha256(data);
+		return Buffer.from(naclInstance.crypto_hash_sha256(data));
 	}
 
 	if (typeof data === 'string') {
@@ -33,7 +33,7 @@ export function getSha256Hash(data, format) {
 		const encoded = format === 'utf8'
 			? naclInstance.encode_utf8(data)
 			: naclInstance.from_hex(data);
-		return naclInstance.crypto_hash_sha256(encoded);
+		return Buffer.from(naclInstance.crypto_hash_sha256(encoded));
 	}
 
 	throw new Error('Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.');
