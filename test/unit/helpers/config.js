@@ -12,7 +12,7 @@ describe('config is able to override AppConfig properties from the command line'
 
 	var argvcloneStr = JSON.stringify(process.argv);
 
-	afterEach(() => {
+	afterEach(function () {
 		process.argv = JSON.parse(argvcloneStr);
 	});
 
