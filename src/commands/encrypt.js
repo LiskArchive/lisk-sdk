@@ -67,32 +67,31 @@ const getPassphraseFromCommandLine = isTTY => (
 		: getPassphraseFromStdIn
 );
 
-const handlePassphrase = (vorpal, message, recipient, options) => (passphrase) => {
+const handlePassphrase = (vorpal, message, recipient) => (passphrase) => {
 	const passphraseString = passphrase.toString().trim();
+	return cryptoModule.encrypt(message, passphraseString, recipient);
+};
 
-	const result = cryptoModule.encrypt(message, passphraseString, recipient);
+const handleError = (error) => {
+	const { name, message } = error;
+
+	if (name.match(/ENOENT/)) {
+		return { error: ERROR_PASSPHRASE_FILE_DOES_NOT_EXIST };
+	}
+	if (name.match(/EACCES/)) {
+		return { error: ERROR_PASSPHRASE_FILE_UNREADABLE };
+	}
+
+	return { error: message || name };
+};
+
+const printResult = (vorpal, options) => (result) => {
 	const output = options.json
 		? JSON.stringify(result)
 		: tablify(result).toString();
 
 	vorpal.activeCommand.log(output);
 	return result;
-};
-
-const handleError = vorpal => (error) => {
-	const { name, message } = error;
-
-	if (name.match(/ENOENT/)) {
-		return vorpal.activeCommand.log(ERROR_PASSPHRASE_FILE_DOES_NOT_EXIST);
-	}
-	if (name.match(/EACCES/)) {
-		return vorpal.activeCommand.log(ERROR_PASSPHRASE_FILE_UNREADABLE);
-	}
-	if (message.match(new RegExp(ERROR_PASSPHRASE_VERIFICATION_FAIL))) {
-		return vorpal.activeCommand.log(message);
-	}
-
-	throw error;
 };
 
 const encrypt = vorpal => ({ message, recipient, options }) => {
@@ -102,8 +101,9 @@ const encrypt = vorpal => ({ message, recipient, options }) => {
 		: getPassphraseFromCommandLine(process.stdin.isTTY).bind(null, vorpal);
 
 	return getPassphrase()
-		.then(handlePassphrase(vorpal, message, recipient, options))
-		.catch(handleError(vorpal));
+		.then(handlePassphrase(vorpal, message, recipient))
+		.catch(handleError)
+		.then(printResult(vorpal, options));
 };
 
 function encryptCommand(vorpal) {

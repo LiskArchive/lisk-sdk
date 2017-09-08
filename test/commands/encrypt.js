@@ -20,7 +20,7 @@ import cryptoModule from '../../src/utils/cryptoModule';
 import tablify from '../../src/utils/tablify';
 import { setUpVorpalWithCommand } from './utils';
 
-describe.only('lisky encrypt command palette', () => {
+describe('lisky encrypt command palette', () => {
 	let vorpal;
 	let capturedOutput;
 
@@ -147,8 +147,9 @@ describe.only('lisky encrypt command palette', () => {
 				});
 
 				it('should inform the user the passwords did not match', () => {
+					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase verification failed.' }).toString();
 					return vorpal.exec(command)
-						.then(() => (capturedOutput[0]).should.equal('Could not encrypt: Passphrase verification failed.'));
+						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
 				});
 			});
 		});
@@ -167,7 +168,8 @@ describe.only('lisky encrypt command palette', () => {
 				});
 
 				it('should inform the user that the file does not exist', () => {
-					(capturedOutput[0]).should.equal('Could not encrypt: Passphrase file does not exist.');
+					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file does not exist.' }).toString();
+					(capturedOutput[0]).should.equal(tableOutputError);
 				});
 
 				it('should not call the crypto module encrypt method', () => {
@@ -186,7 +188,8 @@ describe.only('lisky encrypt command palette', () => {
 				});
 
 				it('should inform the user that the file cannot be read', () => {
-					(capturedOutput[0]).should.equal('Could not encrypt: Passphrase file could not be read.');
+					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file could not be read.' }).toString();
+					(capturedOutput[0]).should.equal(tableOutputError);
 				});
 
 				it('should not call the crypto module encrypt method', () => {
@@ -195,9 +198,11 @@ describe.only('lisky encrypt command palette', () => {
 			});
 
 			describe('if an unexpected error occurs', () => {
-				const unknownError = new Error('unknown error');
+				const unknownErrorMessage = 'unknown error';
+				let unknownError;
 
 				beforeEach(() => {
+					unknownError = new Error(unknownErrorMessage);
 					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(unknownError);
 				});
 
@@ -205,9 +210,20 @@ describe.only('lisky encrypt command palette', () => {
 					readFileSyncStub.restore();
 				});
 
-				it('should throw an error', () => {
+				it('should print the error message if it has one', () => {
+					const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
 					return vorpal.exec(passPhraseFileCommand)
-						.then(result => (result).should.fail(), error => (error).should.equal(unknownError));
+						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+				});
+
+				it('should print the error name if it has no message', () => {
+					delete unknownError.message;
+					const name = 'Dr Error';
+					unknownError.name = name;
+					const tableOutputError = tablify({ error: name }).toString();
+
+					return vorpal.exec(passPhraseFileCommand)
+						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
 				});
 			});
 
