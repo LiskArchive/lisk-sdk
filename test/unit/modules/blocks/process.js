@@ -91,6 +91,27 @@ describe('blocks/process', function () {
 		});
 	});
 
+	after(function (done) {
+		node.constants.rewards.offset = originalBlockRewardsOffset;
+		dbSandbox.destroy(modulesLoader.logger);
+		node.appCleanup(done);
+
+		async.every([
+			'blocks where height > 1',
+			'trs where "blockId" != \'6524861224470851795\'',
+			'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
+			'forks_stat',
+			'votes where "transactionId" = \'17502993173215211070\''
+		], function (table, seriesCb) {
+			clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+		}, function (err, result) {
+			if (err) {
+				done(err);
+			}
+			done();
+		});
+	});
+
 	describe('getCommonBlock()', function () {
 
 		it('should be ok');
@@ -360,26 +381,5 @@ describe('blocks/process', function () {
 	describe('onBind()', function () {
 
 		it('should be ok');
-	});
-
-	after(function (done) {
-		node.constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy();
-		node.appCleanup(done);
-
-		async.every([
-			'blocks where height > 1',
-			'trs where "blockId" != \'6524861224470851795\'',
-			'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
-			'forks_stat',
-			'votes where "transactionId" = \'17502993173215211070\''
-		], function (table, seriesCb) {
-			clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-		}, function (err, result) {
-			if (err) {
-				done(err);
-			}
-			done();
-		});
 	});
 });

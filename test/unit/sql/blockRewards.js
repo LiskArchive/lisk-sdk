@@ -91,6 +91,12 @@ describe('BlockRewardsSQL', function () {
 		});
 	});
 
+	after(function (done) {
+		constants.rewards.offset = originalBlockRewardsOffset;
+		dbSandbox.destroy();
+		node.appCleanup(done);
+	});
+
 	describe('checking SQL function getBlockRewards()', function () {
 
 		it('SQL rewards should be equal to those in constants', function (done) {
@@ -451,11 +457,5 @@ describe('BlockRewardsSQL', function () {
 				calcSupply_test_fail(13451520, (13451520 + 100), 1, done);
 			});
 		});
-	});
-
-	after(function (done) {
-		constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy();
-		node.appCleanup(done);
 	});
 });

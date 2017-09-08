@@ -109,6 +109,11 @@ describe('helpers/jobsQueue', function () {
 				clock = sinon.useFakeTimers();
 			});
 
+			after(function () {
+				jobsQueue.jobs = {};
+				clock.restore();
+			});
+
 			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', function () {
 				var name = 'job1';
 				var spy = sinon.spy(dummyFunction);
@@ -163,11 +168,6 @@ describe('helpers/jobsQueue', function () {
 				testExecution(job, name, spy);
 				// Instances still should be the same
 				expect(jobsQueuePeers).to.equal(jobsQueue);
-			});
-
-			after(function () {
-				jobsQueue.jobs = {};
-				clock.restore();
 			});
 		});
 	});

@@ -231,7 +231,7 @@ describe('blocks/verify', function () {
 	});
 
 	after(function () {
-		dbSandbox.destroy();
+		dbSandbox.destroy(modulesLoader.logger);
 	});
 
 	before(function (done) {

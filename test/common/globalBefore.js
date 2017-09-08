@@ -97,8 +97,8 @@ DBSandbox.prototype.create = function (cb) {
 	}.bind(this));
 };
 
-DBSandbox.prototype.destroy = function () {
-	database.disconnect();
+DBSandbox.prototype.destroy = function (logger) {
+	database.disconnect(logger);
 	this.dbConfig.database = this.originalDatabaseName;
 };
 
