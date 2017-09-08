@@ -6,45 +6,14 @@ var sinon = require('sinon');
 
 var config = require('../../../helpers/config');
 
-var argvcloneStr = JSON.stringify(process.argv);
-
 describe('config is able to override AppConfig properties from the command line', function () {
 
-	const VERSION = '0.0.0a';
+	var VERSION = '0.0.0a';
+
+	var argvcloneStr = JSON.stringify(process.argv);
 
 	afterEach(() => {
 		process.argv = JSON.parse(argvcloneStr);
-	});
-
-	describe('config', function () {
-
-		it('single dash', function () {
-			process.argv.push('--config');
-			process.argv.push('./test/unit/helpers/config.mock.data.json');
-			var appconfig = config({version: VERSION});
-			expect(appconfig.port).to.eq(1234);
-			expect(appconfig.httpPort).to.be.eq(4321);
-			expect(appconfig.address).to.be.eq('0.0.0.0');
-			expect(appconfig.fileLogLevel).to.be.eq('MOCKING');
-			expect(appconfig.db.database).to.eq('MOCKDB');
-			expect(appconfig.peers.list.length).to.eq(1);
-			expect(appconfig.peers.list[0].ip).to.eq('127.0.0.101');
-			expect(appconfig.peers.list[0].port).to.eq('444');
-		});
-
-		it('double dash', function () {
-			process.argv.push('--config');
-			process.argv.push('./test/unit/helpers/config.mock.data.json');
-			var appconfig = config({version: VERSION});
-			expect(appconfig.port).to.eq(1234);
-			expect(appconfig.httpPort).to.be.eq(4321);
-			expect(appconfig.address).to.be.eq('0.0.0.0');
-			expect(appconfig.fileLogLevel).to.be.eq('MOCKING');
-			expect(appconfig.db.database).to.eq('MOCKDB');
-			expect(appconfig.peers.list.length).to.eq(1);
-			expect(appconfig.peers.list[0].ip).to.eq('127.0.0.101');
-			expect(appconfig.peers.list[0].port).to.eq('444');
-		});
 	});
 
 	describe('standard scenarios', function () {
@@ -77,6 +46,25 @@ describe('config is able to override AppConfig properties from the command line'
 
 		[
 			{
+				expect: function (type, appconfig, result) {
+					expect(appconfig.port).to.eq(1234);
+					expect(appconfig.httpPort).to.be.eq(4321);
+					expect(appconfig.address).to.be.eq('0.0.0.0');
+					expect(appconfig.fileLogLevel).to.be.eq('MOCKING');
+					expect(appconfig.db.database).to.eq('MOCKDB');
+					expect(appconfig.peers.list.length).to.eq(1);
+					expect(appconfig.peers.list[0].ip).to.eq('127.0.0.101');
+					expect(appconfig.peers.list[0].port).to.eq('444');
+				},
+				single: {
+					dash: 'c',
+					value: './test/unit/helpers/config.mock.data.json'
+				},
+				double: {
+					dash: 'config',
+					value: './test/unit/helpers/config.mock.data.json'
+				}
+			},{
 				appConfigValue: function (appconfig) {
 					return appconfig.port;
 				},
