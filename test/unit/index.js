@@ -4,6 +4,7 @@ require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
 require('./helpers/bignum');
+require('./helpers/cache');
 require('./helpers/checkIpInList');
 require('./helpers/config');
 require('./helpers/ed');
