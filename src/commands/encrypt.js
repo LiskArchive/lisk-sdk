@@ -32,9 +32,10 @@ const passPhraseOptionDescription = `
 Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
 Source must be one of \`env\`, \`fd\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
 Examples:
+- \`--passphrase "pass:my secret pass phrase"\` (should only be used where security is not important)
 - \`--passphrase env:SECRET_PASSPHRASE\`
 - \`--passphrase fd:115\`
-- \`--passphrase file:~/path/to/my/passphrase.txt\`
+- \`--passphrase file:/path/to/my/passphrase.txt\`
 - \`--passphrase stdin\`
 `.trim();
 
@@ -81,11 +82,13 @@ const getPassphraseFromSource = async (source) => {
 	const delimiter = ':';
 	const splitSource = source.split(delimiter);
 	const sourceType = splitSource[0];
-	if (sourceType === 'stdin') return getPassphraseFromStdIn();
-
 	const sourceIdentifier = splitSource.slice(1).join(delimiter);
 
 	switch (sourceType) {
+	case 'pass':
+		return sourceIdentifier;
+	case 'stdin':
+		return getPassphraseFromStdIn();
 	case 'file':
 		return getPassphraseFromFile(sourceIdentifier);
 	case 'env':

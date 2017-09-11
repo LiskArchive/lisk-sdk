@@ -147,6 +147,18 @@ describe('lisky encrypt command palette', () => {
 			});
 		});
 
+		describe('with plaintext passphrase passed via command line', () => {
+			const passPhrasePlainTextCommand = `${command} --passphrase "pass:${secret}"`;
+
+			it('should call the crypto module encrypt method with correct parameters', () => {
+				return vorpal.exec(passPhrasePlainTextCommand)
+					.then(() => {
+						(encryptStub.calledWithExactly(message, secret, recipient))
+							.should.be.true();
+					});
+			});
+		});
+
 		describe('with passphrase passed via environmental variable', () => {
 			const envVariable = 'TEST_PASSPHRASE';
 			const passPhraseEnvCommand = `${command} --passphrase env:${envVariable}`;
@@ -205,7 +217,7 @@ describe('lisky encrypt command palette', () => {
 		});
 
 		describe('with passphrase passed via file path', () => {
-			const passPhraseFileCommand = `${command} --passphrase file:~/path/to/secret.txt`;
+			const passPhraseFileCommand = `${command} --passphrase file:/path/to/secret.txt`;
 
 			let streamStub;
 			let createReadStreamStub;
