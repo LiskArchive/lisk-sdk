@@ -11,6 +11,7 @@ require('./helpers/ed');
 require('./helpers/jobs-queue');
 require('./helpers/peersManager');
 require('./helpers/pg-notify');
+require('./helpers/promiseDefer');
 require('./helpers/request-limiter');
 require('./helpers/router');
 require('./helpers/RPC');
