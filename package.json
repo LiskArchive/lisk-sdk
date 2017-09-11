@@ -68,7 +68,6 @@
     "chai": "=4.0.2",
     "chai-bignumber": "=2.0.0",
     "coveralls": "=2.13.1",
-    "crypto-browserify": "=3.11.0",
     "csv": "=1.1.1",
     "faker": "=4.1.0",
     "grunt": "=1.0.1",
