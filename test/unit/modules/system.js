@@ -170,17 +170,17 @@ describe('system', function () {
 
 	describe('versionCompatible', function () {
 
-		describe('when version with a letter passed', function () {
+		describe('when version contains', function () {
 
-			describe('when system version also contains a letter', function () {
+			describe('when system version contains a letter', function () {
 
 				it('should return true if both version number and version letter are equals with system');
 
 				it('should return false if both version number and version letter are different than system');
 
-				it('should return false if both version number is different than system');
+				it('should return false if version number is different than system');
 
-				it('should return false if both version letter is different than system');
+				it('should return false if version letter is different than system');
 			});
 
 			describe('when system version does not contain a letter', function () {
