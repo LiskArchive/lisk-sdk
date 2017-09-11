@@ -35,6 +35,21 @@ var WAIT_BEFORE_CONNECT_MS = 10000;
 
 var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
+var monitorWSClient = {
+	protocol: 'http',
+	hostname: '127.0.0.1',
+	port: 'toOverwrite',
+	autoReconnect: true,
+	query: {
+		port: 9999,
+		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+		height: 1,
+		version: '0.0.0a',
+		nonce: '0123456789ABCDEF'
+	}
+};
+
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
 	switch (syncMode) {
@@ -142,21 +157,6 @@ function generatePM2NodesConfig (testNodeConfigs) {
 	fs.writeFileSync(__dirname + '/pm2.integration.json', JSON.stringify(pm2Config, null, 4));
 }
 
-var monitorWSClient = {
-	protocol: 'http',
-	hostname: '127.0.0.1',
-	port: 'toOverwrite',
-	autoReconnect: true,
-	query: {
-		port: 9999,
-		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		height: 1,
-		version: '0.0.0a',
-		nonce: '0123456789ABCDEF'
-	}
-};
-
 function clearLogs (cb) {
 	child_process.exec('rm -rf test/integration/logs/*', function (err) {
 		return cb(err);
@@ -260,33 +260,33 @@ describe('integration', function () {
 
 	var sockets = [];
 
-	before(function () {
-		generatePM2NodesConfig(testNodeConfigs);
-	});
-
 	before(function (done) {
-		clearLogs(done);
-	});
-
-	before(function (done) {
-		recreateDatabases(done);
-	});
-
-	before(function (done) {
-		launchTestNodes(done);
-	});
-
-	before(function (done) {
-		waitForAllNodesToBeReady(done);
-	});
-
-	before(function (done) {
-		enableForgingOnDelegates(done);
-	});
-
-	before(function (done) {
-		establishWSConnectionsToNodes(sockets, done);
-		this.timeout(WAIT_BEFORE_CONNECT_MS * 2);
+		async.series([
+			function (cbSeries) {
+				generatePM2NodesConfig(testNodeConfigs);
+				cbSeries();
+			},
+			function (cbSeries) {
+				clearLogs(cbSeries);
+			},
+			function (cbSeries) {
+				recreateDatabases(cbSeries);
+			},
+			function (cbSeries) {
+				launchTestNodes(cbSeries);
+			},
+			function (cbSeries) {
+				waitForAllNodesToBeReady(cbSeries);
+			},
+			function (cbSeries) {
+				enableForgingOnDelegates(cbSeries);
+			},
+			function (cbSeries) {
+				establishWSConnectionsToNodes(sockets, cbSeries);
+			},
+		], function (err, results) {
+			done();
+		});
 	});
 
 	after(function (done) {
