@@ -175,9 +175,6 @@ describe('multisignature.js', function () {
 			var pubKey = lisk.crypto.getPrivateAndPublicKeyFromSecret(secret).publicKey;
 
 			(msigTransaction2.requesterPublicKey).should.be.equal(pubKey);
-
-			console.log(msigTransaction2);
-
 		});
 
 		describe('with time offset', function () {
