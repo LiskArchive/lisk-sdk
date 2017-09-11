@@ -3,6 +3,7 @@ require('./api/ws/workers/peersUpdateRules');
 require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
+require('./helpers/bignum');
 require('./helpers/ed');
 require('./helpers/jobs-queue');
 require('./helpers/peersManager');
