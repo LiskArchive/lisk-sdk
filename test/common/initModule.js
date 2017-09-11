@@ -184,7 +184,6 @@ var modulesLoader = new function () {
 		this.initModules([
 			{accounts: require('../../modules/accounts')},
 			{blocks: require('../../modules/blocks')},
-			{crypto: require('../../modules/crypto')},
 			{delegates: require('../../modules/delegates')},
 			{loader: require('../../modules/loader')},
 			{multisignatures: require('../../modules/multisignatures')},
