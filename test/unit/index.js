@@ -15,6 +15,7 @@ require('./helpers/request-limiter');
 require('./helpers/RPC');
 require('./helpers/slots');
 require('./helpers/wsApi');
+require('./helpers/z_schema-express');
 require('./helpers/z_schema');
 
 require('./logic/account');
