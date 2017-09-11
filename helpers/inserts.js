@@ -21,7 +21,7 @@ function Inserts (record, values, concat) {
 
 	var self = this;
 
-	if (!record || !record.table || !record.values) {
+	if (!record || !record.table || !record.fields) {
 		throw 'Inserts: Invalid record argument';
 	}
 

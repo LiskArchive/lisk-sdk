@@ -17,42 +17,39 @@ describe('inserts', function () {
 		it('record var is null', function () {
 			standardExpect(function () {new inserts(null, null, null);}, 'record');
 		});
-
 		it('record.table var is null', function () {
 			standardExpect(function () {new inserts({}, null, null);}, 'record');
 		});
-
 		it('record.fields var is null', function () {
 			standardExpect(function () {new inserts({table: 'atable'}, null, null);}, 'record');
 		});
-
 		it('values var is null', function () {
-			standardExpect(function () {new inserts({table: 'atable', values: [], fields: []}, null, null);}, 'values');
+			standardExpect(function () {new inserts({table: 'atable', fields: []}, null, null);}, 'values');
 		});
 	});
 
 	describe('validate the template function', function () {
 		it('concatinates  = false with a single argument', function () {
-			var rinserts = new inserts({table: 'atable', values:[], fields: ['id']}, [], false);
+			var rinserts = new inserts({table: 'atable', fields: ['id']}, [], false);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id") VALUES (${id})');
 		});
 		it('concatinates = true with a single argument', function () {
-			var rinserts = new inserts({table: 'atable', values:[], fields: ['id']}, [], true);
+			var rinserts = new inserts({table: 'atable', fields: ['id']}, [], true);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id") VALUES $1');
 		});
 		it('concatinates = false with multiple argument', function () {
-			var rinserts = new inserts({table: 'atable', values:[], fields: ['id', 'another']}, [], false);
+			var rinserts = new inserts({table: 'atable', fields: ['id', 'another']}, [], false);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id","another") VALUES (${id},${another})');
 		});
 		it('concatinates = true with multiple argument', function () {
-			var rinserts = new inserts({table: 'atable', values:[], fields: ['id', 'another']}, [], true);
+			var rinserts = new inserts({table: 'atable', fields: ['id', 'another']}, [], true);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id","another") VALUES $1');
 		});
 	});
 
 	describe('validate the formatDBType function', function () {
 		it('single args', function () {
-			var rinserts = new inserts({table: 'atable', values:[], fields: ['id']}, [1], false);
+			var rinserts = new inserts({table: 'atable', fields: ['id']}, [1], false);
 			expect(rinserts.formatDBType()).to.equal('(${id})');
 		});
 	});
