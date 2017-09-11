@@ -285,7 +285,7 @@ function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	if (checkReDial.call(that)) {
 		return new Promise(((resolve, reject) => {
 			setTimeout(() => {
-				if(that.randomPeer) {
+				if (that.randomPeer) {
 					banNode.call(that);
 				}
 				that.setNode();
