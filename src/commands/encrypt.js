@@ -46,26 +46,36 @@ const getPassphraseFromEnvVariable = (key) => {
 	return passphrase;
 };
 
-const getPassphraseFromFile = async path => fse.readFileSync(path);
+const getPassphraseFromFile = (path, options) => new Promise((resolve, reject) => {
+	const stream = fse.createReadStream(path, options);
+	const handleStreamError = (error) => {
+		stream.close();
+		reject(error);
+	};
+	stream.on('error', handleStreamError);
 
-const getPassphraseFromFD = async (fdString) => {
-	const n = parseInt(fdString, 10);
-	if (n.toString() !== fdString) {
-		throw new Error(ERROR_PASSPHRASE_FILE_DESCRIPTOR_NOT_AN_INTEGER);
-	}
-	return fse.readFileSync(n);
-};
-
-const getPassphraseFromStdIn = () => {
-	const rl = readline.createInterface({
-		input: process.stdin,
-	});
-	return new Promise((resolve) => {
-		rl.on('line', (line) => {
+	readline.createInterface({ input: stream })
+		.on('error', handleStreamError)
+		.on('line', (line) => {
+			stream.close();
 			resolve(line);
 		});
-	});
+});
+
+const getPassphraseFromFD = async (fdString) => {
+	const fd = parseInt(fdString, 10);
+	if (fd.toString() !== fdString) {
+		throw new Error(ERROR_PASSPHRASE_FILE_DESCRIPTOR_NOT_AN_INTEGER);
+	}
+	return getPassphraseFromFile(null, { fd });
 };
+
+const getPassphraseFromStdIn = () => new Promise((resolve) => {
+	readline.createInterface({ input: process.stdin })
+		.on('line', (line) => {
+			resolve(line);
+		});
+});
 
 const getPassphraseFromSource = async (source) => {
 	const delimiter = ':';

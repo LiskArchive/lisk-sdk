@@ -20,6 +20,12 @@ import cryptoModule from '../../src/utils/cryptoModule';
 import tablify from '../../src/utils/tablify';
 import { setUpVorpalWithCommand } from './utils';
 
+const createStreamStub = on => ({
+	resume: () => {},
+	close: () => {},
+	on,
+});
+
 describe('lisky encrypt command palette', () => {
 	let vorpal;
 	let capturedOutput;
@@ -60,7 +66,7 @@ describe('lisky encrypt command palette', () => {
 		const jCommand = `${command} -j`;
 		const noJsonCommand = `${command} --no-json`;
 
-		const nonce = '60ee6cbb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
+		const nonce = '60ee6callbackb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
 		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
 		const cryptoEncryptReturnObject = {
 			nonce,
@@ -201,16 +207,21 @@ describe('lisky encrypt command palette', () => {
 		describe('with passphrase passed via file path', () => {
 			const passPhraseFileCommand = `${command} --passphrase file:~/path/to/secret.txt`;
 
-			let readFileSyncStub;
+			let streamStub;
+			let createReadStreamStub;
 
 			describe('if file does not exist', () => {
+				let doesNotExistError;
+
 				beforeEach(() => {
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(new Error('ENOENT: no such file or directory'));
+					doesNotExistError = new Error('ENOENT: no such file or directory');
+					streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 					return vorpal.exec(passPhraseFileCommand);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should inform the user that the file does not exist', () => {
@@ -224,13 +235,17 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			describe('if file cannot be read', () => {
+				let permissionError;
+
 				beforeEach(() => {
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(new Error('EACCES: permission denied'));
+					permissionError = new Error('EACCES: permission denied');
+					streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 					return vorpal.exec(passPhraseFileCommand);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should inform the user that the file cannot be read', () => {
@@ -249,11 +264,12 @@ describe('lisky encrypt command palette', () => {
 
 				beforeEach(() => {
 					unknownError = new Error(unknownErrorMessage);
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(unknownError);
+					streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should print the error message if it has one', () => {
@@ -275,11 +291,12 @@ describe('lisky encrypt command palette', () => {
 
 			describe('if file can be read', () => {
 				beforeEach(() => {
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(Buffer.from(`${secret}\n`));
+					streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(Buffer.from(`${secret}\nsome other stuff on a new line`))));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
@@ -296,7 +313,8 @@ describe('lisky encrypt command palette', () => {
 			const passPhraseFileDescriptorCommand = `${command} --passphrase fd:115`;
 			const passPhraseFileDescriptorCommandInvalid = `${command} --passphrase fd:115.4`;
 
-			let readFileSyncStub;
+			let streamStub;
+			let createReadStreamStub;
 
 			describe('if file descriptor is not an integer', () => {
 				it('should inform the user that the file descriptor is invalid', () => {
@@ -307,13 +325,17 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			describe('if file descriptor is bad', () => {
+				let badFileDescriptorError;
+
 				beforeEach(() => {
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(new Error('EBADF: bad file descriptor, read'));
+					badFileDescriptorError = new Error('EBADF: bad file descriptor, read');
+					streamStub = createStreamStub((type, callback) => type === 'error' && callback(badFileDescriptorError));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 					return vorpal.exec(passPhraseFileDescriptorCommand);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should inform the user that the file descriptor is bad', () => {
@@ -327,13 +349,17 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			describe('if file does not exist', () => {
+				let doesNotExistError;
+
 				beforeEach(() => {
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(new Error('ENOENT: no such file or directory'));
+					doesNotExistError = new Error('ENOENT: no such file or directory');
+					streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 					return vorpal.exec(passPhraseFileDescriptorCommand);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should inform the user that the file does not exist', () => {
@@ -347,13 +373,17 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			describe('if file cannot be read', () => {
+				let permissionError;
+
 				beforeEach(() => {
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(new Error('EACCES: permission denied'));
+					permissionError = new Error('EACCES: permission denied');
+					streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 					return vorpal.exec(passPhraseFileDescriptorCommand);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should inform the user that the file cannot be read', () => {
@@ -372,11 +402,12 @@ describe('lisky encrypt command palette', () => {
 
 				beforeEach(() => {
 					unknownError = new Error(unknownErrorMessage);
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(unknownError);
+					streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should print the error message if it has one', () => {
@@ -397,12 +428,19 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			describe('if file can be read', () => {
+				const fileData = Buffer.from(`${secret}\nsome other stuff on a new line`);
+
 				beforeEach(() => {
-					readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(Buffer.from(`${secret}\n`));
+					streamStub = createStreamStub((type, callback) => {
+						if (type === 'data') {
+							setImmediate(() => callback(fileData));
+						}
+					});
+					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 				});
 
 				afterEach(() => {
-					readFileSyncStub.restore();
+					createReadStreamStub.restore();
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
