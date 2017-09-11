@@ -8,55 +8,71 @@ describe('OrderBy', function () {
 
 	var sortFields = ['afield'];
 
-	it('no order by option passed', function () {
+	describe('when orderBy = null', function () {
 		var orderBy = OrderBy(null, {sortFields: sortFields});
-		expect(orderBy.sortField).to.be.null;
-		expect(orderBy.sortMethod).to.be.null;
-		expect(orderBy.error).to.be.undefined;
+		it('should return sortField = null', function () {
+			expect(orderBy.sortField).to.be.null;
+		});
+		it('should return sortMethod = null', function () {
+			expect(orderBy.sortMethod).to.be.null;
+		});
+		it('should return error = undefined', function () {
+			expect(orderBy.error).to.be.undefined;
+		});
 	});
 
-	it('converts desc to uppercase', function () {
-		var orderBy = OrderBy('afield:desc', {sortFields: sortFields});
-		expect(orderBy.sortMethod).to.equal('DESC');
+	describe('when desc is in lowercase', function () {
+		it('converts desc to uppercase', function () {
+			var orderBy = OrderBy('afield:desc', {sortFields: sortFields});
+			expect(orderBy.sortMethod).to.equal('DESC');
+		});
 	});
 
-	it('converts asc to uppercase', function () {
-		var orderBy = OrderBy('afield:asc',{sortFields: sortFields});
-		expect(orderBy.sortMethod).to.equal('ASC');
+	describe('when asc is in lowercase', function () {
+		it('converts asc to uppercase', function () {
+			var orderBy = OrderBy('afield:asc',{sortFields: sortFields});
+			expect(orderBy.sortMethod).to.equal('ASC');
+		});
 	});
 
-	it('defaults quoteField to true', function () {
-		var orderBy = OrderBy('afield:desc',{sortFields: sortFields});
-		expect(orderBy.sortField).to.equal('\"afield\"');
+	describe('quoteField', function () {
+		it('defaults to true', function () {
+			var orderBy = OrderBy('afield:desc',{sortFields: sortFields});
+			expect(orderBy.sortField).to.equal('\"afield\"');
+		});
+
+		it('set to true', function () {
+			var orderBy = OrderBy('afield:desc',{sortFields: sortFields, quoteField: true});
+			expect(orderBy.sortField).to.equal('\"afield\"');
+		});
+
+		it('set to false', function () {
+			var orderBy = OrderBy('afield:desc',{sortFields: sortFields, quoteField: false});
+			expect(orderBy.sortField).to.equal('afield');
+		});
 	});
 
-	it('sets quoteField to true', function () {
-		var orderBy = OrderBy('afield:desc',{sortFields: sortFields, quoteField: true});
-		expect(orderBy.sortField).to.equal('\"afield\"');
+	describe('prefix search field', function () {
+		it('uses string as the var', function () {
+			var orderBy = OrderBy('afield:desc',{sortFields: sortFields,fieldPrefix: 'b_', quoteField: false});
+			expect(orderBy.sortField).to.equal('b_afield');
+		});
+
+		it('uses a function as the var', function () {
+			var orderBy = OrderBy('afield:desc',
+				{
+					sortFields: sortFields,
+					quoteField: false,
+				 	fieldPrefix: function (sortfield) {return ('func_' + sortfield);}
+				});
+			expect(orderBy.sortField).to.equal('func_afield');
+		});
 	});
 
-	it('sets quoteField to false', function () {
-		var orderBy = OrderBy('afield:desc',{sortFields: sortFields, quoteField: false});
-		expect(orderBy.sortField).to.equal('afield');
-	});
-
-	it('adds field prefix b_', function () {
-		var orderBy = OrderBy('afield:desc',{sortFields: sortFields,fieldPrefix: 'b_', quoteField: false});
-		expect(orderBy.sortField).to.equal('b_afield');
-	});
-
-	it('adds field prefix func_ by a function', function () {
-		var orderBy = OrderBy('afield:desc',
-			{
-				sortFields: sortFields,
-				quoteField: false,
-			 	fieldPrefix: function (sortfield) {return ('func_' + sortfield);}
-			});
-		expect(orderBy.sortField).to.equal('func_afield');
-	});
-
-	it('not valid sort field', function () {
-		var orderBy = OrderBy('notvalid:desc',{sortFields: sortFields});
-		expect(orderBy.error).to.equal('Invalid sort field');
+	describe('invalid sort field', function () {
+		it('returns an error of Invalid sort field', function () {
+			var orderBy = OrderBy('notvalid:desc',{sortFields: sortFields});
+			expect(orderBy.error).to.equal('Invalid sort field');
+		});
 	});
 });
