@@ -28,6 +28,18 @@ function optionallyCallCallback(callback, result) {
 	return result;
 }
 
+/**
+ * @method constructRequestData
+ * @param providedObject
+ * @param optionsOrCallback
+ *
+ * @return request object
+ */
+
+const constructRequestData = (providedObject, optionsOrCallback) => {
+	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
+	return Object.assign({}, providedOptions, providedObject);
+};
 
 /**
  * @method wrapSendRequest
@@ -46,22 +58,9 @@ const wrapSendRequest = (method, endpoint, getDataFn) =>
 	};
 
 /**
- * @method constructRequestData
- * @param providedObject
- * @param optionsOrCallback
- *
- * @return request object
- */
-
-const constructRequestData = (providedObject, optionsOrCallback) => {
-	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
-	return Object.assign({}, providedOptions, providedObject);
-};
-
-/**
  * @method checkOptions
- * @return options object
  * @private
+ * @return options object
  */
 
 const checkOptions = (options) => {
@@ -73,19 +72,6 @@ const checkOptions = (options) => {
 		});
 
 	return options;
-};
-
-/**
- * @method serialiseHTTPData
- * @param data
- *
- * @return serialisedData string
- */
-
-const serialiseHTTPData = (data) => {
-	const trimmed = utils.trimObj(data);
-	const queryString = utils.toQueryString(trimmed);
-	return `?${queryString}`;
 };
 
 /**
@@ -136,7 +122,25 @@ function toQueryString(obj) {
 	return parts.join('&');
 }
 
+/**
+ * @method serialiseHTTPData
+ * @param data
+ *
+ * @return serialisedData string
+ */
+
+const serialiseHTTPData = (data) => {
+	const trimmed = trimObj(data);
+	const queryString = toQueryString(trimmed);
+	return `?${queryString}`;
+};
+
 module.exports = {
 	trimObj,
 	toQueryString,
+	serialiseHTTPData,
+	checkOptions,
+	constructRequestData,
+	wrapSendRequest,
+	optionallyCallCallback,
 };

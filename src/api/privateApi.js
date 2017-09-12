@@ -181,7 +181,7 @@ function checkReDial() {
 function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
 	const url = method === GET
-		? `${getFullURL.call(this)}/api/${requestType}${serialiseHTTPData.call(this, options)}`
+		? `${getFullURL.call(this)}/api/${requestType}${utils.serialiseHTTPData.call(this, options)}`
 		: `${getFullURL.call(this)}/api/${requestType}`;
 
 	return {
@@ -272,13 +272,8 @@ module.exports = {
 	getRandomPeer,
 	banNode,
 	checkReDial,
-	checkOptions,
 	sendRequestPromise,
-	serialiseHTTPData,
 	createRequestObject,
-	constructRequestData,
-	wrapSendRequest,
 	handleTimestampIsInFutureFailures,
 	handleSendRequestFailures,
-	optionallyCallCallback,
 };
