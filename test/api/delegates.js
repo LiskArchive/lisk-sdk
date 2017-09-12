@@ -123,9 +123,6 @@ describe('GET /api/delegates (cache)', function () {
 
 describe('GET /api/delegates', function () {
 
-	before(function () {
-		
-	});
 	it('using no params should be ok', function (done) {
 		http.get('/api/delegates', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;

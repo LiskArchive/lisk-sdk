@@ -90,7 +90,6 @@ var config = {
 		delegates: './modules/delegates.js',
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
-		crypto: './modules/crypto.js',
 		cache: './modules/cache.js'
 	},
 	api: {

@@ -28,6 +28,9 @@ node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
 var randomString = require('randomstring');
+
+var jobsQueue = require('../helpers/jobsQueue.js');
+
 require('colors');
 
 // Node configuration
@@ -221,7 +224,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 			});
 		},
 		function () {
-			return actualHeight === height;
+			return actualHeight >= height;
 		},
 		function (err) {
 			if (err) {
@@ -343,17 +346,22 @@ node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
 };
 
+var currentAppScope;
 
 // Init whole application inside tests
-node.initApplication = function (cb) {
+node.initApplication = function (cb, initScope) {
+	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
 	    promiseLib: Promise
 	};
-	var pgp = require('pg-promise')(options);
-	node.config.db.user = node.config.db.user || process.env.USER;
-	var db = pgp(node.config.db);
+	var db = initScope.db;
+	if (!db) {
+		var pgp = require('pg-promise')(options);
+		node.config.db.user = node.config.db.user || process.env.USER;
+		db = pgp(node.config.db);
+	}
 
 	// Clear tables
 	db.task(function (t) {
@@ -363,10 +371,7 @@ node.initApplication = function (cb) {
 			t.none('DELETE FROM mem_accounts')
 		]);
 	}).then(function () {
-		// Force rewards start at 150-th block
-		node.constants.rewards.offset = 150;
-
-		var logger = {
+		var logger = initScope.logger || {
 			trace: sinon.spy(),
 			debug: sinon.spy(),
 			info:  sinon.spy(),
@@ -387,7 +392,6 @@ node.initApplication = function (cb) {
 			delegates: '../modules/delegates.js',
 			multisignatures: '../modules/multisignatures.js',
 			dapps: '../modules/dapps.js',
-			crypto: '../modules/crypto.js',
 			// cache: '../modules/cache.js'
 		};
 
@@ -418,8 +422,7 @@ node.initApplication = function (cb) {
 				var wsRPC = require('../api/ws/rpc/wsRPC.js').wsRPC;
 
 				wsRPC.setServer(dummyWAMPServer);
-				wsRPC.getServer().registerRPCEndpoints({status: function () {}});
-
+				wsRPC.clientsConnectionsMap = {};
 				cb();
 			}],
 			logger: function (cb) {
@@ -455,7 +458,8 @@ node.initApplication = function (cb) {
 
 			bus: ['ed', function (scope, cb) {
 				var changeCase = require('change-case');
-				var bus = function () {
+
+				var bus = initScope.bus || new (function () {
 					this.message = function () {
 						var args = [];
 						Array.prototype.push.apply(args, arguments);
@@ -465,6 +469,7 @@ node.initApplication = function (cb) {
 						// Iterate over modules and execute event functions (on*)
 						modules.forEach(function (module) {
 							if (typeof(module[eventName]) === 'function') {
+								jobsQueue.jobs = {};
 								module[eventName].apply(module[eventName], args);
 							}
 							if (module.submodules) {
@@ -476,8 +481,8 @@ node.initApplication = function (cb) {
 							}
 						});
 					};
-				};
-				cb(null, new bus());
+				})();
+				cb(null, bus);
 			}],
 			db: function (cb) {
 				cb(null, db);
@@ -485,6 +490,21 @@ node.initApplication = function (cb) {
 			pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
 				var pg_notify = require('../helpers/pg-notify.js');
 				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
+			}],
+			rpc: ['db', 'bus', 'logger', function (scope, cb) {
+				var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
+				var transport = require('../api/ws/transport');
+				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+				var socketClusterMock = {
+					on: sinon.spy()
+				};
+				wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
+
+				// Register RPC
+				var transportModuleMock = {internal: {}, shared: {}};
+				transport(transportModuleMock);
+				cb();
 			}],
 			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
@@ -527,7 +547,7 @@ node.initApplication = function (cb) {
 					}]
 				}, cb);
 			}],
-			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+			modules: ['network', 'webSocket', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'rpc', function (scope, cb) {
 				var tasks = {};
 				scope.rewiredModules = {};
 
@@ -547,7 +567,6 @@ node.initApplication = function (cb) {
 			ready: ['modules', 'bus', 'logic', function (scope, cb) {
 				// Fire onBind event in every module
 				scope.bus.message('bind', scope.modules);
-
 				scope.logic.peers.bindModules(scope.modules);
 				cb();
 			}]
@@ -555,9 +574,26 @@ node.initApplication = function (cb) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
-
-			cb(scope);
+			currentAppScope = scope;
+			cb(err, scope);
 		});
+	});
+};
+
+node.appCleanup = function (done) {
+	node.async.eachSeries(currentAppScope.modules, function (module, cb) {
+		if (typeof(module.cleanup) === 'function') {
+			module.cleanup(cb);
+		} else {
+			cb();
+		}
+	}, function (err) {
+		if (err) {
+			currentAppScope.logger.error(err);
+		} else {
+			currentAppScope.logger.info('Cleaned up successfully');
+		}
+		done();
 	});
 };
 

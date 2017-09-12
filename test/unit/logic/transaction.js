@@ -128,7 +128,7 @@ var unconfirmedTrs = {
 	recipientId: '5649948960790668770L',
 	signature: '24c65ac5562a8ae252aa308926b60342829e82f285e704814d0d3c3954078c946d113aa0bd5388b2c863874e63f71e8e0a284a03274e66c719e69d443d91f309',
 	fee: 10000000,
-	id: '16580139363949197645' 
+	id: '16580139363949197645'
 };
 
 describe('transaction', function () {
@@ -165,7 +165,7 @@ describe('transaction', function () {
 			}]
 		}, function (err, result) {
 			transactionLogic = result.transactionLogic;
-			attachTransferAsset(transactionLogic, result.accountLogic, done); 
+			attachTransferAsset(transactionLogic, result.accountLogic, done);
 		});
 	});
 
@@ -291,16 +291,6 @@ describe('transaction', function () {
 		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
 			var trsBytesFromLogic = transactionLogic.getBytes(transaction);
 			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(transaction);
-
-			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
-		});
-
-		it('should return same result of getBytes using /logic/transaction and lisk-js package (with data field)', function () {
-			var trs = _.cloneDeep(transaction);
-			trs.asset = {data: '123'};
-
-			var trsBytesFromLogic = transactionLogic.getBytes(trs);
-			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(trs);
 
 			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
 		});
@@ -590,9 +580,8 @@ describe('transaction', function () {
 			var vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete trs.signature;
-			trs.signatures = Array(2).fill(transactionLogic.sign(validKeypair, trs));
+			trs.signatures = Array.apply(null, Array(2)).map(function () { return transactionLogic.sign(validKeypair, trs); });
 			trs.signature = transactionLogic.sign(senderKeypair, trs);
-
 			transactionLogic.verify(trs, vs, {}, function (err) {
 				expect(err).to.equal('Encountered duplicate signature in transaction');
 				done();
@@ -646,7 +635,7 @@ describe('transaction', function () {
 				});
 			});
 		});
-		
+
 		it('should be okay for valid second signature', function (done) {
 			var vs = _.cloneDeep(sender);
 			vs.secondPublicKey = validKeypair.publicKey.toString('hex');
@@ -826,7 +815,7 @@ describe('transaction', function () {
 		};
 
 		function undoTransaction (trs, sender, done) {
-			transactionLogic.undo(trs, dummyBlock, sender, done); 
+			transactionLogic.undo(trs, dummyBlock, sender, done);
 		}
 
 		it('should throw an error with no param', function () {
@@ -924,7 +913,7 @@ describe('transaction', function () {
 	describe('applyUnconfirmed', function () {
 
 		function undoUnconfirmedTransaction (trs, sender, done) {
-			transactionLogic.undoUnconfirmed(trs, sender, done); 
+			transactionLogic.undoUnconfirmed(trs, sender, done);
 		}
 
 		it('should throw an error with no param', function () {
@@ -968,7 +957,7 @@ describe('transaction', function () {
 			transactionLogic.undoUnconfirmed(transaction, sender, function (err) {
 				expect(err).to.not.exist;
 				applyUnconfirmedTransaction(transaction, sender, done);
-			}); 
+			});
 		});
 	});
 
