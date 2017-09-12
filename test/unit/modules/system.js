@@ -124,7 +124,7 @@ describe('system', function () {
 
 			describe('when db.query fails', function () {
 
-				it('should return an error');
+				it('should call callback with error');
 
 				it('should call the logger.error with error stack');
 			});
@@ -133,9 +133,9 @@ describe('system', function () {
 
 				describe('and returns no or one result', function () {
 
-					it('should return error = null');
+					it('should call callback with error = null');
 
-					it('should return __private.nethash');
+					it('should call callback with __private.nethash');
 				});
 
 				describe('and returns more then one results', function () {
@@ -148,9 +148,9 @@ describe('system', function () {
 
 					it('should call crypto.digest');
 
-					it('should return the hash');
+					it('should call callback with error = null');
 
-					it('should return error = null');
+					it('should call callback with the hash');
 				});
 			});
 		});
@@ -226,7 +226,9 @@ describe('system', function () {
 
 		it('should call modules.transport.headers with __private');
 
-		it('should never return an error');
+		it('should call callback');
+
+		it('should never call callback with an error');
 	});
 
 	describe('onBind', function () {

@@ -8,13 +8,13 @@ describe('dapps', function () {
 
 			it('should call library.db.query with valid params');
 
-			it('should return an error when dapp not found');
+			it('should call callback with an error when dapp not found');
 
-			it('should return a dapp record when exists in db');
+			it('should call callback with a dapp record when exists in db');
 
 			describe('when db query fails', function () {
 
-				it('should return the DApp#get error');
+				it('should call callback with the DApp#get error');
 				
 				it('should call the logger.error with error stack');
 			});
@@ -128,16 +128,16 @@ describe('dapps', function () {
 
 			describe('when db.query fails', function () {
 
-				it('should return an error');
+				it('should call callback with an error');
 
 				it('should call the logger.error with error stack');
 			});
 
 			describe('when db.query succeeds', function () {
 
-				it('should return error = null');
+				it('should call callback with error = null');
 
-				it('should return the records');
+				it('should call callback with the records as result');
 			});
 		});
 	});
@@ -178,20 +178,20 @@ describe('dapps', function () {
 
 			describe('when __private.get succeeds', function () {
 
-				it('should return error = null');
+				it('should call callback with error = null');
 
-				it('should return success: true');
+				it('should call callback with result containing success = true');
 
-				it('should return dapp object');
+				it('should call callback with result containing dapp as an object');
 			});
 
 			describe('when __private.get fails', function () {
 
-				it('should return error = null');
+				it('should call callback with error = null');
 
-				it('should return success: false');
+				it('should call callback with result containing success = false');
 
-				it('should return error');
+				it('should call callback with result containing error');
 			});
 		});
 
@@ -201,26 +201,26 @@ describe('dapps', function () {
 
 			describe('when __private.list succeeds', function () {
 
-				it('should return error = null');
+				it('should call callback with error = null');
 
-				it('should return success = true');
+				it('should call callback with result containing success = true');
 
-				it('should return dapps array');
+				it('should call callback with result containing dapps as an array');
 			});
 
 			describe('when __private.list fails', function () {
 
-				it('should return error');
+				it('should call callback with error');
 			});
 		});
 
 		describe('categories', function () {
 
-			it('should return error = null');
+			it('should call callback with error = null');
 
-			it('should return success = true');
+			it('should call callback with result containing success = true');
 
-			it('should return dappsCategories');
+			it('should call callback with result containing dappsCategories as an object');
 		});
 	});
 
@@ -234,7 +234,7 @@ describe('dapps', function () {
 
 			describe('when db.query fails', function () {
 
-				it('should return the DApp#getGenesis error');
+				it('should call callback with the DApp#getGenesis error');
 
 				it('should call the logger.error with error stack');
 			});
@@ -243,20 +243,20 @@ describe('dapps', function () {
 
 				describe('and returns no results', function () {
 
-					it('should return an error');
+					it('should call callback with an error');
 				});
 
 				describe('and returns results', function () {
 
-					it('should return error = null');
+					it('should call callback with error = null');
 
-					it('should return the record with pointId');
+					it('should call callback with result containing pointId');
 
-					it('should return the record with pointHeight');
+					it('should call callback with result containing pointHeight');
 
-					it('should return the record with authorId');
+					it('should call callback with result containing authorId');
 
-					it('should return the record with dappid');
+					it('should call callback with result containing dappid');
 				});
 			});
 		});

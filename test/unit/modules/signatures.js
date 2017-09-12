@@ -30,9 +30,9 @@ describe('signatures', function () {
 
 		describe('getFee', function () {
 
-			it('should return error = null');
+			it('should call callback with error = null');
 
-			it('should return fee taken from constants.fees.secondsignature');
+			it('should call callback with fee taken from constants.fees.secondsignature');
 		});
 
 		describe('postSignatures', function () {
