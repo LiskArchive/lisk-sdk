@@ -24,43 +24,30 @@ const createErrorMessage = str => `${ERROR_PREFIX}${str}`;
 const ERROR_MESSAGE_MISSING = createErrorMessage('No message was provided.');
 const ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET = createErrorMessage('Passphrase environmental variable not set.');
 const ERROR_PASSPHRASE_VERIFICATION_FAIL = createErrorMessage('Passphrase verification failed.');
-
 const ERROR_FILE_DOES_NOT_EXIST = createErrorMessage('File does not exist.');
 const ERROR_FILE_UNREADABLE = createErrorMessage('File could not be read.');
-const ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER = createErrorMessage('File descriptor is not an integer.');
-const ERROR_FILE_DESCRIPTOR_BAD = createErrorMessage('File descriptor is bad.');
 
 const messageOptionDescription = `
 Specifies a source for the message you would like to encrypt. If a message is provided directly as an argument, this option will be ignored.
-The message must be provided via an argument or via this option. Sources must be one of \`fd\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 
 Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 
 Examples:
-- \`--message fd:115\`
 - \`--message file:/path/to/my/message.txt\`
 - \`--message stdin\`
 `.trim();
 
 const passPhraseOptionDescription = `
 Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
-Source must be one of \`env\`, \`fd\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
 
 Examples:
 - \`--passphrase "pass:my secret pass phrase"\` (should only be used where security is not important)
 - \`--passphrase env:SECRET_PASSPHRASE\`
-- \`--passphrase fd:115\`
 - \`--passphrase file:/path/to/my/passphrase.txt\` (takes the first line only)
 - \`--passphrase stdin\`
 `.trim();
-
-const getFDFromString = (fdString) => {
-	const fd = parseInt(fdString, 10);
-	if (fd.toString() !== fdString) {
-		throw new Error(ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER);
-	}
-	return fd;
-};
 
 const splitSource = (source) => {
 	const delimiter = ':';
@@ -80,7 +67,7 @@ const getStdIn = ({ getMessage, getPassphrase }) => new Promise((resolve) => {
 	const handleLine = line => (
 		getMessage
 			? lines.push(line)
-			: resolve({ passphrase: line }) && rl.close()
+			: resolve({ passphrase: line }) || rl.close()
 	);
 	const handleClose = () => {
 		const messageLines = getPassphrase ? lines.slice(1) : lines;
@@ -106,14 +93,11 @@ const getMessage = async (arg, source, { message }) => {
 
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
-	switch (sourceType) {
-	case 'fd':
-		return getMessageFromFile(getFDFromString(sourceIdentifier));
-	case 'file':
-		return getMessageFromFile(sourceIdentifier);
-	default:
-		throw new Error('Unknown message source type: Must be one of `fd`, `file`, or `stdin`.');
+	if (sourceType !== 'file') {
+		throw new Error('Unknown message source type: Must be one of `file`, or `stdin`.');
 	}
+
+	return getMessageFromFile(sourceIdentifier);
 };
 
 const getPassphraseFromEnvVariable = (key) => {
@@ -124,8 +108,8 @@ const getPassphraseFromEnvVariable = (key) => {
 	return passphrase;
 };
 
-const getPassphraseFromFile = (path, options) => new Promise((resolve, reject) => {
-	const stream = fse.createReadStream(path, options);
+const getPassphraseFromFile = path => new Promise((resolve, reject) => {
+	const stream = fse.createReadStream(path);
 	const handleReadError = (error) => {
 		stream.close();
 		reject(error);
@@ -150,14 +134,12 @@ const getPassphraseFromSource = async (source, { passphrase }) => {
 	switch (sourceType) {
 	case 'env':
 		return getPassphraseFromEnvVariable(sourceIdentifier);
-	case 'fd':
-		return getPassphraseFromFile(null, { fd: getFDFromString(sourceIdentifier) });
 	case 'file':
 		return getPassphraseFromFile(sourceIdentifier);
 	case 'pass':
 		return sourceIdentifier;
 	default:
-		throw new Error('Unknown passphrase source type: Must be one of `env`, `fd`, `file`, or `stdin`. Leave blank for prompt.');
+		throw new Error('Unknown passphrase source type: Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.');
 	}
 };
 
@@ -199,9 +181,6 @@ const handleError = (error) => {
 	}
 	if (message.match(/EACCES/)) {
 		return { error: ERROR_FILE_UNREADABLE };
-	}
-	if (message.match(/EBADF/)) {
-		return { error: ERROR_FILE_DESCRIPTOR_BAD };
 	}
 
 	return { error: message || name };
