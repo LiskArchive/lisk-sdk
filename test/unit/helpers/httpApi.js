@@ -233,6 +233,50 @@ describe('httpApi', function () {
 					expect(nextCalled).to.be.false;
 					expect(debugCalled).to.be.true;
 				});
+				it('cached value', function () {
+					var debugCalled = false;
+					var nextCalled = false;
+					var resJsonCalled = false;
+					var cachedValue = 'cachedValue';
+					var response = {success: true};
+					var req = {
+						originalUrl: 'org/url',
+						url: 'new/url'
+					};
+					var res = {
+						json: function (res,thisresponse) {
+							resJsonCalled = true;
+						}
+					};
+					var logger = {
+						debug: function (str, url) {
+							expect(str).to.equal('cached response for key: ');
+							expect(url).to.equal(req.url);
+							debugCalled = true;
+						}
+					};
+					var next = function () {
+						nextCalled = true;
+					};
+					var cache = {
+						isReady: function () {return true;},
+						getJsonForKey: function (key, cb) {
+							cb(null, null);
+						},
+						setJsonForKey: function (key, thisresponse) {
+							expect(key).to.equal(req.originalUrl);
+							expect(thisresponse).to.eql(response);
+						}
+					};
+					httpApi.middleware.useCache(logger, cache, req, res, next);
+					res.json({success: true});
+					expect(nextCalled).to.be.true;
+					//expect(debugCalled).to.be.true;
+					//expect(resJsonCalled).to.be.true;
+				});
+
+
+
 			});
 		});
 	});
