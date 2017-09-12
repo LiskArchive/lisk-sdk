@@ -412,8 +412,10 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	}
 
 	stage ('Set milestone') {
-		milestone 1
-		currentBuild.result = 'SUCCESS'
-		report()
+		node('master-01'){
+			milestone 1
+			currentBuild.result = 'SUCCESS'
+			report()
+		}
 	}
 }
