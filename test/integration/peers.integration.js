@@ -52,10 +52,10 @@ var monitorWSClient = {
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
+
+	var peersList = [];
 	switch (syncMode) {
 		case SYNC_MODE.RANDOM:
-			var peersList = [];
-
 			if (typeof syncModeArgs.RANDOM.PROBABILITY !== 'number') {
 				throw new Error('Probability parameter not specified to random sync mode');
 			}
@@ -63,7 +63,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 				return !!n && Math.random() <= n;
 			};
 
-			return Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
+			Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
 				if (isPickedWithProbability(syncModeArgs.RANDOM.PROBABILITY)) {
 					peersList.push({
 						ip: '127.0.0.1',
@@ -71,11 +71,10 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 					});
 				}
 			});
-			return peersList;
 			break;
 
 		case SYNC_MODE.ALL_TO_FIRST:
-			return [{
+			peersList = [{
 				ip: '127.0.0.1',
 				port: 5001
 			}];
@@ -83,13 +82,13 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 
 		case SYNC_MODE.ALL_TO_GROUP:
 			throw new Error('To implement');
-			break;
 	}
+	return peersList;
 }
 
 function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
 	var secretsInChunk = Math.ceil(baseConfig.forging.secret.length / forgingNodesIndices.length);
-	var secretsChunks = Array.apply(null, new Array(forgingNodesIndices.length)).map(function (val, index) {
+	var secretsChunks = forgingNodesIndices.map(function (val, index) {
 		return baseConfig.forging.secret.slice(index * secretsInChunk, (index + 1) * secretsInChunk);
 	});
 
@@ -236,36 +235,35 @@ function waitForAllNodesToBeReady (done) {
 function establishWSConnectionsToNodes (sockets, done) {
 	var connectedTo = 0;
 	var wampClient = new WAMPClient();
-	// TODO: Find a better way for waiting until all test nodes are able to receive connections
+
 	setTimeout(function () {
-		async.forEachOf(testNodeConfigs, function (testNodeConfig, index, eachCb) {
+		testNodeConfigs.forEach(function (testNodeConfig) {
 			monitorWSClient.port = testNodeConfig.port;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			socket.on('connect', function () {
 				sockets.push(socket);
 				connectedTo += 1;
-				eachCb();
+				if (connectedTo === testNodeConfigs.length) {
+					done();
+				}
 			});
 			socket.on('error', function (err) {});
-			socket.on('connectAbort', function () {
-				eachCb('Failed to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+			socket.on('connectAbort', function (err) {
+				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
 			});
-			socket.on('disconnect', function (err) {});
-		}, done);
-	}, WAIT_BEFORE_CONNECT_MS);
+		}, WAIT_BEFORE_CONNECT_MS);
+	});
 }
 
 describe('integration', function () {
 
+	var self = this;
 	var sockets = [];
+	generatePM2NodesConfig(testNodeConfigs);
 
 	before(function (done) {
 		async.series([
-			function (cbSeries) {
-				generatePM2NodesConfig(testNodeConfigs);
-				cbSeries();
-			},
 			function (cbSeries) {
 				clearLogs(cbSeries);
 			},
@@ -283,10 +281,9 @@ describe('integration', function () {
 			},
 			function (cbSeries) {
 				establishWSConnectionsToNodes(sockets, cbSeries);
-			},
-		], function (err, results) {
-			done();
-		});
+				self.timeout(WAIT_BEFORE_CONNECT_MS * 2);
+			}
+		], done);
 	});
 
 	after(function (done) {
@@ -295,8 +292,8 @@ describe('integration', function () {
 
 	describe('Peers mutual connections', function () {
 
-		it('should return a list of peer mutually interconnected', function (done) {
-			Promise.all(sockets.map(function (socket) {
+		it('should return a list of peer mutually interconnected', function () {
+			return Promise.all(sockets.map(function (socket) {
 				return socket.wampSend('list', {});
 			})).then(function (results) {
 				results.forEach(function (result) {
@@ -310,9 +307,6 @@ describe('integration', function () {
 					});
 					expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
 				});
-				done();
-			}).catch(function (err) {
-				done(err);
 			});
 		});
 	});
@@ -392,8 +386,8 @@ describe('integration', function () {
 				expect(networkAverageHeight).to.be.above(1);
 			});
 
-			it('should have different peers heights propagated correctly on peers lists', function (done) {
-				Promise.all(sockets.map(function (socket) {
+			it('should have different peers heights propagated correctly on peers lists', function () {
+				return Promise.all(sockets.map(function (socket) {
 					return socket.wampSend('list');
 				})).then(function (results) {
 					expect(results.some(function (peersList) {
@@ -401,9 +395,6 @@ describe('integration', function () {
 							return peer.height > 1;
 						});
 					}));
-					done();
-				}).catch(function (err) {
-					done(err);
 				});
 			});
 		});
@@ -419,8 +410,8 @@ describe('integration', function () {
 
 			var nodesBlocks;
 
-			before(function (done) {
-				Promise.all(testNodeConfigs.map(function (testNodeConfig) {
+			before(function () {
+				return Promise.all(testNodeConfigs.map(function (testNodeConfig) {
 					return popsicle.get({
 						url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
 						headers: {
@@ -433,9 +424,6 @@ describe('integration', function () {
 						return JSON.parse(res.body).blocks;
 					});
 					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
-					done();
-				}).catch(function (err) {
-					done(err);
 				});
 			});
 
@@ -464,17 +452,14 @@ describe('integration', function () {
 
 			var nodesTransactions = [];
 
-			before(function (done) {
-				Promise.all(sockets.map(function (socket) {
+			before(function () {
+				return Promise.all(sockets.map(function (socket) {
 					return socket.wampSend('blocks');
 				})).then(function (results) {
 					nodesTransactions = results.map(function (res) {
 						return res.blocks;
 					});
 					expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
-					done();
-				}).catch(function (err) {
-					done(err);
 				});
 			});
 
