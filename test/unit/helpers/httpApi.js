@@ -23,19 +23,22 @@ describe('httpApi', function () {
 		});
 
 		describe('errorLogger', function () {
-			before(function () {
-				sinon.stub(console,'trace', function (err) {
-					console.log('trace called.');
+			var traceCalled = false;
+			beforeEach(function () {
+				sinon.stub(console,'trace').callsFake(function (err) {
+					traceCalled = true;
 				});
 			});
-			after(function () {
+			afterEach(function () {
 				console.trace.restore();
+				traceCalled = false;
 			});
 
 			it('error = null', function () {
 				var nextCalled = false;
 				httpApi.middleware.errorLogger(null, null, null, null, function () {nextCalled = true;});
 				expect(nextCalled).to.be.true;
+				expect(traceCalled).to.be.false;
 			});
 
 			it('error != null', function () {
@@ -65,6 +68,7 @@ describe('httpApi', function () {
 				expect(nextCalled).to.be.false;
 				expect(errorCalled).to.be.true;
 				expect(sendCalled).to.be.true;
+				expect(traceCalled).to.be.true;
 			});
 		});
 
@@ -135,7 +139,12 @@ describe('httpApi', function () {
 		describe('sanitize', function () {
 			it('report is not valid', function (){
 				var calledSanitize = false;
-				var rfunction = httpApi.middleware.sanitize('prop', null, null);
+				var calledCallback = false;
+				var cb = function (sanitize, binded) {
+					calledCallback = true;
+					return false;
+				};
+				var rfunction = httpApi.middleware.sanitize('prop', null, cb);
 				var req = {
 					prop: 'prop',
 					sanitize: function (propname, schema, fn) {
@@ -156,6 +165,38 @@ describe('httpApi', function () {
 				};
 				rfunction(req, res, null);
 				expect(calledSanitize).to.be.true;
+				expect(calledCallback).to.be.false;
+			});
+
+			it('report is valid', function (){
+				var calledSanitize = false;
+				var calledCallback = false;
+				var cb = function (sanitize, binded) {
+					calledCallback = true;
+					return false;
+				};
+				var rfunction = httpApi.middleware.sanitize('prop', null, cb);
+				var req = {
+					prop: 'prop',
+					sanitize: function (propname, schema, fn) {
+						expect(propname).to.equal('prop');
+						var report = {
+							isValid: true,
+							issues: 'a mock error'
+						};
+						expect(fn(null, report, false)).to.be.false;
+						calledSanitize = true;
+					}
+				};
+				var res = {
+					json: function (json) {
+						expect(json).to.eql({success: false, error: 'a mock error'});
+						return true;
+					}
+				};
+				rfunction(req, res, null);
+				expect(calledSanitize).to.be.true;
+				expect(calledCallback).to.be.true;
 			});
 		});
 
@@ -271,12 +312,123 @@ describe('httpApi', function () {
 					httpApi.middleware.useCache(logger, cache, req, res, next);
 					res.json({success: true});
 					expect(nextCalled).to.be.true;
-					//expect(debugCalled).to.be.true;
-					//expect(resJsonCalled).to.be.true;
+					expect(resJsonCalled).to.be.true;
+					expect(debugCalled).to.be.true;
+				});
+			});
+
+			describe('applyAPIAccessRules', function () {
+
+				it('matches the peer url', function () {
+					var req = {
+						url: {
+							match: function (regex) {
+								return true;
+							}
+						},
+						ip: '127.0.0.1'
+					};
+					var config = {
+						peers: {
+							enabled: false,
+							access: {
+								blackList: false
+							}
+						}
+					};
+					var next = function () {return true;};
+					var res = {
+						status: function (httpCode) {
+							return {
+								send: function (obj) {
+
+								}
+							};
+						}
+					};
+					httpApi.middleware.applyAPIAccessRules(config, req, res, next);
 				});
 
+				it('does not matches the peer url does not call next', function () {
+					var sendCalled = false;
+					var nextCalled = false;
+					var matchCalled = false;
+					var req = {
+						url: {
+							match: function (regex) {
+								matchCalled = true;
+								return false;
+							}
+						},
+						ip: '127.0.0.1'
+					};
+					var config = {
+						api: {
+							enabled: true,
+							access: {
+								public: false
+							}
+						}
+					};
+					var next = function () {
+						nextCalled = true;
+						return true;
+					};
+					var res = {
+						status: function (httpCode) {
+							return {
+								send: function (obj) {
+									expect(obj).to.eql({success:false,error:'API access denied'});
+									sendCalled = true;
+								}
+							};
+						}
+					};
+					httpApi.middleware.applyAPIAccessRules(config, req, res, next);
+					expect(sendCalled).to.be.true;
+					expect(nextCalled).to.be.false;
+					expect(matchCalled).to.be.true;
+				});
 
-
+				it('does not matches the peer url does call next', function () {
+					var sendCalled = false;
+					var nextCalled = false;
+					var matchCalled = false;
+					var req = {
+						url: {
+							match: function (regex) {
+								matchCalled = true;
+								return false;
+							}
+						},
+						ip: '127.0.0.1'
+					};
+					var config = {
+						api: {
+							enabled: true,
+							access: {
+								public: true
+							}
+						}
+					};
+					var next = function () {
+						nextCalled = true;
+						return true;
+					};
+					var res = {
+						status: function (httpCode) {
+							return {
+								send: function (obj) {
+									sendCalled = true;
+								}
+							};
+						}
+					};
+					httpApi.middleware.applyAPIAccessRules(config, req, res, next);
+					expect(sendCalled).to.be.false;
+					expect(nextCalled).to.be.true;
+					expect(matchCalled).to.be.true;
+				});
 			});
 		});
 	});
