@@ -3,12 +3,12 @@
 var expect = require('chai').expect;
 var async = require('async');
 
+var node = require('../../../node');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
-var BlockLogic = require('../../../../logic/block.js');
-var VoteLogic = require('../../../../logic/vote.js');
 var genesisBlock = require('../../../../genesisBlock.json');
 var loadTables = require('./processTablesData.json');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
+var DBSandbox = require('../../../common/globalBefore').DBSandbox;
 
 describe('blocks/process', function () {
 
@@ -18,88 +18,96 @@ describe('blocks/process', function () {
 	var blocksVerify;
 	var accounts;
 	var db;
+	var dbSandbox;
+	var scope;
+	var originalBlockRewardsOffset;
 
 	before(function (done) {
-		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_blocks_process');
+		dbSandbox.create(function (err, __db) {
+			modulesLoader.db = __db;
+			db = __db;
+			// Force rewards start at 150-th block
+			originalBlockRewardsOffset = node.constants.rewards.offset;
+			node.constants.rewards.offset = 150;
+			// wait for mem_accounts to be populated
+			node.initApplication(function (err, __scope) {
+				setTimeout(function () {
+					scope = __scope;
+					accounts = __scope.modules.accounts;
+					blocksProcess = __scope.modules.blocks.process;
+					blocksVerify = __scope.modules.blocks.verify;
+					blockLogic = __scope.logic.block;
+					blocks = __scope.modules.blocks;
+					db = __scope.db;
+					done(err);
+				}, 5000);
+			}, {db: db});
+		});
+	});
+
+	beforeEach(function (done) {
+		async.series({
+			clearTables: function (seriesCb) {
+				async.every([
+					'blocks where height > 1',
+					'trs where "blockId" != \'6524861224470851795\'',
+					'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
+					'forks_stat',
+					'votes where "transactionId" = \'17502993173215211070\''
+				], function (table, seriesCb) {
+					clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+				}, function (err) {
+					if (err) {
+						return setImmediate(err);
+					}
+					return setImmediate(seriesCb);
+				});
+			},
+			loadTables: function (seriesCb) {
+				async.everySeries(loadTables, function (table, seriesCb) {
+					var cs = new db.$config.pgp.helpers.ColumnSet(
+						table.fields, {table: table.name}
+					);
+					var insert = db.$config.pgp.helpers.insert(table.data, cs);
+					db.none(insert)
+						.then(function () {
+							seriesCb(null, true);
+						}).catch(function (err) {
+							return setImmediate(err);
+						});
+				}, function (err) {
+					if (err) {
+						return setImmediate(err);
+					}
+					return setImmediate(seriesCb);
+				});
+			}
+		}, function (err) {
 			if (err) {
 				return done(err);
 			}
-			blockLogic = __blockLogic;
+			done();
+		});
+	});
 
-			modulesLoader.initModules([
-				{blocks: require('../../../../modules/blocks')},
-				{accounts: require('../../../../modules/accounts')},
-				{delegates: require('../../../../modules/delegates')},
-				{transactions: require('../../../../modules/transactions')},
-				{multisignatures: require('../../../../modules/multisignatures')},
-				{signatures: require('../../../../modules/signatures')},
-			], [
-				{'block': require('../../../../logic/block')},
-				{'transaction': require('../../../../logic/transaction')},
-				{'account': require('../../../../logic/account')},
-				{'peers': require('../../../../logic/peers')},
-			], {}, function (err, __modules) {
-				if (err) {
-					return done(err);
-				}
-				__modules.blocks.verify.onBind(__modules);
-				blocksVerify = __modules.blocks.verify;
-				__modules.delegates.onBind(__modules);
-				__modules.accounts.onBind(__modules);
-				__modules.transactions.onBind(__modules);
-				__modules.blocks.chain.onBind(__modules);
-				__modules.multisignatures.onBind(__modules);
-				__modules.signatures.onBind(__modules);
-				__modules.blocks.process.onBind(__modules);
-				blocksProcess = __modules.blocks.process;
-				blocks = __modules.blocks;
-				accounts = __modules.accounts;
-				db = modulesLoader.scope.db;
-
-				async.series({
-					clearTables: function (seriesCb) {
-						async.every([
-							'blocks where height > 1',
-							'trs where "blockId" != \'6524861224470851795\'',
-							'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
-							'forks_stat',
-							'votes where "transactionId" = \'17502993173215211070\''
-						], function (table, seriesCb) {
-							clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-						}, function (err, result) {
-							if (err) {
-								return setImmediate(err);
-							}
-							return setImmediate(seriesCb);
-						});
-					},
-					loadTables: function (seriesCb) {
-						async.everySeries(loadTables, function (table, seriesCb) {
-							var cs = new db.$config.pgp.helpers.ColumnSet(
-								table.fields, {table: table.name}
-							);
-							var insert = db.$config.pgp.helpers.insert(table.data, cs);
-							db.none(insert)
-								.then(function (data) {
-									seriesCb(null, true);
-								}).catch(function (err) {
-									return setImmediate(err);
-								});
-						}, function (err, result) {
-							if (err) {
-								return setImmediate(err);
-							}
-							return setImmediate(seriesCb);
-						});
-					}
-				}, function (err) {
-					if (err) {
-						return done(err);
-					}
-					done();
-				});
- 			});
- 		});
+	after(function (done) {
+		async.every([
+			'blocks where height > 1',
+			'trs where "blockId" != \'6524861224470851795\'',
+			'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
+			'forks_stat',
+			'votes where "transactionId" = \'17502993173215211070\''
+		], function (table, seriesCb) {
+			clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+		}, function (err) {
+			if (err) {
+				done(err);
+			}
+			node.constants.rewards.offset = originalBlockRewardsOffset;
+			dbSandbox.destroy(modulesLoader.logger);
+			node.appCleanup(done);
+		});
 	});
 
 	describe('getCommonBlock()', function () {
@@ -371,22 +379,5 @@ describe('blocks/process', function () {
 	describe('onBind()', function () {
 
 		it('should be ok');
-	});
-
-	after(function (done) {
-		async.every([
-			'blocks where height > 1',
-			'trs where "blockId" != \'6524861224470851795\'',
-			'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
-			'forks_stat',
-			'votes where "transactionId" = \'17502993173215211070\''
-		], function (table, seriesCb) {
-			clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-		}, function (err, result) {
-			if (err) {
-				done(err);
-			}
-			done();
-		});
 	});
 });
