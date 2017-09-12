@@ -72,26 +72,27 @@ const splitSource = (source) => {
 };
 
 const getStdIn = ({ getMessage, getPassphrase }) => new Promise((resolve) => {
-	if (!getMessage && !getPassphrase) {
-		return resolve({});
-	}
-	const rl = readline.createInterface({ input: process.stdin });
+	if (!getMessage && !getPassphrase) return resolve({});
+
 	const lines = [];
-	return rl
-		.on('line', (line) => {
-			if (!getMessage) {
-				resolve({ passphrase: line });
-				return rl.close();
-			}
-			return lines.push(line);
-		})
-		.on('close', () => {
-			const messageLines = getPassphrase ? lines.slice(1) : lines;
-			return resolve({
-				message: getMessage ? messageLines.join('\n') : null,
-				passphrase: getPassphrase ? lines[0] : null,
-			});
+	const rl = readline.createInterface({ input: process.stdin });
+
+	const handleLine = line => (
+		getMessage
+			? lines.push(line)
+			: resolve({ passphrase: line }) && rl.close()
+	);
+	const handleClose = () => {
+		const messageLines = getPassphrase ? lines.slice(1) : lines;
+		return resolve({
+			message: getMessage ? messageLines.join('\n') : null,
+			passphrase: getPassphrase ? lines[0] : null,
 		});
+	};
+
+	return rl
+		.on('line', handleLine)
+		.on('close', handleClose);
 });
 
 const getMessageFromFile = async path => fse.readFileSync(path, 'utf8');
@@ -141,9 +142,9 @@ const getPassphraseFromFile = (path, options) => new Promise((resolve, reject) =
 		.on('line', handleLine);
 });
 
-const getPassphraseFromSource = async (source, stdIn) => {
-	const { passphrase } = stdIn;
+const getPassphraseFromSource = async (source, { passphrase }) => {
 	if (passphrase) return passphrase;
+
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
@@ -186,7 +187,7 @@ const getPassphraseFromPrompt = (vorpal) => {
 };
 
 const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]) => {
-	const passphraseString = passphrase.toString().trim();
+	const passphraseString = passphrase.toString();
 	return cryptoModule.encrypt(message, passphraseString, recipient);
 };
 
