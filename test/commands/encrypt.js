@@ -26,6 +26,24 @@ const createStreamStub = on => ({
 	on,
 });
 
+const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
+const parseTable = (output) => {
+	const rows = output.split('\n');
+	return {
+		head: prepareRow(rows[1]),
+		body: prepareRow(rows[3]),
+	};
+};
+
+const createStringCommand = cliCommand => `
+	var Vorpal = require('vorpal');
+	var encrypt = require('./src/commands/encrypt').default;
+
+	var vorpal = new Vorpal();
+	vorpal.use(encrypt);
+	vorpal.exec('${cliCommand}');
+`.trim();
+
 describe('lisky encrypt command palette', () => {
 	let vorpal;
 	let capturedOutput;
@@ -59,6 +77,7 @@ describe('lisky encrypt command palette', () => {
 
 	describe('when executed', () => {
 		const message = 'Hello Lisker';
+		const multilineMessage = 'Some important message\nthat spans\nmultiple lines\n';
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
 
@@ -469,19 +488,11 @@ describe('lisky encrypt command palette', () => {
 
 			describe('with passphrase passed via stdin', function withPassphrasePassedViaStdIn() {
 				this.timeout(5e3);
+
 				const passPhraseStdInCommand = `${command} --passphrase stdin`;
-
 				const cliCommand = passPhraseStdInCommand.replace(/"/g, '\\"');
-				const liskyCommand = `
-					var Vorpal = require('vorpal');
-					var encrypt = require('./src/commands/encrypt').default;
-
-					var vorpal = new Vorpal();
-					vorpal.use(encrypt);
-					vorpal.exec('${cliCommand}');
-				`.trim();
+				const liskyCommand = createStringCommand(cliCommand);
 				const childCommand = `echo "${secret}" | babel-node -e "${liskyCommand}"`;
-				const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
 
 				it('should use the passphrase without a prompt', () => {
 					return new Promise((resolve) => {
@@ -490,9 +501,7 @@ describe('lisky encrypt command palette', () => {
 						});
 					})
 						.then((stdout) => {
-							const rows = stdout.split('\n');
-							const head = prepareRow(rows[1]);
-							const body = prepareRow(rows[3]);
+							const { head, body } = parseTable(stdout);
 
 							(head).should.eql(['nonce', 'encryptedMessage']);
 							(body[0]).should.be.hexString().and.have.length(48);
@@ -514,7 +523,6 @@ describe('lisky encrypt command palette', () => {
 
 		describe('message', () => {
 			const command = `encrypt ${recipient} --passphrase "pass:${secret}"`;
-			const multilineMessage = 'Some important message\nthat spans\nmultiple lines\n';
 
 			describe('with plaintext message passed via command line', () => {
 				const messagePlainTextCommand = `${command} "${message}"`;
@@ -762,19 +770,11 @@ describe('lisky encrypt command palette', () => {
 
 			describe('with message passed via stdin', function withMessagePassedViaStdIn() {
 				this.timeout(5e3);
+
 				const messageStdInCommand = `${command} --message stdin`;
-
 				const cliCommand = messageStdInCommand.replace(/"/g, '\\"');
-				const liskyCommand = `
-					var Vorpal = require('vorpal');
-					var encrypt = require('./src/commands/encrypt').default;
-
-					var vorpal = new Vorpal();
-					vorpal.use(encrypt);
-					vorpal.exec('${cliCommand}');
-				`.trim();
-				const childCommand = `echo "${message}" | babel-node -e "${liskyCommand}"`;
-				const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
+				const liskyCommand = createStringCommand(cliCommand);
+				const childCommand = `echo "${multilineMessage}" | babel-node -e "${liskyCommand}"`;
 
 				it('should use the message without a prompt', () => {
 					return new Promise((resolve) => {
@@ -783,9 +783,7 @@ describe('lisky encrypt command palette', () => {
 						});
 					})
 						.then((stdout) => {
-							const rows = stdout.split('\n');
-							const head = prepareRow(rows[1]);
-							const body = prepareRow(rows[3]);
+							const { head, body } = parseTable(stdout);
 
 							(head).should.eql(['nonce', 'encryptedMessage']);
 							(body[0]).should.be.hexString().and.have.length(48);
@@ -813,8 +811,27 @@ describe('lisky encrypt command palette', () => {
 			});
 		});
 
-		describe('with passphrase and message passed via stdin', () => {
-			it('should have tests');
+		describe('with passphrase and message passed via stdin', function withPassphraseAndMessagePassedViaStdin() {
+			this.timeout(5e3);
+
+			const passphraseAndMessageStdInCommand = `encrypt ${recipient} --message stdin --passphrase stdin`;
+			const liskyCommand = createStringCommand(passphraseAndMessageStdInCommand);
+			const childCommand = `echo "${secret}\n${multilineMessage}" | babel-node -e "${liskyCommand}"`;
+
+			it('should should successfully encrypt the message with the passphrase', () => {
+				return new Promise((resolve) => {
+					exec(childCommand, (_, stdout) => {
+						resolve(stdout);
+					});
+				})
+					.then((stdout) => {
+						const { head, body } = parseTable(stdout);
+
+						(head).should.eql(['nonce', 'encryptedMessage']);
+						(body[0]).should.be.hexString().and.have.length(48);
+						(body[1]).should.be.hexString();
+					});
+			});
 		});
 	});
 });

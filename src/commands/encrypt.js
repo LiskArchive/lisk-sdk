@@ -31,17 +31,26 @@ const ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER = createErrorMessage('File descriptor
 const ERROR_FILE_DESCRIPTOR_BAD = createErrorMessage('File descriptor is bad.');
 
 const messageOptionDescription = `
-	TODO
-`;
+Specifies a source for the message you would like to encrypt. If a message is provided directly as an argument, this option will be ignored.
+The message must be provided via an argument or via this option. Sources must be one of \`fd\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+
+Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
+
+Examples:
+- \`--message fd:115\`
+- \`--message file:/path/to/my/message.txt\`
+- \`--message stdin\`
+`.trim();
 
 const passPhraseOptionDescription = `
 Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
 Source must be one of \`env\`, \`fd\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+
 Examples:
 - \`--passphrase "pass:my secret pass phrase"\` (should only be used where security is not important)
 - \`--passphrase env:SECRET_PASSPHRASE\`
 - \`--passphrase fd:115\`
-- \`--passphrase file:/path/to/my/passphrase.txt\`
+- \`--passphrase file:/path/to/my/passphrase.txt\` (takes the first line only)
 - \`--passphrase stdin\`
 `.trim();
 
@@ -62,15 +71,34 @@ const splitSource = (source) => {
 	};
 };
 
-const readLineFromStdIn = () => new Promise(resolve =>
-	readline.createInterface({ input: process.stdin })
-		.on('line', resolve),
-);
+const getStdIn = ({ getMessage, getPassphrase }) => new Promise((resolve) => {
+	if (!getMessage && !getPassphrase) {
+		return resolve({});
+	}
+	const rl = readline.createInterface({ input: process.stdin });
+	const lines = [];
+	return rl
+		.on('line', (line) => {
+			if (!getMessage) {
+				resolve({ passphrase: line });
+				return rl.close();
+			}
+			return lines.push(line);
+		})
+		.on('close', () => {
+			const messageLines = getPassphrase ? lines.slice(1) : lines;
+			return resolve({
+				message: getMessage ? messageLines.join('\n') : null,
+				passphrase: getPassphrase ? lines[0] : null,
+			});
+		});
+});
 
 const getMessageFromFile = async path => fse.readFileSync(path, 'utf8');
 
-const getMessage = async (arg, source) => {
+const getMessage = async (arg, source, { message }) => {
 	if (arg) return arg;
+	if (typeof message === 'string') return message;
 	if (!source) {
 		throw new Error(ERROR_MESSAGE_MISSING);
 	}
@@ -82,8 +110,6 @@ const getMessage = async (arg, source) => {
 		return getMessageFromFile(getFDFromString(sourceIdentifier));
 	case 'file':
 		return getMessageFromFile(sourceIdentifier);
-	case 'stdin':
-		return readLineFromStdIn();
 	default:
 		throw new Error('Unknown message source type: Must be one of `fd`, `file`, or `stdin`.');
 	}
@@ -115,7 +141,9 @@ const getPassphraseFromFile = (path, options) => new Promise((resolve, reject) =
 		.on('line', handleLine);
 });
 
-const getPassphraseFromSource = async (source) => {
+const getPassphraseFromSource = async (source, stdIn) => {
+	const { passphrase } = stdIn;
+	if (passphrase) return passphrase;
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
@@ -127,8 +155,6 @@ const getPassphraseFromSource = async (source) => {
 		return getPassphraseFromFile(sourceIdentifier);
 	case 'pass':
 		return sourceIdentifier;
-	case 'stdin':
-		return readLineFromStdIn();
 	default:
 		throw new Error('Unknown passphrase source type: Must be one of `env`, `fd`, `file`, or `stdin`. Leave blank for prompt.');
 	}
@@ -159,7 +185,7 @@ const getPassphraseFromPrompt = (vorpal) => {
 		);
 };
 
-const handleMessageAndPassphrase = (vorpal, recipient) => ([message, passphrase]) => {
+const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]) => {
 	const passphraseString = passphrase.toString().trim();
 	return cryptoModule.encrypt(message, passphraseString, recipient);
 };
@@ -190,15 +216,19 @@ const printResult = (vorpal, { json }) => (result) => {
 };
 
 const encrypt = vorpal => ({ message, recipient, options }) => {
+	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
 	const getPassphrase = passphraseSource
 		? getPassphraseFromSource.bind(null, passphraseSource)
 		: getPassphraseFromPrompt.bind(null, vorpal);
 
-	return getMessage(message, options.message)
-		.then(resolvedMessage => Promise.all([
-			resolvedMessage,
-			getPassphrase(),
+	return getStdIn({
+		getPassphrase: passphraseSource === 'stdin',
+		getMessage: messageSource === 'stdin',
+	})
+		.then(stdIn => Promise.all([
+			getPassphrase(stdIn),
+			getMessage(message, messageSource, stdIn),
 		]))
 		.then(handleMessageAndPassphrase(vorpal, recipient))
 		.catch(handleError)
