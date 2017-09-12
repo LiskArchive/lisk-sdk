@@ -45,36 +45,41 @@ Examples:
 - \`--passphrase stdin\`
 `.trim();
 
-const readLineFromStdIn = () => new Promise((resolve) => {
-	readline.createInterface({ input: process.stdin })
-		.on('line', (line) => {
-			resolve(line);
-		});
-});
-
-const getMessageFromFile = async path => fse.readFileSync(path, 'utf8');
-
-const getMessageFromFD = async (fdString) => {
+const getFDFromString = (fdString) => {
 	const fd = parseInt(fdString, 10);
 	if (fd.toString() !== fdString) {
 		throw new Error(ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER);
 	}
-	return getMessageFromFile(fd);
+	return fd;
 };
+
+const splitSource = (source) => {
+	const delimiter = ':';
+	const sourceParts = source.split(delimiter);
+	return {
+		sourceType: sourceParts[0],
+		sourceIdentifier: sourceParts.slice(1).join(delimiter),
+	};
+};
+
+const readLineFromStdIn = () => new Promise(resolve =>
+	readline.createInterface({ input: process.stdin })
+		.on('line', resolve),
+);
+
+const getMessageFromFile = async path => fse.readFileSync(path, 'utf8');
 
 const getMessage = async (arg, source) => {
 	if (arg) return arg;
 	if (!source) {
 		throw new Error(ERROR_MESSAGE_MISSING);
 	}
-	const delimiter = ':';
-	const splitSource = source.split(delimiter);
-	const sourceType = splitSource[0];
-	const sourceIdentifier = splitSource.slice(1).join(delimiter);
+
+	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
 	case 'fd':
-		return getMessageFromFD(sourceIdentifier);
+		return getMessageFromFile(getFDFromString(sourceIdentifier));
 	case 'file':
 		return getMessageFromFile(sourceIdentifier);
 	case 'stdin':
@@ -94,39 +99,30 @@ const getPassphraseFromEnvVariable = (key) => {
 
 const getPassphraseFromFile = (path, options) => new Promise((resolve, reject) => {
 	const stream = fse.createReadStream(path, options);
-	const handleStreamError = (error) => {
+	const handleReadError = (error) => {
 		stream.close();
 		reject(error);
 	};
-	stream.on('error', handleStreamError);
+	const handleLine = (line) => {
+		stream.close();
+		resolve(line);
+	};
+
+	stream.on('error', handleReadError);
 
 	readline.createInterface({ input: stream })
-		.on('error', handleStreamError)
-		.on('line', (line) => {
-			stream.close();
-			resolve(line);
-		});
+		.on('error', handleReadError)
+		.on('line', handleLine);
 });
 
-const getPassphraseFromFD = async (fdString) => {
-	const fd = parseInt(fdString, 10);
-	if (fd.toString() !== fdString) {
-		throw new Error(ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER);
-	}
-	return getPassphraseFromFile(null, { fd });
-};
-
 const getPassphraseFromSource = async (source) => {
-	const delimiter = ':';
-	const splitSource = source.split(delimiter);
-	const sourceType = splitSource[0];
-	const sourceIdentifier = splitSource.slice(1).join(delimiter);
+	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
 	case 'env':
 		return getPassphraseFromEnvVariable(sourceIdentifier);
 	case 'fd':
-		return getPassphraseFromFD(sourceIdentifier);
+		return getPassphraseFromFile(null, { fd: getFDFromString(sourceIdentifier) });
 	case 'file':
 		return getPassphraseFromFile(sourceIdentifier);
 	case 'pass':
@@ -184,8 +180,8 @@ const handleError = (error) => {
 	return { error: message || name };
 };
 
-const printResult = (vorpal, options) => (result) => {
-	const output = options.json
+const printResult = (vorpal, { json }) => (result) => {
+	const output = json
 		? JSON.stringify(result)
 		: tablify(result).toString();
 
