@@ -2,11 +2,13 @@
 
 var expect = require('chai').expect;
 var async = require('async');
+var sinon = require('sinon');
 
+var node = require('../../../node');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
-var BlockLogic = require('../../../../logic/block.js');
 var exceptions = require('../../../../helpers/exceptions.js');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
+var DBSandbox = require('../../../common/globalBefore').DBSandbox;
 
 var crypto = require('crypto');
 var bson = require('../../../../helpers/bson.js');
@@ -204,53 +206,51 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 		previousBlock: blocksModule.lastBlock.get(),
 		transactions: transactions
 	});
-	// newBlock.id = blockLogic.getId(newBlock);
+	//newBlock.id = blockLogic.getId(newBlock);
 	return newBlock;
 }
 
 describe('blocks/verify', function () {
 
+	var accounts;
 	var blocksVerify;
 	var blocks;
 	var blockLogic;
-	var accounts;
 	var delegates;
 
+	var db;
+	var dbSandbox;
+
 	before(function (done) {
-		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
-			if (err) {
-				return done(err);
-			}
-			blockLogic = __blockLogic;
-
-			modulesLoader.initModules([
-				{blocks: require('../../../../modules/blocks')},
-				{accounts: require('../../../../modules/accounts')},
-				{delegates: require('../../../../modules/delegates')},
-				{transactions: require('../../../../modules/transactions')},
-				{transport: require('../../../../modules/transport')},
-				{system: require('../../../../modules/system')},
-			], [
-				{'block': require('../../../../logic/block')},
-				{'transaction': require('../../../../logic/transaction')},
-				{'account': require('../../../../logic/account')},
-			], {}, function (err, __modules) {
-				if (err) {
-					return done(err);
-				}
-				__modules.blocks.verify.onBind(__modules);
-				__modules.delegates.onBind(__modules);
-				__modules.transactions.onBind(__modules);
-				__modules.blocks.chain.onBind(__modules);
-				__modules.transport.onBind(__modules);
-				blocks = __modules.blocks;
-				blocksVerify = __modules.blocks.verify;
-				accounts = __modules.accounts;
-				delegates = __modules.delegates;
-
-				done();
-			});
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_blocks_verify');
+		dbSandbox.create(function (err, __db) {
+			modulesLoader.db = __db;
+			db = __db;
+			done(err);
 		});
+	});
+
+	after(function () {
+		dbSandbox.destroy(modulesLoader.logger);
+	});
+
+	before(function (done) {
+		node.initApplication(function (err, scope) {
+			setTimeout(function () {
+				scope.modules.blocks.verify.onBind(scope.modules);
+				scope.modules.delegates.onBind(scope.modules);
+				scope.modules.transactions.onBind(scope.modules);
+				scope.modules.blocks.chain.onBind(scope.modules);
+				scope.modules.transport.onBind(scope.modules);
+				accounts = scope.modules.accounts;
+				blocksVerify = scope.modules.blocks.verify;
+				blockLogic = scope.logic.block;
+				blocks = scope.modules.blocks;
+				delegates = scope.modules.delegates;
+				db = scope.db;
+				done();
+			}, 5000);
+		}, {db: db, bus: modulesLoader.scope.bus});
 	});
 
 	function testValid (functionName) {
@@ -671,6 +671,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should be ok when process block 1', function (done) {
+			modulesLoader.scope.bus.clearMessages();
 			blocksVerify.processBlock(block1, true, function (err, result) {
 				if (err) {
 					return done(err);

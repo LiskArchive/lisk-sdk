@@ -1,5 +1,7 @@
 'use strict';
+
 var _ = require('lodash');
+var async = require('async');
 var child_process = require('child_process');
 var chai = require('chai');
 var expect = require('chai').expect;
@@ -12,6 +14,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var baseConfig = require('../../test/config.json');
 var Logger = require('../../logger');
+var logger = new Logger({filename: 'integrationTestsLogger.logs', echo: 'log'});
 
 var SYNC_MODE = {
 	RANDOM: 0,
@@ -28,16 +31,31 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
-var logger = new Logger({filename: 'integrationTests.logs', echo: 'log'});
+var WAIT_BEFORE_CONNECT_MS = 10000;
 
 var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
+var monitorWSClient = {
+	protocol: 'http',
+	hostname: '127.0.0.1',
+	port: 'toOverwrite',
+	autoReconnect: true,
+	query: {
+		port: 9999,
+		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+		height: 1,
+		version: '0.0.0a',
+		nonce: '0123456789ABCDEF'
+	}
+};
+
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
+
+	var peersList = [];
 	switch (syncMode) {
 		case SYNC_MODE.RANDOM:
-			var peersList = [];
-
 			if (typeof syncModeArgs.RANDOM.PROBABILITY !== 'number') {
 				throw new Error('Probability parameter not specified to random sync mode');
 			}
@@ -45,7 +63,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 				return !!n && Math.random() <= n;
 			};
 
-			return Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
+			Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
 				if (isPickedWithProbability(syncModeArgs.RANDOM.PROBABILITY)) {
 					peersList.push({
 						ip: '127.0.0.1',
@@ -53,11 +71,10 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 					});
 				}
 			});
-			return peersList;
 			break;
 
 		case SYNC_MODE.ALL_TO_FIRST:
-			return [{
+			peersList = [{
 				ip: '127.0.0.1',
 				port: 5001
 			}];
@@ -65,13 +82,13 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 
 		case SYNC_MODE.ALL_TO_GROUP:
 			throw new Error('To implement');
-			break;
 	}
+	return peersList;
 }
 
 function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
 	var secretsInChunk = Math.ceil(baseConfig.forging.secret.length / forgingNodesIndices.length);
-	var secretsChunks = Array.apply(null, new Array(forgingNodesIndices.length)).map(function (val, index) {
+	var secretsChunks = forgingNodesIndices.map(function (val, index) {
 		return baseConfig.forging.secret.slice(index * secretsInChunk, (index + 1) * secretsInChunk);
 	});
 
@@ -124,7 +141,7 @@ function generatePM2NodesConfig (testNodeConfigs) {
 			nodePM2Config.args += ' -c ./test/integration/configs/config.non-forge.json';
 		} else {
 			var currentNodeConfig = _.clone(baseConfig);
-			currentNodeConfig.forging.force = true;
+			currentNodeConfig.forging.force = false;
 			currentNodeConfig.forging.secret = nodeConfig.secrets;
 			fs.writeFileSync(__dirname + '/configs/config.node-' + index + '.json', JSON.stringify(currentNodeConfig, null, 4));
 			nodePM2Config.args += ' -c ./test/integration/configs/config.node-' + index + '.json';
@@ -139,49 +156,37 @@ function generatePM2NodesConfig (testNodeConfigs) {
 	fs.writeFileSync(__dirname + '/pm2.integration.json', JSON.stringify(pm2Config, null, 4));
 }
 
-var monitorWSClient = {
-	protocol: 'http',
-	hostname: '127.0.0.1',
-	port: 'toOverwrite',
-	autoReconnect: true,
-	query: {
-		port: 9999,
-		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		height: 1,
-		version: '0.0.0a',
-		nonce: '0123456789ABCDEF'
-	}
-};
-
 function clearLogs (cb) {
-	child_process.exec('rm -rf test/integration/logs/*', function (err, stdout) {
+	child_process.exec('rm -rf test/integration/logs/*', function (err) {
 		return cb(err);
 	});
 }
 
 function launchTestNodes (cb) {
-	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err) {
 		return cb(err);
 	});
 }
 
 function killTestNodes (cb) {
-	child_process.exec('node_modules/.bin/pm2 delete all', function (err, stdout) {
-		logger.log(stdout);
+	child_process.exec('node_modules/.bin/pm2 delete all', function (err) {
 		return cb(err);
 	});
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('npm', ['run', 'test-functional'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), 'test/api/blocks.js', 'test/api/transactions.js'], {
 		cwd: __dirname + '/../..'
 	});
 
 	child.stdout.pipe(process.stdout);
 
 	child.on('close', function (code) {
-		return cb(code === 0 ? undefined : code);
+		if (code === 0) {
+			return cb();
+		} else {
+			return cb('Functional tests failed');
+		}
 	});
 
 	child.on('error', function (err) {
@@ -190,111 +195,118 @@ function runFunctionalTests (cb) {
 }
 
 function recreateDatabases (done) {
-	var recreatedCnt = 0;
-	testNodeConfigs.forEach(function (nodeConfig) {
-		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, function (err, stdout) {
-			if (err) {
-				return done(err);
-			}
-			recreatedCnt += 1;
-			if (recreatedCnt === testNodeConfigs.length) {
-				done();
-			}
+	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
+		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, eachCb);
+	}, done);
+}
+
+function enableForgingOnDelegates (done) {
+	var enableForgingPromises = [];
+
+	testNodeConfigs.forEach(function (testNodeConfig) {
+		testNodeConfig.secrets.forEach(function (keys) {
+			var enableForgingPromise = popsicle.put({
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: {
+					key: 'elephant tree paris dragon chair galaxy',
+					publicKey: keys.publicKey
+				}
+			});
+			enableForgingPromises.push(enableForgingPromise);
 		});
+	});
+	Promise.all(enableForgingPromises).then(function () {
+		done();
+	}).catch(function () {
+		done('Failed to enable forging on delegates');
+	});
+}
+
+function waitForAllNodesToBeReady (done) {
+	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
+		waitUntilBlockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
+	}, done);
+}
+
+function establishWSConnectionsToNodes (sockets, done) {
+	var connectedTo = 0;
+	var wampClient = new WAMPClient();
+
+	setTimeout(function () {
+		testNodeConfigs.forEach(function (testNodeConfig) {
+			monitorWSClient.port = testNodeConfig.port;
+			var socket = scClient.connect(monitorWSClient);
+			wampClient.upgradeToWAMP(socket);
+			socket.on('connect', function () {
+				sockets.push(socket);
+				connectedTo += 1;
+				if (connectedTo === testNodeConfigs.length) {
+					done();
+				}
+			});
+			socket.on('error', function (err) {});
+			socket.on('connectAbort', function (err) {
+				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+			});
+		}, WAIT_BEFORE_CONNECT_MS);
 	});
 }
 
 describe('integration', function () {
+
+	var self = this;
 	var sockets = [];
-	before(function () {
-		generatePM2NodesConfig(testNodeConfigs);
-	});
+	generatePM2NodesConfig(testNodeConfigs);
 
 	before(function (done) {
-		clearLogs(done);
-	});
-
-	before(function (done) {
-		recreateDatabases(done);
-	});
-
-	before(function (done) {
-		launchTestNodes(done);
-	});
-
-	before(function (done) {
-
-		var nodesReadyCnt = 0;
-		var nodeReadyCb = function (err) {
-			if (err) {
-				return done(err);
+		async.series([
+			function (cbSeries) {
+				clearLogs(cbSeries);
+			},
+			function (cbSeries) {
+				recreateDatabases(cbSeries);
+			},
+			function (cbSeries) {
+				launchTestNodes(cbSeries);
+			},
+			function (cbSeries) {
+				waitForAllNodesToBeReady(cbSeries);
+			},
+			function (cbSeries) {
+				enableForgingOnDelegates(cbSeries);
+			},
+			function (cbSeries) {
+				establishWSConnectionsToNodes(sockets, cbSeries);
+				self.timeout(WAIT_BEFORE_CONNECT_MS * 2);
 			}
-			nodesReadyCnt += 1;
-			if (nodesReadyCnt === testNodeConfigs.length) {
-				done();
-			}
-		};
-
-		testNodeConfigs.forEach(function (testNodeConfig) {
-			waitUntilBlockchainReady(nodeReadyCb, 20, 2000, 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000));
-		});
+		], done);
 	});
 
 	after(function (done) {
 		killTestNodes(done);
 	});
 
-	before(function (done) {
-		var connectedTo = 0;
-		var wampClient = new WAMPClient();
-		//ToDo: find a better way for waiting until all test node being able to receive connections
-		setTimeout(function () {
-			testNodeConfigs.forEach(function (testNodeConfig) {
-				monitorWSClient.port = testNodeConfig.port;
-				var socket = scClient.connect(monitorWSClient);
-				wampClient.upgradeToWAMP(socket);
-				socket.on('connect', function () {
-					sockets.push(socket);
-					connectedTo += 1;
-					if (connectedTo === testNodeConfigs.length) {
-						done();
-					}
-				});
-				socket.on('error', function (err) {});
-				socket.on('connectAbort', function (err) {
-					done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
-				});
-			}, 1000);
-		});
-	});
-
 	describe('Peers mutual connections', function () {
 
-		it('should return a list of peer mutually interconnected', function (done) {
-			Promise.all(sockets.map(function (socket) {
-				return socket.wampSend('list');
+		it('should return a list of peer mutually interconnected', function () {
+			return Promise.all(sockets.map(function (socket) {
+				return socket.wampSend('list', {});
 			})).then(function (results) {
-				var resultsFrom = 0;
 				results.forEach(function (result) {
-					resultsFrom += 1;
 					expect(result).to.have.property('success').to.be.ok;
 					expect(result).to.have.property('peers').to.be.a('array');
 					var peerPorts = result.peers.map(function (p) {
 						return p.port;
 					});
-
 					var allPeerPorts = testNodeConfigs.map(function (testNodeConfig) {
 						return testNodeConfig.port;
 					});
-
 					expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
-					if (resultsFrom === testNodeConfigs.length) {
-						done();
-					}
 				});
-
-			}).catch(function (err) {
-				done(err);
 			});
 		});
 	});
@@ -374,8 +386,8 @@ describe('integration', function () {
 				expect(networkAverageHeight).to.be.above(1);
 			});
 
-			it('should have different peers heights propagated correctly on peers lists', function (done) {
-				Promise.all(sockets.map(function (socket) {
+			it('should have different peers heights propagated correctly on peers lists', function () {
+				return Promise.all(sockets.map(function (socket) {
 					return socket.wampSend('list');
 				})).then(function (results) {
 					expect(results.some(function (peersList) {
@@ -383,9 +395,6 @@ describe('integration', function () {
 							return peer.height > 1;
 						});
 					}));
-					done();
-				}).catch(function (err) {
-					done(err);
 				});
 			});
 		});
@@ -401,16 +410,13 @@ describe('integration', function () {
 
 			var nodesBlocks;
 
-			before(function (done) {
-				Promise.all(testNodeConfigs.map(function (testNodeConfig) {
+			before(function () {
+				return Promise.all(testNodeConfigs.map(function (testNodeConfig) {
 					return popsicle.get({
 						url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
 						headers: {
 							'Accept': 'application/json',
-							'ip': '0.0.0.0',
-							'port': 9999,
-							'nethash': '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-							'version': '0.0.0a'
+							'Content-Type': 'application/json'
 						}
 					});
 				})).then(function (results) {
@@ -418,9 +424,6 @@ describe('integration', function () {
 						return JSON.parse(res.body).blocks;
 					});
 					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
-					done();
-				}).catch(function (err) {
-					done(err);
 				});
 			});
 
@@ -449,17 +452,14 @@ describe('integration', function () {
 
 			var nodesTransactions = [];
 
-			before(function (done) {
-				Promise.all(sockets.map(function (socket) {
+			before(function () {
+				return Promise.all(sockets.map(function (socket) {
 					return socket.wampSend('blocks');
 				})).then(function (results) {
 					nodesTransactions = results.map(function (res) {
 						return res.blocks;
 					});
 					expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
-					done();
-				}).catch(function (err) {
-					done(err);
 				});
 			});
 
@@ -485,4 +485,3 @@ describe('integration', function () {
 		});
 	});
 });
-
