@@ -21,12 +21,18 @@ import tablify from '../utils/tablify';
 const ERROR_PREFIX = 'Could not encrypt: ';
 const createErrorMessage = str => `${ERROR_PREFIX}${str}`;
 
+const ERROR_MESSAGE_MISSING = createErrorMessage('No message was provided.');
 const ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET = createErrorMessage('Passphrase environmental variable not set.');
-const ERROR_PASSPHRASE_FILE_DOES_NOT_EXIST = createErrorMessage('Passphrase file does not exist.');
-const ERROR_PASSPHRASE_FILE_UNREADABLE = createErrorMessage('Passphrase file could not be read.');
-const ERROR_PASSPHRASE_FILE_DESCRIPTOR_NOT_AN_INTEGER = createErrorMessage('Passphrase file descriptor is not an integer.');
-const ERROR_PASSPHRASE_FILE_DESCRIPTOR_BAD = createErrorMessage('Passphrase file descriptor is bad.');
 const ERROR_PASSPHRASE_VERIFICATION_FAIL = createErrorMessage('Passphrase verification failed.');
+
+const ERROR_FILE_DOES_NOT_EXIST = createErrorMessage('File does not exist.');
+const ERROR_FILE_UNREADABLE = createErrorMessage('File could not be read.');
+const ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER = createErrorMessage('File descriptor is not an integer.');
+const ERROR_FILE_DESCRIPTOR_BAD = createErrorMessage('File descriptor is bad.');
+
+const messageOptionDescription = `
+	TODO
+`;
 
 const passPhraseOptionDescription = `
 Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
@@ -38,6 +44,45 @@ Examples:
 - \`--passphrase file:/path/to/my/passphrase.txt\`
 - \`--passphrase stdin\`
 `.trim();
+
+const readLineFromStdIn = () => new Promise((resolve) => {
+	readline.createInterface({ input: process.stdin })
+		.on('line', (line) => {
+			resolve(line);
+		});
+});
+
+const getMessageFromFile = async path => fse.readFileSync(path, 'utf8');
+
+const getMessageFromFD = async (fdString) => {
+	const fd = parseInt(fdString, 10);
+	if (fd.toString() !== fdString) {
+		throw new Error(ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER);
+	}
+	return getMessageFromFile(fd);
+};
+
+const getMessage = async (arg, source) => {
+	if (arg) return arg;
+	if (!source) {
+		throw new Error(ERROR_MESSAGE_MISSING);
+	}
+	const delimiter = ':';
+	const splitSource = source.split(delimiter);
+	const sourceType = splitSource[0];
+	const sourceIdentifier = splitSource.slice(1).join(delimiter);
+
+	switch (sourceType) {
+	case 'fd':
+		return getMessageFromFD(sourceIdentifier);
+	case 'file':
+		return getMessageFromFile(sourceIdentifier);
+	case 'stdin':
+		return readLineFromStdIn();
+	default:
+		throw new Error('Unknown message source type: Must be one of `fd`, `file`, or `stdin`.');
+	}
+};
 
 const getPassphraseFromEnvVariable = (key) => {
 	const passphrase = process.env[key];
@@ -66,17 +111,10 @@ const getPassphraseFromFile = (path, options) => new Promise((resolve, reject) =
 const getPassphraseFromFD = async (fdString) => {
 	const fd = parseInt(fdString, 10);
 	if (fd.toString() !== fdString) {
-		throw new Error(ERROR_PASSPHRASE_FILE_DESCRIPTOR_NOT_AN_INTEGER);
+		throw new Error(ERROR_FILE_DESCRIPTOR_NOT_AN_INTEGER);
 	}
 	return getPassphraseFromFile(null, { fd });
 };
-
-const getPassphraseFromStdIn = () => new Promise((resolve) => {
-	readline.createInterface({ input: process.stdin })
-		.on('line', (line) => {
-			resolve(line);
-		});
-});
 
 const getPassphraseFromSource = async (source) => {
 	const delimiter = ':';
@@ -85,16 +123,16 @@ const getPassphraseFromSource = async (source) => {
 	const sourceIdentifier = splitSource.slice(1).join(delimiter);
 
 	switch (sourceType) {
-	case 'pass':
-		return sourceIdentifier;
-	case 'stdin':
-		return getPassphraseFromStdIn();
-	case 'file':
-		return getPassphraseFromFile(sourceIdentifier);
 	case 'env':
 		return getPassphraseFromEnvVariable(sourceIdentifier);
 	case 'fd':
 		return getPassphraseFromFD(sourceIdentifier);
+	case 'file':
+		return getPassphraseFromFile(sourceIdentifier);
+	case 'pass':
+		return sourceIdentifier;
+	case 'stdin':
+		return readLineFromStdIn();
 	default:
 		throw new Error('Unknown passphrase source type: Must be one of `env`, `fd`, `file`, or `stdin`. Leave blank for prompt.');
 	}
@@ -125,7 +163,7 @@ const getPassphraseFromPrompt = (vorpal) => {
 		);
 };
 
-const handlePassphrase = (vorpal, message, recipient) => (passphrase) => {
+const handleMessageAndPassphrase = (vorpal, recipient) => ([message, passphrase]) => {
 	const passphraseString = passphrase.toString().trim();
 	return cryptoModule.encrypt(message, passphraseString, recipient);
 };
@@ -134,13 +172,13 @@ const handleError = (error) => {
 	const { name, message } = error;
 
 	if (message.match(/ENOENT/)) {
-		return { error: ERROR_PASSPHRASE_FILE_DOES_NOT_EXIST };
+		return { error: ERROR_FILE_DOES_NOT_EXIST };
 	}
 	if (message.match(/EACCES/)) {
-		return { error: ERROR_PASSPHRASE_FILE_UNREADABLE };
+		return { error: ERROR_FILE_UNREADABLE };
 	}
 	if (message.match(/EBADF/)) {
-		return { error: ERROR_PASSPHRASE_FILE_DESCRIPTOR_BAD };
+		return { error: ERROR_FILE_DESCRIPTOR_BAD };
 	}
 
 	return { error: message || name };
@@ -161,15 +199,20 @@ const encrypt = vorpal => ({ message, recipient, options }) => {
 		? getPassphraseFromSource.bind(null, passphraseSource)
 		: getPassphraseFromPrompt.bind(null, vorpal);
 
-	return getPassphrase()
-		.then(handlePassphrase(vorpal, message, recipient))
+	return getMessage(message, options.message)
+		.then(resolvedMessage => Promise.all([
+			resolvedMessage,
+			getPassphrase(),
+		]))
+		.then(handleMessageAndPassphrase(vorpal, recipient))
 		.catch(handleError)
 		.then(printResult(vorpal, options));
 };
 
 function encryptCommand(vorpal) {
 	vorpal
-		.command('encrypt <message> <recipient>')
+		.command('encrypt <recipient> [message]')
+		.option('-m, --message <source>', messageOptionDescription)
 		.option('-p, --passphrase <source>', passPhraseOptionDescription)
 		.option('-j, --json', 'Sets output to json')
 		.option('--no-json', 'Default: sets output to text. You can change this in the config.json')

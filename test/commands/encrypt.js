@@ -48,12 +48,12 @@ describe('lisky encrypt command palette', () => {
 			(encryptCommands).should.have.length(1);
 		});
 
-		it('should require 2 inputs', () => {
+		it('should require 1 input', () => {
 			const argsFilter = arg => arg.required;
 			const encryptCommand = vorpal.commands.filter(commandFilter)[0];
 			// eslint-disable-next-line no-underscore-dangle
 			const requiredArgs = encryptCommand._args.filter(argsFilter);
-			(requiredArgs).should.have.length(2);
+			(requiredArgs).should.have.length(1);
 		});
 	});
 
@@ -61,10 +61,6 @@ describe('lisky encrypt command palette', () => {
 		const message = 'Hello Lisker';
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
-		const command = `encrypt "${message}" ${recipient}`;
-		const jsonCommand = `${command} --json`;
-		const jCommand = `${command} -j`;
-		const noJsonCommand = `${command} --no-json`;
 
 		const nonce = '60ee6callbackb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
 		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
@@ -87,426 +83,738 @@ describe('lisky encrypt command palette', () => {
 			encryptStub.restore();
 		});
 
-		describe('with passphrase passed via prompt', () => {
-			let promptStub;
+		describe('passphrase', () => {
+			const command = `encrypt ${recipient} "${message}"`;
+			const jsonCommand = `${command} --json`;
+			const jCommand = `${command} -j`;
+			const noJsonCommand = `${command} --no-json`;
 
-			beforeEach(() => {
-				promptStub = sinon.stub(vorpal, 'prompt').resolves({ passphrase: secret });
-			});
+			describe('with passphrase passed via prompt', () => {
+				let promptStub;
 
-			afterEach(() => {
-				promptStub.restore();
-			});
-
-			it('should prompt for the password twice', () => {
-				return vorpal.exec(command)
-					.then(() => (promptStub.calledTwice).should.be.true());
-			});
-
-			describe('with matching passphrases', () => {
-				it('should call the crypto module encrypt method with correct parameters', () => {
-					return vorpal.exec(command)
-						.then(() => (encryptStub.calledWithExactly(message, secret, recipient))
-							.should.be.true(),
-						);
+				beforeEach(() => {
+					promptStub = sinon.stub(vorpal, 'prompt').resolves({ passphrase: secret });
 				});
 
-				describe('output', () => {
-					it('should print the returned object', () => {
+				afterEach(() => {
+					promptStub.restore();
+				});
+
+				it('should prompt for the password twice', () => {
+					return vorpal.exec(command)
+						.then(() => (promptStub.calledTwice).should.be.true());
+				});
+
+				describe('with matching passphrases', () => {
+					it('should call the crypto module encrypt method with correct parameters', () => {
 						return vorpal.exec(command)
-							.then(() => (capturedOutput[0]).should.equal(tableOutput));
+							.then(() => (encryptStub.calledWithExactly(message, secret, recipient))
+								.should.be.true(),
+							);
 					});
 
-					it('should print json with --json option', () => {
-						return vorpal.exec(jsonCommand)
-							.then(() => (capturedOutput[0]).should.equal(jsonOutput));
-					});
-
-					it('should handle a -j shorthand for --json option', () => {
-						return vorpal.exec(jCommand)
-							.then(() => (capturedOutput[0]).should.equal(jsonOutput));
-					});
-
-					it('should print a table with --no-json option', () => {
-						return vorpal.exec(noJsonCommand)
-							.then(() => (capturedOutput[0]).should.equal(tableOutput));
-					});
-				});
-			});
-
-			describe('with non-matching passphrases', () => {
-				beforeEach(() => {
-					promptStub.onSecondCall().resolves({ passphrase: 'not the secret' });
-				});
-
-				it('should inform the user the passwords did not match', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase verification failed.' }).toString();
-					return vorpal.exec(command)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-				});
-			});
-		});
-
-		describe('with plaintext passphrase passed via command line', () => {
-			const passPhrasePlainTextCommand = `${command} --passphrase "pass:${secret}"`;
-
-			it('should call the crypto module encrypt method with correct parameters', () => {
-				return vorpal.exec(passPhrasePlainTextCommand)
-					.then(() => {
-						(encryptStub.calledWithExactly(message, secret, recipient))
-							.should.be.true();
-					});
-			});
-		});
-
-		describe('with passphrase passed via environmental variable', () => {
-			const envVariable = 'TEST_PASSPHRASE';
-			const passPhraseEnvCommand = `${command} --passphrase env:${envVariable}`;
-			let initialEnvValue;
-
-			describe('if the environmental variable is not set', () => {
-				before(() => {
-					initialEnvValue = process.env[envVariable];
-					delete process.env[envVariable];
-				});
-
-				after(() => {
-					if (typeof initialEnvValue !== 'undefined') {
-						process.env[envVariable] = initialEnvValue;
-					}
-				});
-
-				it('should inform the user if the environmental variable is not set', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase environmental variable not set.' }).toString();
-					return vorpal.exec(passPhraseEnvCommand)
-						.then(() => {
-							(capturedOutput[0]).should.equal(tableOutputError);
+					describe('output', () => {
+						it('should print the returned object', () => {
+							return vorpal.exec(command)
+								.then(() => (capturedOutput[0]).should.equal(tableOutput));
 						});
+
+						it('should print json with --json option', () => {
+							return vorpal.exec(jsonCommand)
+								.then(() => (capturedOutput[0]).should.equal(jsonOutput));
+						});
+
+						it('should handle a -j shorthand for --json option', () => {
+							return vorpal.exec(jCommand)
+								.then(() => (capturedOutput[0]).should.equal(jsonOutput));
+						});
+
+						it('should print a table with --no-json option', () => {
+							return vorpal.exec(noJsonCommand)
+								.then(() => (capturedOutput[0]).should.equal(tableOutput));
+						});
+					});
 				});
 
-				it('should not call the crypto module encrypt method', () => {
-					return vorpal.exec(passPhraseEnvCommand)
+				describe('with non-matching passphrases', () => {
+					beforeEach(() => {
+						promptStub.onSecondCall().resolves({ passphrase: 'not the secret' });
+					});
+
+					it('should inform the user the passwords did not match', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase verification failed.' }).toString();
+						return vorpal.exec(command)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+				});
+			});
+
+			describe('with plaintext passphrase passed via command line', () => {
+				const passPhrasePlainTextCommand = `${command} --passphrase "pass:${secret}"`;
+
+				it('should call the crypto module encrypt method with correct parameters', () => {
+					return vorpal.exec(passPhrasePlainTextCommand)
 						.then(() => {
-							(encryptStub.called).should.be.false();
+							(encryptStub.calledWithExactly(message, secret, recipient))
+								.should.be.true();
 						});
 				});
 			});
 
-			describe('if the environmental variable is set', () => {
-				before(() => {
-					initialEnvValue = process.env[envVariable];
-					process.env[envVariable] = secret;
-				});
+			describe('with passphrase passed via environmental variable', () => {
+				const envVariable = 'TEST_PASSPHRASE';
+				const passPhraseEnvCommand = `${command} --passphrase env:${envVariable}`;
+				let initialEnvValue;
 
-				after(() => {
-					if (typeof initialEnvValue === 'undefined') {
+				describe('if the environmental variable is not set', () => {
+					before(() => {
+						initialEnvValue = process.env[envVariable];
 						delete process.env[envVariable];
-					} else {
-						process.env[envVariable] = initialEnvValue;
-					}
-				});
+					});
 
-				it('should call the crypto module encrypt method with correct parameters', () => {
-					return vorpal.exec(passPhraseEnvCommand)
-						.then(() => {
-							(encryptStub.calledWithExactly(message, secret, recipient))
-								.should.be.true();
-						});
-				});
-			});
-		});
-
-		describe('with passphrase passed via file path', () => {
-			const passPhraseFileCommand = `${command} --passphrase file:/path/to/secret.txt`;
-
-			let streamStub;
-			let createReadStreamStub;
-
-			describe('if file does not exist', () => {
-				let doesNotExistError;
-
-				beforeEach(() => {
-					doesNotExistError = new Error('ENOENT: no such file or directory');
-					streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-					return vorpal.exec(passPhraseFileCommand);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should inform the user that the file does not exist', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file does not exist.' }).toString();
-					(capturedOutput[0]).should.equal(tableOutputError);
-				});
-
-				it('should not call the crypto module encrypt method', () => {
-					(encryptStub.called).should.be.false();
-				});
-			});
-
-			describe('if file cannot be read', () => {
-				let permissionError;
-
-				beforeEach(() => {
-					permissionError = new Error('EACCES: permission denied');
-					streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-					return vorpal.exec(passPhraseFileCommand);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should inform the user that the file cannot be read', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file could not be read.' }).toString();
-					(capturedOutput[0]).should.equal(tableOutputError);
-				});
-
-				it('should not call the crypto module encrypt method', () => {
-					(encryptStub.called).should.be.false();
-				});
-			});
-
-			describe('if an unexpected error occurs', () => {
-				const unknownErrorMessage = 'unknown error';
-				let unknownError;
-
-				beforeEach(() => {
-					unknownError = new Error(unknownErrorMessage);
-					streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should print the error message if it has one', () => {
-					const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
-					return vorpal.exec(passPhraseFileCommand)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-				});
-
-				it('should print the error name if it has no message', () => {
-					delete unknownError.message;
-					const name = 'Dr Error';
-					unknownError.name = name;
-					const tableOutputError = tablify({ error: name }).toString();
-
-					return vorpal.exec(passPhraseFileCommand)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-				});
-			});
-
-			describe('if file can be read', () => {
-				beforeEach(() => {
-					streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(Buffer.from(`${secret}\nsome other stuff on a new line`))));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should call the crypto module encrypt method with correct parameters', () => {
-					return vorpal.exec(passPhraseFileCommand)
-						.then(() => {
-							(encryptStub.calledWithExactly(message, secret, recipient))
-								.should.be.true();
-						});
-				});
-			});
-		});
-
-		describe('with passphrase passed via file descriptor integer', () => {
-			const passPhraseFileDescriptorCommand = `${command} --passphrase fd:115`;
-			const passPhraseFileDescriptorCommandInvalid = `${command} --passphrase fd:115.4`;
-
-			let streamStub;
-			let createReadStreamStub;
-
-			describe('if file descriptor is not an integer', () => {
-				it('should inform the user that the file descriptor is invalid', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file descriptor is not an integer.' }).toString();
-					return vorpal.exec(passPhraseFileDescriptorCommandInvalid)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-				});
-			});
-
-			describe('if file descriptor is bad', () => {
-				let badFileDescriptorError;
-
-				beforeEach(() => {
-					badFileDescriptorError = new Error('EBADF: bad file descriptor, read');
-					streamStub = createStreamStub((type, callback) => type === 'error' && callback(badFileDescriptorError));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-					return vorpal.exec(passPhraseFileDescriptorCommand);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should inform the user that the file descriptor is bad', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file descriptor is bad.' }).toString();
-					(capturedOutput[0]).should.equal(tableOutputError);
-				});
-
-				it('should not call the crypto module encrypt method', () => {
-					(encryptStub.called).should.be.false();
-				});
-			});
-
-			describe('if file does not exist', () => {
-				let doesNotExistError;
-
-				beforeEach(() => {
-					doesNotExistError = new Error('ENOENT: no such file or directory');
-					streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-					return vorpal.exec(passPhraseFileDescriptorCommand);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should inform the user that the file does not exist', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file does not exist.' }).toString();
-					(capturedOutput[0]).should.equal(tableOutputError);
-				});
-
-				it('should not call the crypto module encrypt method', () => {
-					(encryptStub.called).should.be.false();
-				});
-			});
-
-			describe('if file cannot be read', () => {
-				let permissionError;
-
-				beforeEach(() => {
-					permissionError = new Error('EACCES: permission denied');
-					streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-					return vorpal.exec(passPhraseFileDescriptorCommand);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should inform the user that the file cannot be read', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase file could not be read.' }).toString();
-					(capturedOutput[0]).should.equal(tableOutputError);
-				});
-
-				it('should not call the crypto module encrypt method', () => {
-					(encryptStub.called).should.be.false();
-				});
-			});
-
-			describe('if an unexpected error occurs', () => {
-				const unknownErrorMessage = 'unknown error';
-				let unknownError;
-
-				beforeEach(() => {
-					unknownError = new Error(unknownErrorMessage);
-					streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-				});
-
-				afterEach(() => {
-					createReadStreamStub.restore();
-				});
-
-				it('should print the error message if it has one', () => {
-					const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
-					return vorpal.exec(passPhraseFileDescriptorCommand)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-				});
-
-				it('should print the error name if it has no message', () => {
-					delete unknownError.message;
-					const name = 'Dr Error';
-					unknownError.name = name;
-					const tableOutputError = tablify({ error: name }).toString();
-
-					return vorpal.exec(passPhraseFileDescriptorCommand)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-				});
-			});
-
-			describe('if file can be read', () => {
-				const fileData = Buffer.from(`${secret}\nsome other stuff on a new line`);
-
-				beforeEach(() => {
-					streamStub = createStreamStub((type, callback) => {
-						if (type === 'data') {
-							setImmediate(() => callback(fileData));
+					after(() => {
+						if (typeof initialEnvValue !== 'undefined') {
+							process.env[envVariable] = initialEnvValue;
 						}
 					});
-					createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+
+					it('should inform the user if the environmental variable is not set', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase environmental variable not set.' }).toString();
+						return vorpal.exec(passPhraseEnvCommand)
+							.then(() => {
+								(capturedOutput[0]).should.equal(tableOutputError);
+							});
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						return vorpal.exec(passPhraseEnvCommand)
+							.then(() => {
+								(encryptStub.called).should.be.false();
+							});
+					});
 				});
 
-				afterEach(() => {
-					createReadStreamStub.restore();
+				describe('if the environmental variable is set', () => {
+					before(() => {
+						initialEnvValue = process.env[envVariable];
+						process.env[envVariable] = secret;
+					});
+
+					after(() => {
+						if (typeof initialEnvValue === 'undefined') {
+							delete process.env[envVariable];
+						} else {
+							process.env[envVariable] = initialEnvValue;
+						}
+					});
+
+					it('should call the crypto module encrypt method with correct parameters', () => {
+						return vorpal.exec(passPhraseEnvCommand)
+							.then(() => {
+								(encryptStub.calledWithExactly(message, secret, recipient))
+									.should.be.true();
+							});
+					});
 				});
+			});
+
+			describe('with passphrase passed via file path', () => {
+				const passPhraseFileCommand = `${command} --passphrase file:/path/to/secret.txt`;
+
+				let streamStub;
+				let createReadStreamStub;
+
+				describe('if file does not exist', () => {
+					let doesNotExistError;
+
+					beforeEach(() => {
+						doesNotExistError = new Error('ENOENT: no such file or directory');
+						streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+						return vorpal.exec(passPhraseFileCommand);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should inform the user that the file does not exist', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File does not exist.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if file cannot be read', () => {
+					let permissionError;
+
+					beforeEach(() => {
+						permissionError = new Error('EACCES: permission denied');
+						streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+						return vorpal.exec(passPhraseFileCommand);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should inform the user that the file cannot be read', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File could not be read.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if an unexpected error occurs', () => {
+					const unknownErrorMessage = 'unknown error';
+					let unknownError;
+
+					beforeEach(() => {
+						unknownError = new Error(unknownErrorMessage);
+						streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should print the error message if it has one', () => {
+						const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
+						return vorpal.exec(passPhraseFileCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+
+					it('should print the error name if it has no message', () => {
+						delete unknownError.message;
+						const name = 'Dr Error';
+						unknownError.name = name;
+						const tableOutputError = tablify({ error: name }).toString();
+
+						return vorpal.exec(passPhraseFileCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+				});
+
+				describe('if file can be read', () => {
+					beforeEach(() => {
+						streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(Buffer.from(`${secret}\nsome other stuff on a new line`))));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should call the crypto module encrypt method with correct parameters', () => {
+						return vorpal.exec(passPhraseFileCommand)
+							.then(() => {
+								(encryptStub.calledWithExactly(message, secret, recipient))
+									.should.be.true();
+							});
+					});
+				});
+			});
+
+			describe('with passphrase passed via file descriptor integer', () => {
+				const passPhraseFileDescriptorCommand = `${command} --passphrase fd:115`;
+				const passPhraseFileDescriptorCommandInvalid = `${command} --passphrase fd:115.4`;
+
+				let streamStub;
+				let createReadStreamStub;
+
+				describe('if file descriptor is not an integer', () => {
+					it('should inform the user that the file descriptor is invalid', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File descriptor is not an integer.' }).toString();
+						return vorpal.exec(passPhraseFileDescriptorCommandInvalid)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+				});
+
+				describe('if file descriptor is bad', () => {
+					let badFileDescriptorError;
+
+					beforeEach(() => {
+						badFileDescriptorError = new Error('EBADF: bad file descriptor, read');
+						streamStub = createStreamStub((type, callback) => type === 'error' && callback(badFileDescriptorError));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+						return vorpal.exec(passPhraseFileDescriptorCommand);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should inform the user that the file descriptor is bad', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File descriptor is bad.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if file does not exist', () => {
+					let doesNotExistError;
+
+					beforeEach(() => {
+						doesNotExistError = new Error('ENOENT: no such file or directory');
+						streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+						return vorpal.exec(passPhraseFileDescriptorCommand);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should inform the user that the file does not exist', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File does not exist.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if file cannot be read', () => {
+					let permissionError;
+
+					beforeEach(() => {
+						permissionError = new Error('EACCES: permission denied');
+						streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+						return vorpal.exec(passPhraseFileDescriptorCommand);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should inform the user that the file cannot be read', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File could not be read.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if an unexpected error occurs', () => {
+					const unknownErrorMessage = 'unknown error';
+					let unknownError;
+
+					beforeEach(() => {
+						unknownError = new Error(unknownErrorMessage);
+						streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should print the error message if it has one', () => {
+						const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
+						return vorpal.exec(passPhraseFileDescriptorCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+
+					it('should print the error name if it has no message', () => {
+						delete unknownError.message;
+						const name = 'Dr Error';
+						unknownError.name = name;
+						const tableOutputError = tablify({ error: name }).toString();
+
+						return vorpal.exec(passPhraseFileDescriptorCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+				});
+
+				describe('if file can be read', () => {
+					const fileData = Buffer.from(`${secret}\nsome other stuff on a new line`);
+
+					beforeEach(() => {
+						streamStub = createStreamStub((type, callback) => {
+							if (type === 'data') {
+								setImmediate(() => callback(fileData));
+							}
+						});
+						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+					});
+
+					afterEach(() => {
+						createReadStreamStub.restore();
+					});
+
+					it('should call the crypto module encrypt method with correct parameters', () => {
+						return vorpal.exec(passPhraseFileDescriptorCommand)
+							.then(() => {
+								(encryptStub.calledWithExactly(message, secret, recipient))
+									.should.be.true();
+							});
+					});
+				});
+			});
+
+			describe('with passphrase passed via stdin', function withPassphrasePassedViaStdIn() {
+				this.timeout(5e3);
+				const passPhraseStdInCommand = `${command} --passphrase stdin`;
+
+				const cliCommand = passPhraseStdInCommand.replace(/"/g, '\\"');
+				const liskyCommand = `
+					var Vorpal = require('vorpal');
+					var encrypt = require('./src/commands/encrypt').default;
+
+					var vorpal = new Vorpal();
+					vorpal.use(encrypt);
+					vorpal.exec('${cliCommand}');
+				`.trim();
+				const childCommand = `echo "${secret}" | babel-node -e "${liskyCommand}"`;
+				const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
+
+				it('should use the passphrase without a prompt', () => {
+					return new Promise((resolve) => {
+						exec(childCommand, (_, stdout) => {
+							resolve(stdout);
+						});
+					})
+						.then((stdout) => {
+							const rows = stdout.split('\n');
+							const head = prepareRow(rows[1]);
+							const body = prepareRow(rows[3]);
+
+							(head).should.eql(['nonce', 'encryptedMessage']);
+							(body[0]).should.be.hexString().and.have.length(48);
+							(body[1]).should.be.hexString();
+						});
+				});
+			});
+
+			describe('with invalid passphrase source specified', () => {
+				const passPhraseInvalidCommand = `${command} --passphrase unknown:${secret}`;
+
+				it('should inform the user that the source type is invalid', () => {
+					const tableOutputError = tablify({ error: 'Unknown passphrase source type: Must be one of `env`, `fd`, `file`, or `stdin`. Leave blank for prompt.' }).toString();
+					return vorpal.exec(passPhraseInvalidCommand)
+						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+				});
+			});
+		});
+
+		describe('message', () => {
+			const command = `encrypt ${recipient} --passphrase "pass:${secret}"`;
+			const multilineMessage = 'Some important message\nthat spans\nmultiple lines\n';
+
+			describe('with plaintext message passed via command line', () => {
+				const messagePlainTextCommand = `${command} "${message}"`;
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					return vorpal.exec(passPhraseFileDescriptorCommand)
+					return vorpal.exec(messagePlainTextCommand)
 						.then(() => {
 							(encryptStub.calledWithExactly(message, secret, recipient))
 								.should.be.true();
 						});
 				});
 			});
-		});
 
-		describe('with passphrase passed via stdin', function withPassphrasePassedViaStdIn() {
-			this.timeout(5e3);
-			const passPhraseStdInCommand = `${command} --passphrase stdin`;
+			describe('with message passed via file path', () => {
+				const messageFileCommand = `${command} --message file:/path/to/message.txt`;
 
-			const cliCommand = passPhraseStdInCommand.replace(/"/g, '\\"');
-			const liskyCommand = `
-				var Vorpal = require('vorpal');
-				var encrypt = require('./src/commands/encrypt').default;
+				let readFileSyncStub;
 
-				var vorpal = new Vorpal();
-				vorpal.use(encrypt);
-				vorpal.exec('${cliCommand}');
-			`.trim();
-			const childCommand = `echo "${secret}" | babel-node -e "${liskyCommand}"`;
-			const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
+				describe('if file does not exist', () => {
+					let doesNotExistError;
 
-			it('should use the passphrase without a prompt', () => {
-				return new Promise((resolve) => {
-					exec(childCommand, (_, stdout) => {
-						resolve(stdout);
+					beforeEach(() => {
+						doesNotExistError = new Error('ENOENT: no such file or directory');
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(doesNotExistError);
+						return vorpal.exec(messageFileCommand);
 					});
-				})
-					.then((stdout) => {
-						const rows = stdout.split('\n');
-						const head = prepareRow(rows[1]);
-						const body = prepareRow(rows[3]);
 
-						(head).should.eql(['nonce', 'encryptedMessage']);
-						(body[0]).should.be.hexString().and.have.length(48);
-						(body[1]).should.be.hexString();
+					afterEach(() => {
+						readFileSyncStub.restore();
 					});
+
+					it('should inform the user that the file does not exist', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File does not exist.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if file cannot be read', () => {
+					let permissionError;
+
+					beforeEach(() => {
+						permissionError = new Error('EACCES: permission denied');
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(permissionError);
+						return vorpal.exec(messageFileCommand);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should inform the user that the file cannot be read', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File could not be read.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if an unexpected error occurs', () => {
+					const unknownErrorMessage = 'unknown error';
+					let unknownError;
+
+					beforeEach(() => {
+						unknownError = new Error(unknownErrorMessage);
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(unknownError);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should print the error message if it has one', () => {
+						const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
+						return vorpal.exec(messageFileCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+
+					it('should print the error name if it has no message', () => {
+						delete unknownError.message;
+						const name = 'Dr Error';
+						unknownError.name = name;
+						const tableOutputError = tablify({ error: name }).toString();
+
+						return vorpal.exec(messageFileCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+				});
+
+				describe('if file can be read', () => {
+					beforeEach(() => {
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(multilineMessage);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should call the crypto module encrypt method with correct parameters', () => {
+						return vorpal.exec(messageFileCommand)
+							.then(() => {
+								(encryptStub.calledWithExactly(multilineMessage, secret, recipient))
+									.should.be.true();
+							});
+					});
+				});
+			});
+
+			describe('with message passed via file descriptor integer', () => {
+				const messageFileDescriptorCommand = `${command} --message fd:115`;
+				const messageFileDescriptorCommandInvalid = `${command} --message fd:115.4`;
+
+				let readFileSyncStub;
+
+				describe('if file descriptor is not an integer', () => {
+					it('should inform the user that the file descriptor is invalid', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File descriptor is not an integer.' }).toString();
+						return vorpal.exec(messageFileDescriptorCommandInvalid)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+				});
+
+				describe('if file descriptor is bad', () => {
+					let badFileDescriptorError;
+
+					beforeEach(() => {
+						badFileDescriptorError = new Error('EBADF: bad file descriptor, read');
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(badFileDescriptorError);
+						return vorpal.exec(messageFileDescriptorCommand);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should inform the user that the file descriptor is bad', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File descriptor is bad.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if file does not exist', () => {
+					let doesNotExistError;
+
+					beforeEach(() => {
+						doesNotExistError = new Error('ENOENT: no such file or directory');
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(doesNotExistError);
+						return vorpal.exec(messageFileDescriptorCommand);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should inform the user that the file does not exist', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File does not exist.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if file cannot be read', () => {
+					let permissionError;
+
+					beforeEach(() => {
+						permissionError = new Error('EACCES: permission denied');
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(permissionError);
+						return vorpal.exec(messageFileDescriptorCommand);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should inform the user that the file cannot be read', () => {
+						const tableOutputError = tablify({ error: 'Could not encrypt: File could not be read.' }).toString();
+						(capturedOutput[0]).should.equal(tableOutputError);
+					});
+
+					it('should not call the crypto module encrypt method', () => {
+						(encryptStub.called).should.be.false();
+					});
+				});
+
+				describe('if an unexpected error occurs', () => {
+					const unknownErrorMessage = 'unknown error';
+					let unknownError;
+
+					beforeEach(() => {
+						unknownError = new Error(unknownErrorMessage);
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(unknownError);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should print the error message if it has one', () => {
+						const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
+						return vorpal.exec(messageFileDescriptorCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+
+					it('should print the error name if it has no message', () => {
+						delete unknownError.message;
+						const name = 'Dr Error';
+						unknownError.name = name;
+						const tableOutputError = tablify({ error: name }).toString();
+
+						return vorpal.exec(messageFileDescriptorCommand)
+							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+					});
+				});
+
+				describe('if file can be read', () => {
+					beforeEach(() => {
+						readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(multilineMessage);
+					});
+
+					afterEach(() => {
+						readFileSyncStub.restore();
+					});
+
+					it('should call the crypto module encrypt method with correct parameters', () => {
+						return vorpal.exec(messageFileDescriptorCommand)
+							.then(() => {
+								(encryptStub.calledWithExactly(multilineMessage, secret, recipient))
+									.should.be.true();
+							});
+					});
+				});
+			});
+
+			describe('with message passed via stdin', function withMessagePassedViaStdIn() {
+				this.timeout(5e3);
+				const messageStdInCommand = `${command} --message stdin`;
+
+				const cliCommand = messageStdInCommand.replace(/"/g, '\\"');
+				const liskyCommand = `
+					var Vorpal = require('vorpal');
+					var encrypt = require('./src/commands/encrypt').default;
+
+					var vorpal = new Vorpal();
+					vorpal.use(encrypt);
+					vorpal.exec('${cliCommand}');
+				`.trim();
+				const childCommand = `echo "${message}" | babel-node -e "${liskyCommand}"`;
+				const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
+
+				it('should use the message without a prompt', () => {
+					return new Promise((resolve) => {
+						exec(childCommand, (_, stdout) => {
+							resolve(stdout);
+						});
+					})
+						.then((stdout) => {
+							const rows = stdout.split('\n');
+							const head = prepareRow(rows[1]);
+							const body = prepareRow(rows[3]);
+
+							(head).should.eql(['nonce', 'encryptedMessage']);
+							(body[0]).should.be.hexString().and.have.length(48);
+							(body[1]).should.be.hexString();
+						});
+				});
+			});
+
+			describe('with invalid message source specified', () => {
+				const invalidMessageSourceCommand = `${command} --message "unknown:${message}"`;
+
+				it('should inform the user that an invalid message source has been provided', () => {
+					const tableOutputError = tablify({ error: 'Unknown message source type: Must be one of `fd`, `file`, or `stdin`.' }).toString();
+					return vorpal.exec(invalidMessageSourceCommand)
+						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+				});
+			});
+
+			describe('with no message source specified', () => {
+				it('should inform the user that no message has been provided', () => {
+					const tableOutputError = tablify({ error: 'Could not encrypt: No message was provided.' }).toString();
+					return vorpal.exec(command)
+						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+				});
 			});
 		});
 
-		describe('with invalid passphrase source specified', () => {
-			const passPhraseInvalidCommand = `${command} --passphrase unknown:sourceType`;
-
-			it('should inform the user that the source type is invalid', () => {
-				const tableOutputError = tablify({ error: 'Unknown passphrase source type: Must be one of `env`, `fd`, `file`, or `stdin`. Leave blank for prompt.' }).toString();
-				return vorpal.exec(passPhraseInvalidCommand)
-					.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-			});
+		describe('with passphrase and message passed via stdin', () => {
+			it('should have tests');
 		});
 	});
 });
