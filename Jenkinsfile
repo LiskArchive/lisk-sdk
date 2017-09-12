@@ -214,7 +214,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run jenkins
 					'''
 				}
-			}, //End node-01 tests
+			}, //End node-01 functional tests
 			"Functional Transport - Main" : {
 				node('node-02'){
 					sh '''
@@ -259,85 +259,16 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run jenkins
 					'''
 				}
-			},  // End Node-02 Tests
-			"Unit - Api" : {
+			},  // End Node-02 functional tests
+			"Unit Tests" : {
 				node('node-03'){
 					sh '''
-					export TEST=test/unit/api/ws/workers TEST_TYPE='UNIT' NODE_ENV='TEST'
+					export TEST_TYPE='UNIT' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run test-unit
 					'''
 				}
-			},
-			"Unit - Modules" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/modules/blocks.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-
-                    export TEST=test/unit/modules/app.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-
-					export TEST=test/unit/modules/cache.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-
-					export TEST=test/unit/modules/peers.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-
-					export TEST=test/unit/modules/transactions.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-
-					export TEST=test/unit/modules/blocks/verify.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-
-					export TEST=test/unit/modules/delegates.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-					'''
-				}
-			},
-			"Unit - SQL" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/sql/blockRewards.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-
-					export TEST=test/unit/sql/delegatesList.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-
-					export TEST=test/unit/sql/rounds.js TEST_TYPE='UNIT' NODE_ENV='TEST'
-					npm run jenkins
-					'''
-				}
-			},
-			"Unit - Helpers" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/helpers TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
-				}
-			},
-			"Unit - Schema" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/schema TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
-				}
-			},
-			"Unit - Logic" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/logic TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
-				}
-			}, // Begin node-04
+			}, // End Node-03 unit tests
 			"Functional Stress - Transactions" : {
 				node('node-04'){
 					sh '''
