@@ -4,6 +4,7 @@ require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
 require('./helpers/ed');
+require('./helpers/git');
 require('./helpers/jobs-queue');
 require('./helpers/peersManager');
 require('./helpers/pg-notify');
