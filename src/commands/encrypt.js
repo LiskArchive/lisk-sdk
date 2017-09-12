@@ -43,7 +43,7 @@ Specifies a source for your secret passphrase. Lisky will prompt you for input i
 Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
 
 Examples:
-- \`--passphrase "pass:my secret pass phrase"\` (should only be used where security is not important)
+- \`--passphrase 'pass:my secret pass phrase'\` (should only be used where security is not important)
 - \`--passphrase env:SECRET_PASSPHRASE\`
 - \`--passphrase file:/path/to/my/passphrase.txt\` (takes the first line only)
 - \`--passphrase stdin\`
