@@ -10,6 +10,8 @@ var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../config.json');
 var Peer = require('../../../logic/peer');
+var PeersLogic = require('../../../logic/peers');
+var PeersModule = require('../../../modules/peers');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
@@ -17,8 +19,7 @@ var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 describe('peers', function () {
 
 	var peers;
-	var modules;
-	var NONCE;
+	var systemNonce;
 
 	function getPeers (cb) {
 		peers.list({normalized: false}, function (err, __peers) {
@@ -43,17 +44,24 @@ describe('peers', function () {
 	before(function (done) {
 
 		process.env['NODE_ENV'] = 'TEST';
+		systemNonce = randomstring.generate(16);
 
-		modulesLoader.initAllModules(function (err, __modules) {
-			if (err) {
-				return done(err);
-			}
-			peers = __modules.peers;
-			modules = __modules;
-			NONCE = __modules.system.getNonce();
-			peers.onBind(modules);
-			done();
-		}, {});
+		var systemModuleMock = {
+			getNonce: sinon.stub().returns(systemNonce),
+			getBroadhash: sinon.stub().returns(config.nethash)
+		};
+
+		new PeersLogic(modulesLoader.scope.logger, function (err, __peersLogic) {
+			modulesLoader.scope.logic = {
+				peers: __peersLogic
+			};
+			new PeersModule(function (err, __peers) {
+				peers = __peers;
+				peers.onBind({system: systemModuleMock});
+				__peersLogic.bindModules({peers: peers});
+				done();
+			}, modulesLoader.scope);
+		});
 	});
 
 	beforeEach(function (done) {
@@ -232,7 +240,7 @@ describe('peers', function () {
 
 		it('should not accept peer with host\'s nonce', function () {
 			var peer = _.clone(randomPeer);
-			peer.nonce = NONCE;
+			peer.nonce = systemNonce;
 			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
 		});
 
@@ -241,7 +249,7 @@ describe('peers', function () {
 			var meAsPeer = {
 				ip: '40.00.40.40',
 				port: 4001,
-				nonce: NONCE
+				nonce: systemNonce
 			};
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
 		});
@@ -253,8 +261,6 @@ describe('peers', function () {
 
 	describe('events', function () {
 		before(function () {
-			modules.transport.onBind(modules);
-
 			var testWampServer = new MasterWAMPServer({on: sinon.spy()}, {});
 
 			var usedRPCEndpoints = {
