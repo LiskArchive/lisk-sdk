@@ -17,6 +17,7 @@ def buildDependency() {
 		'''
 	} catch (err) {
 		currentBuild.result = 'FAILURE'
+		report()
 		error('Stopping build, installation failed')
 	}
 }
@@ -30,8 +31,25 @@ def startLisk() {
 		'''
 	} catch (err) {
 		currentBuild.result = 'FAILURE'
+		report()
 		error('Stopping build, Lisk failed')
 	}
+}
+
+def report(){
+	step([
+		$class: 'GitHubCommitStatusSetter',
+		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
+		contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins-ci/func-unit'],
+		statusResultSource: [
+			$class: 'ConditionalStatusResultSource',
+			results: [
+					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
+					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
+					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build some how escaped evaluation']
+			]
+		]
+	])
 }
 
 lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
@@ -396,5 +414,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	stage ('Set milestone') {
 		milestone 1
 		currentBuild.result = 'SUCCESS'
+		report()
 	}
 }
