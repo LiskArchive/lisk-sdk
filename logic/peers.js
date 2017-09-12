@@ -193,7 +193,7 @@ Peers.prototype.list = function (normalize) {
 	if (normalize) {
 		return Object.keys(self.peersManager.addressToNonceMap).map(function (key) { return self.peersManager.getByAddress(key).object(); });
 	} else {
-		return Object.keys(self.peersManager.addressToNonceMap).map(function (key) { return self.peersManager.getByAddress(key); });
+		return Object.keys(self.peersManager.addressToNonceMap).map(function (key) { return self.create(self.peersManager.getByAddress(key)); });
 	}
 };
 

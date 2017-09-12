@@ -10,10 +10,9 @@ var transactionTypes = require('../helpers/transactionTypes.js');
 var Vote = require('../logic/vote.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, library, self, __private = {};
 
 __private.assetTypes = {};
-__private.blockReward = new BlockReward();
 
 /**
  * Initializes library with scope content and generates a Vote instance.
@@ -37,7 +36,7 @@ function Accounts (cb, scope) {
 		},
 	};
 	self = this;
-
+	__private.blockReward = new BlockReward();
 	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
 		transactionTypes.VOTE,
 		new Vote(

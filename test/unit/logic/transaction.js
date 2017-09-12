@@ -295,16 +295,6 @@ describe('transaction', function () {
 			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
 		});
 
-		it('should return same result of getBytes using /logic/transaction and lisk-js package (with data field)', function () {
-			var trs = _.cloneDeep(transaction);
-			trs.asset = {data: '123'};
-
-			var trsBytesFromLogic = transactionLogic.getBytes(trs);
-			var trsBytesFromLiskJs = node.lisk.crypto.getBytes(trs);
-
-			expect(trsBytesFromLogic.equals(trsBytesFromLiskJs)).to.be.ok;
-		});
-
 		it('should skip signature, second signature for getting bytes', function () {
 			var trsBytes = transactionLogic.getBytes(transaction, true);
 
