@@ -10,8 +10,6 @@
     "start": "babel-node src/index.js",
     "test": "NODE_ENV=test nyc mocha --compilers js:babel-register",
     "test:watch": "npm test -- --watch",
-    "test:now": "npm test -- --grep @now",
-    "test:now:watch": "npm run test:now -- --watch",
     "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register",
     "build": "babel src -d dist",
     "jenkins": "npm test && nyc report --reporter=text-lcov | coveralls",
