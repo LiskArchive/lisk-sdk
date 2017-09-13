@@ -17,7 +17,7 @@ import fse from 'fs-extra';
 import { exec } from 'child_process';
 import encrypt from '../../src/commands/encrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
-import * as prompt from '../../src/utils/prompt';
+import * as input from '../../src/utils/input';
 import tablify from '../../src/utils/tablify';
 import { setUpVorpalWithCommand } from './utils';
 
@@ -113,7 +113,7 @@ describe('lisky encrypt command palette', () => {
 				let promptStub;
 
 				beforeEach(() => {
-					promptStub = sinon.stub(prompt, 'getPassphraseFromPrompt').resolves(secret);
+					promptStub = sinon.stub(input, 'getPassphraseFromPrompt').resolves(secret);
 				});
 
 				afterEach(() => {

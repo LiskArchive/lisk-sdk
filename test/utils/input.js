@@ -15,7 +15,7 @@
  */
 import {
 	getPassphraseFromPrompt,
-} from '../../src/utils/prompt';
+} from '../../src/utils/input';
 
 describe('prompt utils', () => {
 	const passphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';

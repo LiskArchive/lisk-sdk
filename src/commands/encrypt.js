@@ -21,7 +21,7 @@ import { printResult } from '../utils/print';
 import {
 	ERROR_PASSPHRASE_VERIFICATION_FAIL,
 	getPassphraseFromPrompt,
-} from '../utils/prompt';
+} from '../utils/input';
 
 const ERROR_PREFIX = 'Could not encrypt: ';
 const createErrorMessage = str => `${ERROR_PREFIX}${str}`;
