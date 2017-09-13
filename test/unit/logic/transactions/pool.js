@@ -229,6 +229,13 @@ describe('txPool', function () {
 				poolTotals = totals;
 				done();
 			});
+
+			it('should fail when delete transaction that is not in pool', function (done) {
+				var deleteTx = txPool.delete(transactions[0]);
+
+				expect(deleteTx).to.be.an('array').that.is.empty;
+				done();
+			});
 		});
 	});
 	
@@ -251,6 +258,28 @@ describe('txPool', function () {
 				expect(readyTxs[0].fee).to.be.at.least(readyTxs[1].fee);
 				expect(readyTxs[1].fee).to.be.at.least(readyTxs[2].fee);
 				expect(readyTxs[2].fee).to.be.at.least(readyTxs[3].fee);
+				expect(readyTxs[3].fee).to.be.at.least(readyTxs[4].fee);
+				expect(readyTxs[4].fee).to.be.at.least(readyTxs[5].fee);
+				done();
+			});
+
+			it('should be ok when add transaction[1] again to ready', function (done) {
+				txPool.addReady(transactions[1], function (err, cbtx) {
+					if (err) {
+						done(err);
+					}
+					expect(cbtx).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when get transactions from ready', function (done) {
+				var readyTxs = txPool.getReady();
+				expect(readyTxs[0].receivedAt).to.not.equal(readyTxs[1].receivedAt);
+				expect(readyTxs[1].receivedAt).to.equal(readyTxs[2].receivedAt);
+				expect(readyTxs[2].receivedAt).to.equal(readyTxs[3].receivedAt);
+				expect(readyTxs[3].receivedAt).to.equal(readyTxs[4].receivedAt);
+				expect(readyTxs[4].receivedAt).to.equal(readyTxs[5].receivedAt);
 				done();
 			});
 
@@ -270,7 +299,6 @@ describe('txPool', function () {
 				expect(totals.ready).to.equal(poolTotals.ready - 1);
 				poolTotals = totals;
 				done();
-
 			});
 		});
 	});
