@@ -16,7 +16,7 @@
 import readline from 'readline';
 import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
-import tablify from '../utils/tablify';
+import { printResult } from '../utils/print';
 import {
 	ERROR_PASSPHRASE_VERIFICATION_FAIL,
 	getPassphraseFromPrompt,
@@ -165,15 +165,6 @@ const handleError = (error) => {
 	}
 
 	return { error: message || name };
-};
-
-const printResult = (vorpal, { json }) => (result) => {
-	const output = json
-		? JSON.stringify(result)
-		: tablify(result).toString();
-
-	vorpal.activeCommand.log(output);
-	return result;
 };
 
 const encrypt = vorpal => ({ message, recipient, options }) => {

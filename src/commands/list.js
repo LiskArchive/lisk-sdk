@@ -15,10 +15,7 @@
  */
 import config from '../utils/env';
 import query from '../utils/query';
-import {
-	getTableString,
-	printResult,
-} from '../utils/print';
+import { printResult } from '../utils/print';
 import {
 	COMMAND_TYPES,
 	SINGULARS,
@@ -37,14 +34,12 @@ const handlers = {
 };
 
 const processResults = (useJsonOutput, vorpal, type, results) => {
-	const printFn = useJsonOutput ? JSON.stringify : getTableString;
 	const resultsToPrint = results.map(result => (
 		result.error
 			? result
 			: result[type]
 	));
-	printResult(printFn, vorpal, resultsToPrint);
-	return results;
+	return printResult(vorpal, { json: useJsonOutput })(resultsToPrint);
 };
 
 const list = vorpal => ({ type, variadic, options }) => {

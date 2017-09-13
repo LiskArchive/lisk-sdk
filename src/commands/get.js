@@ -16,10 +16,7 @@
 import config from '../utils/env';
 import query from '../utils/query';
 import { COMMAND_TYPES } from '../utils/constants';
-import {
-	getTableString,
-	printResult,
-} from '../utils/print';
+import { printResult } from '../utils/print';
 import {
 	deAlias,
 	shouldUseJsonOutput,
@@ -34,15 +31,12 @@ const handlers = {
 };
 
 const processResult = (useJsonOutput, vorpal, type, result) => {
-	const printFn = useJsonOutput ? JSON.stringify : getTableString;
 	const resultToPrint = result.error ? result : result[type];
-	printResult(printFn, vorpal, resultToPrint);
-	return result;
+	return printResult(vorpal, { json: useJsonOutput })(resultToPrint);
 };
 
 const get = vorpal => ({ options, type, input }) => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
-
 	return COMMAND_TYPES.includes(type)
 		? handlers[type](input)
 			.then(processResult.bind(null, useJsonOutput, vorpal, deAlias(type)))

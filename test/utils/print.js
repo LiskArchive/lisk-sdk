@@ -13,31 +13,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getTableString,
-	printResult,
-} from '../../src/utils/print';
+import { printResult } from '../../src/utils/print';
+import tablify from '../../src/utils/tablify';
 
 describe('print utils', () => {
-	describe('#getTableString', () => {
-		it('should return a string', () => {
-			const obj = { lisk: 'JS' };
-			const result = getTableString(obj);
-
-			(result).should.be.ok();
-			(result).should.be.type('string');
-		});
-	});
-
 	describe('#printResult', () => {
-		const vorpal = {
-			activeCommand: {
-				log: () => {},
-			},
-		};
+		let vorpal;
+		let result;
 		let stub;
 
 		beforeEach(() => {
+			vorpal = {
+				activeCommand: {
+					log: () => {},
+				},
+			};
+			result = { lisk: 'JS' };
 			stub = sinon.stub(vorpal.activeCommand, 'log');
 		});
 
@@ -45,22 +36,19 @@ describe('print utils', () => {
 			stub.restore();
 		});
 
-		it('should log results', () => {
-			const result = { lisk: 'JS' };
-			const printFn = obj => obj.lisk + obj.lisk;
-
-			printResult(printFn, vorpal, result);
-
-			(stub.calledWithExactly('JSJS')).should.be.true();
+		it('should return the result', () => {
+			const returnValue = printResult(vorpal)(result);
+			(returnValue).should.equal(result);
 		});
 
-		it('should log error messages', () => {
-			const result = { error: 'oh no' };
-			const printFn = a => `${a.error} 123`;
+		it('should print a table', () => {
+			printResult(vorpal)(result);
+			(stub.calledWithExactly(tablify(result).toString())).should.be.true();
+		});
 
-			printResult(printFn, vorpal, result);
-
-			(stub.calledWithExactly('oh no 123')).should.be.true();
+		it('should print JSON', () => {
+			printResult(vorpal, { json: true })(result);
+			(stub.calledWithExactly(JSON.stringify(result))).should.be.true();
 		});
 	});
 });
