@@ -49,7 +49,6 @@ function SchemaDynamicTest (config) {
 	this.customArgumentAssertion = config.customArgumentAssertion;
 	this.customPropertyAssertion = config.customPropertyAssertion;
 	this.customRequiredPropertiesAssertion = config.customRequiredPropertiesAssertion;
-	this.testStyle = config.testStyle || SchemaDynamicTest.TEST_STYLE.ASYNC;
 
 	// TODO: Create argument assertions styles for each testStyle as well.
 	if (config.testStyle === SchemaDynamicTest.TEST_STYLE.THROWABLE) {
