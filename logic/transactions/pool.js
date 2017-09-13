@@ -311,6 +311,30 @@ TxPool.prototype.processPool = function (cb) {
 	});
 };
 
+/**
+ * Expires transactions.
+ * @implements {__private.expireTxsFromList}
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | ids[]
+ */
+TxPool.prototype.expireTransactions = function (cb) {
+	var ids = [];
+
+	async.waterfall([
+		function (seriesCb) {
+			__private.expireTxsFromList(pool.unverified, ids, seriesCb);
+		},
+		function (res, seriesCb) {
+			__private.expireTxsFromList(pool.verified.pending, ids, seriesCb);
+		},
+		function (res, seriesCb) {
+			__private.expireTxsFromList(pool.verified.ready, ids, seriesCb);
+		}
+	], function (err, ids) {
+		return setImmediate(cb, err, ids);
+	});
+};
+
 // Private
 /**
  * Gets reversed or limited transactions from input parameter.
@@ -321,8 +345,10 @@ TxPool.prototype.processPool = function (cb) {
  * @return {transaction[]}
  */
 __private.getTxsFromPoolList = function (transactions, reverse, limit) {
-	var txs = transactions.filter(Boolean);
-
+	var txs;
+	if (reverse || limit){
+		txs = Object.keys(transactions).reverse();
+	}
 	if (reverse) {
 		txs = txs.reverse();
 	}
@@ -423,30 +449,6 @@ __private.delete = function (id, poolList) {
  */
 __private.countTxsPool = function () {
 	return pool.unverified.count + pool.verified.pending.count + pool.verified.ready.count;
-};
-
-/**
- * Expires transactions.
- * @implements {__private.expireTxsFromList}
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error | ids[]
- */
-__private.expireTransactions = function (cb) {
-	var ids = [];
-
-	async.waterfall([
-		function (seriesCb) {
-			__private.expireTxsFromList(pool.unverified, ids, seriesCb);
-		},
-		function (res, seriesCb) {
-			__private.expireTxsFromList(pool.verified.pending, ids, seriesCb);
-		},
-		function (res, seriesCb) {
-			__private.expireTxsFromList(pool.verified.ready, ids, seriesCb);
-		}
-	], function (err, ids) {
-		return setImmediate(cb, err, ids);
-	});
 };
 
 /**
