@@ -210,7 +210,6 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 	const callback = callbackIfOptions || optionsOrCallback;
 	const options = (typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined')
 		? checkOptions(optionsOrCallback)
-	//	? checkOptions.call(this, optionsOrCallback)
 		: {};
 
 	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)

@@ -15,18 +15,9 @@
 import utils from '../../src/api/utils';
 
 describe('api utils module', () => {
-	const port = 7000;
-	const localNode = 'localhost';
-	const externalNode = 'external';
-	const sslNode = 'sslPeer';
-	const externalTestnetNode = 'testnet';
-	const GET = 'GET';
 	const POST = 'POST';
 	const defaultMethod = POST;
 	const defaultEndpoint = 'transactions';
-	const defaultPeers = [localNode, externalNode];
-	const defaultSSLPeers = [localNode, externalNode, sslNode];
-	const defaultTestnetPeers = [localNode, externalTestnetNode];
 
 	let LSK;
 	let sendRequestResult;
