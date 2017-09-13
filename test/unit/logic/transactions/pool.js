@@ -108,7 +108,7 @@ describe('txPool', function () {
 			}
 			modulesLoader.scope.config.transactions.poolStorageTxsLimit = 6;
 			modulesLoader.scope.config.transactions.poolProcessInterval = 6000;
-			modulesLoader.scope.config.transactions.poolExpiryInterval = 30000;
+			modulesLoader.scope.config.transactions.poolExpiryInterval = 300000000;
 			poolStorageTxsLimit = modulesLoader.scope.config.transactions.poolStorageTxsLimit;
 			txPool = new TxPool(
 				modulesLoader.scope.config.broadcasts.broadcastInterval,
@@ -195,7 +195,7 @@ describe('txPool', function () {
 
 			it('should be ok when pool totals are equal to pool storage limit', function (done) {
 				var totals = txPool.getUsage();
-				var currentStorage = totals.unverified.indexes + totals.pending.indexes + totals.ready.indexes;
+				var currentStorage = totals.unverified + totals.pending + totals.ready;
 				expect(totals).to.be.an('object');
 				expect(currentStorage).to.equal(poolStorageTxsLimit);
 				poolTotals = totals;
@@ -225,8 +225,7 @@ describe('txPool', function () {
 				var totals = txPool.getUsage();
 
 				expect(totals).to.be.an('object');
-				expect(totals.unverified.indexes).to.equal(poolTotals.unverified.indexes - 1);
-				expect(totals.unverified.txs).to.equal(poolTotals.unverified.txs);
+				expect(totals.unverified).to.equal(poolTotals.unverified - 1);
 				poolTotals = totals;
 				done();
 			});
@@ -242,8 +241,7 @@ describe('txPool', function () {
 						done(err);
 					}
 					expect(cbtx).to.be.undefined;
-					poolTotals.ready.indexes += transactions.length;
-					poolTotals.ready.txs += transactions.length;
+					poolTotals.ready += transactions.length;
 					done();
 				});
 			});
@@ -269,8 +267,7 @@ describe('txPool', function () {
 				var totals = txPool.getUsage();
 
 				expect(totals).to.be.an('object');
-				expect(totals.ready.indexes).to.equal(poolTotals.ready.indexes - 1);
-				expect(totals.ready.txs).to.equal(poolTotals.ready.txs);
+				expect(totals.ready).to.equal(poolTotals.ready - 1);
 				poolTotals = totals;
 				done();
 
@@ -339,156 +336,78 @@ describe('txPool', function () {
 			});
 		});
 
-		describe('get all by pool list', function () {
+		describe('getAll', function () {
 
-			it('should be ok when pool list is unverified', function (done) {
-				var txs = txPool.getAll('unverified');
-				expect(txs.length).to.equal(0);
-				done();
-			});
+			describe('by pool list', function () {
 
-			it('should be ok when pool list is pending', function (done) {
-				var txs = txPool.getAll('pending');
-				expect(txs.length).to.equal(0);
-				done();
-			});
-			
-			it('should be ok when pool list is ready', function (done) {
-				var txs = txPool.getAll('ready');
-				expect(txs.length).to.equal(5);
-				done();
-			});
-
-			it('should fail when pool list is invalid', function (done) {
-				var txs = txPool.getAll('unknown');
-				expect(txs).to.equal('Invalid pool list');
-				done();
-			});
-		});
-
-		describe('get all by id (address)', function () {
-
-			it('should be ok when sender account is valid', function (done) {
-				var txs = txPool.getAll('sender_id', { id: '2737453412992791987L' });
-
-				expect(txs.unverified.length).to.equal(0);
-				expect(txs.pending.length).to.equal(0);
-				expect(txs.ready.length).to.equal(0);
-				done();
-			});
-
-			it('should fail when sender account last char is not L', function (done) {
-				var txs = txPool.getAll('sender_id', { id: '2737453412992791987M' });
-
-				expect(txs).to.equal('Invalid address, last char must be "L"');
-				done();
-			});
-
-			it('should fail when sender account main body is not a number', function (done) {
-				var txs = txPool.getAll('sender_id', { id: 'A737453412992791987L' });
-
-				expect(txs).to.equal('Invalid address, must be numbers');
-				done();
-			});
+				it('should be ok when pool list is unverified', function (done) {
+					var txs = txPool.getAll('unverified', { reverse: true, limit: null});
+					expect(txs.length).to.equal(0);
+					done();
+				});
 	
-			it('should be ok when recipient account is valid', function (done) {
-				var txs = txPool.getAll('recipient_id', { id: '16313739661670634666L' });
-
-				expect(txs.unverified.length).to.equal(0);
-				expect(txs.pending.length).to.equal(0);
-				expect(txs.ready.length).to.equal(0);
-				done();
+				it('should be ok when pool list is pending', function (done) {
+					var txs = txPool.getAll('pending', { reverse: true, limit: null});
+					expect(txs.length).to.equal(0);
+					done();
+				});
+				
+				it('should be ok when pool list is ready', function (done) {
+					var txs = txPool.getAll('ready', { reverse: true, limit: null});
+					expect(txs.length).to.equal(5);
+					done();
+				});
+	
+				it('should fail when filter is invalid', function (done) {
+					var txs = txPool.getAll('unknown', { reverse: true, limit: null});
+					expect(txs).to.equal('Invalid filter');
+					done();
+				});
 			});
 
-			it('should fail when recipient account last char is not L', function (done) {
-				var txs = txPool.getAll('recipient_id', { id: '16313739661670634666M' });
+			describe('by id (address) and publicKey', function () {
+				
+				it('should be ok when sender account is valid', function (done) {
+					var txs = txPool.getAll('sender_id', { id: '2737453412992791987L' });
+	
+					expect(txs.unverified.length).to.equal(0);
+					expect(txs.pending.length).to.equal(0);
+					expect(txs.ready.length).to.equal(0);
+					done();
+				});
+	
+				it('should be ok when recipient account is valid', function (done) {
+					var txs = txPool.getAll('recipient_id', { id: '16313739661670634666L' });
+	
+					expect(txs.unverified.length).to.equal(0);
+					expect(txs.pending.length).to.equal(0);
+					expect(txs.ready.length).to.equal(0);
+					done();
+				});
 
-				expect(txs).to.equal('Invalid address, last char must be "L"');
-				done();
-			});
-
-			it('should fail when recipient account main body is not a number', function (done) {
-				var txs = txPool.getAll('recipient_id', { id: 'A6313739661670634666L' });
-
-				expect(txs).to.equal('Invalid address, must be numbers');
-				done();
+				it('should be ok when sender publicKey is valid', function (done) {
+					var txs = txPool.getAll('sender_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
+	
+					expect(txs.unverified.length).to.equal(0);
+					expect(txs.pending.length).to.equal(0);
+					expect(txs.ready.length).to.equal(0);
+					done();
+				});
+	
+				it('should be ok when requester publicKey is valid', function (done) {
+					var txs = txPool.getAll('recipient_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
+	
+					expect(txs.unverified.length).to.equal(0);
+					expect(txs.pending.length).to.equal(0);
+					expect(txs.ready.length).to.equal(0);
+					done();
+				});
 			});
 		});
 
-		describe('get all by publicKey', function () {
-			it('should be ok when sender publicKey is valid', function (done) {
-				var txs = txPool.getAll('sender_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
 
-				expect(txs.unverified.length).to.equal(0);
-				expect(txs.pending.length).to.equal(0);
-				expect(txs.ready.length).to.equal(0);
-				done();
-			});
+		describe('next', function () {
 
-			it('should fail when sender publicKey is not a string', function (done) {
-				var txs = txPool.getAll('sender_pk', { publicKey: 123456789 });
-
-				expect(txs).to.equal('Invalid public key, must be a string');
-				done();
-			});
-
-			it('should fail when sender publicKey is less than 64 characters long', function (done) {
-				var txs = txPool.getAll('sender_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7' });
-
-				expect(txs).to.equal('Invalid public key, must be 64 characters long');
-				done();
-			});
-
-			it('should fail when sender publicKey is greater than 64 characters long', function (done) {
-				var txs = txPool.getAll('sender_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5c1' });
-
-				expect(txs).to.equal('Invalid public key, must be 64 characters long');
-				done();
-			});
-
-			it('should fail when sender publicKey is not hex string', function (done) {
-				var txs = txPool.getAll('sender_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2c3po' });
-
-				expect(txs).to.equal('Invalid public key, must be a hex string');
-				done();
-			});
-
-			it('should be ok when requester publicKey is valid', function (done) {
-				var txs = txPool.getAll('recipient_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
-
-				expect(txs.unverified.length).to.equal(0);
-				expect(txs.pending.length).to.equal(0);
-				expect(txs.ready.length).to.equal(0);
-				done();
-			});
-
-			it('should fail when requester publicKey is not a string', function (done) {
-				var txs = txPool.getAll('recipient_pk', { publicKey: 123456789 });
-
-				expect(txs).to.equal('Invalid public key, must be a string');
-				done();
-			});
-
-			it('should fail when requester publicKey is less than 64 characters long', function (done) {
-				var txs = txPool.getAll('recipient_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7' });
-
-				expect(txs).to.equal('Invalid public key, must be 64 characters long');
-				done();
-			});
-
-			it('should fail when requester publicKey is greater than 64 characters long', function (done) {
-				var txs = txPool.getAll('recipient_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5c1' });
-
-				expect(txs).to.equal('Invalid public key, must be 64 characters long');
-				done();
-			});
-
-			it('should fail when requester publicKey is not hex string', function (done) {
-				var txs = txPool.getAll('recipient_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2r2d2' });
-
-				expect(txs).to.equal('Invalid public key, must be a hex string');
-				done();
-			});
 		});
 	});
 });
