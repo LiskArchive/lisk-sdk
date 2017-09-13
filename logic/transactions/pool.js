@@ -82,6 +82,252 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 	jobsQueue.register('txPoolNextExpiry', nextExpiry, self.poolExpiryInterval);
 }
 
+
+// Private
+/**
+ * Gets reversed or limited transactions from input parameter.
+ * @private
+ * @param {transaction[]} transactions
+ * @param {boolean} reverse
+ * @param {number} limit
+ * @return {transaction[]}
+ */
+__private.getTxsFromPoolList = function (transactions, reverse, limit) {
+	var txs;
+	if (reverse || limit){
+		txs = Object.keys(transactions).reverse();
+	}
+	if (reverse) {
+		txs = txs.reverse();
+	}
+	if (limit) {
+		txs.splice(limit);
+	}
+
+	return txs;
+};
+
+/**
+ * Gets transactions from all pool lists based on filter.
+ * @private
+ * @param {Object} filter search criteria
+ * @return {Objetc} transactions by pool list
+ */
+__private.getAllPoolTxsByFilter = function (filter) {
+	var txs = {
+		unverified: _.filter(pool.unverified, filter),
+		pending: _.filter(pool.verified.pending, filter),
+		ready: _.filter(pool.verified.ready, filter)
+	};
+
+	return txs;
+};
+
+/**
+ * Returns true if the id is present in at least one of the pool lists transactions.
+ * @param {string} id
+ * @return {boolean}
+ */
+__private.transactionInPool = function (id) {
+	return [
+		pool.unverified.transactions[id],
+		pool.verified.pending.transactions[id],
+		pool.verified.ready.transactions[id]
+	].filter(function (inList) {
+		return inList !== undefined;
+	}).length > 0;
+};
+
+/**
+ * Adds transactions to pool list.
+ * Checks if tx is in pool. Checks pool limit.
+ * @implements {__private.transactionInPool}
+ * @param {transaction} transaction
+ * @param {Object} poolList
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+__private.add = function (transaction, poolList, cb) {
+	if (__private.countTxsPool() >= self.poolStorageTxsLimit) {
+		return setImmediate(cb, 'Transaction pool is full');
+	}
+	if (__private.transactionInPool(transaction.id)) {
+		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
+	} else {
+		poolList.transactions[transaction.id] = transaction;
+		poolList.count++;
+		return setImmediate(cb);
+	}
+};
+
+/**
+ * Adds transactions to pool list.
+ * Clear transaction if is in pool.
+ * @param {transaction} transaction
+ * @param {Object} poolList
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+__private.addReady = function (transaction, poolList, cb) {
+	poolList.transactions[transaction.id] = transaction;
+	poolList.count++;
+	return setImmediate(cb);
+};
+
+/**
+ * Deletes id from pool list index.
+ * @param {string} id
+ * @param {Object} poolList
+ * @return {boolean} true if transaction id is on the list and was deleted
+ */
+__private.delete = function (id, poolList) {
+	var index = poolList.transactions[id];
+
+	if (index !== undefined) {
+		delete poolList.transactions[id];
+		poolList.count--;
+		return true;
+	}
+	return false;
+};
+
+/**
+ * Sums unverified, verified.pending and verified.ready counters.
+ * @return {Number} Total = unverified + pending + ready
+ */
+__private.countTxsPool = function () {
+	return pool.unverified.count + pool.verified.pending.count + pool.verified.ready.count;
+};
+
+/**
+ * Removes transactions if expired from pool list.
+ * @private
+ * @implements {__private.transactionTimeOut}
+ * @implements {__private.delete}
+ * @param {Object[]} poolList
+ * @param {string[]} parentIds
+ * @param {function} cb - Callback function
+ * @return {setImmediateCallback} error | ids[]
+ */
+__private.expireTxsFromList = function (poolList, parentIds, cb) {
+	var ids = [];
+
+	async.eachSeries(poolList.transactions, function (transaction, eachSeriesCb) {
+		if (!transaction) {
+			return setImmediate(eachSeriesCb);
+		}
+
+		var timeNow = Math.floor(Date.now() / 1000);
+		var timeOut = __private.transactionTimeOut(transaction);
+		// transaction.receivedAt is instance of Date
+		console.log('expireTransactions - transaction.receivedAt',transaction.receivedAt);
+		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
+
+		if (seconds > timeOut) {
+			ids.push(transaction.id);
+			__private.delete(poolList, transaction.id);
+			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
+			return setImmediate(eachSeriesCb);
+		} else {
+			return setImmediate(eachSeriesCb);
+		}
+	}, function (err) {
+		return setImmediate(cb, err, ids.concat(parentIds));
+	});
+};
+
+/**
+ * Calculates timeout based on transaction.
+ * @private
+ * @param {transaction} transaction
+ * @return {number} timeOut
+ */
+__private.transactionTimeOut = function (transaction) {
+	if (transaction.type === transactionTypes.MULTI) {
+		return (transaction.asset.multisignature.lifetime * 3600);
+	} else if (Array.isArray(transaction.signatures)) {
+		return (constants.unconfirmedTransactionTimeOut * 8);
+	} else {
+		return (constants.unconfirmedTransactionTimeOut);
+	}
+};
+
+/**
+ * Gets sender account, verifies multisignatures, gets requester,
+ * process transaction and verifies.
+ * @private
+ * @implements {accounts.setAccountAndGet}
+ * @implements {accounts.getAccount}
+ * @implements {logic.transaction.process}
+ * @implements {logic.transaction.verify}
+ * @param {transaction} transaction
+ * @param {object} broadcast
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} errors | sender
+ */
+__private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
+	if (!transaction) {
+		return setImmediate(cb, 'Missing transaction');
+	}
+
+	async.waterfall([
+		function setAccountAndGet (waterCb) {
+			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
+		},
+		function getRequester (sender, waterCb) {
+			var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
+
+			if (multisignatures) {
+				transaction.signatures = transaction.signatures || [];
+			}
+
+			if (sender && transaction.requesterPublicKey && multisignatures) {
+				modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
+					if (!requester) {
+						return setImmediate(waterCb, 'Requester not found');
+					} else {
+						return setImmediate(waterCb, null, sender, requester);
+					}
+				});
+			} else {
+				return setImmediate(waterCb, null, sender, null);
+			}
+		},
+		function processTransaction (sender, requester, waterCb) {
+			library.logic.transaction.process(transaction, sender, requester, function (err) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					return setImmediate(waterCb, null, sender);
+				}
+			});
+		},
+		function normalizeTransaction (sender, waterCb) {
+			try {
+				transaction = library.logic.transaction.objectNormalize(transaction);
+				return setImmediate(waterCb, null, sender);
+			} catch (err) {
+				return setImmediate(waterCb, err);
+			}
+		},
+		function verifyTransaction (sender, waterCb) {
+			library.logic.transaction.verify(transaction, sender, function (err) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				} else {
+					return setImmediate(waterCb, null, sender);
+				}
+			});
+		}
+	], function (err, sender) {
+		if (!err) {
+			library.bus.message('unconfirmedTransaction', transaction, broadcast);
+		}
+
+		return setImmediate(cb, err, sender);
+	});
+};
+
 // Public methods
 /**
  * Bounds input parameters to private variable modules.
@@ -332,251 +578,6 @@ TxPool.prototype.expireTransactions = function (cb) {
 		}
 	], function (err, ids) {
 		return setImmediate(cb, err, ids);
-	});
-};
-
-// Private
-/**
- * Gets reversed or limited transactions from input parameter.
- * @private
- * @param {transaction[]} transactions
- * @param {boolean} reverse
- * @param {number} limit
- * @return {transaction[]}
- */
-__private.getTxsFromPoolList = function (transactions, reverse, limit) {
-	var txs;
-	if (reverse || limit){
-		txs = Object.keys(transactions).reverse();
-	}
-	if (reverse) {
-		txs = txs.reverse();
-	}
-	if (limit) {
-		txs.splice(limit);
-	}
-
-	return txs;
-};
-
-/**
- * Gets transactions from all pool lists based on filter.
- * @private
- * @param {Object} filter search criteria
- * @return {Objetc} transactions by pool list
- */
-__private.getAllPoolTxsByFilter = function (filter) {
-	var txs = {
-		unverified: _.filter(pool.unverified, filter),
-		pending: _.filter(pool.verified.pending, filter),
-		ready: _.filter(pool.verified.ready, filter)
-	};
-
-	return txs;
-};
-
-/**
- * Returns true if the id is present in at least one of the pool lists transactions.
- * @param {string} id
- * @return {boolean}
- */
-__private.transactionInPool = function (id) {
-	return [
-		pool.unverified.transactions[id],
-		pool.verified.pending.transactions[id],
-		pool.verified.ready.transactions[id]
-	].filter(function (inList) {
-		return inList !== undefined;
-	}).length > 0;
-};
-
-/**
- * Adds transactions to pool list.
- * Checks if tx is in pool. Checks pool limit.
- * @implements {__private.transactionInPool}
- * @param {transaction} transaction
- * @param {Object} poolList
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error | cb
- */
-__private.add = function (transaction, poolList, cb) {
-	if (__private.countTxsPool() >= self.poolStorageTxsLimit) {
-		return setImmediate(cb, 'Transaction pool is full');
-	}
-	if (__private.transactionInPool(transaction.id)) {
-		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
-	} else {
-		poolList.transactions[transaction.id] = transaction;
-		poolList.count++;
-		return setImmediate(cb);
-	}
-};
-
-/**
- * Adds transactions to pool list.
- * Clear transaction if is in pool.
- * @param {transaction} transaction
- * @param {Object} poolList
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error | cb
- */
-__private.addReady = function (transaction, poolList, cb) {
-	poolList.transactions[transaction.id] = transaction;
-	poolList.count++;
-	return setImmediate(cb);
-};
-
-/**
- * Deletes id from pool list index.
- * @param {string} id
- * @param {Object} poolList
- * @return {boolean} true if transaction id is on the list and was deleted
- */
-__private.delete = function (id, poolList) {
-	var index = poolList.transactions[id];
-
-	if (index !== undefined) {
-		delete poolList.transactions[id];
-		poolList.count--;
-		return true;
-	}
-	return false;
-};
-
-/**
- * Sums unverified, verified.pending and verified.ready counters.
- * @return {Number} Total = unverified + pending + ready
- */
-__private.countTxsPool = function () {
-	return pool.unverified.count + pool.verified.pending.count + pool.verified.ready.count;
-};
-
-/**
- * Removes transactions if expired from pool list.
- * @private
- * @implements {__private.transactionTimeOut}
- * @implements {__private.delete}
- * @param {Object[]} poolList
- * @param {string[]} parentIds
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error | ids[]
- */
-__private.expireTxsFromList = function (poolList, parentIds, cb) {
-	var ids = [];
-
-	async.eachSeries(poolList.transactions, function (transaction, eachSeriesCb) {
-		if (!transaction) {
-			return setImmediate(eachSeriesCb);
-		}
-
-		var timeNow = Math.floor(Date.now() / 1000);
-		var timeOut = __private.transactionTimeOut(transaction);
-		// transaction.receivedAt is instance of Date
-		console.log('expireTransactions - transaction.receivedAt',transaction.receivedAt);
-		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
-
-		if (seconds > timeOut) {
-			ids.push(transaction.id);
-			__private.delete(poolList, transaction.id);
-			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
-			return setImmediate(eachSeriesCb);
-		} else {
-			return setImmediate(eachSeriesCb);
-		}
-	}, function (err) {
-		return setImmediate(cb, err, ids.concat(parentIds));
-	});
-};
-
-/**
- * Calculates timeout based on transaction.
- * @private
- * @param {transaction} transaction
- * @return {number} timeOut
- */
-__private.transactionTimeOut = function (transaction) {
-	if (transaction.type === transactionTypes.MULTI) {
-		return (transaction.asset.multisignature.lifetime * 3600);
-	} else if (Array.isArray(transaction.signatures)) {
-		return (constants.unconfirmedTransactionTimeOut * 8);
-	} else {
-		return (constants.unconfirmedTransactionTimeOut);
-	}
-};
-
-/**
- * Gets sender account, verifies multisignatures, gets requester,
- * process transaction and verifies.
- * @private
- * @implements {accounts.setAccountAndGet}
- * @implements {accounts.getAccount}
- * @implements {logic.transaction.process}
- * @implements {logic.transaction.verify}
- * @param {transaction} transaction
- * @param {object} broadcast
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} errors | sender
- */
-__private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
-	if (!transaction) {
-		return setImmediate(cb, 'Missing transaction');
-	}
-
-	async.waterfall([
-		function setAccountAndGet (waterCb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
-		},
-		function getRequester (sender, waterCb) {
-			var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
-
-			if (multisignatures) {
-				transaction.signatures = transaction.signatures || [];
-			}
-
-			if (sender && transaction.requesterPublicKey && multisignatures) {
-				modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
-					if (!requester) {
-						return setImmediate(waterCb, 'Requester not found');
-					} else {
-						return setImmediate(waterCb, null, sender, requester);
-					}
-				});
-			} else {
-				return setImmediate(waterCb, null, sender, null);
-			}
-		},
-		function processTransaction (sender, requester, waterCb) {
-			library.logic.transaction.process(transaction, sender, requester, function (err) {
-				if (err) {
-					return setImmediate(waterCb, err);
-				} else {
-					return setImmediate(waterCb, null, sender);
-				}
-			});
-		},
-		function normalizeTransaction (sender, waterCb) {
-			try {
-				transaction = library.logic.transaction.objectNormalize(transaction);
-				return setImmediate(waterCb, null, sender);
-			} catch (err) {
-				return setImmediate(waterCb, err);
-			}
-		},
-		function verifyTransaction (sender, waterCb) {
-			library.logic.transaction.verify(transaction, sender, function (err) {
-				if (err) {
-					return setImmediate(waterCb, err);
-				} else {
-					return setImmediate(waterCb, null, sender);
-				}
-			});
-		}
-	], function (err, sender) {
-		if (!err) {
-			library.bus.message('unconfirmedTransaction', transaction, broadcast);
-		}
-
-		return setImmediate(cb, err, sender);
 	});
 };
 
