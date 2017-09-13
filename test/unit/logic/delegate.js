@@ -203,7 +203,9 @@ describe('delegate', function () {
 		});
 
 		it('should return error if username is longer than 20 characters', function (done) {
-			trs.asset.delegate.username = new Array(21).fill('n').join('');
+			trs.asset.delegate.username = Array.apply(null, Array(21)).map(function () {
+				return 'n';
+			}).join('');
 
 			delegate.verify(trs, sender, function (err) {
 				expect(err).to.equal('Username is too long. Maximum is 20 characters');
@@ -211,12 +213,12 @@ describe('delegate', function () {
 			});
 		});
 
-		it.skip('should return error if username is empty', function (done) {
-			// This test fails `trs.asset.delegate.username ? true: false;` returns false, which is previously checked. So, we receive 'Username is undefined' when username is empty.
+		it('should return error if username is empty', function (done) {
 			trs.asset.delegate.username = '';
 
 			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Empty username');
+				// Cannot check specific error because '' coerces to false and we get error: Username is undefined
+				expect(err).to.exist;
 				done();
 			});
 		});
@@ -441,7 +443,6 @@ describe('delegate', function () {
 	describe('objectNormalize', function () {
 		
 		it('should use the correct format to validate against', function () {
-			trs.asset.delegate.publicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9';
 			var library = Delegate.__get__('library');
 			var schemaSpy = sinon.spy(library.schema, 'validate');
 			delegate.objectNormalize(trs);
@@ -451,37 +452,30 @@ describe('delegate', function () {
 		});
 
 		var schemaDynamicTest = new SchemaDynamicTest({
-			testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE
+			testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
+			customPropertyAssertion: function (input, expectedType, property, err) {
+				expect(err).to.equal('Failed to validate delegate schema: Expected type ' + expectedType + ' but found type ' + input.expectation);
+			}
 		});
 
-		after(function () {
-			describe('schema dynamic tests', function () {
-				schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
-			});
-		});
-
-		it('should throw error for non string values', function () {
-		});
-
-		it.skip('should return error asset schema is invalid', function () {
-			// It should have a schema check for username
+		it('should throw error when asset schema is invalid', function () {
 			trs.asset.delegate.username = '';
 
 			expect(function () {
 				delegate.objectNormalize(trs);
-			}).to.throw();
-		});
-
-		it.skip('should return error asset schema is invalid', function () {
-			trs.asset.delegate.publicKey = 'invalid-public-key';
-
-			expect(function () {
-				delegate.objectNormalize(trs);
-			}).to.throw('Failed to validate delegate schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
+			}).to.throw('Failed to validate delegate schema: Object didn\'t pass validation for format username: ');
 		});
 
 		it('should return transaction when asset is valid', function () {
 			expect(delegate.objectNormalize(trs)).to.eql(trs);
+		});
+
+		after(function () {
+			describe('schema dynamic tests', function () {
+				schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(delegate.objectNormalize, trs, 'asset.delegate');
+
+				schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
+			});
 		});
 	});
 
