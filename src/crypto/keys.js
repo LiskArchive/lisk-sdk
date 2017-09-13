@@ -13,7 +13,7 @@
  *
  */
 import { getSha256Hash } from './hash';
-import { bufferToHex } from './convert';
+import { bufferToHex, getAddress } from './convert';
 
 /**
  * @method getRawPrivateAndPublicKeyFromSecret
@@ -57,4 +57,21 @@ export function getPrivateAndPublicKeyFromSecret(secret) {
 
 export function getKeys(secret) {
 	return getPrivateAndPublicKeyFromSecret(secret);
+}
+
+/**
+ * @method getAddressFromSecret
+ * @param secret
+ *
+ * @return keys object
+ */
+
+export function getAddressFromSecret(secret) {
+	const accountKeys = getKeys(secret);
+	const accountAddress = getAddress(accountKeys.publicKey);
+
+	return {
+		address: accountAddress,
+		publicKey: accountKeys.publicKey,
+	};
 }
