@@ -14,6 +14,7 @@
  */
 import LiskAPI from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
+import utils from '../../src/api/utils';
 
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
@@ -80,7 +81,7 @@ describe('Lisk API module', () => {
 			.stub(privateApi, 'sendRequestPromise')
 			.resolves(Object.assign({}, defaultRequestPromiseResult));
 		checkOptionsStub = sinon
-			.stub(privateApi, 'checkOptions')
+			.stub(utils, 'checkOptions')
 			.returns(Object.assign({}, defaultCheckedOptions));
 		handleTimestampIsInFutureFailuresStub = sinon
 			.stub(privateApi, 'handleTimestampIsInFutureFailures')
@@ -449,7 +450,6 @@ describe('Lisk API module', () => {
 		it('should check options if provided', () => {
 			return LSK.sendRequest(method, endpoint, options)
 				.then(() => {
-					(checkOptionsStub.calledOn(LSK)).should.be.true();
 					(checkOptionsStub.calledWithExactly(options)).should.be.true();
 				});
 		});

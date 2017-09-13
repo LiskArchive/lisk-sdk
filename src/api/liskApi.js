@@ -40,6 +40,7 @@
  * @main lisk
  */
 import privateApi from './privateApi';
+import { checkOptions, optionallyCallCallback, wrapSendRequest } from './utils';
 import config from '../../config.json';
 import cryptoModule from '../crypto';
 
@@ -208,7 +209,7 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 ) {
 	const callback = callbackIfOptions || optionsOrCallback;
 	const options = (typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined')
-		? privateApi.checkOptions.call(this, optionsOrCallback)
+		? checkOptions(optionsOrCallback)
 		: {};
 
 	return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
@@ -217,7 +218,7 @@ LiskAPI.prototype.sendRequest = function sendRequest(
 			this, requestMethod, requestType, options,
 		))
 		.catch(privateApi.handleSendRequestFailures.bind(this, requestMethod, requestType, options))
-		.then(privateApi.optionallyCallCallback.bind(this, callback));
+		.then(optionallyCallCallback.bind(null, callback));
 };
 
 /**
@@ -229,7 +230,7 @@ LiskAPI.prototype.sendRequest = function sendRequest(
  * @return API object
  */
 
-LiskAPI.prototype.getAccount = privateApi.wrapSendRequest(GET, 'accounts', address => ({ address }));
+LiskAPI.prototype.getAccount = wrapSendRequest(GET, 'accounts', address => ({ address }));
 
 /**
  * @method getActiveDelegates
@@ -240,7 +241,7 @@ LiskAPI.prototype.getAccount = privateApi.wrapSendRequest(GET, 'accounts', addre
  * @return API object
  */
 
-LiskAPI.prototype.getActiveDelegates = privateApi.wrapSendRequest(GET, 'delegates', limit => ({ limit }));
+LiskAPI.prototype.getActiveDelegates = wrapSendRequest(GET, 'delegates', limit => ({ limit }));
 
 /**
  * @method getStandbyDelegates
@@ -251,7 +252,7 @@ LiskAPI.prototype.getActiveDelegates = privateApi.wrapSendRequest(GET, 'delegate
  * @return API object
  */
 
-LiskAPI.prototype.getStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegates', (limit, { orderBy = 'rate:asc', offset = 101 }) => ({ limit, orderBy, offset }));
+LiskAPI.prototype.getStandbyDelegates = wrapSendRequest(GET, 'delegates', (limit, { orderBy = 'rate:asc', offset = 101 }) => ({ limit, orderBy, offset }));
 
 /**
  * @method searchDelegatesByUsername
@@ -262,7 +263,7 @@ LiskAPI.prototype.getStandbyDelegates = privateApi.wrapSendRequest(GET, 'delegat
  * @return API object
  */
 
-LiskAPI.prototype.searchDelegatesByUsername = privateApi.wrapSendRequest(GET, 'delegates', search => ({ search }));
+LiskAPI.prototype.searchDelegatesByUsername = wrapSendRequest(GET, 'delegates', search => ({ search }));
 
 /**
  * @method getBlocks
@@ -273,7 +274,7 @@ LiskAPI.prototype.searchDelegatesByUsername = privateApi.wrapSendRequest(GET, 'd
  * @return API object
  */
 
-LiskAPI.prototype.getBlocks = privateApi.wrapSendRequest(GET, 'blocks', limit => ({ limit }));
+LiskAPI.prototype.getBlocks = wrapSendRequest(GET, 'blocks', limit => ({ limit }));
 
 /**
  * @method getForgedBlocks
@@ -284,7 +285,7 @@ LiskAPI.prototype.getBlocks = privateApi.wrapSendRequest(GET, 'blocks', limit =>
  * @return API object
  */
 
-LiskAPI.prototype.getForgedBlocks = privateApi.wrapSendRequest(GET, 'blocks', generatorPublicKey => ({ generatorPublicKey }));
+LiskAPI.prototype.getForgedBlocks = wrapSendRequest(GET, 'blocks', generatorPublicKey => ({ generatorPublicKey }));
 
 /**
  * @method getBlock
@@ -295,7 +296,7 @@ LiskAPI.prototype.getForgedBlocks = privateApi.wrapSendRequest(GET, 'blocks', ge
  * @return API object
  */
 
-LiskAPI.prototype.getBlock = privateApi.wrapSendRequest(GET, 'blocks', height => ({ height }));
+LiskAPI.prototype.getBlock = wrapSendRequest(GET, 'blocks', height => ({ height }));
 
 /**
  * @method getTransactions
@@ -306,7 +307,7 @@ LiskAPI.prototype.getBlock = privateApi.wrapSendRequest(GET, 'blocks', height =>
  * @return API object
  */
 
-LiskAPI.prototype.getTransactions = privateApi.wrapSendRequest(GET, 'transactions', recipientId => ({ recipientId }));
+LiskAPI.prototype.getTransactions = wrapSendRequest(GET, 'transactions', recipientId => ({ recipientId }));
 
 /**
  * @method getTransaction
@@ -317,7 +318,7 @@ LiskAPI.prototype.getTransactions = privateApi.wrapSendRequest(GET, 'transaction
  * @return API object
  */
 
-LiskAPI.prototype.getTransaction = privateApi.wrapSendRequest(GET, 'transactions', transactionId => ({ transactionId }));
+LiskAPI.prototype.getTransaction = wrapSendRequest(GET, 'transactions', transactionId => ({ transactionId }));
 
 /**
  * @method getVotes
@@ -328,7 +329,7 @@ LiskAPI.prototype.getTransaction = privateApi.wrapSendRequest(GET, 'transactions
  * @return API object
  */
 
-LiskAPI.prototype.getVotes = privateApi.wrapSendRequest(GET, 'votes', address => ({ address }));
+LiskAPI.prototype.getVotes = wrapSendRequest(GET, 'votes', address => ({ address }));
 
 /**
  * @method getVoters
@@ -339,7 +340,7 @@ LiskAPI.prototype.getVotes = privateApi.wrapSendRequest(GET, 'votes', address =>
  * @return API object
  */
 
-LiskAPI.prototype.getVoters = privateApi.wrapSendRequest(GET, 'voters', username => ({ username }));
+LiskAPI.prototype.getVoters = wrapSendRequest(GET, 'voters', username => ({ username }));
 
 /**
  * @method getUnsignedMultisignatureTransactions
@@ -350,7 +351,7 @@ LiskAPI.prototype.getVoters = privateApi.wrapSendRequest(GET, 'voters', username
  * @return API object
  */
 
-LiskAPI.prototype.getUnsignedMultisignatureTransactions = privateApi.wrapSendRequest(GET, 'transactions/unsigned', data => data);
+LiskAPI.prototype.getUnsignedMultisignatureTransactions = wrapSendRequest(GET, 'transactions/unsigned', data => data);
 
 /**
  * @method getDapp
@@ -361,7 +362,7 @@ LiskAPI.prototype.getUnsignedMultisignatureTransactions = privateApi.wrapSendReq
  * @return API object
  */
 
-LiskAPI.prototype.getDapp = privateApi.wrapSendRequest(GET, 'dapps', transactionId => ({ transactionId }));
+LiskAPI.prototype.getDapp = wrapSendRequest(GET, 'dapps', transactionId => ({ transactionId }));
 
 /**
  * @method getDapps
@@ -372,7 +373,7 @@ LiskAPI.prototype.getDapp = privateApi.wrapSendRequest(GET, 'dapps', transaction
  * @return API object
  */
 
-LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => data);
+LiskAPI.prototype.getDapps = wrapSendRequest(GET, 'dapps', data => data);
 
 /**
  * @method getDappsByCategory
@@ -383,7 +384,7 @@ LiskAPI.prototype.getDapps = privateApi.wrapSendRequest(GET, 'dapps', data => da
  * @return API object
  */
 
-LiskAPI.prototype.getDappsByCategory = privateApi.wrapSendRequest(GET, 'dapps', category => ({ category }));
+LiskAPI.prototype.getDappsByCategory = wrapSendRequest(GET, 'dapps', category => ({ category }));
 
 /**
  * @method sendLSK
