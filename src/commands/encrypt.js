@@ -16,6 +16,7 @@
 import readline from 'readline';
 import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
+import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 import {
 	ERROR_PASSPHRASE_VERIFICATION_FAIL,
@@ -39,17 +40,6 @@ Note: if both secret passphrase and message are passed via stdin, the passphrase
 Examples:
 - \`--message file:/path/to/my/message.txt\`
 - \`--message stdin\`
-`.trim();
-
-const passPhraseOptionDescription = `
-Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
-Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
-
-Examples:
-- \`--passphrase 'pass:my secret pass phrase'\` (should only be used where security is not important)
-- \`--passphrase env:SECRET_PASSPHRASE\`
-- \`--passphrase file:/path/to/my/passphrase.txt\` (takes the first line only)
-- \`--passphrase stdin\`
 `.trim();
 
 const splitSource = (source) => {
@@ -191,9 +181,9 @@ function encryptCommand(vorpal) {
 	vorpal
 		.command('encrypt <recipient> [message]')
 		.option('-m, --message <source>', messageOptionDescription)
-		.option('-p, --passphrase <source>', passPhraseOptionDescription)
-		.option('-j, --json', 'Sets output to json')
-		.option('--no-json', 'Default: sets output to text. You can change this in the config.json')
+		.option(...commonOptions.passphrase)
+		.option(...commonOptions.json)
+		.option(...commonOptions.noJson)
 		.description('Encrypt a message for a given recipient public key using your secret passphrase. \n E.g. encrypt "Hello world" bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0')
 		.action(encrypt(vorpal));
 }

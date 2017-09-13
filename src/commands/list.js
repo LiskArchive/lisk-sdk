@@ -14,6 +14,7 @@
  *
  */
 import config from '../utils/env';
+import commonOptions from '../utils/options';
 import query from '../utils/query';
 import { printResult } from '../utils/print';
 import {
@@ -58,8 +59,8 @@ const list = vorpal => ({ type, variadic, options }) => {
 export default function listCommand(vorpal) {
 	vorpal
 		.command('list <type> <variadic...>')
-		.option('-j, --json', 'Sets output to json')
-		.option('-t, --no-json', 'Sets output to text')
+		.option(...commonOptions.json)
+		.option(...commonOptions.noJson)
 		.description('Get information from <type> with parameters <input, input, ...>.  \n Types available: accounts, addresses, blocks, delegates, transactions \n E.g. list delegates lightcurve tosch \n E.g. list blocks 5510510593472232540 16450842638530591789')
 		.description('Get information from <type> with parameters <input, input, ...>.\n  Types available: accounts, addresses, blocks, delegates, transactions\n  Example: list delegates lightcurve tosch\n  Example: list blocks 5510510593472232540 16450842638530591789')
 		.autocomplete(COMMAND_TYPES)

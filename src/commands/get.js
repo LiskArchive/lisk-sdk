@@ -14,6 +14,7 @@
  *
  */
 import config from '../utils/env';
+import commonOptions from '../utils/options';
 import query from '../utils/query';
 import { COMMAND_TYPES } from '../utils/constants';
 import { printResult } from '../utils/print';
@@ -46,9 +47,8 @@ const get = vorpal => ({ options, type, input }) => {
 export default function getCommand(vorpal) {
 	vorpal
 		.command('get <type> <input>')
-		.option('-j, --json', 'Sets output to json')
-		.option('--no-json', 'Default: sets output to text. You can change this in the config.json')
-		.description('Get information from <type> with parameter <input>. \n Types available: account, address, block, delegate, transaction \n E.g. get delegate lightcurve \n e.g. get block 5510510593472232540')
+		.option(...commonOptions.json)
+		.option(...commonOptions.noJson)
 		.description('Get information from <type> with parameter <input>.\n  Types available: account, address, block, delegate, transaction\n  Example: get delegate lightcurve\n  Example: get block 5510510593472232540')
 		.autocomplete(COMMAND_TYPES)
 		.action(get(vorpal));
