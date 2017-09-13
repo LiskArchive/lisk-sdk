@@ -17,13 +17,16 @@ import readline from 'readline';
 import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
 import tablify from '../utils/tablify';
+import {
+	ERROR_PASSPHRASE_VERIFICATION_FAIL,
+	getPassphraseFromPrompt,
+} from '../utils/prompt';
 
 const ERROR_PREFIX = 'Could not encrypt: ';
 const createErrorMessage = str => `${ERROR_PREFIX}${str}`;
 
 const ERROR_MESSAGE_MISSING = createErrorMessage('No message was provided.');
 const ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET = createErrorMessage('Passphrase environmental variable not set.');
-const ERROR_PASSPHRASE_VERIFICATION_FAIL = createErrorMessage('Passphrase verification failed.');
 const ERROR_FILE_DOES_NOT_EXIST = createErrorMessage('File does not exist.');
 const ERROR_FILE_UNREADABLE = createErrorMessage('File could not be read.');
 
@@ -143,31 +146,6 @@ const getPassphraseFromSource = async (source, { passphrase }) => {
 	}
 };
 
-const createPromptOptions = message => ({
-	type: 'password',
-	name: 'passphrase',
-	message,
-});
-
-const getPassphraseFromPrompt = (vorpal) => {
-	// IMPORTANT: prompt will exit if UI has no parent, but calling
-	// ui.attach(vorpal) will start a prompt, which will complain when we call
-	// vorpal.activeCommand.prompt(). Therefore set the parent directly.
-	if (!vorpal.ui.parent) {
-		// eslint-disable-next-line no-param-reassign
-		vorpal.ui.parent = vorpal;
-	}
-	return vorpal.activeCommand.prompt(createPromptOptions('Please enter your secret passphrase: '))
-		.then(({ passphrase }) => vorpal.activeCommand.prompt(createPromptOptions('Please re-enter your secret passphrase: '))
-			.then(({ passphrase: passphraseRepeat }) => {
-				if (passphrase !== passphraseRepeat) {
-					throw new Error(ERROR_PASSPHRASE_VERIFICATION_FAIL);
-				}
-				return passphrase;
-			}),
-		);
-};
-
 const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]) => {
 	const passphraseString = passphrase.toString();
 	return cryptoModule.encrypt(message, passphraseString, recipient);
@@ -176,6 +154,9 @@ const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]
 const handleError = (error) => {
 	const { name, message } = error;
 
+	if (message === ERROR_PASSPHRASE_VERIFICATION_FAIL) {
+		return { error: createErrorMessage(message) };
+	}
 	if (message.match(/ENOENT/)) {
 		return { error: ERROR_FILE_DOES_NOT_EXIST };
 	}

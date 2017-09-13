@@ -17,6 +17,7 @@ import fse from 'fs-extra';
 import { exec } from 'child_process';
 import encrypt from '../../src/commands/encrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
+import * as prompt from '../../src/utils/prompt';
 import tablify from '../../src/utils/tablify';
 import { setUpVorpalWithCommand } from './utils';
 
@@ -112,16 +113,11 @@ describe('lisky encrypt command palette', () => {
 				let promptStub;
 
 				beforeEach(() => {
-					promptStub = sinon.stub(vorpal, 'prompt').resolves({ passphrase: secret });
+					promptStub = sinon.stub(prompt, 'getPassphraseFromPrompt').resolves(secret);
 				});
 
 				afterEach(() => {
 					promptStub.restore();
-				});
-
-				it('should prompt for the password twice', () => {
-					return vorpal.exec(command)
-						.then(() => (promptStub.calledTwice).should.be.true());
 				});
 
 				describe('with matching passphrases', () => {
@@ -157,7 +153,7 @@ describe('lisky encrypt command palette', () => {
 
 				describe('with non-matching passphrases', () => {
 					beforeEach(() => {
-						promptStub.onSecondCall().resolves({ passphrase: 'not the secret' });
+						promptStub.rejects(new Error('Passphrase verification failed.'));
 					});
 
 					it('should inform the user the passwords did not match', () => {
