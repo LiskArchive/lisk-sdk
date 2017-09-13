@@ -3,7 +3,7 @@
 var _ = require('lodash');
 var assign = _.assign;
 var difference = _.difference;
-var setProperty = _.set;
+var set = _.set;
 var chai = require('chai');
 var expect = require('chai').expect;
 var util = require('util');
@@ -129,11 +129,8 @@ SchemaDynamicTest.prototype.testProperty = function (expectedType, invalidInputs
 	var assertion = self.customPropertyAssertion ? self.customPropertyAssertion.bind(self) : self.standardInvalidPropertyAssertion;
 	var test = function (invalidInput, eachCb) {
 		var malformedPart = {};
-		if (property.indexOf('.') === -1) {
-			malformedPart[property] = invalidInput.input;
-		} else {
-			setProperty(malformedPart, property, invalidInput.input);
-		}
+		set(malformedPart, property, invalidInput.input);
+
 		var invalidArgument = assign({}, validArgument, malformedPart);
 		self.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(invalidInput, expectedType, property, err);
