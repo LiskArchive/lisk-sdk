@@ -6,8 +6,6 @@
 	"scripts": {
 		"test": "nyc mocha test/**/*.js",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test/**/*.js\" --initial",
-		"test:now": "npm run test -- --grep @now",
-		"test:now:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test/**/*.js --grep @now\" --initial",
 		"cover": "istanbul cover --dir ./coverage _mocha",
 		"eslint": "./node_modules/.bin/grunt eslint --verbose",
 		"jenkins": "./node_modules/.bin/grunt jenkins --verbose",
