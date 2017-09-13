@@ -48,7 +48,7 @@ var validTransaction = {
 	id: '8500285156990763245'
 };
 
-var rawValidTransaction = { 
+var rawValidTransaction = {
 	t_id: '8500285156990763245',
 	b_height: 1,
 	t_blockId: '6524861224470851795',
@@ -74,8 +74,10 @@ describe('delegate', function () {
 	var delegate;
 
 	var trs;
-	var rawTrs; 
+	var rawTrs;
 	var sender;
+
+	function dummyCb () {};
 
 	before(function () {
 		transactionMock = sinon.mock({});
@@ -85,9 +87,7 @@ describe('delegate', function () {
 		trs = _.cloneDeep(validTransaction);
 		rawTrs = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
-	});
 
-	beforeEach(function () {
 		accountsMock = {
 			setAccountAndGet: sinon.mock(),
 			getAccount: sinon.mock()
@@ -314,8 +314,6 @@ describe('delegate', function () {
 		};
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
-			function callback () {}
-
 			accountsMock.setAccountAndGet.once().withExactArgs({
 				address: sender.address,
 				u_isDelegate: 0,
@@ -323,9 +321,9 @@ describe('delegate', function () {
 				vote: 0,
 				u_username: null,
 				username: trs.asset.delegate.username
-			}, callback);
+			}, dummyCb);
 
-			delegate.apply(trs, dummyBlock, sender, callback);
+			delegate.apply(trs, dummyBlock, sender, dummyCb);
 			accountsMock.setAccountAndGet.verify();
 
 			done();
@@ -340,24 +338,20 @@ describe('delegate', function () {
 		};
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
-			function callback () {}
-
 			accountsMock.setAccountAndGet.once().withExactArgs({
 				address: sender.address,
 				u_isDelegate: 1,
 				isDelegate: 0,
 				vote: 0
-			}, callback);
+			}, dummyCb);
 
-			delegate.undo(trs, dummyBlock, sender, callback);
+			delegate.undo(trs, dummyBlock, sender, dummyCb);
 			accountsMock.setAccountAndGet.verify();
-			
+
 			done();
 		});
 
 		it('should update username to null if sender was not assigned a username before', function (done) {
-			function callback () {}
-
 			delete sender.username;
 			sender.nameexist = 0;
 
@@ -368,11 +362,11 @@ describe('delegate', function () {
 				vote: 0,
 				username: null,
 				u_username: trs.asset.delegate.username
-			}, callback);
+			}, dummyCb);
 
-			delegate.undo(trs, dummyBlock, sender, callback);
+			delegate.undo(trs, dummyBlock, sender, dummyCb);
 			accountsMock.setAccountAndGet.verify();
-			
+
 			done();
 		});
 	});
@@ -380,8 +374,6 @@ describe('delegate', function () {
 	describe('applyUnconfirmed', function () {
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
-			function callback () {}
-
 			delete sender.username;
 			sender.nameexist = 0;
 
@@ -391,11 +383,11 @@ describe('delegate', function () {
 				isDelegate: 0,
 				username: null,
 				u_username: trs.asset.delegate.username
-			}, callback);
+			}, dummyCb);
 
-			delegate.applyUnconfirmed(trs, sender, callback);
+			delegate.applyUnconfirmed(trs, sender, dummyCb);
 			accountsMock.setAccountAndGet.verify();
-			
+
 			done();
 		});
 	});
@@ -403,8 +395,6 @@ describe('delegate', function () {
 	describe('undoUnconfirmed', function () {
 
 		it('should update username to null if account did not have a username before', function (done) {
-			function callback () {}
-
 			delete sender.username;
 			sender.nameexist = 0;
 
@@ -414,34 +404,47 @@ describe('delegate', function () {
 				isDelegate: 0,
 				username: null,
 				u_username: null
-			}, callback);
+			}, dummyCb);
 
-			delegate.undoUnconfirmed(trs, sender, callback);
+			delegate.undoUnconfirmed(trs, sender, dummyCb);
 			accountsMock.setAccountAndGet.verify();
-			
+
 			done();
 		});
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
-			function callback () {}
-
 			accountsMock.setAccountAndGet.once().withExactArgs({
 				address: sender.address,
 				u_isDelegate: 0,
 				isDelegate: 0,
 				username: null,
 				u_username: null
-			}, callback);
+			}, dummyCb);
 
-			delegate.undoUnconfirmed(trs, sender, callback);
+			delegate.undoUnconfirmed(trs, sender, dummyCb);
 			accountsMock.setAccountAndGet.verify();
-			
+
 			done();
 		});
 	});
 
 	describe('objectNormalize', function () {
-		
+
+		var schemaDynamicTest = new SchemaDynamicTest({
+			testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
+			customPropertyAssertion: function (input, expectedType, property, err) {
+				expect(err).to.equal('Failed to validate delegate schema: Expected type ' + expectedType + ' but found type ' + input.expectation);
+			}
+		});
+
+		after(function () {
+			describe('schema dynamic tests', function () {
+				schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(delegate.objectNormalize, trs, 'asset.delegate');
+
+				schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
+			});
+		});
+
 		it('should use the correct format to validate against', function () {
 			var library = Delegate.__get__('library');
 			var schemaSpy = sinon.spy(library.schema, 'validate');
@@ -449,13 +452,6 @@ describe('delegate', function () {
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(schemaSpy.calledWithExactly(trs.asset.delegate, Delegate.prototype.schema)).to.equal(true);
 			schemaSpy.restore();
-		});
-
-		var schemaDynamicTest = new SchemaDynamicTest({
-			testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
-			customPropertyAssertion: function (input, expectedType, property, err) {
-				expect(err).to.equal('Failed to validate delegate schema: Expected type ' + expectedType + ' but found type ' + input.expectation);
-			}
 		});
 
 		it('should throw error when asset schema is invalid', function () {
@@ -468,14 +464,6 @@ describe('delegate', function () {
 
 		it('should return transaction when asset is valid', function () {
 			expect(delegate.objectNormalize(trs)).to.eql(trs);
-		});
-
-		after(function () {
-			describe('schema dynamic tests', function () {
-				schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(delegate.objectNormalize, trs, 'asset.delegate');
-
-				schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
-			});
 		});
 	});
 
