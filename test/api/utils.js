@@ -34,25 +34,6 @@ describe('api utils module', () => {
 
 	beforeEach(() => {
 		LSK = {
-			randomPeer: false,
-			currentPeer: localNode,
-			defaultPeers: [].concat(defaultPeers),
-			defaultSSLPeers: [].concat(defaultSSLPeers),
-			defaultTestnetPeers: [].concat(defaultTestnetPeers),
-			bannedPeers: [],
-			port,
-			options: {
-				node: localNode,
-			},
-			nethash: {
-				foo: 'bar',
-			},
-
-			parseOfflineRequests: () => ({
-				requestMethod: GET,
-			}),
-			setTestnet: () => {},
-			setNode: () => {},
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
@@ -172,7 +153,7 @@ describe('api utils module', () => {
 			serialisedData = serialiseHTTPData(data);
 		});
 
-		it('should prepend a question mark to the query string', () => {
+		it('should trim, escape, and prepend a question mark to the query string', () => {
 			(serialisedData).should.equal(`?${queryStringData}`);
 		});
 	});

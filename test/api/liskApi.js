@@ -450,7 +450,6 @@ describe('Lisk API module', () => {
 		it('should check options if provided', () => {
 			return LSK.sendRequest(method, endpoint, options)
 				.then(() => {
-					(checkOptionsStub.calledOn(LSK)).should.be.true();
 					(checkOptionsStub.calledWithExactly(options)).should.be.true();
 				});
 		});

@@ -15,7 +15,7 @@
 
 /**
  * @method optionallyCallCallback
- * @param calback
+ * @param callback
  * @param result
  *
  * @return result object
