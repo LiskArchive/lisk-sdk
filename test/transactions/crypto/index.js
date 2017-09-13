@@ -249,4 +249,35 @@ describe('crypto/index.js', function () {
 			(curveRepresentation).should.be.equal('a05621ba2d3f69f054abb1f3c155338bb44ec8b718928cf9d5b206bafd364356');
 		});
 	});
+	
+	describe('encrypt and decrypt in sign.js', function () {
+		var secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
+		var defaultPassword = 'myTotal53cr3t%&';
+		describe('#encryptPassphraseWithPassword  sign.js', function () {
+			it('should encrypt a text with a password', function () {
+				var cipher = newcrypto.encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
+				(cipher).should.be.type('object').and.have.property('cipher').and.be.type('string');
+				(cipher).should.be.type('object').and.have.property('iv').and.be.type('string').and.have.length(32);
+			});
+		});
+		
+		describe('#decryptPassphraseWithPassword  sign.js', function () {
+			it('should decrypt a text with a password', function () {
+				var cipherAndNonce = {
+					cipher: '1c527b9408e77ae79e2ceb1ad5907ec523cd957d30c6a08dc922686e62ed98271910ca5b605f95aec98c438b6214fa7e83e3689f3fba89bfcaee937b35a3d931640afe79c353499a500f14c35bd3fd08',
+					iv: '89d0fa0b955219a0e6239339fbb8239f',
+				};
+				var decrypted = newcrypto.decryptPassphraseWithPassword(cipherAndNonce, defaultPassword);
+				(decrypted).should.be.eql(secretPassphrase);
+			});
+		});
+		
+		describe('encrypting passphrase integration test  sign.js', function () {
+			it('should encrypt a given secret with a password and decrypt it back to the original passphrase', function () {
+				var encryptedString = newcrypto.encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
+				var decryptedString = newcrypto.decryptPassphraseWithPassword(encryptedString, defaultPassword);
+				(decryptedString).should.be.eql(secretPassphrase);
+			});
+		});
+	});
 });
