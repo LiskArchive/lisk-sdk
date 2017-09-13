@@ -8,6 +8,7 @@ var sinon   = require('sinon');
 
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/initModule').modulesLoader;
+var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
 var node = require('../../node.js');
 var expect = node.expect;
 
@@ -449,6 +450,19 @@ describe('delegate', function () {
 			schemaSpy.restore();
 		});
 
+		var schemaDynamicTest = new SchemaDynamicTest({
+			testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE
+		});
+
+		after(function () {
+			describe('schema dynamic tests', function () {
+				schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
+			});
+		});
+
+		it('should throw error for non string values', function () {
+		});
+
 		it.skip('should return error asset schema is invalid', function () {
 			// It should have a schema check for username
 			trs.asset.delegate.username = '';
@@ -458,7 +472,7 @@ describe('delegate', function () {
 			}).to.throw();
 		});
 
-		it('should return error asset schema is invalid', function () {
+		it.skip('should return error asset schema is invalid', function () {
 			trs.asset.delegate.publicKey = 'invalid-public-key';
 
 			expect(function () {
