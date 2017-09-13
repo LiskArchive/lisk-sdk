@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import 'babel-polyfill';
 import path from 'path';
 import fse from 'fs-extra';
 import vorpal from 'vorpal';
