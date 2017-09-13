@@ -24,7 +24,7 @@ If chat is more your speed, you can join the LiskHQ Gitter:
 
 * [Join the LiskHQ Gitter](https://gitter.im/LiskHQ/lisk)
 * Even though Gitter is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
-   
+
 ## How Can I Contribute?
 
 LiskHQ uses GitHub as its sole source of truth. Everything happens here. Lightcurve employees who contribute to Lisk are expected to do so in the same way as everyone else. In other words, this document applies equally to all contributors.
@@ -111,7 +111,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 * Include issue numbers in the PR title, at the end with: ```Description - Closes #IssueNumber```
 * Include screenshots and animated GIFs in your pull request whenever possible.
-* Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from airbnb.
+* Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from airbnb with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
 * Document new code based on the [YuiDoc Documentation Styleguide](http://yui.github.io/yuidoc/)
 * End all files with a newline
 * Every new code must come with complete test coverage
@@ -144,6 +144,6 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 ### JavaScript Styleguide
 
-All JavaScript must adhere to [JavaScript Standard Style](http://standardjs.com/).
+Our JavaScript style is expending the [airbnb](https://github.com/airbnb/javascript) style. You can get more details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
 This Contributing guidelines was inspired by and is based on Atom's contribution guidelines and modified for purposes of this repository: https://github.com/atom/atom/blob/master/CONTRIBUTING.md
