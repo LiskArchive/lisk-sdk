@@ -21,12 +21,12 @@
  * @return result object
  */
 
-function optionallyCallCallback(callback, result) {
+const optionallyCallCallback = (callback, result) => {
 	if (typeof callback === 'function') {
 		callback(result);
 	}
 	return result;
-}
+};
 
 /**
  * @method constructRequestData

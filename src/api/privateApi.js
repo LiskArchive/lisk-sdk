@@ -13,7 +13,7 @@
  *
  */
 import * as popsicle from 'popsicle';
-import utils from './utils';
+import { serialiseHTTPData } from './utils';
 
 const GET = 'GET';
 
@@ -181,7 +181,7 @@ function checkReDial() {
 function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
 	const url = method === GET
-		? `${getFullURL.call(this)}/api/${requestType}${utils.serialiseHTTPData.call(this, options)}`
+		? `${getFullURL.call(this)}/api/${requestType}${serialiseHTTPData.call(this, options)}`
 		: `${getFullURL.call(this)}/api/${requestType}`;
 
 	return {
