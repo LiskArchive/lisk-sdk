@@ -115,9 +115,9 @@ __private.getTxsFromPoolList = function (transactions, reverse, limit) {
  */
 __private.getAllPoolTxsByFilter = function (filter) {
 	var txs = {
-		unverified: _.filter(pool.unverified, filter),
-		pending: _.filter(pool.verified.pending, filter),
-		ready: _.filter(pool.verified.ready, filter)
+		unverified: _.filter(pool.unverified.transactions, filter),
+		pending: _.filter(pool.verified.pending.transactions, filter),
+		ready: _.filter(pool.verified.ready.transactions, filter)
 	};
 
 	return txs;

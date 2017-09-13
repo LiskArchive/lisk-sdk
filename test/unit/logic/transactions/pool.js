@@ -400,7 +400,7 @@ describe('txPool', function () {
 	
 					expect(txs.unverified.length).to.equal(0);
 					expect(txs.pending.length).to.equal(0);
-					expect(txs.ready.length).to.equal(0);
+					expect(txs.ready.length).to.equal(3);
 					done();
 				});
 	
@@ -409,7 +409,7 @@ describe('txPool', function () {
 	
 					expect(txs.unverified.length).to.equal(0);
 					expect(txs.pending.length).to.equal(0);
-					expect(txs.ready.length).to.equal(0);
+					expect(txs.ready.length).to.equal(1);
 					done();
 				});
 
@@ -418,7 +418,7 @@ describe('txPool', function () {
 	
 					expect(txs.unverified.length).to.equal(0);
 					expect(txs.pending.length).to.equal(0);
-					expect(txs.ready.length).to.equal(0);
+					expect(txs.ready.length).to.equal(3);
 					done();
 				});
 	
@@ -432,7 +432,6 @@ describe('txPool', function () {
 				});
 			});
 		});
-
 
 		describe('next', function () {
 
