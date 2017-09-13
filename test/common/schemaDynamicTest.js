@@ -1,7 +1,9 @@
 'use strict';
 
-var assign = require('lodash').assign;
-var difference = require('lodash').difference;
+var _ = require('lodash');
+var assign = _.assign;
+var difference = _.difference;
+var setProperty = _.set;
 var chai = require('chai');
 var expect = require('chai').expect;
 var util = require('util');
@@ -19,6 +21,14 @@ var objects = typesRepresentatives.objects;
 var strings = typesRepresentatives.strings;
 
 var self;
+
+function standardInvalidPropertyAssertionForAsyncStyle (input, expectedType, property, err) {
+	self.standardInvalidArgumentAssertion(input, expectedType, err);
+}
+
+function standardInvalidPropertyAssertionForThrowableStyle (input, expectedType, property, err) {
+	expect(err).to.equal(['Failed to validate delegate schema: Expected type', expectedType, 'but found type',  input.expectation].join(' '));
+}
 
 SchemaDynamicTest.TEST_STYLE = {
 	ASYNC: function (testFunction, argument, cb) {
@@ -40,6 +50,18 @@ function SchemaDynamicTest (config) {
 	this.customPropertyAssertion = config.customPropertyAssertion;
 	this.customRequiredPropertiesAssertion = config.customRequiredPropertiesAssertion;
 	this.testStyle = config.testStyle || SchemaDynamicTest.TEST_STYLE.ASYNC;
+
+	// TODO: Create argument assertions styles for each testStyle as well.
+	if (config.testStyle === SchemaDynamicTest.TEST_STYLE.THROWABLE) {
+		this.testStyle = SchemaDynamicTest.TEST_STYLE.THROWABLE;
+		this.standardInvalidPropertyAssertion = standardInvalidPropertyAssertionForThrowableStyle;
+	} else if (config.testStyle === SchemaDynamicTest.TEST_STYLE.ASYNC) {
+		this.testStyle = SchemaDynamicTest.TEST_STYLE.ASYNC;
+		this.standardInvalidPropertyAssertion = standardInvalidPropertyAssertionForAsyncStyle;
+	} else {
+		// We will be required to register a custom property assertion format with this one
+		this.testStyle = config.testStyle;
+	}
 
 	self = this;
 
@@ -118,15 +140,16 @@ SchemaDynamicTest.prototype.testArgument = function (expectedType, invalidInputs
 	self.carpetTesting(test, invalidInputs, 'should return an error when invoked with %s');
 };
 
-SchemaDynamicTest.prototype.standardInvalidPropertyAssertion = function (input, expectedType, property, err) {
-	self.standardInvalidArgumentAssertion(input, expectedType, err);
-};
 
 SchemaDynamicTest.prototype.testProperty = function (expectedType, invalidInputs, testedFunction, validArgument, property) {
 	var assertion = self.customPropertyAssertion ? self.customPropertyAssertion.bind(self) : self.standardInvalidPropertyAssertion;
 	var test = function (invalidInput, eachCb) {
 		var malformedPart = {};
-		malformedPart[property] = invalidInput.input;
+		if (property.indexOf('.') === -1) {
+			malformedPart[property] = invalidInput.input;
+		} else {
+			setProperty(malformedPart, property, invalidInput.input);
+		}
 		var invalidArgument = assign({}, validArgument, malformedPart);
 		self.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(invalidInput, expectedType, property, err);
