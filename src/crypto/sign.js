@@ -28,29 +28,33 @@ import { getTransactionHash, getSha256Hash } from './hash';
 
 /**
  * @method signMessageWithSecret
- * @param message
- * @param secret
+ * @param message - utf8
+ * @param secret - utf8
  *
- * @return {string}
+ * @return {Object} - message, signature and publicKey
  */
 
 export function signMessageWithSecret(message, secret) {
 	const msgBytes = naclInstance.encode_utf8(message);
-	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
+	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
 
 	const signedMessage = naclInstance.crypto_sign(msgBytes, privateKey);
-	const hexSignedMessage = bufferToHex(signedMessage);
+	const signature = signedMessage.filter(val => !msgBytes.includes(val));
 
-	return hexSignedMessage;
+	return {
+		message,
+		publicKey: bufferToHex(publicKey),
+		signature: Buffer.from(signature).toString('base64'),
+	};
 }
 
 /**
  * @method signMessageWithTwoSecrets
- * @param message
- * @param secret
- * @param secondSecret
+ * @param message - utf8
+ * @param secret - utf8
+ * @param secondSecret - utf8
  *
- * @return {string}
+ * @return {Object} - message, signature and publicKey
  */
 
 export function signMessageWithTwoSecrets(message, secret, secondSecret) {
@@ -60,12 +64,18 @@ export function signMessageWithTwoSecrets(message, secret, secondSecret) {
 
 	const signedMessage = naclInstance.crypto_sign(msgBytes, keypairBytes.privateKey);
 	const doubleSignedMessage = naclInstance.crypto_sign(
-		signedMessage, secondKeypairBytes.privateKey,
+		msgBytes, secondKeypairBytes.privateKey,
 	);
+	const signature = signedMessage.filter(val => !msgBytes.includes(val));
+	const secondSignature = doubleSignedMessage.filter(val => !msgBytes.includes(val));
 
-	const hexSignedMessage = bufferToHex(doubleSignedMessage);
-
-	return hexSignedMessage;
+	return {
+		message,
+		publicKey: bufferToHex(keypairBytes.publicKey),
+		secondPublicKey: bufferToHex(secondKeypairBytes.publicKey),
+		signature: Buffer.from(signature).toString('base64'),
+		secondSignature: Buffer.from(secondSignature).toString('base64'),
+	};
 }
 
 /**
