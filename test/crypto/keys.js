@@ -24,21 +24,21 @@ import {
 
 describe('keys', () => {
 	const defaultSecret = 'secret';
-	const expectedPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const expectedPrivateKey = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultPrivateKey = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultAddress = {
-		publicKey: expectedPublicKey,
+		publicKey: defaultPublicKey,
 		address: '18160565574430594874L',
 	};
 	describe('#getPrivateAndPublicKeyFromSecret', () => {
 		const keypair = getPrivateAndPublicKeyFromSecret(defaultSecret);
 
 		it('should generate the correct publicKey from a secret', () => {
-			(keypair.publicKey).should.be.equal(expectedPublicKey);
+			(keypair.publicKey).should.be.equal(defaultPublicKey);
 		});
 
 		it('should generate the correct privateKey from a secret', () => {
-			(keypair.privateKey).should.be.equal(expectedPrivateKey);
+			(keypair.privateKey).should.be.equal(defaultPrivateKey);
 		});
 	});
 
@@ -48,12 +48,12 @@ describe('keys', () => {
 		it('should create buffer publicKey', () => {
 			(bufferToHex(
 				Buffer.from(keypair.publicKey))
-			).should.be.equal(expectedPublicKey);
+			).should.be.equal(defaultPublicKey);
 		});
 
 		it('should create buffer privateKey', () => {
 			(bufferToHex(Buffer.from(keypair.privateKey)))
-				.should.be.equal(expectedPrivateKey);
+				.should.be.equal(defaultPrivateKey);
 		});
 	});
 
@@ -64,8 +64,8 @@ describe('keys', () => {
 			(keys).should.have.property('publicKey').and.be.type('string').and.be.hexString();
 			(keys).should.have.property('privateKey').and.be.type('string').and.be.hexString();
 			(keys).should.be.eql({
-				publicKey: expectedPublicKey,
-				privateKey: expectedPrivateKey,
+				publicKey: defaultPublicKey,
+				privateKey: defaultPrivateKey,
 			});
 		});
 	});
