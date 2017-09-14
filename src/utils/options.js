@@ -13,10 +13,22 @@ Examples:
 - \`--passphrase stdin\`
 `.trim();
 
+const dataDescription = `
+Specifies a source for providing data to the command. If a string is provided directly as an argument, this option will be ignored.
+The data must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
+
+Note: if both secret passphrase and data are passed via stdin, the passphrase must be the first line.
+
+Examples:
+- \`--data file:/path/to/my/message.txt\`
+- \`--data stdin\`
+`.trim();
+
 const options = {
 	json: ['-j, --json', jsonDescription],
 	noJson: ['-t, --no-json', noJsonDescription],
 	passphrase: ['-p, --passphrase <source>', passphraseDescription],
+	data: ['-d, --data <source>', dataDescription],
 };
 
 export default options;

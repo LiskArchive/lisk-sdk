@@ -22,33 +22,22 @@ import {
 	getData,
 } from '../utils/input';
 
-const messageOptionDescription = `
-Specifies a source for the message you would like to encrypt. If a message is provided directly as an argument, this option will be ignored.
-The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
-
-Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
-
-Examples:
-- \`--message file:/path/to/my/message.txt\`
-- \`--message stdin\`
-`.trim();
-
-const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]) =>
-	cryptoModule.encrypt(message, passphrase, recipient);
+const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, data]) =>
+	cryptoModule.encrypt(data, passphrase, recipient);
 
 const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
 
-const encrypt = vorpal => ({ message, recipient, options }) => {
-	const messageSource = options.message;
+const encrypt = vorpal => ({ recipient, data, options }) => {
+	const dataSource = options.data;
 	const passphraseSource = options.passphrase;
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: messageSource === 'stdin',
+		dataIsRequired: dataSource === 'stdin',
 	})
 		.then(stdIn => Promise.all([
 			getPassphrase(vorpal, passphraseSource, stdIn),
-			getData(message, messageSource, stdIn),
+			getData(data, dataSource, stdIn),
 		]))
 		.then(handleMessageAndPassphrase(vorpal, recipient))
 		.catch(handleError)
@@ -57,9 +46,9 @@ const encrypt = vorpal => ({ message, recipient, options }) => {
 
 function encryptCommand(vorpal) {
 	vorpal
-		.command('encrypt <recipient> [message]')
-		.option('-m, --message <source>', messageOptionDescription)
+		.command('encrypt <recipient> [data]')
 		.option(...commonOptions.passphrase)
+		.option(...commonOptions.data)
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
 		.description('Encrypt a message for a given recipient public key using your secret passphrase. \n E.g. encrypt "Hello world" bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0')
