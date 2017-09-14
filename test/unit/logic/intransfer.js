@@ -185,7 +185,7 @@ describe('inTransfer', function () {
 		});
 
 		it('should return error if asset is undefined', function (done) {
-			trs.asset.inTransfer = undefined;
+			trs.asset = undefined;
 
 			inTransfer.verify(trs, sender, function (err) {
 				expect(err).to.equal('Invalid transaction asset');
@@ -213,10 +213,6 @@ describe('inTransfer', function () {
 
 		it('should return error if dapp does not exist', function (done) {
 			trs.asset.inTransfer.dappId = '10223892440757987952';
-			console.log(' sql.countByTransactionId');
-			console.log( sql.countByTransactionId);
-			console.log('{ id: trs.asset.inTransfer.dappId } ');
-			console.log({ id: trs.asset.inTransfer.dappId } );
 
 			dbStub.one.withArgs(sql.countByTransactionId, {
 				id: trs.asset.inTransfer.dappId
