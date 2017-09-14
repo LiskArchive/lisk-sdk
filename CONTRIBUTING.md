@@ -44,6 +44,7 @@ In case you've never submitted a pull request (PR) via GitHub before, please rea
 3. Ensure the test suite passes (`npm test`).
 4. Submit a pull request via GitHub.
 5. Check that Jenkins CI tests pass (pull request turns green).
+New developers probably need to wait for a trusted team member to start Jenkins CI on a Pull Request
 
 ### Reporting Bugs
 
@@ -144,6 +145,6 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 ### JavaScript Styleguide
 
-Our JavaScript style is expending the [airbnb](https://github.com/airbnb/javascript) style. You can get more details here: https://github.com/LiskHQ/eslint-config-lisk-base
+Our JavaScript style expands [Airbnb's](https://github.com/airbnb/javascript) style. You can get more details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
-This Contributing guidelines was inspired by and is based on Atom's contribution guidelines and modified for purposes of this repository: https://github.com/atom/atom/blob/master/CONTRIBUTING.md
+These contribution guidelines were inspired by and are based on Atom's contribution guidelines. They were modified for the purposes of this repository. https://github.com/atom/atom/blob/master/CONTRIBUTING.md
