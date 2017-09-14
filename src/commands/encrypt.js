@@ -13,23 +13,20 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import readline from 'readline';
 import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 import {
-	ERROR_PASSPHRASE_VERIFICATION_FAIL,
-	getPassphraseFromPrompt,
+	getStdIn,
+	getPassphrase,
+	splitSource,
 } from '../utils/input';
 
-const ERROR_PREFIX = 'Could not encrypt: ';
-const createErrorMessage = str => `${ERROR_PREFIX}${str}`;
-
-const ERROR_MESSAGE_MISSING = createErrorMessage('No message was provided.');
-const ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET = createErrorMessage('Passphrase environmental variable not set.');
-const ERROR_FILE_DOES_NOT_EXIST = createErrorMessage('File does not exist.');
-const ERROR_FILE_UNREADABLE = createErrorMessage('File could not be read.');
+const ERROR_MESSAGE_MISSING = 'No message was provided.';
+const ERROR_MESSAGE_SOURCE_TYPE_UNKNOWN = 'Unknown message source type. Must be one of `file`, or `stdin`.';
+const ERROR_FILE_DOES_NOT_EXIST = 'File does not exist.';
+const ERROR_FILE_UNREADABLE = 'File could not be read.';
 
 const messageOptionDescription = `
 Specifies a source for the message you would like to encrypt. If a message is provided directly as an argument, this option will be ignored.
@@ -42,44 +39,11 @@ Examples:
 - \`--message stdin\`
 `.trim();
 
-const splitSource = (source) => {
-	const delimiter = ':';
-	const sourceParts = source.split(delimiter);
-	return {
-		sourceType: sourceParts[0],
-		sourceIdentifier: sourceParts.slice(1).join(delimiter),
-	};
-};
+const getDataFromFile = async path => fse.readFileSync(path, 'utf8');
 
-const getStdIn = ({ getMessage, getPassphrase }) => new Promise((resolve) => {
-	if (!getMessage && !getPassphrase) return resolve({});
-
-	const lines = [];
-	const rl = readline.createInterface({ input: process.stdin });
-
-	const handleLine = line => (
-		getMessage
-			? lines.push(line)
-			: resolve({ passphrase: line }) || rl.close()
-	);
-	const handleClose = () => {
-		const messageLines = getPassphrase ? lines.slice(1) : lines;
-		return resolve({
-			message: getMessage ? messageLines.join('\n') : null,
-			passphrase: getPassphrase ? lines[0] : null,
-		});
-	};
-
-	return rl
-		.on('line', handleLine)
-		.on('close', handleClose);
-});
-
-const getMessageFromFile = async path => fse.readFileSync(path, 'utf8');
-
-const getMessage = async (arg, source, { message }) => {
+const getData = async (arg, source, { data }) => {
 	if (arg) return arg;
-	if (typeof message === 'string') return message;
+	if (typeof data === 'string') return data;
 	if (!source) {
 		throw new Error(ERROR_MESSAGE_MISSING);
 	}
@@ -87,53 +51,10 @@ const getMessage = async (arg, source, { message }) => {
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	if (sourceType !== 'file') {
-		throw new Error('Unknown message source type: Must be one of `file`, or `stdin`.');
+		throw new Error(ERROR_MESSAGE_SOURCE_TYPE_UNKNOWN);
 	}
 
-	return getMessageFromFile(sourceIdentifier);
-};
-
-const getPassphraseFromEnvVariable = (key) => {
-	const passphrase = process.env[key];
-	if (!passphrase) {
-		throw new Error(ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET);
-	}
-	return passphrase;
-};
-
-const getPassphraseFromFile = path => new Promise((resolve, reject) => {
-	const stream = fse.createReadStream(path);
-	const handleReadError = (error) => {
-		stream.close();
-		reject(error);
-	};
-	const handleLine = (line) => {
-		stream.close();
-		resolve(line);
-	};
-
-	stream.on('error', handleReadError);
-
-	readline.createInterface({ input: stream })
-		.on('error', handleReadError)
-		.on('line', handleLine);
-});
-
-const getPassphraseFromSource = async (source, { passphrase }) => {
-	if (passphrase) return passphrase;
-
-	const { sourceType, sourceIdentifier } = splitSource(source);
-
-	switch (sourceType) {
-	case 'env':
-		return getPassphraseFromEnvVariable(sourceIdentifier);
-	case 'file':
-		return getPassphraseFromFile(sourceIdentifier);
-	case 'pass':
-		return sourceIdentifier;
-	default:
-		throw new Error('Unknown passphrase source type: Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.');
-	}
+	return getDataFromFile(sourceIdentifier);
 };
 
 const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]) => {
@@ -143,34 +64,29 @@ const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]
 
 const handleError = (error) => {
 	const { name, message } = error;
+	let messageToPrint = message || name;
 
-	if (message === ERROR_PASSPHRASE_VERIFICATION_FAIL) {
-		return { error: createErrorMessage(message) };
-	}
 	if (message.match(/ENOENT/)) {
-		return { error: ERROR_FILE_DOES_NOT_EXIST };
+		messageToPrint = ERROR_FILE_DOES_NOT_EXIST;
 	}
 	if (message.match(/EACCES/)) {
-		return { error: ERROR_FILE_UNREADABLE };
+		messageToPrint = ERROR_FILE_UNREADABLE;
 	}
 
-	return { error: message || name };
+	return { error: `Could not encrypt: ${messageToPrint}` };
 };
 
 const encrypt = vorpal => ({ message, recipient, options }) => {
 	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
-	const getPassphrase = passphraseSource
-		? getPassphraseFromSource.bind(null, passphraseSource)
-		: getPassphraseFromPrompt.bind(null, vorpal);
 
 	return getStdIn({
-		getPassphrase: passphraseSource === 'stdin',
-		getMessage: messageSource === 'stdin',
+		passphraseIsRequired: passphraseSource === 'stdin',
+		dataIsRequired: messageSource === 'stdin',
 	})
 		.then(stdIn => Promise.all([
-			getPassphrase(stdIn),
-			getMessage(message, messageSource, stdIn),
+			getPassphrase(vorpal, passphraseSource, stdIn),
+			getData(message, messageSource, stdIn),
 		]))
 		.then(handleMessageAndPassphrase(vorpal, recipient))
 		.catch(handleError)
