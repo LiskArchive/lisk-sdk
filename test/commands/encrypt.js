@@ -21,11 +21,9 @@ import { setUpVorpalWithCommand } from './utils';
 
 describe('lisky encrypt command palette', () => {
 	let vorpal;
-	let capturedOutput;
 
 	beforeEach(() => {
-		capturedOutput = [];
-		vorpal = setUpVorpalWithCommand(encrypt, capturedOutput);
+		vorpal = setUpVorpalWithCommand(encrypt);
 	});
 
 	afterEach(() => {
