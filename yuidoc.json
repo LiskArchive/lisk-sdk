@@ -1,7 +1,7 @@
 {
   "name": "Lisk JS",
   "description": "JavaScript library for sending Lisk transactions from the client or server",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "url": "https://www.npmjs.com/package/lisk-js",
   "options": {
     "outdir": "yuidoc",
