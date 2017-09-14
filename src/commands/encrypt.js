@@ -13,20 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import fse from 'fs-extra';
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 import {
 	getStdIn,
 	getPassphrase,
-	splitSource,
+	getData,
 } from '../utils/input';
-
-const ERROR_MESSAGE_MISSING = 'No message was provided.';
-const ERROR_MESSAGE_SOURCE_TYPE_UNKNOWN = 'Unknown message source type. Must be one of `file`, or `stdin`.';
-const ERROR_FILE_DOES_NOT_EXIST = 'File does not exist.';
-const ERROR_FILE_UNREADABLE = 'File could not be read.';
 
 const messageOptionDescription = `
 Specifies a source for the message you would like to encrypt. If a message is provided directly as an argument, this option will be ignored.
@@ -39,42 +33,10 @@ Examples:
 - \`--message stdin\`
 `.trim();
 
-const getDataFromFile = async path => fse.readFileSync(path, 'utf8');
+const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]) =>
+	cryptoModule.encrypt(message, passphrase, recipient);
 
-const getData = async (arg, source, { data }) => {
-	if (arg) return arg;
-	if (typeof data === 'string') return data;
-	if (!source) {
-		throw new Error(ERROR_MESSAGE_MISSING);
-	}
-
-	const { sourceType, sourceIdentifier } = splitSource(source);
-
-	if (sourceType !== 'file') {
-		throw new Error(ERROR_MESSAGE_SOURCE_TYPE_UNKNOWN);
-	}
-
-	return getDataFromFile(sourceIdentifier);
-};
-
-const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, message]) => {
-	const passphraseString = passphrase.toString();
-	return cryptoModule.encrypt(message, passphraseString, recipient);
-};
-
-const handleError = (error) => {
-	const { name, message } = error;
-	let messageToPrint = message || name;
-
-	if (message.match(/ENOENT/)) {
-		messageToPrint = ERROR_FILE_DOES_NOT_EXIST;
-	}
-	if (message.match(/EACCES/)) {
-		messageToPrint = ERROR_FILE_UNREADABLE;
-	}
-
-	return { error: `Could not encrypt: ${messageToPrint}` };
-};
+const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
 
 const encrypt = vorpal => ({ message, recipient, options }) => {
 	const messageSource = options.message;

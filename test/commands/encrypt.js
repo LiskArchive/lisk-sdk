@@ -13,37 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import fse from 'fs-extra';
-import { exec } from 'child_process';
 import encrypt from '../../src/commands/encrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
 import * as input from '../../src/utils/input';
-import tablify from '../../src/utils/tablify';
+import * as print from '../../src/utils/print';
 import { setUpVorpalWithCommand } from './utils';
-
-const createStreamStub = on => ({
-	resume: () => {},
-	close: () => {},
-	on,
-});
-
-const prepareRow = row => row.split('│').filter(Boolean).map(s => s.trim());
-const parseTable = (output) => {
-	const rows = output.split('\n');
-	return {
-		head: prepareRow(rows[1]),
-		body: prepareRow(rows[3]),
-	};
-};
-
-const createStringCommand = cliCommand => `
-	var Vorpal = require('vorpal');
-	var encrypt = require('./src/commands/encrypt').default;
-
-	var vorpal = new Vorpal();
-	vorpal.use(encrypt);
-	vorpal.exec('${cliCommand}');
-`.trim();
 
 describe('lisky encrypt command palette', () => {
 	let vorpal;
@@ -77,10 +51,13 @@ describe('lisky encrypt command palette', () => {
 	});
 
 	describe('when executed', () => {
-		const message = 'Hello Lisker';
+		const message = 'Some important message';
 		const multilineMessage = 'Some important message\nthat spans\nmultiple lines\n';
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
+		const defaultPassphraseSource = `pass:${secret}`;
+		const commandWithMessage = `encrypt ${recipient} "${message}"`;
+		const commandWithPassphrase = `encrypt ${recipient} --passphrase "${defaultPassphraseSource}"`;
 
 		const nonce = '60ee6cbb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
 		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
@@ -88,469 +65,379 @@ describe('lisky encrypt command palette', () => {
 			nonce,
 			encryptedMessage,
 		};
-		const tableOutput = tablify(cryptoEncryptReturnObject).toString();
-		const jsonOutput = JSON.stringify(cryptoEncryptReturnObject);
+		const defaultErrorMessage = 'Some error message.';
+		const wrappedErrorMessage = `Could not encrypt: ${defaultErrorMessage}`;
 
+		let stdInResult;
+		let getStdInStub;
+		let getPassphraseStub;
+		let getDataStub;
 		let encryptStub;
+		let printSpy;
+		let printResultStub;
 
 		beforeEach(() => {
-			encryptStub = sinon
-				.stub(cryptoModule, 'encrypt')
-				.returns(cryptoEncryptReturnObject);
+			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
+			getPassphraseStub = sinon.stub(input, 'getPassphrase').resolves(secret);
+			getDataStub = sinon.stub(input, 'getData').resolves(message);
+			encryptStub = sinon.stub(cryptoModule, 'encrypt').returns(cryptoEncryptReturnObject);
+			printSpy = sinon.spy();
+			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
 		});
 
 		afterEach(() => {
+			getStdInStub.restore();
+			getPassphraseStub.restore();
+			getDataStub.restore();
 			encryptStub.restore();
+			printResultStub.restore();
+		});
+
+		describe('if the stdin cannot be retrieved', () => {
+			beforeEach(() => {
+				getStdInStub.rejects(new Error(defaultErrorMessage));
+				return vorpal.exec(commandWithMessage);
+			});
+
+			it('should inform the user the encryption was not successful', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+			});
+		});
+
+		describe('if an error occurs during encryption', () => {
+			beforeEach(() => {
+				encryptStub.rejects(new Error(defaultErrorMessage));
+				return vorpal.exec(commandWithMessage);
+			});
+
+			it('should inform the user the encryption was not successful', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+			});
 		});
 
 		describe('passphrase', () => {
-			const command = `encrypt ${recipient} "${message}"`;
-			const jsonCommand = `${command} --json`;
-			const jCommand = `${command} -j`;
-			const noJsonCommand = `${command} --no-json`;
+			describe('if the passphrase cannot be retrieved', () => {
+				beforeEach(() => {
+					getPassphraseStub.rejects(new Error(defaultErrorMessage));
+					return vorpal.exec(commandWithMessage);
+				});
+
+				it('should inform the user the encryption was not successful', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+				});
+			});
 
 			describe('with passphrase passed via prompt', () => {
-				let promptStub;
-
 				beforeEach(() => {
-					promptStub = sinon.stub(input, 'getPassphraseFromPrompt').resolves(secret);
+					return vorpal.exec(commandWithMessage);
 				});
 
-				afterEach(() => {
-					promptStub.restore();
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
 				});
 
-				describe('with matching passphrases', () => {
-					it('should call the crypto module encrypt method with correct parameters', () => {
-						return vorpal.exec(command)
-							.then(() => (encryptStub.calledWithExactly(message, secret, recipient))
-								.should.be.true(),
-							);
-					});
-
-					describe('output', () => {
-						it('should print the returned object', () => {
-							return vorpal.exec(command)
-								.then(() => (capturedOutput[0]).should.equal(tableOutput));
-						});
-
-						it('should print json with --json option', () => {
-							return vorpal.exec(jsonCommand)
-								.then(() => (capturedOutput[0]).should.equal(jsonOutput));
-						});
-
-						it('should handle a -j shorthand for --json option', () => {
-							return vorpal.exec(jCommand)
-								.then(() => (capturedOutput[0]).should.equal(jsonOutput));
-						});
-
-						it('should print a table with --no-json option', () => {
-							return vorpal.exec(noJsonCommand)
-								.then(() => (capturedOutput[0]).should.equal(tableOutput));
-						});
-					});
+				it('should call the input util getPassphrase with the correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, undefined, {}))
+						.should.be.true();
 				});
 
-				describe('with non-matching passphrases', () => {
-					beforeEach(() => {
-						promptStub.rejects(new Error('Passphrase verification failed.'));
-					});
+				it('should call the crypto module encrypt method with correct parameters', () => {
+					(encryptStub.calledWithExactly(message, secret, recipient))
+						.should.be.true();
+				});
 
-					it('should inform the user the passwords did not match', () => {
-						const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase verification failed.' }).toString();
-						return vorpal.exec(command)
-							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-					});
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
 			describe('with plaintext passphrase passed via command line', () => {
-				const passPhrasePlainTextCommand = `${command} --passphrase "pass:${secret}"`;
+				const passphraseSource = `pass:${secret}`;
+				const passPhrasePlainTextCommand = `${commandWithMessage} --passphrase "${passphraseSource}"`;
+
+				beforeEach(() => {
+					return vorpal.exec(passPhrasePlainTextCommand);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase method with correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {})).should.be.true();
+				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					return vorpal.exec(passPhrasePlainTextCommand)
-						.then(() => {
-							(encryptStub.calledWithExactly(message, secret, recipient))
-								.should.be.true();
-						});
+					(encryptStub.calledWithExactly(message, secret, recipient)).should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
 			describe('with passphrase passed via environmental variable', () => {
 				const envVariable = 'TEST_PASSPHRASE';
-				const passPhraseEnvCommand = `${command} --passphrase env:${envVariable}`;
-				let initialEnvValue;
+				const passphraseSource = `env:${envVariable}`;
+				const passPhraseEnvCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
 
-				describe('if the environmental variable is not set', () => {
-					before(() => {
-						initialEnvValue = process.env[envVariable];
-						delete process.env[envVariable];
-					});
-
-					after(() => {
-						if (typeof initialEnvValue !== 'undefined') {
-							process.env[envVariable] = initialEnvValue;
-						}
-					});
-
-					it('should inform the user if the environmental variable is not set', () => {
-						const tableOutputError = tablify({ error: 'Could not encrypt: Passphrase environmental variable not set.' }).toString();
-						return vorpal.exec(passPhraseEnvCommand)
-							.then(() => {
-								(capturedOutput[0]).should.equal(tableOutputError);
-							});
-					});
-
-					it('should not call the crypto module encrypt method', () => {
-						return vorpal.exec(passPhraseEnvCommand)
-							.then(() => {
-								(encryptStub.called).should.be.false();
-							});
-					});
+				beforeEach(() => {
+					return vorpal.exec(passPhraseEnvCommand);
 				});
 
-				describe('if the environmental variable is set', () => {
-					before(() => {
-						initialEnvValue = process.env[envVariable];
-						process.env[envVariable] = secret;
-					});
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
 
-					after(() => {
-						if (typeof initialEnvValue === 'undefined') {
-							delete process.env[envVariable];
-						} else {
-							process.env[envVariable] = initialEnvValue;
-						}
-					});
+				it('should call the input util getPassphrase with correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {})).should.be.true();
+				});
 
-					it('should call the crypto module encrypt method with correct parameters', () => {
-						return vorpal.exec(passPhraseEnvCommand)
-							.then(() => {
-								(encryptStub.calledWithExactly(message, secret, recipient))
-									.should.be.true();
-							});
-					});
+				it('should call the crypto module encrypt method with correct parameters', () => {
+					(encryptStub.calledWithExactly(message, secret, recipient)).should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
 			describe('with passphrase passed via file path', () => {
-				const passPhraseFileCommand = `${command} --passphrase file:/path/to/secret.txt`;
+				const passphraseSource = 'file:/path/to/secret.txt';
+				const passPhraseFileCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
 
-				let streamStub;
-				let createReadStreamStub;
-
-				describe('if file does not exist', () => {
-					let doesNotExistError;
-
-					beforeEach(() => {
-						doesNotExistError = new Error('ENOENT: no such file or directory');
-						streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
-						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-						return vorpal.exec(passPhraseFileCommand);
-					});
-
-					afterEach(() => {
-						createReadStreamStub.restore();
-					});
-
-					it('should inform the user that the file does not exist', () => {
-						const tableOutputError = tablify({ error: 'Could not encrypt: File does not exist.' }).toString();
-						(capturedOutput[0]).should.equal(tableOutputError);
-					});
-
-					it('should not call the crypto module encrypt method', () => {
-						(encryptStub.called).should.be.false();
-					});
+				beforeEach(() => {
+					return vorpal.exec(passPhraseFileCommand);
 				});
 
-				describe('if file cannot be read', () => {
-					let permissionError;
-
-					beforeEach(() => {
-						permissionError = new Error('EACCES: permission denied');
-						streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
-						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-						return vorpal.exec(passPhraseFileCommand);
-					});
-
-					afterEach(() => {
-						createReadStreamStub.restore();
-					});
-
-					it('should inform the user that the file cannot be read', () => {
-						const tableOutputError = tablify({ error: 'Could not encrypt: File could not be read.' }).toString();
-						(capturedOutput[0]).should.equal(tableOutputError);
-					});
-
-					it('should not call the crypto module encrypt method', () => {
-						(encryptStub.called).should.be.false();
-					});
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
 				});
 
-				describe('if an unexpected error occurs', () => {
-					const unknownErrorMessage = 'unknown error';
-					let unknownError;
-
-					beforeEach(() => {
-						unknownError = new Error(unknownErrorMessage);
-						streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
-						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-					});
-
-					afterEach(() => {
-						createReadStreamStub.restore();
-					});
-
-					it('should print the error message if it has one', () => {
-						const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
-						return vorpal.exec(passPhraseFileCommand)
-							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-					});
-
-					it('should print the error name if it has no message', () => {
-						delete unknownError.message;
-						const name = 'Dr Error';
-						unknownError.name = name;
-						const tableOutputError = tablify({ error: name }).toString();
-
-						return vorpal.exec(passPhraseFileCommand)
-							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-					});
+				it('should call the input util getPassphrase method with correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {}))
+						.should.be.true();
 				});
 
-				describe('if file can be read', () => {
-					beforeEach(() => {
-						streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(Buffer.from(`${secret}\nsome other stuff on a new line`))));
-						createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-					});
+				it('should call the crypto module encrypt method with correct parameters', () => {
+					(encryptStub.calledWithExactly(message, secret, recipient))
+						.should.be.true();
+				});
 
-					afterEach(() => {
-						createReadStreamStub.restore();
-					});
-
-					it('should call the crypto module encrypt method with correct parameters', () => {
-						return vorpal.exec(passPhraseFileCommand)
-							.then(() => {
-								(encryptStub.calledWithExactly(message, secret, recipient))
-									.should.be.true();
-							});
-					});
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
-			describe('with passphrase passed via stdin', function withPassphrasePassedViaStdIn() {
-				this.timeout(5e3);
+			describe('with passphrase passed via stdin', () => {
+				const passphraseSource = 'stdin';
+				const passPhraseStdInCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
 
-				const passPhraseStdInCommand = `${command} --passphrase stdin`;
-				const cliCommand = passPhraseStdInCommand.replace(/"/g, '\\"');
-				const liskyCommand = createStringCommand(cliCommand);
-				const childCommand = `echo "${secret}" | babel-node -e "${liskyCommand}"`;
-
-				it('should use the passphrase without a prompt', () => {
-					return new Promise((resolve) => {
-						exec(childCommand, (_, stdout) => {
-							resolve(stdout);
-						});
-					})
-						.then((stdout) => {
-							const { head, body } = parseTable(stdout);
-
-							(head).should.eql(['nonce', 'encryptedMessage']);
-							(body[0]).should.be.hexString().and.have.length(48);
-							(body[1]).should.be.hexString();
-						});
+				beforeEach(() => {
+					stdInResult = { passphrase: secret };
+					getStdInStub.resolves(stdInResult);
+					return vorpal.exec(passPhraseStdInCommand);
 				});
-			});
 
-			describe('with invalid passphrase source specified', () => {
-				const passPhraseInvalidCommand = `${command} --passphrase unknown:${secret}`;
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: true,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
 
-				it('should inform the user that the source type is invalid', () => {
-					const tableOutputError = tablify({ error: 'Unknown passphrase source type: Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.' }).toString();
-					return vorpal.exec(passPhraseInvalidCommand)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+				it('should call the input util getPassphrase with the correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, stdInResult))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encrypt method with correct parameters', () => {
+					(encryptStub.calledWithExactly(message, secret, recipient))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 		});
 
 		describe('message', () => {
-			const command = `encrypt ${recipient} --passphrase "pass:${secret}"`;
+			describe('if the message cannot be retrieved', () => {
+				beforeEach(() => {
+					getDataStub.rejects(new Error(defaultErrorMessage));
+					return vorpal.exec(commandWithMessage);
+				});
 
-			describe('with plaintext message passed via command line', () => {
-				const messagePlainTextCommand = `${command} "${message}"`;
+				it('should inform the user the encryption was not successful', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+				});
+			});
+
+			describe('with message passed as a command line argument', () => {
+				const messagePlainTextCommand = `${commandWithPassphrase} "${message}"`;
+
+				beforeEach(() => {
+					getDataStub.resolves(message);
+					return vorpal.exec(messagePlainTextCommand);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, {}))
+						.should.be.true();
+				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					return vorpal.exec(messagePlainTextCommand)
-						.then(() => {
-							(encryptStub.calledWithExactly(message, secret, recipient))
-								.should.be.true();
-						});
+					(encryptStub.calledWithExactly(message, secret, recipient))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource }))
+						.should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
 			describe('with message passed via file path', () => {
-				const messageFileCommand = `${command} --message file:/path/to/message.txt`;
+				const messageFileCommand = `${commandWithPassphrase} --message file:/path/to/message.txt`;
 
-				let readFileSyncStub;
-
-				describe('if file does not exist', () => {
-					let doesNotExistError;
-
-					beforeEach(() => {
-						doesNotExistError = new Error('ENOENT: no such file or directory');
-						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(doesNotExistError);
-						return vorpal.exec(messageFileCommand);
-					});
-
-					afterEach(() => {
-						readFileSyncStub.restore();
-					});
-
-					it('should inform the user that the file does not exist', () => {
-						const tableOutputError = tablify({ error: 'Could not encrypt: File does not exist.' }).toString();
-						(capturedOutput[0]).should.equal(tableOutputError);
-					});
-
-					it('should not call the crypto module encrypt method', () => {
-						(encryptStub.called).should.be.false();
-					});
+				beforeEach(() => {
+					getDataStub.resolves(multilineMessage);
+					return vorpal.exec(messageFileCommand);
 				});
 
-				describe('if file cannot be read', () => {
-					let permissionError;
-
-					beforeEach(() => {
-						permissionError = new Error('EACCES: permission denied');
-						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(permissionError);
-						return vorpal.exec(messageFileCommand);
-					});
-
-					afterEach(() => {
-						readFileSyncStub.restore();
-					});
-
-					it('should inform the user that the file cannot be read', () => {
-						const tableOutputError = tablify({ error: 'Could not encrypt: File could not be read.' }).toString();
-						(capturedOutput[0]).should.equal(tableOutputError);
-					});
-
-					it('should not call the crypto module encrypt method', () => {
-						(encryptStub.called).should.be.false();
-					});
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
 				});
 
-				describe('if an unexpected error occurs', () => {
-					const unknownErrorMessage = 'unknown error';
-					let unknownError;
-
-					beforeEach(() => {
-						unknownError = new Error(unknownErrorMessage);
-						readFileSyncStub = sinon.stub(fse, 'readFileSync').throws(unknownError);
-					});
-
-					afterEach(() => {
-						readFileSyncStub.restore();
-					});
-
-					it('should print the error message if it has one', () => {
-						const tableOutputError = tablify({ error: unknownErrorMessage }).toString();
-						return vorpal.exec(messageFileCommand)
-							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-					});
-
-					it('should print the error name if it has no message', () => {
-						delete unknownError.message;
-						const name = 'Dr Error';
-						unknownError.name = name;
-						const tableOutputError = tablify({ error: name }).toString();
-
-						return vorpal.exec(messageFileCommand)
-							.then(() => (capturedOutput[0]).should.equal(tableOutputError));
-					});
+				it('should call the input util getPassphrase with the correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, {}))
+						.should.be.true();
 				});
 
-				describe('if file can be read', () => {
-					beforeEach(() => {
-						readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(multilineMessage);
-					});
+				it('should call the crypto module encrypt method with correct parameters', () => {
+					(encryptStub.calledWithExactly(multilineMessage, secret, recipient))
+						.should.be.true();
+				});
 
-					afterEach(() => {
-						readFileSyncStub.restore();
-					});
-
-					it('should call the crypto module encrypt method with correct parameters', () => {
-						return vorpal.exec(messageFileCommand)
-							.then(() => {
-								(encryptStub.calledWithExactly(multilineMessage, secret, recipient))
-									.should.be.true();
-							});
-					});
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, message: 'file:/path/to/message.txt' }))
+						.should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
-			describe('with message passed via stdin', function withMessagePassedViaStdIn() {
-				this.timeout(5e3);
+			describe('with message passed via stdin', () => {
+				const messageStdInCommand = `${commandWithPassphrase} --message stdin`;
 
-				const messageStdInCommand = `${command} --message stdin`;
-				const cliCommand = messageStdInCommand.replace(/"/g, '\\"');
-				const liskyCommand = createStringCommand(cliCommand);
-				const childCommand = `echo "${multilineMessage}" | babel-node -e "${liskyCommand}"`;
-
-				it('should use the message without a prompt', () => {
-					return new Promise((resolve) => {
-						exec(childCommand, (_, stdout) => {
-							resolve(stdout);
-						});
-					})
-						.then((stdout) => {
-							const { head, body } = parseTable(stdout);
-
-							(head).should.eql(['nonce', 'encryptedMessage']);
-							(body[0]).should.be.hexString().and.have.length(48);
-							(body[1]).should.be.hexString();
-						});
+				beforeEach(() => {
+					stdInResult = { data: multilineMessage };
+					getStdInStub.resolves(stdInResult);
+					getDataStub.resolves(multilineMessage);
+					return vorpal.exec(messageStdInCommand);
 				});
-			});
 
-			describe('with invalid message source specified', () => {
-				const invalidMessageSourceCommand = `${command} --message "unknown:${message}"`;
-
-				it('should inform the user that an invalid message source has been provided', () => {
-					const tableOutputError = tablify({ error: 'Unknown message source type: Must be one of `file`, or `stdin`.' }).toString();
-					return vorpal.exec(invalidMessageSourceCommand)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: true,
+					}))
+						.should.be.true();
 				});
-			});
 
-			describe('with no message source specified', () => {
-				it('should inform the user that no message has been provided', () => {
-					const tableOutputError = tablify({ error: 'Could not encrypt: No message was provided.' }).toString();
-					return vorpal.exec(command)
-						.then(() => (capturedOutput[0]).should.equal(tableOutputError));
+				it('should call the input util getPassphrase with the correct parameters', () => {
+					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, stdInResult))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encrypt method with correct parameters', () => {
+					(encryptStub.calledWithExactly(multilineMessage, secret, recipient))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, message: 'stdin' }))
+						.should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 		});
 
-		describe('with passphrase and message passed via stdin', function withPassphraseAndMessagePassedViaStdin() {
-			this.timeout(5e3);
-
+		describe('with passphrase and message passed via stdin', () => {
 			const passphraseAndMessageStdInCommand = `encrypt ${recipient} --message stdin --passphrase stdin`;
-			const liskyCommand = createStringCommand(passphraseAndMessageStdInCommand);
-			const childCommand = `echo "${secret}\n${multilineMessage}" | babel-node -e "${liskyCommand}"`;
 
-			it('should should successfully encrypt the message with the passphrase', () => {
-				return new Promise((resolve) => {
-					exec(childCommand, (_, stdout) => {
-						resolve(stdout);
-					});
-				})
-					.then((stdout) => {
-						const { head, body } = parseTable(stdout);
+			beforeEach(() => {
+				stdInResult = { passphrase: secret, data: multilineMessage };
+				getStdInStub.resolves(stdInResult);
+				getDataStub.resolves(multilineMessage);
+				return vorpal.exec(passphraseAndMessageStdInCommand);
+			});
 
-						(head).should.eql(['nonce', 'encryptedMessage']);
-						(body[0]).should.be.hexString().and.have.length(48);
-						(body[1]).should.be.hexString();
-					});
+			it('should call the input util getStdIn with the correct parameters', () => {
+				(getStdInStub.calledWithExactly({
+					passphraseIsRequired: true,
+					dataIsRequired: true,
+				}))
+					.should.be.true();
+			});
+
+			it('should call the input util getPassphrase with the correct parameters', () => {
+				(getPassphraseStub.calledWithExactly(vorpal, 'stdin', stdInResult))
+					.should.be.true();
+			});
+
+			it('should call the crypto module encrypt method with correct parameters', () => {
+				(encryptStub.calledWithExactly(multilineMessage, secret, recipient))
+					.should.be.true();
+			});
+
+			it('should print the result', () => {
+				(printResultStub.calledWithExactly(vorpal, { passphrase: 'stdin', message: 'stdin' }))
+					.should.be.true();
+				(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 			});
 		});
 	});
