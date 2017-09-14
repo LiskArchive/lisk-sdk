@@ -146,6 +146,11 @@ describe('lisky encrypt command palette', () => {
 						.should.be.true();
 				});
 
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(data, undefined, {}))
+						.should.be.true();
+				});
+
 				it('should call the crypto module encrypt method with correct parameters', () => {
 					(encryptStub.calledWithExactly(data, secret, recipient))
 						.should.be.true();
@@ -175,6 +180,11 @@ describe('lisky encrypt command palette', () => {
 
 				it('should call the input util getPassphrase method with correct parameters', () => {
 					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {})).should.be.true();
+				});
+
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(data, undefined, {}))
+						.should.be.true();
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
@@ -209,6 +219,11 @@ describe('lisky encrypt command palette', () => {
 					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {})).should.be.true();
 				});
 
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(data, undefined, {}))
+						.should.be.true();
+				});
+
 				it('should call the crypto module encrypt method with correct parameters', () => {
 					(encryptStub.calledWithExactly(data, secret, recipient)).should.be.true();
 				});
@@ -238,6 +253,11 @@ describe('lisky encrypt command palette', () => {
 
 				it('should call the input util getPassphrase method with correct parameters', () => {
 					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {}))
+						.should.be.true();
+				});
+
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(data, undefined, {}))
 						.should.be.true();
 				});
 
@@ -276,6 +296,11 @@ describe('lisky encrypt command palette', () => {
 						.should.be.true();
 				});
 
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(data, undefined, { passphrase: secret }))
+						.should.be.true();
+				});
+
 				it('should call the crypto module encrypt method with correct parameters', () => {
 					(encryptStub.calledWithExactly(data, secret, recipient))
 						.should.be.true();
@@ -289,8 +314,8 @@ describe('lisky encrypt command palette', () => {
 			});
 		});
 
-		describe('message', () => {
-			describe('if the message cannot be retrieved', () => {
+		describe('data', () => {
+			describe('if the data cannot be retrieved', () => {
 				beforeEach(() => {
 					getDataStub.rejects(new Error(defaultErrorMessage));
 					return vorpal.exec(commandWithMessage);
@@ -302,12 +327,12 @@ describe('lisky encrypt command palette', () => {
 				});
 			});
 
-			describe('with message passed as a command line argument', () => {
-				const messagePlainTextCommand = `${commandWithPassphrase} "${data}"`;
+			describe('with data passed as a command line argument', () => {
+				const dataPlainTextCommand = `${commandWithPassphrase} "${data}"`;
 
 				beforeEach(() => {
 					getDataStub.resolves(data);
-					return vorpal.exec(messagePlainTextCommand);
+					return vorpal.exec(dataPlainTextCommand);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -320,6 +345,11 @@ describe('lisky encrypt command palette', () => {
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
 					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, {}))
+						.should.be.true();
+				});
+
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(data, undefined, {}))
 						.should.be.true();
 				});
 
@@ -335,12 +365,12 @@ describe('lisky encrypt command palette', () => {
 				});
 			});
 
-			describe('with message passed via file path', () => {
-				const messageFileCommand = `${commandWithPassphrase} --data file:/path/to/message.txt`;
+			describe('with data passed via file path', () => {
+				const dataFileCommand = `${commandWithPassphrase} --data file:/path/to/data.txt`;
 
 				beforeEach(() => {
 					getDataStub.resolves(multilineData);
-					return vorpal.exec(messageFileCommand);
+					return vorpal.exec(dataFileCommand);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -356,26 +386,31 @@ describe('lisky encrypt command palette', () => {
 						.should.be.true();
 				});
 
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(undefined, 'file:/path/to/data.txt', {}))
+						.should.be.true();
+				});
+
 				it('should call the crypto module encrypt method with correct parameters', () => {
 					(encryptStub.calledWithExactly(multilineData, secret, recipient))
 						.should.be.true();
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, data: 'file:/path/to/message.txt' }))
+					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, data: 'file:/path/to/data.txt' }))
 						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
-			describe('with message passed via stdin', () => {
-				const messageStdInCommand = `${commandWithPassphrase} --data stdin`;
+			describe('with data passed via stdin', () => {
+				const dataStdInCommand = `${commandWithPassphrase} --data stdin`;
 
 				beforeEach(() => {
 					stdInResult = { data: multilineData };
 					getStdInStub.resolves(stdInResult);
 					getDataStub.resolves(multilineData);
-					return vorpal.exec(messageStdInCommand);
+					return vorpal.exec(dataStdInCommand);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -388,6 +423,11 @@ describe('lisky encrypt command palette', () => {
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
 					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, stdInResult))
+						.should.be.true();
+				});
+
+				it('should call the input util getData with the correct parameters', () => {
+					(getDataStub.calledWithExactly(undefined, 'stdin', { data: multilineData }))
 						.should.be.true();
 				});
 
@@ -404,14 +444,14 @@ describe('lisky encrypt command palette', () => {
 			});
 		});
 
-		describe('with passphrase and message passed via stdin', () => {
-			const passphraseAndMessageStdInCommand = `encrypt ${recipient} --data stdin --passphrase stdin`;
+		describe('with passphrase and data passed via stdin', () => {
+			const passphraseAndDataStdInCommand = `encrypt ${recipient} --data stdin --passphrase stdin`;
 
 			beforeEach(() => {
 				stdInResult = { passphrase: secret, data: multilineData };
 				getStdInStub.resolves(stdInResult);
 				getDataStub.resolves(multilineData);
-				return vorpal.exec(passphraseAndMessageStdInCommand);
+				return vorpal.exec(passphraseAndDataStdInCommand);
 			});
 
 			it('should call the input util getStdIn with the correct parameters', () => {
@@ -424,6 +464,11 @@ describe('lisky encrypt command palette', () => {
 
 			it('should call the input util getPassphrase with the correct parameters', () => {
 				(getPassphraseStub.calledWithExactly(vorpal, 'stdin', stdInResult))
+					.should.be.true();
+			});
+
+			it('should call the input util getData with the correct parameters', () => {
+				(getDataStub.calledWithExactly(undefined, 'stdin', { passphrase: secret, data: multilineData }))
 					.should.be.true();
 			});
 
