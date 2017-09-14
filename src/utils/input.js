@@ -21,6 +21,8 @@ const ERROR_PASSPHRASE_SOURCE_TYPE_UNKNOWN = 'Unknown passphrase source type. Mu
 const ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET = 'Passphrase environmental variable not set.';
 const ERROR_FILE_DOES_NOT_EXIST = 'File does not exist.';
 const ERROR_FILE_UNREADABLE = 'File could not be read.';
+const ERROR_DATA_MISSING = 'No data was provided.';
+const ERROR_DATA_SOURCE_TYPE_UNKNOWN = 'Unknown data source type. Must be one of `file`, or `stdin`.';
 
 export const splitSource = (source) => {
 	const delimiter = ':';
@@ -31,29 +33,30 @@ export const splitSource = (source) => {
 	};
 };
 
-export const getStdIn = ({ dataIsRequired, passphraseIsRequired }) => new Promise((resolve) => {
-	if (!dataIsRequired && !passphraseIsRequired) return resolve({});
+export const getStdIn = ({ dataIsRequired, passphraseIsRequired } = {}) =>
+	new Promise((resolve) => {
+		if (!dataIsRequired && !passphraseIsRequired) return resolve({});
 
-	const lines = [];
-	const rl = readline.createInterface({ input: process.stdin });
+		const lines = [];
+		const rl = readline.createInterface({ input: process.stdin });
 
-	const handleLine = line => (
-		dataIsRequired
-			? lines.push(line)
-			: resolve({ passphrase: line }) || rl.close()
-	);
-	const handleClose = () => {
-		const messageLines = passphraseIsRequired ? lines.slice(1) : lines;
-		return resolve({
-			data: dataIsRequired ? messageLines.join('\n') : null,
-			passphrase: passphraseIsRequired ? lines[0] : null,
-		});
-	};
+		const handleLine = line => (
+			dataIsRequired
+				? lines.push(line)
+				: resolve({ passphrase: line }) || rl.close()
+		);
+		const handleClose = () => {
+			const dataLines = passphraseIsRequired ? lines.slice(1) : lines;
+			return resolve({
+				data: dataLines.join('\n'),
+				passphrase: passphraseIsRequired ? lines[0] : null,
+			});
+		};
 
-	return rl
-		.on('line', handleLine)
-		.on('close', handleClose);
-});
+		return rl
+			.on('line', handleLine)
+			.on('close', handleClose);
+	});
 
 export const createPromptOptions = message => ({
 	type: 'password',
@@ -135,4 +138,32 @@ export const getPassphrase = async (vorpal, passphraseSource, { passphrase } = {
 	if (passphrase) return passphrase;
 	if (!passphraseSource) return getPassphraseFromPrompt(vorpal);
 	return getPassphraseFromSource(passphraseSource);
+};
+
+export const getDataFromFile = async path => fse.readFileSync(path, 'utf8');
+
+export const getData = async (arg, source, { data } = {}) => {
+	if (arg) return arg;
+	if (typeof data === 'string') return data;
+	if (!source) {
+		throw new Error(ERROR_DATA_MISSING);
+	}
+
+	const { sourceType, sourceIdentifier } = splitSource(source);
+
+	if (sourceType !== 'file') {
+		throw new Error(ERROR_DATA_SOURCE_TYPE_UNKNOWN);
+	}
+
+	return getDataFromFile(sourceIdentifier)
+		.catch((error) => {
+			const { message } = error;
+			if (message.match(/ENOENT/)) {
+				throw new Error(ERROR_FILE_DOES_NOT_EXIST);
+			}
+			if (message.match(/EACCES/)) {
+				throw new Error(ERROR_FILE_UNREADABLE);
+			}
+			throw error;
+		});
 };
