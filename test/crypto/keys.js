@@ -16,7 +16,7 @@ import {
 	getPrivateAndPublicKeyFromSecret,
 	getRawPrivateAndPublicKeyFromSecret,
 	getKeys,
-	getAddressFromSecret,
+	getAddressAndPublicKeyFromSecret,
 } from '../../src/crypto/keys';
 import {
 	bufferToHex,
@@ -24,12 +24,12 @@ import {
 
 describe('keys', () => {
 	const defaultSecret = 'secret';
-	const defaultAddress = {
-		publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-		address: '18160565574430594874L',
-	};
 	const expectedPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const expectedPrivateKey = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultAddress = {
+		publicKey: expectedPublicKey,
+		address: '18160565574430594874L',
+	};
 	describe('#getPrivateAndPublicKeyFromSecret', () => {
 		const keypair = getPrivateAndPublicKeyFromSecret(defaultSecret);
 
@@ -70,10 +70,9 @@ describe('keys', () => {
 		});
 	});
 
-	describe('#getAddressFromSecret', () => {
+	describe('#getAddressAndPublicKeyFromSecret', () => {
 		it('should create correct address and publicKey', () => {
-			// (LSK.getAddressFromSecret(defaultSecret)).should.eql(defaultAddress);
-			(getAddressFromSecret(defaultSecret)).should.eql(defaultAddress);
+			(getAddressAndPublicKeyFromSecret(defaultSecret)).should.eql(defaultAddress);
 		});
 	});
 });

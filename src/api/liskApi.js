@@ -50,11 +50,11 @@ const livePort = 8000;
 const testPort = 7000;
 const sslPort = 443;
 
-function getDefaultPort(options) {
+const getDefaultPort = (options) => {
 	if (options.testnet) return testPort;
 	if (options.ssl) return sslPort;
 	return livePort;
-}
+};
 
 class LiskAPI {
 	constructor(providedOptions) {
@@ -68,11 +68,6 @@ class LiskAPI {
 
 		this.options = options;
 		this.ssl = options.ssl;
-		// Random peer can be set by settings with randomPeer: true | false
-		// Random peer is automatically enabled when no options.node has been entered. Else will be set
-		// to false.
-		// If the desired behaviour is to have an own node and automatic peer discovery, randomPeer
-		// should be set to true explicitly
 		this.randomPeer = (typeof options.randomPeer === 'boolean') ? options.randomPeer : !(options.node);
 		this.testnet = options.testnet;
 		this.bannedPeers = options.bannedPeers;
@@ -162,9 +157,7 @@ class LiskAPI {
 	 * @return API object
 	 */
 
-	broadcastSignedTransaction(
-		transaction, callback,
-	) {
+	broadcastSignedTransaction(transaction, callback) {
 		const request = {
 			requestUrl: `${privateApi.getFullURL.call(this)}/api/transactions`,
 			nethash: this.nethash,
@@ -184,9 +177,7 @@ class LiskAPI {
 	 * @return APIanswer Object
 	 */
 
-	sendRequest(
-		requestMethod, requestType, optionsOrCallback, callbackIfOptions,
-	) {
+	sendRequest(requestMethod, requestType, optionsOrCallback, callbackIfOptions) {
 		const callback = callbackIfOptions || optionsOrCallback;
 		const options = (typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined')
 			? checkOptions(optionsOrCallback)
@@ -212,9 +203,7 @@ class LiskAPI {
 	 * @return API object
 	 */
 
-	sendLSK(
-		recipientId, amount, secret, secondSecret, callback,
-	) {
+	sendLSK(recipientId, amount, secret, secondSecret, callback) {
 		return this.sendRequest(POST, 'transactions', { recipientId, amount, secret, secondSecret }, callback);
 	}
 }

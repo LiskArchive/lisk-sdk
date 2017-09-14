@@ -60,13 +60,13 @@ export function getKeys(secret) {
 }
 
 /**
- * @method getAddressFromSecret
+ * @method getAddressAndPublicKeyFromSecret
  * @param secret
  *
- * @return keys object
+ * @return {object}
  */
 
-export function getAddressFromSecret(secret) {
+export function getAddressAndPublicKeyFromSecret(secret) {
 	const accountKeys = getKeys(secret);
 	const accountAddress = getAddress(accountKeys.publicKey);
 

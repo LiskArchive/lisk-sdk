@@ -105,11 +105,6 @@ describe('Lisk API module', () => {
 			(LSK).should.be.type('object').and.be.instanceof(LiskAPI);
 		});
 
-		it('should return a new instance of LiskAPI if called with a different context', () => {
-			LSK = new LiskAPI({});
-			LSK.should.be.type('object').and.be.instanceof(LiskAPI);
-		});
-
 		it('should set currentPeer string by default', () => {
 			(LSK).should.have.property('currentPeer').and.be.type('string');
 		});
