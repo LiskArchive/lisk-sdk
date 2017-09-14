@@ -19,59 +19,60 @@ var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
 var validSender = {
-	balance: '0',
-	password: 'zdv72jrts9y8613e4s4i',
-	secondPassword: '33ibzztls7xlrocpzxgvi',
-	username: '9bzuu',
-	publicKey: '967e00fbf215b6227a6521226decfdc14c92cb88d35268787a47ff0e6b92f94a',
-	address: '17603529232728446942L',
-	secondPublicKey: 'b9aa5c8d1e1cbcf97eb6393cda8315b7d35cecbc8e2eb0629fa3cf80df4cdda7'
+	password: '1vi3igdedurk9ctbj4i',
+	secondPassword: 'lpdrphar6g5fcac3di',
+	username: 'p1obslna292ypj',
+	publicKey: '8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
+	address: '12566082625150495618L',
+	secondPublicKey: '32f8c9b4b674c027de01fa685596bdc4ed07caabf6ecac3a8273be6fc4cbe842'
 };
 
 var senderHash = crypto.createHash('sha256').update(validSender.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
-var validTransaction =  { 
-	id: '2273003018673898961',
-	height: 843,
-	blockId: '11870363750006389009',
-	type: 6,
-	timestamp: 40420761,
-	senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
+var validTransaction =  {
+	id: '12010334009048463571',
+	height: 382,
+	blockId: '7608840392099654665',
+	type: 7,
+	timestamp: 41287231,
+	senderPublicKey: '8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
 	requesterPublicKey: undefined,
-	senderId: '2623857243537009424L',
-	recipientId: null,
+	senderId: '12566082625150495618L',
+	recipientId: '477547807936790449L',
 	recipientPublicKey: null,
-	amount: 999,
+	amount: 100,
 	fee: 10000000,
-	signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
+	signature: '126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
 	signSignature: undefined,
 	signatures: [],
-	confirmations: 113,
+	confirmations: 12,
 	asset: {
-		inTransfer:{
-			dappId: '7400202127695414450'
+		outTransfer: {
+			dappId: '4163713078266524209',
+			transactionId: '14144353162277138821' 
 		}
 	}
 };
 
 var rawValidTransaction = {
-	t_id: '2273003018673898961',
-	b_height: 843,
-	t_blockId: '11870363750006389009',
-	t_type: 6,
-	t_timestamp: 40420761,
-	t_senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
+	t_id: '12010334009048463571',
+	b_height: 382,
+	t_blockId: '7608840392099654665',
+	t_type: 7,
+	t_timestamp: 41287231,
+	t_senderPublicKey: '8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
 	m_recipientPublicKey: null,
-	t_senderId: '2623857243537009424L',
-	t_recipientId: null,
-	t_amount: '999',
+	t_senderId: '12566082625150495618L',
+	t_recipientId: '477547807936790449L',
+	t_amount: '100',
 	t_fee: '10000000',
-	t_signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
+	t_signature: '126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
 	t_SignSignature: null,
 	t_signatures: null,
-	confirmations: 113,
-	in_dappId: '7400202127695414450'
+	confirmations: 12,
+	ot_dappId: '4163713078266524209',
+	ot_outTransactionId: '14144353162277138821'
 };
 
 describe('outTransfer', function () {
@@ -99,14 +100,13 @@ describe('outTransfer', function () {
 			mergeAccountAndGet: sinon.stub(),
 			getAccount: sinon.stub()
 		};
-		outTransfer = new OutTransfer(dbStub, modulesLoader.scope.schema);
-		outTransfer.bind(accountsStub, sharedStub);
+		outTransfer = new OutTransfer(dbStub, modulesLoader.scope.schema, modulesLoader.logger);
+		outTransfer.bind(accountsStub);
 	});
 
 	beforeEach(function () {
 		dbStub.one.reset();
 		dbStub.query.reset();
-		sharedStub.getGenesis.reset();
 		accountsStub.mergeAccountAndGet.reset();
 		accountsStub.getAccount.reset();
 	});
@@ -120,13 +120,13 @@ describe('outTransfer', function () {
 	describe('constructor', function () {
 
 		it('should be attach schema and logger to library variable', function () {
-			new OutTransfer(dbStub, modulesLoader.scope.schema);
+			new OutTransfer(dbStub, modulesLoader.scope.schema, modulesLoader.logger);
 			var library = OutTransfer.__get__('library');
-
 
 			expect(library).to.eql({
 				db: dbStub,
 				schema: modulesLoader.scope.schema,
+				logger: modulesLoader.logger
 			});
 		});
 	});
@@ -138,10 +138,8 @@ describe('outTransfer', function () {
 		});
 
 		it('should bind dependent module mocks', function () {
-			outTransfer.bind(accountsStub, sharedStub);
-			var privateShared = OutTransfer.__get__('shared');
+			outTransfer.bind(accountsStub);
 			var privateModules = OutTransfer.__get__('modules');
-			expect(privateShared).to.eql(sharedStub);
 			expect(privateModules).to.eql({
 				accounts: accountsStub
 			});
@@ -157,8 +155,8 @@ describe('outTransfer', function () {
 
 	describe('verify', function () {
 
-		it('should return error if receipient exists', function (done) {
-			trs.recipientId = '4835566122337813671L';
+		it('should return error if receipient does not exists', function (done) {
+			trs.recipientId = '';
 
 			outTransfer.verify(trs, sender, function (err) {
 				expect(err).to.equal('Invalid recipient');
@@ -185,7 +183,7 @@ describe('outTransfer', function () {
 		});
 
 		it('should return error if asset is undefined', function (done) {
-			trs.asset.inTransfer = undefined;
+			trs.asset = undefined;
 
 			outTransfer.verify(trs, sender, function (err) {
 				expect(err).to.equal('Invalid transaction asset');
@@ -193,8 +191,8 @@ describe('outTransfer', function () {
 			});
 		});
 
-		it('should return error if intransfer property is undefined', function (done) {
-			trs.asset.inTransfer = undefined;
+		it('should return error if outtransfer property is undefined', function (done) {
+			trs.asset.outTransfer = undefined;
 
 			outTransfer.verify(trs, sender, function (err) {
 				expect(err).to.equal('Invalid transaction asset');
@@ -202,43 +200,20 @@ describe('outTransfer', function () {
 			});
 		});
 
-		it('should return error if intransfer property is equal to 0', function (done) {
-			trs.asset.inTransfer = 0;
+		it('should return error if dapp id is a hex string', function (done) {
+			trs.asset.outTransfer.dappId = 'ab1231';
 
 			outTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid transaction asset');
+				expect(err).to.equal('Invalid outTransfer dappId');
 				done();
 			});
 		});
 
-		it('should return error if dapp does not exist', function (done) {
-			trs.asset.inTransfer.dappId = '10223892440757987952';
-			console.log(' sql.countByTransactionId');
-			console.log( sql.countByTransactionId);
-			console.log('{ id: trs.asset.inTransfer.dappId } ');
-			console.log({ id: trs.asset.inTransfer.dappId } );
-
-			dbStub.one.withArgs(sql.countByTransactionId, {
-				id: trs.asset.inTransfer.dappId
-			}).resolves({
-				count: 0
-			});
+		it('should return error if dapp transaction id is a hex string', function (done) {
+			trs.asset.outTransfer.transactionId = 'ab1231';
 
 			outTransfer.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application not found: ' + trs.asset.inTransfer.dappId);
-				done();
-			});
-		});
-
-		it('should be okay with valid transaction', function (done) {
-			dbStub.one.withArgs(sql.countByTransactionId, {
-				id: trs.asset.inTransfer.dappId
-			}).resolves({
-				count: 1
-			});
-
-			outTransfer.verify(trs, sender, function (err) {
-				expect(err).to.not.exist;
+				expect(err).to.equal('Invalid outTransfer transactionId');
 				done();
 			});
 		});
@@ -246,8 +221,124 @@ describe('outTransfer', function () {
 
 	describe('process', function () {
 
+		beforeEach(function () {
+			OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
+		});
+
 		it('should call the callback', function (done) {
 			outTransfer.process(trs, sender, done);
+		});
+
+		it('should return error if database (mocked) does not return dapp against dappId', function (done) {
+			dbStub.one.withArgs(sql.countByTransactionId, {
+				id: trs.asset.outTransfer.dappId
+			}).resolves({
+				count: 0
+			});
+
+			outTransfer.process(trs, validSender, function (err) {
+				expect(err).to.equal('Application not found: ' + trs.asset.outTransfer.dappId);
+				expect(dbStub.one.calledOnce).to.equal(true);
+				done();
+			});
+		});
+
+		it('should return error if database (mocked) rejects promise on finding dappId', function (done) {
+			var error = 'Database error'; 
+			dbStub.one.withArgs(sql.countByTransactionId, {
+				id: trs.asset.outTransfer.dappId
+			}).reject(error);
+
+			outTransfer.process(trs, validSender, function (err) {
+				expect(err).to.equal(error);
+				expect(dbStub.one.calledOnce).to.equal(true);
+				done();
+			});
+		});
+
+		it('should return error if database (mocked) does not return dapp against dappId', function (done) {
+			dbStub.one.withArgs(sql.countByTransactionId, {
+				id: trs.asset.outTransfer.dappId
+			}).resolves({
+				count: 0
+			});
+
+			outTransfer.process(trs, validSender, function (err) {
+				expect(dbStub.one.calledOnce).to.equal(true);
+				expect(err).to.equal('Application not found: ' + trs.asset.outTransfer.dappId);
+				done();
+			});
+		});
+
+		it('should return error if it is already processed (unconfirmed)', function (done) {
+			dbStub.one.onCall(0).resolves({
+				count: 1
+			});
+
+			OutTransfer.__set__('__private.unconfirmedOutTansfers', {
+				[trs.asset.outTransfer.transactionId]: true
+			});
+
+			outTransfer.process(trs, validSender, function (err) {
+				expect(dbStub.one.calledOnce).to.equal(true);
+				expect(err).to.equal('Transaction is already processed: ' + trs.asset.outTransfer.transactionId);
+				done();
+			});
+		});
+
+		it('should return error if it is already applied (unconfirmed)', function (done) {
+			dbStub.one.onCall(0).resolves({
+				count: 1
+			});
+
+			dbStub.one.withArgs(sql.countByOutTransactionId, {
+				transactionId: trs.asset.outTransfer.transactionId
+			}).resolves({
+				count: 1
+			});
+
+			outTransfer.process(trs, validSender, function (err) {
+				expect(dbStub.one.calledTwice).to.equal(true);
+				expect(err).to.equal('Transaction is already confirmed: ' + trs.asset.outTransfer.transactionId);
+				done();
+			});
+		});
+
+		it('should return if database (mocked) rejects promise on finding transactionId', function (done) {
+			var error = 'Database error';
+			dbStub.one.onCall(0).resolves({
+				count: 1
+			});
+
+			dbStub.one.withArgs(sql.countByOutTransactionId, {
+				transactionId: trs.asset.outTransfer.transactionId
+			}).rejects(error);
+
+			outTransfer.process(trs, validSender, function (err) {
+				expect(dbStub.one.calledTwice).to.equal(true);
+				expect(err).to.equal(error);
+				done();
+			});
+		});
+
+		it('should be okay if transaction is processed properly', function (done) {
+			dbStub.one.withArgs(sql.countByTransactionId, {
+				id: trs.asset.outTransfer.dappId
+			}).resolves({
+				count: 1
+			});
+
+			dbStub.one.withArgs(sql.countByOutTransactionId, {
+				transactionId: trs.asset.outTransfer.transactionId
+			}).resolves({
+				count: 0
+			});
+
+			outTransfer.process(trs, validSender, function (err) {
+				expect(dbStub.one.calledTwice).to.equal(true);
+				expect(err).to.not.exist;
+				done();
+			});
 		});
 	});
 
