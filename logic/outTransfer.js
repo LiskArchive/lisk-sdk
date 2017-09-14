@@ -31,12 +31,10 @@ function OutTransfer (db, schema, logger) {
 /**
  * Binds input modules to private variable module.
  * @param {Accounts} accounts
- * @param {Dapps} dapps
  */
-OutTransfer.prototype.bind = function (accounts, dapps) {
+OutTransfer.prototype.bind = function (accounts) {
 	modules = {
 		accounts: accounts,
-		dapps: dapps,
 	};
 };
 
@@ -261,7 +259,7 @@ OutTransfer.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.outTransfer, OutTransfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate outTransfer schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate outTransfer schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
