@@ -14,6 +14,7 @@
  */
 import LiskAPI from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
+import utils from '../../src/api/utils';
 
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
@@ -43,10 +44,6 @@ describe('Lisk API module', () => {
 	const defaultSecondSecret = 'second secret';
 	const GET = 'GET';
 	const POST = 'POST';
-	const defaultAddress = {
-		publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-		address: '18160565574430594874L',
-	};
 	const defaultRequestLimit = 10;
 	const defaultRequestOffset = 101;
 	const defaultAmount = 1 * fixedPoint;
@@ -80,7 +77,7 @@ describe('Lisk API module', () => {
 			.stub(privateApi, 'sendRequestPromise')
 			.resolves(Object.assign({}, defaultRequestPromiseResult));
 		checkOptionsStub = sinon
-			.stub(privateApi, 'checkOptions')
+			.stub(utils, 'checkOptions')
 			.returns(Object.assign({}, defaultCheckedOptions));
 		handleTimestampIsInFutureFailuresStub = sinon
 			.stub(privateApi, 'handleTimestampIsInFutureFailures')
@@ -106,11 +103,6 @@ describe('Lisk API module', () => {
 	describe('LiskAPI()', () => {
 		it('should create a new instance of LiskAPI', () => {
 			(LSK).should.be.type('object').and.be.instanceof(LiskAPI);
-		});
-
-		it('should return a new instance of LiskAPI if called with a different context', () => {
-			LSK = LiskAPI.call({});
-			LSK.should.be.type('object').and.be.instanceof(LiskAPI);
 		});
 
 		it('should set currentPeer string by default', () => {
@@ -362,12 +354,6 @@ describe('Lisk API module', () => {
 		});
 	});
 
-	describe('#getAddressFromSecret', () => {
-		it('should create correct address and publicKey', () => {
-			(LSK.getAddressFromSecret(defaultSecret)).should.eql(defaultAddress);
-		});
-	});
-
 	describe('#broadcastSignedTransaction', () => {
 		it('should use getFullURL to get the url', () => {
 			return new Promise((resolve) => {
@@ -449,7 +435,6 @@ describe('Lisk API module', () => {
 		it('should check options if provided', () => {
 			return LSK.sendRequest(method, endpoint, options)
 				.then(() => {
-					(checkOptionsStub.calledOn(LSK)).should.be.true();
 					(checkOptionsStub.calledWithExactly(options)).should.be.true();
 				});
 		});

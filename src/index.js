@@ -20,7 +20,6 @@
 import 'babel-polyfill';
 import Mnemonic from 'bitcore-mnemonic';
 import naclFactory from 'js-nacl';
-import buffer from 'buffer';
 import crypto from './crypto';
 import dapp from './transactions/dapp';
 import delegate from './transactions/delegate';
@@ -31,8 +30,6 @@ import transfer from './transactions/transfer';
 import vote from './transactions/vote';
 import api from './api/liskApi';
 import slots from './time/slots';
-
-global.Buffer = global.Buffer || buffer.Buffer;
 
 global.naclFactory = naclFactory;
 
