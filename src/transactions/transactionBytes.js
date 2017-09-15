@@ -16,6 +16,20 @@
 import ByteBuffer from 'bytebuffer';
 import bignum from 'browserify-bignum';
 
+const typeSizes = {
+	TRANSACTION_TYPE: 1,
+	TIMESTAMP: 4,
+	MULTISIGNATURE_PUBLICKEY: 32,
+	RECIPIENT_ID: 8,
+	AMOUNT: 8,
+	SIGNATURE_TRANSACTION: 64,
+	SECOND_SIGNATURE_TRANSACTION: 64,
+	DATA: 64,
+};
+
+const sumTypeSizes = Object.values(typeSizes)
+	.reduce((sum, typeSize) => sum + typeSize, 0);
+
 /**
  * @method getEmptyBytesForTransaction
  * @param transaction Object
@@ -41,20 +55,10 @@ function getEmptyBytesForTransaction(transaction) {
 	 */
 
 	function isSignatureTransaction() {
-		const bb = new ByteBuffer(32, true);
-		const publicKey = transaction.asset.signature.publicKey;
-		const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-
-		for (let i = 0; i < publicKeyBuffer.length; i++) {
-			bb.writeByte(publicKeyBuffer[i]);
-		}
-
-		bb.flip();
-		const signatureBytes = new Uint8Array(bb.toArrayBuffer());
-
+		const transactionAssetBuffer = Buffer.from(transaction.asset.signature.publicKey, 'hex');
 		return {
-			assetBytes: signatureBytes,
-			assetSize: 32,
+			assetBytes: transactionAssetBuffer,
+			assetSize: transactionAssetBuffer.length,
 		};
 	}
 
@@ -64,9 +68,10 @@ function getEmptyBytesForTransaction(transaction) {
 	 */
 
 	function isDelegateTransaction() {
+		const transactionAssetBuffer = Buffer.from(transaction.asset.delegate.username, 'utf8');
 		return {
-			assetBytes: Buffer.from(transaction.asset.delegate.username),
-			assetSize: Buffer.from(transaction.asset.delegate.username).length,
+			assetBytes: transactionAssetBuffer,
+			assetSize: transactionAssetBuffer.length,
 		};
 	}
 
@@ -76,11 +81,11 @@ function getEmptyBytesForTransaction(transaction) {
 	 */
 
 	function isVoteTransaction() {
-		const voteTransactionBytes = (Buffer.from(transaction.asset.votes.join('')) || null);
+		const transactionAssetBuffer = Buffer.from(transaction.asset.votes.join(''));
 
 		return {
-			assetBytes: voteTransactionBytes,
-			assetSize: (voteTransactionBytes.length || 0),
+			assetBytes: transactionAssetBuffer,
+			assetSize: transactionAssetBuffer.length,
 		};
 	}
 
@@ -157,11 +162,11 @@ function getEmptyBytesForTransaction(transaction) {
 	 */
 
 	function isDappInTransferTransaction() {
-		const buf = Buffer.from(transaction.asset.inTransfer.dappId);
+		const transactionAssetBuffer = Buffer.from(transaction.asset.inTransfer.dappId);
 
 		return {
-			assetBytes: buf,
-			assetSize: buf.length,
+			assetBytes: transactionAssetBuffer,
+			assetSize: transactionAssetBuffer.length,
 		};
 	}
 
@@ -215,30 +220,6 @@ function createTransactionBuffer(transaction) {
 			partTransactionBuffer.writeByte(hexBuffer[i]);
 		}
 		return partTransactionBuffer;
-	}
-
-	/**
-	 * @method createEmptyTransactionBuffer
-	 * @param assetSize number
-	 * @return {buffer}
-	 */
-
-	function createEmptyTransactionBuffer(assetSize) {
-		const typeSizes = {
-			TRANSACTION_TYPE: 1,
-			TIMESTAMP: 4,
-			MULTISIGNATURE_PUBLICKEY: 32,
-			RECIPIENT_ID: 8,
-			AMOUNT: 8,
-			SIGNATURE_TRANSACTION: 64,
-			SECOND_SIGNATURE_TRANSACTION: 64,
-			DATA: 64,
-		};
-
-		const totalBytes = Object.values(typeSizes)
-			.reduce((sum, typeSize) => sum + typeSize, 0);
-
-		return new ByteBuffer(totalBytes + assetSize, true);
 	}
 
 	/**
@@ -310,7 +291,7 @@ function createTransactionBuffer(transaction) {
 	const assetSize = transactionAssetSizeBuffer.assetSize;
 	const assetBytes = transactionAssetSizeBuffer.assetBytes;
 
-	const emptyTransactionBuffer = createEmptyTransactionBuffer(assetSize);
+	const emptyTransactionBuffer = new ByteBuffer(sumTypeSizes + assetSize, true);
 	const assignedTransactionBuffer = assignTransactionBuffer(
 		emptyTransactionBuffer, assetSize, assetBytes,
 	);
