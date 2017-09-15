@@ -36,7 +36,7 @@ export function bufferToHex(buffer) {
  */
 
 export function hexToBuffer(hex) {
-	return naclInstance.from_hex(hex);
+	return Buffer.from(naclInstance.from_hex(hex));
 }
 
 /**
