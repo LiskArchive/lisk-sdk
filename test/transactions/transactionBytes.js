@@ -13,16 +13,11 @@
  *
  */
 import { getTransactionBytes } from '../../src/transactions/transactionBytes';
-import { createOutTransfer } from '../../src/transactions/transfer';
-import cryptoModule from '../../src/crypto';
-import ByteBuffer from 'bytebuffer';
 
-describe('#getTransactionBytes', () => {
-	const defaultSecret = 'secret';
-	const defaultSecondSecret = 'second secret';
+describe.only('#getTransactionBytes', () => {
 	const defaultRecipient = '58191285901858109L';
 	const defaultSenderPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const defaultSenderSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f'
+	const defaultSenderSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultAmount = 1000;
 	const defaultNoAmount = 0;
 	const defaultTimestamp = 141738;
@@ -69,14 +64,14 @@ describe('#getTransactionBytes', () => {
 	describe('signature transaction, type 1', () => {
 		const signatureTransaction = {
 			type: 1,
-		  amount: defaultNoAmount,
-		  fee: 500000000,
-		  recipientId: null,
-		  senderPublicKey: defaultSenderPublicKey,
-		  timestamp: defaultTimestamp,
-		  asset: { signature: { publicKey: defaultSenderSecondPublicKey } },
-		  signature: defaultSignature,
-		  id: defaultTransactionId,
+			amount: defaultNoAmount,
+			fee: 500000000,
+			recipientId: null,
+			senderPublicKey: defaultSenderPublicKey,
+			timestamp: defaultTimestamp,
+			asset: { signature: { publicKey: defaultSenderSecondPublicKey } },
+			signature: defaultSignature,
+			id: defaultTransactionId,
 		};
 
 		it('should create correct transactionBytes from signature transaction', () => {
@@ -84,20 +79,20 @@ describe('#getTransactionBytes', () => {
 			const transactionBytes = getTransactionBytes(signatureTransaction);
 
 			(transactionBytes).should.be.eql(expectedBuffer);
-		})
+		});
 	});
 
 	describe('delegate registration transaction, type 2', () => {
 		const delegateRegistrationTransaction = {
 			type: 2,
-		  amount: defaultNoAmount,
-		  fee: 2500000000,
-		  recipientId: null,
-		  senderPublicKey: defaultSenderPublicKey,
-		  timestamp: defaultTimestamp,
-		  asset: { delegate: { username: 'MyDelegateUsername' } },
-		  signature: defaultSignature,
-		  id: defaultTransactionId,
+			amount: defaultNoAmount,
+			fee: 2500000000,
+			recipientId: null,
+			senderPublicKey: defaultSenderPublicKey,
+			timestamp: defaultTimestamp,
+			asset: { delegate: { username: 'MyDelegateUsername' } },
+			signature: defaultSignature,
+			id: defaultTransactionId,
 		};
 
 		it('should create correct transactionBytes from delegate registration transaction', () => {
@@ -106,25 +101,24 @@ describe('#getTransactionBytes', () => {
 
 			(transactionBytes).should.be.eql(expectedBuffer);
 		});
-
 	});
 
 	describe('vote transaction, type 3', () => {
 		const voteTransaction = {
 			type: 3,
-		  amount: 0,
-		  fee: 100000000,
-		  recipientId: '18160565574430594874L',
-		  senderPublicKey: defaultSenderPublicKey,
-		  timestamp: defaultTimestamp,
-		  asset: {
+			amount: 0,
+			fee: 100000000,
+			recipientId: '18160565574430594874L',
+			senderPublicKey: defaultSenderPublicKey,
+			timestamp: defaultTimestamp,
+			asset: {
 				votes: [
-						`+${defaultSenderPublicKey}`,
-		        `+${defaultSenderSecondPublicKey}`
-					]
-				},
-		  signature: defaultSignature,
-		  id: defaultTransactionId
+					`+${defaultSenderPublicKey}`,
+					`+${defaultSenderSecondPublicKey}`,
+				],
+			},
+			signature: defaultSignature,
+			id: defaultTransactionId,
 		};
 
 		it('should create correct transactionBytes from vote transaction', () => {
@@ -133,44 +127,43 @@ describe('#getTransactionBytes', () => {
 
 			(transactionBytes).should.be.eql(expectedBuffer);
 		});
-
 	});
 
 	describe('multisignature transaction, type 4', () => {
 		const createMultiSignatureTransaction = {
 			type: 4,
-		  amount: 0,
-		  fee: 1500000000,
-		  recipientId: null,
-		  senderPublicKey: defaultSenderPublicKey,
-		  timestamp: defaultTimestamp,
-		  asset: {
+			amount: 0,
+			fee: 1500000000,
+			recipientId: null,
+			senderPublicKey: defaultSenderPublicKey,
+			timestamp: defaultTimestamp,
+			asset: {
 				multisignature:
 				{
 					min: 2,
 					lifetime: 5,
 					keysgroup: [
-					`+${defaultSenderPublicKey}`,
-					`+${defaultSenderSecondPublicKey}`
-					]
-				}
+						`+${defaultSenderPublicKey}`,
+						`+${defaultSenderSecondPublicKey}`,
+					],
+				},
 			},
-		  signature: defaultSignature,
-		  id: defaultTransactionId
+			signature: defaultSignature,
+			id: defaultTransactionId,
 		};
 
 		const multiSignatureTransaction = {
 			type: 0,
-		  amount: 1000,
-		  fee: 10000000,
-		  recipientId: defaultRecipient,
-		  senderPublicKey: defaultSenderPublicKey,
-		  requesterPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-		  timestamp: defaultTimestamp,
-		  asset: {},
-		  signatures: [],
-		  signature: defaultSignature,
-		  id: defaultTransactionId
+			amount: 1000,
+			fee: 10000000,
+			recipientId: defaultRecipient,
+			senderPublicKey: defaultSenderPublicKey,
+			requesterPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+			timestamp: defaultTimestamp,
+			asset: {},
+			signatures: [],
+			signature: defaultSignature,
+			id: defaultTransactionId,
 		};
 
 		it('should create correct transactionBytes from create multisignature transaction', () => {
@@ -181,33 +174,35 @@ describe('#getTransactionBytes', () => {
 		});
 
 		it('should create correct transactionBytes from multisignature send transaction', () => {
-				const expectedBuffer = Buffer.from('AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCV0DaoWM6J+ERJF2LrieK/vVCkoKDaZY5LJiiyWxF64JAM68qo00FT3oAwAAAAAAAGGKVJdSEurZPfjIgWVcYlVEvOjtfM3+bwikLuz7Gt69BRMHvlAUuwUWF7r3gV1Q9iEp5wkYGQNh5dTdR5ZUGwo=', 'base64');
-				const transactionBytes = getTransactionBytes(multiSignatureTransaction);
+			const expectedBuffer = Buffer.from('AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCV0DaoWM6J+ERJF2LrieK/vVCkoKDaZY5LJiiyWxF64JAM68qo00FT3oAwAAAAAAAGGKVJdSEurZPfjIgWVcYlVEvOjtfM3+bwikLuz7Gt69BRMHvlAUuwUWF7r3gV1Q9iEp5wkYGQNh5dTdR5ZUGwo=', 'base64');
+			const transactionBytes = getTransactionBytes(multiSignatureTransaction);
 
-				(transactionBytes).should.be.eql(expectedBuffer);
+			(transactionBytes).should.be.eql(expectedBuffer);
 		});
 	});
 
 	describe('dapp transaction, type 5', () => {
 		const dappTransaction = {
 			type: 5,
-		  amount: 0,
-		  fee: 2500000000,
-		  recipientId: null,
-		  senderPublicKey: defaultSenderPublicKey,
-		  timestamp: defaultTimestamp,
-		  asset:
-		   { dapp:
-		      { category: 0,
-		        name: 'Lisk Guestbook',
-		        description: 'The official Lisk guestbook',
-		        tags: 'guestbook message sidechain',
-		        type: 0,
-		        link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
-		        icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png' } },
-		  signature: defaultSignature,
-		  id: defaultTransactionId,
-		}
+			amount: 0,
+			fee: 2500000000,
+			recipientId: null,
+			senderPublicKey: defaultSenderPublicKey,
+			timestamp: defaultTimestamp,
+			asset: {
+				dapp: {
+					category: 0,
+					name: 'Lisk Guestbook',
+					description: 'The official Lisk guestbook',
+					tags: 'guestbook message sidechain',
+					type: 0,
+					link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
+					icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
+				},
+			},
+			signature: defaultSignature,
+			id: defaultTransactionId,
+		};
 
 		it('should create correct transactionBytes from dapp transaction', () => {
 			const expectedBuffer = Buffer.from('BaopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAAAAAAAAAAAABMaXNrIEd1ZXN0Ym9va1RoZSBvZmZpY2lhbCBMaXNrIGd1ZXN0Ym9va2d1ZXN0Ym9vayBtZXNzYWdlIHNpZGVjaGFpbmh0dHBzOi8vZ2l0aHViLmNvbS9NYXhLSy9ndWVzdGJvb2tEYXBwL2FyY2hpdmUvbWFzdGVyLnppcGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9NYXhLSy9ndWVzdGJvb2tEYXBwL21hc3Rlci9pY29uLnBuZwAAAAAAAAAAYYpUl1IS6tk9+MiBZVxiVUS86O18zf5vCKQu7Psa3r0FEwe+UBS7BRYXuveBXVD2ISnnCRgZA2Hl1N1HllQbCg==', 'base64');
@@ -220,14 +215,14 @@ describe('#getTransactionBytes', () => {
 	describe('inTransfer transaction, type 6', () => {
 		const inTransferTransction = {
 			type: 6,
-		  amount: defaultAmount,
-		  fee: 10000000,
-		  recipientId: null,
-		  senderPublicKey: defaultSenderPublicKey,
-		  timestamp: defaultTimestamp,
-		  asset: { inTransfer: { dappId: defaultAppId } },
-		  signature: defaultSignature,
-		  id: defaultTransactionId,
+			amount: defaultAmount,
+			fee: 10000000,
+			recipientId: null,
+			senderPublicKey: defaultSenderPublicKey,
+			timestamp: defaultTimestamp,
+			asset: { inTransfer: { dappId: defaultAppId } },
+			signature: defaultSignature,
+			id: defaultTransactionId,
 		};
 		it('should create correct transactionBytes from inTransfer transaction', () => {
 			const expectedBuffer = Buffer.from('BqopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAA6AMAAAAAAAAxMjM0MjEzYYpUl1IS6tk9+MiBZVxiVUS86O18zf5vCKQu7Psa3r0FEwe+UBS7BRYXuveBXVD2ISnnCRgZA2Hl1N1HllQbCg==', 'base64');
@@ -240,14 +235,14 @@ describe('#getTransactionBytes', () => {
 	describe('outTransfer transaction, type 7', () => {
 		const outTransferTransaction = {
 			type: 7,
-		  amount: defaultAmount,
-		  fee: 10000000,
-		  recipientId: defaultRecipient,
-		  senderPublicKey: defaultSenderPublicKey,
-		  timestamp: defaultTimestamp,
-		  asset: { outTransfer: { dappId: defaultAppId, transactionId: defaultTransactionId } },
-		  signature: defaultSignature,
-		  id: defaultTransactionId
+			amount: defaultAmount,
+			fee: 10000000,
+			recipientId: defaultRecipient,
+			senderPublicKey: defaultSenderPublicKey,
+			timestamp: defaultTimestamp,
+			asset: { outTransfer: { dappId: defaultAppId, transactionId: defaultTransactionId } },
+			signature: defaultSignature,
+			id: defaultTransactionId,
 		};
 		it('should create correct transactionBytes from outTransfer transaction', () => {
 			const expectedBuffer = Buffer.from('B6opAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAAAxMjM0MjEzMTM5ODczNDg0MjA5MTMxMzg0MjJhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK', 'base64');

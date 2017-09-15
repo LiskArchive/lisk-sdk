@@ -56,6 +56,7 @@ function getEmptyBytesForTransaction(transaction) {
 
 	function isSignatureTransaction() {
 		const transactionAssetBuffer = Buffer.from(transaction.asset.signature.publicKey, 'hex');
+
 		return {
 			assetBytes: transactionAssetBuffer,
 			assetSize: transactionAssetBuffer.length,
@@ -69,6 +70,7 @@ function getEmptyBytesForTransaction(transaction) {
 
 	function isDelegateTransaction() {
 		const transactionAssetBuffer = Buffer.from(transaction.asset.delegate.username, 'utf8');
+
 		return {
 			assetBytes: transactionAssetBuffer,
 			assetSize: transactionAssetBuffer.length,
@@ -95,24 +97,15 @@ function getEmptyBytesForTransaction(transaction) {
 	 */
 
 	function isMultisignatureTransaction() {
-		const MINSIGNATURES = 1;
-		const LIFETIME = 1;
-		const keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
-
-		const bb = new ByteBuffer(MINSIGNATURES + LIFETIME + keysgroupBuffer.length, true);
-		bb.writeByte(transaction.asset.multisignature.min);
-		bb.writeByte(transaction.asset.multisignature.lifetime);
-		for (let i = 0; i < keysgroupBuffer.length; i++) {
-			bb.writeByte(keysgroupBuffer[i]);
-		}
-		bb.flip();
-
-		bb.toBuffer();
-		const multiSigBuffer = new Uint8Array(bb.toArrayBuffer());
+		const multisigTransactionAsset = transaction.asset.multisignature;
+		const minBuffer = Buffer.alloc(1).fill(multisigTransactionAsset.min);
+		const lifetimeBuffer = Buffer.alloc(1).fill(multisigTransactionAsset.lifetime);
+		const keysgroupBuffer = Buffer.from(multisigTransactionAsset.keysgroup.join(''));
+		const assetBuffer = Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
 
 		return {
-			assetBytes: multiSigBuffer,
-			assetSize: multiSigBuffer.length,
+			assetBytes: assetBuffer,
+			assetSize: assetBuffer.length,
 		};
 	}
 
