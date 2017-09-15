@@ -29,11 +29,7 @@ import {
 } from '../../src/crypto/sign';
 import {
 	getKeys,
-	getRawPrivateAndPublicKeyFromSecret,
 } from '../../src/crypto/keys';
-import {
-	bufferToHex,
-} from '../../src/crypto/convert';
 
 describe('sign', () => {
 	const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
@@ -67,11 +63,6 @@ describe('sign', () => {
 			};
 		});
 		it('should return true on valid signature verification', () => {
-			const signedMessage = {
-				message: notSecretMessage,
-			  publicKey: defaultPublicKey,
-			  signature: defaultSignature,
-			};
 			(verifyMessageWithPublicKey(signature)).should.be.true();
 		});
 
@@ -86,7 +77,7 @@ describe('sign', () => {
 		});
 
 		it('should return false on invalid signature', () => {
-			signature.signature = `W${defaultSignature.slice(1,-1)}S`;
+			signature.signature = `W${defaultSignature.slice(1, -1)}S`;
 			(verifyMessageWithPublicKey(signature)).should.be.false();
 		});
 	});
@@ -147,7 +138,7 @@ ${defaultSignature}
 		});
 
 		it('should verify both signatures when given two publicKeys', () => {
-				(verifyMessageWithTwoPublicKeys(signature)).should.be.true();
+			(verifyMessageWithTwoPublicKeys(signature)).should.be.true();
 		});
 
 		it('should throw on invalid first publicKey length', () => {
@@ -171,12 +162,12 @@ ${defaultSignature}
 		});
 
 		it('should return false on wrong signature', () => {
-			signature.signature = `W${defaultSignature.slice(1,-1)}S`;
+			signature.signature = `W${defaultSignature.slice(1, -1)}S`;
 			(verifyMessageWithTwoPublicKeys(signature)).should.be.false();
 		});
 
 		it('should return false on wrong second signature', () => {
-			signature.secondSignature = `W${defaultSecondSignature.slice(1,-1)}S`;
+			signature.secondSignature = `W${defaultSecondSignature.slice(1, -1)}S`;
 			(verifyMessageWithTwoPublicKeys(signature)).should.be.false();
 		});
 	});
@@ -236,7 +227,7 @@ ${defaultSignature}
 			});
 		});
 
-		describe.only('#verify', () => {
+		describe('#verify', () => {
 			const recipientId = '13356260975429434553L';
 			const type = 0;
 			const amount = '10';
@@ -249,9 +240,11 @@ ${defaultSignature}
 			const timestamp = 39541109;
 			const asset = {};
 			const transactionForVerifyOneSignature = {
-				type, amount, fee, recipientId, senderPublicKey, timestamp, asset,signature, id
+				type, amount, fee, recipientId, senderPublicKey, timestamp, asset, signature, id,
 			};
-			const transactionForVerifyTwoSignatures = Object.assign({}, transactionForVerifyOneSignature, { signSignature, senderSecondPublicKey });
+			const transactionForVerifyTwoSignatures = Object.assign(
+				{}, transactionForVerifyOneSignature, { signSignature, senderSecondPublicKey },
+			);
 			it('should verify a single signed transaction', () => {
 				const verification = verifyTransaction(transactionForVerifyOneSignature);
 				(verification).should.be.true();
@@ -259,7 +252,7 @@ ${defaultSignature}
 			it('should verify a second signed transaction', () => {
 				const verification = verifyTransaction(
 					transactionForVerifyTwoSignatures,
-					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+					senderSecondPublicKey,
 				);
 				(verification).should.be.true();
 			});

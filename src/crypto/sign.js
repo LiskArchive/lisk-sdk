@@ -22,7 +22,6 @@ import {
 } from './convert';
 import {
 	getRawPrivateAndPublicKeyFromSecret,
-	getPrivateAndPublicKeyFromSecret,
 } from './keys';
 import { getTransactionHash, getSha256Hash } from './hash';
 
@@ -93,7 +92,7 @@ export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
 		throw new Error('Invalid publicKey, expected 32-byte publicKey');
 	}
 
-	if(signatureBytes.length !== naclInstance.crypto_sign_BYTES) {
+	if (signatureBytes.length !== naclInstance.crypto_sign_BYTES) {
 		throw new Error('Invalid signature length, expected 64-byte signature');
 	}
 
@@ -109,18 +108,20 @@ export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
  * @return {string}
  */
 
-export function verifyMessageWithTwoPublicKeys({ message, signature, secondSignature, publicKey, secondPublicKey }) {
+export function verifyMessageWithTwoPublicKeys(
+	{ message, signature, secondSignature, publicKey, secondPublicKey },
+) {
 	const messageBytes = Buffer.from(message);
 	const signatureBytes = Buffer.from(signature, 'base64');
 	const secondSignatureBytes = Buffer.from(secondSignature, 'base64');
 	const publicKeyBytes = Buffer.from(hexToBuffer(publicKey));
 	const secondPublicKeyBytes = Buffer.from(hexToBuffer(secondPublicKey));
 
-	if(signatureBytes.length !== naclInstance.crypto_sign_BYTES) {
+	if (signatureBytes.length !== naclInstance.crypto_sign_BYTES) {
 		throw new Error('Invalid first signature length, expected 64-byte signature');
 	}
 
-	if(secondSignatureBytes.length !== naclInstance.crypto_sign_BYTES) {
+	if (secondSignatureBytes.length !== naclInstance.crypto_sign_BYTES) {
 		throw new Error('Invalid second signature length, expected 64-byte signature');
 	}
 
@@ -182,9 +183,7 @@ export function printSignedMessage({ message, signature, publicKey }) {
  */
 
 export function signAndPrintMessage(message, secret) {
-	const { publicKey } = getPrivateAndPublicKeyFromSecret(secret);
 	const signedMessage = signMessageWithSecret(message, secret);
-
 	return printSignedMessage(signedMessage);
 }
 
