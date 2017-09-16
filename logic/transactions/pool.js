@@ -6,6 +6,7 @@ var config = require('../../config.json');
 var constants = require('../../helpers/constants.js');
 var jobsQueue = require('../../helpers/jobsQueue.js');
 var transactionTypes = require('../../helpers/transactionTypes.js');
+var bignum = require('../../helpers/bignum.js');
 
 // Private fields
 var modules, library, self, __private = {}, pool = {};
@@ -24,12 +25,13 @@ var modules, library, self, __private = {}, pool = {};
  * @param {Object} logger
  */
 // Constructor
-function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolExpiryInterval, transaction, bus, logger) {
+function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolExpiryInterval, transaction, account, bus, logger) {
 	library = {
 		logger: logger,
 		bus: bus,
 		logic: {
 			transaction: transaction,
+			account, account
 		},
 		config: {
 			broadcasts: {
@@ -392,6 +394,7 @@ TxPool.prototype.get = function (id) {
 /**
  * Gets all transactions based on limited filters.
  * @implements {__private.getTxsFromPoolList}
+ * @implements {__private.getAllPoolTxsByFilter}
  * @param {string} filter
  * @param {Object} params
  * @return {[transaction]} transaction list based on filter.
@@ -420,7 +423,7 @@ TxPool.prototype.getAll  = function (filter, params) {
 /**
  * Gets ready transactions ordered by fee and received time.
  * @param {number} limit
- * @return {transaction[]}
+ * @return {[transaction]}
  */
 TxPool.prototype.getReady = function (limit) {
 	var r = _.orderBy(pool.verified.ready.transactions, ['fee', 'receivedAt'],['desc', 'desc']);
@@ -438,8 +441,57 @@ TxPool.prototype.getReady = function (limit) {
  * @return {setImmediateCallback} err, transactions
  */
 TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
-	var balance;
-	return setImmediate(cb, balance);
+	var poolBalance = new bignum('0'), paymentTxs, receiptTxs;
+
+	library.logic.account.get({ address: sender }, 'balance', function (err, account) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+
+		// total payments
+		paymentTxs = self.getAll('sender_id', { id: sender });
+		['unverified','pending','ready'].forEach(function (paymentTxList) {
+			if (paymentTxs[paymentTxList].length > 0) {
+				paymentTxs[paymentTxList].forEach(function (paymentTx) {
+					if (paymentTx.amount) {
+						poolBalance = poolBalance.minus(paymentTx.amount.toString());
+					}
+					poolBalance = poolBalance.minus(paymentTx.fee.toString());
+				});
+			}
+		});
+		
+		// total receipts
+		receiptTxs = self.getAll('recipient_id', { id: sender });
+		['unverified','pending','ready'].forEach(function (receiptTxList) {
+			if (receiptTxs[receiptTxList].length > 0) {
+				receiptTxs[receiptTxList].forEach(function (receiptTx) {
+					if (receiptTx.type === transactionTypes.SEND) {
+						poolBalance = poolBalance.plus(paymentTx.amount.toString());
+					}
+				});
+			}
+		});
+
+		// total balance
+		var balance = new bignum(account.balance.toString());
+		balance = balance.plus(poolBalance);
+
+		// Check confirmed sender balance
+		var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
+		var exceeded = balance.lessThan(amount);
+
+		if (exceeded) {
+			return setImmediate(cb, [
+				'Account does not have enough LSK:', sender,
+				'balance:', balance.div(Math.pow(10,8))
+			].join(' '));
+		}
+
+		return setImmediate(cb, null, [
+			'balance:', balance.div(Math.pow(10,8))
+		].join(' '));
+	});
 };
 
 /**
