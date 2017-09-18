@@ -28,6 +28,7 @@ function Block (ed, schema, transaction, cb) {
 		schema: schema,
 		transaction: transaction,
 	};
+	__private.blockReward = new BlockReward();
 	if (cb) {
 		return setImmediate(cb, null, this);
 	}
@@ -38,7 +39,6 @@ function Block (ed, schema, transaction, cb) {
  * Creates a blockReward instance.
  * @private
  */
-__private.blockReward = new BlockReward();
 
 /**
  * Gets address by public
