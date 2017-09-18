@@ -99,7 +99,7 @@ describe('delegate', function () {
 
 	describe('constructor', function () {
 
-		it('should be attach schema to library variable', function () {
+		it('should attach schema to library variable', function () {
 			new Delegate(modulesLoader.scope.schema);
 			var library = Delegate.__get__('library');
 
@@ -139,7 +139,7 @@ describe('delegate', function () {
 
 	describe('verify', function () {
 
-		it('should return error if recipientId exist', function (done) {
+		it('should call callback with error if recipientId exist', function (done) {
 			trs.recipientId = '123456';
 
 			delegate.verify(trs, sender, function (err) {
@@ -148,7 +148,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if amount is not equal to 0', function (done) {
+		it('should call callback with error if amount is not equal to 0', function (done) {
 			trs.amount = 1;
 
 			delegate.verify(trs, sender, function (err) {
@@ -157,7 +157,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if sender is already a delegate', function (done) {
+		it('should call callback with error if sender is already a delegate', function (done) {
 			sender.isDelegate = 1;
 
 			delegate.verify(trs, sender, function (err) {
@@ -166,7 +166,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if asset is undefined', function (done) {
+		it('should call callback with error if asset is undefined', function (done) {
 			trs.asset = undefined;
 
 			delegate.verify(trs, sender, function (err) {
@@ -175,7 +175,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if asset is empty', function (done) {
+		it('should call callback with error if asset is empty', function (done) {
 			trs.asset = {};
 
 			delegate.verify(trs, sender, function (err) {
@@ -184,7 +184,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if username is does not exist', function (done) {
+		it('should call callback with error if username is does not exist', function (done) {
 			trs.asset.delegate.username = undefined;
 
 			delegate.verify(trs, sender, function (err) {
@@ -193,7 +193,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if username is not lower case', function (done) {
+		it('should call callback with error if username is not lower case', function (done) {
 			trs.asset.delegate.username = 'UiOjKl';
 
 			delegate.verify(trs, sender, function (err) {
@@ -202,7 +202,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if username is longer than 20 characters', function (done) {
+		it('should call callback with error if username is longer than 20 characters', function (done) {
 			trs.asset.delegate.username = Array.apply(null, Array(21)).map(function () {
 				return 'n';
 			}).join('');
@@ -213,7 +213,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if username is empty', function (done) {
+		it('should call callback with error if username is empty', function (done) {
 			trs.asset.delegate.username = '';
 
 			delegate.verify(trs, sender, function (err) {
@@ -223,7 +223,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error if username is address like', function (done) {
+		it('should call callback with error if username is address like', function (done) {
 			trs.asset.delegate.username = '163137396616706346l';
 
 			delegate.verify(trs, sender, function (err) {
@@ -232,7 +232,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error when username contains symbols', function (done) {
+		it('should call callback with error when username contains symbols', function (done) {
 			trs.asset.delegate.username = '^%)';
 
 			delegate.verify(trs, sender, function (err) {
@@ -252,7 +252,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error when username already exists', function (done) {
+		it('should call callback with error when username already exists', function (done) {
 			var expectedError = 'Error: could not connect to server: Connection refused';
 			accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(expectedError);
 
@@ -263,7 +263,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should return error when username already exists', function (done) {
+		it('should call callback with error when username already exists', function (done) {
 			accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);
 
 			delegate.verify(trs, sender, function (err) {
@@ -519,7 +519,7 @@ describe('delegate', function () {
 			expect(delegate.ready(trs, sender)).to.equal(false);
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', function () {
+		it('should return true for multi signature transaction with at least min signatures', function () {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 			sender.multimin = 1;
 
