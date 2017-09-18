@@ -247,7 +247,6 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 			self.checkConfirmed(trs, seriesCb);
 		},
 		function (seriesCb) {
-			console.log('apply --- saving the data: ', data);
 			modules.accounts.setAccountAndGet(data, seriesCb);
 		}
 	], cb);
@@ -302,7 +301,6 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 			self.checkUnconfirmed(trs, seriesCb);
 		},
 		function (seriesCb) {
-			console.log('applyUnconfirmed --- saving the data: ', data);
 			modules.accounts.setAccountAndGet(data, seriesCb);
 		}
 	], cb);
