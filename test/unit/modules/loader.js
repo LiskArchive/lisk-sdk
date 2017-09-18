@@ -1,42 +1,67 @@
 'use strict';
 
+var _ = require('lodash');
 var chai = require('chai');
 var expect = require('chai').expect;
-var _ = require('lodash');
-
 var express = require('express');
+var rewire  = require('rewire');
 var sinon = require('sinon');
 
+var jobsQueue = require('../../../helpers/jobsQueue');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 
 describe('loader', function () {
 
-	var loader, modules;
+	var loaderModule;
+	var blocksModuleMock;
+	var loadBlockChainStub;
 
 	before(function (done) {
-		modulesLoader.initAllModules(function (err, __modules) {
-			if (err) {
-				return done(err);
+		var loaderModuleRewired = rewire('../../../modules/loader');
+		blocksModuleMock = {
+			lastBlock: {
+				get: function () {}
 			}
-			loader = __modules.loader;
-			modules = __modules;
-			loader.onBind(modules);
-			done();
-		}, {});
+		};
+		modulesLoader.initModule(
+			loaderModuleRewired,
+			_.assign({}, modulesLoader.scope, {
+				logic: {
+					transaction: sinon.mock(),
+					account: sinon.mock(),
+					peers: {
+						create: sinon.stub.returnsArg(0)
+					}
+				}
+			}),
+			function (err, __loaderModule) {
+				if (err) {
+					return done(err);
+				}
+				loaderModule = __loaderModule;
+				loadBlockChainStub = sinon.stub(loaderModuleRewired.__get__('__private'), 'loadBlockChain');
+				loaderModule.onBind({
+					blocks: blocksModuleMock
+				});
+				done();
+			});
+
+		after(function () {
+			loadBlockChainStub.restore();
+		});
 	});
 
 	describe('findGoodPeers', function () {
 
-		var MY_HEIGHT = 2;
+		var HEIGHT_TWO = 2;
+		var getLastBlockStub;
 
-		before(function () {
-			modules.blocks.lastBlock = {
-				get: function () {
-					return {
-						height: MY_HEIGHT
-					};
-				}
-			};
+		beforeEach(function () {
+			getLastBlockStub = sinon.stub(blocksModuleMock.lastBlock, 'get').returns({height: HEIGHT_TWO});
+		});
+
+		afterEach(function () {
+			getLastBlockStub.restore();
 		});
 
 		it('should return peers list sorted by height', function () {
@@ -64,8 +89,8 @@ describe('loader', function () {
 				}
 			];
 
-			var goodPeers = loader.findGoodPeers(peers);
-			expect(goodPeers).to.have.property('height').equal(MY_HEIGHT); //good peers - above my height (above and equal 2)
+			var goodPeers = loaderModule.findGoodPeers(peers);
+			expect(goodPeers).to.have.property('height').equal(HEIGHT_TWO); //good peers - above my height (above and equal 2)
 			expect(goodPeers).to.have.property('peers').to.be.an('array').to.have.lengthOf(3);
 			expect(_.isEqualWith(goodPeers.peers, [
 				{

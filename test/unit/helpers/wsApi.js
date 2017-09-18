@@ -2,126 +2,135 @@
 
 var config = require('../../../config.json');
 
+var async = require('async');
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
-var _  = require('lodash');
+var randomstring = require('randomstring');
 var sinon = require('sinon');
 
 var wsApi = require('../../../helpers/wsApi');
+var failureCodes = require('../../../api/ws/rpc/failureCodes');
 
 var System = require('../../../modules/system');
+var SchemaDynamicTests = require('../../common/schemaDynamicTest');
 
 describe('handshake', function () {
 
-	var system, handshake, validRequest;
+	var system;
+	var handshake;
+	var minVersion = '1.0.0';
+	var validPeerNonce = randomstring.generate(16);
+	var validNodeNonce = randomstring.generate(16);
+	var validConfig = {
+		config: {
+			version: config.version,
+			minVersion: minVersion,
+			nethash: config.nethash,
+			nonce: validNodeNonce
+		}
+	};
+	var validHeaders;
 
 	before(function (done) {
-
-		sinon.stub(System.prototype, 'getNethash').returns(config.nethash);
-		sinon.stub(System.prototype, 'getMinVersion').returns(config.version);
-
 		new System(function (err, __system) {
 			system = __system;
 			handshake = wsApi.middleware.Handshake(system);
 			done(err);
-		}, {config: {
-			version: config.version,
-			minVersion: config.minVersion,
-			nethash: config.nethash,
-			nonce: 'EXAMPLE_NONCE'
-		}});
+		}, validConfig);
+	});
 
-		validRequest = {
-			ip: '0.0.0.0',
-			port: 4000,
+	describe('compatibility', function () {
+
+		beforeEach(function () {
+			validHeaders = {
+				port: 5000,
+				nethash: config.nethash,
+				version: minVersion,
+				nonce: validPeerNonce,
+				height: 1
+			};
+		});
+
+		it('should return an error when nonce is identical to server', function (done) {
+			validHeaders.nonce = validConfig.config.nonce;
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NONCE);
+				expect(err).to.have.property('description').equal('Expected nonce to be not equal to: ' + validConfig.config.nonce);
+				done();
+			});
+		});
+
+		it('should return an error when nethash does not match', function (done) {
+			validHeaders.nethash = 'DIFFERENT_NETWORK_NETHASH';
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_NETWORK);
+				expect(err).to.have.property('description').contain('Expected nethash: ' + config.nethash + ' but received: ' + validHeaders.nethash);
+				done();
+			});
+		});
+
+		it('should return an error when version is incompatible', function (done) {
+			validHeaders.version = '0.0.0';
+			handshake(validHeaders, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.INCOMPATIBLE_VERSION);
+				expect(err).to.have.property('description').equal('Expected version: ' + minVersion + ' but received: ' + validHeaders.version);
+				done();
+			});
+		});
+	});
+
+	after(function () {
+
+		validHeaders = {
+			port: 5000,
 			nethash: config.nethash,
-			version: config.version,
-			nonce: 'PEER_NONCE'
+			version: minVersion,
+			nonce: '0123456789ABCDEF',
+			height: 1
 		};
-	});
 
-	it('should accept handshake when valid request passed', function (done) {
+		describe('schema', function () {
 
-		handshake(validRequest, function (err, data) {
-			expect(err).to.be.null;
-			done();
-		});
-	});
+			var schemaDynamicTests = new SchemaDynamicTests({
+				customInput: {
+					invalidHeadersErrorCode: failureCodes.INVALID_HEADERS
+				},
+				customArgumentAssertion: function (input, expectedType, err) {
+					expect(err).to.have.property('code').equal(this.customInput.invalidHeadersErrorCode);
+					expect(err).to.have.property('description').equal('#/: Expected type ' + expectedType + ' but found type ' + input.expectation);
+				},
+				customPropertyAssertion: function (input, expectedType, property, err) {
+					expect(err).to.have.property('code').equal(this.customInput.invalidHeadersErrorCode);
+					expect(err).to.have.property('description').equal('#/' + property + ': Expected type ' + expectedType + ' but found type ' + input.expectation);
+				},
+				customRequiredPropertiesAssertion: function (property, err) {
+					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
+					expect(err).to.have.property('description').equal('#/: Missing required property: ' + property);
+				}
+			});
 
-	it('should return error when empty undefined request', function (done) {
+			schemaDynamicTests.schema.shouldFailAgainst.nonObject.arguments(handshake);
 
-		handshake(undefined, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
-		});
-	});
+			describe('nonce', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nonce');
+			});
 
-	it('should return error when empty null request', function (done) {
+			describe('height', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonInteger.property(handshake, validHeaders, 'height');
+			});
 
-		handshake(null, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
-		});
-	});
+			describe('nethash', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nethash');
+			});
 
-	it('should return error when 0 as request', function (done) {
+			describe('version', function () {
+				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'version');
+			});
 
-		handshake(0, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
-		});
-	});
-
-	it('should return error when empty request passed', function (done) {
-
-		handshake({}, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
-		});
-	});
-
-	it('should return error when wrong request without version passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.version;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
-		});
-	});
-
-	it('should return error when wrong request without port passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.port;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
-		});
-	});
-
-	it('should return error when wrong request without ip passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.ip;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
-		});
-	});
-
-	it('should return error when wrong request without nethash passed', function (done) {
-		var malformedRequest = _.clone(validRequest);
-		delete malformedRequest.nethash;
-		handshake(malformedRequest, function (err, data) {
-			expect(err).not.to.be.empty;
-			expect(err).to.have.property('error').that.is.an('array');
-			done();
+			describe('required properties', function () {
+				schemaDynamicTests.schema.shouldFailWithoutRequiredProperties(handshake, validHeaders, ['port', 'version', 'nonce', 'nethash', 'height']);
+			});
 		});
 	});
 });

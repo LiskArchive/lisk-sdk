@@ -1,304 +1,141 @@
 'use strict';
 
 var _ = require('lodash');
+var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var scClient = require('socketcluster-client');
+
 var node = require('../../node');
-var ws = require('../../common/wsCommunication');
-var PromiseDefer = require('../../../helpers/promiseDefer');
 var randomPeer = require('../../common/objectStubs').randomPeer;
-
-
-describe('handshake', function () {
-
-	var socketDefer = null;
-
-	beforeEach(function () {
-		socketDefer = PromiseDefer();
-	});
-
-	it('should not connect without headers', function (done) {
-
-		ws.connect('127.0.0.1', 5000, socketDefer, null);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function () {
-				return done();
-			});
-	});
-
-	it('using incorrect nethash in headers should fail', function (done) {
-		socketDefer = PromiseDefer();
-
-		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
-		headers['nethash'] = 'incorrect';
-
-		ws.connect('127.0.0.1', 5000, socketDefer, headers);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function (err) {
-				return done();
-			});
-	});
-
-	it('using incorrect version in headers should fail', function (done) {
-		socketDefer = PromiseDefer();
-
-		var headers = node.generatePeerHeaders('127.0.0.1', 5002);
-		headers['version'] = '0.1.0a';
-
-		ws.connect('127.0.0.1', 5000, socketDefer, headers);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function (err) {
-				return done();
-			});
-	});
-
-	it('should not accept itself as a peer', function (done) {
-		socketDefer = PromiseDefer();
-
-		var headers = node.generatePeerHeaders('127.0.0.1', 5000);
-		headers['version'] = '0.1.0a';
-
-		ws.connect('127.0.0.1', 5000, socketDefer, headers);
-
-		socketDefer.promise
-			.then(function (socket) {
-				return done('Should not be here');
-			}).catch(function (err) {
-				return done();
-			});
-	});
-
-	it('should connect with valid options', function (done) {
-
-		var socketDefer = PromiseDefer();
-
-		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
-
-		socketDefer.promise
-			.then(function (socket) {
-				socket.disconnect();
-				return done();
-			}).catch(function (err) {
-				return done(err);
-			});
-	});
-
-	it('should list connected peer properly', function (done) {
-
-		var socketDefer = PromiseDefer();
-
-		ws.connect('127.0.0.1', 5000, socketDefer, node.generatePeerHeaders('127.0.0.1', 5002));
-
-		socketDefer.promise
-			.then(function (socket) {
-				socket.wampSend('list').then(function (res) {
-					node.debug('> Response:'.grey, JSON.stringify(res));
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('peers').that.is.an('array').and.not.empty;
-					res.peers.forEach(function (peer) {
-						node.expect(peer).to.have.property('ip').that.is.a('string');
-						node.expect(peer).to.have.property('port').that.is.a('number');
-						node.expect(peer).to.have.property('state').that.is.a('number');
-						node.expect(peer).to.have.property('os');
-						node.expect(peer).to.have.property('version');
-						node.expect(peer).to.have.property('broadhash');
-						node.expect(peer).to.have.property('height');
-					});
-				}).catch(function (err) {
-					done(err);
-				});
-				return done();
-			}).catch(function (err) {
-				return done(err);
-			});
-	});
-
-
-});
+var Rules = require('../../../api/ws/workers/rules');
+var testConfig = require('../../config.json');
+var wsServer = require('../../common/wsServer');
 
 describe('RPC', function () {
 
 	var clientSocket;
+	var validClientSocketOptions;
+	var wampClient = new WAMPClient();
+	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
 
 	before(function (done) {
-		var socketDefer = PromiseDefer();
-		ws.connect('127.0.0.1', 5000, socketDefer);
-		socketDefer.promise
-			.then(function (socket) {
-				clientSocket = socket;
-				return done();
-			}).catch(function (err) {
-				return done(err);
+		validClientSocketOptions = {
+			protocol: 'http',
+			hostname: '127.0.0.1',
+			port: testConfig.port,
+			query: _.clone(frozenHeaders)
+		};
+		clientSocket = scClient.connect(validClientSocketOptions);
+		wampClient.upgradeToWAMP(clientSocket);
+		clientSocket.on('connectAbort', done);
+		clientSocket.on('connect', done.bind(null, null));
+		clientSocket.on('disconnect', done);
+		clientSocket.on('error', done);
+	});
+
+	describe('internal', function () {
+
+		describe('updatePeer', function () {
+			var validPeer;
+			var validAcceptRequest;
+
+			beforeEach(function () {
+				validAcceptRequest = {
+					authKey: 'authentication key',
+					peer: randomPeer,
+					updateType: Rules.UPDATES.INSERT
+				};
+				validPeer = _.clone(randomPeer);
 			});
-	});
 
-	describe('acceptPeer', function () {
-		var validPeer;
+			describe('schema', function () {
 
-		beforeEach(function () {
-			validPeer = _.clone(randomPeer);
-		});
-
-		beforeEach(function (done) {
-			clientSocket.wampSend('removePeer', validPeer)
-				.then(function (err, res) {
-					done();
-				})
-				.catch(function (err) {
-					done();
+				it('should reject empty request', function (done) {
+					clientSocket.wampSend('updatePeer', undefined)
+						.then(function () {
+							done('should not be here');
+						})
+						.catch(function (err) {
+							node.expect(err).to.equal('Expected type object but found type undefined');
+							done();
+						});
 				});
-		});
 
-
-		it('should not accept peer without ip', function (done) {
-
-			delete validPeer.ip;
-
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					done('should fail while sending peer without ip');
-				})
-				.catch(function (err) {
-					node.expect(err).to.equal('Failed to accept peer');
-					done();
+				it('should reject requests without peer field defined', function (done) {
+					delete validAcceptRequest.peer;
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
+							done('should not be here');
+						})
+						.catch(function (err) {
+							node.expect(err).to.equal('Missing required property: peer');
+							done();
+						});
 				});
-		});
 
-		it('should not accept peer without port', function (done) {
-
-			delete validPeer.port;
-
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					done('should fail while sending peer without port');
-				})
-				.catch(function (err) {
-					node.expect(err).to.equal('Failed to accept peer');
-					done();
+				it('should reject requests without authKey field defined', function (done) {
+					delete validAcceptRequest.authKey;
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
+							done('should not be here');
+						})
+						.catch(function (err) {
+							node.expect(err).to.equal('Missing required property: authKey');
+							done();
+						});
 				});
-		});
 
-		it('should not accept peer without height', function (done) {
-
-			delete validPeer.height;
-
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					done('should fail');
-				})
-				.catch(function (err) {
-					node.expect(err).to.equal('No headers information');
-					done();
+				it('should reject requests with incorrect authKey', function (done) {
+					validAcceptRequest.authKey = 'incorrect authKey';
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
+							done('should not be here');
+						})
+						.catch(function (err) {
+							node.expect(err).to.equal('Unable to access internal function - Incorrect authKey');
+							done();
+						});
 				});
-		});
 
-		it('should not accept peer without broadhash', function (done) {
-
-			delete validPeer.broadhash;
-
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					done('should fail');
-				})
-				.catch(function (err) {
-					node.expect(err).to.equal('No headers information');
-					done();
+				it('should reject requests without updateType', function (done) {
+					delete validAcceptRequest.updateType;
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
+							done('should not be here');
+						})
+						.catch(function (err) {
+							node.expect(err).to.equal('Missing required property: updateType');
+							done();
+						});
 				});
-		});
 
-		it('should not accept peer without nonce', function (done) {
-
-			delete validPeer.nonce;
-
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					done('should fail');
-				})
-				.catch(function (err) {
-					node.expect(err).to.equal('No headers information');
-					done();
+				it('should reject requests when updateType is not a number', function (done) {
+					var nonNumbers = [{}, [], 'A', '1', NaN, true];
+					async.forEachOf(nonNumbers, function (nonNumber, index, eachCb) {
+						validAcceptRequest.updateType = nonNumber;
+						clientSocket.wampSend('updatePeer', validAcceptRequest)
+							.then(function () {
+								eachCb('should not be here');
+							})
+							.catch(function (err) {
+								node.expect(err).to.contain('Expected type integer but found type');
+								eachCb();
+							});
+					}, done);
 				});
-		});
 
-		it('should accept valid peer', function (done) {
-
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					node.expect(err).to.be.undefined;
-					done();
-				})
-				.catch(function (err) {
-					done(err);
+				it('should reject requests when updateType is greater than 1', function (done) {
+					validAcceptRequest.updateType = 2;
+					clientSocket.wampSend('updatePeer', validAcceptRequest)
+						.then(function () {
+							done('should not be here');
+						})
+						.catch(function (err) {
+							node.expect(err).to.contain('Value ' + validAcceptRequest.updateType + ' is greater than maximum 1');
+							done();
+						});
 				});
-		});
-	});
-
-	describe('removePeer', function () {
-
-		var validPeer;
-
-		beforeEach(function (done) {
-			//insert frozen peer
-			validPeer = _.clone(randomPeer);
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					done();
-				})
-				.catch(function (err) {
-					done('Failed to insert peer before running removal tests');
-				});
-		});
-
-		beforeEach(function () {
-			validPeer = _.clone(randomPeer);
-		});
-
-		it('should not remove peer without ip', function (done) {
-
-			delete validPeer.ip;
-
-			clientSocket.wampSend('removePeer', validPeer)
-				.then(function (err, res) {
-					done('should fail while sending peer without ip');
-				})
-				.catch(function (err) {
-					node.expect(err).to.equal('Failed to remove peer');
-					done();
-				});
-		});
-
-		it('should not remove peer without port', function (done) {
-
-			delete validPeer.port;
-
-			clientSocket.wampSend('removePeer', validPeer)
-				.then(function (err, res) {
-					done('should fail while sending peer without port');
-				})
-				.catch(function (err) {
-					node.expect(err).to.equal('Failed to remove peer');
-					done();
-				});
-		});
-
-		it('should remove valid frozen peer', function (done) {
-
-			clientSocket.wampSend('removePeer', validPeer)
-				.then(function (err, res) {
-					node.expect(err).to.be.undefined;
-					done();
-				})
-				.catch(function (err) {
-					done(err);
-				});
+			});
 		});
 	});
 
@@ -336,30 +173,8 @@ describe('RPC', function () {
 
 		var validPeer;
 
-		beforeEach(function (done) {
-			//insert frozen peer
-			validPeer = _.clone(randomPeer);
-			clientSocket.wampSend('acceptPeer', validPeer)
-				.then(function (err, res) {
-					done();
-				})
-				.catch(function (err) {
-					done('Failed to insert peer before running removal tests');
-				});
-		});
-
 		beforeEach(function () {
 			validPeer = _.clone(randomPeer);
-		});
-
-		it('should return non empty peers list', function (done) {
-			ws.call('list', null, function (err, res) {
-				node.debug('> Response:'.grey, JSON.stringify(res));
-				node.expect(err).to.be.null;
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('peers').to.be.an('array').and.not.empty;
-				done();
-			});
 		});
 
 		it('should return list of peers', function (done) {
@@ -373,7 +188,7 @@ describe('RPC', function () {
 				});
 		});
 
-		it('should should work ok with asking for a list multiple times', function (done) {
+		it('asking for a list multiple times should be ok', function (done) {
 
 			var successfulAsks = 0;
 			for (var i = 0; i < 100; i += 1) {

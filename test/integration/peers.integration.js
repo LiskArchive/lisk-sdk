@@ -1,18 +1,20 @@
 'use strict';
 
 var _ = require('lodash');
-var fs = require('fs');
-var Promise = require('bluebird');
-
+var async = require('async');
+var child_process = require('child_process');
 var chai = require('chai');
 var expect = require('chai').expect;
+var fs = require('fs');
 var popsicle = require('popsicle');
+var Promise = require('bluebird');
 var scClient = require('socketcluster-client');
-var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var child_process = require('child_process');
 var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockchainReady;
+var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var baseConfig = require('../../test/config.json');
+var Logger = require('../../logger');
+var logger = new Logger({filename: 'integrationTestsLogger.logs', echo: 'log'});
 
 var SYNC_MODE = {
 	RANDOM: 0,
@@ -29,23 +31,40 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
+var WAIT_BEFORE_CONNECT_MS = 10000;
+
 var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+var monitorWSClient = {
+	protocol: 'http',
+	hostname: '127.0.0.1',
+	port: 'toOverwrite',
+	autoReconnect: true,
+	query: {
+		port: 9999,
+		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+		height: 1,
+		version: '0.0.0a',
+		nonce: '0123456789ABCDEF'
+	}
+};
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
+
+	var peersList = [];
 	switch (syncMode) {
 		case SYNC_MODE.RANDOM:
-			var peersList = [];
-
-			if (typeof syncModeArgs.PROBABILITY !== 'number') {
+			if (typeof syncModeArgs.RANDOM.PROBABILITY !== 'number') {
 				throw new Error('Probability parameter not specified to random sync mode');
 			}
 			var isPickedWithProbability = function (n) {
 				return !!n && Math.random() <= n;
 			};
 
-			return Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
-				if (isPickedWithProbability(syncModeArgs.PROBABILITY)) {
+			Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
+				if (isPickedWithProbability(syncModeArgs.RANDOM.PROBABILITY)) {
 					peersList.push({
 						ip: '127.0.0.1',
 						port: 5000 + index
@@ -55,7 +74,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 			break;
 
 		case SYNC_MODE.ALL_TO_FIRST:
-			return [{
+			peersList = [{
 				ip: '127.0.0.1',
 				port: 5001
 			}];
@@ -63,13 +82,13 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 
 		case SYNC_MODE.ALL_TO_GROUP:
 			throw new Error('To implement');
-			break;
 	}
+	return peersList;
 }
 
 function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
 	var secretsInChunk = Math.ceil(baseConfig.forging.secret.length / forgingNodesIndices.length);
-	var secretsChunks = Array.apply(null, new Array(forgingNodesIndices.length)).map(function (val, index) {
+	var secretsChunks = forgingNodesIndices.map(function (val, index) {
 		return baseConfig.forging.secret.slice(index * secretsInChunk, (index + 1) * secretsInChunk);
 	});
 
@@ -137,49 +156,37 @@ function generatePM2NodesConfig (testNodeConfigs) {
 	fs.writeFileSync(__dirname + '/pm2.integration.json', JSON.stringify(pm2Config, null, 4));
 }
 
-var monitorWSClient = {
-	protocol: 'http',
-	hostname: '127.0.0.1',
-	port: 'toOverwrite',
-	autoReconnect: true,
-	query: {
-		port: 9999,
-		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		height: 1,
-		version: '0.0.0a',
-		nonce: 'ABCD'
-	}
-};
-
 function clearLogs (cb) {
-	child_process.exec('rm -rf test/integration/logs/*', function (err, stdout) {
+	child_process.exec('rm -rf test/integration/logs/*', function (err) {
 		return cb(err);
 	});
 }
 
 function launchTestNodes (cb) {
-	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err, stdout) {
+	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err) {
 		return cb(err);
 	});
 }
 
 function killTestNodes (cb) {
-	child_process.exec('node_modules/.bin/pm2 delete all', function (err, stdout) {
-		console.log(stdout);
+	child_process.exec('node_modules/.bin/pm2 delete all', function (err) {
 		return cb(err);
 	});
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('npm', ['run', 'test-functional'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), 'test/api/blocks.js', 'test/api/transactions.js'], {
 		cwd: __dirname + '/../..'
 	});
 
 	child.stdout.pipe(process.stdout);
 
 	child.on('close', function (code) {
-		return cb(code === 0 ? undefined : code);
+		if (code === 0) {
+			return cb();
+		} else {
+			return cb('Functional tests failed');
+		}
 	});
 
 	child.on('error', function (err) {
@@ -188,208 +195,293 @@ function runFunctionalTests (cb) {
 }
 
 function recreateDatabases (done) {
-	var recreatedCnt = 0;
-	testNodeConfigs.forEach(function (nodeConfig) {
-		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, function (err, stdout) {
-			if (err) {
-				return done(err);
-			}
-			recreatedCnt += 1;
-			if (recreatedCnt === testNodeConfigs.length) {
-				done();
-			}
+	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
+		child_process.exec('dropdb ' + nodeConfig.database + '; createdb ' + nodeConfig.database, eachCb);
+	}, done);
+}
+
+function enableForgingOnDelegates (done) {
+	var enableForgingPromises = [];
+
+	testNodeConfigs.forEach(function (testNodeConfig) {
+		testNodeConfig.secrets.forEach(function (keys) {
+			var enableForgingPromise = popsicle.put({
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: {
+					key: 'elephant tree paris dragon chair galaxy',
+					publicKey: keys.publicKey
+				}
+			});
+			enableForgingPromises.push(enableForgingPromise);
 		});
+	});
+	Promise.all(enableForgingPromises).then(function () {
+		done();
+	}).catch(function () {
+		done('Failed to enable forging on delegates');
 	});
 }
 
-before(function () {
-	generatePM2NodesConfig(testNodeConfigs);
-});
+function waitForAllNodesToBeReady (done) {
+	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
+		waitUntilBlockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
+	}, done);
+}
 
-before(function (done) {
-	clearLogs(done);
-});
+function establishWSConnectionsToNodes (sockets, done) {
+	var connectedTo = 0;
+	var wampClient = new WAMPClient();
 
-before(function (done) {
-	recreateDatabases(done);
-});
-
-before(function (done) {
-	launchTestNodes(done);
-});
-
-before(function (done) {
-
-	var nodesReadyCnt = 0;
-	var nodeReadyCb = function (err) {
-		if (err) {
-			return done(err);
-		}
-		nodesReadyCnt += 1;
-		if (nodesReadyCnt === testNodeConfigs.length) {
-			done();
-		}
-	};
-
-	testNodeConfigs.forEach(function (testNodeConfig) {
-		waitUntilBlockchainReady(nodeReadyCb, 20, 2000, 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000));
-	});
-});
-
-var sockets = [];
-
-describe('Peers mutual connections', function () {
-
-	before(function (done) {
-		var connectedTo = 0;
-		var wampClient = new WAMPClient();
-		//ToDo: more clever way for waiting until all test node being able to receive connections
-		setTimeout(function () {
-			testNodeConfigs.forEach(function (testNodeConfig) {
-				monitorWSClient.port = testNodeConfig.port;
-				var socket = scClient.connect(monitorWSClient);
-				wampClient.upgradeToWAMP(socket);
-				socket.on('connect', function () {
-					sockets.push(socket);
-					connectedTo += 1;
-					if (connectedTo === testNodeConfigs.length) {
-						done();
-					}
-				});
-				socket.on('error', function (err) {});
-				socket.on('connectAbort', function (err) {
-					done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
-				});
-			}, 1000);
-		});
-	});
-
-	it('should return a list of peer mutually interconnected', function (done) {
-		Promise.all(sockets.map(function (socket) {
-			return socket.wampSend('list');
-		})).then(function (results) {
-			var resultsFrom = 0;
-			results.forEach(function (result) {
-				resultsFrom += 1;
-				expect(result).to.have.property('success').to.be.ok;
-				expect(result).to.have.property('peers').to.be.a('array');
-				var peerPorts = result.peers.map(function (p) {
-					return p.port;
-				});
-
-				var allPeerPorts = testNodeConfigs.map(function (testNodeConfig) {
-					return testNodeConfig.port;
-				});
-
-				expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
-				if (resultsFrom === testNodeConfigs.length) {
+	setTimeout(function () {
+		testNodeConfigs.forEach(function (testNodeConfig) {
+			monitorWSClient.port = testNodeConfig.port;
+			var socket = scClient.connect(monitorWSClient);
+			wampClient.upgradeToWAMP(socket);
+			socket.on('connect', function () {
+				sockets.push(socket);
+				connectedTo += 1;
+				if (connectedTo === testNodeConfigs.length) {
 					done();
 				}
 			});
-
-		}).catch(function (err) {
-			done(err);
-		});
-
+			socket.on('error', function (err) {});
+			socket.on('connectAbort', function (err) {
+				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+			});
+		}, WAIT_BEFORE_CONNECT_MS);
 	});
-});
+}
 
-describe('propagation', function () {
+describe('integration', function () {
+
+	var self = this;
+	var sockets = [];
+	generatePM2NodesConfig(testNodeConfigs);
 
 	before(function (done) {
-		runFunctionalTests(done);
+		async.series([
+			function (cbSeries) {
+				clearLogs(cbSeries);
+			},
+			function (cbSeries) {
+				recreateDatabases(cbSeries);
+			},
+			function (cbSeries) {
+				launchTestNodes(cbSeries);
+			},
+			function (cbSeries) {
+				waitForAllNodesToBeReady(cbSeries);
+			},
+			function (cbSeries) {
+				enableForgingOnDelegates(cbSeries);
+			},
+			function (cbSeries) {
+				establishWSConnectionsToNodes(sockets, cbSeries);
+				self.timeout(WAIT_BEFORE_CONNECT_MS * 2);
+			}
+		], done);
 	});
 
-	describe('blocks', function () {
+	after(function (done) {
+		killTestNodes(done);
+	});
 
-		var nodesBlocks;
+	describe('Peers mutual connections', function () {
+
+		it('should return a list of peer mutually interconnected', function () {
+			return Promise.all(sockets.map(function (socket) {
+				return socket.wampSend('list', {});
+			})).then(function (results) {
+				results.forEach(function (result) {
+					expect(result).to.have.property('success').to.be.ok;
+					expect(result).to.have.property('peers').to.be.a('array');
+					var peerPorts = result.peers.map(function (p) {
+						return p.port;
+					});
+					var allPeerPorts = testNodeConfigs.map(function (testNodeConfig) {
+						return testNodeConfig.port;
+					});
+					expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
+				});
+			});
+		});
+	});
+
+	describe('forging', function () {
+
+		function getNetworkStatus (cb) {
+			Promise.all(sockets.map(function (socket) {
+				return socket.wampSend('status');
+			})).then(function (results) {
+				var maxHeight = 1;
+				var heightSum = 0;
+				results.forEach(function (result) {
+					expect(result).to.have.property('success').to.be.ok;
+					expect(result).to.have.property('height').to.be.a('number');
+					if (result.height > maxHeight) {
+						maxHeight = result.height;
+					}
+					heightSum += result.height;
+				});
+				return cb(null, {
+					height: maxHeight,
+					averageHeight: heightSum / results.length
+				});
+
+			}).catch(function (err) {
+				cb(err);
+			});
+		}
 
 		before(function (done) {
-			Promise.all(testNodeConfigs.map(function (testNodeConfig) {
-				return popsicle.get({
-					url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
-					headers: {
-						'Accept': 'application/json',
-						'ip': '0.0.0.0',
-						'port': 9999,
-						'nethash': '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-						'version': '0.0.0a'
+			// Expect some blocks to forge after 30 seconds
+			var timesToCheckNetworkStatus = 30;
+			var timesNetworkStatusChecked = 0;
+			var checkNetworkStatusInterval = 1000;
+
+			var checkingInterval = setInterval(function () {
+				getNetworkStatus(function (err, res) {
+					timesNetworkStatusChecked += 1;
+					if (err) {
+						clearInterval(checkingInterval);
+						return done(err);
+					}
+					logger.log('network status: height - ' + res.height + ', average height - ' + res.averageHeight);
+					if (timesNetworkStatusChecked === timesToCheckNetworkStatus) {
+						clearInterval(checkingInterval);
+						return done(null, res);
 					}
 				});
-			})).then(function (results) {
-				nodesBlocks = results.map(function (res) {
-					return JSON.parse(res.body).blocks;
+			}, checkNetworkStatusInterval);
+		});
+
+		describe('network status after 30 seconds', function () {
+
+			var getNetworkStatusError;
+			var networkHeight;
+			var networkAverageHeight;
+
+			before(function (done) {
+				getNetworkStatus(function (err, res) {
+					getNetworkStatusError = err;
+					networkHeight = res.height;
+					networkAverageHeight = res.averageHeight;
+					done();
 				});
-				expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
-				done();
-			}).catch(function (err) {
-				done(err);
 			});
-		});
 
-		it('should contain non empty blocks after running functional tests', function () {
-			nodesBlocks.forEach(function (blocks) {
-				expect(blocks).to.be.an('array').and.not.empty;
+			it('should have no error', function () {
+				expect(getNetworkStatusError).not.to.exist;
 			});
-		});
 
-		it('should have all peers at the same height', function () {
-			var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
-			expect(uniquePeersHeights).to.have.lengthOf(1);
-		});
+			it('should have height > 1', function () {
+				expect(networkHeight).to.be.above(1);
+			});
 
-		it('should have all blocks the same at all peers', function () {
-			var patternBlocks = nodesBlocks[0];
-			for (var i = 0; i < patternBlocks.length; i += 1) {
-				for (var j = 1; j < nodesBlocks.length; j += 1) {
-					expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
-				}
-			}
+			it('should have average height above 1', function () {
+				expect(networkAverageHeight).to.be.above(1);
+			});
+
+			it('should have different peers heights propagated correctly on peers lists', function () {
+				return Promise.all(sockets.map(function (socket) {
+					return socket.wampSend('list');
+				})).then(function (results) {
+					expect(results.some(function (peersList) {
+						return peersList.peers.some(function (peer) {
+							return peer.height > 1;
+						});
+					}));
+				});
+			});
 		});
 	});
 
-	describe('transactions', function () {
-
-		var nodesTransactions = [];
+	describe('propagation', function () {
 
 		before(function (done) {
-			Promise.all(sockets.map(function (socket) {
-				return socket.wampSend('blocks');
-			})).then(function (results) {
-				nodesTransactions = results.map(function (res) {
-					return res.blocks;
+			runFunctionalTests(done);
+		});
+
+		describe('blocks', function () {
+
+			var nodesBlocks;
+
+			before(function () {
+				return Promise.all(testNodeConfigs.map(function (testNodeConfig) {
+					return popsicle.get({
+						url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json'
+						}
+					});
+				})).then(function (results) {
+					nodesBlocks = results.map(function (res) {
+						return JSON.parse(res.body).blocks;
+					});
+					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
 				});
-				expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
-				done();
-			}).catch(function (err) {
-				done(err);
 			});
-		});
 
-		it('should contain non empty transactions after running functional tests', function () {
-			nodesTransactions.forEach(function (transactions) {
-				expect(transactions).to.be.an('array').and.not.empty;
+			it('should contain non empty blocks after running functional tests', function () {
+				nodesBlocks.forEach(function (blocks) {
+					expect(blocks).to.be.an('array').and.not.empty;
+				});
 			});
-		});
 
-		it('should have all peers having same amount of confirmed transactions', function () {
-			var uniquePeersTransactionsNumber = _(nodesTransactions).map('length').uniq().value();
-			expect(uniquePeersTransactionsNumber).to.have.lengthOf(1);
-		});
+			it('should have all peers at the same height', function () {
+				var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
+				expect(uniquePeersHeights).to.have.lengthOf(1);
+			});
 
-		it('should have all transactions the same at all peers', function () {
-			var patternTransactions = nodesTransactions[0];
-			for (var i = 0; i < patternTransactions.length; i += 1) {
-				for (var j = 1; j < nodesTransactions.length; j += 1) {
-					expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
+			it('should have all blocks the same at all peers', function () {
+				var patternBlocks = nodesBlocks[0];
+				for (var i = 0; i < patternBlocks.length; i += 1) {
+					for (var j = 1; j < nodesBlocks.length; j += 1) {
+						expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
+					}
 				}
-			}
+			});
+		});
+
+		describe('transactions', function () {
+
+			var nodesTransactions = [];
+
+			before(function () {
+				return Promise.all(sockets.map(function (socket) {
+					return socket.wampSend('blocks');
+				})).then(function (results) {
+					nodesTransactions = results.map(function (res) {
+						return res.blocks;
+					});
+					expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
+				});
+			});
+
+			it('should contain non empty transactions after running functional tests', function () {
+				nodesTransactions.forEach(function (transactions) {
+					expect(transactions).to.be.an('array').and.not.empty;
+				});
+			});
+
+			it('should have all peers having same amount of confirmed transactions', function () {
+				var uniquePeersTransactionsNumber = _(nodesTransactions).map('length').uniq().value();
+				expect(uniquePeersTransactionsNumber).to.have.lengthOf(1);
+			});
+
+			it('should have all transactions the same at all peers', function () {
+				var patternTransactions = nodesTransactions[0];
+				for (var i = 0; i < patternTransactions.length; i += 1) {
+					for (var j = 1; j < nodesTransactions.length; j += 1) {
+						expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
+					}
+				}
+			});
 		});
 	});
-
-});
-
-
-after(function (done) {
-	killTestNodes(done);
 });
