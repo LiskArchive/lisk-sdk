@@ -93,15 +93,12 @@ describe('handshake', function () {
 		describe('schema', function () {
 
 			var schemaDynamicTests = new SchemaDynamicTests({
-				customInput: {
-					invalidHeadersErrorCode: failureCodes.INVALID_HEADERS
-				},
 				customArgumentAssertion: function (input, expectedType, err) {
-					expect(err).to.have.property('code').equal(this.customInput.invalidHeadersErrorCode);
+					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
 					expect(err).to.have.property('description').equal('#/: Expected type ' + expectedType + ' but found type ' + input.expectation);
 				},
 				customPropertyAssertion: function (input, expectedType, property, err) {
-					expect(err).to.have.property('code').equal(this.customInput.invalidHeadersErrorCode);
+					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
 					expect(err).to.have.property('description').equal('#/' + property + ': Expected type ' + expectedType + ' but found type ' + input.expectation);
 				},
 				customRequiredPropertiesAssertion: function (property, err) {

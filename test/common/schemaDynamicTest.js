@@ -1,7 +1,9 @@
 'use strict';
 
-var assign = require('lodash').assign;
-var difference = require('lodash').difference;
+var _ = require('lodash');
+var assign = _.assign;
+var difference = _.difference;
+var set = _.set;
 var chai = require('chai');
 var expect = require('chai').expect;
 var util = require('util');
@@ -20,12 +22,25 @@ var strings = typesRepresentatives.strings;
 
 var self;
 
+SchemaDynamicTest.TEST_STYLE = {
+	ASYNC: function (testFunction, argument, cb) {
+		testFunction(argument, cb);
+	},
+	THROWABLE: function (testFunction, argument, cb) {
+		try {
+			testFunction(argument);
+		} catch (ex) {
+			cb(ex);
+		}
+	}
+};
+
 function SchemaDynamicTest (config) {
 
-	this.customInput = config.customInput;
 	this.customArgumentAssertion = config.customArgumentAssertion;
 	this.customPropertyAssertion = config.customPropertyAssertion;
 	this.customRequiredPropertiesAssertion = config.customRequiredPropertiesAssertion;
+	this.testStyle = config.testStyle || SchemaDynamicTest.TEST_STYLE.ASYNC;
 
 	self = this;
 
@@ -93,10 +108,14 @@ SchemaDynamicTest.prototype.standardInvalidArgumentAssertion = function (input, 
 		.equal('Expected type ' + expectedType + ' but found type ' + input.expectation);
 };
 
+SchemaDynamicTest.prototype.standardInvalidPropertyAssertion = function (input, expectedType, property, err) {
+	self.standardInvalidArgumentAssertion(input, expectedType, err);
+};
+
 SchemaDynamicTest.prototype.testArgument = function (expectedType, invalidInputs, testedFunction) {
-	var assertion = self.customArgumentAssertion ?  self.customArgumentAssertion.bind(self) : self.standardInvalidArgumentAssertion;
+	var assertion = self.customArgumentAssertion ? self.customArgumentAssertion.bind(self) : self.standardInvalidArgumentAssertion;
 	var test = function (invalidInput, eachCb) {
-		testedFunction(invalidInput.input, function (err) {
+		self.testStyle(testedFunction, invalidInput.input, function (err) {
 			assertion(invalidInput, expectedType, err);
 			eachCb();
 		});
@@ -104,17 +123,15 @@ SchemaDynamicTest.prototype.testArgument = function (expectedType, invalidInputs
 	self.carpetTesting(test, invalidInputs, 'should return an error when invoked with %s');
 };
 
-SchemaDynamicTest.prototype.standardInvalidPropertyAssertion = function (input, expectedType, property, err) {
-	self.standardInvalidArgumentAssertion(input, expectedType, err);
-};
 
 SchemaDynamicTest.prototype.testProperty = function (expectedType, invalidInputs, testedFunction, validArgument, property) {
-	var assertion = self.customPropertyAssertion ?  self.customPropertyAssertion.bind(self) : self.standardInvalidPropertyAssertion;
+	var assertion = self.customPropertyAssertion ? self.customPropertyAssertion.bind(self) : self.standardInvalidPropertyAssertion;
 	var test = function (invalidInput, eachCb) {
 		var malformedPart = {};
-		malformedPart[property] = invalidInput.input;
+		set(malformedPart, property, invalidInput.input);
+
 		var invalidArgument = assign({}, validArgument, malformedPart);
-		testedFunction(invalidArgument, function (err) {
+		self.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(invalidInput, expectedType, property, err);
 			eachCb();
 		});
@@ -128,11 +145,11 @@ SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = functio
 };
 
 SchemaDynamicTest.prototype.testRequired = function (testedFunction, validArgument, properties) {
-	var assertion = self.customRequiredPropertiesAssertion ?  self.customRequiredPropertiesAssertion.bind(self) : self.standardMissingRequiredPropertiesAssertion;
+	var assertion = self.customRequiredPropertiesAssertion ? self.customRequiredPropertiesAssertion.bind(self) : self.standardMissingRequiredPropertiesAssertion;
 	var test = function (missingProperty, eachCb) {
 		var invalidArgument = assign({}, validArgument);
 		delete invalidArgument[missingProperty.description];
-		testedFunction(invalidArgument, function (err) {
+		self.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(missingProperty.description, err);
 			eachCb();
 		});
