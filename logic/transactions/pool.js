@@ -56,7 +56,7 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 			pending: { transactions: {}, count: 0 },
 			ready: { transactions: {}, count: 0 }
 		},
-		invalid: { ids: {}, count: 0 }
+		invalid: {}
 	};
 
 	// Bundled transaction timer
@@ -82,6 +82,13 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 	}
 
 	jobsQueue.register('txPoolNextExpiry', nextExpiry, self.poolExpiryInterval);
+
+	// Invalid transactions reset timer
+	function nextReset () {
+		library.logger.debug(['Cleared invalid txs:', self.resetInvalidTransactions()].join(' '));
+	}
+
+	jobsQueue.register('txPoolNextReset', nextReset, self.poolExpiryInterval * 10);
 }
 
 
@@ -152,6 +159,9 @@ __private.transactionInPool = function (id) {
 __private.add = function (transaction, poolList, cb) {
 	if (__private.countTxsPool() >= self.poolStorageTxsLimit) {
 		return setImmediate(cb, 'Transaction pool is full');
+	}
+	if (pool.invalid[transaction.id] !== undefined) {
+		return setImmediate(cb, 'Transaction is invalid');
 	}
 	if (__private.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
@@ -575,11 +585,13 @@ TxPool.prototype.processPool = function (cb) {
 				__private.processUnverifiedTransaction(transaction, true, function (err, sender) {
 					if (err) {
 						library.logger.error('Failed to process unverified transaction: ' + transaction.id, err);
+						pool.invalid[transaction.id] = true;
 						return setImmediate(eachSeriesCb);
 					}
-					self.checkBalance(transaction, sender, function (err) {
+					self.checkBalance(transaction, sender, function (err, balance) {
 						if (err) {
 							library.logger.error('Failed to check balance transaction: ' + transaction.id, err);
+							return setImmediate(eachSeriesCb);
 						}
 						transaction.receivedAt = new Date();
 						if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures || transaction.receivedAt < transaction.timestamp)) {
@@ -631,6 +643,19 @@ TxPool.prototype.expireTransactions = function (cb) {
 	], function (err, ids) {
 		return setImmediate(cb, err, ids);
 	});
+};
+
+/**
+ * Reset invalid transactions.
+ */
+TxPool.prototype.resetInvalidTransactions = function () {
+	var counter = 0;
+
+	for (var tx in pool.invalid) {
+		delete pool.invalid[tx];
+		counter++;
+	}
+	return counter;
 };
 
 // Export
