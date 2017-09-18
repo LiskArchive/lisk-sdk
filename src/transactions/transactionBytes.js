@@ -13,7 +13,6 @@
  *
  */
 /* eslint-disable no-plusplus */
-import ByteBuffer from 'bytebuffer';
 import bignum from 'browserify-bignum';
 
 const typeSizes = {
@@ -27,16 +26,53 @@ const typeSizes = {
 	DATA: 64,
 };
 
-const sumTypeSizes = Object.values(typeSizes)
-	.reduce((sum, typeSize) => sum + typeSize, 0);
+function getTransactionBuffer(transaction) {
 
-/**
- * @method getEmptyBytesForTransaction
- * @param transaction Object
- * @return {object}
- */
+	const transactionType = Buffer.alloc(typeSizes.TRANSACTION_TYPE).fill(transaction.type);
 
-function getEmptyBytesForTransaction(transaction) {
+	const transactionTimestamp = Buffer.alloc(typeSizes.TIMESTAMP);
+	transactionTimestamp.writeIntLE(transaction.timestamp, 0, typeSizes.TIMESTAMP);
+
+	const transactionSenderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+
+	const transactionRequesterPublicKey = transaction.requesterPublicKey
+		? Buffer.from(transaction.requesterPublicKey, 'hex')
+		: Buffer.alloc(0);
+
+	const transactionRecipientID = transaction.recipientId
+		? Buffer.from(bignum(transaction.recipientId.slice(0, -1)).toBuffer({ size: typeSizes.RECIPIENT_ID }))
+		: Buffer.alloc(typeSizes.RECIPIENT_ID).fill(0);
+
+	const transactionAmount = Buffer.alloc(typeSizes.AMOUNT);
+	transactionAmount.writeInt32LE(transaction.amount, 0, typeSizes.AMOUNT);
+
+	const transactionAssetData = getAssetData(transaction).assetBytes;
+
+	const transactionSignature = transaction.signature
+		? Buffer.from(transaction.signature, 'hex')
+		: Buffer.alloc(0);
+
+	const transactionSecondSignature = transaction.signSignature
+		? Buffer.from(transaction.signSignature, 'hex')
+		: Buffer.alloc(0);
+
+	const transactionBuffer = Buffer.concat([
+		transactionType,
+		transactionTimestamp,
+		transactionSenderPublicKey,
+		transactionRequesterPublicKey,
+		transactionRecipientID,
+		transactionAmount,
+		transactionAssetData,
+		transactionSignature,
+		transactionSecondSignature,
+	]);
+
+	return transactionBuffer;
+}
+
+function getAssetData(transaction) {
+
 	/**
 	 * @method isSendTransaction
 	 * @return {object}
@@ -44,7 +80,7 @@ function getEmptyBytesForTransaction(transaction) {
 
 	function isSendTransaction() {
 		return {
-			assetBytes: null,
+			assetBytes: Buffer.alloc(0),
 			assetSize: 0,
 		};
 	}
@@ -116,36 +152,20 @@ function getEmptyBytesForTransaction(transaction) {
 
 	function isDappTransaction() {
 		const dapp = transaction.asset.dapp;
-		let buf = Buffer.from(dapp.name);
-
-		if (dapp.description) {
-			const descriptionBuf = Buffer.from(dapp.description);
-			buf = Buffer.concat([buf, descriptionBuf]);
-		}
-
-		if (dapp.tags) {
-			const tagsBuf = Buffer.from(dapp.tags);
-			buf = Buffer.concat([buf, tagsBuf]);
-		}
-
-		if (dapp.link) {
-			buf = Buffer.concat([buf, Buffer.from(dapp.link)]);
-		}
-
-		if (dapp.icon) {
-			buf = Buffer.concat([buf, Buffer.from(dapp.icon)]);
-		}
-
-		const bb = new ByteBuffer(4 + 4, true);
-		bb.writeInt(dapp.type);
-		bb.writeInt(dapp.category);
-		bb.flip();
-
-		buf = Buffer.concat([buf, bb.toBuffer()]);
+		const dappNameBuffer = Buffer.from(dapp.name);
+		const dappDescriptionBuffer = dapp.description ? Buffer.from(dapp.description) : Buffer.from('');
+		const dappTagsBuffer = dapp.tags ? Buffer.from(dapp.tags) : Buffer.from('');
+		const dappLinkBuffer = Buffer.from(dapp.link);
+		const dappIconBuffer = dapp.icon ? Buffer.from(dapp.icon) : Buffer.from('');
+		const dappTypeBuffer = Buffer.alloc(4).fill(dapp.type);
+		const dappCategoryBuffer = Buffer.alloc(4).fill(dapp.category);
+		const dappBuffer = Buffer.concat([
+			dappNameBuffer, dappDescriptionBuffer, dappTagsBuffer, dappLinkBuffer, dappIconBuffer, dappTypeBuffer, dappCategoryBuffer
+		]);
 
 		return {
-			assetBytes: buf,
-			assetSize: buf.length,
+			assetBytes: dappBuffer,
+			assetSize: dappBuffer.length,
 		};
 	}
 
@@ -169,22 +189,15 @@ function getEmptyBytesForTransaction(transaction) {
 	 */
 
 	function isDappOutTransferTransaction() {
-		const dappBuf = Buffer.from(transaction.asset.outTransfer.dappId);
-		const transactionBuf = Buffer.from(transaction.asset.outTransfer.transactionId);
-		const buf = Buffer.concat([dappBuf, transactionBuf]);
+		const dappOutAppIdBuffer = Buffer.from(transaction.asset.outTransfer.dappId);
+		const dappOutTransactionIdBuffer = Buffer.from(transaction.asset.outTransfer.transactionId);
+		const transactionAssetBuffer = Buffer.concat([dappOutAppIdBuffer, dappOutTransactionIdBuffer]);
 
 		return {
-			assetBytes: buf,
-			assetSize: buf.length,
+			assetBytes: transactionAssetBuffer,
+			assetSize: transactionAssetBuffer.length,
 		};
 	}
-
-	/**
-	 * `transactionType` describes the available transaction types.
-	 *
-	 * @property transactionType
-	 * @type object
-	 */
 
 	const transactionType = {
 		0: isSendTransaction,
@@ -200,97 +213,6 @@ function getEmptyBytesForTransaction(transaction) {
 	return transactionType[transaction.type]();
 }
 
-/**
- * @method createTransactionBuffer
- * @param transaction Object
- * @return {buffer}
- */
-
-function createTransactionBuffer(transaction) {
-	function assignHexToTransactionBytes(partTransactionBuffer, hexValue) {
-		const hexBuffer = Buffer.from(hexValue, 'hex');
-		for (let i = 0; i < hexBuffer.length; i++) {
-			partTransactionBuffer.writeByte(hexBuffer[i]);
-		}
-		return partTransactionBuffer;
-	}
-
-	/**
-	 * @method assignTransactionBuffer
-	 * @param transactionBuffer buffer
-	 * @param assetSize number
-	 * @param assetBytes number
-	 * @return {buffer}
-	 */
-
-	function assignTransactionBuffer(transactionBuffer, assetSize, assetBytes) {
-		transactionBuffer.writeInt8(transaction.type);
-		transactionBuffer.writeInt(transaction.timestamp);
-
-		assignHexToTransactionBytes(transactionBuffer, transaction.senderPublicKey);
-
-		if (transaction.requesterPublicKey) {
-			assignHexToTransactionBytes(transactionBuffer, transaction.requesterPublicKey);
-		}
-
-		if (transaction.recipientId) {
-			let recipient = transaction.recipientId.slice(0, -1);
-			recipient = bignum(recipient).toBuffer({ size: 8 });
-
-			for (let i = 0; i < 8; i++) {
-				transactionBuffer.writeByte(recipient[i] || 0);
-			}
-		} else {
-			for (let i = 0; i < 8; i++) {
-				transactionBuffer.writeByte(0);
-			}
-		}
-		transactionBuffer.writeLong(transaction.amount);
-
-		if (transaction.asset.data) {
-			const dataBuffer = Buffer.from(transaction.asset.data);
-			for (let i = 0; i < dataBuffer.length; i++) {
-				transactionBuffer.writeByte(dataBuffer[i]);
-			}
-		}
-
-		if (assetSize > 0) {
-			for (let i = 0; i < assetSize; i++) {
-				transactionBuffer.writeByte(assetBytes[i]);
-			}
-		}
-
-		if (transaction.signature) {
-			assignHexToTransactionBytes(transactionBuffer, transaction.signature);
-		}
-
-		if (transaction.signSignature) {
-			assignHexToTransactionBytes(transactionBuffer, transaction.signSignature);
-		}
-
-		transactionBuffer.flip();
-		const arrayBuffer = new Uint8Array(transactionBuffer.toArrayBuffer());
-		const buffer = [];
-
-		for (let i = 0; i < arrayBuffer.length; i++) {
-			buffer[i] = arrayBuffer[i];
-		}
-
-		return Buffer.from(buffer);
-	}
-
-	// Get Transaction Size and Bytes
-	const transactionAssetSizeBuffer = getEmptyBytesForTransaction(transaction);
-	const assetSize = transactionAssetSizeBuffer.assetSize;
-	const assetBytes = transactionAssetSizeBuffer.assetBytes;
-
-	const emptyTransactionBuffer = new ByteBuffer(sumTypeSizes + assetSize, true);
-	const assignedTransactionBuffer = assignTransactionBuffer(
-		emptyTransactionBuffer, assetSize, assetBytes,
-	);
-
-	return assignedTransactionBuffer;
-}
 
 /**
  * @method getBytes
@@ -300,7 +222,7 @@ function createTransactionBuffer(transaction) {
  */
 
 function getTransactionBytes(transaction) {
-	return createTransactionBuffer(transaction);
+	return getTransactionBuffer(transaction);
 }
 
 module.exports = {
