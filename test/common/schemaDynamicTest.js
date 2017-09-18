@@ -37,7 +37,6 @@ SchemaDynamicTest.TEST_STYLE = {
 
 function SchemaDynamicTest (config) {
 
-	this.customInput = config.customInput;
 	this.customArgumentAssertion = config.customArgumentAssertion;
 	this.customPropertyAssertion = config.customPropertyAssertion;
 	this.customRequiredPropertiesAssertion = config.customRequiredPropertiesAssertion;
