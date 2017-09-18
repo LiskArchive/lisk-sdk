@@ -10,7 +10,7 @@ var modulesLoader = require('../../common/initModule').modulesLoader;
 var Delegate = require('../../../logic/delegate');
 var exceptions = require('../../../helpers/exceptions');
 
-describe.skip('delegate', function () {
+describe('delegate', function () {
 
 	var delegate;
 	var accountsMock;
@@ -162,7 +162,7 @@ describe.skip('delegate', function () {
 			});
 		});
 
-		describe('when username is already assigned', function () {
+		describe('when username is already registered', function () {
 
 			beforeEach(function () {
 				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, ['username'], sinon.match.any).yields(null, node.eAccount);
@@ -195,14 +195,12 @@ describe.skip('delegate', function () {
 
 	describe('checkConfirmed', function () {
 
-		var dummyConfirmedAccount;
 		var validUsername;
 		var checkDuplicatesStub;
 		var transactionsExceptionsIndexOfStub;
 
 		beforeEach(function () {
 			validUsername = validSender.username;
-			dummyConfirmedAccount = {username: validUsername};
 			checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArg(3);
 			transactionsExceptionsIndexOfStub = sinon.spy(exceptions.delegates, 'indexOf');
 		});
@@ -219,22 +217,30 @@ describe.skip('delegate', function () {
 			});
 		});
 
-		it('should call checkDuplicates with valid username', function (done) {
+		it('should call checkDuplicates with "username"', function (done) {
 			delegate.checkConfirmed(validTransaction, function () {
 				expect(checkDuplicatesStub.args[0][1] === 'username').to.be.true;
 				done();
 			});
 		});
 
-		it('should call checkDuplicates with valid isDelegate', function (done) {
+		it('should call checkDuplicates with "isDelegate"', function (done) {
 			delegate.checkConfirmed(validTransaction, function () {
 				expect(checkDuplicatesStub.args[0][2] === 'isDelegate').to.be.true;
 				done();
 			});
 		});
 
-		it('should not return an error when username was not registered before', function (done) {
-			delegate.checkConfirmed(validTransaction, done);
+		describe('when delegate is not confirmed', function () {
+
+			beforeEach(function () {
+				checkDuplicatesStub.restore();
+				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, null);
+			});
+
+			it('should not return error', function (done) {
+				delegate.checkConfirmed(validTransaction, done);
+			});
 		});
 
 		describe('when delegate is already confirmed', function () {
@@ -274,14 +280,24 @@ describe.skip('delegate', function () {
 				});
 
 				it('should call a callback with error = null', function (done) {
-					delegate.checkConfirmed(validTransaction, function () {
-						expect(loggerMock.debug.calledWith('Username already exists')).to.be.true;
+					delegate.checkConfirmed(validTransaction, function (err) {
+						expect(err).to.be.null;
 						done();
 					});
 				});
 
-				it('should call debug with error message', function (done) {
-					delegate.checkConfirmed(validTransaction, dummyConfirmedAccount, done);
+				it('should call library.logger.debug with error message', function (done) {
+					delegate.checkConfirmed(validTransaction, function () {
+						expect(loggerMock.debug.calledWith(validDelegateRegistrationError)).to.be.true;
+						done();
+					});
+				});
+
+				it('should call library.logger.debug with stringified transaction', function (done) {
+					delegate.checkConfirmed(validTransaction, function () {
+						expect(loggerMock.debug.calledWith(JSON.stringify(validTransaction))).to.be.true;
+						done();
+					});
 				});
 			});
 		});
@@ -313,23 +329,66 @@ describe.skip('delegate', function () {
 
 	describe('checkUnconfirmed', function () {
 
-		var dummyUnconfirmedAccount;
 		var validUsername;
 		var checkDuplicatesStub;
 
 		beforeEach(function () {
 			validUsername = validSender.username;
-			dummyUnconfirmedAccount = {u_username: validUsername};
-			checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates');
+			checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArg(3);
 		});
 
 		afterEach(function () {
 			checkDuplicatesStub.restore();
 		});
 
-		it('should call checkDuplicates with valid params', function () {
-			delegate.checkUnconfirmed(dummyUnconfirmedAccount);
-			expect(checkDuplicatesStub.calledWith({u_username: validSender.username})).to.be.true;
+		it('should call checkDuplicates with valid transaction', function (done) {
+			delegate.checkUnconfirmed(validTransaction, function () {
+				expect(checkDuplicatesStub.calledWith(validTransaction)).to.be.true;
+				done();
+			});
+		});
+
+		it('should call checkDuplicates with "u_username"', function (done) {
+			delegate.checkUnconfirmed(validTransaction, function () {
+				expect(checkDuplicatesStub.args[0][1] === 'u_username').to.be.true;
+				done();
+			});
+		});
+
+		it('should call checkDuplicates with "u_isDelegate"', function (done) {
+			delegate.checkUnconfirmed(validTransaction, function () {
+				expect(checkDuplicatesStub.args[0][2] === 'u_isDelegate').to.be.true;
+				done();
+			});
+		});
+
+		describe('when delegate is not unconfirmed', function () {
+
+			beforeEach(function () {
+				checkDuplicatesStub.restore();
+				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, null);
+			});
+
+			it('should not return error', function (done) {
+				delegate.checkUnconfirmed(validTransaction, done);
+			});
+		});
+
+		describe('when delegate is already unconfirmed', function () {
+
+			var validDelegateRegistrationError = 'Delegate registration violation';
+
+			beforeEach(function () {
+				checkDuplicatesStub.restore();
+				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, validDelegateRegistrationError);
+			});
+
+			it('should call a callback with error', function (done) {
+				delegate.checkUnconfirmed(validTransaction, function (err) {
+					expect(err).equal(validDelegateRegistrationError);
+					done();
+				});
+			});
 		});
 	});
 
@@ -342,9 +401,10 @@ describe.skip('delegate', function () {
 			var validConfirmedAccount;
 
 			beforeEach(function () {
-				checkConfirmedStub = sinon.stub(delegate, 'checkConfirmed').callsArg(2);
+				checkConfirmedStub = sinon.stub(delegate, 'checkConfirmed').callsArg(1);
 				accountsMock.setAccountAndGet = sinon.stub().callsArg(1);
 				validConfirmedAccount = {
+					publicKey: validSender.publicKey,
 					address: validSender.address,
 					u_isDelegate: 0,
 					isDelegate: 1,
@@ -369,7 +429,7 @@ describe.skip('delegate', function () {
 		describe('when username is already confirmed', function () {
 
 			beforeEach(function () {
-				checkConfirmedStub = sinon.stub(delegate, 'checkConfirmed').callsArgWith(2, 'Username already exists');
+				checkConfirmedStub = sinon.stub(delegate, 'checkConfirmed').callsArgWith(1, 'Username already exists');
 			});
 
 			afterEach(function () {
@@ -404,6 +464,7 @@ describe.skip('delegate', function () {
 				checkUnconfirmedStub = sinon.stub(delegate, 'checkUnconfirmed').callsArg(1);
 				accountsMock.setAccountAndGet = sinon.stub().callsArg(1);
 				validUnconfirmedAccount = {
+					publicKey: validSender.publicKey,
 					address: validSender.address,
 					u_isDelegate: 1,
 					isDelegate: 0,

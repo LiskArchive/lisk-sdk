@@ -487,7 +487,7 @@ describe('PUT /api/delegates with funds', function () {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transactionId');
 					node.expect(res.body.transactionId).to.be.not.empty;
-					node.onNewBlock(done)
+					node.onNewBlock(done);
 				});
 			});
 
