@@ -187,15 +187,15 @@ __private.addReady = function (transaction, poolList, cb) {
 };
 
 /**
- * Deletes id from pool list index.
+ * Deletes id from pool list.
  * @param {string} id
  * @param {Object} poolList
  * @return {boolean} true if transaction id is on the list and was deleted
  */
 __private.delete = function (id, poolList) {
-	var index = poolList.transactions[id];
+	var tx = poolList.transactions[id];
 
-	if (index !== undefined) {
+	if (tx !== undefined) {
 		delete poolList.transactions[id];
 		poolList.count--;
 		return true;
@@ -278,10 +278,6 @@ __private.transactionTimeOut = function (transaction) {
  * @returns {setImmediateCallback} errors | sender
  */
 __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
-	if (!transaction) {
-		return setImmediate(cb, 'Missing transaction');
-	}
-
 	async.waterfall([
 		function setAccountAndGet (waterCb) {
 			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
@@ -354,7 +350,7 @@ TxPool.prototype.bind = function (accounts, transactions) {
 };
 
 /**
- * Gets unverified, verified.pending and verified.ready indexes and transactions length.
+ * Gets unverified, verified.pending and verified.ready counters.
  * @return {Object} unverified, pending, ready
  */
 TxPool.prototype.getUsage = function () {
@@ -436,7 +432,7 @@ TxPool.prototype.getAll  = function (filter, params) {
  * @return {[transaction]}
  */
 TxPool.prototype.getReady = function (limit) {
-	var r = _.orderBy(pool.verified.ready.transactions, ['fee', 'receivedAt'],['desc', 'desc']);
+	var r = _.orderBy(pool.verified.ready.transactions, ['fee', 'receivedAt'],['desc', 'asc']);
 	if (limit && limit < r.length) {
 		r.splice(limit);
 	}
@@ -477,7 +473,7 @@ TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
 			if (receiptTxs[receiptTxList].length > 0) {
 				receiptTxs[receiptTxList].forEach(function (receiptTx) {
 					if (receiptTx.type === transactionTypes.SEND) {
-						poolBalance = poolBalance.plus(paymentTx.amount.toString());
+						poolBalance = poolBalance.plus(receiptTx.amount.toString());
 					}
 				});
 			}
@@ -580,6 +576,10 @@ TxPool.prototype.delete = function (transaction) {
 TxPool.prototype.processPool = function (cb) {
 	async.series({
 		processUnverified: function (seriesCb) {
+			if (pool.unverified.count === 0) {
+				return setImmediate(seriesCb);
+			}
+
 			async.eachSeries(pool.unverified.transactions, function (transaction, eachSeriesCb) {
 				__private.delete(transaction.id, pool.unverified);
 				__private.processUnverifiedTransaction(transaction, true, function (err, sender) {
@@ -607,6 +607,10 @@ TxPool.prototype.processPool = function (cb) {
 			});
 		},
 		processPending: function (seriesCb) {
+			if (pool.verified.pending.count === 0) {
+				return setImmediate(seriesCb);
+			}
+
 			// process pool.verified.pending (multisig txs signs), and take care 
 			// about moving transactions from `verified.pending` to `verified.ready`
 			async.eachSeries(pool.verified.pending.transactions, function (transaction, eachSeriesCb) {
