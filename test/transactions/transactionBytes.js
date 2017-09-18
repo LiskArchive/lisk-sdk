@@ -14,7 +14,7 @@
  */
 import { getTransactionBytes } from '../../src/transactions/transactionBytes';
 
-describe.only('#getTransactionBytes', () => {
+describe('#getTransactionBytes', () => {
 	const defaultRecipient = '58191285901858109L';
 	const defaultSenderPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultSenderSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
