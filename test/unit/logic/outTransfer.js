@@ -98,7 +98,7 @@ describe('outTransfer', function () {
 
 		accountsStub = {
 			mergeAccountAndGet: sinon.stub(),
-			getAccount: sinon.stub()
+			setAccountAndGet: sinon.stub()
 		};
 		outTransfer = new OutTransfer(dbStub, modulesLoader.scope.schema, modulesLoader.logger);
 		outTransfer.bind(accountsStub);
@@ -108,7 +108,8 @@ describe('outTransfer', function () {
 		dbStub.one.reset();
 		dbStub.query.reset();
 		accountsStub.mergeAccountAndGet.reset();
-		accountsStub.getAccount.reset();
+		accountsStub.setAccountAndGet.reset();
+		OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 	});
 
 	beforeEach(function () {
@@ -345,11 +346,11 @@ describe('outTransfer', function () {
 	describe('getBytes', function () {
 
 		it('should get bytes of valid transaction', function () {
-			expect(outTransfer.getBytes(trs).toString('hex')).to.equal('37343030323032313237363935343134343530');
+			expect(outTransfer.getBytes(trs).toString('hex')).to.equal('343136333731333037383236363532343230393134313434333533313632323737313338383231');
 		});
 
 		it('should get bytes of valid transaction', function () {
-			expect(outTransfer.getBytes(trs).length).to.be.lte(20);
+			expect(outTransfer.getBytes(trs).length).to.be.lte(39);
 		});
 	});
 
@@ -360,27 +361,24 @@ describe('outTransfer', function () {
 			height: 1
 		};
 
-		it('should return error if dapp does not exist', function (done) {
-			var error = 'Application genesis block not found';
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
+		it('should return error when unable to get account', function (done) {
+			var error = 'Could not connect to the database';
+			accountsStub.setAccountAndGet.withArgs({
+				address: trs.recipientId
 			}, sinon.match.any).yields(error);
 
-			outTransfer.apply(trs, dummyBlock, sender, function (err) {
-				expect(err).to.equal(error);
-				done();
+			outTransfer.apply(trs, dummyBlock, validSender, function (err) {
+				expect(err).to.equal(err);
 			});
 		});
 
 		it('should update account with correct params', function (done) {
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
-			}, sinon.match.any).yields(null, {
-				authorId: validSender.address
-			});
+			accountsStub.setAccountAndGet.withArgs({
+				address: trs.recipientId
+			}, sinon.match.any).yields(null);
 
 			accountsStub.mergeAccountAndGet.withArgs({
-				address: validSender.address,
+				address: trs.recipientId,
 				balance: trs.amount,
 				u_balance: trs.amount,
 				blockId: dummyBlock.id,
@@ -390,6 +388,29 @@ describe('outTransfer', function () {
 			outTransfer.apply(trs, dummyBlock, sender, function (err) {
 				expect(err).to.not.exist;
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
+				done();
+			});
+		});
+
+		it.skip('should remove transaction from unconfirmedOutTransfer object', function (done) {
+			var unconfirmedTrs = OutTransfer.__get__('__private.unconfirmedOutTansfers');
+
+			accountsStub.setAccountAndGet.withArgs({
+				address: trs.recipientId
+			}, sinon.match.any).yields(null);
+
+			accountsStub.mergeAccountAndGet.withArgs({
+				address: trs.recipientId,
+				balance: trs.amount,
+				u_balance: trs.amount,
+				blockId: dummyBlock.id,
+				round: slots.calcRound(dummyBlock.height)
+			}).yields(null);
+
+			outTransfer.apply(trs, dummyBlock, sender, function (err) {
+				expect(err).to.not.exist;
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
+				expect(unconfirmedTrs[trs.asset.outTransfer.transactionId]).to.not.exist;
 				done();
 			});
 		});
@@ -402,40 +423,56 @@ describe('outTransfer', function () {
 			height: 1
 		};
 
-		it('should return error if dapp does not exist', function (done) {
-			var error = 'Application genesis block not found';
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
+		it('should return error when unable to get account', function (done) {
+			var error = 'Could not connect to the database';
+			accountsStub.setAccountAndGet.withArgs({
+				address: trs.recipientId
 			}, sinon.match.any).yields(error);
 
-			outTransfer.undo(trs, dummyBlock, sender, function (err) {
-				expect(err).to.equal(error);
-				done();
+			outTransfer.undo(trs, dummyBlock, validSender, function (err) {
+				expect(err).to.equal(err);
 			});
 		});
 
 		it('should update account with correct params', function (done) {
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
-			}, sinon.match.any).yields(null, {
-				authorId: validSender.address
-			});
-
-			accountsStub.getAccount.withArgs({
-				address: sender.address 
-			}, sinon.match.any).yields();
+			accountsStub.setAccountAndGet.withArgs({
+				address: trs.recipientId
+			}, sinon.match.any).yields(null);
 
 			accountsStub.mergeAccountAndGet.withArgs({
-				address: validSender.address,
-				balance: trs.amount,
-				u_balance: trs.amount,
+				address: trs.recipientId,
+				balance: -trs.amount,
+				u_balance: -trs.amount,
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height)
 			}).yields(null);
 
-			outTransfer.apply(trs, dummyBlock, sender, function (err) {
+			outTransfer.undo(trs, dummyBlock, sender, function (err) {
 				expect(err).to.not.exist;
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
+				done();
+			});
+		});
+
+		it.skip('should remove transaction from unconfirmedOutTransfer object', function (done) {
+			var unconfirmedTrs = OutTransfer.__get__('__private.unconfirmedOutTansfers');
+
+			accountsStub.setAccountAndGet.withArgs({
+				address: trs.recipientId
+			}, sinon.match.any).yields(null);
+
+			accountsStub.mergeAccountAndGet.withArgs({
+				address: trs.recipientId,
+				balance: -trs.amount,
+				u_balance: -trs.amount,
+				blockId: dummyBlock.id,
+				round: slots.calcRound(dummyBlock.height)
+			}).yields(null);
+
+			outTransfer.undo(trs, dummyBlock, sender, function (err) {
+				expect(err).to.not.exist;
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
+				expect(unconfirmedTrs[trs.asset.outTransfer.transactionId]).to.equal(true);
 				done();
 			});
 		});
@@ -444,14 +481,22 @@ describe('outTransfer', function () {
 	describe('applyUnconfirmed', function () {
 
 		it('should call the callback function', function (done) {
-			outTransfer.applyUnconfirmed(trs, sender, done);
+			var unconfirmedTrs = OutTransfer.__get__('__private.unconfirmedOutTansfers');
+			outTransfer.applyUnconfirmed(trs, sender, function () {
+				expect(unconfirmedTrs[trs.asset.outTransfer.transactionId]).to.equal(true);
+				done();
+			});
 		});
 	});
 
 	describe('undoUnconfirmed', function () {
 
-		it('should call the callback function', function (done) {
-			outTransfer.undoUnconfirmed(trs, sender, done);
+		it.skip('should call the callback function', function (done) {
+			var unconfirmedTrs = OutTransfer.__get__('__private.unconfirmedOutTansfers');
+			outTransfer.undoUnconfirmed(trs, sender, function () {
+				expect(unconfirmedTrs[trs.asset.outTransfer.transactionId]).to.equal(false);
+				done();
+			});
 		});
 	});
 
