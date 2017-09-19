@@ -15,7 +15,8 @@ var wsServer = require('../../common/wsServer');
 
 describe('handshake', function () {
 
-	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
+	var wsServerPort = 9999;
+	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;
@@ -149,11 +150,16 @@ describe('handshake', function () {
 
 	describe('with valid headers', function () {
 
+		var originalPort;
+
 		before(function () {
+			originalPort = wsServer.options.port;
+			wsServer.options.port = wsServerPort;
 			wsServer.start();
 		});
 
 		after(function () {
+			wsServer.options.port = originalPort;
 			wsServer.stop();
 		});
 
