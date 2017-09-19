@@ -1,6 +1,5 @@
 'use strict';/*eslint*/
 
-var _  = require('lodash');
 var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
@@ -9,10 +8,10 @@ var chai = require('chai');
 var expect = require('chai').expect;
 
 var node = require('./../../node.js');
+var initModule = require('./../../common/initModule.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var constants = require('../../../helpers/constants.js');
-var ws = require('../../common/wsCommunication.js');
 var genesisDelegates = require('../../genesisDelegates.json');
 
 describe('delegates', function () {
@@ -24,14 +23,14 @@ describe('delegates', function () {
 	var __private;
 
 	before(function (done) {
-		node.initApplication(function (scope) {
+		node.initApplication(function (err, scope) {
 			library = scope;
 
 			// Set delegates module as loaded to allow manual forging
 			library.rewiredModules.delegates.__set__('__private.loaded', true);
 
-			setTimeout(done, 10000);
-		});
+			setTimeout(done, 5000);
+		}, {db: initModule.modulesLoader.db});
 	});
 
 	before(function (done) {
@@ -163,7 +162,7 @@ describe('delegates', function () {
 
 					delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
 						expect(err).to.not.exist;
-						expect(res).to.eql({ 
+						expect(res).to.eql({
 							publicKey: '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 							forging: false
 						});
