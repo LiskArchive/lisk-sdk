@@ -184,6 +184,7 @@ Delegate.prototype.undo = function (trs, block, sender, cb) {
 		vote: 0
 	};
 
+	// Not sure if we need this check here; sender.nameexist is never updated anywhere.
 	if (!sender.nameexist && trs.asset.delegate.username) {
 		data.username = null;
 		data.u_username = trs.asset.delegate.username;
@@ -230,11 +231,11 @@ Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {
 		isDelegate: 0
 	};
 
+	// Not sure if we need this check here.
 	if (trs.asset.delegate.username) {
 		data.username = null;
 		data.u_username = null;
 	}
-
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
