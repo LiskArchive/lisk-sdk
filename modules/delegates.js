@@ -21,7 +21,6 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
 __private.loaded = false;
-__private.blockReward = new BlockReward();
 __private.keypairs = {};
 __private.tmpKeypairs = {};
 __private.delegatesList = [];
@@ -61,7 +60,7 @@ function Delegates (cb, scope) {
 		},
 	};
 	self = this;
-
+	__private.blockReward = new BlockReward();
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
 		transactionTypes.DELEGATE,
 		new Delegate(

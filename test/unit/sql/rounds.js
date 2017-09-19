@@ -14,10 +14,14 @@ var bignum    = require('../../../helpers/bignum.js');
 var config    = require('../../../config.json');
 var constants = require('../../../helpers/constants');
 var node      = require('../../node.js');
-var Sequence  = require('../../../helpers/sequence.js');
 var slots     = require('../../../helpers/slots.js');
+var DBSandbox     = require('../../common/globalBefore').DBSandbox;
 
 describe('Rounds-related SQL triggers', function () {
+
+	var db;
+	var dbSandbox;
+	var originalBlockRewardsOffset;
 	var library;
 	var mem_state, delegates_state, round_blocks = [];
 	var round_transactions = [];
@@ -50,14 +54,6 @@ describe('Rounds-related SQL triggers', function () {
 		return delegates;
 	}
 
-	afterEach(function () {
-		// Perform validation of mem_accounts balances against blockchain after every test
-		return validateMemBalances()
-			.then(function (results) {
-				expect(results.length).to.equal(0);
-			});
-	});
-
 	function getMemAccounts () {
 		return library.db.query('SELECT * FROM mem_accounts').then(function (rows) {
 			rows = normalizeMemAccounts(rows);
@@ -66,7 +62,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 	}
 
-	function getDelegates (normalize) {
+	function getDelegates () {
 		return library.db.query('SELECT * FROM delegates').then(function (rows) {
 			delegates_state = normalizeDelegates(rows);
 			return rows;
@@ -146,13 +142,34 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		return rewards;
-	};
+	}
 
 	before(function (done) {
-		node.initApplication(function (scope) {
-			library = scope;
-			done();
-		})
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_rounds');
+		dbSandbox.create(function (err, __db) {
+			db = __db;
+			// Force rewards start at 150-th block
+			originalBlockRewardsOffset = node.constants.rewards.offset;
+			node.constants.rewards.offset = 150;
+			node.initApplication(function (err, scope) {
+				library = scope;
+				done(err);
+			}, {db: db});
+		});
+	});
+
+	after(function (done) {
+		node.constants.rewards.offset = originalBlockRewardsOffset;
+		dbSandbox.destroy();
+		node.appCleanup(done);
+	});
+
+	afterEach(function () {
+		// Perform validation of mem_accounts balances against blockchain after every test
+		return validateMemBalances()
+			.then(function (results) {
+				expect(results.length).to.equal(0);
+			});
 	});
 
 	describe('genesisBlock', function () {
@@ -174,7 +191,7 @@ describe('Rounds-related SQL triggers', function () {
 				}
 				return accounts;
 			}, []);
-		})
+		});
 
 		it('should not populate mem_accounts', function () {
 			return getMemAccounts().then(function (accounts) {
@@ -203,7 +220,7 @@ describe('Rounds-related SQL triggers', function () {
 					expect(delegate.name).to.equal(found.asset.delegate.username);
 					expect(delegate.address).to.equal(found.senderId);
 					expect(delegate.pk).to.equal(found.senderPublicKey);
-					
+
 					// Data populated by trigger
 					expect(delegate.rank).that.is.an('number');
 					expect(delegate.voters_balance).to.equal(10000000000000000);
@@ -381,7 +398,7 @@ describe('Rounds-related SQL triggers', function () {
 			round_delegates = _.clone(delegates_state);
 
 			deleteLastBlockPromise = Promise.promisify(library.modules.blocks.chain.deleteLastBlock);
-		})
+		});
 
 		function addTransaction (transaction, cb) {
 			node.debug('	Add transaction ID: ' + transaction.id);

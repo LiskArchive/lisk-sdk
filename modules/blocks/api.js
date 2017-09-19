@@ -9,8 +9,6 @@ var sql = require('../../sql/blocks.js');
 
 var modules, library, self, __private = {};
 
-__private.blockReward = new BlockReward();
-
 /**
  * Initializes library.
  * @memberof module:blocks
@@ -34,7 +32,7 @@ function API (logger, db, block, schema, dbSequence) {
 		},
 	};
 	self = this;
-
+	__private.blockReward = new BlockReward();
 	library.logger.trace('Blocks->API: Submodule initialized.');
 	return self;
 }
