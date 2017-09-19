@@ -14,22 +14,49 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import tablify from '../utils/tablify';
+import commonOptions from '../utils/options';
+import { printResult } from '../utils/print';
+import {
+	getStdIn,
+	getPassphrase,
+	getData,
+} from '../utils/input';
 
-const decrypt = vorpal => ({ encryptedMessage, nonce, secret, senderPublicKey, options }) => {
-	const result = cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
-	const output = options.json
-		? JSON.stringify(result)
-		: tablify(result).toString();
+const decryptDescription = `Decrypt a message from a given sender public key for a known nonce using your secret passphrase.
 
-	vorpal.activeCommand.log(output);
-	return Promise.resolve(result);
+	Example: decrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
+`;
+
+const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
+	cryptoModule.decrypt(data, nonce, passphrase, senderPublicKey);
+
+const handleError = ({ message }) => ({ error: `Could not decrypt: ${message}` });
+
+const decrypt = vorpal => ({ encryptedMessage, nonce, senderPublicKey, options }) => {
+	const passphraseSource = options.passphrase;
+	const dataSource = options.data;
+
+	return getStdIn({
+		passphraseIsRequired: passphraseSource === 'stdin',
+		dataIsRequired: dataSource === 'stdin',
+	})
+		.then(stdIn => Promise.all([
+			getPassphrase(vorpal, options.passphrase, stdIn),
+			getData(encryptedMessage, dataSource, stdIn),
+		]))
+		.then(handlePassphrase(vorpal, nonce, senderPublicKey))
+		.catch(handleError)
+		.then(printResult(vorpal, options));
 };
 
 function decryptCommand(vorpal) {
 	vorpal
-		.command('decrypt <encryptedMessage> <nonce> <secret> <senderPublicKey>')
-		.option('-j, --json', 'Sets output to json')
+		.command('decrypt <senderPublicKey> <nonce> [encryptedMessage]')
+		.option(...commonOptions.passphrase)
+		.option(...commonOptions.data)
+		.option(...commonOptions.json)
+		.option(...commonOptions.noJson)
+		.description(decryptDescription)
 		.action(decrypt(vorpal));
 }
 

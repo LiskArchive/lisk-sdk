@@ -15,8 +15,12 @@
  */
 import tablify from './tablify';
 
-export const getTableString = result => tablify(result).toString();
+// eslint-disable-next-line import/prefer-default-export
+export const printResult = (vorpal, { json } = {}) => (result) => {
+	const output = json
+		? JSON.stringify(result)
+		: tablify(result).toString();
 
-export const printResult = (printFn, vorpal, result) => {
-	vorpal.activeCommand.log(printFn(result));
+	vorpal.activeCommand.log(output);
+	return result;
 };
