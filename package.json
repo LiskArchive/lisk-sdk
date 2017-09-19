@@ -8,11 +8,9 @@
   },
   "scripts": {
     "start": "babel-node src/index.js",
-    "test": "NODE_ENV=test nyc mocha --compilers js:babel-register",
+    "test": "NODE_ENV=test nyc mocha",
     "test:watch": "npm test -- --watch",
-    "test:now": "npm test -- --grep @now",
-    "test:now:watch": "npm run test:now -- --watch",
-    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register",
+    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
     "build": "babel src -d dist",
     "jenkins": "npm test && nyc report --reporter=text-lcov | coveralls",
     "prepush": "grunt eslint && npm test",
@@ -37,6 +35,7 @@
   "homepage": "https://github.com/LiskHQ/lisky#readme",
   "devDependencies": {
     "babel-cli": "=6.24.1",
+    "babel-plugin-istanbul": "=4.1.4",
     "babel-preset-env": "=1.6.0",
     "babel-register": "=6.24.1",
     "coveralls": "=2.13.1",
@@ -54,7 +53,6 @@
   },
   "dependencies": {
     "cli-table2": "=0.2.0",
-    "file-system": "=2.2.2",
     "fs-extra": "=3.0.1",
     "lisk-js": "=0.4.5",
     "vorpal": "LiskHQ/vorpal#master"
