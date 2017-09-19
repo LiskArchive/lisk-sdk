@@ -36,11 +36,11 @@ module.exports = function configureGrunt(grunt) {
 
 		browserify: {
 			dist: {
-				src: './dist-node/*',
+				src: './dist-node/*.js',
 				dest: './dist-browser/lisk-js.js',
 			},
 			test: {
-				src: './browsertest/test/**/*.js',
+				src: ['./browsertest/test/*.js', './browsertest/test/**/*.js'],
 				dest: './browsertest/browsertest.js',
 			},
 			options: {
