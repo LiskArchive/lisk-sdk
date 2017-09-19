@@ -8,6 +8,7 @@ require('./helpers/cache');
 require('./helpers/checkIpInList');
 require('./helpers/config');
 require('./helpers/ed');
+require('./helpers/git');
 require('./helpers/jobs-queue');
 require('./helpers/peersManager');
 require('./helpers/pg-notify');
