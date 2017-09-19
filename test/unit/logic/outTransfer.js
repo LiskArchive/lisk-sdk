@@ -226,11 +226,7 @@ describe('outTransfer', function () {
 			OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 		});
 
-		it('should call the callback', function (done) {
-			outTransfer.process(trs, sender, done);
-		});
-
-		it('should return error if database (mocked) does not return dapp against dappId', function (done) {
+		it('should call callback with error if database (mocked) does not return dapp against dappId', function (done) {
 			dbStub.one.withArgs(sql.countByTransactionId, {
 				id: trs.asset.outTransfer.dappId
 			}).resolves({
@@ -244,20 +240,20 @@ describe('outTransfer', function () {
 			});
 		});
 
-		it('should return error if database (mocked) rejects promise on finding dappId', function (done) {
-			var error = 'Database error'; 
+		it('should call callback with error if database (mocked) rejects promise on finding dappId', function (done) {
+			var error = new Error('Database error');
 			dbStub.one.withArgs(sql.countByTransactionId, {
 				id: trs.asset.outTransfer.dappId
-			}).reject(error);
+			}).rejects(error);
 
 			outTransfer.process(trs, validSender, function (err) {
-				expect(err).to.equal(error);
 				expect(dbStub.one.calledOnce).to.equal(true);
+				expect(error).to.equal(err);
 				done();
 			});
 		});
 
-		it('should return error if database (mocked) does not return dapp against dappId', function (done) {
+		it('should call callback with  if database (mocked) does not return dapp against dappId', function (done) {
 			dbStub.one.withArgs(sql.countByTransactionId, {
 				id: trs.asset.outTransfer.dappId
 			}).resolves({
@@ -271,7 +267,7 @@ describe('outTransfer', function () {
 			});
 		});
 
-		it('should return error if it is already processed (unconfirmed)', function (done) {
+		it('should call callback with error if it is already processed (unconfirmed)', function (done) {
 			dbStub.one.onCall(0).resolves({
 				count: 1
 			});
@@ -287,7 +283,7 @@ describe('outTransfer', function () {
 			});
 		});
 
-		it('should return error if it is already applied (unconfirmed)', function (done) {
+		it('should call callback with error if it is already applied (unconfirmed)', function (done) {
 			dbStub.one.onCall(0).resolves({
 				count: 1
 			});
@@ -305,8 +301,8 @@ describe('outTransfer', function () {
 			});
 		});
 
-		it('should return if database (mocked) rejects promise on finding transactionId', function (done) {
-			var error = 'Database error';
+		it('should call callback with if database (mocked) rejects promise on finding transactionId', function (done) {
+			var error = new Error('Database error');
 			dbStub.one.onCall(0).resolves({
 				count: 1
 			});
@@ -317,7 +313,7 @@ describe('outTransfer', function () {
 
 			outTransfer.process(trs, validSender, function (err) {
 				expect(dbStub.one.calledTwice).to.equal(true);
-				expect(err).to.equal(error);
+				expect(error).to.equal(err);
 				done();
 			});
 		});
@@ -361,14 +357,15 @@ describe('outTransfer', function () {
 			height: 1
 		};
 
-		it('should return error when unable to get account', function (done) {
+		it('should call callback with error when unable to get account', function (done) {
 			var error = 'Could not connect to the database';
 			accountsStub.setAccountAndGet.withArgs({
 				address: trs.recipientId
 			}, sinon.match.any).yields(error);
 
 			outTransfer.apply(trs, dummyBlock, validSender, function (err) {
-				expect(err).to.equal(err);
+				expect(error).to.equal(err);
+				done();
 			});
 		});
 
@@ -423,14 +420,15 @@ describe('outTransfer', function () {
 			height: 1
 		};
 
-		it('should return error when unable to get account', function (done) {
+		it('should call callback with error when unable to get account', function (done) {
 			var error = 'Could not connect to the database';
 			accountsStub.setAccountAndGet.withArgs({
 				address: trs.recipientId
 			}, sinon.match.any).yields(error);
 
 			outTransfer.undo(trs, dummyBlock, validSender, function (err) {
-				expect(err).to.equal(err);
+				expect(error).to.equal(err);
+				done();
 			});
 		});
 
@@ -454,7 +452,7 @@ describe('outTransfer', function () {
 			});
 		});
 
-		it.skip('should remove transaction from unconfirmedOutTransfer object', function (done) {
+		it('should remove transaction from unconfirmedOutTransfer object', function (done) {
 			var unconfirmedTrs = OutTransfer.__get__('__private.unconfirmedOutTansfers');
 
 			accountsStub.setAccountAndGet.withArgs({
@@ -480,7 +478,7 @@ describe('outTransfer', function () {
 
 	describe('applyUnconfirmed', function () {
 
-		it('should call the callback function', function (done) {
+		it('should call callback function', function (done) {
 			var unconfirmedTrs = OutTransfer.__get__('__private.unconfirmedOutTansfers');
 			outTransfer.applyUnconfirmed(trs, sender, function () {
 				expect(unconfirmedTrs[trs.asset.outTransfer.transactionId]).to.equal(true);
@@ -491,12 +489,16 @@ describe('outTransfer', function () {
 
 	describe('undoUnconfirmed', function () {
 
-		it.skip('should call the callback function', function (done) {
+		it.skip('should remove transaction from private unconfirmedOutTansfers object', function (done) {
 			var unconfirmedTrs = OutTransfer.__get__('__private.unconfirmedOutTansfers');
 			outTransfer.undoUnconfirmed(trs, sender, function () {
 				expect(unconfirmedTrs[trs.asset.outTransfer.transactionId]).to.equal(false);
 				done();
 			});
+		});
+
+		it('should call callback function', function (done) {
+			outTransfer.undoUnconfirmed(trs, sender, done);
 		});
 	});
 
@@ -507,16 +509,16 @@ describe('outTransfer', function () {
 			var schemaSpy = sinon.spy(library.schema, 'validate');
 			outTransfer.objectNormalize(trs);
 			expect(schemaSpy.calledOnce).to.equal(true);
-			expect(schemaSpy.calledWithExactly(trs.asset.inTransfer, OutTransfer.prototype.schema)).to.equal(true);
+			expect(schemaSpy.calledWithExactly(trs.asset.outTransfer, OutTransfer.prototype.schema)).to.equal(true);
 			schemaSpy.restore();
 		});
 
-		it('should return error asset schema is invalid', function () {
-			trs.asset.inTransfer.dappId = 2;
+		it('should throw error asset schema is invalid', function () {
+			trs.asset.outTransfer.dappId = 2;
 
 			expect(function () {
 				outTransfer.objectNormalize(trs);
-			}).to.throw('Failed to validate inTransfer schema: Expected type string but found type integer');
+			}).to.throw('Failed to validate outTransfer schema: Expected type string but found type integer');
 		});
 
 		it('should return transaction when asset is valid', function () {
@@ -527,15 +529,16 @@ describe('outTransfer', function () {
 	describe('dbRead', function () {
 
 		it('should return null dappId does not exist', function () {
-			delete rawTrs.in_dappId;
+			delete rawTrs.ot_dappId;
 
 			expect(outTransfer.dbRead(rawTrs)).to.eql(null);
 		});
 
 		it('should be okay for valid input', function () {
 			expect(outTransfer.dbRead(rawTrs)).to.eql({
-				inTransfer: {
-					dappId: trs.asset.inTransfer.dappId
+				outTransfer: {
+					dappId: trs.asset.outTransfer.dappId,
+					transactionId: trs.asset.outTransfer.transactionId
 				}
 			});
 		});
@@ -545,13 +548,15 @@ describe('outTransfer', function () {
 
 		it('should be okay for valid input', function () {
 			expect(outTransfer.dbSave(trs)).to.eql({
-				table: 'intransfer',
+				table: 'outtransfer',
 				fields: [
 					'dappId',
+					'outTransactionId',
 					'transactionId'
 				],
 				values: {
-					dappId: trs.asset.inTransfer.dappId,
+					dappId: trs.asset.outTransfer.dappId,
+					outTransactionId: trs.asset.outTransfer.transactionId,
 					transactionId: trs.id
 				}
 			});
@@ -570,7 +575,7 @@ describe('outTransfer', function () {
 			expect(outTransfer.ready(trs, sender)).to.equal(false);
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', function () {
+		it('should return true for multi signature transaction with at least min signatures', function () {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 			sender.multimin = 1;
 
