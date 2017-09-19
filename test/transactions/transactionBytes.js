@@ -21,13 +21,12 @@ describe('#getTransactionBytes', () => {
 	const defaultAmount = 1000;
 	const defaultNoAmount = 0;
 	const defaultTimestamp = 141738;
-	const defaultAsset = {};
 	const defaultTransactionId = '13987348420913138422';
 	const defaultSignature = '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a';
 	const defaultSecondSignature = 'b00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f';
 	const defaultAppId = '1234213';
 
-	describe('send transaction, type 0', () => {
+	describe.only('send transaction, type 0', () => {
 		let defaultTransaction;
 
 		beforeEach(() => {
@@ -36,28 +35,39 @@ describe('#getTransactionBytes', () => {
 				amount: defaultAmount,
 				recipientId: defaultRecipient,
 				timestamp: defaultTimestamp,
-				asset: defaultAsset,
+				asset: {},
 				senderPublicKey: defaultSenderPublicKey,
 				signature: defaultSignature,
 				id: defaultTransactionId,
 			};
 		});
 
-		it('should return Buffer of type 0 (send LSk) transaction and buffer most be 117 length', () => {
+		it('should return Buffer of type 0 (send LSk) transaction', () => {
 			const expectedBuffer = Buffer.from('AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK', 'base64');
 			const transactionBytes = getTransactionBytes(defaultTransaction);
 
 			(transactionBytes).should.be.eql(expectedBuffer);
-			(transactionBytes.length).should.be.equal(117);
 		});
 
-		it('should return Buffer of transaction with second signature and buffer most be 181 length', () => {
+		it('should return Buffer of type 0 (send LSk) with data', () => {
+			defaultTransaction.asset.data = 'Hello Lisk! Some data in here!...';
+			const expectedBuffer = Buffer.from('AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABIZWxsbyBMaXNrISBTb21lIGRhdGEgaW4gaGVyZSEuLi5hilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK', 'base64');
+			const transactionBytes = getTransactionBytes(defaultTransaction);
+
+			(transactionBytes).should.be.eql(expectedBuffer);
+		});
+
+		it('should throw on type 0 with too much data', () => {
+			defaultTransaction.asset.data = '0123456789012345678901234567890123456789012345678901234567890123456789';
+			(getTransactionBytes.bind(null, defaultTransaction)).should.throw('Transaction asset data exceeds size of 64.');
+		});
+
+		it('should return Buffer of transaction with second signature', () => {
 			defaultTransaction.signSignature = defaultSecondSignature;
 			const expectedBuffer = Buffer.from('AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsKsAxK0ZiLyiRddENWYKJ4v+a/L176i9qW2Sf6v4tPb8/cspU/arrKoRnWiAmHpV3qDmNUvINmBStF+iMUVSICDw==', 'base64');
 			const transactionBytes = getTransactionBytes(defaultTransaction);
 
 			(transactionBytes).should.be.eql(expectedBuffer);
-			(transactionBytes.length).should.be.equal(181);
 		});
 	});
 
