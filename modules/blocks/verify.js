@@ -11,7 +11,6 @@ var bson = require('../../helpers/bson.js');
 
 var modules, library, self, __private = {};
 
-__private.blockReward = new BlockReward();
 
 function Verify (logger, block, transaction, db) {
 	library = {
@@ -23,7 +22,7 @@ function Verify (logger, block, transaction, db) {
 		},
 	};
 	self = this;
-
+	__private.blockReward = new BlockReward();
 	library.logger.trace('Blocks->Verify: Submodule initialized.');
 	return self;
 }
