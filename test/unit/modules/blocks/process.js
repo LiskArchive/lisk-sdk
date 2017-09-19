@@ -34,10 +34,10 @@ var testAccount = [{
 }];
 
 // Set spies for logger
-var debug = modulesLoader.scope.logger.debug = sinon.spy();
-var info = modulesLoader.scope.logger.info = sinon.spy();
-var warn = modulesLoader.scope.logger.warn = sinon.spy();
-var error = modulesLoader.scope.logger.error = sinon.spy();
+var debug = sinon.stub(modulesLoader.scope.logger, 'debug');
+var info = sinon.stub(modulesLoader.scope.logger, 'info');
+var warn = sinon.stub(modulesLoader.scope.logger, 'warn');
+var error = sinon.stub(modulesLoader.scope.logger, 'error');
 
 function resetSpiesState () {
 	// Reset state of spies
@@ -45,6 +45,14 @@ function resetSpiesState () {
 	info.reset();
 	warn.reset();
 	error.reset();
+}
+
+function restoreSpiesState () {
+	// Restore state of spies
+	debug.restore();
+	info.restore();
+	warn.restore();
+	error.restore();
 }
 
 describe('blocks/process', function () {
@@ -126,6 +134,14 @@ describe('blocks/process', function () {
  		});
 	});
 
+	afterEach(function () {
+		resetSpiesState();
+	});
+
+	after(function () {
+		restoreSpiesState();
+	});
+
 	describe('onReceiveBlock (empty transactions)', function () {
 
 		describe('no forks', function () {
@@ -166,7 +182,6 @@ describe('blocks/process', function () {
 							'slot:', slots.getSlotNumber(blocksData[0].timestamp),
 							'reward:', blocksData[0].reward
 						].join(' '));
-						resetSpiesState();
 						done();
 					});
 				};
@@ -181,7 +196,6 @@ describe('blocks/process', function () {
 						expect(res).to.be.undefined;
 						expect(debug.args[0][0]).to.equal('Block already processed');
 						expect(debug.args[0][1]).to.equal(blocksData[0].id);
-						resetSpiesState();
 						done();
 					});
 				};
@@ -201,7 +215,6 @@ describe('blocks/process', function () {
 							'slot:', slots.getSlotNumber(blocksData[2].timestamp),
 							'generator:', blocksData[2].generatorPublicKey
 						].join(' '));
-						resetSpiesState();
 						done();
 					});
 				};
@@ -223,7 +236,6 @@ describe('blocks/process', function () {
 						expect(info.args[0][1].block.previousBlock).to.equal(blocksData[6].previousBlock);
 						expect(info.args[0][1].block.timestamp).to.equal(blocksData[6].timestamp);
 						expect(error.args[0][0]).to.equal('Expected generator: a796e9c0516a40ccd0eee7a32fdc2dc297fee40a9c76fef9c1bb0cf41ae69750 Received generator: 684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb');
-						resetSpiesState();
 						done();
 					});
 				};
@@ -242,7 +254,6 @@ describe('blocks/process', function () {
 						expect(info.args[0][1].block.previousBlock).to.equal(blocksData[7].previousBlock);
 						expect(info.args[0][1].block.timestamp).to.equal(blocksData[7].timestamp);
 						expect(error.args[0][0]).to.equal('Expected generator: a796e9c0516a40ccd0eee7a32fdc2dc297fee40a9c76fef9c1bb0cf41ae69750 Received generator: 47b9b07df72d38c19867c6a8c12429e6b8e4d2be48b27cd407da590c7a2af0dc');
-						resetSpiesState();
 						done();
 					});
 				};
@@ -266,7 +277,6 @@ describe('blocks/process', function () {
 						expect(info.args[0][1].block.previousBlock).to.equal(blocksData[1].previousBlock);
 						expect(info.args[0][1].block.timestamp).to.equal(blocksData[1].timestamp);
 						expect(info.args[1][0]).to.equal('Last block stands');
-						resetSpiesState();
 						blocksData[1].previousBlock = previousBlock;
 						done();
 					});
@@ -291,7 +301,6 @@ describe('blocks/process', function () {
 							'slot:', slots.getSlotNumber(blocksData[1].timestamp),
 							'reward:', blocksData[1].reward
 						].join(' '));
-						resetSpiesState();
 						done();
 					});
 				};
@@ -313,7 +322,6 @@ describe('blocks/process', function () {
 						expect(error.args[0][0]).to.equal('Fork recovery failed');
 						expect(error.args[0][1]).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', blocksData[2].blockSignature].join(' '));
 						expect(err.message).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', blocksData[2].blockSignature].join(' '));
-						resetSpiesState();
 						blocksData[2].blockSignature = blockSignature;
 						done();
 					});
@@ -368,7 +376,6 @@ describe('blocks/process', function () {
 						expect(info.args[0][1].block.previousBlock).to.equal(blocksData[2].previousBlock);
 						expect(info.args[0][1].block.timestamp).to.equal(blocksData[2].timestamp);
 						expect(info.args[1][0]).to.equal('Last block and parent loses');
-						resetSpiesState();
 						done();
 					});
 				};
@@ -394,7 +401,6 @@ describe('blocks/process', function () {
 							'slot:', slots.getSlotNumber(blocksData[3].timestamp),
 							'reward:', blocksData[3].reward
 						].join(' '));
-						resetSpiesState();
 						done();
 					});
 				};
@@ -419,7 +425,6 @@ describe('blocks/process', function () {
 							expect(info.args[0][1].block.previousBlock).to.equal(blocksData[4].previousBlock);
 							expect(info.args[0][1].block.timestamp).to.equal(blocksData[4].timestamp);
 							expect(info.args[1][0]).to.equal('Last block stands');
-							resetSpiesState();
 							done();
 						});
 					};
@@ -443,7 +448,6 @@ describe('blocks/process', function () {
 							expect(error.args[0][0]).to.equal('Fork recovery failed');
 							expect(error.args[0][1]).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', blocksData[5].blockSignature].join(' '));
 							expect(err.message).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', blocksData[5].blockSignature].join(' '));
-							resetSpiesState();
 							blocksData[5].blockSignature = blockSignature;
 							done();
 						});
@@ -472,7 +476,6 @@ describe('blocks/process', function () {
 							expect(error.args[1][1]).to.equal('Failed to verify block signature');
 							expect(err.message).to.equal('Failed to verify block signature');
 							blocksData[5].blockSignature = blockSignature;
-							resetSpiesState();
 							done();
 						});
 					};
@@ -509,7 +512,6 @@ describe('blocks/process', function () {
 								'slot:', slots.getSlotNumber(blocksData[5].timestamp),
 								'reward:', blocksData[5].reward
 							].join(' '));
-							resetSpiesState();
 							done();
 						});
 					};
@@ -535,7 +537,6 @@ describe('blocks/process', function () {
 							expect(info.args[0][1].block.previousBlock).to.equal(blocksData[4].previousBlock);
 							expect(info.args[0][1].block.timestamp).to.equal(blocksData[4].timestamp);
 							expect(info.args[1][0]).to.equal('Last block stands');
-							resetSpiesState();
 							done();
 						});
 					};
@@ -557,7 +558,6 @@ describe('blocks/process', function () {
 							expect(error.args[0][0]).to.equal('Fork recovery failed');
 							expect(error.args[0][1]).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', blocksData[0].blockSignature].join(' '));
 							expect(err.message).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', blocksData[0].blockSignature].join(' '));
-							resetSpiesState();
 							blocksData[0].blockSignature = blockSignature;
 							done();
 						});
@@ -584,7 +584,6 @@ describe('blocks/process', function () {
 							expect(error.args[1][1]).to.equal('Failed to verify block signature');
 							expect(err.message).to.equal('Failed to verify block signature');
 							blocksData[0].blockSignature = blockSignature;
-							resetSpiesState();
 							done();
 						});
 					};
@@ -619,7 +618,6 @@ describe('blocks/process', function () {
 								'slot:', slots.getSlotNumber(blocksData[0].timestamp),
 								'reward:', blocksData[0].reward
 							].join(' '));
-							resetSpiesState();
 							done();
 						});
 					};
