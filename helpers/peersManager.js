@@ -1,7 +1,6 @@
 'use strict';
 
 function PeersManager () {
-
 	this.peers = {};
 	this.addressToNonceMap = {};
 	this.nonceToAddressMap = {};
