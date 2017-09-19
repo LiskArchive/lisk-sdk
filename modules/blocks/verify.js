@@ -400,13 +400,13 @@ Verify.prototype.verifyBlock = function (block) {
  * @method processBlock
  * @param  {Object}   block Full block
  * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
- * @param  {Function} cb Callback function
  * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
  * @param  {boolean}  validateSlot Indicator that block needs slot validation
+ * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock, validateSlot) {
+Verify.prototype.processBlock = function (block, broadcast, saveBlock, validateSlot, cb) {
 	if (modules.blocks.isCleaning.get()) {
 		// Break processing if node shutdown reqested
 		return setImmediate(cb, 'Cleaning up');

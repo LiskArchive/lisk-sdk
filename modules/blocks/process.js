@@ -183,7 +183,7 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 					// Apply block - broadcast: false, saveBlock: false
 					// FIXME: Looks like we are missing some validations here, because applyBlock is different than processBlock used elesewhere
 					// - that need to be checked and adjusted to be consistent
-					modules.blocks.chain.applyBlock(block, false, cb, false);
+					modules.blocks.chain.applyBlock(block, false, false, cb);
 				}
 				// Update last block
 				modules.blocks.lastBlock.set(block);
@@ -266,7 +266,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 	// Process single block
 	function processBlock (block, seriesCb) {
 		// Start block processing - broadcast: false, saveBlock: true, validateSlot: true
-		modules.blocks.verify.processBlock(block, false, function (err) {
+		modules.blocks.verify.processBlock(block, false, true, true, function (err) {
 			if (!err) {
 				// Update last valid block
 				lastValidBlock = block;
@@ -277,7 +277,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 				library.logger.debug('Block processing failed', {id: id, err: err.toString(), module: 'blocks', block: block});
 			}
 			return seriesCb(err);
-		}, true, true);
+		});
 	}
 
 	async.waterfall([
@@ -345,7 +345,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 		}
 
 		// Start block processing - broadcast: true, saveBlock: true, validateSlot: true
-		modules.blocks.verify.processBlock(block, true, cb, true, true);
+		modules.blocks.verify.processBlock(block, true, true, true, cb);
 	});
 };
 
@@ -434,7 +434,7 @@ __private.receiveBlock = function (block, cb) {
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true, validateSlot: false
-	modules.blocks.verify.processBlock(block, true, cb, true, false);
+	modules.blocks.verify.processBlock(block, true, true, false, cb);
 };
 
 /**
