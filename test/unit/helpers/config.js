@@ -3,14 +3,24 @@
 var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
+var commander = require('commander');
 
 var config = require('../../../helpers/config');
 
 describe('config is able to override AppConfig properties from the command line', function () {
 
 	var VERSION = '0.0.0a';
-
 	var argvcloneStr = JSON.stringify(process.argv);
+	var originalMaxListeners;
+
+	before(function () {
+		originalMaxListeners = commander.getMaxListeners();
+		commander.setMaxListeners(100);
+	});
+
+	after(function () {
+		commander.setMaxListeners(originalMaxListeners);
+	});
 
 	afterEach(function () {
 		process.argv = JSON.parse(argvcloneStr);
@@ -20,6 +30,7 @@ describe('config is able to override AppConfig properties from the command line'
 
 		function standardExpect (result) {
 			describe(result.double.dash , function () {
+
 				it('single dash: [ -' + result.single.dash + ' ]', function () {
 					process.argv.push('-' + result.single.dash);
 					process.argv.push(result.single.value);
