@@ -97,8 +97,7 @@ describe('delegate', function () {
 		delegate.bind(accountsMock);
 	});
 
-	//TODO : branch 456-unit-test-for-delegate-transaction will introduce these skipped tests
-	describe.skip('constructor', function () {
+	describe('constructor', function () {
 
 		it('should attach schema to library variable', function () {
 			new Delegate(modulesLoader.scope.schema);
@@ -110,7 +109,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('bind', function () {
+	describe('bind', function () {
 
 		it('should attach empty object to private modules.accounts variable', function () {
 			delegate.bind({});
@@ -131,7 +130,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('calculateFee', function () {
+	describe('calculateFee', function () {
 
 		it('should return the correct fee for delegate transaction', function () {
 			expect(delegate.calculateFee(trs)).to.equal(node.constants.fees.delegate);
@@ -140,7 +139,7 @@ describe('delegate', function () {
 
 	describe('verify', function () {
 
-		it('should call callback with error if recipientId exist', function (done) {
+		it('should call callback with error if recipientId exists', function (done) {
 			trs.recipientId = '123456';
 
 			delegate.verify(trs, sender, function (err) {
@@ -185,7 +184,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should call callback with error if username is does not exist', function (done) {
+		it('should call callback with error if username does not exist', function (done) {
 			trs.asset.delegate.username = undefined;
 
 			delegate.verify(trs, sender, function (err) {
@@ -253,7 +252,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should call callback with error when username already exists', function (done) {
+		it('should call callback with error when accounts.getAccount returns error', function (done) {
 			var expectedError = 'Error: could not connect to server: Connection refused';
 			accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(expectedError);
 
@@ -286,14 +285,14 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('process', function () {
+	describe('process', function () {
 
 		it('should call the callback', function (done) {
 			delegate.process(trs, sender, done);
 		});
 	});
 
-	describe.skip('getBytes', function () {
+	describe('getBytes', function () {
 
 		it('should return null when username is empty', function () {
 			delete trs.asset.delegate.username;
@@ -307,7 +306,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('apply', function () {
+	describe('apply', function () {
 
 		var dummyBlock = {
 			id: '9314232245035524467',
@@ -331,7 +330,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('undo', function () {
+	describe('undo', function () {
 
 		var dummyBlock = {
 			id: '9314232245035524467',
@@ -352,7 +351,7 @@ describe('delegate', function () {
 			done();
 		});
 
-		it('should update username to null if sender was not assigned a username before', function (done) {
+		it('should update username value to null if sender.nameexist is not true', function (done) {
 			delete sender.username;
 			sender.nameexist = 0;
 
@@ -372,7 +371,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('applyUnconfirmed', function () {
+	describe('applyUnconfirmed', function () {
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
 			delete sender.username;
@@ -393,25 +392,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('undoUnconfirmed', function () {
-
-		it('should update username to null if account did not have a username before', function (done) {
-			delete sender.username;
-			sender.nameexist = 0;
-
-			accountsMock.setAccountAndGet.once().withExactArgs({
-				address: sender.address,
-				u_isDelegate: 0,
-				isDelegate: 0,
-				username: null,
-				u_username: null
-			}, dummyCb);
-
-			delegate.undoUnconfirmed(trs, sender, dummyCb);
-			accountsMock.setAccountAndGet.verify();
-
-			done();
-		});
+	describe('undoUnconfirmed', function () {
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
 			accountsMock.setAccountAndGet.once().withExactArgs({
@@ -431,65 +412,71 @@ describe('delegate', function () {
 
 	describe('objectNormalize', function () {
 
-		var schemaDynamicTest = new SchemaDynamicTest({
-			testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
-			customPropertyAssertion: function (input, expectedType, property, err) {
-				expect(err).to.equal('Failed to validate delegate schema: Expected type ' + expectedType + ' but found type ' + input.expectation);
-			}
-		});
+		describe('when library.schema.validate fails', function () {
 
-		after(function () {
-			describe('schema dynamic tests', function () {
-				schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(delegate.objectNormalize, trs, 'asset.delegate');
+			var schemaDynamicTest = new SchemaDynamicTest({
+				testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
+				customPropertyAssertion: function (input, expectedType, property, err) {
+					expect(err).to.equal('Failed to validate delegate schema: Expected type ' + expectedType + ' but found type ' + input.expectation);
+				}
+			});
 
-				schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
+			after(function () {
+				describe('schema dynamic tests', function () {
+					schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(delegate.objectNormalize, trs, 'asset.delegate');
+
+					schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
+				});
+			});
+
+			it('should use the correct format to validate against', function () {
+				var library = Delegate.__get__('library');
+				var schemaSpy = sinon.spy(library.schema, 'validate');
+				delegate.objectNormalize(trs);
+				expect(schemaSpy.calledOnce).to.equal(true);
+				expect(schemaSpy.calledWithExactly(trs.asset.delegate, Delegate.prototype.schema)).to.equal(true);
+				schemaSpy.restore();
+			});
+
+			it('should throw error when asset schema is invalid', function () {
+				trs.asset.delegate.username = '';
+
+				expect(function () {
+					delegate.objectNormalize(trs);
+				}).to.throw('Failed to validate delegate schema: Object didn\'t pass validation for format username: ');
 			});
 		});
 
-		it('should use the correct format to validate against', function () {
-			var library = Delegate.__get__('library');
-			var schemaSpy = sinon.spy(library.schema, 'validate');
-			delegate.objectNormalize(trs);
-			expect(schemaSpy.calledOnce).to.equal(true);
-			expect(schemaSpy.calledWithExactly(trs.asset.delegate, Delegate.prototype.schema)).to.equal(true);
-			schemaSpy.restore();
-		});
+		describe('when library.schema.validate passes', function () {
 
-		it('should throw error when asset schema is invalid', function () {
-			trs.asset.delegate.username = '';
-
-			expect(function () {
-				delegate.objectNormalize(trs);
-			}).to.throw('Failed to validate delegate schema: Object didn\'t pass validation for format username: ');
-		});
-
-		it('should return transaction when asset is valid', function () {
-			expect(delegate.objectNormalize(trs)).to.eql(trs);
+			it('should return transaction when asset is valid', function () {
+				expect(delegate.objectNormalize(trs)).to.eql(trs);
+			});
 		});
 	});
 
-	describe.skip('dbRead', function () {
+	describe('dbRead', function () {
 
-		it('should return null when username is not set ', function () {
+		it('should return null when d_username is not set', function () {
 			delete rawTrs.d_username;
 
 			expect(delegate.dbRead(rawTrs)).to.eql(null);
 		});
 
-		it('should be okay for valid input', function () {
+		it('should return delegate asset for raw transaction passed', function () {
 			var expectedAsset = {
-				address: sender.address,
-				publicKey: sender.publicKey,
-				username: trs.asset.delegate.username
+				address: rawValidTransaction.t_senderId,
+				publicKey: rawValidTransaction.t_senderPublicKey,
+				username: rawValidTransaction.d_username
 			};
 
 			expect(delegate.dbRead(rawTrs).delegate).to.eql(expectedAsset);
 		});
 	});
 
-	describe.skip('dbSave', function () {
+	describe('dbSave', function () {
 
-		it('should be okay for valid input', function () {
+		it('should return promise object for delegate transaction', function () {
 			expect(delegate.dbSave(trs)).to.eql({
 				table: 'delegates',
 				fields: [
@@ -508,7 +495,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe.skip('ready', function () {
+	describe('ready', function () {
 
 		it('should return true for single signature trs', function () {
 			expect(delegate.ready(trs, sender)).to.equal(true);
