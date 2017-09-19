@@ -17,10 +17,14 @@
 import Vorpal from 'vorpal';
 
 export const setUpVorpalWithCommand = (command, capturedOutput) => {
+	const handleOutput = output => capturedOutput.push(output);
 	const vorpal = new Vorpal();
+
 	vorpal.use(command);
 	vorpal.pipe((outputs) => {
-		outputs.forEach(output => capturedOutput.push(output));
+		if (capturedOutput) {
+			outputs.forEach(handleOutput);
+		}
 		return '';
 	});
 	return vorpal;

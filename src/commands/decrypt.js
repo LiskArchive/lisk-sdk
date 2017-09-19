@@ -14,21 +14,41 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import tablify from '../utils/tablify';
+import commonOptions from '../utils/options';
+import { printResult } from '../utils/print';
+import {
+	getStdIn,
+	getPassphrase,
+	getData,
+} from '../utils/input';
 
-const decrypt = vorpal => ({ encryptedMessage, nonce, secret, senderPublicKey, options }) => {
-	const result = cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
-	const output = options.json
-		? JSON.stringify(result)
-		: tablify(result).toString();
+const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
+	cryptoModule.decrypt(data, nonce, passphrase, senderPublicKey);
 
-	vorpal.activeCommand.log(output);
-	return Promise.resolve(result);
+const handleError = ({ message }) => ({ error: `Could not decrypt: ${message}` });
+
+const decrypt = vorpal => ({ encryptedMessage, nonce, senderPublicKey, options }) => {
+	const passphraseSource = options.passphrase;
+	const dataSource = options.data;
+
+	return getStdIn({
+		passphraseIsRequired: passphraseSource === 'stdin',
+		dataIsRequired: dataSource === 'stdin',
+	})
+		.then(stdIn => Promise.all([
+			getPassphrase(vorpal, options.passphrase, stdIn),
+			getData(encryptedMessage, dataSource, stdIn),
+		]))
+		.then(handlePassphrase(vorpal, nonce, senderPublicKey))
+		.catch(handleError)
+		.then(printResult(vorpal, options));
 };
 
 function decryptCommand(vorpal) {
 	vorpal
-		.command('decrypt <encryptedMessage> <nonce> <secret> <senderPublicKey>')
+		.command('decrypt <senderPublicKey> <nonce> [encryptedMessage]')
+		.option(...commonOptions.passphrase)
+		.option(...commonOptions.data)
 		.option('-j, --json', 'Sets output to json')
 		.action(decrypt(vorpal));
 }
