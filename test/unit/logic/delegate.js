@@ -97,7 +97,8 @@ describe('delegate', function () {
 		delegate.bind(accountsMock);
 	});
 
-	describe('constructor', function () {
+	//TODO : branch 456-unit-test-for-delegate-transaction will introduce these skipped tests
+	describe.skip('constructor', function () {
 
 		it('should attach schema to library variable', function () {
 			new Delegate(modulesLoader.scope.schema);
@@ -109,7 +110,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('bind', function () {
+	describe.skip('bind', function () {
 
 		it('should attach empty object to private modules.accounts variable', function () {
 			delegate.bind({});
@@ -130,7 +131,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('calculateFee', function () {
+	describe.skip('calculateFee', function () {
 
 		it('should return the correct fee for delegate transaction', function () {
 			expect(delegate.calculateFee(trs)).to.equal(node.constants.fees.delegate);
@@ -285,14 +286,14 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('process', function () {
+	describe.skip('process', function () {
 
 		it('should call the callback', function (done) {
 			delegate.process(trs, sender, done);
 		});
 	});
 
-	describe('getBytes', function () {
+	describe.skip('getBytes', function () {
 
 		it('should return null when username is empty', function () {
 			delete trs.asset.delegate.username;
@@ -306,7 +307,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('apply', function () {
+	describe.skip('apply', function () {
 
 		var dummyBlock = {
 			id: '9314232245035524467',
@@ -330,7 +331,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('undo', function () {
+	describe.skip('undo', function () {
 
 		var dummyBlock = {
 			id: '9314232245035524467',
@@ -371,7 +372,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('applyUnconfirmed', function () {
+	describe.skip('applyUnconfirmed', function () {
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
 			delete sender.username;
@@ -392,7 +393,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('undoUnconfirmed', function () {
+	describe.skip('undoUnconfirmed', function () {
 
 		it('should update username to null if account did not have a username before', function (done) {
 			delete sender.username;
@@ -467,7 +468,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('dbRead', function () {
+	describe.skip('dbRead', function () {
 
 		it('should return null when username is not set ', function () {
 			delete rawTrs.d_username;
@@ -486,7 +487,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('dbSave', function () {
+	describe.skip('dbSave', function () {
 
 		it('should be okay for valid input', function () {
 			expect(delegate.dbSave(trs)).to.eql({
@@ -507,7 +508,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('ready', function () {
+	describe.skip('ready', function () {
 
 		it('should return true for single signature trs', function () {
 			expect(delegate.ready(trs, sender)).to.equal(true);
