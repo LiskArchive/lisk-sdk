@@ -142,30 +142,30 @@ describe('blocks/process', function () {
 		restoreSpiesState();
 	});
 
+	it('should be ok when generate account 1', function (done) {
+		accounts.setAccountAndGet(testAccount[0].account, function (err, newaccount) {
+			if (err) {
+				return done(err);
+			}
+			expect(newaccount.address).to.equal(testAccount[0].account.address);
+			done();
+		});
+	});
+	
+	it('should be ok when generate account 2', function (done) {
+		accounts.setAccountAndGet(testAccount[1].account, function (err, newaccount) {
+			if (err) {
+				return done(err);
+			}
+			expect(newaccount.address).to.equal(testAccount[1].account.address);
+			done();
+		});
+	});
+	
 	describe('onReceiveBlock (empty transactions)', function () {
 
-		describe('no forks', function () {
-			
-			it('should be ok when generate account 1', function (done) {
-				accounts.setAccountAndGet(testAccount[0].account, function (err, newaccount) {
-					if (err) {
-						return done(err);
-					}
-					expect(newaccount.address).to.equal(testAccount[0].account.address);
-					done();
-				});
-			});
-			
-			it('should be ok when generate account 2', function (done) {
-				accounts.setAccountAndGet(testAccount[1].account, function (err, newaccount) {
-					if (err) {
-						return done(err);
-					}
-					expect(newaccount.address).to.equal(testAccount[1].account.address);
-					done();
-				});
-			});
-	
+		describe('receiveBlock', function () {
+
 			it('should be ok when received block', function (done) {
 				blocks.lastBlock.set(genesisBlock);
 				modulesLoader.scope.sequence.add = function (cb) {
@@ -187,42 +187,9 @@ describe('blocks/process', function () {
 				};
 				blocksProcess.onReceiveBlock(blocksData[0]);
 			});
-	
-			it('should fail when block already processed', function (done) {
-				modulesLoader.scope.sequence.add = function (cb) {
-					var fn = promisify(cb);
-					fn().then(function (err, res) {
-						expect(err).to.be.undefined;
-						expect(res).to.be.undefined;
-						expect(debug.args[0][0]).to.equal('Block already processed');
-						expect(debug.args[0][1]).to.equal(blocksData[0].id);
-						done();
-					});
-				};
-				blocksProcess.onReceiveBlock(blocksData[0]);
-			});
-	
-			it('should fail when discarded block', function (done) {
-				modulesLoader.scope.sequence.add = function (cb) {
-					var fn = promisify(cb);
-					fn().then(function (err, res) {
-						expect(err).to.be.undefined;
-						expect(res).to.be.undefined;
-						expect(warn.args[0][0]).to.equal([
-							'Discarded block that does not match with current chain:', blocksData[2].id,
-							'height:', blocksData[2].height,
-							'round:',  rounds.calc(blocksData[2].height),
-							'slot:', slots.getSlotNumber(blocksData[2].timestamp),
-							'generator:', blocksData[2].generatorPublicKey
-						].join(' '));
-						done();
-					});
-				};
-				blocksProcess.onReceiveBlock(blocksData[2]);
-			});
 		});
 		
-		describe('fork 3', function () {
+		describe('validateBlockSlot error - fork 3', function () {
 
 			it('should fail when block generator is not a delegate', function (done) {
 				modulesLoader.scope.sequence.add = function (cb) {
@@ -623,6 +590,42 @@ describe('blocks/process', function () {
 					};
 					blocksProcess.onReceiveBlock(blocksData[0]);
 				});
+			});
+		});
+
+		describe('skipped blocks', function () {
+
+			it('should fail when block already processed', function (done) {
+				modulesLoader.scope.sequence.add = function (cb) {
+					var fn = promisify(cb);
+					fn().then(function (err, res) {
+						expect(err).to.be.undefined;
+						expect(res).to.be.undefined;
+						expect(debug.args[0][0]).to.equal('Block already processed');
+						expect(debug.args[0][1]).to.equal(blocksData[0].id);
+						done();
+					});
+				};
+				blocksProcess.onReceiveBlock(blocksData[0]);
+			});
+	
+			it('should fail when discarded block', function (done) {
+				modulesLoader.scope.sequence.add = function (cb) {
+					var fn = promisify(cb);
+					fn().then(function (err, res) {
+						expect(err).to.be.undefined;
+						expect(res).to.be.undefined;
+						expect(warn.args[0][0]).to.equal([
+							'Discarded block that does not match with current chain:', blocksData[2].id,
+							'height:', blocksData[2].height,
+							'round:',  rounds.calc(blocksData[2].height),
+							'slot:', slots.getSlotNumber(blocksData[2].timestamp),
+							'generator:', blocksData[2].generatorPublicKey
+						].join(' '));
+						done();
+					});
+				};
+				blocksProcess.onReceiveBlock(blocksData[2]);
 			});
 		});
 	});
