@@ -48,24 +48,37 @@ describe('encryptPassphrase command', () => {
 	});
 
 	describe('when executed', () => {
+		const passphrase = 'secret passphrase';
+		const password = 'testing123';
+		const command = 'encryptPassphrase';
+		const commandWithPlaintextPassword = `${command}`;
 		const defaultErrorMessage = 'Some error message.';
 		const wrappedErrorMessage = `Could not encrypt passphrase: ${defaultErrorMessage}`;
-		const command = 'encryptPassphrase';
 
+		let cryptoEncryptPassphraseReturnObject;
 		let getStdInStub;
+		let getPassphraseStub;
 		let encryptPassphraseStub;
 		let printSpy;
 		let printResultStub;
 
 		beforeEach(() => {
+			cryptoEncryptPassphraseReturnObject = {
+				cipher: 'abcd',
+				iv: '0123',
+			};
 			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
-			encryptPassphraseStub = sinon.stub(cryptoModule, 'encryptPassphrase');
+			getPassphraseStub = sinon.stub(input, 'getPassphrase');
+			getPassphraseStub.onFirstCall().resolves(passphrase);
+			getPassphraseStub.onSecondCall().resolves(password);
+			encryptPassphraseStub = sinon.stub(cryptoModule, 'encryptPassphrase').returns(cryptoEncryptPassphraseReturnObject);
 			printSpy = sinon.spy();
 			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
 		});
 
 		afterEach(() => {
 			getStdInStub.restore();
+			getPassphraseStub.restore();
 			encryptPassphraseStub.restore();
 			printResultStub.restore();
 		});
@@ -96,15 +109,49 @@ describe('encryptPassphrase command', () => {
 
 		describe('passphrase', () => {
 			describe('if the passphrase cannot be retrieved', () => {
-				it('should inform the user the encryption was not successful');
+				beforeEach(() => {
+					getPassphraseStub.onFirstCall().rejects(new Error(defaultErrorMessage));
+					return vorpal.exec(commandWithPlaintextPassword);
+				});
+
+				it('should inform the user the encryption was not successful', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+				});
 			});
 
 			describe('with passphrase passed via prompt', () => {
-				it('should call the input util getStdIn with the correct parameters');
-				it('should call the input util getPassphrase with the correct parameters for the passphrase');
-				it('should call the input util getPassphrase with the correct parameters for the password');
-				it('should call the crypto module encryptPassphrase method with correct parameters');
-				it('should print the result');
+				beforeEach(() => {
+					return vorpal.exec(commandWithPlaintextPassword);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
+					(getPassphraseStub.firstCall.calledWithExactly(vorpal, undefined, {}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the password', () => {
+					(getPassphraseStub.secondCall.calledWithExactly(vorpal, undefined, {}))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encryptPassphrase method with correct parameters', () => {
+					(encryptPassphraseStub.calledWithExactly(passphrase, password))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
+				});
 			});
 
 			describe('with plaintext passphrase passed via command line', () => {

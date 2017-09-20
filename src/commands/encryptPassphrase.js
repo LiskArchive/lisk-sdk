@@ -17,14 +17,27 @@ import cryptoModule from '../utils/cryptoModule';
 import { printResult } from '../utils/print';
 import {
 	getStdIn,
+	getPassphrase,
 } from '../utils/input';
 
 const handleError = ({ message }) => ({ error: `Could not encrypt passphrase: ${message}` });
 
-const handleInput = () => cryptoModule.encryptPassphrase();
+const handleInput = ([passphrase, password]) =>
+	cryptoModule.encryptPassphrase(passphrase, password);
 
-const encryptPassphrase = vorpal => () => {
-	return getStdIn()
+const encryptPassphrase = vorpal => ({ options }) => {
+	const passphraseSource = options.passphrase;
+	const passwordSource = options.password;
+
+	return getStdIn({
+		passphraseIsRequired: passphraseSource === 'stdin',
+		dataIsRequired: passwordSource === 'stdin',
+	})
+		.then(() => getPassphrase(vorpal, passphraseSource, {})
+			.then(passphrase => getPassphrase(vorpal, passwordSource, {})
+				.then(password => [passphrase, password]),
+			),
+		)
 		.then(handleInput)
 		.catch(handleError)
 		.then(printResult(vorpal, {}));
