@@ -10,9 +10,9 @@ var sinon   = require('sinon');
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/initModule').modulesLoader;
+var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
 
 var Signature = rewire('../../../logic/signature.js');
-
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
@@ -101,16 +101,24 @@ describe('signature', function () {
 		done();
 	});
 
+	afterEach(function () {
+		accountsMock.setAccountAndGet.reset();
+	});
+
 	describe('constructor', function () {
 
-		it('should be attach schema and logger to library variable', function () {
+		it('should attach schema to library variable', function () {
 			new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
 			var library = Signature.__get__('library');
 
-			expect(library).to.eql({
-				logger: modulesLoader.scope.logger,
-				schema: modulesLoader.scope.schema
-			});
+			expect(library.schema).to.eql(modulesLoader.scope.schema);
+		});
+
+		it('should attach logger to library variable', function () {
+			new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
+			var library = Signature.__get__('library');
+
+			expect(library.logger).to.eql(modulesLoader.scope.logger);
 		});
 	});
 
@@ -120,12 +128,10 @@ describe('signature', function () {
 			signature.bind({});
 			var modules = Signature.__get__('modules');
 
-			expect(modules).to.eql({
-				accounts: {}
-			});
+			expect(modules.accounts).to.eql({});
 		});
 
-		it('should be okay with correct params', function () {
+		it('should attach accounts object to private modules.accounts variable', function () {
 			signature.bind(accountsMock);
 			var modules = Signature.__get__('modules');
 
@@ -144,50 +150,65 @@ describe('signature', function () {
 
 	describe('verify', function () {
 
-		it('should return error if signature is undefined', function (done) {
-			delete trs.asset.signature;
+		describe('when transaction is invalid', function () {
 
-			signature.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid transaction asset');
-				done();
+			it('should call callback with error if asset is undefined', function (done) {
+				delete trs.asset;
+
+				signature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction asset');
+					done();
+				});
+			});
+
+			it('should call callback with error if signature is undefined', function (done) {
+				delete trs.asset.signature;
+
+				signature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction asset');
+					done();
+				});
+			});
+
+			it('should call callback with error if amount is not equal to 0', function (done) {
+				trs.amount = 1;
+
+				signature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction amount');
+					done();
+				});
+			});
+
+			it('should call callback with error if publicKey is undefined', function (done) {
+				delete trs.asset.signature.publicKey;
+
+				signature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid public key');
+					done();
+				});
+			});
+
+			it('should call callback with error if publicKey is invalid', function (done) {
+				trs.asset.signature.publicKey = 'invalid-public-key';
+
+				signature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid public key');
+					done();
+				});
 			});
 		});
 
-		it('should return error if amount is not equal to 0', function (done) {
-			trs.amount = 1;
+		describe('when transaction is valid', function () {
 
-			signature.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid transaction amount');
-				done();
+			it('should call callback with error = null for valid transaction', function (done) {
+				signature.verify(trs, sender, done);
 			});
-		});
-
-		it('should return error if publicKey is undefined', function (done) {
-			delete trs.asset.signature.publicKey;
-
-			signature.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid public key');
-				done();
-			});
-		});
-
-		it('should return error if publicKey is invalid', function (done) {
-			trs.asset.signature.publicKey = 'invalid-public-key';
-
-			signature.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid public key');
-				done();
-			});
-		});
-
-		it('should verify okay for valid transaction', function (done) {
-			signature.verify(trs, sender, done);
 		});
 	});
 
 	describe('process', function () {
 
-		it('should call the callback', function (done) {
+		it('should call callback', function (done) {
 			signature.process(trs, sender, done);
 		});
 	});
@@ -202,8 +223,8 @@ describe('signature', function () {
 			}).to.throw();
 		});
 
-		it.skip('should throw error for invalid publicKey', function () {
-			trs.asset.signature.publicKey = 'invalid-public-key';
+		it('should throw error when publicKey is a number', function () {
+			trs.asset.signature.publicKey = 1;
 
 			expect(function () {
 				signature.getBytes(trs);
@@ -266,6 +287,24 @@ describe('signature', function () {
 	});
 
 	describe('applyUnconfirmed', function () {
+		
+		it('should call callback with error if u_secondSignature already exists', function (done) {
+			sender.u_secondSignature = 'some-second-siganture';
+
+			signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
+				expect(err).to.equal('Second signature already enabled');
+				done();
+			}); 
+		});
+		
+		it('should call callback with error if secondSignature already exists', function (done) {
+			sender.secondSignature = 'some-second-siganture';
+
+			signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
+				expect(err).to.equal('Second signature already enabled');
+				done();
+			}); 
+		});
 
 		it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
 			function callback () {}
@@ -300,29 +339,55 @@ describe('signature', function () {
 	});
 
 	describe('objectNormalize', function () {
-		
-		it('should return when asset schema is invalid', function () {
-			trs.asset.signature.publicKey = 'invalid-public-key';
 
-			expect(function () {
-				signature.objectNormalize(trs);
-			}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
+		it('should use the correct format to validate against', function () {
+			var library = Signature.__get__('library');
+			var schemaSpy = sinon.spy(library.schema, 'validate');
+			signature.objectNormalize(trs);
+			expect(schemaSpy.calledOnce).to.equal(true);
+			expect(schemaSpy.calledWithExactly(trs.asset.signature, Signature.prototype.schema)).to.equal(true);
+			schemaSpy.restore();
 		});
 
-		it('should return transaction when asset is valid', function () {
-			expect(signature.objectNormalize(trs)).to.eql(trs);
+		describe('when library.schema.validate fails', function () {
+
+			it('should throw', function () {
+				trs.asset.signature.publicKey = 'invalid-public-key';
+
+				expect(function () {
+					signature.objectNormalize(trs);
+				}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
+			});
+
+			after(function () {
+				var schemaDynamicTest = new SchemaDynamicTest({
+					testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
+					customPropertyAssertion: function (input, expectedType, property, err) {
+						expect(err).to.equal('Failed to validate delegate schema: Expected type ' + expectedType + ' but found type ' + input.expectation);
+					}
+				});
+
+				schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(signature.objectNormalize, trs, 'asset.signature.username');
+			});
+		});
+
+		describe('when library.schema.validate succeeds', function () {
+
+			it('should return transaction', function () {
+				expect(signature.objectNormalize(trs)).to.eql(trs);
+			});
 		});
 	});
 
 	describe('dbRead', function () {
 
-		it('should return null publicKey is not set ', function () {
+		it('should return null if publicKey undefined', function () {
 			delete rawTrs.s_publicKey;
 
 			expect(signature.dbRead(rawTrs)).to.eql(null);
 		});
 
-		it('should be okay for valid input', function () {
+		it('should return signature asset for raw signature transaction', function () {
 			expect(signature.dbRead(rawTrs)).to.eql({
 				signature: {
 					publicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
@@ -334,15 +399,15 @@ describe('signature', function () {
 
 	describe('dbSave', function () {
 
-		it.skip('should return an error when publicKey is invalid', function () {
-			var invalidPublicKey = 'invalid-public-key';
+		it('should return an error when publicKey is a number', function () {
+			var invalidPublicKey = 12;
 			trs.asset.signature.publicKey = invalidPublicKey;
 			expect(function () {
 				signature.dbSave(trs);
 			}).to.throw();
 		});
 
-		it('should be okay for valid input', function () {
+		it('should return signature db promise for signature transaction', function () {
 			expect(signature.dbSave(trs)).to.eql({
 				table: 'signatures',
 				fields: [
@@ -369,7 +434,7 @@ describe('signature', function () {
 			expect(signature.ready(trs, sender)).to.equal(false);
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', function () {
+		it('should return true for multi signature transaction with at least min signatures', function () {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 			sender.multimin = 1;
 
