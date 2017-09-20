@@ -217,13 +217,10 @@ __private.countTxsPool = function () {
  * @implements {__private.transactionTimeOut}
  * @implements {__private.delete}
  * @param {Object[]} poolList
- * @param {string[]} parentIds
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} error | ids[]
+ * @return {setImmediateCallback} cb|error
  */
-__private.expireTxsFromList = function (poolList, parentIds, cb) {
-	var ids = [];
-
+__private.expireTxsFromList = function (poolList, cb) {
 	async.eachSeries(poolList.transactions, function (transaction, eachSeriesCb) {
 		if (!transaction) {
 			return setImmediate(eachSeriesCb);
@@ -235,7 +232,6 @@ __private.expireTxsFromList = function (poolList, parentIds, cb) {
 		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
 		if (seconds > timeOut) {
-			ids.push(transaction.id);
 			__private.delete(poolList, transaction.id);
 			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
 			return setImmediate(eachSeriesCb);
@@ -243,7 +239,7 @@ __private.expireTxsFromList = function (poolList, parentIds, cb) {
 			return setImmediate(eachSeriesCb);
 		}
 	}, function (err) {
-		return setImmediate(cb, err, ids.concat(parentIds));
+		return setImmediate(cb, err);
 	});
 };
 
@@ -630,23 +626,22 @@ TxPool.prototype.processPool = function (cb) {
  * Expires transactions.
  * @implements {__private.expireTxsFromList}
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error | ids[]
+ * @return {setImmediateCallback} error, cb
  */
 TxPool.prototype.expireTransactions = function (cb) {
-	var ids = [];
 
 	async.waterfall([
 		function (seriesCb) {
-			__private.expireTxsFromList(pool.unverified, ids, seriesCb);
+			__private.expireTxsFromList(pool.unverified, seriesCb);
 		},
 		function (res, seriesCb) {
-			__private.expireTxsFromList(pool.verified.pending, ids, seriesCb);
+			__private.expireTxsFromList(pool.verified.pending, seriesCb);
 		},
 		function (res, seriesCb) {
-			__private.expireTxsFromList(pool.verified.ready, ids, seriesCb);
+			__private.expireTxsFromList(pool.verified.ready, seriesCb);
 		}
-	], function (err, ids) {
-		return setImmediate(cb, err, ids);
+	], function (err) {
+		return setImmediate(cb, err);
 	});
 };
 
