@@ -17,9 +17,14 @@ import encrypt from '../../src/commands/encrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
 import * as input from '../../src/utils/input';
 import * as print from '../../src/utils/print';
-import { setUpVorpalWithCommand } from './utils';
+import {
+	getCommands,
+	getRequiredArgs,
+	setUpVorpalWithCommand,
+} from './utils';
 
 describe('lisky encrypt command palette', () => {
+	const commandName = 'encrypt';
 	let vorpal;
 
 	beforeEach(() => {
@@ -31,19 +36,13 @@ describe('lisky encrypt command palette', () => {
 	});
 
 	describe('setup', () => {
-		// eslint-disable-next-line no-underscore-dangle
-		const commandFilter = command => command._name === 'encrypt';
-
 		it('should be available', () => {
-			const encryptCommands = vorpal.commands.filter(commandFilter);
+			const encryptCommands = getCommands(vorpal, commandName);
 			(encryptCommands).should.have.length(1);
 		});
 
 		it('should require 1 input', () => {
-			const argsFilter = arg => arg.required;
-			const encryptCommand = vorpal.commands.filter(commandFilter)[0];
-			// eslint-disable-next-line no-underscore-dangle
-			const requiredArgs = encryptCommand._args.filter(argsFilter);
+			const requiredArgs = getRequiredArgs(vorpal, commandName);
 			(requiredArgs).should.have.length(1);
 		});
 	});

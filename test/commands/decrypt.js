@@ -17,29 +17,32 @@ import decrypt from '../../src/commands/decrypt';
 import cryptoModule from '../../src/utils/cryptoModule';
 import * as input from '../../src/utils/input';
 import * as print from '../../src/utils/print';
-import { setUpVorpalWithCommand } from './utils';
+import {
+	getCommands,
+	getRequiredArgs,
+	setUpVorpalWithCommand,
+} from './utils';
 
 describe('lisky decrypt command palette', () => {
+	const commandName = 'decrypt';
 	let vorpal;
 
 	beforeEach(() => {
 		vorpal = setUpVorpalWithCommand(decrypt);
 	});
 
-	// eslint-disable-next-line no-underscore-dangle
-	const commandFilter = command => command._name === 'decrypt';
-	const argsFilter = arg => arg.required;
+	afterEach(() => {
+		vorpal.ui.removeAllListeners();
+	});
 
 	describe('setup', () => {
 		it('should be available', () => {
-			const decryptCommands = vorpal.commands.filter(commandFilter);
+			const decryptCommands = getCommands(vorpal, commandName);
 			(decryptCommands).should.have.length(1);
 		});
 
 		it('should require 2 inputs', () => {
-			const decryptCommand = vorpal.commands.filter(commandFilter)[0];
-			// eslint-disable-next-line no-underscore-dangle
-			const requiredArgs = decryptCommand._args.filter(argsFilter);
+			const requiredArgs = getRequiredArgs(vorpal, commandName);
 			(requiredArgs).should.have.length(2);
 		});
 	});

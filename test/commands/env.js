@@ -18,7 +18,11 @@ import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import env from '../../src/commands/env';
 import configObj from '../../src/utils/env';
-import { setUpVorpalWithCommand } from './utils';
+import {
+	getCommands,
+	getRequiredArgs,
+	setUpVorpalWithCommand,
+} from './utils';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 const stringifyConfig = config => JSON.stringify(config, null, '\t');
@@ -39,15 +43,12 @@ const defaultConfig = {
 const defaultConfigString = JSON.stringify(defaultConfig);
 
 describe('env command', () => {
-	/* eslint-disable no-underscore-dangle */
-	let envCommand;
+	const commandName = 'env';
 	let capturedOutput = [];
 	let vorpal;
-	const filterCommand = vorpalCommand => vorpalCommand._name === 'env';
 
 	beforeEach(() => {
 		vorpal = setUpVorpalWithCommand(env, capturedOutput);
-		envCommand = vorpal.commands.filter(filterCommand)[0];
 	});
 
 	afterEach(() => {
@@ -61,10 +62,14 @@ describe('env command', () => {
 	});
 
 	it('should be available', () => {
-		(envCommand._args).should.be.length(0);
-		(envCommand._name).should.be.equal('env');
+		const envCommands = getCommands(vorpal, commandName);
+		(envCommands).should.have.length(1);
 	});
-	/* eslint-enable */
+
+	it('should require 0 inputs', () => {
+		const requiredArgs = getRequiredArgs(vorpal, commandName);
+		(requiredArgs).should.have.length(0);
+	});
 
 	describe('output env', () => {
 		const setJsonTrueCommand = 'set json true';

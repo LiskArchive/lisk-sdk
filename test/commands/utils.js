@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* eslint-disable import/prefer-default-export */
 import Vorpal from 'vorpal';
 
 export const setUpVorpalWithCommand = (command, capturedOutput) => {
@@ -29,3 +28,15 @@ export const setUpVorpalWithCommand = (command, capturedOutput) => {
 	});
 	return vorpal;
 };
+
+// eslint-disable-next-line no-underscore-dangle
+export const createCommandFilter = commandName => command => command._name === commandName;
+
+export const getCommands = (vorpal, commandName) =>
+	vorpal.commands.filter(createCommandFilter(commandName));
+
+export const requiredArgsFilter = arg => arg.required;
+
+export const getRequiredArgs = (vorpal, commandName) =>
+// eslint-disable-next-line no-underscore-dangle
+	getCommands(vorpal, commandName)[0]._args.filter(requiredArgsFilter);
