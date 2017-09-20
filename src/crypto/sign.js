@@ -30,11 +30,11 @@ import { getTransactionHash, getSha256Hash } from './hash';
  * @param message - utf8
  * @param secret - utf8
  *
- * @return {Object} - message, signature and publicKey
+ * @return {Object} - message, publicKey, signature
  */
 
 export function signMessageWithSecret(message, secret) {
-	const msgBytes = naclInstance.encode_utf8(message);
+	const msgBytes = Buffer.from(message, 'utf8');
 	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
 	const signature = naclInstance.crypto_sign_detached(msgBytes, privateKey);
 
@@ -51,11 +51,11 @@ export function signMessageWithSecret(message, secret) {
  * @param secret - utf8
  * @param secondSecret - utf8
  *
- * @return {Object} - message, signature and publicKey
+ * @return {Object} - message, publicKey, secondPublicKey, signature, secondSignature
  */
 
 export function signMessageWithTwoSecrets(message, secret, secondSecret) {
-	const msgBytes = naclInstance.encode_utf8(message);
+	const msgBytes = Buffer.from(message, 'utf8');
 	const keypairBytes = getRawPrivateAndPublicKeyFromSecret(secret);
 	const secondKeypairBytes = getRawPrivateAndPublicKeyFromSecret(secondSecret);
 
@@ -75,7 +75,7 @@ export function signMessageWithTwoSecrets(message, secret, secondSecret) {
 
 /**
  * @method verifyMessageWithPublicKey
- * @param {Object} Object - Object with message (utf8), signature (base64) and publicKey (hex)
+ * @param {Object} Object - Object
  * @param {String} Object.message - message in utf8
  * @param {String} Object.signature - signature in base64
  * @param {String} Object.publicKey - publicKey in hex
@@ -133,15 +133,14 @@ export function verifyMessageWithTwoPublicKeys(
 		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
 	}
 
-	const firstSignatureVerified = naclInstance.crypto_sign_verify_detached(
+	const verifyFirstSignature = () => naclInstance.crypto_sign_verify_detached(
 		signatureBytes, messageBytes, publicKeyBytes,
 	);
-
-	const secondSignatureVerified = naclInstance.crypto_sign_verify_detached(
+	const verifySecondSignature = () => naclInstance.crypto_sign_verify_detached(
 		secondSignatureBytes, messageBytes, secondPublicKeyBytes,
 	);
 
-	return firstSignatureVerified && secondSignatureVerified;
+	return verifyFirstSignature() && verifySecondSignature();
 }
 
 /**

@@ -37,6 +37,7 @@ describe('sign', () => {
 	const notSecretMessage = 'not secret message';
 	const defaultSignature = 'X9aY0zwAn8NY8ghfZkZa5QrDd00aXDbVFn+9f5usa2SLJrspdtNgtihv6hw2fdEo2tfwzCQaAwH7z/9Mp3ueCw==';
 	const defaultSecondSignature = 'nGWmc3+0RXyLFGX51ony9hfDn44Q4mhtA/vTiwkl7rnl13eYX6KEzKardnflUjnWG0Kbj9wfshKGsZuQRW5/Ag==';
+	const defaultWrongSignature = 'E2gerxJlGhgaPcY+Az90YL272HanGOE+za/DdEy011UvReN5V1UBBJXzuHhX3QoX2IhunJ2DRf+wvXBuZrz7Cw==';
 	const defaultSecret = 'secret';
 	const defaultSecondSecret = 'second secret';
 	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -47,38 +48,41 @@ describe('sign', () => {
 	describe('#signMessageWithSecret', () => {
 		const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
 		it('should signTransaction the message correctly', () => {
-			(signedMessage).should.have.property('message').be.equal(notSecretMessage);
-			(signedMessage).should.have.property('signature').be.equal(defaultSignature);
-			(signedMessage).should.have.property('publicKey').be.equal(defaultPublicKey);
+			const expectedSignedMessage = {
+				message: notSecretMessage,
+				publicKey: defaultPublicKey,
+				signature: defaultSignature,
+			};
+			(signedMessage).should.be.eql(expectedSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithPublicKey', () => {
-		let signature;
+		let signedMessage;
 		beforeEach(() => {
-			signature = {
+			signedMessage = {
 				message: notSecretMessage,
 				publicKey: defaultPublicKey,
 				signature: defaultSignature,
 			};
 		});
 		it('should return true on valid signature verification', () => {
-			(verifyMessageWithPublicKey(signature)).should.be.true();
+			(verifyMessageWithPublicKey(signedMessage)).should.be.true();
 		});
 
 		it('should throw on invalid publicKey length', () => {
-			signature.publicKey = `${defaultPublicKey}ERROR`;
-			(verifyMessageWithPublicKey.bind(null, signature)).should.throw('Invalid publicKey, expected 32-byte publicKey');
+			signedMessage.publicKey = `${defaultPublicKey}AA`;
+			(verifyMessageWithPublicKey.bind(null, signedMessage)).should.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid signature length', () => {
-			signature.signature = `ERROR${defaultSignature}`;
-			(verifyMessageWithPublicKey.bind(null, signature)).should.throw('Invalid signature length, expected 64-byte signature');
+			signedMessage.signature = `WM${defaultSignature}`;
+			(verifyMessageWithPublicKey.bind(null, signedMessage)).should.throw('Invalid signature length, expected 64-byte signature');
 		});
 
-		it('should return false on invalid signature', () => {
-			signature.signature = `W${defaultSignature.slice(1, -1)}S`;
-			(verifyMessageWithPublicKey(signature)).should.be.false();
+		it('should return false on wrong signature', () => {
+			signedMessage.signature = defaultWrongSignature;
+			(verifyMessageWithPublicKey(signedMessage)).should.be.false();
 		});
 	});
 
@@ -113,22 +117,25 @@ ${defaultSignature}
 
 	describe('#signMessageWithTwoSecrets', () => {
 		it('should signTransaction a message using two secrets', () => {
-			const signature = signMessageWithTwoSecrets(
+			const signedMessage = signMessageWithTwoSecrets(
 				notSecretMessage, defaultSecret, defaultSecondSecret,
 			);
+			const expectedSignedMessage = {
+				message: notSecretMessage,
+				publicKey: defaultPublicKey,
+				secondPublicKey: defaultSecondPublicKey,
+				signature: defaultSignature,
+				secondSignature: defaultSecondSignature,
+			};
 
-			(signature).should.have.property('message').be.equal(notSecretMessage);
-			(signature).should.have.property('publicKey').be.equal(defaultPublicKey);
-			(signature).should.have.property('secondPublicKey').be.equal(defaultSecondPublicKey);
-			(signature).should.have.property('signature').be.equal(defaultSignature);
-			(signature).should.have.property('secondSignature').be.equal(defaultSecondSignature);
+			(signedMessage).should.be.eql(expectedSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithTwoPublicKeys', () => {
-		let signature;
+		let signedMessage;
 		beforeEach(() => {
-			signature = {
+			signedMessage = {
 				message: notSecretMessage,
 				publicKey: defaultPublicKey,
 				secondPublicKey: defaultSecondPublicKey,
@@ -138,37 +145,37 @@ ${defaultSignature}
 		});
 
 		it('should verify both signatures when given two publicKeys', () => {
-			(verifyMessageWithTwoPublicKeys(signature)).should.be.true();
+			(verifyMessageWithTwoPublicKeys(signedMessage)).should.be.true();
 		});
 
 		it('should throw on invalid first publicKey length', () => {
-			signature.publicKey = `${defaultPublicKey}ERR`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signature)).should.throw('Invalid first publicKey, expected 32-byte publicKey');
+			signedMessage.publicKey = `${defaultPublicKey}AA`;
+			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid second publicKey length', () => {
-			signature.secondPublicKey = `${defaultSecondPublicKey}ERR`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signature)).should.throw('Invalid second publicKey, expected 32-byte publicKey');
+			signedMessage.secondPublicKey = `${defaultSecondPublicKey}AA`;
+			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid primary signature length', () => {
-			signature.signature = `ERR${defaultSignature}`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signature)).should.throw('Invalid first signature length, expected 64-byte signature');
+			signedMessage.signature = `WM${defaultSignature}`;
+			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid first signature length, expected 64-byte signature');
 		});
 
 		it('should throw on invalid secondary signature length', () => {
-			signature.secondSignature = `ERR${defaultSecondSignature}`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signature)).should.throw('Invalid second signature length, expected 64-byte signature');
+			signedMessage.secondSignature = `WM${defaultSecondSignature}`;
+			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid second signature length, expected 64-byte signature');
 		});
 
 		it('should return false on wrong signature', () => {
-			signature.signature = `W${defaultSignature.slice(1, -1)}S`;
-			(verifyMessageWithTwoPublicKeys(signature)).should.be.false();
+			signedMessage.signature = defaultWrongSignature;
+			(verifyMessageWithTwoPublicKeys(signedMessage)).should.be.false();
 		});
 
 		it('should return false on wrong second signature', () => {
-			signature.secondSignature = `W${defaultSecondSignature.slice(1, -1)}S`;
-			(verifyMessageWithTwoPublicKeys(signature)).should.be.false();
+			signedMessage.secondSignature = defaultWrongSignature;
+			(verifyMessageWithTwoPublicKeys(signedMessage)).should.be.false();
 		});
 	});
 
@@ -215,9 +222,9 @@ ${defaultSignature}
 				id: '13987348420913138422',
 				senderPublicKey: keys.publicKey,
 			};
-			const alterTransaction = Object.assign({}, transaction, { amount: '100' });
+			const alteredTransaction = Object.assign({}, transaction, { amount: '100' });
 			const signature = signTransaction(transaction, defaultSignatureFirstSecret);
-			const alterSignature = signTransaction(alterTransaction, defaultSignatureFirstSecret);
+			const alterSignature = signTransaction(alteredTransaction, defaultSignatureFirstSecret);
 			it('should sign a transaction', () => {
 				(signature).should.be.equal(expectedSignature);
 			});
