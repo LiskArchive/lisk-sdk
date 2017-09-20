@@ -22,9 +22,9 @@ import {
 	getData,
 } from '../utils/input';
 
-const encryptDescription = `Encrypt a message for a given recipient public key using your secret passphrase.
+const description = `Encrypt a message for a given recipient public key using your secret passphrase.
 
-	Example: encrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
+	Example: encrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
 `;
 
 const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
@@ -56,7 +56,7 @@ function encryptCommand(vorpal) {
 		.option(...commonOptions.message)
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
-		.description(encryptDescription)
+		.description(description)
 		.action(encrypt(vorpal));
 }
 

@@ -23,6 +23,11 @@ import {
 
 const PASSWORD_DISPLAY_NAME = 'your password';
 
+const description = `Encrypt your secret passphrase under a password.
+
+	Example: encrypt passphrase
+`;
+
 const handleError = ({ message }) => ({ error: `Could not encrypt passphrase: ${message}` });
 
 const handleInput = ([passphrase, password]) =>
@@ -64,6 +69,7 @@ function encryptPassphraseCommand(vorpal) {
 		.command('encrypt passphrase')
 		.option(...commonOptions.passphrase)
 		.option(...commonOptions.password)
+		.description(description)
 		.action(encryptPassphrase(vorpal));
 }
 
