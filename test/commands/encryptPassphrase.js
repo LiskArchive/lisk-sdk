@@ -14,6 +14,8 @@
  *
  */
 import encryptCommand from '../../src/commands/encryptPassphrase';
+import * as input from '../../src/utils/input';
+import * as print from '../../src/utils/print';
 import {
 	getCommands,
 	getRequiredArgs,
@@ -45,6 +47,30 @@ describe('encryptPassphrase command', () => {
 	});
 
 	describe('when executed', () => {
-		it('should have tests');
+		const defaultErrorMessage = 'Some error message.';
+		const wrappedErrorMessage = `Could not encrypt passphrase: ${defaultErrorMessage}`;
+		const command = 'encryptPassphrase';
+
+		let getStdInStub;
+		let printSpy;
+		let printResultStub;
+
+		beforeEach(() => {
+			getStdInStub = sinon.stub(input, 'getStdIn');
+			printSpy = sinon.spy();
+			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
+		});
+
+		describe('if the stdin cannot be retrieved', () => {
+			beforeEach(() => {
+				getStdInStub.rejects(new Error(defaultErrorMessage));
+				return vorpal.exec(command);
+			});
+
+			it('should inform the user the encryption was not successful', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+			});
+		});
 	});
 });
