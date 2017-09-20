@@ -56,7 +56,7 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 			pending: { transactions: {}, count: 0 },
 			ready: { transactions: {}, count: 0 }
 		},
-		invalid: {}
+		invalid: { transactions: {}, count: 0 }
 	};
 
 	// Bundled transaction timer
@@ -160,8 +160,8 @@ __private.add = function (transaction, poolList, cb) {
 	if (__private.countTxsPool() >= self.poolStorageTxsLimit) {
 		return setImmediate(cb, 'Transaction pool is full');
 	}
-	if (pool.invalid[transaction.id] !== undefined) {
-		return setImmediate(cb, 'Transaction is invalid');
+	if (pool.invalid.transactions[transaction.id] !== undefined) {
+		return setImmediate(cb, 'Transaction is invalid: ' + transaction.id);
 	}
 	if (__private.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
@@ -232,7 +232,6 @@ __private.expireTxsFromList = function (poolList, parentIds, cb) {
 		var timeNow = Math.floor(Date.now() / 1000);
 		var timeOut = __private.transactionTimeOut(transaction);
 		// transaction.receivedAt is instance of Date
-		console.log('expireTransactions - transaction.receivedAt',transaction.receivedAt);
 		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
 		if (seconds > timeOut) {
@@ -350,14 +349,15 @@ TxPool.prototype.bind = function (accounts, transactions) {
 };
 
 /**
- * Gets unverified, verified.pending and verified.ready counters.
+ * Gets invalid, unverified, verified.pending and verified.ready counters.
  * @return {Object} unverified, pending, ready
  */
 TxPool.prototype.getUsage = function () {
 	return {
 		unverified: pool.unverified.count,
 		pending: pool.verified.pending.count,
-		ready: pool.verified.ready.count
+		ready: pool.verified.ready.count,
+		invalid: pool.invalid.count
 	};
 };
 
@@ -449,13 +449,13 @@ TxPool.prototype.getReady = function (limit) {
 TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
 	var poolBalance = new bignum('0'), paymentTxs, receiptTxs;
 
-	library.logic.account.get({ address: sender }, 'balance', function (err, account) {
+	library.logic.account.get({ address: sender.address }, 'balance', function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
 		// total payments
-		paymentTxs = self.getAll('sender_id', { id: sender });
+		paymentTxs = self.getAll('sender_id', { id: sender.address });
 		['unverified','pending','ready'].forEach(function (paymentTxList) {
 			if (paymentTxs[paymentTxList].length > 0) {
 				paymentTxs[paymentTxList].forEach(function (paymentTx) {
@@ -468,7 +468,7 @@ TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
 		});
 		
 		// total receipts
-		receiptTxs = self.getAll('recipient_id', { id: sender });
+		receiptTxs = self.getAll('recipient_id', { id: sender.address });
 		['unverified','pending','ready'].forEach(function (receiptTxList) {
 			if (receiptTxs[receiptTxList].length > 0) {
 				receiptTxs[receiptTxList].forEach(function (receiptTx) {
@@ -489,7 +489,7 @@ TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
 
 		if (exceeded) {
 			return setImmediate(cb, [
-				'Account does not have enough LSK:', sender,
+				'Account does not have enough LSK:', sender.address,
 				'balance:', balance.div(Math.pow(10,8))
 			].join(' '));
 		}
@@ -585,7 +585,8 @@ TxPool.prototype.processPool = function (cb) {
 				__private.processUnverifiedTransaction(transaction, true, function (err, sender) {
 					if (err) {
 						library.logger.error('Failed to process unverified transaction: ' + transaction.id, err);
-						pool.invalid[transaction.id] = true;
+						pool.invalid.transactions[transaction.id] = true;
+						pool.invalid.count++;
 						return setImmediate(eachSeriesCb);
 					}
 					self.checkBalance(transaction, sender, function (err, balance) {
@@ -655,10 +656,11 @@ TxPool.prototype.expireTransactions = function (cb) {
 TxPool.prototype.resetInvalidTransactions = function () {
 	var counter = 0;
 
-	for (var tx in pool.invalid) {
-		delete pool.invalid[tx];
+	for (var tx in pool.invalid.transactions) {
+		delete pool.invalid.transactions[tx];
 		counter++;
 	}
+	pool.invalid.count = 0;
 	return counter;
 };
 
