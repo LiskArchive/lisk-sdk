@@ -14,6 +14,7 @@
  *
  */
 import encryptCommand from '../../src/commands/encryptPassphrase';
+import cryptoModule from '../../src/utils/cryptoModule';
 import * as input from '../../src/utils/input';
 import * as print from '../../src/utils/print';
 import {
@@ -52,18 +53,38 @@ describe('encryptPassphrase command', () => {
 		const command = 'encryptPassphrase';
 
 		let getStdInStub;
+		let encryptPassphraseStub;
 		let printSpy;
 		let printResultStub;
 
 		beforeEach(() => {
-			getStdInStub = sinon.stub(input, 'getStdIn');
+			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
+			encryptPassphraseStub = sinon.stub(cryptoModule, 'encryptPassphrase');
 			printSpy = sinon.spy();
 			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
+		});
+
+		afterEach(() => {
+			getStdInStub.restore();
+			encryptPassphraseStub.restore();
+			printResultStub.restore();
 		});
 
 		describe('if the stdin cannot be retrieved', () => {
 			beforeEach(() => {
 				getStdInStub.rejects(new Error(defaultErrorMessage));
+				return vorpal.exec(command);
+			});
+
+			it('should inform the user the encryption was not successful', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+			});
+		});
+
+		describe('if an error occurs during encryption', () => {
+			beforeEach(() => {
+				encryptPassphraseStub.rejects(new Error(defaultErrorMessage));
 				return vorpal.exec(command);
 			});
 

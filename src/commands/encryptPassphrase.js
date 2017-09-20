@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptoModule from '../utils/cryptoModule';
 import { printResult } from '../utils/print';
 import {
 	getStdIn,
@@ -20,8 +21,11 @@ import {
 
 const handleError = ({ message }) => ({ error: `Could not encrypt passphrase: ${message}` });
 
+const handleInput = () => cryptoModule.encryptPassphrase();
+
 const encryptPassphrase = vorpal => () => {
 	return getStdIn()
+		.then(handleInput)
 		.catch(handleError)
 		.then(printResult(vorpal, {}));
 };
