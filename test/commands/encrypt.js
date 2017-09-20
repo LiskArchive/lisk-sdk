@@ -467,7 +467,7 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			it('should call the input util getData with the correct parameters', () => {
-				(getDataStub.calledWithExactly(undefined, 'stdin', { passphrase: secret, data: multilineData }))
+				(getDataStub.calledWithExactly(undefined, 'stdin', stdInResult))
 					.should.be.true();
 			});
 

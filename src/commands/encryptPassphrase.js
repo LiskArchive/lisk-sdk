@@ -21,22 +21,37 @@ import {
 	getPassphrase,
 } from '../utils/input';
 
+const COMMAND_NAME = 'encryptPassphrase';
+const PASSWORD_DISPLAY_NAME = 'your password';
+
 const handleError = ({ message }) => ({ error: `Could not encrypt passphrase: ${message}` });
 
 const handleInput = ([passphrase, password]) =>
 	cryptoModule.encryptPassphrase(passphrase, password);
 
+const getPasswordFromStdIn = ({ data }) => (
+	data
+		? {
+			passphrase: data.split(/[\r\n]+/)[0],
+		}
+		: {}
+);
+
 const encryptPassphrase = vorpal => ({ options }) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
-	const passwordDisplayName = 'your password';
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
 		dataIsRequired: passwordSource === 'stdin',
 	})
 		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn)
-			.then(passphrase => getPassphrase(vorpal, passwordSource, stdIn, passwordDisplayName)
+			.then(passphrase => getPassphrase(
+				vorpal,
+				passwordSource,
+				getPasswordFromStdIn(stdIn),
+				PASSWORD_DISPLAY_NAME,
+			)
 				.then(password => [passphrase, password]),
 			),
 		)
@@ -47,8 +62,9 @@ const encryptPassphrase = vorpal => ({ options }) => {
 
 function encryptPassphraseCommand(vorpal) {
 	vorpal
-		.command('encryptPassphrase')
+		.command(COMMAND_NAME)
 		.option(...commonOptions.passphrase)
+		.option(...commonOptions.password)
 		.action(encryptPassphrase(vorpal));
 }
 

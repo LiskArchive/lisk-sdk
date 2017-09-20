@@ -51,7 +51,6 @@ describe('encryptPassphrase command', () => {
 		const passphrase = 'secret passphrase';
 		const password = 'testing123';
 		const command = 'encryptPassphrase';
-		const commandWithPlaintextPassword = `${command}`;
 		const defaultErrorMessage = 'Some error message.';
 		const wrappedErrorMessage = `Could not encrypt passphrase: ${defaultErrorMessage}`;
 
@@ -112,7 +111,7 @@ describe('encryptPassphrase command', () => {
 			describe('if the passphrase cannot be retrieved', () => {
 				beforeEach(() => {
 					getPassphraseStub.onFirstCall().rejects(new Error(defaultErrorMessage));
-					return vorpal.exec(commandWithPlaintextPassword);
+					return vorpal.exec(command);
 				});
 
 				it('should inform the user the encryption was not successful', () => {
@@ -123,7 +122,7 @@ describe('encryptPassphrase command', () => {
 
 			describe('with passphrase passed via prompt', () => {
 				beforeEach(() => {
-					return vorpal.exec(commandWithPlaintextPassword);
+					return vorpal.exec(command);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -157,7 +156,7 @@ describe('encryptPassphrase command', () => {
 
 			describe('with plaintext passphrase passed via command line', () => {
 				const passphraseSource = `pass:${passphrase}`;
-				const commandWithPlaintextPassphrase = `${commandWithPlaintextPassword} --passphrase "${passphraseSource}"`;
+				const commandWithPlaintextPassphrase = `${command} --passphrase "${passphraseSource}"`;
 
 				beforeEach(() => {
 					return vorpal.exec(commandWithPlaintextPassphrase);
@@ -195,7 +194,7 @@ describe('encryptPassphrase command', () => {
 			describe('with passphrase passed via environmental variable', () => {
 				const envVariable = 'TEST_PASSPHRASE';
 				const passphraseSource = `env:${envVariable}`;
-				const commandWithEnvPassphrase = `${commandWithPlaintextPassword} --passphrase "${passphraseSource}"`;
+				const commandWithEnvPassphrase = `${command} --passphrase "${passphraseSource}"`;
 
 				beforeEach(() => {
 					return vorpal.exec(commandWithEnvPassphrase);
@@ -231,8 +230,8 @@ describe('encryptPassphrase command', () => {
 			});
 
 			describe('with passphrase passed via file path', () => {
-				const passphraseSource = 'file:/path/to/secret.txt';
-				const commandWithFilePassphrase = `${commandWithPlaintextPassword} --passphrase "${passphraseSource}"`;
+				const passphraseSource = 'file:/path/to/passphrase.txt';
+				const commandWithFilePassphrase = `${command} --passphrase "${passphraseSource}"`;
 
 				beforeEach(() => {
 					return vorpal.exec(commandWithFilePassphrase);
@@ -269,7 +268,7 @@ describe('encryptPassphrase command', () => {
 
 			describe('with passphrase passed via stdin', () => {
 				const passphraseSource = 'stdin';
-				const commandWithStdInPassphrase = `${commandWithPlaintextPassword} --passphrase "${passphraseSource}"`;
+				const commandWithStdInPassphrase = `${command} --passphrase "${passphraseSource}"`;
 
 				beforeEach(() => {
 					stdInResult = { passphrase };
@@ -291,7 +290,7 @@ describe('encryptPassphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters for the password', () => {
-					(getPassphraseStub.secondCall.calledWithExactly(vorpal, undefined, stdInResult, 'your password'))
+					(getPassphraseStub.secondCall.calledWithExactly(vorpal, undefined, {}, 'your password'))
 						.should.be.true();
 				});
 
@@ -309,56 +308,239 @@ describe('encryptPassphrase command', () => {
 
 		describe('password', () => {
 			describe('if the password cannot be retrieved', () => {
-				it('should inform the user the encryption was not successful');
+				beforeEach(() => {
+					getPassphraseStub.onSecondCall().rejects(new Error(defaultErrorMessage));
+					return vorpal.exec(command);
+				});
+
+				it('should inform the user the encryption was not successful', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
+				});
 			});
 
 			describe('with password passed via prompt', () => {
-				it('should call the input util getStdIn with the correct parameters');
-				it('should call the input util getPassphrase with the correct parameters for the passphrase');
-				it('should call the input util getPassphrase with the correct parameters for the password');
-				it('should call the crypto module encryptPassphrase method with correct parameters');
-				it('should print the result');
+				beforeEach(() => {
+					return vorpal.exec(command);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
+					(getPassphraseStub.firstCall.calledWithExactly(vorpal, undefined, {}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the password', () => {
+					(getPassphraseStub.secondCall.calledWithExactly(vorpal, undefined, {}, 'your password'))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encryptPassphrase method with correct parameters', () => {
+					(encryptPassphraseStub.calledWithExactly(passphrase, password))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
+				});
 			});
 
 			describe('with plaintext password passed via command line', () => {
-				it('should call the input util getStdIn with the correct parameters');
-				it('should call the input util getPassphrase with the correct parameters for the passphrase');
-				it('should call the input util getPassphrase with the correct parameters for the password');
-				it('should call the crypto module encryptPassphrase method with correct parameters');
-				it('should print the result');
+				const passwordSource = `pass:${password}`;
+				const commandWithPlaintextPassword = `${command} --password "${passwordSource}"`;
+
+				beforeEach(() => {
+					return vorpal.exec(commandWithPlaintextPassword);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
+					(getPassphraseStub.firstCall.calledWithExactly(vorpal, undefined, {}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the password', () => {
+					(getPassphraseStub.secondCall.calledWithExactly(vorpal, passwordSource, {}, 'your password'))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encryptPassphrase method with correct parameters', () => {
+					(encryptPassphraseStub.calledWithExactly(passphrase, password))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
+				});
 			});
 
 			describe('with password passed via environmental variable', () => {
-				it('should call the input util getStdIn with the correct parameters');
-				it('should call the input util getPassphrase with the correct parameters for the passphrase');
-				it('should call the input util getPassphrase with the correct parameters for the password');
-				it('should call the crypto module encryptPassphrase method with correct parameters');
-				it('should print the result');
+				const envVariable = 'TEST_PASSWORD';
+				const passwordSource = `env:${envVariable}`;
+				const commandWithEnvPassword = `${command} --password "${passwordSource}"`;
+
+				beforeEach(() => {
+					return vorpal.exec(commandWithEnvPassword);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
+					(getPassphraseStub.firstCall.calledWithExactly(vorpal, undefined, {}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the password', () => {
+					(getPassphraseStub.secondCall.calledWithExactly(vorpal, passwordSource, {}, 'your password'))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encryptPassphrase method with correct parameters', () => {
+					(encryptPassphraseStub.calledWithExactly(passphrase, password))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
+				});
 			});
 
 			describe('with password passed via file path', () => {
-				it('should call the input util getStdIn with the correct parameters');
-				it('should call the input util getPassphrase with the correct parameters for the passphrase');
-				it('should call the input util getPassphrase with the correct parameters for the password');
-				it('should call the crypto module encryptPassphrase method with correct parameters');
-				it('should print the result');
+				const passwordSource = 'file:/path/to/password.txt';
+				const commandWithFilePassword = `${command} --password "${passwordSource}"`;
+
+				beforeEach(() => {
+					return vorpal.exec(commandWithFilePassword);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: false,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
+					(getPassphraseStub.firstCall.calledWithExactly(vorpal, undefined, {}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the password', () => {
+					(getPassphraseStub.secondCall.calledWithExactly(vorpal, passwordSource, {}, 'your password'))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encryptPassphrase method with correct parameters', () => {
+					(encryptPassphraseStub.calledWithExactly(passphrase, password))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
+				});
 			});
 
 			describe('with password passed via stdin', () => {
-				it('should call the input util getStdIn with the correct parameters');
-				it('should call the input util getPassphrase with the correct parameters for the passphrase');
-				it('should call the input util getPassphrase with the correct parameters for the password');
-				it('should call the crypto module encryptPassphrase method with correct parameters');
-				it('should print the result');
+				const passwordSource = 'stdin';
+				const commandWithStdInPassword = `${command} --password "${passwordSource}"`;
+
+				beforeEach(() => {
+					stdInResult = { data: `${password}\nSome irrelevant data` };
+					getStdInStub.resolves(stdInResult);
+					return vorpal.exec(commandWithStdInPassword);
+				});
+
+				it('should call the input util getStdIn with the correct parameters', () => {
+					(getStdInStub.calledWithExactly({
+						passphraseIsRequired: false,
+						dataIsRequired: true,
+					}))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
+					(getPassphraseStub.firstCall.calledWithExactly(vorpal, undefined, stdInResult))
+						.should.be.true();
+				});
+
+				it('should call the input util getPassphrase with the correct parameters for the password', () => {
+					(getPassphraseStub.secondCall.calledWithExactly(vorpal, passwordSource, { passphrase: password }, 'your password'))
+						.should.be.true();
+				});
+
+				it('should call the crypto module encryptPassphrase method with correct parameters', () => {
+					(encryptPassphraseStub.calledWithExactly(passphrase, password))
+						.should.be.true();
+				});
+
+				it('should print the result', () => {
+					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
+				});
 			});
 		});
 
 		describe('with passphrase and password passed via stdin', () => {
-			it('should call the input util getStdIn with the correct parameters');
-			it('should call the input util getPassphrase with the correct parameters for the passphrase');
-			it('should call the input util getPassphrase with the correct parameters for the password');
-			it('should call the crypto module encryptPassphrase method with correct parameters');
-			it('should print the result');
+			const commandWithStdInPassphraseAndStdInPassword = `${command} --passphrase stdin --password stdin`;
+
+			beforeEach(() => {
+				stdInResult = { passphrase, data: `${password}\nSome irrelevant data` };
+				getStdInStub.resolves(stdInResult);
+				return vorpal.exec(commandWithStdInPassphraseAndStdInPassword);
+			});
+
+			it('should call the input util getStdIn with the correct parameters', () => {
+				(getStdInStub.calledWithExactly({
+					passphraseIsRequired: true,
+					dataIsRequired: true,
+				}))
+					.should.be.true();
+			});
+
+			it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
+				(getPassphraseStub.firstCall.calledWithExactly(vorpal, 'stdin', stdInResult))
+					.should.be.true();
+			});
+
+			it('should call the input util getPassphrase with the correct parameters for the password', () => {
+				(getPassphraseStub.secondCall.calledWithExactly(vorpal, 'stdin', { passphrase: password }, 'your password'))
+					.should.be.true();
+			});
+
+			it('should call the crypto module encryptPassphrase method with correct parameters', () => {
+				(encryptPassphraseStub.calledWithExactly(passphrase, password))
+					.should.be.true();
+			});
+
+			it('should print the result', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
+			});
 		});
 	});
 });
