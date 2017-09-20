@@ -26,7 +26,7 @@ const byteSizes = {
 };
 
 /**
- * @method getAssetBytes
+ * @method getAssetBytesHelper
  * @return {Buffer}
  */
 
@@ -147,6 +147,14 @@ function getAssetBytesHelper(transaction) {
 	return transactionType[transaction.type]();
 }
 
+/**
+* A utility class to get transaction byteSizes
+*
+* @class Transaction
+* @param {Object} transaction
+* @constructor
+*/
+
 export class Transaction {
 	constructor(transaction) {
 		this.byteSizes = byteSizes;
@@ -185,12 +193,24 @@ export class Transaction {
 			: Buffer.alloc(0);
 
 
-		if (!this.checkTransaction()) return false;
+		this.checkTransaction();
+		return this;
 	}
+
+	/**
+	 * @method get transactionBytes
+	 * @return {Buffer}
+	 */
 
 	get transactionBytes() {
 		return this.concatTransactionBytes();
 	}
+
+	/**
+	 * @method concatTransactionBytes
+	 * @private
+	 * @return {Buffer}
+	 */
 
 	concatTransactionBytes() {
 		return Buffer.concat([
@@ -206,15 +226,23 @@ export class Transaction {
 		]);
 	}
 
+	/**
+	 * @method getAssetBytes
+	 * @private
+	 * @return {Buffer}
+	 */
+
 	getAssetBytes() {
 		return getAssetBytesHelper(this.transaction);
 	}
 
-	checkTransaction() {
-		if (this.transactionType > byteSizes.TYPE) {
-			throw new Error('Transaction type shall not be bigger than 1 byte.');
-		}
+	/**
+	 * @method checkTransaction
+	 * @throws
+	 * @return {}
+	 */
 
+	checkTransaction() {
 		if (this.transaction.type === 0 && this.transaction.asset.data) {
 			if (this.transaction.asset.data.length > byteSizes.DATA
 				|| this.transactionAssetData.length > byteSizes.DATA) {

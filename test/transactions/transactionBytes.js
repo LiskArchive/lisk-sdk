@@ -26,7 +26,7 @@ describe('#getTransactionBytes', () => {
 	const defaultSecondSignature = 'b00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f';
 	const defaultAppId = '1234213';
 
-	describe.only('send transaction, type 0', () => {
+	describe('send transaction, type 0', () => {
 		let defaultTransaction;
 
 		beforeEach(() => {
