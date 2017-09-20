@@ -27,7 +27,7 @@ const encryptDescription = `Encrypt a message for a given recipient public key u
 	Example: encrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
 `;
 
-const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, data]) =>
+const handlePassphraseAndData = recipient => ([passphrase, data]) =>
 	cryptoModule.encrypt(data, passphrase, recipient);
 
 const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
@@ -44,7 +44,7 @@ const encrypt = vorpal => ({ recipient, data, options }) => {
 			getPassphrase(vorpal, passphraseSource, stdIn),
 			getData(data, dataSource, stdIn),
 		]))
-		.then(handleMessageAndPassphrase(vorpal, recipient))
+		.then(handlePassphraseAndData(recipient))
 		.catch(handleError)
 		.then(printResult(vorpal, options));
 };
