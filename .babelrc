@@ -3,6 +3,9 @@
 	"env": {
 		"test": {
 			"plugins": ["istanbul", "rewire"]
+		},
+		"browsertest": {
+			"plugins": ["rewire"]
 		}
 	}
 }
