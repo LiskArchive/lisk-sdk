@@ -61,7 +61,7 @@ const encryptPassphrase = vorpal => ({ options }) => {
 		)
 		.then(handleInput)
 		.catch(handleError)
-		.then(printResult(vorpal, {}));
+		.then(printResult(vorpal, options));
 };
 
 function encryptPassphraseCommand(vorpal) {
@@ -69,6 +69,8 @@ function encryptPassphraseCommand(vorpal) {
 		.command('encrypt passphrase')
 		.option(...commonOptions.passphrase)
 		.option(...commonOptions.password)
+		.option(...commonOptions.json)
+		.option(...commonOptions.noJson)
 		.description(description)
 		.action(encryptPassphrase(vorpal));
 }
