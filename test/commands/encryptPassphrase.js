@@ -93,5 +93,105 @@ describe('encryptPassphrase command', () => {
 				(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
 			});
 		});
+
+		describe('passphrase', () => {
+			describe('if the passphrase cannot be retrieved', () => {
+				it('should inform the user the encryption was not successful');
+			});
+
+			describe('with passphrase passed via prompt', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with plaintext passphrase passed via command line', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with passphrase passed via environmental variable', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with passphrase passed via file path', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with passphrase passed via stdin', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+		});
+
+		describe('password', () => {
+			describe('if the password cannot be retrieved', () => {
+				it('should inform the user the encryption was not successful');
+			});
+
+			describe('with password passed via prompt', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with plaintext password passed via command line', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with password passed via environmental variable', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with password passed via file path', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+
+			describe('with password passed via stdin', () => {
+				it('should call the input util getStdIn with the correct parameters');
+				it('should call the input util getPassphrase with the correct parameters for the passphrase');
+				it('should call the input util getPassphrase with the correct parameters for the password');
+				it('should call the crypto module encryptPassphrase method with correct parameters');
+				it('should print the result');
+			});
+		});
+
+		describe('with passphrase and password passed via stdin', () => {
+			it('should call the input util getStdIn with the correct parameters');
+			it('should call the input util getPassphrase with the correct parameters for the passphrase');
+			it('should call the input util getPassphrase with the correct parameters for the password');
+			it('should call the crypto module encryptPassphrase method with correct parameters');
+			it('should print the result');
+		});
 	});
 });
