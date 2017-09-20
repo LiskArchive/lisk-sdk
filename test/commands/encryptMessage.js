@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import encrypt from '../../src/commands/encryptMessage';
+import encryptMessageCommand from '../../src/commands/encryptMessage';
 import cryptoModule from '../../src/utils/cryptoModule';
 import * as input from '../../src/utils/input';
 import * as print from '../../src/utils/print';
@@ -28,7 +28,7 @@ describe('encrypt message command', () => {
 	let vorpal;
 
 	beforeEach(() => {
-		vorpal = setUpVorpalWithCommand(encrypt);
+		vorpal = setUpVorpalWithCommand(encryptMessageCommand);
 	});
 
 	afterEach(() => {
