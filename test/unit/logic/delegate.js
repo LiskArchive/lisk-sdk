@@ -449,7 +449,7 @@ describe('delegate', function () {
 
 		describe('when library.schema.validate succeeds', function () {
 
-			it('should return transaction when asset is valid', function () {
+			it('should return transaction', function () {
 				expect(delegate.objectNormalize(trs)).to.eql(trs);
 			});
 		});
