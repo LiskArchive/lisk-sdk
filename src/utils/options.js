@@ -20,13 +20,13 @@ const passwordDescription = `Specifies a source for your secret password. Lisky 
 	- --password stdin (takes the first line only)
 `;
 
-const dataDescription = `Specifies a source for providing data to the command. If a string is provided directly as an argument, this option will be ignored. The data must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
+const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 
-	Note: if both secret passphrase and data are passed via stdin, the passphrase must be the first line.
+	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 
 	Examples:
-	- --data file:/path/to/my/message.txt
-	- --data stdin
+	- --message file:/path/to/my/message.txt
+	- --message stdin
 `;
 
 const options = {
@@ -34,7 +34,7 @@ const options = {
 	noJson: ['-t, --no-json', noJsonDescription],
 	passphrase: ['-p, --passphrase <source>', passphraseDescription],
 	password: ['-w, --password <source>', passwordDescription],
-	data: ['-d, --data <source>', dataDescription],
+	message: ['-m, --message <source>', messageDescription],
 };
 
 export default options;

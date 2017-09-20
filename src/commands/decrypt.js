@@ -22,7 +22,7 @@ import {
 	getData,
 } from '../utils/input';
 
-const decryptDescription = `Decrypt a message from a given sender public key for a known nonce using your secret passphrase.
+const decryptDescription = `Decrypt an encrypted message from a given sender public key for a known nonce using your secret passphrase.
 
 	Example: decrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
@@ -32,9 +32,9 @@ const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]
 
 const handleError = ({ message }) => ({ error: `Could not decrypt: ${message}` });
 
-const decrypt = vorpal => ({ encryptedMessage, nonce, senderPublicKey, options }) => {
+const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;
-	const dataSource = options.data;
+	const dataSource = options.message;
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
@@ -42,7 +42,7 @@ const decrypt = vorpal => ({ encryptedMessage, nonce, senderPublicKey, options }
 	})
 		.then(stdIn => Promise.all([
 			getPassphrase(vorpal, options.passphrase, stdIn),
-			getData(encryptedMessage, dataSource, stdIn),
+			getData(message, dataSource, stdIn),
 		]))
 		.then(handlePassphrase(vorpal, nonce, senderPublicKey))
 		.catch(handleError)
@@ -51,9 +51,9 @@ const decrypt = vorpal => ({ encryptedMessage, nonce, senderPublicKey, options }
 
 function decryptCommand(vorpal) {
 	vorpal
-		.command('decrypt <senderPublicKey> <nonce> [encryptedMessage]')
+		.command('decrypt <senderPublicKey> <nonce> [message]')
 		.option(...commonOptions.passphrase)
-		.option(...commonOptions.data)
+		.option(...commonOptions.message)
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
 		.description(decryptDescription)

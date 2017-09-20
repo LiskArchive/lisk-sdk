@@ -27,13 +27,13 @@ const encryptDescription = `Encrypt a message for a given recipient public key u
 	Example: encrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
 `;
 
-const handlePassphraseAndData = recipient => ([passphrase, data]) =>
-	cryptoModule.encrypt(data, passphrase, recipient);
+const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
+	cryptoModule.encrypt(message, passphrase, recipient);
 
 const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
 
-const encrypt = vorpal => ({ recipient, data, options }) => {
-	const dataSource = options.data;
+const encrypt = vorpal => ({ recipient, message, options }) => {
+	const dataSource = options.message;
 	const passphraseSource = options.passphrase;
 
 	return getStdIn({
@@ -42,18 +42,18 @@ const encrypt = vorpal => ({ recipient, data, options }) => {
 	})
 		.then(stdIn => Promise.all([
 			getPassphrase(vorpal, passphraseSource, stdIn),
-			getData(data, dataSource, stdIn),
+			getData(message, dataSource, stdIn),
 		]))
-		.then(handlePassphraseAndData(recipient))
+		.then(handlePassphraseAndMessage(recipient))
 		.catch(handleError)
 		.then(printResult(vorpal, options));
 };
 
 function encryptCommand(vorpal) {
 	vorpal
-		.command('encrypt <recipient> [data]')
+		.command('encrypt <recipient> [message]')
 		.option(...commonOptions.passphrase)
-		.option(...commonOptions.data)
+		.option(...commonOptions.message)
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
 		.description(encryptDescription)
