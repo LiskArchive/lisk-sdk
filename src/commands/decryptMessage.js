@@ -24,7 +24,7 @@ import {
 
 const decryptDescription = `Decrypt an encrypted message from a given sender public key for a known nonce using your secret passphrase.
 
-	Example: decrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
+	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
 
 const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
@@ -51,7 +51,7 @@ const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 
 function decryptCommand(vorpal) {
 	vorpal
-		.command('decrypt <senderPublicKey> <nonce> [message]')
+		.command('decrypt message <senderPublicKey> <nonce> [message]')
 		.option(...commonOptions.passphrase)
 		.option(...commonOptions.message)
 		.option(...commonOptions.json)

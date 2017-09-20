@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import decrypt from '../../src/commands/decrypt';
+import decrypt from '../../src/commands/decryptMessage';
 import cryptoModule from '../../src/utils/cryptoModule';
 import * as input from '../../src/utils/input';
 import * as print from '../../src/utils/print';
@@ -23,8 +23,8 @@ import {
 	setUpVorpalWithCommand,
 } from './utils';
 
-describe('lisky decrypt command palette', () => {
-	const commandName = 'decrypt';
+describe('decrypt message command', () => {
+	const command = 'decrypt message';
 	let vorpal;
 
 	beforeEach(() => {
@@ -37,12 +37,12 @@ describe('lisky decrypt command palette', () => {
 
 	describe('setup', () => {
 		it('should be available', () => {
-			const decryptCommands = getCommands(vorpal, commandName);
+			const decryptCommands = getCommands(vorpal, command);
 			(decryptCommands).should.have.length(1);
 		});
 
 		it('should require 2 inputs', () => {
-			const requiredArgs = getRequiredArgs(vorpal, commandName);
+			const requiredArgs = getRequiredArgs(vorpal, command);
 			(requiredArgs).should.have.length(2);
 		});
 	});
@@ -55,8 +55,8 @@ describe('lisky decrypt command palette', () => {
 		// sender secret: 'sender secret'
 		const senderPublicKey = '38433137692948be1c05bbae686c9c850d3c8d9c52c1aebb4a7c1d5dd6d010d7';
 		const defaultPassphraseSource = `pass:${secret}`;
-		const commandWithMessage = `decrypt ${senderPublicKey} ${nonce} ${encryptedData}`;
-		const commandWithPassphrase = `decrypt ${senderPublicKey} ${nonce} --passphrase "${defaultPassphraseSource}"`;
+		const commandWithMessage = `${command} ${senderPublicKey} ${nonce} ${encryptedData}`;
+		const commandWithPassphrase = `${command} ${senderPublicKey} ${nonce} --passphrase "${defaultPassphraseSource}"`;
 		const cryptoDecryptReturnObject = { data };
 
 		const defaultErrorMessage = 'Some error message.';
@@ -440,7 +440,7 @@ describe('lisky decrypt command palette', () => {
 		});
 
 		describe('with passphrase and encrypted data passed via stdin', () => {
-			const passphraseAndMessageStdInCommand = `decrypt ${senderPublicKey} ${nonce} --message stdin --passphrase stdin`;
+			const passphraseAndMessageStdInCommand = `${command} ${senderPublicKey} ${nonce} --message stdin --passphrase stdin`;
 
 			beforeEach(() => {
 				stdInResult = { passphrase: secret, data: encryptedData };
