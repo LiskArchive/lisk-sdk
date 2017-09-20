@@ -1,6 +1,7 @@
 'use strict';
 
 var expect = require('chai').expect;
+var sinon  = require('sinon');
 
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var TxPool = require('../../../../logic/transactions/pool.js');
@@ -8,18 +9,26 @@ var Transaction = require('../../../../logic/transaction.js');
 var Account = require('../../../../logic/account.js');
 var bson = require('../../../../helpers/bson.js');
 
+var transactionTypes = require('../../../../helpers/transactionTypes');
+var Vote = require('../../../../logic/vote.js');
+var Transfer = require('../../../../logic/transfer.js');
+var Delegate = require('../../../../logic/delegate.js');
+var Signature = require('../../../../logic/signature.js');
+var Multisignature = require('../../../../logic/multisignature.js');
+
+
 var transactions = [
 	/* type: 0 - Transmit funds */
 	{
 		'type': 0,
 		'amount': 300000000,
 		'fee': 10000000,
-		'timestamp': 37943880,
 		'recipientId': '2896019180726908125L',
-		'senderId': '2737453412992791987L',
 		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '1'
+		'timestamp': 41721274,
+		'asset': {},
+		'signature': '07c2c8622000bdfb97e1321d889cef40d7ca7faee4493f220edafd3e56fd15c425a1549b50faa91affbccaf54de406fbe047c70407d1e9f7ef637941539fb30e',
+		'id': '14274723388740956065'
 	},
 	/* type: 1 - Register a second signature */
 	{
@@ -60,8 +69,11 @@ var transactions = [
 		'amount': 0,
 		'timestamp': 37943883,
 		'fee': 100000000,
-    'asset': {
-			'votes': []
+		'asset': {
+			'votes': [
+				'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+				'-141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
+			]
 		},
 		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
 		'senderId': '2737453412992791987L',
@@ -70,23 +82,24 @@ var transactions = [
 	},
 	/* type: 4 - Multisignature registration */
 	{
-    'type': 4,
-    'timestamp': 37943884,
-    'fee': 1000000000,
-    'asset': {
-        'multisignature': {
-            'min': 2,
-            'lifetime': 24,
-						'keysgroup': [
-							"+684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb",
-							"+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5"
-						]
-        }
-		},
+		'type': 4,
+		'amount': 0,
+		'fee': 1500000000,
+		'recipientId': null,
 		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'senderId': '2737453412992791987L',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '5'
+		'timestamp': 41724474,
+		'asset': {
+			'multisignature': {
+				'min': 2,
+				'lifetime': 1,
+				'keysgroup': [
+					'+684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
+					'+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5'
+				]
+			}
+		},
+		'signature': 'ee0eff648d2f48d72bdbc3f0b4dc57910cf5415a7dd70e8d4c1bfa3ab3cbbe7dd7bac730b0484be744edd6aa136569a37929d749ffe987f872dffa0bd7083d04',
+		'id': '16356401289337657230'
 	},
 	/* type: 0 - Transmit funds */
 	{
@@ -125,6 +138,44 @@ var extraTransaction = 	{
 	'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
 	'id': '8'
 };
+
+var invalidsTxs = [
+	/* type: 0 - Transmit funds invalid senderId and recipientId*/
+	{
+		'type': 0,
+		'amount': 300000000,
+		'fee': 10000000,
+		'timestamp': 37943880,
+		'recipientId': '09876543210987654321L',
+		'senderId': '12345678901234567890L',
+		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
+		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
+		'id': '9'
+	},
+	{},
+	{},
+	{},
+	{
+		'type': 4,
+		'amount': 0,
+		'fee': 1500000000,
+		'recipientId': null,
+		'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
+		'timestamp': 41725704,
+		'asset': {
+			'multisignature': {
+				'min': 2,
+				'lifetime': 1,
+				'keysgroup': [
+					'+684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
+					'+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5'
+				]
+			}
+		},
+		'signature': '6f3e29e8e4d16f3e808133f6bf73858a3e2a932e19173260a4aaf78041399de67ef505186360a8f11a4b6b471f4f146bb9cbb388e3deb12e19540b8524a8760d',
+		'id': '2761953166306398206'
+	}
+];
 
 var testAccounts = [
 	{
@@ -166,6 +217,28 @@ var testAccounts = [
 	}
 ];
 
+// Set spies for logger
+var debug = sinon.stub(modulesLoader.scope.logger, 'debug');
+var info = sinon.stub(modulesLoader.scope.logger, 'info');
+var warn = sinon.stub(modulesLoader.scope.logger, 'warn');
+var error = sinon.stub(modulesLoader.scope.logger, 'error');
+
+function resetSpiesState () {
+	// Reset state of spies
+	debug.reset();
+	info.reset();
+	warn.reset();
+	error.reset();
+}
+
+function restoreSpiesState () {
+	// Restore state of spies
+	debug.restore();
+	info.restore();
+	warn.restore();
+	error.restore();
+}
+
 describe('txPool', function () {
 	
 	var accounts;
@@ -177,7 +250,7 @@ describe('txPool', function () {
 	before(function (done) {
 		
 		modulesLoader.scope.config.transactions.poolStorageTxsLimit = 6;
-		modulesLoader.scope.config.transactions.poolProcessInterval = 6000;
+		modulesLoader.scope.config.transactions.poolProcessInterval = 60000000;
 		modulesLoader.scope.config.transactions.poolExpiryInterval = 300000000;
 
 		modulesLoader.initLogicWithDb(Account, function (err, __accountLogic) {
@@ -217,10 +290,23 @@ describe('txPool', function () {
 					);
 					__modules.accounts.onBind(__modules);
 					accounts = __modules.accounts;
+					__trsLogic.attachAssetType(transactionTypes.VOTE, new Vote());
+					__trsLogic.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
+					__trsLogic.attachAssetType(transactionTypes.DELEGATE, new Delegate());
+					__trsLogic.attachAssetType(transactionTypes.SIGNATURE, new Signature());
+					__trsLogic.attachAssetType(transactionTypes.MULTI, new Multisignature());
 					done();
 				});
 			});
 		}, modulesLoader.scope);
+	});
+
+	beforeEach(function () {
+		resetSpiesState();
+	});
+
+	after(function () {
+		restoreSpiesState();
 	});
 
 	describe('setup database', function () {
@@ -266,6 +352,68 @@ describe('txPool', function () {
 		});
 	});
 
+	describe('process workers', function () {
+		
+		describe('processPool', function () {
+
+			describe('Tx type: 0 - Transmit funds', function () {
+
+				it('should be ok when add transaction type 0 to unverified', function (done) {
+					txPool.add(transactions[0], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when add invalid transaction type 0 to unverified', function (done) {
+					txPool.add(invalidsTxs[0], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when process pool txs', function (done) {
+					txPool.processPool(function (err, cbprPool) {
+						if (err) {
+							done(err);
+						}
+						expect(error.args[0][0]).to.equal('Failed to process unverified transaction: 9');
+						expect(error.args[10][1]).to.equal('Invalid transaction id');
+						done();
+					});
+				});
+	
+				it('should be ok when get pool totals', function (done) {
+					var totals = txPool.getUsage();
+	
+					expect(totals).to.be.an('object');
+					expect(totals.unverified).to.be.equal(0);
+					expect(totals.pending).to.be.equal(0);
+					expect(totals.ready).to.be.equal(1);
+					expect(totals.invalid).to.be.equal(1);
+					poolTotals = totals;
+					done();
+				});
+	
+				it('should fail when add same invalid transaction type 0 to unverified', function (done) {
+					txPool.add(invalidsTxs[0], function (err, cbtx) {
+						expect(err).to.equal('Transaction is invalid: ' + invalidsTxs[0].id);
+						done();
+					});
+				});
+			});
+		});
+
+		describe('expireTransactions', function () {
+		});
+	});
+
 	describe('unverified', function () {
 
 		describe('method add', function () {
@@ -277,6 +425,7 @@ describe('txPool', function () {
 				expect(totals.unverified).to.be.a('number');
 				expect(totals.pending).to.be.a('number');
 				expect(totals.ready).to.be.a('number');
+				expect(totals.invalid).to.be.a('number');
 				poolTotals = totals;
 				done();
 			});
@@ -450,7 +599,7 @@ describe('txPool', function () {
 		});
 	});
 
-	describe('process worker', function () {
+	describe('checkBalance', function () {
 
 		it('should be ok when checked account balance with enough LSK for transaction', function (done) {
 			txPool.checkBalance(transactions[5], transactions[5].senderId, function (err, cbBalance) {
@@ -572,10 +721,6 @@ describe('txPool', function () {
 					done();
 				});
 			});
-		});
-
-		describe('next', function () {
-
 		});
 	});
 });
