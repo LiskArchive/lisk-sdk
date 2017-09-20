@@ -21,7 +21,6 @@ import {
 	getPassphrase,
 } from '../utils/input';
 
-const COMMAND_NAME = 'encryptPassphrase';
 const PASSWORD_DISPLAY_NAME = 'your password';
 
 const handleError = ({ message }) => ({ error: `Could not encrypt passphrase: ${message}` });
@@ -62,7 +61,7 @@ const encryptPassphrase = vorpal => ({ options }) => {
 
 function encryptPassphraseCommand(vorpal) {
 	vorpal
-		.command(COMMAND_NAME)
+		.command('encrypt passphrase')
 		.option(...commonOptions.passphrase)
 		.option(...commonOptions.password)
 		.action(encryptPassphrase(vorpal));

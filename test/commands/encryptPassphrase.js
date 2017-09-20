@@ -23,8 +23,8 @@ import {
 	setUpVorpalWithCommand,
 } from './utils';
 
-describe('encryptPassphrase command', () => {
-	const commandName = 'encryptPassphrase';
+describe('encrypt passphrase command', () => {
+	const command = 'encrypt passphrase';
 	let vorpal;
 
 	beforeEach(() => {
@@ -37,12 +37,12 @@ describe('encryptPassphrase command', () => {
 
 	describe('setup', () => {
 		it('should be available', () => {
-			const encryptPassphraseCommands = getCommands(vorpal, commandName);
+			const encryptPassphraseCommands = getCommands(vorpal, command);
 			(encryptPassphraseCommands).should.have.length(1);
 		});
 
 		it('should require 0 inputs', () => {
-			const requiredArgs = getRequiredArgs(vorpal, commandName);
+			const requiredArgs = getRequiredArgs(vorpal, command);
 			(requiredArgs).should.have.length(0);
 		});
 	});
@@ -50,7 +50,6 @@ describe('encryptPassphrase command', () => {
 	describe('when executed', () => {
 		const passphrase = 'secret passphrase';
 		const password = 'testing123';
-		const command = 'encryptPassphrase';
 		const defaultErrorMessage = 'Some error message.';
 		const wrappedErrorMessage = `Could not encrypt passphrase: ${defaultErrorMessage}`;
 

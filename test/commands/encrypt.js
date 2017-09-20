@@ -23,8 +23,8 @@ import {
 	setUpVorpalWithCommand,
 } from './utils';
 
-describe('lisky encrypt command palette', () => {
-	const commandName = 'encrypt';
+describe('encrypt message command', () => {
+	const command = 'encrypt message';
 	let vorpal;
 
 	beforeEach(() => {
@@ -37,12 +37,12 @@ describe('lisky encrypt command palette', () => {
 
 	describe('setup', () => {
 		it('should be available', () => {
-			const encryptCommands = getCommands(vorpal, commandName);
+			const encryptCommands = getCommands(vorpal, command);
 			(encryptCommands).should.have.length(1);
 		});
 
 		it('should require 1 input', () => {
-			const requiredArgs = getRequiredArgs(vorpal, commandName);
+			const requiredArgs = getRequiredArgs(vorpal, command);
 			(requiredArgs).should.have.length(1);
 		});
 	});
@@ -53,8 +53,8 @@ describe('lisky encrypt command palette', () => {
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
 		const defaultPassphraseSource = `pass:${secret}`;
-		const commandWithMessage = `encrypt ${recipient} "${data}"`;
-		const commandWithPassphrase = `encrypt ${recipient} --passphrase "${defaultPassphraseSource}"`;
+		const commandWithMessage = `${command} ${recipient} "${data}"`;
+		const commandWithPassphrase = `${command} ${recipient} --passphrase "${defaultPassphraseSource}"`;
 
 		const nonce = '60ee6cbb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
 		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
@@ -444,7 +444,7 @@ describe('lisky encrypt command palette', () => {
 		});
 
 		describe('with passphrase and data passed via stdin', () => {
-			const passphraseAndDataStdInCommand = `encrypt ${recipient} --message stdin --passphrase stdin`;
+			const passphraseAndDataStdInCommand = `${command} ${recipient} --message stdin --passphrase stdin`;
 
 			beforeEach(() => {
 				stdInResult = { passphrase: secret, data: multilineData };

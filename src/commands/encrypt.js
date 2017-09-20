@@ -51,7 +51,7 @@ const encrypt = vorpal => ({ recipient, message, options }) => {
 
 function encryptCommand(vorpal) {
 	vorpal
-		.command('encrypt <recipient> [message]')
+		.command('encrypt message <recipient> [message]')
 		.option(...commonOptions.passphrase)
 		.option(...commonOptions.message)
 		.option(...commonOptions.json)
