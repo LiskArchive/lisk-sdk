@@ -412,6 +412,15 @@ describe('delegate', function () {
 
 	describe('objectNormalize', function () {
 
+		it('should use the correct format to validate against', function () {
+			var library = Delegate.__get__('library');
+			var schemaSpy = sinon.spy(library.schema, 'validate');
+			delegate.objectNormalize(trs);
+			expect(schemaSpy.calledOnce).to.equal(true);
+			expect(schemaSpy.calledWithExactly(trs.asset.delegate, Delegate.prototype.schema)).to.equal(true);
+			schemaSpy.restore();
+		});
+
 		describe('when library.schema.validate fails', function () {
 
 			var schemaDynamicTest = new SchemaDynamicTest({
@@ -429,16 +438,7 @@ describe('delegate', function () {
 				});
 			});
 
-			it('should use the correct format to validate against', function () {
-				var library = Delegate.__get__('library');
-				var schemaSpy = sinon.spy(library.schema, 'validate');
-				delegate.objectNormalize(trs);
-				expect(schemaSpy.calledOnce).to.equal(true);
-				expect(schemaSpy.calledWithExactly(trs.asset.delegate, Delegate.prototype.schema)).to.equal(true);
-				schemaSpy.restore();
-			});
-
-			it('should throw error when asset schema is invalid', function () {
+			it('should throw error', function () {
 				trs.asset.delegate.username = '';
 
 				expect(function () {
@@ -447,7 +447,7 @@ describe('delegate', function () {
 			});
 		});
 
-		describe('when library.schema.validate passes', function () {
+		describe('when library.schema.validate succeeds', function () {
 
 			it('should return transaction when asset is valid', function () {
 				expect(delegate.objectNormalize(trs)).to.eql(trs);
