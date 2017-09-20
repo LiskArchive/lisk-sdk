@@ -18,6 +18,7 @@
  * @main lisk
  */
 import 'babel-polyfill';
+import Mnemonic from 'bitcore-mnemonic';
 import naclFactory from 'js-nacl';
 import crypto from './crypto';
 import dapp from './transactions/dapp';
@@ -29,7 +30,6 @@ import transfer from './transactions/transfer';
 import vote from './transactions/vote';
 import api from './api/liskApi';
 import slots from './time/slots';
-import mnemonic from './utils/mnemonic';
 
 global.naclFactory = naclFactory;
 
@@ -49,7 +49,7 @@ const lisk = {
 	vote,
 	api,
 	slots,
-	mnemonic,
+	Mnemonic,
 };
 
 module.exports = lisk;

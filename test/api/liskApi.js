@@ -44,10 +44,6 @@ describe('Lisk API module', () => {
 	const defaultSecondSecret = 'second secret';
 	const GET = 'GET';
 	const POST = 'POST';
-	const defaultAddress = {
-		publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-		address: '18160565574430594874L',
-	};
 	const defaultRequestLimit = 10;
 	const defaultRequestOffset = 101;
 	const defaultAmount = 1 * fixedPoint;
@@ -107,11 +103,6 @@ describe('Lisk API module', () => {
 	describe('LiskAPI()', () => {
 		it('should create a new instance of LiskAPI', () => {
 			(LSK).should.be.type('object').and.be.instanceof(LiskAPI);
-		});
-
-		it('should return a new instance of LiskAPI if called with a different context', () => {
-			LSK = LiskAPI.call({});
-			LSK.should.be.type('object').and.be.instanceof(LiskAPI);
 		});
 
 		it('should set currentPeer string by default', () => {
@@ -360,12 +351,6 @@ describe('Lisk API module', () => {
 					(selectNodeStub.callCount).should.equal(callCount);
 				});
 			});
-		});
-	});
-
-	describe('#getAddressFromSecret', () => {
-		it('should create correct address and publicKey', () => {
-			(LSK.getAddressFromSecret(defaultSecret)).should.eql(defaultAddress);
 		});
 	});
 
