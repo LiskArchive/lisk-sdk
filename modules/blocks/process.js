@@ -265,8 +265,8 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 
 	// Process single block
 	function processBlock (block, seriesCb) {
-		// Start block processing - broadcast: false, saveBlock: true, validateSlot: true
-		modules.blocks.verify.processBlock(block, false, true, true, function (err) {
+		// Start block processing - broadcast: false, saveBlock: true
+		modules.blocks.verify.processBlock(block, false, true, function (err) {
 			if (!err) {
 				// Update last valid block
 				lastValidBlock = block;
@@ -344,8 +344,8 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 			return setImmediate(cb, e);
 		}
 
-		// Start block processing - broadcast: true, saveBlock: true, validateSlot: true
-		modules.blocks.verify.processBlock(block, true, true, true, cb);
+		// Start block processing - broadcast: true, saveBlock: true
+		modules.blocks.verify.processBlock(block, true, true, cb);
 	});
 };
 
@@ -373,43 +373,35 @@ Process.prototype.onReceiveBlock = function (block) {
 			return;
 		}
 
-		modules.delegates.validateBlockSlot(block, function (err) {
-			if (err) {
-				// Fork: Delegate does not match calculated slot
-				modules.delegates.fork(block, 3);
-				return setImmediate(cb);
+		// Get the last block
+		lastBlock = modules.blocks.lastBlock.get();
+
+		// Detect sane block
+		if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
+			// Process received block
+			return __private.receiveBlock(block, cb);
+		} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
+			// Process received fork cause 1
+			return __private.receiveForkOne(block, lastBlock, cb);
+		} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
+			// Process received fork cause 5
+			return __private.receiveForkFive(block, lastBlock, cb);
+		} else {
+			if (block.id === lastBlock.id) {
+				library.logger.debug('Block already processed', block.id);
 			} else {
-				// Get the last block
-				lastBlock = modules.blocks.lastBlock.get();
-		
-				// Detect sane block
-				if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
-					// Process received block
-					return __private.receiveBlock(block, cb);
-				} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
-					// Process received fork cause 1
-					return __private.receiveForkOne(block, lastBlock, cb);
-				} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
-					// Process received fork cause 5
-					return __private.receiveForkFive(block, lastBlock, cb);
-				} else {
-					if (block.id === lastBlock.id) {
-						library.logger.debug('Block already processed', block.id);
-					} else {
-						library.logger.warn([
-							'Discarded block that does not match with current chain:', block.id,
-							'height:', block.height,
-							'round:',  modules.rounds.calc(block.height),
-							'slot:', slots.getSlotNumber(block.timestamp),
-							'generator:', block.generatorPublicKey
-						].join(' '));
-					}
-		
-					// Discard received block
-					return setImmediate(cb);
-				}
+				library.logger.warn([
+					'Discarded block that does not match with current chain:', block.id,
+					'height:', block.height,
+					'round:',  modules.rounds.calc(block.height),
+					'slot:', slots.getSlotNumber(block.timestamp),
+					'generator:', block.generatorPublicKey
+				].join(' '));
 			}
-		});
+
+			// Discard received block
+			return setImmediate(cb);
+		}
 	});
 };
 
@@ -433,8 +425,8 @@ __private.receiveBlock = function (block, cb) {
 
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
-	// Start block processing - broadcast: true, saveBlock: true, validateSlot: false
-	modules.blocks.verify.processBlock(block, true, true, false, cb);
+	// Start block processing - broadcast: true, saveBlock: true
+	modules.blocks.verify.processBlock(block, true, true, cb);
 };
 
 /**
