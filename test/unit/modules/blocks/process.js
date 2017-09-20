@@ -191,7 +191,7 @@ describe('blocks/process', function () {
 		
 		describe('validateBlockSlot error - fork 3', function () {
 
-			it('should fail when block generator is not a delegate', function (done) {
+			it.skip('should fail when block generator is not a delegate', function (done) {
 				modulesLoader.scope.sequence.add = function (cb) {
 					var fn = promisify(cb);
 					fn().then(function (err, res) {
@@ -209,7 +209,7 @@ describe('blocks/process', function () {
 				blocksProcess.onReceiveBlock(blocksData[6]);
 			});
 
-			it('should fail when block generator is not the calculated slot delegate', function (done) {
+			it.skip('should fail when block generator is not the calculated slot delegate', function (done) {
 				modulesLoader.scope.sequence.add = function (cb) {
 					var fn = promisify(cb);
 					fn().then(function (err, res) {
