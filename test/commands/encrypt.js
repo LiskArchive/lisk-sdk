@@ -296,7 +296,7 @@ describe('lisky encrypt command palette', () => {
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(data, undefined, { passphrase: secret }))
+					(getDataStub.calledWithExactly(data, undefined, stdInResult))
 						.should.be.true();
 				});
 

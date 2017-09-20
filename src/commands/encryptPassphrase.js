@@ -14,6 +14,7 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
+import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 import {
 	getStdIn,
@@ -28,13 +29,14 @@ const handleInput = ([passphrase, password]) =>
 const encryptPassphrase = vorpal => ({ options }) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
+	const passwordDisplayName = 'your password';
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
 		dataIsRequired: passwordSource === 'stdin',
 	})
-		.then(() => getPassphrase(vorpal, passphraseSource, {})
-			.then(passphrase => getPassphrase(vorpal, passwordSource, {})
+		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn)
+			.then(passphrase => getPassphrase(vorpal, passwordSource, stdIn, passwordDisplayName)
 				.then(password => [passphrase, password]),
 			),
 		)
@@ -46,6 +48,7 @@ const encryptPassphrase = vorpal => ({ options }) => {
 function encryptPassphraseCommand(vorpal) {
 	vorpal
 		.command('encryptPassphrase')
+		.option(...commonOptions.passphrase)
 		.action(encryptPassphrase(vorpal));
 }
 
