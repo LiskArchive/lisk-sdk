@@ -2,6 +2,7 @@
 
 var crypto = require('crypto');
 var node = require('./../node.js');
+var stripTransactionsResults = require('./../common/helpers.js').stripTransactionsResults;
 
 var account = node.randomAccount();
 
@@ -192,19 +193,20 @@ describe('POST /peer/transactions', function () {
 						}, function (err) {
 							node.expect(err).to.be.null;
 							node.onNewBlock(function () {
-								node.async.series({
-									firstConfirmedTransaction: function (cb) {
+								node.async.series([
+									function (cb) {
 										return node.get('/api/transactions/get?id=' + firstTransaction.id, cb);
 									},
-									secondConfirmedTransaction: function (cb) {
+									function (cb) {
 										return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
 									}
-								}, function (err, res) {
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.true;
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.transaction.id').to.equal(firstTransaction.id);
-
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.false;
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.error').to.be.equal('Transaction not found');
+								], function (err, results) {
+									var strippedResults = stripTransactionsResults(results);
+									node.expect(strippedResults.successFields).to.contain(true);
+									node.expect(strippedResults.successFields).to.contain(false);
+									node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+									node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+									node.expect([firstTransaction.id, secondTransaction.id]).and.to.contain(strippedResults.transactionsIds[0]);
 									done();
 								});
 							});
@@ -257,19 +259,20 @@ describe('POST /peer/transactions', function () {
 						}, function (err) {
 							node.expect(err).to.be.null;
 							node.onNewBlock(function () {
-								node.async.series({
-									firstConfirmedTransaction: function (cb) {
+								node.async.series([
+									function (cb) {
 										return node.get('/api/transactions/get?id=' + firstTransaction.id, cb);
 									},
-									secondConfirmedTransaction: function (cb) {
+									function (cb) {
 										return node.get('/api/transactions/get?id=' + secondTransaction.id, cb);
 									}
-								}, function (err, res) {
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.true;
-									node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.transaction.id').to.equal(secondTransaction.id);
-
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.false;
-									node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.error').to.be.equal('Transaction not found');
+								], function (err, results) {
+									var strippedResults = stripTransactionsResults(results);
+									node.expect(strippedResults.successFields).to.contain(true);
+									node.expect(strippedResults.successFields).to.contain(false);
+									node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+									node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+									node.expect([firstTransaction.id, secondTransaction.id]).and.to.contain(strippedResults.transactionsIds[0]);
 									done();
 								});
 							});
