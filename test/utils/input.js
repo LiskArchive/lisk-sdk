@@ -172,10 +172,32 @@ describe('input utils', () => {
 				});
 		});
 
-		it('prompt for the pass phrase twice', () => {
+		it('should prompt for the pass phrase twice', () => {
 			return getPassphraseFromPrompt(vorpal)
 				.then(() => {
 					(promptStub.calledTwice).should.be.true();
+				});
+		});
+
+		it('should use options with a default prompt message', () => {
+			return getPassphraseFromPrompt(vorpal)
+				.then(() => {
+					(promptStub.calledWithExactly({
+						type: 'password',
+						name: 'passphrase',
+						message: 'Please enter your secret passphrase: ',
+					})).should.be.true();
+				});
+		});
+
+		it('should use a provided prompt message', () => {
+			return getPassphraseFromPrompt(vorpal, 'your password')
+				.then(() => {
+					(promptStub.calledWithExactly({
+						type: 'password',
+						name: 'passphrase',
+						message: 'Please enter your password: ',
+					})).should.be.true();
 				});
 		});
 

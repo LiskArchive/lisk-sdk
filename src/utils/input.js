@@ -64,7 +64,7 @@ export const createPromptOptions = message => ({
 	message,
 });
 
-export const getPassphraseFromPrompt = (vorpal) => {
+export const getPassphraseFromPrompt = (vorpal, displayName = 'your secret passphrase') => {
 	// IMPORTANT: prompt will exit if UI has no parent, but calling
 	// ui.attach(vorpal) will start a prompt, which will complain when we call
 	// vorpal.activeCommand.prompt(). Therefore set the parent directly.
@@ -72,8 +72,8 @@ export const getPassphraseFromPrompt = (vorpal) => {
 		// eslint-disable-next-line no-param-reassign
 		vorpal.ui.parent = vorpal;
 	}
-	return vorpal.activeCommand.prompt(createPromptOptions('Please enter your secret passphrase: '))
-		.then(({ passphrase }) => vorpal.activeCommand.prompt(createPromptOptions('Please re-enter your secret passphrase: '))
+	return vorpal.activeCommand.prompt(createPromptOptions(`Please enter ${displayName}: `))
+		.then(({ passphrase }) => vorpal.activeCommand.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
 			.then(({ passphrase: passphraseRepeat }) => {
 				if (passphrase !== passphraseRepeat) {
 					throw new Error(ERROR_PASSPHRASE_VERIFICATION_FAIL);
@@ -134,9 +134,9 @@ export const getPassphraseFromSource = async (source) => {
 	}
 };
 
-export const getPassphrase = async (vorpal, passphraseSource, { passphrase } = {}) => {
+export const getPassphrase = async (vorpal, passphraseSource, { passphrase } = {}, displayName) => {
 	if (passphrase) return passphrase;
-	if (!passphraseSource) return getPassphraseFromPrompt(vorpal);
+	if (!passphraseSource) return getPassphraseFromPrompt(vorpal, displayName);
 	return getPassphraseFromSource(passphraseSource);
 };
 
