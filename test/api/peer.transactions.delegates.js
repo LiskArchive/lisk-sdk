@@ -92,7 +92,7 @@ describe('POST /peer/transactions', function () {
 				});
 			});
 
-			it('using valid params should succeed', function (done) {
+			it('using valid params should be ok', function (done) {
 				var validTransaction = node.lisk.delegate.createDelegate(validParams.secret, validParams.username);
 				node.post('/peer/transactions', {transaction: validTransaction}, function (err) {
 					node.expect(err).to.be.null;
