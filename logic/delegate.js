@@ -156,14 +156,10 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 		address: sender.address,
 		u_isDelegate: 0,
 		isDelegate: 1,
-		vote: 0
+		vote: 0,
+		u_username: null,
+		username: trs.asset.delegate.username
 	};
-
-	// Not sure if this condition is required here.
-	if (trs.asset.delegate.username) {
-		data.u_username = null;
-		data.username = trs.asset.delegate.username;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
@@ -181,14 +177,10 @@ Delegate.prototype.undo = function (trs, block, sender, cb) {
 		address: sender.address,
 		u_isDelegate: 1,
 		isDelegate: 0,
-		vote: 0
+		vote: 0,
+		username: null,
+		u_username: trs.asset.delegate.username
 	};
-
-	// Not sure if we need this check here; sender.nameexist is never updated anywhere.
-	if (!sender.nameexist && trs.asset.delegate.username) {
-		data.username = null;
-		data.u_username = trs.asset.delegate.username;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
@@ -204,14 +196,10 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	var data = {
 		address: sender.address,
 		u_isDelegate: 1,
-		isDelegate: 0
+		isDelegate: 0,
+		username: null,
+		u_username: trs.asset.delegate.username
 	};
-
-	// Not sure if we need this check here.
-	if (trs.asset.delegate.username) {
-		data.username = null;
-		data.u_username = trs.asset.delegate.username;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
@@ -228,14 +216,10 @@ Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	var data = {
 		address: sender.address,
 		u_isDelegate: 0,
-		isDelegate: 0
+		isDelegate: 0,
+		username: null,
+		u_username: null
 	};
-
-	// Not sure if we need this check here.
-	if (trs.asset.delegate.username) {
-		data.username = null;
-		data.u_username = null;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
