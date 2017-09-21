@@ -159,8 +159,8 @@ describe('handshake', function () {
 		});
 
 		after(function () {
-			wsServer.options.port = originalPort;
 			wsServer.stop();
+			wsServer.options.port = originalPort;
 		});
 
 		beforeEach(function () {

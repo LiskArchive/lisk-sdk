@@ -33,8 +33,8 @@ before(function (done) {
 });
 
 after(function () {
-	wsServer.options.port = originalWsServerPort;
 	wsServer.stop();
+	wsServer.options.port = originalWsServerPort;
 });
 
 describe('GET /api/peers/version', function () {
