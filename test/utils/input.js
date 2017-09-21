@@ -37,6 +37,7 @@ const createStreamStub = on => ({
 describe('input utils', () => {
 	const passphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const badPassphrase = `${passphrase.slice(0, -1)}y`;
+	const displayName = 'your secret passphrase';
 	const envVariable = 'TEST_PASSPHRASE';
 	const path = '/path/to/my/file.txt';
 	const data = `${passphrase}\nsome other stuff on a new line`;
@@ -159,42 +160,53 @@ describe('input utils', () => {
 		it('should maintain the UI parent if already there', () => {
 			const parent = { something: 'vorpal' };
 			vorpal.ui.parent = parent;
-			return getPassphraseFromPrompt(vorpal)
+			return getPassphraseFromPrompt(vorpal, displayName)
 				.then(() => {
 					(vorpal.ui).should.have.property('parent').and.be.equal(parent);
 				});
 		});
 
 		it('should set the UI parent on the vorpal instance', () => {
-			return getPassphraseFromPrompt(vorpal)
+			return getPassphraseFromPrompt(vorpal, displayName)
 				.then(() => {
 					(vorpal.ui).should.have.property('parent').and.be.equal(vorpal);
 				});
 		});
 
-		it('prompt for the pass phrase twice', () => {
-			return getPassphraseFromPrompt(vorpal)
+		it('should prompt for the pass phrase twice', () => {
+			return getPassphraseFromPrompt(vorpal, displayName)
 				.then(() => {
 					(promptStub.calledTwice).should.be.true();
 				});
 		});
 
+		it('should use options', () => {
+			return getPassphraseFromPrompt(vorpal, displayName)
+				.then(() => {
+					(promptStub.calledWithExactly({
+						type: 'password',
+						name: 'passphrase',
+						message: 'Please enter your secret passphrase: ',
+					})).should.be.true();
+				});
+		});
+
 		it('should resolve to the passphrase if successfully repeated', () => {
-			return (getPassphraseFromPrompt(vorpal))
+			return (getPassphraseFromPrompt(vorpal, displayName))
 				.should.be.fulfilledWith(passphrase);
 		});
 
 		it('should complain if the pass phrase is not successfully repeated', () => {
 			promptStub.onSecondCall().resolves(badPassphrase);
-			return (getPassphraseFromPrompt(vorpal))
-				.should.be.rejectedWith({ message: 'Passphrase verification failed.' });
+			return (getPassphraseFromPrompt(vorpal, displayName))
+				.should.be.rejectedWith({ message: 'Your secret passphrase was not successfully repeated.' });
 		});
 	});
 
 	describe('#getPassphraseFromEnvVariable', () => {
 		it('should complain if the environmental variable is not set', () => {
 			delete process.env[envVariable];
-			return (getPassphraseFromEnvVariable(envVariable)).should.be.rejectedWith('Passphrase environmental variable not set.');
+			return (getPassphraseFromEnvVariable(envVariable, displayName)).should.be.rejectedWith('Environmental variable for your secret passphrase not set.');
 		});
 
 		it('should resolve to the passphrase if the environmental variable is set', () => {
@@ -216,7 +228,7 @@ describe('input utils', () => {
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
 			createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 
-			return (getPassphraseFromFile(path)).should.be.rejectedWith('File does not exist.');
+			return (getPassphraseFromFile(path)).should.be.rejectedWith(`File at ${path} does not exist.`);
 		});
 
 		it('should complain if the file cannot be read', () => {
@@ -224,7 +236,7 @@ describe('input utils', () => {
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
 			createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
 
-			return (getPassphraseFromFile(path)).should.be.rejectedWith('File could not be read.');
+			return (getPassphraseFromFile(path)).should.be.rejectedWith(`File at ${path} could not be read.`);
 		});
 
 		it('should complain if an unknown error occurs', () => {
@@ -257,19 +269,19 @@ describe('input utils', () => {
 		});
 
 		it('should complain about an unknown source', () => {
-			return (getPassphraseFromSource('unknown')).should.be.rejectedWith('Unknown passphrase source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.');
+			return (getPassphraseFromSource('unknown', displayName)).should.be.rejectedWith('Your secret passphrase was provided with an unknown source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.');
 		});
 
 		it('should get passphrase from an environmental variable', () => {
-			return (getPassphraseFromSource(`env:${envVariable}`)).should.be.fulfilledWith(passphrase);
+			return (getPassphraseFromSource(`env:${envVariable}`, displayName)).should.be.fulfilledWith(passphrase);
 		});
 
 		it('should get passphrase from a file', () => {
-			return (getPassphraseFromSource(`file:${path}`)).should.be.fulfilledWith(passphrase);
+			return (getPassphraseFromSource(`file:${path}`, displayName)).should.be.fulfilledWith(passphrase);
 		});
 
 		it('should resolve to a plaintext passphrase', () => {
-			return (getPassphraseFromSource(`pass:${passphrase}`)).should.be.fulfilledWith(passphrase);
+			return (getPassphraseFromSource(`pass:${passphrase}`, displayName)).should.be.fulfilledWith(passphrase);
 		});
 	});
 
@@ -346,13 +358,13 @@ describe('input utils', () => {
 		it('should complain if a provided file does not exist', () => {
 			readFileSyncStub.throws(new Error(fileDoesNotExistErrorMessage));
 			return (getData(null, `file:${path}`))
-				.should.be.rejectedWith('File does not exist.');
+				.should.be.rejectedWith(`File at ${path} does not exist.`);
 		});
 
 		it('should complain if a provided file cannot be read', () => {
 			readFileSyncStub.throws(new Error(fileCannotBeReadErrorMessage));
 			return (getData(null, `file:${path}`))
-				.should.be.rejectedWith('File could not be read.');
+				.should.be.rejectedWith(`File at ${path} could not be read.`);
 		});
 
 		it('should complain if an unknown error occurs while reading a provided file', () => {

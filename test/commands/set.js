@@ -19,7 +19,11 @@ import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import env from '../../src/utils/env';
 import liskInstance from '../../src/utils/liskInstance';
-import { setUpVorpalWithCommand } from './utils';
+import {
+	getCommands,
+	getRequiredArgs,
+	setUpVorpalWithCommand,
+} from './utils';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 const writeConfig = config => fse.writeJsonSync(configFilePath, config, { spaces: '\t' });
@@ -44,7 +48,6 @@ describe('lisky set command palette', () => {
 	});
 
 	afterEach(() => {
-		// See https://github.com/dthree/vorpal/issues/230
 		vorpal.ui.removeAllListeners();
 		capturedOutput = [];
 	});
@@ -54,24 +57,17 @@ describe('lisky set command palette', () => {
 	});
 
 	describe('setup', () => {
-		/* eslint-disable no-underscore-dangle */
-		const filterCommand = vorpalCommand => vorpalCommand._name === 'set';
-		let setCommand;
-
-		beforeEach(() => {
-			setCommand = vorpal.commands.filter(filterCommand)[0];
-		});
+		const commandName = 'set';
 
 		it('should be available', () => {
-			(setCommand._args).should.be.length(2);
-			(setCommand._name).should.be.equal('set');
+			const setCommands = getCommands(vorpal, commandName);
+			(setCommands).should.have.length(1);
 		});
 
 		it('should have 2 required inputs', () => {
-			(setCommand._args[0].required).should.be.true();
-			(setCommand._args[1].required).should.be.true();
+			const requiredArgs = getRequiredArgs(vorpal, commandName);
+			(requiredArgs).should.have.length(2);
 		});
-		/* eslint-enable */
 	});
 
 	describe('problems', () => {

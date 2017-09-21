@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const lisk = require('lisk-js');
+import lisk from 'lisk-js';
 
 class Crypto {
 	constructor() {
@@ -33,6 +33,14 @@ class Crypto {
 			const message = this.lisk.crypto
 				.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);
 			return { message };
+		} catch ({ message: error }) {
+			return { error };
+		}
+	}
+
+	encryptPassphrase(passphrase, password) {
+		try {
+			return this.lisk.crypto.encryptPassphraseWithPassword(passphrase, password);
 		} catch ({ message: error }) {
 			return { error };
 		}
