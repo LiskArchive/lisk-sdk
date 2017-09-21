@@ -50,6 +50,7 @@ describe('encrypt passphrase command', () => {
 	describe('when executed', () => {
 		const passphrase = 'secret passphrase';
 		const password = 'testing123';
+		const stdIn = 'stdin';
 		const defaultErrorMessage = 'Some error message.';
 		const wrappedErrorMessage = `Could not encrypt passphrase: ${defaultErrorMessage}`;
 
@@ -185,7 +186,8 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
@@ -223,7 +225,8 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
@@ -260,13 +263,14 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
 
 			describe('with passphrase passed via stdin', () => {
-				const passphraseSource = 'stdin';
+				const passphraseSource = stdIn;
 				const commandWithStdInPassphrase = `${command} --passphrase "${passphraseSource}"`;
 
 				beforeEach(() => {
@@ -299,7 +303,8 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
@@ -384,7 +389,8 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { password: passwordSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
@@ -422,7 +428,8 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { password: passwordSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
@@ -459,13 +466,14 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { password: passwordSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
 
 			describe('with password passed via stdin', () => {
-				const passwordSource = 'stdin';
+				const passwordSource = stdIn;
 				const commandWithStdInPassword = `${command} --password "${passwordSource}"`;
 
 				beforeEach(() => {
@@ -498,14 +506,15 @@ describe('encrypt passphrase command', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+					(printResultStub.calledWithExactly(vorpal, { password: passwordSource }))
+						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 				});
 			});
 		});
 
 		describe('with passphrase and password passed via stdin', () => {
-			const commandWithStdInPassphraseAndStdInPassword = `${command} --passphrase stdin --password stdin`;
+			const commandWithStdInPassphraseAndStdInPassword = `${command} --passphrase ${stdIn} --password ${stdIn}`;
 
 			beforeEach(() => {
 				stdInResult = { passphrase, data: `${password}\nSome irrelevant data` };
@@ -522,12 +531,12 @@ describe('encrypt passphrase command', () => {
 			});
 
 			it('should call the input util getPassphrase with the correct parameters for the passphrase', () => {
-				(getPassphraseStub.firstCall.calledWithExactly(vorpal, 'stdin', stdInResult))
+				(getPassphraseStub.firstCall.calledWithExactly(vorpal, stdIn, stdInResult))
 					.should.be.true();
 			});
 
 			it('should call the input util getPassphrase with the correct parameters for the password', () => {
-				(getPassphraseStub.secondCall.calledWithExactly(vorpal, 'stdin', { passphrase: password }, 'your password'))
+				(getPassphraseStub.secondCall.calledWithExactly(vorpal, stdIn, { passphrase: password }, 'your password'))
 					.should.be.true();
 			});
 
@@ -537,7 +546,8 @@ describe('encrypt passphrase command', () => {
 			});
 
 			it('should print the result', () => {
-				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printResultStub.calledWithExactly(vorpal, { passphrase: stdIn, password: stdIn }))
+					.should.be.true();
 				(printSpy.calledWithExactly(cryptoEncryptPassphraseReturnObject)).should.be.true();
 			});
 		});
