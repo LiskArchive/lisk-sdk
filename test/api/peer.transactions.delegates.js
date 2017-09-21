@@ -243,7 +243,6 @@ describe('POST /peer/transactions', function () {
 					});
 
 					it('should not confirm the first transaction', function (done) {
-
 						var firstTransaction;
 						var secondTransaction;
 

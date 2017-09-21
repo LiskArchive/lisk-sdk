@@ -278,7 +278,7 @@ describe('PUT /api/delegates with funds', function () {
 		});
 	});
 
-	it('using valid params should succeed', function (done) {
+	it('using valid params should be ok', function (done) {
 		putDelegates(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			done();
@@ -368,74 +368,102 @@ describe('PUT /api/delegates with funds', function () {
 
 	describe('registering twice', function () {
 
+		var strippedResults;
+		var firstTransactionId;
+		var secondTransactionId;
+
 		describe('using same account', function () {
 
 			describe('using same username', function () {
 
-				it('second transaction with same id should fail', function (done) {
-					var firstTransaction;
+				describe('with the same id', function () {
 
-					node.async.series({
-						first: function (cb) {
-							return putDelegates(validParams, cb);
-						},
-						second: function (cb) {
-							return putDelegates(validParams, cb);
-						}
-					}, function (err, res) {
-						node.expect(res).to.have.deep.property('first.body.transaction');
-						firstTransaction = res.first.body.transaction;
-						node.expect(res).to.have.deep.property('second.body.error').equal('Transaction is already processed: ' + firstTransaction.id);
-						done();
+					var firstResponse;
+					var secondResponse;
+
+					beforeEach(function (done) {
+						node.async.series({
+							first: function (cb) {
+								return putDelegates(validParams, cb);
+							},
+							second: function (cb) {
+								return putDelegates(validParams, cb);
+							}
+						}, function (err, res) {
+							if (err) {
+								return done(err);
+							}
+							firstResponse = res.first.body;
+							secondResponse = res.second.body;
+							done();
+						});
+					});
+
+					it('first transaction should be ok', function () {
+						node.expect(firstResponse).to.have.property('transaction');
+					});
+
+					it('second transaction should fail', function () {
+						node.expect(secondResponse).to.have.property('error').equal('Transaction is already processed: ' + firstResponse.transaction.id);
 					});
 				});
 
-				it('second transaction with different timestamp should succeed and fail silently on apply step', function (done) {
-					node.async.series({
-						first: function (cb) {
-							return putDelegates(validParams, cb);
-						},
-						second: function (cb) {
-							setTimeout(function () {
+				describe('with different timestamp', function () {
+
+					beforeEach(function (done) {
+						node.async.series({
+							first: function (cb) {
 								return putDelegates(validParams, cb);
-							}, 1001);
-						}
-					}, function (err, res) {
-						node.expect(res).to.have.deep.property('first.body.success').to.be.true;
-						node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-						var firstTransactionId = res.first.body.transaction.id;
-						var secondTransactionId = res.second.body.transaction.id;
-						node.onNewBlock(function () {
-							node.async.series([
-								function (cb) {
-									return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
-								},
-								function (cb) {
-									return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
-								}
-							], function (err, results) {
-								var strippedResults = stripTransactionsResults(results);
-								node.expect(strippedResults.successFields).to.contain(true);
-								node.expect(strippedResults.successFields).to.contain(false);
-								node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
-								node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
-								node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
-								done();
+							},
+							second: function (cb) {
+								setTimeout(function () {
+									return putDelegates(validParams, cb);
+								}, 1001);
+							}
+						}, function (err, res) {
+							node.expect(res).to.have.deep.property('first.body.success').to.be.true;
+							node.expect(res).to.have.deep.property('second.body.success').to.be.true;
+							firstTransactionId = res.first.body.transaction.id;
+							secondTransactionId = res.second.body.transaction.id;
+							node.onNewBlock(function () {
+								node.async.series([
+									function (cb) {
+										return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
+									},
+									function (cb) {
+										return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+										return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+									}
+								], function (err, results) {
+									strippedResults = stripTransactionsResults(results);
+									done();
+								});
 							});
 						});
+					});
+
+					it('should fail silently one transaction', function () {
+						node.expect(strippedResults.successFields).to.contain(false);
+						node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+					});
+
+					it('should confirm one transaction', function () {
+						node.expect(strippedResults.successFields).to.contain(true);
+						node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+						node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
 					});
 				});
 			});
 
-			describe('using different usernames', function () {
+			describe('with different usernames', function () {
 
-				it('second transaction should succeed and fail silently on apply step', function (done) {
+				var differentUsernameParams;
 
-					var differentUsernameParams = {
+				beforeEach(function (done) {
+					differentUsernameParams = {
 						secret: account.password,
 						username: node.randomUsername()
 					};
-
 					node.async.series({
 						first: function (cb) {
 							return putDelegates(validParams, cb);
@@ -446,8 +474,8 @@ describe('PUT /api/delegates with funds', function () {
 					}, function (err, res) {
 						node.expect(res).to.have.deep.property('first.body.success').to.be.true;
 						node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-						var firstTransactionId = res.first.body.transaction.id;
-						var secondTransactionId = res.second.body.transaction.id;
+						firstTransactionId = res.first.body.transaction.id;
+						secondTransactionId = res.second.body.transaction.id;
 						node.onNewBlock(function () {
 							node.async.series([
 								function (cb) {
@@ -457,16 +485,22 @@ describe('PUT /api/delegates with funds', function () {
 									return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
 								}
 							], function (err, results) {
-								var strippedResults = stripTransactionsResults(results);
-								node.expect(strippedResults.successFields).to.contain(true);
-								node.expect(strippedResults.successFields).to.contain(false);
-								node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
-								node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
-								node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
+								strippedResults = stripTransactionsResults(results);
 								done();
 							});
 						});
 					});
+				});
+
+				it('should fail silently one transaction', function () {
+					node.expect(strippedResults.successFields).to.contain(false);
+					node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+				});
+
+				it('should confirm one transaction', function () {
+					node.expect(strippedResults.successFields).to.contain(true);
+					node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+					node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
 				});
 			});
 		});
@@ -494,74 +528,90 @@ describe('PUT /api/delegates with funds', function () {
 				});
 			});
 
-			it('using same username second transaction should succeed and fail silently on apply step', function (done) {
+			describe('using same username', function () {
 
-				secondAccountValidParams.username = validParams.username;
-
-				node.async.series({
-					first: function (cb) {
-						return putDelegates(validParams, cb);
-					},
-					second: function (cb) {
-						return putDelegates(secondAccountValidParams, cb);
-					}
-				}, function (err, res) {
-					node.expect(res).to.have.deep.property('first.body.success').to.be.true;
-					node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-					var firstTransactionId = res.first.body.transaction.id;
-					var secondTransactionId = res.second.body.transaction.id;
-					node.onNewBlock(function () {
-						node.async.series([
-							function (cb) {
-								return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
-							},
-							function (cb) {
-								return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
-							}
-						], function (err, results) {
-							var strippedResults = stripTransactionsResults(results);
-							node.expect(strippedResults.successFields).to.contain(true);
-							node.expect(strippedResults.successFields).to.contain(false);
-							node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
-							node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
-							node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
-							done();
+				beforeEach(function (done) {
+					secondAccountValidParams.username = validParams.username;
+					node.async.series({
+						first: function (cb) {
+							return putDelegates(validParams, cb);
+						},
+						second: function (cb) {
+							return putDelegates(secondAccountValidParams, cb);
+						}
+					}, function (err, res) {
+						node.expect(res).to.have.deep.property('first.body.success').to.be.true;
+						node.expect(res).to.have.deep.property('second.body.success').to.be.true;
+						firstTransactionId = res.first.body.transaction.id;
+						secondTransactionId = res.second.body.transaction.id;
+						node.onNewBlock(function () {
+							node.async.series([
+								function (cb) {
+									return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
+								},
+								function (cb) {
+									return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+								}
+							], function (err, results) {
+								strippedResults = stripTransactionsResults(results);
+								done();
+							});
 						});
 					});
 				});
+
+				it('should fail silently one transaction', function () {
+					node.expect(strippedResults.successFields).to.contain(false);
+					node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+				});
+
+				it('should confirm one transaction', function () {
+					node.expect(strippedResults.successFields).to.contain(true);
+					node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+					node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
+				});
 			});
 
-			it('using different usernames should successfully verify and apply both transactions', function (done) {
+			describe('using different usernames', function () {
 
-				node.async.series({
-					first: function (cb) {
-						return putDelegates(validParams, cb);
-					},
-					second: function (cb) {
-						return putDelegates(secondAccountValidParams, cb);
-					}
-				}, function (err, res) {
-					node.expect(res).to.have.deep.property('first.body.success').to.be.true;
-					node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-					var firstTransactionId = res.first.body.transaction.id;
-					var secondTransactionId = res.second.body.transaction.id;
-					node.onNewBlock(function () {
-						node.async.series({
-							firstConfirmedTransaction: function (cb) {
-								return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
-							},
-							secondConfirmedTransaction: function (cb) {
-								return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
-							}
-						}, function (err, res) {
-							node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.success').to.be.true;
-							node.expect(res).to.have.deep.property('firstConfirmedTransaction.body.transaction.id').to.be.equal(firstTransactionId);
+				var firstConfirmedTransaction;
+				var secondConfirmedTransaction;
 
-							node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.success').to.be.true;
-							node.expect(res).to.have.deep.property('secondConfirmedTransaction.body.transaction.id').to.be.equal(secondTransactionId);
-							done();
+				beforeEach(function (done) {
+					node.async.series({
+						first: function (cb) {
+							return putDelegates(validParams, cb);
+						},
+						second: function (cb) {
+							return putDelegates(secondAccountValidParams, cb);
+						}
+					}, function (err, res) {
+						node.expect(res).to.have.deep.property('first.body.success').to.be.true;
+						node.expect(res).to.have.deep.property('second.body.success').to.be.true;
+						firstTransactionId = res.first.body.transaction.id;
+						secondTransactionId = res.second.body.transaction.id;
+						node.onNewBlock(function () {
+							node.async.series({
+								firstConfirmedTransaction: function (cb) {
+									return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
+								},
+								secondConfirmedTransaction: function (cb) {
+									return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+								}
+							}, function (err, res) {
+								firstConfirmedTransaction = res.firstConfirmedTransaction.body;
+								secondConfirmedTransaction = res.secondConfirmedTransaction.body;
+								done();
+							});
 						});
 					});
+				});
+
+				it('should successfully confirm both transactions', function () {
+					node.expect(firstConfirmedTransaction).to.have.deep.property('success').to.be.true;
+					node.expect(firstConfirmedTransaction).to.have.deep.property('transaction.id').to.be.equal(firstTransactionId);
+					node.expect(secondConfirmedTransaction).to.have.deep.property('success').to.be.true;
+					node.expect(secondConfirmedTransaction).to.have.deep.property('transaction.id').to.be.equal(secondTransactionId);
 				});
 			});
 		});
