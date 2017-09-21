@@ -120,7 +120,7 @@ describe('delegate', function () {
 			});
 		});
 
-		it('should be okay with correct params', function () {
+		it('should bind modules with accounts object', function () {
 			delegate.bind(accountsMock);
 			var modules = Delegate.__get__('modules');
 
@@ -277,7 +277,7 @@ describe('delegate', function () {
 				});
 			});
 
-			it('should be okay when username contains symbols which are valid', function (done) {
+			it('should call callback with error = null and valid transaction when username contains symbols which are valid', function (done) {
 				trs.asset.delegate.username = node.randomUsername() + '!@.';
 				accountsMock.getAccount.withArgs({username: trs.asset.delegate.username}, sinon.match.any).yields(null, null);
 
