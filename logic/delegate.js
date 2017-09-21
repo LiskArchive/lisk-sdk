@@ -200,9 +200,7 @@ Delegate.prototype.checkDuplicates = function (trs, username, isDelegate, cb) {
  */
 Delegate.prototype.checkConfirmed = function (trs, cb) {
 	self.checkDuplicates(trs, 'username', 'isDelegate', function (err) {
-		if (err && (err === 'Account is already a delegate' || err === 'Username ' + trs.asset.delegate.username + ' already exists')
-			&& exceptions.delegates.indexOf(trs.id) > -1
-		) {
+		if (err && exceptions.delegates.indexOf(trs.id) > -1) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(trs));
 			err = null;
