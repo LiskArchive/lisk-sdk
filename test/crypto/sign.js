@@ -224,13 +224,13 @@ ${defaultSignature}
 			};
 			const alteredTransaction = Object.assign({}, transaction, { amount: '100' });
 			const signature = signTransaction(transaction, defaultSignatureFirstSecret);
-			const alterSignature = signTransaction(alteredTransaction, defaultSignatureFirstSecret);
+			const alteredTransactionSignature = signTransaction(alteredTransaction, defaultSignatureFirstSecret);
 			it('should sign a transaction', () => {
 				(signature).should.be.equal(expectedSignature);
 			});
 
 			it('should not be equal signing a different transaction', () => {
-				(alterSignature).should.not.be.eql(signature);
+				(alteredTransactionSignature).should.not.be.eql(signature);
 			});
 		});
 
@@ -246,12 +246,18 @@ ${defaultSignature}
 			const id = '6950565552966532158';
 			const timestamp = 39541109;
 			const asset = {};
-			const transactionForVerifyOneSignature = {
-				type, amount, fee, recipientId, senderPublicKey, timestamp, asset, signature, id,
-			};
-			const transactionForVerifyTwoSignatures = Object.assign(
-				{}, transactionForVerifyOneSignature, { signSignature, senderSecondPublicKey },
-			);
+			let transactionForVerifyOneSignature;
+			let transactionForVerifyTwoSignatures;
+
+			beforeEach(() => {
+				transactionForVerifyOneSignature = {
+					type, amount, fee, recipientId, senderPublicKey, timestamp, asset, signature, id,
+				};
+				transactionForVerifyTwoSignatures = Object.assign(
+					{}, transactionForVerifyOneSignature, { signSignature, senderSecondPublicKey },
+				);
+			});
+
 			it('should verify a single signed transaction', () => {
 				const verification = verifyTransaction(transactionForVerifyOneSignature);
 				(verification).should.be.true();
