@@ -45,6 +45,15 @@ class Crypto {
 			return { error };
 		}
 	}
+
+	decryptPassphrase(cipherAndIv, password) {
+		try {
+			const passphrase = this.lisk.crypto.decryptPassphraseWithPassword(cipherAndIv, password);
+			return { passphrase };
+		} catch ({ message: error }) {
+			return { error };
+		}
+	}
 }
 
 module.exports = new Crypto();

@@ -132,7 +132,7 @@ describe('cryptoModule', () => {
 		beforeEach(() => {
 			encryptPassphraseWithPasswordResult = {
 				cipher: 'abcd',
-				iv: 'abcd',
+				iv: '0123',
 			};
 			encryptPassphraseWithPasswordStub = sinon
 				.stub(lisk.crypto, 'encryptPassphraseWithPassword')
@@ -161,6 +161,48 @@ describe('cryptoModule', () => {
 			encryptPassphraseWithPasswordStub.throws(error);
 
 			const result = cryptoModule.encryptPassphrase(passphrase, password);
+
+			(result).should.have.property('error', errorMessage);
+		});
+	});
+
+	describe('#decryptPassphrase', () => {
+		const cipher = 'abcd';
+		const iv = '0123';
+		const cipherAndIv = { cipher, iv };
+		const password = 'testing123';
+		const passphrase = 'secret passphrase';
+
+		let decryptPassphraseWithPasswordStub;
+
+		beforeEach(() => {
+			decryptPassphraseWithPasswordStub = sinon
+				.stub(lisk.crypto, 'decryptPassphraseWithPassword')
+				.returns(passphrase);
+		});
+
+		afterEach(() => {
+			decryptPassphraseWithPasswordStub.restore();
+		});
+
+		it('should use lisk-js decryptPassphraseWithPassword', () => {
+			cryptoModule.decryptPassphrase(cipherAndIv, password);
+
+			(decryptPassphraseWithPasswordStub.calledWithExactly(cipherAndIv, password))
+				.should.be.true();
+		});
+
+		it('should return the processed result of lisk-js decryptPassphraseWithPassword', () => {
+			const result = cryptoModule.decryptPassphrase(cipherAndIv, password);
+			(result).should.be.eql({ passphrase });
+		});
+
+		it('should handle error responses', () => {
+			const errorMessage = 'Cannot read property \'length\' of null';
+			const error = new TypeError(errorMessage);
+			decryptPassphraseWithPasswordStub.throws(error);
+
+			const result = cryptoModule.decryptPassphrase(cipherAndIv, password);
 
 			(result).should.have.property('error', errorMessage);
 		});
