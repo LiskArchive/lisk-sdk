@@ -53,8 +53,9 @@ describe('encrypt message command', () => {
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
 		const defaultPassphraseSource = `pass:${secret}`;
-		const commandWithMessage = `${command} ${recipient} "${data}"`;
-		const commandWithPassphrase = `${command} ${recipient} --passphrase "${defaultPassphraseSource}"`;
+		const commandWithRecipient = `${command} ${recipient}`;
+		const commandWithMessage = `${commandWithRecipient} "${data}"`;
+		const commandWithPassphrase = `${commandWithRecipient} --passphrase "${defaultPassphraseSource}"`;
 
 		const nonce = '60ee6cbb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
 		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
@@ -88,6 +89,17 @@ describe('encrypt message command', () => {
 			getDataStub.restore();
 			encryptStub.restore();
 			printResultStub.restore();
+		});
+
+		describe('if no message source has been provided', () => {
+			beforeEach(() => {
+				return vorpal.exec(commandWithRecipient);
+			});
+
+			it('should inform the user that the encryption was not successful', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly({ error: 'Could not encrypt: No message was provided.' })).should.be.true();
+			});
 		});
 
 		describe('if the stdin cannot be retrieved', () => {
