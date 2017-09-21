@@ -25,8 +25,6 @@ import {
 
 describe('decrypt passphrase command', () => {
 	const command = 'decrypt passphrase';
-	const iv = '0123';
-	const commandWithIv = `${command} ${iv}`;
 	let vorpal;
 
 	beforeEach(() => {
@@ -50,7 +48,10 @@ describe('decrypt passphrase command', () => {
 	});
 
 	describe('when executed', () => {
+		const iv = '0123';
 		const cipher = 'abcd';
+		const commandWithIv = `${command} ${iv}`;
+		const commandWithIvAndPassphrase = `${commandWithIv} ${cipher}`;
 		const multilineData = `${cipher}\nSome irrelevant input\non new lines`;
 		const password = 'testing123';
 		const passphrase = 'secret passphrase';
@@ -90,10 +91,21 @@ describe('decrypt passphrase command', () => {
 			printResultStub.restore();
 		});
 
+		describe('if no passphrase source has been provided', () => {
+			beforeEach(() => {
+				return vorpal.exec(commandWithIv);
+			});
+
+			it('should inform the user that the decryption was not successful', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly({ error: 'Could not decrypt passphrase: No passphrase was provided.' })).should.be.true();
+			});
+		});
+
 		describe('if the stdin cannot be retrieved', () => {
 			beforeEach(() => {
 				getStdInStub.rejects(new Error(defaultErrorMessage));
-				return vorpal.exec(commandWithIv);
+				return vorpal.exec(commandWithIvAndPassphrase);
 			});
 
 			it('should inform the user the decryption was not successful', () => {
@@ -105,7 +117,7 @@ describe('decrypt passphrase command', () => {
 		describe('if an error occurs during decryption', () => {
 			beforeEach(() => {
 				decryptPassphraseStub.rejects(new Error(defaultErrorMessage));
-				return vorpal.exec(commandWithIv);
+				return vorpal.exec(commandWithIvAndPassphrase);
 			});
 
 			it('should inform the user the decryption was not successful', () => {
@@ -118,7 +130,7 @@ describe('decrypt passphrase command', () => {
 			describe('if the passphrase cannot be retrieved', () => {
 				beforeEach(() => {
 					getDataStub.rejects(new Error(defaultErrorMessage));
-					return vorpal.exec(commandWithIv);
+					return vorpal.exec(commandWithIvAndPassphrase);
 				});
 
 				it('should inform the user the encryption was not successful', () => {
@@ -128,10 +140,8 @@ describe('decrypt passphrase command', () => {
 			});
 
 			describe('with encrypted passphrase passed as a command line argument', () => {
-				const passphrasePlainTextCommand = `${commandWithIv} "${cipher}"`;
-
 				beforeEach(() => {
-					return vorpal.exec(passphrasePlainTextCommand);
+					return vorpal.exec(commandWithIvAndPassphrase);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -244,8 +254,6 @@ describe('decrypt passphrase command', () => {
 		});
 
 		describe('password', () => {
-			const commandWithIvAndPassphrase = `${commandWithIv} ${cipher}`;
-
 			describe('if the password cannot be retrieved', () => {
 				beforeEach(() => {
 					getPassphraseStub.rejects(new Error(defaultErrorMessage));

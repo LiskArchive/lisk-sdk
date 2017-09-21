@@ -45,10 +45,13 @@ const decryptPassphrase = vorpal => ({ iv, passphrase, options }) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
 
-	return getStdIn({
-		passphraseIsRequired: passwordSource === 'stdin',
-		dataIsRequired: passphraseSource === 'stdin',
-	})
+	return (passphrase || passphraseSource
+		? getStdIn({
+			passphraseIsRequired: passwordSource === 'stdin',
+			dataIsRequired: passphraseSource === 'stdin',
+		})
+		: Promise.reject({ message: 'No passphrase was provided.' })
+	)
 		.then(stdIn => Promise.all([
 			getData(passphrase, passphraseSource, getFirstLineFromString(stdIn.data)),
 			getPassphrase(vorpal, passwordSource, stdIn.passphrase, 'your password'),
