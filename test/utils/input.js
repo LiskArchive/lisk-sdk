@@ -24,6 +24,7 @@ import {
 	getPassphraseFromFile,
 	getPassphraseFromSource,
 	getPassphrase,
+	getPasswordFromStdIn,
 	getDataFromFile,
 	getData,
 } from '../../src/utils/input';
@@ -298,6 +299,21 @@ describe('input utils', () => {
 
 		it('should get a passphrase from prompt if no stdin and no source is provided', () => {
 			return (getPassphrase(vorpal)).should.be.fulfilledWith(passphrase);
+		});
+	});
+
+	describe('#getPasswordFromStdIn', () => {
+		it('should return an empty object if no data is provided', () => {
+			const result = getPasswordFromStdIn({ passphrase: 'some passphrase' });
+			(result).should.be.eql({});
+		});
+
+		it('should return the first line of the data as passphrase', () => {
+			const result = getPasswordFromStdIn({
+				passphrase: 'some passphrase',
+				data: 'testing123\nplus some other stuff\non new lines',
+			});
+			(result).should.be.eql({ passphrase: 'testing123' });
 		});
 	});
 

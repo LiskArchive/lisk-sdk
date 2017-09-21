@@ -142,6 +142,14 @@ export const getPassphrase = async (vorpal, passphraseSource, { passphrase } = {
 	return getPassphraseFromSource(passphraseSource, displayName);
 };
 
+export const getPasswordFromStdIn = ({ data }) => (
+	data
+		? {
+			passphrase: data.split(/[\r\n]+/)[0],
+		}
+		: {}
+);
+
 export const getDataFromFile = async path => fse.readFileSync(path, 'utf8');
 
 export const getData = async (arg, source, { data } = {}) => {

@@ -20,6 +20,7 @@ import { createErrorHandler } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
+	getPasswordFromStdIn,
 } from '../utils/input';
 
 const PASSWORD_DISPLAY_NAME = 'your password';
@@ -31,14 +32,6 @@ const description = `Encrypt your secret passphrase under a password.
 
 const handleInput = ([passphrase, password]) =>
 	cryptoModule.encryptPassphrase(passphrase, password);
-
-const getPasswordFromStdIn = ({ data }) => (
-	data
-		? {
-			passphrase: data.split(/[\r\n]+/)[0],
-		}
-		: {}
-);
 
 const encryptPassphrase = vorpal => ({ options }) => {
 	const passphraseSource = options.passphrase;
