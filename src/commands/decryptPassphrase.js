@@ -24,6 +24,11 @@ import {
 	getData,
 } from '../utils/input';
 
+const description = `Decrypt your secret passphrase using a password. You need the initialisation vector (IV) output at the time of encryption.
+
+	Example: decrypt passphrase f74d6bc3bc68c9798213ee80444149e8 09dfba9040a1f2cc0b622dae18a158558b82f5ee953ece4e1ca43b8e81b15a7a
+`;
+
 const passphraseOptionDescription = `Specifies a source for providing an encrypted passphrase to the command. If a string is provided directly as an argument, this option will be ignored. The encrypted passphrase must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 
 	Note: if both an encrypted passphrase and the password are passed via stdin, the password must be the first line.
@@ -58,6 +63,9 @@ function decryptPassphraseCommand(vorpal) {
 		.command('decrypt passphrase <iv> [passphrase]')
 		.option(...commonOptions.password)
 		.option(commonOptions.passphrase[0], passphraseOptionDescription)
+		.option(...commonOptions.json)
+		.option(...commonOptions.noJson)
+		.description(description)
 		.action(decryptPassphrase(vorpal));
 }
 
