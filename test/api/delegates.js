@@ -372,6 +372,39 @@ describe('PUT /api/delegates with funds', function () {
 		var firstTransactionId;
 		var secondTransactionId;
 
+		var sendTwice = function (sendSecond, cb) {
+			node.async.series({
+				first: function (cb) {
+					return putDelegates(validParams, cb);
+				},
+				second: sendSecond
+			}, function (err, res) {
+				node.expect(res).to.have.deep.property('first.body.success').to.be.true;
+				node.expect(res).to.have.deep.property('second.body.success').to.be.true;
+				firstTransactionId = res.first.body.transaction.id;
+				secondTransactionId = res.second.body.transaction.id;
+				cb();
+			});
+		};
+
+		var getConfirmations = function (cb) {
+			return function () {
+				node.onNewBlock(function () {
+					node.async.series([
+						function (cb) {
+							return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
+						},
+						function (cb) {
+							return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+						}
+					], function (err, results) {
+						strippedResults = stripTransactionsResults(results);
+						cb();
+					});
+				});
+			};
+		};
+
 		describe('using same account', function () {
 
 			describe('using same username', function () {
@@ -411,38 +444,14 @@ describe('PUT /api/delegates with funds', function () {
 				describe('with different timestamp', function () {
 
 					beforeEach(function (done) {
-						node.async.series({
-							first: function (cb) {
+						sendTwice(function (cb) {
+							setTimeout(function () {
 								return putDelegates(validParams, cb);
-							},
-							second: function (cb) {
-								setTimeout(function () {
-									return putDelegates(validParams, cb);
-								}, 1001);
-							}
-						}, function (err, res) {
-							node.expect(res).to.have.deep.property('first.body.success').to.be.true;
-							node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-							firstTransactionId = res.first.body.transaction.id;
-							secondTransactionId = res.second.body.transaction.id;
-							node.onNewBlock(function () {
-								node.async.series([
-									function (cb) {
-										return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
-									},
-									function (cb) {
-										return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
-										return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
-									}
-								], function (err, results) {
-									strippedResults = stripTransactionsResults(results);
-									done();
-								});
-							});
-						});
+							}, 1001);
+						}, getConfirmations(done));
 					});
 
-					it('should fail silently one transaction', function () {
+					it('should not confirm one transaction', function () {
 						node.expect(strippedResults.successFields).to.contain(false);
 						node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
 					});
@@ -464,35 +473,12 @@ describe('PUT /api/delegates with funds', function () {
 						secret: account.password,
 						username: node.randomUsername()
 					};
-					node.async.series({
-						first: function (cb) {
-							return putDelegates(validParams, cb);
-						},
-						second: function (cb) {
-							return putDelegates(differentUsernameParams, cb);
-						}
-					}, function (err, res) {
-						node.expect(res).to.have.deep.property('first.body.success').to.be.true;
-						node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-						firstTransactionId = res.first.body.transaction.id;
-						secondTransactionId = res.second.body.transaction.id;
-						node.onNewBlock(function () {
-							node.async.series([
-								function (cb) {
-									return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
-								},
-								function (cb) {
-									return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
-								}
-							], function (err, results) {
-								strippedResults = stripTransactionsResults(results);
-								done();
-							});
-						});
-					});
+					sendTwice(function (cb) {
+						return putDelegates(differentUsernameParams, cb);
+					}, getConfirmations(done));
 				});
 
-				it('should fail silently one transaction', function () {
+				it('should not confirm one transaction', function () {
 					node.expect(strippedResults.successFields).to.contain(false);
 					node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
 				});
@@ -532,35 +518,12 @@ describe('PUT /api/delegates with funds', function () {
 
 				beforeEach(function (done) {
 					secondAccountValidParams.username = validParams.username;
-					node.async.series({
-						first: function (cb) {
-							return putDelegates(validParams, cb);
-						},
-						second: function (cb) {
-							return putDelegates(secondAccountValidParams, cb);
-						}
-					}, function (err, res) {
-						node.expect(res).to.have.deep.property('first.body.success').to.be.true;
-						node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-						firstTransactionId = res.first.body.transaction.id;
-						secondTransactionId = res.second.body.transaction.id;
-						node.onNewBlock(function () {
-							node.async.series([
-								function (cb) {
-									return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
-								},
-								function (cb) {
-									return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
-								}
-							], function (err, results) {
-								strippedResults = stripTransactionsResults(results);
-								done();
-							});
-						});
-					});
+					sendTwice(function (cb) {
+						return putDelegates(secondAccountValidParams, cb);
+					}, getConfirmations(done));
 				});
 
-				it('should fail silently one transaction', function () {
+				it('should not confirm one transaction', function () {
 					node.expect(strippedResults.successFields).to.contain(false);
 					node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
 				});
@@ -578,18 +541,9 @@ describe('PUT /api/delegates with funds', function () {
 				var secondConfirmedTransaction;
 
 				beforeEach(function (done) {
-					node.async.series({
-						first: function (cb) {
-							return putDelegates(validParams, cb);
-						},
-						second: function (cb) {
-							return putDelegates(secondAccountValidParams, cb);
-						}
-					}, function (err, res) {
-						node.expect(res).to.have.deep.property('first.body.success').to.be.true;
-						node.expect(res).to.have.deep.property('second.body.success').to.be.true;
-						firstTransactionId = res.first.body.transaction.id;
-						secondTransactionId = res.second.body.transaction.id;
+					sendTwice(function (cb) {
+						return putDelegates(secondAccountValidParams, cb);
+					}, function () {
 						node.onNewBlock(function () {
 							node.async.series({
 								firstConfirmedTransaction: function (cb) {
