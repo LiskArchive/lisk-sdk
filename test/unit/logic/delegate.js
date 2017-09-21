@@ -1,6 +1,6 @@
 'use strict';
 
-var sinon   = require('sinon');
+var sinon = require('sinon');
 
 var node = require('../../node');
 var expect = node.expect;
@@ -139,7 +139,7 @@ describe('delegate', function () {
 				accountsMock.getAccount = sinon.stub().callsArgWith(2, validGetAccountErrorMessage);
 			});
 
-			it('should call callback with getAccount error', function (done) {
+			it('should call callback with an error', function (done) {
 				delegate.checkDuplicates(validTransaction, validUsernameField, validIsDelegateField, function (err) {
 					expect(err).to.equal(validGetAccountErrorMessage);
 					done();
@@ -154,9 +154,9 @@ describe('delegate', function () {
 				accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, node.eAccount);
 			});
 
-			it('should call a callback with proper error', function (done) {
+			it('should call a callback with an error', function (done) {
 				delegate.checkDuplicates(validTransaction, validUsernameField, validIsDelegateField, function (err) {
-					expect(err).to.equal('Delegate registration violation - account is already a delegate');
+					expect(err).to.equal('Account is already a delegate');
 					done();
 				});
 			});
@@ -169,9 +169,9 @@ describe('delegate', function () {
 				accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, null);
 			});
 
-			it('should call a callback with proper error', function (done) {
+			it('should call a callback with an error', function (done) {
 				delegate.checkDuplicates(validTransaction, validUsernameField, validIsDelegateField, function (err) {
-					expect(err).to.equal('Delegate registration violation - username ' + validTransaction.asset.delegate.username + ' already exists');
+					expect(err).to.equal('Username ' + validTransaction.asset.delegate.username + ' already exists');
 					done();
 				});
 			});
@@ -184,9 +184,9 @@ describe('delegate', function () {
 				accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, node.eAccount);
 			});
 
-			it('should call a callback with registered before error', function (done) {
+			it('should call a callback with an error', function (done) {
 				delegate.checkDuplicates(validTransaction, validUsernameField, validIsDelegateField, function (err) {
-					expect(err).to.equal('Delegate registration violation - account is already a delegate');
+					expect(err).to.equal('Account is already a delegate');
 					done();
 				});
 			});
@@ -238,21 +238,21 @@ describe('delegate', function () {
 				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, null);
 			});
 
-			it('should not return error', function (done) {
+			it('should not return an error', function (done) {
 				delegate.checkConfirmed(validTransaction, done);
 			});
 		});
 
 		describe('when delegate is already confirmed', function () {
 
-			var validDelegateRegistrationError = 'Delegate registration violation';
+			var validDelegateRegistrationError = 'Account is already a delegate';
 
 			beforeEach(function () {
 				checkDuplicatesStub.restore();
 				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, validDelegateRegistrationError);
 			});
 
-			it('should call a callback with error', function (done) {
+			it('should call a callback with an error', function (done) {
 				delegate.checkConfirmed(validTransaction, function (err) {
 					expect(err).equal(validDelegateRegistrationError);
 					done();
@@ -279,14 +279,14 @@ describe('delegate', function () {
 					exceptions.delegates = originalDelegatesExceptions;
 				});
 
-				it('should call a callback with error = null', function (done) {
+				it('should call a callback with an error = null', function (done) {
 					delegate.checkConfirmed(validTransaction, function (err) {
 						expect(err).to.be.null;
 						done();
 					});
 				});
 
-				it('should call library.logger.debug with error message', function (done) {
+				it('should call library.logger.debug with an error message', function (done) {
 					delegate.checkConfirmed(validTransaction, function () {
 						expect(loggerMock.debug.calledWith(validDelegateRegistrationError)).to.be.true;
 						done();
@@ -311,7 +311,7 @@ describe('delegate', function () {
 				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, invalidDelegateRegistrationError);
 			});
 
-			it('should call a callback with that error', function (done) {
+			it('should call a callback with other error', function (done) {
 				delegate.checkConfirmed(validTransaction, function (err) {
 					expect(err).equal(invalidDelegateRegistrationError);
 					done();
@@ -369,21 +369,21 @@ describe('delegate', function () {
 				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, null);
 			});
 
-			it('should not return error', function (done) {
+			it('should not return an error', function (done) {
 				delegate.checkUnconfirmed(validTransaction, done);
 			});
 		});
 
 		describe('when delegate is already unconfirmed', function () {
 
-			var validDelegateRegistrationError = 'Delegate registration violation';
+			var validDelegateRegistrationError = 'Account is already a delegate';
 
 			beforeEach(function () {
 				checkDuplicatesStub.restore();
 				checkDuplicatesStub = sinon.stub(delegate, 'checkDuplicates').callsArgWith(3, validDelegateRegistrationError);
 			});
 
-			it('should call a callback with error', function (done) {
+			it('should call a callback with an error', function (done) {
 				delegate.checkUnconfirmed(validTransaction, function (err) {
 					expect(err).equal(validDelegateRegistrationError);
 					done();

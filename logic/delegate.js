@@ -162,32 +162,32 @@ Delegate.prototype.getBytes = function (trs) {
 /**
  * Calls cb with error when account already exists
  * @param {transaction} trs
- * @param {string} usernameField - username key to search for (username / u_username)
- * @param {string} isDelegateField - isDelegate key to search for (isDelegate / u_isDelegate)
+ * @param {string} username - username key to search for (username / u_username)
+ * @param {string} isDelegate - isDelegate key to search for (isDelegate / u_isDelegate)
  * @param {function} cb
  */
-Delegate.prototype.checkDuplicates = function (trs, usernameField, isDelegateField, cb) {
+Delegate.prototype.checkDuplicates = function (trs, username, isDelegate, cb) {
 	async.parallel({
 		duplicatedDelegate: function (eachCb) {
 			var query = {};
-			query[isDelegateField] = 1;
+			query[isDelegate] = 1;
 			query.publicKey = trs.senderPublicKey;
-			return modules.accounts.getAccount(query, [usernameField], eachCb);
+			return modules.accounts.getAccount(query, [username], eachCb);
 		},
 		duplicatedUsername: function (eachCb) {
 			var query = {};
-			query[usernameField] = trs.asset.delegate.username;
-			return modules.accounts.getAccount(query, [usernameField], eachCb);
+			query[username] = trs.asset.delegate.username;
+			return modules.accounts.getAccount(query, [username], eachCb);
 		}
 	}, function (err, res) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 		if (res.duplicatedDelegate) {
-			return setImmediate(cb, 'Delegate registration violation - account is already a delegate');
+			return setImmediate(cb, 'Account is already a delegate');
 		}
 		if (res.duplicatedUsername) {
-			return setImmediate(cb, 'Delegate registration violation - username ' + trs.asset.delegate.username + ' already exists');
+			return setImmediate(cb, 'Username ' + trs.asset.delegate.username + ' already exists');
 		}
 		return setImmediate(cb);
 	});
@@ -200,7 +200,9 @@ Delegate.prototype.checkDuplicates = function (trs, usernameField, isDelegateFie
  */
 Delegate.prototype.checkConfirmed = function (trs, cb) {
 	self.checkDuplicates(trs, 'username', 'isDelegate', function (err) {
-		if (err && (typeof err === 'string' && err.startsWith('Delegate registration violation')) && exceptions.delegates.indexOf(trs.id) > -1) {
+		if (err && (err === 'Account is already a delegate' || err === 'Username ' + trs.asset.delegate.username + ' already exists')
+			&& exceptions.delegates.indexOf(trs.id) > -1
+		) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(trs));
 			err = null;
