@@ -139,148 +139,164 @@ describe('delegate', function () {
 
 	describe('verify', function () {
 
-		it('should call callback with error if recipientId exists', function (done) {
-			trs.recipientId = '123456';
+		describe('when transaction is not valid', function () {
 
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid recipient');
-				done();
+			it('should call callback with error if recipientId exists', function (done) {
+				trs.recipientId = '123456';
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid recipient');
+					done();
+				});
+			});
+
+			it('should call callback with error if amount is not equal to 0', function (done) {
+				trs.amount = 1;
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction amount');
+					done();
+				});
+			});
+
+			it('should call callback with error if sender is already a delegate', function (done) {
+				sender.isDelegate = 1;
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Account is already a delegate');
+					done();
+				});
+			});
+
+			it('should call callback with error if asset is undefined', function (done) {
+				trs.asset = undefined;
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction asset');
+					done();
+				});
+			});
+
+			it('should call callback with error if asset is empty', function (done) {
+				trs.asset = {};
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction asset');
+					done();
+				});
+			});
+
+			it('should call callback with error if username does not exist', function (done) {
+				trs.asset.delegate.username = undefined;
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Username is undefined');
+					done();
+				});
+			});
+
+			it('should call callback with error if username is not lower case', function (done) {
+				trs.asset.delegate.username = 'UiOjKl';
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Username must be lowercase');
+					done();
+				});
+			});
+
+			it('should call callback with error if username is longer than 20 characters', function (done) {
+				trs.asset.delegate.username = Array.apply(null, Array(21)).map(function () {
+					return 'n';
+				}).join('');
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Username is too long. Maximum is 20 characters');
+					done();
+				});
+			});
+
+			it('should call callback with error if username is empty', function (done) {
+				trs.asset.delegate.username = '';
+
+				delegate.verify(trs, sender, function (err) {
+					// Cannot check specific error because '' coerces to false and we get error: Username is undefined
+					expect(err).to.exist;
+					done();
+				});
+			});
+
+			it('should call callback with error if username is address like', function (done) {
+				trs.asset.delegate.username = '163137396616706346l';
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Username can not be a potential address');
+					done();
+				});
+			});
+
+			it('should call callback with error when username contains symbols', function (done) {
+				trs.asset.delegate.username = '^%)';
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Username can only contain alphanumeric characters with the exception of !@$&_.');
+					done();
+				});
+			});
+
+			it('should call callback with error when accounts.getAccount returns error', function (done) {
+				var expectedError = 'Error: could not connect to server: Connection refused';
+				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(expectedError);
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal(expectedError);
+					accountsMock.getAccount.verify();
+					done();
+				});
+			});
+
+			it('should call callback with error when username already exists', function (done) {
+				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.equal('Username already exists');
+					accountsMock.getAccount.verify();
+					done();
+				});
 			});
 		});
 
-		it('should call callback with error if amount is not equal to 0', function (done) {
-			trs.amount = 1;
+		describe('when transaction is valid', function () {
 
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid transaction amount');
-				done();
+			it('should call accounts.getAccount with correct parameters', function (done) {
+				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
+
+				delegate.verify(trs, sender, function (err) {
+					expect(err).to.not.exist;
+					accountsMock.getAccount.verify();
+					done();
+				});
 			});
-		});
 
-		it('should call callback with error if sender is already a delegate', function (done) {
-			sender.isDelegate = 1;
+			it('should be okay when username contains symbols which are valid', function (done) {
+				trs.asset.delegate.username = node.randomUsername() + '!@.';
+				accountsMock.getAccount.withArgs({username: trs.asset.delegate.username}, sinon.match.any).yields(null, null);
 
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Account is already a delegate');
-				done();
+				delegate.verify(trs, sender, function (err, returnedTrs) {
+					expect(err).to.not.exist;
+					expect(returnedTrs).to.equal(returnedTrs);
+					done();
+				});
 			});
-		});
 
-		it('should call callback with error if asset is undefined', function (done) {
-			trs.asset = undefined;
+			it('should call callback with error = null and valid transaction', function (done) {
+				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
 
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid transaction asset');
-				done();
-			});
-		});
-
-		it('should call callback with error if asset is empty', function (done) {
-			trs.asset = {};
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid transaction asset');
-				done();
-			});
-		});
-
-		it('should call callback with error if username does not exist', function (done) {
-			trs.asset.delegate.username = undefined;
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Username is undefined');
-				done();
-			});
-		});
-
-		it('should call callback with error if username is not lower case', function (done) {
-			trs.asset.delegate.username = 'UiOjKl';
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Username must be lowercase');
-				done();
-			});
-		});
-
-		it('should call callback with error if username is longer than 20 characters', function (done) {
-			trs.asset.delegate.username = Array.apply(null, Array(21)).map(function () {
-				return 'n';
-			}).join('');
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Username is too long. Maximum is 20 characters');
-				done();
-			});
-		});
-
-		it('should call callback with error if username is empty', function (done) {
-			trs.asset.delegate.username = '';
-
-			delegate.verify(trs, sender, function (err) {
-				// Cannot check specific error because '' coerces to false and we get error: Username is undefined
-				expect(err).to.exist;
-				done();
-			});
-		});
-
-		it('should call callback with error if username is address like', function (done) {
-			trs.asset.delegate.username = '163137396616706346l';
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Username can not be a potential address');
-				done();
-			});
-		});
-
-		it('should call callback with error when username contains symbols', function (done) {
-			trs.asset.delegate.username = '^%)';
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Username can only contain alphanumeric characters with the exception of !@$&_.');
-				done();
-			});
-		});
-
-		it('should be okay when username contains symbols which are valid', function (done) {
-			trs.asset.delegate.username = node.randomUsername() + '!@.';
-			accountsMock.getAccount.withArgs({username: trs.asset.delegate.username}, sinon.match.any).yields(null, null);
-
-			delegate.verify(trs, sender, function (err, returnedTrs) {
-				expect(err).to.not.exist;
-				expect(returnedTrs).to.equal(returnedTrs);
-				done();
-			});
-		});
-
-		it('should call callback with error when accounts.getAccount returns error', function (done) {
-			var expectedError = 'Error: could not connect to server: Connection refused';
-			accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(expectedError);
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal(expectedError);
-				accountsMock.getAccount.verify();
-				done();
-			});
-		});
-
-		it('should call callback with error when username already exists', function (done) {
-			accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);
-
-			delegate.verify(trs, sender, function (err) {
-				expect(err).to.equal('Username already exists');
-				accountsMock.getAccount.verify();
-				done();
-			});
-		});
-
-		it('should be okay for valid transaction', function (done) {
-			accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
-
-			delegate.verify(trs, sender, function (err, returnedTrs) {
-				expect(err).to.not.exist;
-				expect(returnedTrs).to.equal(trs);
-				accountsMock.getAccount.verify();
-				done();
+				delegate.verify(trs, sender, function (err, returnedTrs) {
+					expect(err).to.not.exist;
+					expect(returnedTrs).to.equal(trs);
+					accountsMock.getAccount.verify();
+					done();
+				});
 			});
 		});
 	});
