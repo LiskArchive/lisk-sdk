@@ -43,8 +43,8 @@ const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 		: Promise.reject({ message: 'No message was provided.' })
 	)
 		.then(stdIn => Promise.all([
-			getPassphrase(vorpal, options.passphrase, stdIn),
-			getData(message, messageSource, stdIn),
+			getPassphrase(vorpal, options.passphrase, stdIn.passphrase),
+			getData(message, messageSource, stdIn.data),
 		]))
 		.then(handlePassphrase(vorpal, nonce, senderPublicKey))
 		.catch(createErrorHandler('Could not decrypt message'))

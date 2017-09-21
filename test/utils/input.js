@@ -24,7 +24,7 @@ import {
 	getPassphraseFromFile,
 	getPassphraseFromSource,
 	getPassphrase,
-	getPasswordFromStdIn,
+	getFirstLineFromString,
 	getDataFromFile,
 	getData,
 } from '../../src/utils/input';
@@ -288,8 +288,7 @@ describe('input utils', () => {
 
 	describe('#getPassphrase', () => {
 		it('should get a passphrase from stdin if provided', () => {
-			const stdIn = { passphrase };
-			return (getPassphrase(null, null, stdIn)).should.be.fulfilledWith(passphrase);
+			return (getPassphrase(null, null, passphrase)).should.be.fulfilledWith(passphrase);
 		});
 
 		it('should get a passphrase from a source if no stdin is provided', () => {
@@ -302,18 +301,15 @@ describe('input utils', () => {
 		});
 	});
 
-	describe('#getPasswordFromStdIn', () => {
-		it('should return an empty object if no data is provided', () => {
-			const result = getPasswordFromStdIn({ passphrase: 'some passphrase' });
-			(result).should.be.eql({});
+	describe('#getFirstLineFromString', () => {
+		it('should return null if no string is provided', () => {
+			const result = getFirstLineFromString();
+			should(result).be.null();
 		});
 
-		it('should return the first line of the data as passphrase', () => {
-			const result = getPasswordFromStdIn({
-				passphrase: 'some passphrase',
-				data: 'testing123\nplus some other stuff\non new lines',
-			});
-			(result).should.be.eql({ passphrase: 'testing123' });
+		it('should return the first line of a multiline string', () => {
+			const result = getFirstLineFromString('testing123\nplus some other stuff\non new lines');
+			(result).should.be.eql('testing123');
 		});
 	});
 
@@ -362,7 +358,7 @@ describe('input utils', () => {
 		});
 
 		it('should resolve to data from stdin if provided', () => {
-			return (getData(null, null, { data }))
+			return (getData(null, null, data))
 				.should.be.fulfilledWith(data);
 		});
 

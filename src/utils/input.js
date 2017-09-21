@@ -136,23 +136,21 @@ export const getPassphraseFromSource = async (source, displayName) => {
 	}
 };
 
-export const getPassphrase = async (vorpal, passphraseSource, { passphrase } = {}, displayName = 'your secret passphrase') => {
+export const getPassphrase = async (vorpal, passphraseSource, passphrase, displayName = 'your secret passphrase') => {
 	if (passphrase) return passphrase;
 	if (!passphraseSource) return getPassphraseFromPrompt(vorpal, displayName);
 	return getPassphraseFromSource(passphraseSource, displayName);
 };
 
-export const getPasswordFromStdIn = ({ data }) => (
-	data
-		? {
-			passphrase: data.split(/[\r\n]+/)[0],
-		}
-		: {}
+export const getFirstLineFromString = multilineString => (
+	typeof multilineString === 'string'
+		? multilineString.split(/[\r\n]+/)[0]
+		: null
 );
 
 export const getDataFromFile = async path => fse.readFileSync(path, 'utf8');
 
-export const getData = async (arg, source, { data } = {}) => {
+export const getData = async (arg, source, data) => {
 	if (arg) return arg;
 	if (typeof data === 'string') return data;
 	if (!source) {

@@ -20,7 +20,7 @@ import { createErrorHandler } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
-	getPasswordFromStdIn,
+	getFirstLineFromString,
 } from '../utils/input';
 
 const PASSWORD_DISPLAY_NAME = 'your password';
@@ -41,11 +41,11 @@ const encryptPassphrase = vorpal => ({ options }) => {
 		passphraseIsRequired: passphraseSource === 'stdin',
 		dataIsRequired: passwordSource === 'stdin',
 	})
-		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn)
+		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase)
 			.then(passphrase => getPassphrase(
 				vorpal,
 				passwordSource,
-				getPasswordFromStdIn(stdIn),
+				getFirstLineFromString(stdIn.data),
 				PASSWORD_DISPLAY_NAME,
 			)
 				.then(password => [passphrase, password]),
