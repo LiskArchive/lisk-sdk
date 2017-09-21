@@ -64,7 +64,7 @@ describe('encrypt message command', () => {
 			encryptedMessage,
 		};
 		const defaultErrorMessage = 'Some error message.';
-		const wrappedErrorMessage = `Could not encrypt: ${defaultErrorMessage}`;
+		const wrappedErrorMessage = `Could not encrypt message: ${defaultErrorMessage}`;
 
 		let stdInResult;
 		let getStdInStub;

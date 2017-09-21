@@ -61,7 +61,7 @@ describe('decrypt message command', () => {
 		const cryptoDecryptReturnObject = { data };
 
 		const defaultErrorMessage = 'Some error message.';
-		const wrappedErrorMessage = `Could not decrypt: ${defaultErrorMessage}`;
+		const wrappedErrorMessage = `Could not decrypt message: ${defaultErrorMessage}`;
 
 		let stdInResult;
 		let getStdInStub;

@@ -16,6 +16,7 @@
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
+import { createErrorHandler } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
@@ -29,8 +30,6 @@ const decryptDescription = `Decrypt an encrypted message from a given sender pub
 
 const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
 	cryptoModule.decryptMessage(data, nonce, passphrase, senderPublicKey);
-
-const handleError = ({ message }) => ({ error: `Could not decrypt: ${message}` });
 
 const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;
@@ -48,7 +47,7 @@ const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 			getData(message, messageSource, stdIn),
 		]))
 		.then(handlePassphrase(vorpal, nonce, senderPublicKey))
-		.catch(handleError)
+		.catch(createErrorHandler('Could not decrypt message'))
 		.then(printResult(vorpal, options));
 };
 

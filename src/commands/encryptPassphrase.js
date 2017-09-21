@@ -16,6 +16,7 @@
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
+import { createErrorHandler } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
@@ -27,8 +28,6 @@ const description = `Encrypt your secret passphrase under a password.
 
 	Example: encrypt passphrase
 `;
-
-const handleError = ({ message }) => ({ error: `Could not encrypt passphrase: ${message}` });
 
 const handleInput = ([passphrase, password]) =>
 	cryptoModule.encryptPassphrase(passphrase, password);
@@ -60,7 +59,7 @@ const encryptPassphrase = vorpal => ({ options }) => {
 			),
 		)
 		.then(handleInput)
-		.catch(handleError)
+		.catch(createErrorHandler('Could not encrypt passphrase'))
 		.then(printResult(vorpal, options));
 };
 
