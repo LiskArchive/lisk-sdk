@@ -13,10 +13,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptoModule from '../utils/cryptoModule';
+import commonOptions from '../utils/options';
+import { printResult } from '../utils/print';
+import { createErrorHandler } from '../utils/helpers';
+import {
+	getStdIn,
+	getPassphrase,
+	getFirstLineFromString,
+	getData,
+} from '../utils/input';
+
+const encryptedPassphraseOptionDescription = `Hello${' you'}`;
+
+const handleInput = iv => ([cipher, password]) =>
+	cryptoModule.decryptPassphrase({ cipher, iv }, password);
+
+const decryptPassphrase = vorpal => ({ iv, passphrase, options }) => {
+	const passphraseSource = options.passphrase;
+	const passwordSource = options.password;
+
+	return getStdIn({
+		passphraseIsRequired: passwordSource === 'stdin',
+		dataIsRequired: passphraseSource === 'stdin',
+	})
+		.then(stdIn => Promise.all([
+			getData(passphrase, passphraseSource, getFirstLineFromString(stdIn.data)),
+			getPassphrase(vorpal, passwordSource, stdIn.passphrase, 'your password'),
+		]))
+		.then(handleInput(iv))
+		.catch(createErrorHandler('Could not decrypt passphrase'))
+		.then(printResult(vorpal, options));
+};
 
 function decryptPassphraseCommand(vorpal) {
 	vorpal
-		.command('decrypt passphrase <iv> [passphrase]');
+		.command('decrypt passphrase <iv> [passphrase]')
+		.option(...commonOptions.password)
+		.option(commonOptions.passphrase[0], encryptedPassphraseOptionDescription)
+		.action(decryptPassphrase(vorpal));
 }
 
 export default decryptPassphraseCommand;
