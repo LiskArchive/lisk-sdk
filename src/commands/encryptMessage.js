@@ -28,7 +28,7 @@ const description = `Encrypt a message for a given recipient public key using yo
 `;
 
 const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
-	cryptoModule.encrypt(message, passphrase, recipient);
+	cryptoModule.encryptMessage(message, passphrase, recipient);
 
 const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
 

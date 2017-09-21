@@ -31,7 +31,7 @@ describe('cryptoModule', () => {
 		});
 	});
 
-	describe('#encrypt', () => {
+	describe('#encryptMessage', () => {
 		const message = 'Hello Lisker';
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
@@ -53,14 +53,14 @@ describe('cryptoModule', () => {
 		});
 
 		it('should use lisk-js encryptMessageWithSecret', () => {
-			cryptoModule.encrypt(message, secret, recipient);
+			cryptoModule.encryptMessage(message, secret, recipient);
 
 			(encryptMessageWithSecretStub.calledWithExactly(message, secret, recipient))
 				.should.be.true();
 		});
 
 		it('should return the result of lisk-js encryptMessageWithSecret', () => {
-			const result = cryptoModule.encrypt(message, secret, recipient);
+			const result = cryptoModule.encryptMessage(message, secret, recipient);
 			(result).should.be.eql(encryptMessageWithSecretResult);
 		});
 
@@ -69,13 +69,13 @@ describe('cryptoModule', () => {
 			const error = new TypeError(errorMessage);
 			encryptMessageWithSecretStub.throws(error);
 
-			const result = cryptoModule.encrypt(message, secret, recipient);
+			const result = cryptoModule.encryptMessage(message, secret, recipient);
 
 			(result).should.have.property('error', errorMessage);
 		});
 	});
 
-	describe('#decrypt', () => {
+	describe('#decryptMessage', () => {
 		const encryptedMessage = '4728715ed4463a37d8e90720a27377f04a84911b95520c2582a8b6da';
 		const nonce = '682be05eeb73a794163b5584cac6b33769c2abd867459cae';
 		const secret = 'recipient secret';
@@ -96,7 +96,7 @@ describe('cryptoModule', () => {
 		});
 
 		it('should use lisk-js decryptMessageWithSecret', () => {
-			cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
+			cryptoModule.decryptMessage(encryptedMessage, nonce, secret, senderPublicKey);
 
 			(decryptMessageWithSecretStub.calledWithExactly(
 				encryptedMessage, nonce, secret, senderPublicKey,
@@ -105,7 +105,7 @@ describe('cryptoModule', () => {
 		});
 
 		it('should return the processed result of lisk-js encryptMessageWithSecret', () => {
-			const result = cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
+			const result = cryptoModule.decryptMessage(encryptedMessage, nonce, secret, senderPublicKey);
 			(result).should.be.eql({
 				message: decryptMessageWithSecretResult,
 			});
@@ -116,7 +116,7 @@ describe('cryptoModule', () => {
 			const error = new TypeError(errorMessage);
 			decryptMessageWithSecretStub.throws(error);
 
-			const result = cryptoModule.decrypt(encryptedMessage, nonce, secret, senderPublicKey);
+			const result = cryptoModule.decryptMessage(encryptedMessage, nonce, secret, senderPublicKey);
 
 			(result).should.have.property('error', errorMessage);
 		});

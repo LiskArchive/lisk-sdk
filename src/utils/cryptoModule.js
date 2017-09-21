@@ -20,7 +20,7 @@ class Crypto {
 		this.lisk = lisk;
 	}
 
-	encrypt(message, secret, recipient) {
+	encryptMessage(message, secret, recipient) {
 		try {
 			return this.lisk.crypto.encryptMessageWithSecret(message, secret, recipient);
 		} catch ({ message: error }) {
@@ -28,7 +28,7 @@ class Crypto {
 		}
 	}
 
-	decrypt(encryptedMessage, nonce, secret, senderPublicKey) {
+	decryptMessage(encryptedMessage, nonce, secret, senderPublicKey) {
 		try {
 			const message = this.lisk.crypto
 				.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);

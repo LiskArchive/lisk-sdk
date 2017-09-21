@@ -75,7 +75,7 @@ describe('decrypt message command', () => {
 			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
 			getPassphraseStub = sinon.stub(input, 'getPassphrase').resolves(secret);
 			getDataStub = sinon.stub(input, 'getData').resolves(encryptedData);
-			decryptStub = sinon.stub(cryptoModule, 'decrypt').returns(cryptoDecryptReturnObject);
+			decryptStub = sinon.stub(cryptoModule, 'decryptMessage').returns(cryptoDecryptReturnObject);
 			printSpy = sinon.spy();
 			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
 		});

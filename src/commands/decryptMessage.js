@@ -28,7 +28,7 @@ const decryptDescription = `Decrypt an encrypted message from a given sender pub
 `;
 
 const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
-	cryptoModule.decrypt(data, nonce, passphrase, senderPublicKey);
+	cryptoModule.decryptMessage(data, nonce, passphrase, senderPublicKey);
 
 const handleError = ({ message }) => ({ error: `Could not decrypt: ${message}` });
 
