@@ -4,12 +4,16 @@ describe('blocks/utils', function () {
 	
 	describe('Utils', function () {
 		
-		describe('library', function (){
+		describe('library', function () {
 			
 			it('should assign logger');
+			
 			it('should assign db');
+			
 			it('should assign dbSequence');
+			
 			it('should assign genesisblock');
+			
 			describe('should assign logic',function () {
 				
 				it('should assign block');
@@ -20,7 +24,7 @@ describe('blocks/utils', function () {
 		
 		it('should set self to this');
 		
-		it('should call library.logger.trace("Blocks->Utils: Submodule initialized.")');
+		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."');
 		
 		it('should return self');
 	});
@@ -33,9 +37,9 @@ describe('blocks/utils', function () {
 
 		describe('when block exists', function () {
 
-			describe('and block is not already in list', function () {
+			describe('and block.id is not already in the blocks array', function () {
 				
-				describe('and block is the genesis block', function () {
+				describe('and is genesis block', function () {
 					
 					it('should generate a fake signature for it');		
 				});
@@ -75,7 +79,7 @@ describe('blocks/utils', function () {
 	
 	describe('loadLastBlock', function () {
 		
-		it('should call library.dbSequence.add with callback');
+		it('should call library.dbSequence.add');
 		
 		it('should call library.db.query to load the last block');
 		
@@ -87,10 +91,8 @@ describe('blocks/utils', function () {
 		});
 
 		describe('when db.query succeeds', function () {
-		
-			it('should call modules.blocks.utils.readDbRows and set "block" to first item of return value');
 
-			describe('sorting the block-transactions array', function () {
+			describe('sorting the block.transactions array', function () {
 
 				describe('when block.id equals genesis.block.id', function () {
 					
@@ -106,7 +108,7 @@ describe('blocks/utils', function () {
 				});
 			});
 
-			it('should call modules.blocks.lastBlock.set(block)');
+			it('should call modules.blocks.lastBlock.set with block');
 
 			it('should return callback with error = null');
 
@@ -116,9 +118,13 @@ describe('blocks/utils', function () {
 	
 	describe('getIdSequence', function () {
 		
-		it('should set lastBlock to modules.blocks.lastBlock.get()');
+		it('should call modules.blocks.lastBlock.get');
 		
-		it('should call library.db.query to load the last block');
+		it('should call library.db.query');
+		
+		it('should call library.db.query with sql.getIdSequence');
+		
+		it('should call library.db.query with {height: height, limit: 5, delegates: constants.activeDelegates}');
 		
 		describe('when db query fails', function () {
 			
@@ -132,49 +138,67 @@ describe('blocks/utils', function () {
 			describe('and returns no results', function () {
 
 				it('should call callback with an error');			
-			});			
-		});
+			});
+			
+			it('should add the genesis block to the end of the block array, if it does not contain it already');
 		
-		it('should add the genesis block to the end of the block array, if it does not contain it already');
-		
-		it('should add the last block to the beginning of the block array, if it does not contain it already');
-		
-		it('should push each block.id into the ids array');
-		
-		it ('should return callback with error = null');
-		
-		it('should return callback with result object');		
+			it('should add the last block to the beginning of the block array, if it does not contain it already');
+
+			it('should return callback with error = null');
+			
+			describe('result object', function () {
+				
+				it('should assign firstHeight to the height of the last block');
+				
+				it('should assign ids to a string of the block ids');
+			});
+
+			it('should return callback with result object');
+		});	
 	});
 	
 	describe('loadBlocksData', function () {
 		
-		describe('when less than 3 parameters are passed to loadBlocksData()', function () {
+		describe('when 3 parameters are passed to loadBlocksData', function () {
 			
-			it('should set cb to the value of options');
-			
-			it('should set options to an empty object');			
+			it('should call third parameter');
 		});
 		
-		it('should set options to an empty object if it is undefined');
+		describe('when 2 parameters are passed to loadBlocksData', function () {
+			
+			it('should call second parameter');
+		});
 		
 		describe('when filter.id and filter.lastId are defined',function () {
 			
 			it('should return callback with Invalid Filter error');
 		});
 		
-		describe('when filter.lastId is undefined and filter.id is not undefined', function () {
+		describe('when filter.lastId is undefined and filter.id is defined', function () {
 			
 			it('should set params.id to filter.id');			
 		});
 		
-		describe('when filter.id is undefined and filter.lastId is not undefined', function () {
+		describe('when filter.id is undefined and filter.lastId is defined', function () {
 			
 			it('should set params.lastId to filter.lastId');			
 		});
 		
-		it('should call library.dbSequence.add with callback');
+		it('should call library.dbSequence.add');
 		
-		it('should call library.db.query(sql.getHeightByLastId, { lastId: filter.lastId || null })');
+		it('should call library.db.query');
+		
+		it('should call library.db.query with sql.getHeightByLastId');
+		
+		describe('when filter.lastId exists', function () {
+			
+		   it('should call library.db.query with {lastId: filter.lastId}');
+		});
+		
+		describe('when filter.lastId does not exist', function () {
+			
+		   it('should call library.db.query with {lastId: null}');
+		});
 		
 		describe('when db query fails', function () {
 			
@@ -185,12 +209,12 @@ describe('blocks/utils', function () {
 		
 		describe('when db query succeeds', function () {
 		
-			describe('when rows.length is undefined', function () {
+			describe('and does not return results', function () {
 
 				it('should set height to 0');
 			});
 
-			describe('when rows.length is defined', function () {
+			describe('and returns results', function () {
 
 				it('should set height to rows[0].height');
 			});
@@ -199,7 +223,11 @@ describe('blocks/utils', function () {
 
 			it('should set params.height to height');
 
-			it('should call library.db.query(sql.loadBlocksData(filter), params)');
+			it('should call library.db.query');
+			
+			it('should call library.db.query with sql.loadBlocksData with filter');
+			
+			it('should call library.db.query with params)');
 			
 			describe('when db query succeeds', function () {
 				
@@ -229,20 +257,33 @@ describe('blocks/utils', function () {
 				
 				describe('when this.applied >= this.target', function () {
 					
-					it('should throw new Error: "Cannot apply transaction over the limit: " + this.target');				
+					it('should throw error');				
 				});
 				
-				it('should increase this.applied by +1');
+				it('should increment this.applied');
 				
-				describe('when this.applied = 1 or this.applied = this.target or this.applied %this.step = 1', function () {
+				describe('when this.applied = 1', function () {
 					
-					it('should execute this.log()');					
+					it('should call log');					
+				});
+				
+				describe('when this.applied = this.target', function () {
+					
+					it('should call log');					
+				});
+				
+				describe('when this.applied %this.step = 1', function () {
+					
+					it('should call log');					
 				});
 			});
 			
 			describe('log function', function () {
 				
-				it('should call library.logger.info with correct parameters');				
+				it('should call library.logger.info');
+				
+				it('should call library.logger.info with msg');				
+				it('should call library.logger.info with message');				
 			});
 		});
 		
@@ -251,7 +292,7 @@ describe('blocks/utils', function () {
 	
 	describe('onBind', function () {
 		
-		it('should call library.logger.trace("Blocks->Utils: Shared modules bind.")');
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."');
 		
 		it('should create a modules object { blocks: scope.blocks }');
 		
