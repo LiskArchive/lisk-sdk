@@ -13,17 +13,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import encrypt from '../../src/commands/encrypt';
+import encryptMessageCommand from '../../src/commands/encryptMessage';
 import cryptoModule from '../../src/utils/cryptoModule';
 import * as input from '../../src/utils/input';
 import * as print from '../../src/utils/print';
-import { setUpVorpalWithCommand } from './utils';
+import {
+	getCommands,
+	getRequiredArgs,
+	setUpVorpalWithCommand,
+} from './utils';
 
-describe('lisky encrypt command palette', () => {
+describe('encrypt message command', () => {
+	const command = 'encrypt message';
 	let vorpal;
 
 	beforeEach(() => {
-		vorpal = setUpVorpalWithCommand(encrypt);
+		vorpal = setUpVorpalWithCommand(encryptMessageCommand);
 	});
 
 	afterEach(() => {
@@ -31,19 +36,13 @@ describe('lisky encrypt command palette', () => {
 	});
 
 	describe('setup', () => {
-		// eslint-disable-next-line no-underscore-dangle
-		const commandFilter = command => command._name === 'encrypt';
-
 		it('should be available', () => {
-			const encryptCommands = vorpal.commands.filter(commandFilter);
+			const encryptCommands = getCommands(vorpal, command);
 			(encryptCommands).should.have.length(1);
 		});
 
 		it('should require 1 input', () => {
-			const argsFilter = arg => arg.required;
-			const encryptCommand = vorpal.commands.filter(commandFilter)[0];
-			// eslint-disable-next-line no-underscore-dangle
-			const requiredArgs = encryptCommand._args.filter(argsFilter);
+			const requiredArgs = getRequiredArgs(vorpal, command);
 			(requiredArgs).should.have.length(1);
 		});
 	});
@@ -54,8 +53,8 @@ describe('lisky encrypt command palette', () => {
 		const secret = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
 		const defaultPassphraseSource = `pass:${secret}`;
-		const commandWithMessage = `encrypt ${recipient} "${data}"`;
-		const commandWithPassphrase = `encrypt ${recipient} --passphrase "${defaultPassphraseSource}"`;
+		const commandWithMessage = `${command} ${recipient} "${data}"`;
+		const commandWithPassphrase = `${command} ${recipient} --passphrase "${defaultPassphraseSource}"`;
 
 		const nonce = '60ee6cbb5f9f0ee3736a6ffd20317f59ebfee2083e819909';
 		const encryptedMessage = '4ba04a1c568b66fe5f6e670295cd9945730013f4e3feb5ac0b4e3c';
@@ -297,7 +296,7 @@ describe('lisky encrypt command palette', () => {
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(data, undefined, { passphrase: secret }))
+					(getDataStub.calledWithExactly(data, undefined, stdInResult))
 						.should.be.true();
 				});
 
@@ -366,7 +365,7 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			describe('with data passed via file path', () => {
-				const dataFileCommand = `${commandWithPassphrase} --data file:/path/to/data.txt`;
+				const dataFileCommand = `${commandWithPassphrase} --message file:/path/to/message.txt`;
 
 				beforeEach(() => {
 					getDataStub.resolves(multilineData);
@@ -387,7 +386,7 @@ describe('lisky encrypt command palette', () => {
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(undefined, 'file:/path/to/data.txt', {}))
+					(getDataStub.calledWithExactly(undefined, 'file:/path/to/message.txt', {}))
 						.should.be.true();
 				});
 
@@ -397,14 +396,14 @@ describe('lisky encrypt command palette', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, data: 'file:/path/to/data.txt' }))
+					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, message: 'file:/path/to/message.txt' }))
 						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
 			});
 
 			describe('with data passed via stdin', () => {
-				const dataStdInCommand = `${commandWithPassphrase} --data stdin`;
+				const dataStdInCommand = `${commandWithPassphrase} --message stdin`;
 
 				beforeEach(() => {
 					stdInResult = { data: multilineData };
@@ -437,7 +436,7 @@ describe('lisky encrypt command palette', () => {
 				});
 
 				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, data: 'stdin' }))
+					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, message: 'stdin' }))
 						.should.be.true();
 					(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 				});
@@ -445,7 +444,7 @@ describe('lisky encrypt command palette', () => {
 		});
 
 		describe('with passphrase and data passed via stdin', () => {
-			const passphraseAndDataStdInCommand = `encrypt ${recipient} --data stdin --passphrase stdin`;
+			const passphraseAndDataStdInCommand = `${command} ${recipient} --message stdin --passphrase stdin`;
 
 			beforeEach(() => {
 				stdInResult = { passphrase: secret, data: multilineData };
@@ -468,7 +467,7 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			it('should call the input util getData with the correct parameters', () => {
-				(getDataStub.calledWithExactly(undefined, 'stdin', { passphrase: secret, data: multilineData }))
+				(getDataStub.calledWithExactly(undefined, 'stdin', stdInResult))
 					.should.be.true();
 			});
 
@@ -478,7 +477,7 @@ describe('lisky encrypt command palette', () => {
 			});
 
 			it('should print the result', () => {
-				(printResultStub.calledWithExactly(vorpal, { passphrase: 'stdin', data: 'stdin' }))
+				(printResultStub.calledWithExactly(vorpal, { passphrase: 'stdin', message: 'stdin' }))
 					.should.be.true();
 				(printSpy.calledWithExactly(cryptoEncryptReturnObject)).should.be.true();
 			});

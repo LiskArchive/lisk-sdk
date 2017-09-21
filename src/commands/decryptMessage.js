@@ -22,42 +22,42 @@ import {
 	getData,
 } from '../utils/input';
 
-const encryptDescription = `Encrypt a message for a given recipient public key using your secret passphrase.
+const decryptDescription = `Decrypt an encrypted message from a given sender public key for a known nonce using your secret passphrase.
 
-	Example: encrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
+	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
 
-const handleMessageAndPassphrase = (vorpal, recipient) => ([passphrase, data]) =>
-	cryptoModule.encrypt(data, passphrase, recipient);
+const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
+	cryptoModule.decrypt(data, nonce, passphrase, senderPublicKey);
 
-const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
+const handleError = ({ message }) => ({ error: `Could not decrypt: ${message}` });
 
-const encrypt = vorpal => ({ recipient, data, options }) => {
-	const dataSource = options.data;
+const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;
+	const dataSource = options.message;
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
 		dataIsRequired: dataSource === 'stdin',
 	})
 		.then(stdIn => Promise.all([
-			getPassphrase(vorpal, passphraseSource, stdIn),
-			getData(data, dataSource, stdIn),
+			getPassphrase(vorpal, options.passphrase, stdIn),
+			getData(message, dataSource, stdIn),
 		]))
-		.then(handleMessageAndPassphrase(vorpal, recipient))
+		.then(handlePassphrase(vorpal, nonce, senderPublicKey))
 		.catch(handleError)
 		.then(printResult(vorpal, options));
 };
 
-function encryptCommand(vorpal) {
+function decryptCommand(vorpal) {
 	vorpal
-		.command('encrypt <recipient> [data]')
+		.command('decrypt message <senderPublicKey> <nonce> [message]')
 		.option(...commonOptions.passphrase)
-		.option(...commonOptions.data)
+		.option(...commonOptions.message)
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
-		.description(encryptDescription)
-		.action(encrypt(vorpal));
+		.description(decryptDescription)
+		.action(decrypt(vorpal));
 }
 
-export default encryptCommand;
+export default decryptCommand;

@@ -16,11 +16,13 @@
 import readline from 'readline';
 import fse from 'fs-extra';
 
-export const ERROR_PASSPHRASE_VERIFICATION_FAIL = 'Passphrase verification failed.';
-const ERROR_PASSPHRASE_SOURCE_TYPE_UNKNOWN = 'Unknown passphrase source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.';
-const ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET = 'Passphrase environmental variable not set.';
-const ERROR_FILE_DOES_NOT_EXIST = 'File does not exist.';
-const ERROR_FILE_UNREADABLE = 'File could not be read.';
+const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+
+const getPassphraseVerificationFailError = displayName => `${capitalise(displayName)} was not successfully repeated.`;
+const getPassphraseSourceTypeUnknownError = displayName => `${capitalise(displayName)} was provided with an unknown source type. Must be one of \`env\`, \`file\`, or \`stdin\`. Leave blank for prompt.`;
+const getPassphraseEnvVariableNotSetError = displayName => `Environmental variable for ${displayName} not set.`;
+const getFileDoesNotExistError = path => `File at ${path} does not exist.`;
+const getFileUnreadableError = path => `File at ${path} could not be read.`;
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE_TYPE_UNKNOWN = 'Unknown data source type. Must be one of `file`, or `stdin`.';
 
@@ -64,7 +66,7 @@ export const createPromptOptions = message => ({
 	message,
 });
 
-export const getPassphraseFromPrompt = (vorpal) => {
+export const getPassphraseFromPrompt = (vorpal, displayName) => {
 	// IMPORTANT: prompt will exit if UI has no parent, but calling
 	// ui.attach(vorpal) will start a prompt, which will complain when we call
 	// vorpal.activeCommand.prompt(). Therefore set the parent directly.
@@ -72,21 +74,21 @@ export const getPassphraseFromPrompt = (vorpal) => {
 		// eslint-disable-next-line no-param-reassign
 		vorpal.ui.parent = vorpal;
 	}
-	return vorpal.activeCommand.prompt(createPromptOptions('Please enter your secret passphrase: '))
-		.then(({ passphrase }) => vorpal.activeCommand.prompt(createPromptOptions('Please re-enter your secret passphrase: '))
+	return vorpal.activeCommand.prompt(createPromptOptions(`Please enter ${displayName}: `))
+		.then(({ passphrase }) => vorpal.activeCommand.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
 			.then(({ passphrase: passphraseRepeat }) => {
 				if (passphrase !== passphraseRepeat) {
-					throw new Error(ERROR_PASSPHRASE_VERIFICATION_FAIL);
+					throw new Error(getPassphraseVerificationFailError(displayName));
 				}
 				return passphrase;
 			}),
 		);
 };
 
-export const getPassphraseFromEnvVariable = async (key) => {
+export const getPassphraseFromEnvVariable = async (key, displayName) => {
 	const passphrase = process.env[key];
 	if (!passphrase) {
-		throw new Error(ERROR_PASSPHRASE_ENV_VARIABLE_NOT_SET);
+		throw new Error(getPassphraseEnvVariableNotSetError(displayName));
 	}
 	return passphrase;
 };
@@ -99,10 +101,10 @@ export const getPassphraseFromFile = path => new Promise((resolve, reject) => {
 		const { message } = error;
 
 		if (message.match(/ENOENT/)) {
-			return reject(new Error(ERROR_FILE_DOES_NOT_EXIST));
+			return reject(new Error(getFileDoesNotExistError(path)));
 		}
 		if (message.match(/EACCES/)) {
-			return reject(new Error(ERROR_FILE_UNREADABLE));
+			return reject(new Error(getFileUnreadableError(path)));
 		}
 
 		return reject(error);
@@ -119,25 +121,25 @@ export const getPassphraseFromFile = path => new Promise((resolve, reject) => {
 		.on('line', handleLine);
 });
 
-export const getPassphraseFromSource = async (source) => {
+export const getPassphraseFromSource = async (source, displayName) => {
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
 	case 'env':
-		return getPassphraseFromEnvVariable(sourceIdentifier);
+		return getPassphraseFromEnvVariable(sourceIdentifier, displayName);
 	case 'file':
 		return getPassphraseFromFile(sourceIdentifier);
 	case 'pass':
 		return sourceIdentifier;
 	default:
-		throw new Error(ERROR_PASSPHRASE_SOURCE_TYPE_UNKNOWN);
+		throw new Error(getPassphraseSourceTypeUnknownError(displayName));
 	}
 };
 
-export const getPassphrase = async (vorpal, passphraseSource, { passphrase } = {}) => {
+export const getPassphrase = async (vorpal, passphraseSource, { passphrase } = {}, displayName = 'your secret passphrase') => {
 	if (passphrase) return passphrase;
-	if (!passphraseSource) return getPassphraseFromPrompt(vorpal);
-	return getPassphraseFromSource(passphraseSource);
+	if (!passphraseSource) return getPassphraseFromPrompt(vorpal, displayName);
+	return getPassphraseFromSource(passphraseSource, displayName);
 };
 
 export const getDataFromFile = async path => fse.readFileSync(path, 'utf8');
@@ -149,20 +151,20 @@ export const getData = async (arg, source, { data } = {}) => {
 		throw new Error(ERROR_DATA_MISSING);
 	}
 
-	const { sourceType, sourceIdentifier } = splitSource(source);
+	const { sourceType, sourceIdentifier: path } = splitSource(source);
 
 	if (sourceType !== 'file') {
 		throw new Error(ERROR_DATA_SOURCE_TYPE_UNKNOWN);
 	}
 
-	return getDataFromFile(sourceIdentifier)
+	return getDataFromFile(path)
 		.catch((error) => {
 			const { message } = error;
 			if (message.match(/ENOENT/)) {
-				throw new Error(ERROR_FILE_DOES_NOT_EXIST);
+				throw new Error(getFileDoesNotExistError(path));
 			}
 			if (message.match(/EACCES/)) {
-				throw new Error(ERROR_FILE_UNREADABLE);
+				throw new Error(getFileUnreadableError(path));
 			}
 			throw error;
 		});
