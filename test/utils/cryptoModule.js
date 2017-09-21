@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const lisk = require('lisk-js');
-const cryptoModule = require('../../src/utils/cryptoModule');
+import lisk from 'lisk-js';
+import cryptoModule from '../../src/utils/cryptoModule';
 
 describe('cryptoModule', () => {
 	describe('exports', () => {
@@ -27,7 +27,7 @@ describe('cryptoModule', () => {
 		});
 
 		it('should have lisk-js as a property', () => {
-			(cryptoModule).should.have.property('lisk').and.be.equal(lisk);
+			(cryptoModule).should.have.property('liskCrypto').and.be.equal(lisk.crypto);
 		});
 	});
 

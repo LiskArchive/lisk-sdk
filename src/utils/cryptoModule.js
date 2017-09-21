@@ -13,47 +13,50 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import { crypto as liskCrypto } from 'lisk-js';
+
+const wrapFunction = fn => function wrappedFunction(...args) {
+	try {
+		return fn(...args);
+	} catch ({ message: error }) {
+		return { error };
+	}
+};
 
 class Crypto {
 	constructor() {
-		this.lisk = lisk;
+		this.liskCrypto = liskCrypto;
+
+		[
+			'encryptMessage',
+			'decryptMessage',
+			'encryptPassphrase',
+			'decryptPassphrase',
+		].forEach((methodName) => {
+			this[methodName] = wrapFunction(this[methodName].bind(this));
+		});
 	}
 
 	encryptMessage(message, secret, recipient) {
-		try {
-			return this.lisk.crypto.encryptMessageWithSecret(message, secret, recipient);
-		} catch ({ message: error }) {
-			return { error };
-		}
+		return this.liskCrypto.encryptMessageWithSecret(message, secret, recipient);
 	}
 
 	decryptMessage(encryptedMessage, nonce, secret, senderPublicKey) {
-		try {
-			const message = this.lisk.crypto
-				.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey);
-			return { message };
-		} catch ({ message: error }) {
-			return { error };
-		}
+		return {
+			message: this.liskCrypto
+				.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey),
+		};
 	}
 
 	encryptPassphrase(passphrase, password) {
-		try {
-			return this.lisk.crypto.encryptPassphraseWithPassword(passphrase, password);
-		} catch ({ message: error }) {
-			return { error };
-		}
+		return this.liskCrypto.encryptPassphraseWithPassword(passphrase, password);
 	}
 
 	decryptPassphrase(cipherAndIv, password) {
-		try {
-			const passphrase = this.lisk.crypto.decryptPassphraseWithPassword(cipherAndIv, password);
-			return { passphrase };
-		} catch ({ message: error }) {
-			return { error };
-		}
+		return {
+			passphrase: this.liskCrypto.decryptPassphraseWithPassword(cipherAndIv, password),
+		};
 	}
 }
 
-module.exports = new Crypto();
+export default new Crypto();
