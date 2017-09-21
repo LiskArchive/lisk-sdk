@@ -223,8 +223,12 @@ ${defaultSignature}
 				senderPublicKey: keys.publicKey,
 			};
 			const alteredTransaction = Object.assign({}, transaction, { amount: '100' });
-			const signature = signTransaction(transaction, defaultSignatureFirstSecret);
-			const alteredTransactionSignature = signTransaction(alteredTransaction, defaultSignatureFirstSecret);
+			const signature = signTransaction(
+				transaction, defaultSignatureFirstSecret,
+			);
+			const alteredTransactionSignature = signTransaction(
+				alteredTransaction, defaultSignatureFirstSecret,
+			);
 			it('should sign a transaction', () => {
 				(signature).should.be.equal(expectedSignature);
 			});
