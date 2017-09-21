@@ -661,10 +661,19 @@ describe('privateApi module', () => {
 				restoreCheckReDialStub();
 			});
 
-			it('should ban the node', () => {
+			it('should ban the node with options randomPeer true', () => {
+				LSK.randomPeer = true;
 				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
 						(banNodeSpy.calledOn(LSK)).should.be.true();
+					});
+			});
+
+			it('should not ban the node with options randomPeer false', () => {
+				LSK.randomPeer = false;
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(() => {
+						(banNodeSpy.calledOn(LSK)).should.be.false();
 					});
 			});
 
