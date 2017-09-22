@@ -7,6 +7,8 @@ var ByteBuffer = require('bytebuffer');
 var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 
+var transactionTypes = require('../helpers/transactionTypes.js');
+
 // Private fields
 var __private = {};
 
@@ -74,7 +76,12 @@ __private.getAddressByPublicKey = function (publicKey) {
  * @returns {block} block
  */
 Block.prototype.create = function (data) {
+
+	console.log('data.transactions');
+	console.log(transactions);
 	var transactions = data.transactions.sort(function compare (a, b) {
+		if (a.type === transactionTypes.MULTI && b.type !== transactionTypes.MULTI) { return 1; }
+		if (a.type !== transactionTypes.MULTI && b.type === transactionTypes.MULTI) { return -1; }
 		if (a.type < b.type) { return -1; }
 		if (a.type > b.type) { return 1; }
 		if (a.amount < b.amount) { return -1; }
@@ -120,6 +127,7 @@ Block.prototype.create = function (data) {
 		generatorPublicKey: data.keypair.publicKey.toString('hex'),
 		transactions: blockTransactions
 	};
+
 
 	try {
 		block.blockSignature = this.sign(block, data.keypair);
