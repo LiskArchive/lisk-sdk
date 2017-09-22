@@ -98,7 +98,7 @@ describe('encrypt message command', () => {
 
 			it('should inform the user that the encryption was not successful', () => {
 				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-				(printSpy.calledWithExactly({ error: 'Could not encrypt: No message was provided.' })).should.be.true();
+				(printSpy.calledWithExactly({ error: 'Could not encrypt message: No message was provided.' })).should.be.true();
 			});
 		});
 

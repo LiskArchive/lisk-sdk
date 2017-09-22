@@ -95,7 +95,7 @@ describe('decrypt message command', () => {
 
 			it('should inform the user that the decryption was not successful', () => {
 				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-				(printSpy.calledWithExactly({ error: 'Could not decrypt: No message was provided.' })).should.be.true();
+				(printSpy.calledWithExactly({ error: 'Could not decrypt message: No message was provided.' })).should.be.true();
 			});
 		});
 
