@@ -16,6 +16,8 @@ import signature from '../../src/transactions/signature';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('signature module', () => {
 	describe('exports', () => {
 		it('should be an object', () => {
@@ -41,12 +43,8 @@ describe('signature module', () => {
 		let signatureTransaction;
 
 		beforeEach(() => {
-			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+			getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 			signatureTransaction = createSignature(secret, secondSecret);
-		});
-
-		afterEach(() => {
-			getTimeWithOffsetStub.restore();
 		});
 
 		it('should create a signature transaction', () => {

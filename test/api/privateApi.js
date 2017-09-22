@@ -15,6 +15,8 @@
 import { PopsicleError } from 'popsicle';
 import privateApi from '../../src/api/privateApi';
 
+afterEach(() => sandbox.restore());
+
 describe('privateApi module', () => {
 	const port = 7000;
 	const localNode = 'localhost';
@@ -60,11 +62,7 @@ describe('privateApi module', () => {
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
-		sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
-	});
-
-	afterEach(() => {
-		sendRequestStub.restore();
+		sendRequestStub = sandbox.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
 	});
 
 	describe('#netHashOptions', () => {
@@ -122,7 +120,7 @@ describe('privateApi module', () => {
 		let result;
 
 		beforeEach(() => {
-			getURLPrefixStub = sinon.stub().returns(URLPrefix);
+			getURLPrefixStub = sandbox.stub().returns(URLPrefix);
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetURLPrefixStub = privateApi.__set__('getURLPrefix', getURLPrefixStub);
 			result = getFullURL.call(LSK);
@@ -193,7 +191,7 @@ describe('privateApi module', () => {
 		let restoreGetPeersStub;
 
 		beforeEach(() => {
-			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			getPeersStub = sandbox.stub().returns([].concat(defaultPeers));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
 		});
@@ -236,7 +234,7 @@ describe('privateApi module', () => {
 		let restoreGetRandomPeer;
 
 		beforeEach(() => {
-			getRandomPeerStub = sinon.stub().returns(getRandomPeerResult);
+			getRandomPeerStub = sandbox.stub().returns(getRandomPeerResult);
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetRandomPeer = privateApi.__set__('getRandomPeer', getRandomPeerStub);
 		});
@@ -342,21 +340,18 @@ describe('privateApi module', () => {
 		const { checkReDial } = privateApi;
 		let getPeersStub;
 		let restoreGetPeersStub;
-		let netHashOptionsStub;
 		let setTestnetStub;
 
 		beforeEach(() => {
-			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			getPeersStub = sandbox.stub().returns([].concat(defaultPeers));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
-			netHashOptionsStub = sinon.stub(privateApi, 'netHashOptions');
-			setTestnetStub = sinon.stub(LSK, 'setTestnet');
+			sandbox.stub(privateApi, 'netHashOptions');
+			setTestnetStub = sandbox.stub(LSK, 'setTestnet');
 		});
 
 		afterEach(() => {
 			restoreGetPeersStub();
-			netHashOptionsStub.restore();
-			setTestnetStub.restore();
 		});
 
 		describe('with random peer', () => {
@@ -518,7 +513,9 @@ describe('privateApi module', () => {
 				headers: {},
 				body: {},
 			};
-			createRequestObjectStub = sinon.stub().returns(Object.assign({}, createRequestObjectResult));
+			createRequestObjectStub = sandbox
+				.stub()
+				.returns(Object.assign({}, createRequestObjectResult));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreCreateRequestObject = privateApi.__set__('createRequestObject', createRequestObjectStub);
 			sendRequestPromiseResult = sendRequestPromise
@@ -639,20 +636,19 @@ describe('privateApi module', () => {
 				key2: 2,
 			};
 			error = new Error('Test error.');
-			setNodeSpy = sinon.spy(LSK, 'setNode');
-			banNodeSpy = sinon.spy();
+			setNodeSpy = sandbox.spy(LSK, 'setNode');
+			banNodeSpy = sandbox.spy();
 			// eslint-disable-next-line no-underscore-dangle
 			restoreBanNodeSpy = privateApi.__set__('banNode', banNodeSpy);
 		});
 
 		afterEach(() => {
-			setNodeSpy.restore();
 			restoreBanNodeSpy();
 		});
 
 		describe('if a redial is possible', () => {
 			beforeEach(() => {
-				checkReDialStub = sinon.stub().returns(true);
+				checkReDialStub = sandbox.stub().returns(true);
 				// eslint-disable-next-line no-underscore-dangle
 				restoreCheckReDialStub = privateApi.__set__('checkReDial', checkReDialStub);
 			});
@@ -702,11 +698,7 @@ describe('privateApi module', () => {
 
 		describe('if no redial is possible', () => {
 			beforeEach(() => {
-				checkReDialStub = sinon.stub(privateApi, 'checkReDial').returns(false);
-			});
-
-			afterEach(() => {
-				checkReDialStub.restore();
+				checkReDialStub = sandbox.stub(privateApi, 'checkReDial').returns(false);
 			});
 
 			it('should resolve to an object with success set to false', () => {

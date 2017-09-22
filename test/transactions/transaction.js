@@ -16,6 +16,8 @@ import transaction from '../../src/transactions/transaction';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('transaction module', () => {
 	describe('exports', () => {
 		it('should be an object', () => {
@@ -46,11 +48,7 @@ describe('transaction module', () => {
 		let transactionTransaction;
 
 		beforeEach(() => {
-			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-		});
-
-		afterEach(() => {
-			getTimeWithOffsetStub.restore();
+			getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
 		describe('without second secret', () => {

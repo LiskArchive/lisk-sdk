@@ -16,6 +16,8 @@ import vote from '../../src/transactions/vote';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('vote module', () => {
 	describe('exports', () => {
 		it('should be an object', () => {
@@ -41,11 +43,7 @@ describe('vote module', () => {
 		let voteTransaction;
 
 		beforeEach(() => {
-			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-		});
-
-		afterEach(() => {
-			getTimeWithOffsetStub.restore();
+			getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
 		describe('without second secret', () => {
