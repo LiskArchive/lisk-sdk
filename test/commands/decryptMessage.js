@@ -55,8 +55,9 @@ describe('decrypt message command', () => {
 		// sender secret: 'sender secret'
 		const senderPublicKey = '38433137692948be1c05bbae686c9c850d3c8d9c52c1aebb4a7c1d5dd6d010d7';
 		const defaultPassphraseSource = `pass:${secret}`;
-		const commandWithMessage = `${command} ${senderPublicKey} ${nonce} ${encryptedData}`;
-		const commandWithPassphrase = `${command} ${senderPublicKey} ${nonce} --passphrase "${defaultPassphraseSource}"`;
+		const commandWithSenderAndNonce = `${command} ${senderPublicKey} ${nonce}`;
+		const commandWithMessage = `${commandWithSenderAndNonce} ${encryptedData}`;
+		const commandWithPassphrase = `${commandWithSenderAndNonce} --passphrase "${defaultPassphraseSource}"`;
 		const cryptoDecryptReturnObject = { data };
 
 		const defaultErrorMessage = 'Some error message.';
@@ -85,6 +86,17 @@ describe('decrypt message command', () => {
 			getDataStub.restore();
 			decryptStub.restore();
 			printResultStub.restore();
+		});
+
+		describe('if no message source has been provided', () => {
+			beforeEach(() => {
+				return vorpal.exec(commandWithSenderAndNonce);
+			});
+
+			it('should inform the user that the decryption was not successful', () => {
+				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
+				(printSpy.calledWithExactly({ error: 'Could not decrypt: No message was provided.' })).should.be.true();
+			});
 		});
 
 		describe('if the stdin cannot be retrieved', () => {

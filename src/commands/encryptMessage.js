@@ -33,16 +33,19 @@ const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
 const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
 
 const encrypt = vorpal => ({ recipient, message, options }) => {
-	const dataSource = options.message;
+	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
 
-	return getStdIn({
-		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: dataSource === 'stdin',
-	})
+	return (message || messageSource
+		? getStdIn({
+			passphraseIsRequired: passphraseSource === 'stdin',
+			dataIsRequired: messageSource === 'stdin',
+		})
+		: Promise.reject({ message: 'No message was provided.' })
+	)
 		.then(stdIn => Promise.all([
 			getPassphrase(vorpal, passphraseSource, stdIn),
-			getData(message, dataSource, stdIn),
+			getData(message, messageSource, stdIn),
 		]))
 		.then(handlePassphraseAndMessage(recipient))
 		.catch(handleError)
