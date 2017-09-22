@@ -55,6 +55,7 @@ describe('decrypt passphrase command', () => {
 		const multilineData = `${cipher}\nSome irrelevant input\non new lines`;
 		const password = 'testing123';
 		const passphrase = 'secret passphrase';
+		const passwordDisplayName = 'your password';
 		const stdIn = 'stdin';
 		const defaultErrorMessage = 'Some error message.';
 		const wrappedErrorMessage = `Could not decrypt passphrase: ${defaultErrorMessage}`;
@@ -153,7 +154,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, undefined, undefined, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, undefined, undefined, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -191,7 +194,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, undefined, undefined, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, undefined, undefined, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -231,7 +236,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, undefined, undefined, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, undefined, undefined, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -280,7 +287,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters for the password', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, undefined, undefined, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, undefined, undefined, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -317,7 +326,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters for the password', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passwordSource, undefined, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, passwordSource, undefined, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -356,7 +367,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters for the password', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passwordSource, undefined, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, passwordSource, undefined, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -394,7 +407,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters for the password', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passwordSource, undefined, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, passwordSource, undefined, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -434,7 +449,9 @@ describe('decrypt passphrase command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters for the password', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passwordSource, password, 'your password'))
+					(getPassphraseStub.calledWithExactly(
+						vorpal, passwordSource, password, { displayName: passwordDisplayName },
+					))
 						.should.be.true();
 				});
 
@@ -475,7 +492,9 @@ describe('decrypt passphrase command', () => {
 			});
 
 			it('should call the input util getPassphrase with the correct parameters for the password', () => {
-				(getPassphraseStub.calledWithExactly(vorpal, stdIn, password, 'your password'))
+				(getPassphraseStub.calledWithExactly(
+					vorpal, stdIn, password, { displayName: passwordDisplayName },
+				))
 					.should.be.true();
 			});
 

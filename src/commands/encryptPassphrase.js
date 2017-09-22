@@ -41,12 +41,12 @@ const encryptPassphrase = vorpal => ({ options }) => {
 		passphraseIsRequired: passphraseSource === 'stdin',
 		dataIsRequired: passwordSource === 'stdin',
 	})
-		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase)
+		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true })
 			.then(passphrase => getPassphrase(
 				vorpal,
 				passwordSource,
 				getFirstLineFromString(stdIn.data),
-				PASSWORD_DISPLAY_NAME,
+				{ displayName: PASSWORD_DISPLAY_NAME, shouldRepeat: true },
 			)
 				.then(password => [passphrase, password]),
 			),

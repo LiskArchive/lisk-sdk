@@ -43,7 +43,7 @@ const encrypt = vorpal => ({ recipient, message, options }) => {
 		: Promise.reject({ message: 'No message was provided.' })
 	)
 		.then(stdIn => Promise.all([
-			getPassphrase(vorpal, passphraseSource, stdIn.passphrase),
+			getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true }),
 			getData(message, messageSource, stdIn.data),
 		]))
 		.then(handlePassphraseAndMessage(recipient))
