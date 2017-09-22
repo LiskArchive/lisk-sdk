@@ -5,22 +5,10 @@ var node = require('./../node.js');
 
 var constants = require('../../helpers/constants.js');
 
-var totalMembers = 15;
-var requiredSignatures = 15;
-var multisigAccount = node.randomAccount();
-var transactions = [];
-var validParams;
-
-var accounts = [];
-var keysgroup = [];
-for (var i = 0; i < totalMembers; i++) {
-	accounts[i] = node.randomAccount();
-	var member = '+' + accounts[i].publicKey;
-	keysgroup.push(member);
+function getTransactionById (id, cb) {
+	var params = 'id=' + id;
+	node.get('/api/transactions/get?' + params, cb);
 }
-var passphrases = accounts.map(function (account) {
-	return account.password;
-});
 
 function sendLISK (account, i, done) {
 	var randomLISK = node.randomLISK();
@@ -31,9 +19,6 @@ function sendLISK (account, i, done) {
 		recipientId: account.address
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
-		if (res.body.success && i != null) {
-			accounts[i].balance = randomLISK / node.normalizer;
-		}
 		done();
 	});
 }
@@ -82,31 +67,67 @@ function confirmTransaction (transactionId, passphrases, done) {
 	);
 }
 
-before(function (done) {
-	validParams = {
-		secret: multisigAccount.password,
-		lifetime: parseInt(node.randomNumber(1,72)),
-		min: requiredSignatures,
-		keysgroup: keysgroup
-	};
+describe('registering and signing multisig transaction and sending different type of transaction should be ok', function () {
 
-	sendLISK(multisigAccount, 0, function () {
-		node.onNewBlock(done);
-	});
-});
+	describe('in the same block', function () {
 
-describe('BUG: registering multisig and dapp on the same block', function () {
+		var totalMembers = 15;
+		var requiredSignatures = 15;
+		var validParams;
 
-	it('register multisig and signing the tx inmediately', function (done) {
-		node.put('/api/multisignatures', validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
-			transactions.push(res.body.transactionId);
-			confirmTransaction(res.body.transactionId, passphrases, done);
+		var multisigAccount;
+		var multisigTransactionId;
+		var passphrases;
+
+		beforeEach(function () {
+			multisigAccount = node.randomAccount();
+			var accounts = [];
+			var keysgroup = [];
+
+			for (var i = 0; i < totalMembers; i++) {
+				accounts[i] = node.randomAccount();
+				var member = '+' + accounts[i].publicKey;
+				keysgroup.push(member);
+			}
+
+			passphrases = accounts.map(function (account) {
+				return account.password;
+			});
+
+			validParams = {
+				secret: multisigAccount.password,
+				lifetime: parseInt(node.randomNumber(1,72)),
+				min: requiredSignatures,
+				keysgroup: keysgroup
+			};
 		});
-	});
 
-	describe('before block confirmation', function () {
+		function checkConfirmedTransactions (ids, cb) {
+			async.each(ids, function (id, eachCb) {
+				getTransactionById(id, function (err, res) {
+					node.expect(err).to.not.exist;
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('transaction').that.is.an('object');
+					node.expect(res.body.transaction.id).to.equal(id);
+					eachCb();
+				});
+			}, function (err) {
+				cb(err);
+			});
+		}
+
+		beforeEach('send lisk to multisig account', function (done) {
+			sendLISK(multisigAccount, 0, function () {
+				node.onNewBlock(function (err) {
+					node.put('/api/multisignatures', validParams, function (err, res) {
+						node.expect(res.body).to.have.property('success').to.be.ok;
+						node.expect(res.body).to.have.property('transactionId').that.is.not.empty;
+						multisigTransactionId = res.body.transactionId;
+						confirmTransaction(res.body.transactionId, passphrases, done);
+					});
+				});
+			});
+		});
 
 		it('TYPE 0 sending funds when sender has funds should be ok', function (done) {
 			node.put('/api/transactions/', {
@@ -115,8 +136,12 @@ describe('BUG: registering multisig and dapp on the same block', function () {
 				recipientId: node.eAccount.address
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				transactions.push(res.body.transactionId);
-				done();
+
+				node.onNewBlock(function () {
+					var transactionInCheckId = res.body.transactionId;
+
+					checkConfirmedTransactions([transactionInCheckId, multisigTransactionId], done);
+				});
 			});
 		});
 
@@ -128,13 +153,12 @@ describe('BUG: registering multisig and dapp on the same block', function () {
 
 			putSignature(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				node.expect(res.body.transaction).to.have.property('type').to.equal(node.txTypes.SIGNATURE);
-				node.expect(res.body.transaction).to.have.property('senderPublicKey').to.equal(multisigAccount.publicKey);
-				node.expect(res.body.transaction).to.have.property('senderId').to.equal(multisigAccount.address);
-				node.expect(res.body.transaction).to.have.property('fee').to.equal(node.fees.secondPasswordFee);
-				transactions.push(res.body.transaction.id);
-				done();
+
+				node.onNewBlock(function () {
+					var transactionInCheckId = res.body.transaction.id;
+
+					checkConfirmedTransactions([transactionInCheckId, multisigTransactionId], done);
+				});
 			});
 		});
 
@@ -146,15 +170,12 @@ describe('BUG: registering multisig and dapp on the same block', function () {
 
 			putDelegates(validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				node.expect(res.body.transaction.fee).to.equal(node.fees.delegateRegistrationFee);
-				node.expect(res.body.transaction).to.have.property('asset').that.is.an('object');
-				node.expect(res.body.transaction.asset.delegate.username).to.equal(multisigAccount.username.toLowerCase());
-				node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(multisigAccount.publicKey);
-				node.expect(res.body.transaction.type).to.equal(node.txTypes.DELEGATE);
-				node.expect(res.body.transaction.amount).to.equal(0);
-				transactions.push(res.body.transaction.id);
-				done();
+
+				node.onNewBlock(function () {
+					var transactionInCheckId = res.body.transaction.id;
+
+					checkConfirmedTransactions([transactionInCheckId, multisigTransactionId], done);
+				});
 			});
 		});
 
@@ -164,13 +185,12 @@ describe('BUG: registering multisig and dapp on the same block', function () {
 				delegates: ['+' + node.eAccount.publicKey]
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				node.expect(res.body.transaction.type).to.equal(node.txTypes.VOTE);
-				node.expect(res.body.transaction.amount).to.equal(0);
-				node.expect(res.body.transaction.senderPublicKey).to.equal(multisigAccount.publicKey);
-				node.expect(res.body.transaction.fee).to.equal(node.fees.voteFee);
-				transactions.push(res.body.transaction.id);
-				done();
+
+				node.onNewBlock(function () {
+					var transactionInCheckId = res.body.transaction.id;
+
+					checkConfirmedTransactions([transactionInCheckId, multisigTransactionId], done);
+				});
 			});
 		});
 
@@ -189,27 +209,12 @@ describe('BUG: registering multisig and dapp on the same block', function () {
 
 			node.put('/api/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body.transaction).to.have.property('id');
-				transactions.push(res.body.transaction.id);
-				done();
-			});
-		});
-	});
 
-	describe('after block confirmation', function () {
+				node.onNewBlock(function () {
+					var transactionInCheckId = res.body.transaction.id;
 
-		it('txs should have been confirmed', function (done) {
-			node.onNewBlock( function () {
-				async.each(transactions, function (transactionInCheck, eachCb){
-					var params = 'id=' + transactionInCheck;
-
-					node.get('/api/transactions/get?' + params, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						node.expect(res.body).to.have.property('transaction').that.is.an('object');
-						node.expect(res.body.transaction.id).to.equal(transactionInCheck);
-						eachCb();
-					});
-				}, done);
+					checkConfirmedTransactions([transactionInCheckId, multisigTransactionId], done);
+				});
 			});
 		});
 	});

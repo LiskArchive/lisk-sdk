@@ -182,8 +182,40 @@ var transactionsBytypes = {
 		relays: 1,
 		receivedAt: '2017-09-21T15:34:31.689Z'
 	},
-	[transactionTypes.IN_TRANSFER]: {},
-	[transactionTypes.OUT_TRANSFER]: {}
+	[transactionTypes.IN_TRANSFER]: {
+		id: '2273003018673898961',
+		type: 6,
+		timestamp: 40420761,
+		senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
+		senderId: '2623857243537009424L',
+		recipientId: null,
+		recipientPublicKey: null,
+		amount: 999,
+		fee: 10000000,
+		signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
+		asset: {
+			inTransfer:{
+				dappId: '7400202127695414450'
+			}
+		}
+	},
+	[transactionTypes.OUT_TRANSFER]: {
+		id: '12010334009048463571',
+		type: 7,
+		timestamp: 41287231,
+		senderPublicKey: '8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
+		senderId: '12566082625150495618L',
+		recipientId: '477547807936790449L',
+		amount: 100,
+		fee: 10000000,
+		signature: '126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
+		asset: {
+			outTransfer: {
+				dappId: '4163713078266524209',
+				transactionId: '14144353162277138821'
+			}
+		}
+	}
 };
 
 
