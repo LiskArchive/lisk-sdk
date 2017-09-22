@@ -25,51 +25,55 @@ const BYTESIZES = {
 	DATA: 64,
 };
 
-
 /**
- * @method isSendTransaction
+ * @method getAssetDataForSendTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isSendTransaction(asset) {
+function getAssetDataForSendTransaction(asset) {
 	return asset.data
 		? Buffer.from(asset.data, 'utf8')
 		: Buffer.alloc(0);
 }
 
 /**
- * @method isSignatureTransaction
+ * @method getAssetDataForSignatureTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isSignatureTransaction(asset) {
+function getAssetDataForSignatureTransaction(asset) {
 	return Buffer.from(asset.signature.publicKey, 'hex');
 }
 
 /**
- * @method isDelegateTransaction
+ * @method getAssetDataForDelegateTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isDelegateTransaction(asset) {
+function getAssetDataForDelegateTransaction(asset) {
 	return Buffer.from(asset.delegate.username, 'utf8');
 }
 
 /**
- * @method isVoteTransaction
+ * @method getAssetDataForVotesTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isVoteTransaction(asset) {
+function getAssetDataForVotesTransaction(asset) {
 	return Buffer.from(asset.votes.join(''), 'utf8');
 }
 
 /**
- * @method isMultisignatureTransaction
+ * @method getAssetDataForMultisignatureTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isMultisignatureTransaction(asset) {
+function getAssetDataForMultisignatureTransaction(asset) {
 	const multisigTransactionAsset = asset.multisignature;
 	const minBuffer = Buffer.alloc(1, multisigTransactionAsset.min);
 	const lifetimeBuffer = Buffer.alloc(1, multisigTransactionAsset.lifetime);
@@ -79,11 +83,12 @@ function isMultisignatureTransaction(asset) {
 }
 
 /**
- * @method isDappTransaction
+ * @method getAssetDataForDappTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isDappTransaction(asset) {
+function getAssetDataForDappTransaction(asset) {
 	const dapp = asset.dapp;
 	const dappNameBuffer = Buffer.from(dapp.name, 'utf8');
 	const dappDescriptionBuffer = dapp.description ? Buffer.from(dapp.description, 'utf8') : Buffer.alloc(0);
@@ -105,20 +110,22 @@ function isDappTransaction(asset) {
 }
 
 /**
- * @method isDappInTransferTransaction
+ * @method getAssetDataForDappInTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isDappInTransferTransaction(asset) {
+function getAssetDataForDappInTransaction(asset) {
 	return Buffer.from(asset.inTransfer.dappId, 'utf8');
 }
 
 /**
- * @method isDappOutTransferTransaction
+ * @method getASsetDataForDappOutTransaction
+ * @param transactionAsset {Object}
  * @return {Buffer}
  */
 
-function isDappOutTransferTransaction(asset) {
+function getAssetDataForDappOutTransaction(asset) {
 	const dappOutAppIdBuffer = Buffer.from(asset.outTransfer.dappId, 'utf8');
 	const dappOutTransactionIdBuffer = Buffer.from(asset.outTransfer.transactionId, 'utf8');
 
@@ -127,22 +134,23 @@ function isDappOutTransferTransaction(asset) {
 
 /**
  * @method getAssetBytesHelper
+ * @param transaction {Object}
  * @return {Buffer}
  */
 
 function getAssetBytesHelper(transaction) {
-	const transactionType = {
-		0: isSendTransaction,
-		1: isSignatureTransaction,
-		2: isDelegateTransaction,
-		3: isVoteTransaction,
-		4: isMultisignatureTransaction,
-		5: isDappTransaction,
-		6: isDappInTransferTransaction,
-		7: isDappOutTransferTransaction,
+	const assetDataGetters = {
+		0: getAssetDataForSendTransaction,
+		1: getAssetDataForSignatureTransaction,
+		2: getAssetDataForDelegateTransaction,
+		3: getAssetDataForVotesTransaction,
+		4: getAssetDataForMultisignatureTransaction,
+		5: getAssetDataForDappTransaction,
+		6: getAssetDataForDappInTransaction,
+		7: getAssetDataForDappOutTransaction,
 	};
 
-	return transactionType[transaction.type](transaction.asset);
+	return assetDataGetters[transaction.type](transaction.asset);
 }
 
 /**
@@ -179,7 +187,7 @@ export class Transaction {
 		this.transactionAmount = Buffer.alloc(BYTESIZES.AMOUNT);
 		this.transactionAmount.writeInt32LE(transaction.amount, 0, BYTESIZES.AMOUNT);
 
-		this.transactionAssetData = this.getAssetBytes(transaction);
+		this.transactionAssetData = getAssetBytesHelper(transaction);
 
 		this.transactionSignature = transaction.signature
 			? Buffer.from(transaction.signature, 'hex')
@@ -188,7 +196,6 @@ export class Transaction {
 		this.transactionSecondSignature = transaction.signSignature
 			? Buffer.from(transaction.signSignature, 'hex')
 			: Buffer.alloc(0);
-
 
 		this.checkTransaction();
 		return this;
@@ -221,16 +228,6 @@ export class Transaction {
 			this.transactionSignature,
 			this.transactionSecondSignature,
 		]);
-	}
-
-	/**
-	 * @method getAssetBytes
-	 * @private
-	 * @return {Buffer}
-	 */
-
-	getAssetBytes() {
-		return getAssetBytesHelper(this.transaction);
 	}
 
 	/**
