@@ -39,4 +39,5 @@ require('./schema/delegates');
 // with long timeouts
 require('./helpers/pg-notify');
 require('./logic/blockReward');
+require('./logic/delegate');
 require('./sql/blockRewards');

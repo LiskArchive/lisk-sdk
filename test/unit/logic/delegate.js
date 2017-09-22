@@ -358,7 +358,9 @@ describe('delegate', function () {
 				address: sender.address,
 				u_isDelegate: 1,
 				isDelegate: 0,
-				vote: 0
+				vote: 0,
+				username: null,
+				u_username: trs.asset.delegate.username
 			}, dummyCb);
 
 			delegate.undo(trs, dummyBlock, sender, dummyCb);
@@ -455,7 +457,7 @@ describe('delegate', function () {
 			});
 
 			it('should throw error', function () {
-				trs.asset.delegate.username = '';
+				trs.asset.delegate.username = '*';
 
 				expect(function () {
 					delegate.objectNormalize(trs);
