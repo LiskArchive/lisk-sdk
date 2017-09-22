@@ -11,6 +11,7 @@
     "test": "NODE_ENV=test nyc mocha",
     "test:watch": "npm test -- --watch",
     "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
+    "prebuild": "rm -r dist",
     "build": "babel src -d dist",
     "jenkins": "npm test && nyc report --reporter=text-lcov | coveralls",
     "prepush": "grunt eslint && npm test",
