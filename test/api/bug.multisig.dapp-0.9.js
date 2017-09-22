@@ -175,21 +175,22 @@ describe('BUG: registering multisig and dapp on the same block', function () {
 		});
 
 		it('TYPE 5 registering dapp should be ok', function (done) {
+			var applicationName = node.randomApplicationName();
 			validParams = {
 				secret: multisigAccount.password,
 				category: node.randomProperty(node.dappCategories),
+				name: applicationName,
 				type: node.dappTypes.DAPP,
-				name: node.randomApplicationName(),
 				description: 'A dapp added via API autotest',
 				tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-				link: 'https://github.com/MaxKK/guestbookDapp/archive3/master.zip',
+				link: 'https://github.com/' + applicationName + '/master.zip',
 				icon: node.guestbookDapp.icon
 			};
 
 			node.put('/api/dapps', validParams, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body.transaction).to.have.property('id');
-				transactions.push(res.body.transactionId);
+				transactions.push(res.body.transaction.id);
 				done();
 			});
 		});
@@ -199,7 +200,7 @@ describe('BUG: registering multisig and dapp on the same block', function () {
 
 		it('txs should have been confirmed', function (done) {
 			node.onNewBlock( function () {
-				async.each(transactions, function(transactionInCheck, eachCb){
+				async.each(transactions, function (transactionInCheck, eachCb){
 					var params = 'id=' + transactionInCheck;
 
 					node.get('/api/transactions/get?' + params, function (err, res) {
