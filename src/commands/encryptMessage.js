@@ -16,6 +16,7 @@
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
+import { createErrorHandler } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
@@ -28,9 +29,7 @@ const description = `Encrypt a message for a given recipient public key using yo
 `;
 
 const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
-	cryptoModule.encrypt(message, passphrase, recipient);
-
-const handleError = ({ message }) => ({ error: `Could not encrypt: ${message}` });
+	cryptoModule.encryptMessage(message, passphrase, recipient);
 
 const encrypt = vorpal => ({ recipient, message, options }) => {
 	const messageSource = options.message;
@@ -44,11 +43,11 @@ const encrypt = vorpal => ({ recipient, message, options }) => {
 		: Promise.reject({ message: 'No message was provided.' })
 	)
 		.then(stdIn => Promise.all([
-			getPassphrase(vorpal, passphraseSource, stdIn),
-			getData(message, messageSource, stdIn),
+			getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true }),
+			getData(message, messageSource, stdIn.data),
 		]))
 		.then(handlePassphraseAndMessage(recipient))
-		.catch(handleError)
+		.catch(createErrorHandler('Could not encrypt message'))
 		.then(printResult(vorpal, options));
 };
 

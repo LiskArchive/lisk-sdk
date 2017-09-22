@@ -61,7 +61,7 @@ describe('decrypt message command', () => {
 		const cryptoDecryptReturnObject = { data };
 
 		const defaultErrorMessage = 'Some error message.';
-		const wrappedErrorMessage = `Could not decrypt: ${defaultErrorMessage}`;
+		const wrappedErrorMessage = `Could not decrypt message: ${defaultErrorMessage}`;
 
 		let stdInResult;
 		let getStdInStub;
@@ -75,7 +75,7 @@ describe('decrypt message command', () => {
 			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
 			getPassphraseStub = sinon.stub(input, 'getPassphrase').resolves(secret);
 			getDataStub = sinon.stub(input, 'getData').resolves(encryptedData);
-			decryptStub = sinon.stub(cryptoModule, 'decrypt').returns(cryptoDecryptReturnObject);
+			decryptStub = sinon.stub(cryptoModule, 'decryptMessage').returns(cryptoDecryptReturnObject);
 			printSpy = sinon.spy();
 			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
 		});
@@ -95,7 +95,7 @@ describe('decrypt message command', () => {
 
 			it('should inform the user that the decryption was not successful', () => {
 				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-				(printSpy.calledWithExactly({ error: 'Could not decrypt: No message was provided.' })).should.be.true();
+				(printSpy.calledWithExactly({ error: 'Could not decrypt message: No message was provided.' })).should.be.true();
 			});
 		});
 
@@ -150,12 +150,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, undefined, {}))
+					(getPassphraseStub.calledWithExactly(vorpal, undefined, undefined))
 						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, {}))
+					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
 						.should.be.true();
 				});
 
@@ -187,11 +187,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase method with correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {})).should.be.true();
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, undefined))
+						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, {}))
+					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
 						.should.be.true();
 				});
 
@@ -225,11 +226,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase with correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {})).should.be.true();
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, undefined))
+						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, {}))
+					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
 						.should.be.true();
 				});
 
@@ -262,12 +264,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase method with correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, {}))
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, undefined))
 						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, {}))
+					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
 						.should.be.true();
 				});
 
@@ -302,12 +304,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, stdInResult))
+					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, secret))
 						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, { passphrase: secret }))
+					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
 						.should.be.true();
 				});
 
@@ -353,12 +355,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, {}))
+					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, undefined))
 						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, {}))
+					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
 						.should.be.true();
 				});
 
@@ -390,12 +392,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, {}))
+					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, undefined))
 						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(undefined, 'file:/path/to/message.txt', {}))
+					(getDataStub.calledWithExactly(undefined, 'file:/path/to/message.txt', undefined))
 						.should.be.true();
 				});
 
@@ -429,12 +431,12 @@ describe('decrypt message command', () => {
 				});
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, stdInResult))
+					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, undefined))
 						.should.be.true();
 				});
 
 				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(undefined, 'stdin', { data: encryptedData }))
+					(getDataStub.calledWithExactly(undefined, 'stdin', encryptedData))
 						.should.be.true();
 				});
 
@@ -470,12 +472,12 @@ describe('decrypt message command', () => {
 			});
 
 			it('should call the input util getPassphrase with the correct parameters', () => {
-				(getPassphraseStub.calledWithExactly(vorpal, 'stdin', stdInResult))
+				(getPassphraseStub.calledWithExactly(vorpal, 'stdin', secret))
 					.should.be.true();
 			});
 
 			it('should call the input util getData with the correct parameters', () => {
-				(getDataStub.calledWithExactly(undefined, 'stdin', { passphrase: secret, data: encryptedData }))
+				(getDataStub.calledWithExactly(undefined, 'stdin', encryptedData))
 					.should.be.true();
 			});
 
