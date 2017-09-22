@@ -14,6 +14,8 @@
  */
 import utils from '../../src/api/utils';
 
+afterEach(() => sandbox.restore());
+
 describe('api utils module', () => {
 	const POST = 'POST';
 	const defaultMethod = POST;
@@ -28,13 +30,8 @@ describe('api utils module', () => {
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
-		sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
+		sendRequestStub = sandbox.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
 	});
-
-	afterEach(() => {
-		sendRequestStub.restore();
-	});
-
 
 	describe('exports', () => {
 		it('should be an object', () => {
@@ -175,8 +172,8 @@ describe('api utils module', () => {
 				key5: 'value 5',
 				key6: 6,
 			};
-			getDataFnStub = sinon.stub().returns(Object.assign({}, getDataFnResult));
-			constructRequestDataStub = sinon.stub()
+			getDataFnStub = sandbox.stub().returns(Object.assign({}, getDataFnResult));
+			constructRequestDataStub = sandbox.stub()
 				.returns(Object.assign({}, constructRequestDataResult));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreConstructRequestDataStub = utils.__set__('constructRequestData', constructRequestDataStub);
@@ -281,7 +278,7 @@ describe('api utils module', () => {
 	describe('#optionallyCallCallback', () => {
 		const { optionallyCallCallback } = utils;
 		const result = 'result';
-		const spy = sinon.spy();
+		const spy = sandbox.spy();
 
 		it('should return the result with a callback', () => {
 			const returnValue = optionallyCallCallback(spy, result);

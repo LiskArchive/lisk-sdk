@@ -16,6 +16,8 @@ import multisignature from '../../src/transactions/multisignature';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('multisignature module', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
@@ -32,11 +34,7 @@ describe('multisignature module', () => {
 	let getTimeWithOffsetStub;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-	});
-
-	afterEach(() => {
-		getTimeWithOffsetStub.restore();
+		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('exports', () => {

@@ -16,6 +16,8 @@ import delegate from '../../src/transactions/delegate';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('delegate module', () => {
 	describe('exports', () => {
 		it('should be an object', () => {
@@ -41,11 +43,7 @@ describe('delegate module', () => {
 		let delegateTransaction;
 
 		beforeEach(() => {
-			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-		});
-
-		afterEach(() => {
-			getTimeWithOffsetStub.restore();
+			getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
 		describe('without second secret', () => {
