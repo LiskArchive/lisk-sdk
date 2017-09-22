@@ -38,7 +38,7 @@ const createStreamStub = on => ({
 describe('input utils', () => {
 	const passphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const badPassphrase = `${passphrase.slice(0, -1)}y`;
-	const displayName = 'your secret passphrase';
+	const displayName = 'your custom passphrase';
 	const envVariable = 'TEST_PASSPHRASE';
 	const path = '/path/to/my/file.txt';
 	const data = `${passphrase}\nsome other stuff on a new line`;
@@ -161,53 +161,78 @@ describe('input utils', () => {
 		it('should maintain the UI parent if already there', () => {
 			const parent = { something: 'vorpal' };
 			vorpal.ui.parent = parent;
-			return getPassphraseFromPrompt(vorpal, displayName)
+			return getPassphraseFromPrompt(vorpal, { displayName })
 				.then(() => {
 					(vorpal.ui).should.have.property('parent').and.be.equal(parent);
 				});
 		});
 
 		it('should set the UI parent on the vorpal instance', () => {
-			return getPassphraseFromPrompt(vorpal, displayName)
+			return getPassphraseFromPrompt(vorpal, { displayName })
 				.then(() => {
 					(vorpal.ui).should.have.property('parent').and.be.equal(vorpal);
 				});
 		});
 
-		it('should prompt for the pass phrase twice', () => {
-			return getPassphraseFromPrompt(vorpal, displayName)
+		it('should prompt for the pass phrase once', () => {
+			return getPassphraseFromPrompt(vorpal, { displayName })
 				.then(() => {
-					(promptStub.calledTwice).should.be.true();
+					(promptStub.calledOnce).should.be.true();
 				});
 		});
 
+		it('should resolve to the provided passphrase', () => {
+			return (getPassphraseFromPrompt(vorpal, { displayName }))
+				.should.be.fulfilledWith(passphrase);
+		});
+
 		it('should use options', () => {
-			return getPassphraseFromPrompt(vorpal, displayName)
+			return getPassphraseFromPrompt(vorpal, { displayName })
 				.then(() => {
 					(promptStub.calledWithExactly({
 						type: 'password',
 						name: 'passphrase',
-						message: 'Please enter your secret passphrase: ',
+						message: 'Please enter your custom passphrase: ',
 					})).should.be.true();
 				});
 		});
 
-		it('should resolve to the passphrase if successfully repeated', () => {
-			return (getPassphraseFromPrompt(vorpal, displayName))
-				.should.be.fulfilledWith(passphrase);
-		});
+		describe('with repetition', () => {
+			it('should prompt for the pass phrase twice', () => {
+				return getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat: true })
+					.then(() => {
+						(promptStub.calledTwice).should.be.true();
+					});
+			});
 
-		it('should complain if the pass phrase is not successfully repeated', () => {
-			promptStub.onSecondCall().resolves(badPassphrase);
-			return (getPassphraseFromPrompt(vorpal, displayName))
-				.should.be.rejectedWith({ message: 'Your secret passphrase was not successfully repeated.' });
+			it('should resolve to the passphrase if successfully repeated', () => {
+				return (getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat: true }))
+					.should.be.fulfilledWith(passphrase);
+			});
+
+			it('should use options', () => {
+				return getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat: true })
+					.then(() => {
+						(promptStub.secondCall.calledWithExactly({
+							type: 'password',
+							name: 'passphrase',
+							message: 'Please re-enter your custom passphrase: ',
+						})).should.be.true();
+					});
+			});
+
+			it('should complain if the pass phrase is not successfully repeated', () => {
+				promptStub.onSecondCall().resolves(badPassphrase);
+				return (getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat: true }))
+					.should.be.rejectedWith({ message: 'Your custom passphrase was not successfully repeated.' });
+			});
 		});
 	});
 
 	describe('#getPassphraseFromEnvVariable', () => {
 		it('should complain if the environmental variable is not set', () => {
 			delete process.env[envVariable];
-			return (getPassphraseFromEnvVariable(envVariable, displayName)).should.be.rejectedWith('Environmental variable for your secret passphrase not set.');
+			return (getPassphraseFromEnvVariable(envVariable, displayName)).should.be.rejectedWith('Environmental variable for your custom passphrase not set.');
 		});
 
 		it('should resolve to the passphrase if the environmental variable is set', () => {
@@ -270,19 +295,19 @@ describe('input utils', () => {
 		});
 
 		it('should complain about an unknown source', () => {
-			return (getPassphraseFromSource('unknown', displayName)).should.be.rejectedWith('Your secret passphrase was provided with an unknown source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.');
+			return (getPassphraseFromSource('unknown', { displayName })).should.be.rejectedWith('Your custom passphrase was provided with an unknown source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt.');
 		});
 
 		it('should get passphrase from an environmental variable', () => {
-			return (getPassphraseFromSource(`env:${envVariable}`, displayName)).should.be.fulfilledWith(passphrase);
+			return (getPassphraseFromSource(`env:${envVariable}`, { displayName })).should.be.fulfilledWith(passphrase);
 		});
 
 		it('should get passphrase from a file', () => {
-			return (getPassphraseFromSource(`file:${path}`, displayName)).should.be.fulfilledWith(passphrase);
+			return (getPassphraseFromSource(`file:${path}`, { displayName })).should.be.fulfilledWith(passphrase);
 		});
 
 		it('should resolve to a plaintext passphrase', () => {
-			return (getPassphraseFromSource(`pass:${passphrase}`, displayName)).should.be.fulfilledWith(passphrase);
+			return (getPassphraseFromSource(`pass:${passphrase}`, { displayName })).should.be.fulfilledWith(passphrase);
 		});
 	});
 

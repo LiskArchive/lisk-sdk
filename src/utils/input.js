@@ -66,7 +66,7 @@ export const createPromptOptions = message => ({
 	message,
 });
 
-export const getPassphraseFromPrompt = (vorpal, displayName) => {
+export const getPassphraseFromPrompt = (vorpal, { displayName, shouldRepeat }) => {
 	// IMPORTANT: prompt will exit if UI has no parent, but calling
 	// ui.attach(vorpal) will start a prompt, which will complain when we call
 	// vorpal.activeCommand.prompt(). Therefore set the parent directly.
@@ -74,15 +74,23 @@ export const getPassphraseFromPrompt = (vorpal, displayName) => {
 		// eslint-disable-next-line no-param-reassign
 		vorpal.ui.parent = vorpal;
 	}
+
+	const handleSecondPassphrase = passphrase => vorpal.activeCommand.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
+		.then(({ passphrase: passphraseRepeat }) => {
+			if (passphrase !== passphraseRepeat) {
+				throw new Error(getPassphraseVerificationFailError(displayName));
+			}
+			return passphrase;
+		});
+
+	const handleFirstPassphrase = ({ passphrase }) => (
+		shouldRepeat
+			? handleSecondPassphrase(passphrase)
+			: passphrase
+	);
+
 	return vorpal.activeCommand.prompt(createPromptOptions(`Please enter ${displayName}: `))
-		.then(({ passphrase }) => vorpal.activeCommand.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
-			.then(({ passphrase: passphraseRepeat }) => {
-				if (passphrase !== passphraseRepeat) {
-					throw new Error(getPassphraseVerificationFailError(displayName));
-				}
-				return passphrase;
-			}),
-		);
+		.then(handleFirstPassphrase);
 };
 
 export const getPassphraseFromEnvVariable = async (key, displayName) => {
@@ -121,7 +129,7 @@ export const getPassphraseFromFile = path => new Promise((resolve, reject) => {
 		.on('line', handleLine);
 });
 
-export const getPassphraseFromSource = async (source, displayName) => {
+export const getPassphraseFromSource = async (source, { displayName }) => {
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
@@ -136,10 +144,11 @@ export const getPassphraseFromSource = async (source, displayName) => {
 	}
 };
 
-export const getPassphrase = async (vorpal, passphraseSource, passphrase, displayName = 'your secret passphrase') => {
+export const getPassphrase = async (vorpal, passphraseSource, passphrase, options) => {
+	const optionsWithDefaults = Object.assign({ displayName: 'your secret passphrase' }, options);
 	if (passphrase) return passphrase;
-	if (!passphraseSource) return getPassphraseFromPrompt(vorpal, displayName);
-	return getPassphraseFromSource(passphraseSource, displayName);
+	if (!passphraseSource) return getPassphraseFromPrompt(vorpal, optionsWithDefaults);
+	return getPassphraseFromSource(passphraseSource, optionsWithDefaults);
 };
 
 export const getFirstLineFromString = multilineString => (
