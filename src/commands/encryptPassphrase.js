@@ -16,9 +16,11 @@
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
+import { createErrorHandler } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
+	getFirstLineFromString,
 } from '../utils/input';
 
 const PASSWORD_DISPLAY_NAME = 'your password';
@@ -28,18 +30,8 @@ const description = `Encrypt your secret passphrase under a password.
 	Example: encrypt passphrase
 `;
 
-const handleError = ({ message }) => ({ error: `Could not encrypt passphrase: ${message}` });
-
 const handleInput = ([passphrase, password]) =>
 	cryptoModule.encryptPassphrase(passphrase, password);
-
-const getPasswordFromStdIn = ({ data }) => (
-	data
-		? {
-			passphrase: data.split(/[\r\n]+/)[0],
-		}
-		: {}
-);
 
 const encryptPassphrase = vorpal => ({ options }) => {
 	const passphraseSource = options.passphrase;
@@ -49,18 +41,18 @@ const encryptPassphrase = vorpal => ({ options }) => {
 		passphraseIsRequired: passphraseSource === 'stdin',
 		dataIsRequired: passwordSource === 'stdin',
 	})
-		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn)
+		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true })
 			.then(passphrase => getPassphrase(
 				vorpal,
 				passwordSource,
-				getPasswordFromStdIn(stdIn),
-				PASSWORD_DISPLAY_NAME,
+				getFirstLineFromString(stdIn.data),
+				{ displayName: PASSWORD_DISPLAY_NAME, shouldRepeat: true },
 			)
 				.then(password => [passphrase, password]),
 			),
 		)
 		.then(handleInput)
-		.catch(handleError)
+		.catch(createErrorHandler('Could not encrypt passphrase'))
 		.then(printResult(vorpal, options));
 };
 
