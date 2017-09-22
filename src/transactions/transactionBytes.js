@@ -14,7 +14,7 @@
  */
 import bignum from 'browserify-bignum';
 
-const byteSizes = {
+const BYTESIZES = {
 	TYPE: 1,
 	TIMESTAMP: 4,
 	MULTISIGNATURE_PUBLICKEY: 32,
@@ -25,114 +25,112 @@ const byteSizes = {
 	DATA: 64,
 };
 
+
+/**
+ * @method isSendTransaction
+ * @return {Buffer}
+ */
+
+function isSendTransaction(asset) {
+	return asset.data
+		? Buffer.from(asset.data, 'utf8')
+		: Buffer.alloc(0);
+}
+
+/**
+ * @method isSignatureTransaction
+ * @return {Buffer}
+ */
+
+function isSignatureTransaction(asset) {
+	return Buffer.from(asset.signature.publicKey, 'hex');
+}
+
+/**
+ * @method isDelegateTransaction
+ * @return {Buffer}
+ */
+
+function isDelegateTransaction(asset) {
+	return Buffer.from(asset.delegate.username, 'utf8');
+}
+
+/**
+ * @method isVoteTransaction
+ * @return {Buffer}
+ */
+
+function isVoteTransaction(asset) {
+	return Buffer.from(asset.votes.join(''), 'utf8');
+}
+
+/**
+ * @method isMultisignatureTransaction
+ * @return {Buffer}
+ */
+
+function isMultisignatureTransaction(asset) {
+	const multisigTransactionAsset = asset.multisignature;
+	const minBuffer = Buffer.alloc(1, multisigTransactionAsset.min);
+	const lifetimeBuffer = Buffer.alloc(1, multisigTransactionAsset.lifetime);
+	const keysgroupBuffer = Buffer.from(multisigTransactionAsset.keysgroup.join(''), 'utf8');
+
+	return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
+}
+
+/**
+ * @method isDappTransaction
+ * @return {Buffer}
+ */
+
+function isDappTransaction(asset) {
+	const dapp = asset.dapp;
+	const dappNameBuffer = Buffer.from(dapp.name, 'utf8');
+	const dappDescriptionBuffer = dapp.description ? Buffer.from(dapp.description, 'utf8') : Buffer.alloc(0);
+	const dappTagsBuffer = dapp.tags ? Buffer.from(dapp.tags) : Buffer.alloc(0);
+	const dappLinkBuffer = Buffer.from(dapp.link, 'utf8');
+	const dappIconBuffer = dapp.icon ? Buffer.from(dapp.icon) : Buffer.alloc(0);
+	const dappTypeBuffer = Buffer.alloc(4, dapp.type);
+	const dappCategoryBuffer = Buffer.alloc(4, dapp.category);
+
+	return Buffer.concat([
+		dappNameBuffer,
+		dappDescriptionBuffer,
+		dappTagsBuffer,
+		dappLinkBuffer,
+		dappIconBuffer,
+		dappTypeBuffer,
+		dappCategoryBuffer,
+	]);
+}
+
+/**
+ * @method isDappInTransferTransaction
+ * @return {Buffer}
+ */
+
+function isDappInTransferTransaction(asset) {
+	return Buffer.from(asset.inTransfer.dappId, 'utf8');
+}
+
+/**
+ * @method isDappOutTransferTransaction
+ * @return {Buffer}
+ */
+
+function isDappOutTransferTransaction(asset) {
+	const dappOutAppIdBuffer = Buffer.from(asset.outTransfer.dappId, 'utf8');
+	const dappOutTransactionIdBuffer = Buffer.from(asset.outTransfer.transactionId, 'utf8');
+
+	return Buffer.concat([dappOutAppIdBuffer, dappOutTransactionIdBuffer]);
+}
+
 /**
  * @method getAssetBytesHelper
  * @return {Buffer}
  */
 
 function getAssetBytesHelper(transaction) {
-	/**
-	 * @method isSendTransaction
-	 * @return {Buffer}
-	 */
-
-	function isSendTransaction() {
-		return transaction.asset.data
-			? Buffer.from(transaction.asset.data, 'utf8')
-			: Buffer.alloc(0);
-	}
-
-	/**
-	 * @method isSignatureTransaction
-	 * @return {Buffer}
-	 */
-
-	function isSignatureTransaction() {
-		return Buffer.from(transaction.asset.signature.publicKey, 'hex');
-	}
-
-	/**
-	 * @method isDelegateTransaction
-	 * @return {Buffer}
-	 */
-
-	function isDelegateTransaction() {
-		return Buffer.from(transaction.asset.delegate.username, 'utf8');
-	}
-
-	/**
-	 * @method isVoteTransaction
-	 * @return {Buffer}
-	 */
-
-	function isVoteTransaction() {
-		return Buffer.from(transaction.asset.votes.join(''));
-	}
-
-	/**
-	 * @method isMultisignatureTransaction
-	 * @return {Buffer}
-	 */
-
-	function isMultisignatureTransaction() {
-		const multisigTransactionAsset = transaction.asset.multisignature;
-		const minBuffer = Buffer.alloc(1);
-		minBuffer.writeInt8(multisigTransactionAsset.min);
-		const lifetimeBuffer = Buffer.alloc(1);
-		lifetimeBuffer.writeInt8(multisigTransactionAsset.lifetime);
-		const keysgroupBuffer = Buffer.from(multisigTransactionAsset.keysgroup.join(''));
-
-		return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
-	}
-
-	/**
-	 * @method isDappTransaction
-	 * @return {Buffer}
-	 */
-
-	function isDappTransaction() {
-		const dapp = transaction.asset.dapp;
-		const dappNameBuffer = Buffer.from(dapp.name);
-		const dappDescriptionBuffer = dapp.description ? Buffer.from(dapp.description) : Buffer.from('');
-		const dappTagsBuffer = dapp.tags ? Buffer.from(dapp.tags) : Buffer.from('');
-		const dappLinkBuffer = Buffer.from(dapp.link);
-		const dappIconBuffer = dapp.icon ? Buffer.from(dapp.icon) : Buffer.from('');
-		const dappTypeBuffer = Buffer.alloc(4);
-		dappTypeBuffer.writeInt8(dapp.type);
-		const dappCategoryBuffer = Buffer.alloc(4);
-		dappCategoryBuffer.writeInt8(dapp.category);
-
-		return Buffer.concat([
-			dappNameBuffer,
-			dappDescriptionBuffer,
-			dappTagsBuffer, dappLinkBuffer,
-			dappIconBuffer,
-			dappTypeBuffer,
-			dappCategoryBuffer,
-		]);
-	}
-
-	/**
-	 * @method isDappInTransferTransaction
-	 * @return {Buffer}
-	 */
-
-	function isDappInTransferTransaction() {
-		return Buffer.from(transaction.asset.inTransfer.dappId);
-	}
-
-	/**
-	 * @method isDappOutTransferTransaction
-	 * @return {Buffer}
-	 */
-
-	function isDappOutTransferTransaction() {
-		const dappOutAppIdBuffer = Buffer.from(transaction.asset.outTransfer.dappId);
-		const dappOutTransactionIdBuffer = Buffer.from(transaction.asset.outTransfer.transactionId);
-
-		return Buffer.concat([dappOutAppIdBuffer, dappOutTransactionIdBuffer]);
-	}
-
 	const transactionType = {
 		0: isSendTransaction,
 		1: isSignatureTransaction,
@@ -144,7 +142,7 @@ function getAssetBytesHelper(transaction) {
 		7: isDappOutTransferTransaction,
 	};
 
-	return transactionType[transaction.type]();
+	return transactionType[transaction.type](transaction.asset);
 }
 
 /**
@@ -157,14 +155,13 @@ function getAssetBytesHelper(transaction) {
 
 export class Transaction {
 	constructor(transaction) {
-		this.byteSizes = byteSizes;
 		this.transaction = transaction;
 
-		this.transactionType = Buffer.alloc(this.byteSizes.TYPE);
+		this.transactionType = Buffer.alloc(BYTESIZES.TYPE);
 		this.transactionType.writeInt8(transaction.type);
 
-		this.transactionTimestamp = Buffer.alloc(this.byteSizes.TIMESTAMP);
-		this.transactionTimestamp.writeIntLE(transaction.timestamp, 0, this.byteSizes.TIMESTAMP);
+		this.transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
+		this.transactionTimestamp.writeIntLE(transaction.timestamp, 0, BYTESIZES.TIMESTAMP);
 
 		this.transactionSenderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
 		this.transactionRequesterPublicKey = transaction.requesterPublicKey
@@ -175,12 +172,12 @@ export class Transaction {
 			? Buffer.from(
 				bignum(
 					transaction.recipientId.slice(0, -1),
-				).toBuffer({ size: this.byteSizes.RECIPIENT_ID }),
+				).toBuffer({ size: BYTESIZES.RECIPIENT_ID }),
 			)
-			: Buffer.alloc(this.byteSizes.RECIPIENT_ID).fill(0);
+			: Buffer.alloc(BYTESIZES.RECIPIENT_ID).fill(0);
 
-		this.transactionAmount = Buffer.alloc(this.byteSizes.AMOUNT);
-		this.transactionAmount.writeInt32LE(transaction.amount, 0, this.byteSizes.AMOUNT);
+		this.transactionAmount = Buffer.alloc(BYTESIZES.AMOUNT);
+		this.transactionAmount.writeInt32LE(transaction.amount, 0, BYTESIZES.AMOUNT);
 
 		this.transactionAssetData = this.getAssetBytes(transaction);
 
@@ -244,9 +241,9 @@ export class Transaction {
 
 	checkTransaction() {
 		if (this.transaction.type === 0 && this.transaction.asset.data) {
-			if (this.transaction.asset.data.length > byteSizes.DATA
-				|| this.transactionAssetData.length > byteSizes.DATA) {
-				throw new Error(`Transaction asset data exceeds size of ${byteSizes.DATA}.`);
+			if (this.transaction.asset.data.length > BYTESIZES.DATA
+				|| this.transactionAssetData.length > BYTESIZES.DATA) {
+				throw new Error(`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`);
 			}
 		}
 	}
