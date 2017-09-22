@@ -14,7 +14,7 @@
  */
 import bignum from 'browserify-bignum';
 
-const BYTESIZES = {
+export const BYTESIZES = {
 	TYPE: 1,
 	TIMESTAMP: 4,
 	MULTISIGNATURE_PUBLICKEY: 32,
@@ -27,11 +27,11 @@ const BYTESIZES = {
 
 /**
  * @method getAssetDataForSendTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForSendTransaction(asset) {
+export function getAssetDataForSendTransaction(asset) {
 	return asset.data
 		? Buffer.from(asset.data, 'utf8')
 		: Buffer.alloc(0);
@@ -39,41 +39,41 @@ function getAssetDataForSendTransaction(asset) {
 
 /**
  * @method getAssetDataForSignatureTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForSignatureTransaction(asset) {
+export function getAssetDataForSignatureTransaction(asset) {
 	return Buffer.from(asset.signature.publicKey, 'hex');
 }
 
 /**
  * @method getAssetDataForDelegateTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForDelegateTransaction(asset) {
+export function getAssetDataForDelegateTransaction(asset) {
 	return Buffer.from(asset.delegate.username, 'utf8');
 }
 
 /**
  * @method getAssetDataForVotesTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForVotesTransaction(asset) {
+export function getAssetDataForVotesTransaction(asset) {
 	return Buffer.from(asset.votes.join(''), 'utf8');
 }
 
 /**
  * @method getAssetDataForMultisignatureTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForMultisignatureTransaction(asset) {
+export function getAssetDataForMultisignatureTransaction(asset) {
 	const multisigTransactionAsset = asset.multisignature;
 	const minBuffer = Buffer.alloc(1, multisigTransactionAsset.min);
 	const lifetimeBuffer = Buffer.alloc(1, multisigTransactionAsset.lifetime);
@@ -84,11 +84,11 @@ function getAssetDataForMultisignatureTransaction(asset) {
 
 /**
  * @method getAssetDataForDappTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForDappTransaction(asset) {
+export function getAssetDataForDappTransaction(asset) {
 	const dapp = asset.dapp;
 	const dappNameBuffer = Buffer.from(dapp.name, 'utf8');
 	const dappDescriptionBuffer = dapp.description ? Buffer.from(dapp.description, 'utf8') : Buffer.alloc(0);
@@ -111,21 +111,21 @@ function getAssetDataForDappTransaction(asset) {
 
 /**
  * @method getAssetDataForDappInTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForDappInTransaction(asset) {
+export function getAssetDataForDappInTransaction(asset) {
 	return Buffer.from(asset.inTransfer.dappId, 'utf8');
 }
 
 /**
  * @method getASsetDataForDappOutTransaction
- * @param transactionAsset {Object}
+ * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-function getAssetDataForDappOutTransaction(asset) {
+export function getAssetDataForDappOutTransaction(asset) {
 	const dappOutAppIdBuffer = Buffer.from(asset.outTransfer.dappId, 'utf8');
 	const dappOutTransactionIdBuffer = Buffer.from(asset.outTransfer.transactionId, 'utf8');
 
@@ -134,11 +134,11 @@ function getAssetDataForDappOutTransaction(asset) {
 
 /**
  * @method getAssetBytesHelper
- * @param transaction {Object}
+ * @param {Object} transaction
  * @return {Buffer}
  */
 
-function getAssetBytesHelper(transaction) {
+export function getAssetBytesHelper(transaction) {
 	const assetDataGetters = {
 		0: getAssetDataForSendTransaction,
 		1: getAssetDataForSignatureTransaction,
@@ -154,98 +154,70 @@ function getAssetBytesHelper(transaction) {
 }
 
 /**
-* A utility class to get transaction byteSizes
-*
-* @class Transaction
-* @param {Object} transaction
-* @constructor
-*/
+ * @method checkTransaction
+ * @throws
+ */
 
-export class Transaction {
-	constructor(transaction) {
-		this.transaction = transaction;
-
-		this.transactionType = Buffer.alloc(BYTESIZES.TYPE);
-		this.transactionType.writeInt8(transaction.type);
-
-		this.transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		this.transactionTimestamp.writeIntLE(transaction.timestamp, 0, BYTESIZES.TIMESTAMP);
-
-		this.transactionSenderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
-		this.transactionRequesterPublicKey = transaction.requesterPublicKey
-			? Buffer.from(transaction.requesterPublicKey, 'hex')
-			: Buffer.alloc(0);
-
-		this.transactionRecipientID = transaction.recipientId
-			? Buffer.from(
-				bignum(
-					transaction.recipientId.slice(0, -1),
-				).toBuffer({ size: BYTESIZES.RECIPIENT_ID }),
-			)
-			: Buffer.alloc(BYTESIZES.RECIPIENT_ID).fill(0);
-
-		this.transactionAmount = Buffer.alloc(BYTESIZES.AMOUNT);
-		this.transactionAmount.writeInt32LE(transaction.amount, 0, BYTESIZES.AMOUNT);
-
-		this.transactionAssetData = getAssetBytesHelper(transaction);
-
-		this.transactionSignature = transaction.signature
-			? Buffer.from(transaction.signature, 'hex')
-			: Buffer.alloc(0);
-
-		this.transactionSecondSignature = transaction.signSignature
-			? Buffer.from(transaction.signSignature, 'hex')
-			: Buffer.alloc(0);
-
-		this.checkTransaction();
-		return this;
-	}
-
-	/**
-	 * @method get transactionBytes
-	 * @return {Buffer}
-	 */
-
-	get transactionBytes() {
-		return this.concatTransactionBytes();
-	}
-
-	/**
-	 * @method concatTransactionBytes
-	 * @private
-	 * @return {Buffer}
-	 */
-
-	concatTransactionBytes() {
-		return Buffer.concat([
-			this.transactionType,
-			this.transactionTimestamp,
-			this.transactionSenderPublicKey,
-			this.transactionRequesterPublicKey,
-			this.transactionRecipientID,
-			this.transactionAmount,
-			this.transactionAssetData,
-			this.transactionSignature,
-			this.transactionSecondSignature,
-		]);
-	}
-
-	/**
-	 * @method checkTransaction
-	 * @throws
-	 * @return {}
-	 */
-
-	checkTransaction() {
-		if (this.transaction.type === 0 && this.transaction.asset.data) {
-			if (this.transaction.asset.data.length > BYTESIZES.DATA
-				|| this.transactionAssetData.length > BYTESIZES.DATA) {
-				throw new Error(`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`);
-			}
+export function checkTransaction(transaction) {
+	if (transaction.asset.data) {
+		if (transaction.asset.data.length > BYTESIZES.DATA) {
+			throw new Error(`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`);
 		}
 	}
 }
 
+/**
+* A utility class to get transaction byteSizes
+*
+* @class TransactionBytes
+* @param {Object} transaction
+* @constructor
+*/
+
 export function getTransactionBytes(transaction) {
-	return new Transaction(transaction).transactionBytes;
+	checkTransaction(transaction);
+
+	const transactionType = Buffer.alloc(BYTESIZES.TYPE);
+	transactionType.writeInt8(transaction.type);
+
+	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
+	transactionTimestamp.writeIntLE(transaction.timestamp, 0, BYTESIZES.TIMESTAMP);
+
+	const transactionSenderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+	const transactionRequesterPublicKey = transaction.requesterPublicKey
+		? Buffer.from(transaction.requesterPublicKey, 'hex')
+		: Buffer.alloc(0);
+
+	const transactionRecipientID = transaction.recipientId
+		? Buffer.from(
+			bignum(
+				transaction.recipientId.slice(0, -1),
+			).toBuffer({ size: BYTESIZES.RECIPIENT_ID }),
+		)
+		: Buffer.alloc(BYTESIZES.RECIPIENT_ID).fill(0);
+
+	const transactionAmount = Buffer.alloc(BYTESIZES.AMOUNT);
+	transactionAmount.writeInt32LE(transaction.amount, 0, BYTESIZES.AMOUNT);
+
+	const transactionAssetData = getAssetBytesHelper(transaction);
+
+	const transactionSignature = transaction.signature
+		? Buffer.from(transaction.signature, 'hex')
+		: Buffer.alloc(0);
+
+	const transactionSecondSignature = transaction.signSignature
+		? Buffer.from(transaction.signSignature, 'hex')
+		: Buffer.alloc(0);
+
+	return Buffer.concat([
+		transactionType,
+		transactionTimestamp,
+		transactionSenderPublicKey,
+		transactionRequesterPublicKey,
+		transactionRecipientID,
+		transactionAmount,
+		transactionAssetData,
+		transactionSignature,
+		transactionSecondSignature,
+	]);
 }

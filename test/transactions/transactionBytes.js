@@ -12,22 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionBytes } from '../../src/transactions/transactionBytes';
+import {
+	getTransactionBytes,
+	getAssetDataForSendTransaction,
+	getAssetDataForSignatureTransaction,
+	getAssetDataForDelegateTransaction,
+	getAssetDataForVotesTransaction,
+	getAssetDataForMultisignatureTransaction,
+	getAssetDataForDappTransaction,
+	getAssetDataForDappInTransaction,
+	getAssetDataForDappOutTransaction,
+	getAssetBytesHelper,
+	checkTransaction,
+} from '../../src/transactions/transactionBytes';
+
+const fixedPoint = 10 ** 8;
+const defaultRecipient = '58191285901858109L';
+const defaultSenderPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+const defaultSenderId = '18160565574430594874L';
+const defaultSenderSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+const defaultAmount = 1000;
+const defaultNoAmount = 0;
+const defaultTimestamp = 141738;
+const defaultTransactionId = '13987348420913138422';
+const defaultSignature = '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a';
+const defaultSecondSignature = 'b00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f';
+const defaultAppId = '1234213';
 
 describe('#getTransactionBytes', () => {
-	const fixedPoint = 10 ** 8;
-	const defaultRecipient = '58191285901858109L';
-	const defaultSenderPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const defaultSenderId = '18160565574430594874L';
-	const defaultSenderSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
-	const defaultAmount = 1000;
-	const defaultNoAmount = 0;
-	const defaultTimestamp = 141738;
-	const defaultTransactionId = '13987348420913138422';
-	const defaultSignature = '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a';
-	const defaultSecondSignature = 'b00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f';
-	const defaultAppId = '1234213';
-
 	describe('send transaction, type 0', () => {
 		let defaultTransaction;
 
@@ -91,6 +103,14 @@ describe('#getTransactionBytes', () => {
 			};
 			const expectedBuffer = Buffer.from('AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCV0DaoWM6J+ERJF2LrieK/vVCkoKDaZY5LJiiyWxF64JAM68qo00FT3oAwAAAAAAAGGKVJdSEurZPfjIgWVcYlVEvOjtfM3+bwikLuz7Gt69BRMHvlAUuwUWF7r3gV1Q9iEp5wkYGQNh5dTdR5ZUGwo=', 'base64');
 			const transactionBytes = getTransactionBytes(multiSignatureTransaction);
+
+			(transactionBytes).should.be.eql(expectedBuffer);
+		});
+
+		it('should return Buffer of type 0 (send LSK) with additional properties', () => {
+			defaultTransaction.skip = false;
+			const expectedBuffer = Buffer.from('AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK', 'base64');
+			const transactionBytes = getTransactionBytes(defaultTransaction);
 
 			(transactionBytes).should.be.eql(expectedBuffer);
 		});
@@ -218,7 +238,7 @@ describe('#getTransactionBytes', () => {
 			id: defaultTransactionId,
 		};
 
-		it('should create correct transactionBytes from dapp transaction', () => {
+		it('should return Buffer of type 5 (register dapp) transaction', () => {
 			const expectedBuffer = Buffer.from('BaopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAAAAAAAAAAAABMaXNrIEd1ZXN0Ym9va1RoZSBvZmZpY2lhbCBMaXNrIGd1ZXN0Ym9va2d1ZXN0Ym9vayBtZXNzYWdlIHNpZGVjaGFpbmh0dHBzOi8vZ2l0aHViLmNvbS9NYXhLSy9ndWVzdGJvb2tEYXBwL2FyY2hpdmUvbWFzdGVyLnppcGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9NYXhLSy9ndWVzdGJvb2tEYXBwL21hc3Rlci9pY29uLnBuZwAAAAAAAAAAYYpUl1IS6tk9+MiBZVxiVUS86O18zf5vCKQu7Psa3r0FEwe+UBS7BRYXuveBXVD2ISnnCRgZA2Hl1N1HllQbCg==', 'base64');
 			const transactionBytes = getTransactionBytes(dappTransaction);
 
@@ -238,7 +258,7 @@ describe('#getTransactionBytes', () => {
 			signature: defaultSignature,
 			id: defaultTransactionId,
 		};
-		it('should create correct transactionBytes from inTransfer transaction', () => {
+		it('should return Buffer of type 6 (dapp inTransfer) transaction', () => {
 			const expectedBuffer = Buffer.from('BqopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAA6AMAAAAAAAAxMjM0MjEzYYpUl1IS6tk9+MiBZVxiVUS86O18zf5vCKQu7Psa3r0FEwe+UBS7BRYXuveBXVD2ISnnCRgZA2Hl1N1HllQbCg==', 'base64');
 			const transactionBytes = getTransactionBytes(inTransferTransction);
 
@@ -258,11 +278,43 @@ describe('#getTransactionBytes', () => {
 			signature: defaultSignature,
 			id: defaultTransactionId,
 		};
-		it('should create correct transactionBytes from outTransfer transaction', () => {
+		it('should return Buffer of type 7 (dapp outTransfer) transaction', () => {
 			const expectedBuffer = Buffer.from('B6opAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAAAxMjM0MjEzMTM5ODczNDg0MjA5MTMxMzg0MjJhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK', 'base64');
 			const transactionBytes = getTransactionBytes(outTransferTransaction);
 
 			(transactionBytes).should.be.eql(expectedBuffer);
+		});
+	});
+});
+
+describe.only('getTransactionBytes helper functions', () => {
+	const defaultEmptyBuffer = Buffer.alloc(0);
+	describe('#getAssetDataForSendTransaction', () => {
+		it('should return Buffer of asset data', () => {
+			const expectedBuffer = Buffer.from('my data input', 'utf8');
+			const assetDataBuffer = getAssetDataForSendTransaction({
+				data: 'my data input',
+			});
+
+			(assetDataBuffer).should.be.eql(expectedBuffer);
+		});
+
+		it('should return empty Buffer for no asset data', () => {
+			const assetDataBuffer = getAssetDataForSendTransaction({});
+			(assetDataBuffer).should.be.eql(defaultEmptyBuffer);
+		});
+	});
+
+	describe('#getAssetDataForSignatureTransaction', () => {
+		it('should return Buffer of asset data', () => {
+			const expectedBuffer = Buffer.from(defaultSenderPublicKey, 'hex');
+			const assetSignaturesPublicKeyBuffer = getAssetDataForSignatureTransaction({
+				signature: {
+					publicKey: defaultSenderPublicKey,
+				},
+			});
+
+			(assetSignaturesPublicKeyBuffer).should.be.eql(expectedBuffer);
 		});
 	});
 });
