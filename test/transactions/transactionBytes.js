@@ -115,6 +115,16 @@ describe('#getTransactionBytes', () => {
 
 			(transactionBytes).should.be.eql(expectedBuffer);
 		});
+
+		it('should throw on missing required parameters', () => {
+			const requiredProperties = ['type', 'timestamp', 'senderPublicKey', 'amount'];
+
+			requiredProperties.forEach((parameter) => {
+				const defaultTransactionClone = Object.assign({}, defaultTransaction);
+				delete defaultTransactionClone[parameter];
+				(getTransactionBytes.bind(null, defaultTransactionClone)).should.throw(`${parameter} is a required parameter.`);
+			});
+		});
 	});
 
 	describe('signature transaction, type 1', () => {

@@ -198,6 +198,13 @@ export function checkTransaction(transaction) {
 	}
 }
 
+const REQUIRED_TRANSACTION_PARAMETER = [
+	'type',
+	'timestamp',
+	'senderPublicKey',
+	'amount',
+];
+
 /**
 * A utility class to get transaction byteSizes
 *
@@ -208,6 +215,7 @@ export function checkTransaction(transaction) {
 
 export function getTransactionBytes(transaction) {
 	checkTransaction(transaction);
+	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETER, transaction);
 
 	const transactionType = Buffer.alloc(BYTESIZES.TYPE);
 	transactionType.writeInt8(transaction.type);
