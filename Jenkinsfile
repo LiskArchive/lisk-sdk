@@ -29,6 +29,9 @@ node('lisky-01') {
     stage ('Run tests') {
       try {
         sh 'npm run test'
+        withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
+          sh 'snyk test'
+        }
       } catch (err) {
         currentBuild.result = 'FAILURE'
         error('Stopping build, tests failed')
