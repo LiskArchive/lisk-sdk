@@ -76,9 +76,6 @@ __private.getAddressByPublicKey = function (publicKey) {
  * @returns {block} block
  */
 Block.prototype.create = function (data) {
-
-	console.log('data.transactions');
-	console.log(transactions);
 	var transactions = data.transactions.sort(function compare (a, b) {
 		if (a.type === transactionTypes.MULTI && b.type !== transactionTypes.MULTI) { return 1; }
 		if (a.type !== transactionTypes.MULTI && b.type === transactionTypes.MULTI) { return -1; }

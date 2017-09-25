@@ -226,15 +226,13 @@ describe('block', function () {
 	var transactionStub;
 	var transactions = [];
 
-	before(function (done) {
+	before(function () {
 		transactionStub = {
 			getBytes: sinon.stub(),
 			objectNormalize: sinon.stub()
 		};
-		new Block(modulesLoader.scope.ed, modulesLoader.scope.schema, transactionStub, function (err, __block) {
-			block = __block;
-			done(err);
-		});
+
+		block = new Block(modulesLoader.scope.ed, modulesLoader.scope.schema, transactionStub);
 	});
 
 	beforeEach(function () {
@@ -299,7 +297,7 @@ describe('block', function () {
 					done();
 				});
 
-				it('in the middle', function (done) {
+				it('at the middle', function (done) {
 					var multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsBytypes[transactionTypes.MULTI]; });
 					transactions.splice.apply(transactions, [3, 0].concat(multipleMultisigTx));
 					data.transactions = transactions;
@@ -311,7 +309,7 @@ describe('block', function () {
 					done();
 				});
 
-				it('in the end', function (done) {
+				it('at the end', function (done) {
 					var multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsBytypes[transactionTypes.MULTI]; });
 					data.transactions = transactions.concat(multipleMultisigTx);
 
@@ -325,13 +323,9 @@ describe('block', function () {
 				it('shuffled', function (done) {
 					var multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsBytypes[transactionTypes.MULTI]; });
 					data.transactions = _.shuffle(transactions.concat(multipleMultisigTx));
-					console.log('data.transactions');
-					console.log(data.transactions.map(function (v) { return v.type;}));
 
 					var generatedBlock = block.create(data);
 
-					console.log('data.transactions');
-					console.log(data.transactions.map(function (v) { return v.type;}));
 					expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
 					expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
 					done();
