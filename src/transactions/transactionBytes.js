@@ -26,14 +26,32 @@ export const BYTESIZES = {
 };
 
 /**
+ * @method checkRequiredFields
+ * @param  {Array} requiredFields
+ * @param  {Object} data
+ * @throws
+ * @return {Boolean}
+ */
+
+export function checkRequiredFields(requiredFields, data) {
+	requiredFields.forEach((parameter) => {
+		const dataFields = Object.keys(data);
+		if (!dataFields.includes(parameter)) {
+			throw new Error(`${parameter} is a required parameter.`);
+		}
+	});
+	return true;
+}
+
+/**
  * @method getAssetDataForSendTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForSendTransaction(asset) {
-	return asset.data
-		? Buffer.from(asset.data, 'utf8')
+export function getAssetDataForSendTransaction({ data }) {
+	return data
+		? Buffer.from(data, 'utf8')
 		: Buffer.alloc(0);
 }
 
@@ -43,8 +61,10 @@ export function getAssetDataForSendTransaction(asset) {
  * @return {Buffer}
  */
 
-export function getAssetDataForSignatureTransaction(asset) {
-	return Buffer.from(asset.signature.publicKey, 'hex');
+export function getAssetDataForSignatureTransaction({ signature }) {
+	checkRequiredFields(['publicKey'], signature);
+	const { publicKey } = signature;
+	return Buffer.from(publicKey, 'hex');
 }
 
 /**
@@ -53,8 +73,10 @@ export function getAssetDataForSignatureTransaction(asset) {
  * @return {Buffer}
  */
 
-export function getAssetDataForDelegateTransaction(asset) {
-	return Buffer.from(asset.delegate.username, 'utf8');
+export function getAssetDataForDelegateTransaction({ delegate }) {
+	checkRequiredFields(['username'], delegate);
+	const { username } = delegate;
+	return Buffer.from(username, 'utf8');
 }
 
 /**
@@ -63,8 +85,11 @@ export function getAssetDataForDelegateTransaction(asset) {
  * @return {Buffer}
  */
 
-export function getAssetDataForVotesTransaction(asset) {
-	return Buffer.from(asset.votes.join(''), 'utf8');
+export function getAssetDataForVotesTransaction({ votes }) {
+	if (!Array.isArray(votes)) {
+		throw new Error('votes parameter must be an Array.');
+	}
+	return Buffer.from(votes.join(''), 'utf8');
 }
 
 /**
@@ -73,11 +98,12 @@ export function getAssetDataForVotesTransaction(asset) {
  * @return {Buffer}
  */
 
-export function getAssetDataForMultisignatureTransaction(asset) {
-	const multisigTransactionAsset = asset.multisignature;
-	const minBuffer = Buffer.alloc(1, multisigTransactionAsset.min);
-	const lifetimeBuffer = Buffer.alloc(1, multisigTransactionAsset.lifetime);
-	const keysgroupBuffer = Buffer.from(multisigTransactionAsset.keysgroup.join(''), 'utf8');
+export function getAssetDataForMultisignatureTransaction({ multisignature }) {
+	checkRequiredFields(['min', 'lifetime', 'keysgroup'], multisignature);
+	const { min, lifetime, keysgroup } = multisignature;
+	const minBuffer = Buffer.alloc(1, min);
+	const lifetimeBuffer = Buffer.alloc(1, lifetime);
+	const keysgroupBuffer = Buffer.from(keysgroup.join(''), 'utf8');
 
 	return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
 }
@@ -88,15 +114,17 @@ export function getAssetDataForMultisignatureTransaction(asset) {
  * @return {Buffer}
  */
 
-export function getAssetDataForDappTransaction(asset) {
-	const dapp = asset.dapp;
-	const dappNameBuffer = Buffer.from(dapp.name, 'utf8');
-	const dappDescriptionBuffer = dapp.description ? Buffer.from(dapp.description, 'utf8') : Buffer.alloc(0);
-	const dappTagsBuffer = dapp.tags ? Buffer.from(dapp.tags) : Buffer.alloc(0);
-	const dappLinkBuffer = Buffer.from(dapp.link, 'utf8');
-	const dappIconBuffer = dapp.icon ? Buffer.from(dapp.icon) : Buffer.alloc(0);
-	const dappTypeBuffer = Buffer.alloc(4, dapp.type);
-	const dappCategoryBuffer = Buffer.alloc(4, dapp.category);
+export function getAssetDataForDappTransaction({ dapp }) {
+	checkRequiredFields(['name', 'link', 'type', 'category'], dapp);
+	const { name, description, tags, link, icon, type, category } = dapp;
+	const dappNameBuffer = Buffer.from(name, 'utf8');
+	const dappLinkBuffer = Buffer.from(link, 'utf8');
+	const dappTypeBuffer = Buffer.alloc(4, type);
+	const dappCategoryBuffer = Buffer.alloc(4, category);
+
+	const dappDescriptionBuffer = description ? Buffer.from(description, 'utf8') : Buffer.alloc(0);
+	const dappTagsBuffer = tags ? Buffer.from(tags, 'utf8') : Buffer.alloc(0);
+	const dappIconBuffer = icon ? Buffer.from(icon, 'utf8') : Buffer.alloc(0);
 
 	return Buffer.concat([
 		dappNameBuffer,
@@ -115,8 +143,10 @@ export function getAssetDataForDappTransaction(asset) {
  * @return {Buffer}
  */
 
-export function getAssetDataForDappInTransaction(asset) {
-	return Buffer.from(asset.inTransfer.dappId, 'utf8');
+export function getAssetDataForDappInTransaction({ inTransfer }) {
+	checkRequiredFields(['dappId'], inTransfer);
+	const { dappId } = inTransfer;
+	return Buffer.from(dappId, 'utf8');
 }
 
 /**
@@ -125,9 +155,11 @@ export function getAssetDataForDappInTransaction(asset) {
  * @return {Buffer}
  */
 
-export function getAssetDataForDappOutTransaction(asset) {
-	const dappOutAppIdBuffer = Buffer.from(asset.outTransfer.dappId, 'utf8');
-	const dappOutTransactionIdBuffer = Buffer.from(asset.outTransfer.transactionId, 'utf8');
+export function getAssetDataForDappOutTransaction({ outTransfer }) {
+	checkRequiredFields(['dappId', 'transactionId'], outTransfer);
+	const { dappId, transactionId } = outTransfer;
+	const dappOutAppIdBuffer = Buffer.from(dappId, 'utf8');
+	const dappOutTransactionIdBuffer = Buffer.from(transactionId, 'utf8');
 
 	return Buffer.concat([dappOutAppIdBuffer, dappOutTransactionIdBuffer]);
 }
