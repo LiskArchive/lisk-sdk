@@ -1,5 +1,5 @@
-node('lisky-01'){
-	lock(resource: "lisky-01", inversePrecedence: true) {
+node('lisky-01') {
+	lock(resource: 'lisky-01', inversePrecedence: true) {
 		stage ('Prepare Workspace') {
 			deleteDir()
 			checkout scm
@@ -38,9 +38,19 @@ node('lisky-01'){
 			}
 		}
 
+		stage ('Run Snyk') {
+			try {
+				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
+					sh 'snyk test'
+				}
+			} catch (err) {
+				currentBuild.result = 'FAILURE'
+				error('Stopping build, snyk test failed')
+			}
+		}
+
 		stage ('Set milestone') {
 			milestone 1
-			deleteDir()
 			currentBuild.result = 'SUCCESS'
 		}
 	}
