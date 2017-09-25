@@ -13,9 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import fs from 'fs';
 import os from 'os';
-import fse from 'fs-extra';
 import defaultConfig from '../../defaultConfig.json';
+
+const fsUtils = require('../../src/utils/fs');
 
 const userConfig = {
 	name: 'custom',
@@ -35,8 +37,6 @@ const homedir = os.homedir();
 const configDirPath = `${homedir}/${configDirName}`;
 const configFilePath = `${configDirPath}/${configFileName}`;
 
-const jsonWriteOptions = { spaces: '\t' };
-
 // eslint-disable-next-line global-require, import/no-dynamic-require
 const reloadConfig = () => require(envPath).default;
 
@@ -53,7 +53,7 @@ const shouldNotWriteToTheConfigFile = (writeJsonSyncStub) => {
 };
 
 const shouldWriteTheDefaultConfigToTheConfigFile = (writeJsonSyncStub) => {
-	(writeJsonSyncStub.calledWithExactly(configFilePath, defaultConfig, jsonWriteOptions))
+	(writeJsonSyncStub.calledWithExactly(configFilePath, defaultConfig))
 		.should.be.true();
 };
 
@@ -92,11 +92,11 @@ describe('env util', () => {
 	beforeEach(() => {
 		delete require.cache[require.resolve(envPath)];
 
-		existsSyncStub = sandbox.stub(fse, 'existsSync');
-		mkdirSyncStub = sandbox.stub(fse, 'mkdirSync');
-		readJsonSyncStub = sandbox.stub(fse, 'readJsonSync');
-		writeJsonSyncStub = sandbox.stub(fse, 'writeJsonSync');
-		accessSyncStub = sandbox.stub(fse, 'accessSync');
+		existsSyncStub = sandbox.stub(fs, 'existsSync');
+		mkdirSyncStub = sandbox.stub(fs, 'mkdirSync');
+		readJsonSyncStub = sandbox.stub(fsUtils, 'readJsonSync');
+		writeJsonSyncStub = sandbox.stub(fsUtils, 'writeJsonSync');
+		accessSyncStub = sandbox.stub(fs, 'accessSync');
 		consoleWarnStub = sandbox.stub(console, 'warn');
 		consoleErrorStub = sandbox.stub(console, 'error');
 		processExitStub = sandbox.stub(process, 'exit');
@@ -188,7 +188,7 @@ describe('env util', () => {
 			describe('when lisky config file is not readable', () => {
 				beforeEach(() => {
 					readJsonSyncStub.throws('Cannot read file');
-					accessSyncStub.withArgs(configFilePath, fse.constants.R_OK).throws('Cannot read file');
+					accessSyncStub.withArgs(configFilePath, fs.constants.R_OK).throws('Cannot read file');
 					exportedConfig = reloadConfig();
 				});
 

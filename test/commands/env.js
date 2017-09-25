@@ -14,10 +14,13 @@
  *
  */
 import os from 'os';
-import fse from 'fs-extra';
 import set from '../../src/commands/set';
 import env from '../../src/commands/env';
 import configObj from '../../src/utils/env';
+import {
+	readJsonSync,
+	writeJsonSync,
+} from '../../src/utils/fs';
 import {
 	getCommands,
 	getRequiredArgs,
@@ -26,9 +29,9 @@ import {
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 const stringifyConfig = config => JSON.stringify(config, null, '\t');
-const writeConfig = config => fse.writeJsonSync(configFilePath, config, { spaces: '\t' });
+const writeConfig = config => writeJsonSync(configFilePath, config);
 
-const initialConfig = fse.readJsonSync(configFilePath);
+const initialConfig = readJsonSync(configFilePath);
 
 const defaultConfig = {
 	name: 'lisky',

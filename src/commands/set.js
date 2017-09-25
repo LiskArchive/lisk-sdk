@@ -14,8 +14,8 @@
  *
  */
 import os from 'os';
-import fse from 'fs-extra';
 import config from '../utils/env';
+import { writeJsonSync } from '../utils/fs';
 import liskInstance from '../utils/liskInstance';
 import { CONFIG_VARIABLES } from '../utils/constants';
 
@@ -28,9 +28,7 @@ const description = `Set configuration <variable> to <value>. Variables availabl
 
 const writeConfigToFile = (vorpal, newConfig) => {
 	try {
-		fse.writeJsonSync(configFilePath, newConfig, {
-			spaces: '\t',
-		});
+		writeJsonSync(configFilePath, newConfig);
 		return true;
 	} catch (e) {
 		vorpal.log(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);

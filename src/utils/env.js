@@ -14,8 +14,12 @@
  *
  */
 import os from 'os';
-import fse from 'fs-extra';
+import fs from 'fs';
 import defaultConfig from '../../defaultConfig.json';
+import {
+	readJsonSync,
+	writeJsonSync,
+} from '../utils/fs';
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';
@@ -43,35 +47,33 @@ const attemptCallWithError = (fn, code, error) => {
 };
 
 const attemptToCreateDir = (path) => {
-	const fn = fse.mkdirSync.bind(null, path);
+	const fn = fs.mkdirSync.bind(null, path);
 	return attemptCallWithWarning(fn, path);
 };
 
 const attemptToCreateFile = (path) => {
-	const fn = fse.writeJsonSync.bind(null, path, defaultConfig, {
-		spaces: '\t',
-	});
+	const fn = writeJsonSync.bind(null, path, defaultConfig);
 	return attemptCallWithWarning(fn, path);
 };
 
 const checkReadAccess = (path) => {
-	const fn = fse.accessSync.bind(null, path, fse.constants.R_OK);
+	const fn = fs.accessSync.bind(null, path, fs.constants.R_OK);
 	const error = `Could not read config file. Please check permissions for ${path} or delete the file so we can create a new one from defaults.`;
 	return attemptCallWithError(fn, 1, error);
 };
 
 const attemptToReadJsonFile = (path) => {
-	const fn = fse.readJsonSync.bind(null, path);
+	const fn = readJsonSync.bind(null, path);
 	const error = `Config file is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
 	return attemptCallWithError(fn, 2, error);
 };
 
 const getConfig = () => {
-	if (!fse.existsSync(configDirPath)) {
+	if (!fs.existsSync(configDirPath)) {
 		attemptToCreateDir(configDirPath);
 	}
 
-	if (!fse.existsSync(configFilePath)) {
+	if (!fs.existsSync(configFilePath)) {
 		attemptToCreateFile(configFilePath);
 		return defaultConfig;
 	}

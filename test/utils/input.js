@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import fs from 'fs';
 import readline from 'readline';
-import fse from 'fs-extra';
 import {
 	splitSource,
 	getStdIn,
@@ -243,7 +243,7 @@ describe('input utils', () => {
 		it('should complain if the file does not exist', () => {
 			const doesNotExistError = new Error(fileDoesNotExistErrorMessage);
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
-			sandbox.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fs, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.rejectedWith(`File at ${path} does not exist.`);
 		});
@@ -251,7 +251,7 @@ describe('input utils', () => {
 		it('should complain if the file cannot be read', () => {
 			const permissionError = new Error(fileCannotBeReadErrorMessage);
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
-			sandbox.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fs, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.rejectedWith(`File at ${path} could not be read.`);
 		});
@@ -259,14 +259,14 @@ describe('input utils', () => {
 		it('should complain if an unknown error occurs', () => {
 			const unknownError = new Error(unknownErrorMessage);
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
-			sandbox.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fs, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.rejectedWith(unknownErrorMessage);
 		});
 
 		it('should resolve to the first line of the file if the file can be read', () => {
 			streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(data)));
-			sandbox.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fs, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.fulfilledWith(passphrase);
 		});
@@ -277,7 +277,7 @@ describe('input utils', () => {
 
 		beforeEach(() => {
 			streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(data)));
-			sandbox.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fs, 'createReadStream').returns(streamStub);
 		});
 
 		it('should complain about an unknown source', () => {
@@ -328,7 +328,7 @@ describe('input utils', () => {
 		let readFileSyncStub;
 
 		beforeEach(() => {
-			readFileSyncStub = sandbox.stub(fse, 'readFileSync').returns(data);
+			readFileSyncStub = sandbox.stub(fs, 'readFileSync').returns(data);
 		});
 
 		it('should read a file', () => {
@@ -347,7 +347,7 @@ describe('input utils', () => {
 		let readFileSyncStub;
 
 		beforeEach(() => {
-			readFileSyncStub = sandbox.stub(fse, 'readFileSync').returns(data);
+			readFileSyncStub = sandbox.stub(fs, 'readFileSync').returns(data);
 		});
 
 		it('should complain if no data, no stdin and no source is provided', () => {
