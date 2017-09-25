@@ -16,6 +16,8 @@ import dapp from '../../src/transactions/dapp';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('dapp module', () => {
 	describe('exports', () => {
 		it('should be an object', () => {
@@ -55,12 +57,8 @@ describe('dapp module', () => {
 		let dappTransaction;
 
 		beforeEach(() => {
-			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+			getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 			options = Object.assign({}, defaultOptions);
-		});
-
-		afterEach(() => {
-			getTimeWithOffsetStub.restore();
 		});
 
 		describe('without second secret', () => {

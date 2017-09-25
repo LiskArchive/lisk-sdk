@@ -10,6 +10,7 @@
 		"eslint": "./node_modules/.bin/grunt eslint --verbose",
 		"jenkins": "./node_modules/.bin/grunt jenkins --verbose",
 		"build": "grunt",
+		"buildBrowsertest": "grunt build-browsertest",
 		"prepush": "grunt eslint && npm test",
 		"prepublishOnly": "npm run build"
 	},

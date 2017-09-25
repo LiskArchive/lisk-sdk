@@ -16,6 +16,8 @@ import transfer from '../../src/transactions/transfer';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('transfer module', () => {
 	const dappId = '1234213';
 	const secret = 'secret';
@@ -30,11 +32,7 @@ describe('transfer module', () => {
 	let getTimeWithOffsetStub;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-	});
-
-	afterEach(() => {
-		getTimeWithOffsetStub.restore();
+		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('exports', () => {

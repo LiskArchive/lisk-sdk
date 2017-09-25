@@ -3,6 +3,7 @@
 		"mocha": true
 	},
 	"globals": {
+		"sandbox": true,
 		"should": true,
 		"sinon": true
 	},

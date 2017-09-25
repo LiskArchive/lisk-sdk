@@ -39,6 +39,7 @@ should.use((_, Assertion) => {
 // See https://github.com/shouldjs/should.js/issues/41
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
+global.sandbox = sinon.sandbox.create();
 
 naclFactory.instantiate((nacl) => {
 	global.naclInstance = nacl;

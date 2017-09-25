@@ -16,6 +16,8 @@ import LiskAPI from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
 import utils from '../../src/api/utils';
 
+afterEach(() => sandbox.restore());
+
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
 	const testPort = 7000;
@@ -70,34 +72,25 @@ describe('Lisk API module', () => {
 	let LSK;
 
 	beforeEach(() => {
-		selectNodeStub = sinon
+		selectNodeStub = sandbox
 			.stub(privateApi, 'selectNode')
 			.returns(defaultSelectedNode);
-		sendRequestPromiseStub = sinon
+		sendRequestPromiseStub = sandbox
 			.stub(privateApi, 'sendRequestPromise')
 			.resolves(Object.assign({}, defaultRequestPromiseResult));
-		checkOptionsStub = sinon
+		checkOptionsStub = sandbox
 			.stub(utils, 'checkOptions')
 			.returns(Object.assign({}, defaultCheckedOptions));
-		handleTimestampIsInFutureFailuresStub = sinon
+		handleTimestampIsInFutureFailuresStub = sandbox
 			.stub(privateApi, 'handleTimestampIsInFutureFailures')
 			.resolves(Object.assign({}, defaultRequestPromiseResult.body));
-		handleSendRequestFailuresStub = sinon
+		handleSendRequestFailuresStub = sandbox
 			.stub(privateApi, 'handleSendRequestFailures');
-		getFullURLStub = sinon
+		getFullURLStub = sandbox
 			.stub(privateApi, 'getFullURL')
 			.returns(defaultUrl);
 
 		LSK = new LiskAPI();
-	});
-
-	afterEach(() => {
-		selectNodeStub.restore();
-		sendRequestPromiseStub.restore();
-		checkOptionsStub.restore();
-		handleTimestampIsInFutureFailuresStub.restore();
-		handleSendRequestFailuresStub.restore();
-		getFullURLStub.restore();
 	});
 
 	describe('LiskAPI()', () => {
@@ -482,15 +475,10 @@ describe('Lisk API module', () => {
 
 	describe('API methods', () => {
 		let callback;
-		let sendRequestStub;
 
 		beforeEach(() => {
 			callback = () => {};
-			sendRequestStub = sinon.stub(LSK, 'sendRequest');
-		});
-
-		afterEach(() => {
-			sendRequestStub.restore();
+			sandbox.stub(LSK, 'sendRequest');
 		});
 
 		describe('#getAccount', () => {
