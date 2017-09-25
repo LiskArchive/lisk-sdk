@@ -1,5 +1,5 @@
-node('lisky-01'){
-  lock(resource: "lisky-01", inversePrecedence: true) {
+node('lisky-01') {
+  lock(resource: 'lisky-01', inversePrecedence: true) {
     stage ('Prepare Workspace') {
       deleteDir()
       checkout scm
@@ -7,8 +7,7 @@ node('lisky-01'){
 
     stage ('Build Dependencies') {
       try {
-        sh '''#!/bin/bash
-        # Install Deps
+        sh '''
         npm install --verbose
         cp ~/.coveralls.yml-lisky .coveralls.yml
         '''
@@ -20,10 +19,7 @@ node('lisky-01'){
 
     stage ('Run Eslint') {
       try {
-        sh '''#!/bin/bash
-        # Run Eslint
-        grunt eslint
-        '''
+        sh 'grunt eslint'
       } catch (err) {
         currentBuild.result = 'FAILURE'
         error('Stopping build, tests failed')
@@ -32,10 +28,7 @@ node('lisky-01'){
 
     stage ('Run tests') {
       try {
-        sh '''#!/bin/bash
-        # Run Tests
-        npm run test
-        '''
+        sh 'npm run test'
       } catch (err) {
         currentBuild.result = 'FAILURE'
         error('Stopping build, tests failed')
