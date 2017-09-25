@@ -75,20 +75,12 @@ describe('encrypt message command', () => {
 		let printResultStub;
 
 		beforeEach(() => {
-			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
-			getPassphraseStub = sinon.stub(input, 'getPassphrase').resolves(secret);
-			getDataStub = sinon.stub(input, 'getData').resolves(data);
-			encryptStub = sinon.stub(cryptoModule, 'encryptMessage').returns(cryptoEncryptReturnObject);
-			printSpy = sinon.spy();
-			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
-		});
-
-		afterEach(() => {
-			getStdInStub.restore();
-			getPassphraseStub.restore();
-			getDataStub.restore();
-			encryptStub.restore();
-			printResultStub.restore();
+			getStdInStub = sandbox.stub(input, 'getStdIn').resolves({});
+			getPassphraseStub = sandbox.stub(input, 'getPassphrase').resolves(secret);
+			getDataStub = sandbox.stub(input, 'getData').resolves(data);
+			encryptStub = sandbox.stub(cryptoModule, 'encryptMessage').returns(cryptoEncryptReturnObject);
+			printSpy = sandbox.spy();
+			printResultStub = sandbox.stub(print, 'printResult').returns(printSpy);
 		});
 
 		describe('if no message source has been provided', () => {

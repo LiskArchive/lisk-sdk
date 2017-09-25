@@ -75,21 +75,13 @@ describe('decrypt passphrase command', () => {
 				cipher,
 				iv,
 			};
-			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
-			getPassphraseStub = sinon.stub(input, 'getPassphrase').resolves(password);
-			getDataStub = sinon.stub(input, 'getData').resolves(cipher);
+			getStdInStub = sandbox.stub(input, 'getStdIn').resolves({});
+			getPassphraseStub = sandbox.stub(input, 'getPassphrase').resolves(password);
+			getDataStub = sandbox.stub(input, 'getData').resolves(cipher);
 			cryptoDecryptPassphraseReturnObject = { passphrase };
-			decryptPassphraseStub = sinon.stub(cryptoModule, 'decryptPassphrase').returns(cryptoDecryptPassphraseReturnObject);
-			printSpy = sinon.spy();
-			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
-		});
-
-		afterEach(() => {
-			getStdInStub.restore();
-			getPassphraseStub.restore();
-			getDataStub.restore();
-			decryptPassphraseStub.restore();
-			printResultStub.restore();
+			decryptPassphraseStub = sandbox.stub(cryptoModule, 'decryptPassphrase').returns(cryptoDecryptPassphraseReturnObject);
+			printSpy = sandbox.spy();
+			printResultStub = sandbox.stub(print, 'printResult').returns(printSpy);
 		});
 
 		describe('if no passphrase source has been provided', () => {

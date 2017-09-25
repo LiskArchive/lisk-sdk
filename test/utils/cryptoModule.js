@@ -46,13 +46,9 @@ describe('cryptoModule', () => {
 		let encryptMessageWithSecretStub;
 
 		beforeEach(() => {
-			encryptMessageWithSecretStub = sinon
+			encryptMessageWithSecretStub = sandbox
 				.stub(lisk.crypto, 'encryptMessageWithSecret')
 				.returns(Object.assign({}, encryptMessageWithSecretResult));
-		});
-
-		afterEach(() => {
-			encryptMessageWithSecretStub.restore();
 		});
 
 		it('should use lisk-js encryptMessageWithSecret', () => {
@@ -89,13 +85,9 @@ describe('cryptoModule', () => {
 		let decryptMessageWithSecretStub;
 
 		beforeEach(() => {
-			decryptMessageWithSecretStub = sinon
+			decryptMessageWithSecretStub = sandbox
 				.stub(lisk.crypto, 'decryptMessageWithSecret')
 				.returns(decryptMessageWithSecretResult);
-		});
-
-		afterEach(() => {
-			decryptMessageWithSecretStub.restore();
 		});
 
 		it('should use lisk-js decryptMessageWithSecret', () => {
@@ -134,13 +126,9 @@ describe('cryptoModule', () => {
 				cipher: 'abcd',
 				iv: '0123',
 			};
-			encryptPassphraseWithPasswordStub = sinon
+			encryptPassphraseWithPasswordStub = sandbox
 				.stub(lisk.crypto, 'encryptPassphraseWithPassword')
 				.returns(Object.assign({}, encryptPassphraseWithPasswordResult));
-		});
-
-		afterEach(() => {
-			encryptPassphraseWithPasswordStub.restore();
 		});
 
 		it('should use lisk-js encryptPassphraseWithPassword', () => {
@@ -174,13 +162,9 @@ describe('cryptoModule', () => {
 		let decryptPassphraseWithPasswordStub;
 
 		beforeEach(() => {
-			decryptPassphraseWithPasswordStub = sinon
+			decryptPassphraseWithPasswordStub = sandbox
 				.stub(lisk.crypto, 'decryptPassphraseWithPassword')
 				.returns(passphrase);
-		});
-
-		afterEach(() => {
-			decryptPassphraseWithPasswordStub.restore();
 		});
 
 		it('should use lisk-js decryptPassphraseWithPassword', () => {
@@ -215,13 +199,9 @@ describe('cryptoModule', () => {
 				publicKey: '7980b6fcc57907cca971b80b764775b37b9278aad348dbbe608a378e899e7978',
 				privateKey: 'b6a2b12beb4179538bfb42423cce2e98ccdebcc684145ba977f2f80630eb278e7980b6fcc57907cca971b80b764775b37b9278aad348dbbe608a378e899e7978',
 			};
-			getKeysStub = sinon
+			getKeysStub = sandbox
 				.stub(lisk.crypto, 'getKeys')
 				.returns(keys);
-		});
-
-		afterEach(() => {
-			getKeysStub.restore();
 		});
 
 		it('should use lisk-js getKeys', () => {

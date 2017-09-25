@@ -56,7 +56,7 @@ describe('input utils', () => {
 	});
 
 	beforeEach(() => {
-		promptStub = sinon.stub().resolves({ passphrase });
+		promptStub = sandbox.stub().resolves({ passphrase });
 		vorpal = {
 			activeCommand: {
 				prompt: promptStub,
@@ -106,11 +106,7 @@ describe('input utils', () => {
 		let createInterfaceStub;
 
 		beforeEach(() => {
-			createInterfaceStub = sinon.stub(readline, 'createInterface');
-		});
-
-		afterEach(() => {
-			createInterfaceStub.restore();
+			createInterfaceStub = sandbox.stub(readline, 'createInterface');
 		});
 
 		describe('if neither passphrase nor data is requested', () => {
@@ -243,16 +239,11 @@ describe('input utils', () => {
 
 	describe('#getPassphraseFromFile', () => {
 		let streamStub;
-		let createReadStreamStub;
-
-		afterEach(() => {
-			createReadStreamStub.restore();
-		});
 
 		it('should complain if the file does not exist', () => {
 			const doesNotExistError = new Error(fileDoesNotExistErrorMessage);
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(doesNotExistError));
-			createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fse, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.rejectedWith(`File at ${path} does not exist.`);
 		});
@@ -260,7 +251,7 @@ describe('input utils', () => {
 		it('should complain if the file cannot be read', () => {
 			const permissionError = new Error(fileCannotBeReadErrorMessage);
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(permissionError));
-			createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fse, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.rejectedWith(`File at ${path} could not be read.`);
 		});
@@ -268,14 +259,14 @@ describe('input utils', () => {
 		it('should complain if an unknown error occurs', () => {
 			const unknownError = new Error(unknownErrorMessage);
 			streamStub = createStreamStub((type, callback) => type === 'error' && callback(unknownError));
-			createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fse, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.rejectedWith(unknownErrorMessage);
 		});
 
 		it('should resolve to the first line of the file if the file can be read', () => {
 			streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(data)));
-			createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
+			sandbox.stub(fse, 'createReadStream').returns(streamStub);
 
 			return (getPassphraseFromFile(path)).should.be.fulfilledWith(passphrase);
 		});
@@ -283,15 +274,10 @@ describe('input utils', () => {
 
 	describe('#getPassphraseFromSource', () => {
 		let streamStub;
-		let createReadStreamStub;
 
 		beforeEach(() => {
 			streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(data)));
-			createReadStreamStub = sinon.stub(fse, 'createReadStream').returns(streamStub);
-		});
-
-		afterEach(() => {
-			createReadStreamStub.restore();
+			sandbox.stub(fse, 'createReadStream').returns(streamStub);
 		});
 
 		it('should complain about an unknown source', () => {
@@ -342,11 +328,7 @@ describe('input utils', () => {
 		let readFileSyncStub;
 
 		beforeEach(() => {
-			readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(data);
-		});
-
-		afterEach(() => {
-			readFileSyncStub.restore();
+			readFileSyncStub = sandbox.stub(fse, 'readFileSync').returns(data);
 		});
 
 		it('should read a file', () => {
@@ -365,11 +347,7 @@ describe('input utils', () => {
 		let readFileSyncStub;
 
 		beforeEach(() => {
-			readFileSyncStub = sinon.stub(fse, 'readFileSync').returns(data);
-		});
-
-		afterEach(() => {
-			readFileSyncStub.restore();
+			readFileSyncStub = sandbox.stub(fse, 'readFileSync').returns(data);
 		});
 
 		it('should complain if no data, no stdin and no source is provided', () => {

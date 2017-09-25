@@ -92,25 +92,14 @@ describe('env util', () => {
 	beforeEach(() => {
 		delete require.cache[require.resolve(envPath)];
 
-		existsSyncStub = sinon.stub(fse, 'existsSync');
-		mkdirSyncStub = sinon.stub(fse, 'mkdirSync');
-		readJsonSyncStub = sinon.stub(fse, 'readJsonSync');
-		writeJsonSyncStub = sinon.stub(fse, 'writeJsonSync');
-		accessSyncStub = sinon.stub(fse, 'accessSync');
-		consoleWarnStub = sinon.stub(console, 'warn');
-		consoleErrorStub = sinon.stub(console, 'error');
-		processExitStub = sinon.stub(process, 'exit');
-	});
-
-	afterEach(() => {
-		existsSyncStub.restore();
-		mkdirSyncStub.restore();
-		readJsonSyncStub.restore();
-		writeJsonSyncStub.restore();
-		accessSyncStub.restore();
-		consoleWarnStub.restore();
-		consoleErrorStub.restore();
-		processExitStub.restore();
+		existsSyncStub = sandbox.stub(fse, 'existsSync');
+		mkdirSyncStub = sandbox.stub(fse, 'mkdirSync');
+		readJsonSyncStub = sandbox.stub(fse, 'readJsonSync');
+		writeJsonSyncStub = sandbox.stub(fse, 'writeJsonSync');
+		accessSyncStub = sandbox.stub(fse, 'accessSync');
+		consoleWarnStub = sandbox.stub(console, 'warn');
+		consoleErrorStub = sandbox.stub(console, 'error');
+		processExitStub = sandbox.stub(process, 'exit');
 	});
 
 	describe('when lisky config directory does not exist', () => {

@@ -20,11 +20,7 @@ describe('Query class', () => {
 	let stub;
 
 	beforeEach(() => {
-		stub = sinon.stub(lisk, 'sendRequest');
-	});
-
-	afterEach(() => {
-		lisk.sendRequest.restore();
+		stub = sandbox.stub(lisk, 'sendRequest');
 	});
 
 	it('#isBlockQuery should get a block by id', () => {

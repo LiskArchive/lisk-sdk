@@ -19,20 +19,13 @@ import { setUpVorpalWithCommand } from './utils';
 
 const tablify = require('../../src/utils/tablify');
 
-const createRejectionHandler = restoreFn => (e) => {
-	restoreFn();
-	throw e;
-};
-
 const testCommandCallsQueryMethodWithValue = (
 	vorpal, command, queryMethodName, value, stubResolutionValue,
 ) => {
-	const stub = sinon.stub(query, queryMethodName).resolves(stubResolutionValue);
-	const { restore } = stub;
+	const stub = sandbox.stub(query, queryMethodName).resolves(stubResolutionValue);
 
 	return vorpal.exec(command)
-		.then(() => (stub.calledWithExactly(value)).should.be.equal(true))
-		.then(restore, createRejectionHandler(restore));
+		.then(() => (stub.calledWithExactly(value)).should.be.equal(true));
 };
 
 describe('lisky get command palette', () => {
@@ -103,12 +96,11 @@ describe('lisky get command palette', () => {
 		});
 
 		it('should handle http errors', () => {
-			const error = 'transaction not found';
-			const { restore } = sinon.stub(query, 'isTransactionQuery').resolves({ error });
+			const error = 'Transaction not found';
+			sandbox.stub(query, 'isTransactionQuery').resolves({ error });
 
 			return vorpal.exec(transactionCommand)
-				.then(() => (capturedOutput[0]).should.match(new RegExp(error)))
-				.then(restore, createRejectionHandler(restore));
+				.then(() => (capturedOutput[0]).should.match(new RegExp(error)));
 		});
 	});
 
@@ -118,25 +110,18 @@ describe('lisky get command palette', () => {
 		const transaction = {
 			one: 'two',
 		};
-		let stub;
 
 		beforeEach(() => {
-			stub = sinon.stub(query, 'isTransactionQuery').resolves({ transaction });
-		});
-
-		afterEach(() => {
-			stub.restore();
+			sandbox.stub(query, 'isTransactionQuery').resolves({ transaction });
 		});
 
 		describe('json output true', () => {
 			it('should stringify JSON', () => {
-				const spy = sinon.spy(JSON, 'stringify');
-				const { restore } = spy;
+				const spy = sandbox.spy(JSON, 'stringify');
 				return vorpal.exec(jsonCommand)
 					.then(() => {
 						(spy.calledWithExactly(transaction)).should.be.true();
-					})
-					.then(restore, createRejectionHandler(restore));
+					});
 			});
 
 			it('should print json output', () => {
@@ -150,13 +135,11 @@ describe('lisky get command palette', () => {
 
 		describe('json output false', () => {
 			it('should use tablify', () => {
-				const spy = sinon.spy(tablify, 'default');
-				const { restore } = spy;
+				const spy = sandbox.spy(tablify, 'default');
 				return vorpal.exec(noJsonCommand)
 					.then(() => {
 						(spy.calledWithExactly(transaction)).should.be.true();
-					})
-					.then(restore, createRejectionHandler(restore));
+					});
 			});
 
 			it('should print tablified output', () => {

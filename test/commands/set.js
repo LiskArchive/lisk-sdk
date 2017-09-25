@@ -80,14 +80,9 @@ describe('lisky set command palette', () => {
 
 		describe('without write file permissions', () => {
 			const command = 'set json true';
-			let writeJsonSyncStub;
 
 			beforeEach(() => {
-				writeJsonSyncStub = sinon.stub(fse, 'writeJsonSync').throws('EACCES: permission denied, open \'~/.lisky/config.json\'');
-			});
-
-			afterEach(() => {
-				writeJsonSyncStub.restore();
+				sandbox.stub(fse, 'writeJsonSync').throws('EACCES: permission denied, open \'~/.lisky/config.json\'');
 			});
 
 			it('should show a warning if the config file is not writable', () => {
@@ -229,11 +224,7 @@ describe('lisky set command palette', () => {
 			let setTestnetStub;
 
 			beforeEach(() => {
-				setTestnetStub = sinon.stub(liskInstance, 'setTestnet');
-			});
-
-			afterEach(() => {
-				setTestnetStub.restore();
+				setTestnetStub = sandbox.stub(liskInstance, 'setTestnet');
 			});
 
 			describe('to a non-boolean value', () => {

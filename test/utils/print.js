@@ -29,11 +29,7 @@ describe('print utils', () => {
 				},
 			};
 			result = { lisk: 'JS' };
-			stub = sinon.stub(vorpal.activeCommand, 'log');
-		});
-
-		afterEach(() => {
-			stub.restore();
+			stub = sandbox.stub(vorpal.activeCommand, 'log');
 		});
 
 		it('should return the result', () => {
