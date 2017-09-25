@@ -53,7 +53,6 @@
 	"dependencies": {
 		"babel-polyfill": "=6.26.0",
 		"cli-table2": "=0.2.0",
-		"fs-extra": "=3.0.1",
 		"lisk-js": "=0.5.0",
 		"vorpal": "LiskHQ/vorpal#master"
 	}
