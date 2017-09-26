@@ -31,7 +31,7 @@ const description = `Encrypt a message for a given recipient public key using yo
 const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
 	cryptoModule.encryptMessage(message, passphrase, recipient);
 
-const encrypt = vorpal => ({ recipient, message, options }) => {
+const encryptMessage = vorpal => ({ recipient, message, options }) => {
 	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
 
@@ -51,7 +51,7 @@ const encrypt = vorpal => ({ recipient, message, options }) => {
 		.then(printResult(vorpal, options));
 };
 
-function encryptCommand(vorpal) {
+function encryptMessageCommand(vorpal) {
 	vorpal
 		.command('encrypt message <recipient> [message]')
 		.option(...commonOptions.passphrase)
@@ -59,7 +59,7 @@ function encryptCommand(vorpal) {
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
 		.description(description)
-		.action(encrypt(vorpal));
+		.action(encryptMessage(vorpal));
 }
 
-export default encryptCommand;
+export default encryptMessageCommand;

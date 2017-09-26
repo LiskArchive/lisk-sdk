@@ -38,14 +38,14 @@ class Crypto {
 		});
 	}
 
-	encryptMessage(message, secret, recipient) {
-		return this.liskCrypto.encryptMessageWithSecret(message, secret, recipient);
+	encryptMessage(message, passphrase, recipient) {
+		return this.liskCrypto.encryptMessageWithSecret(message, passphrase, recipient);
 	}
 
-	decryptMessage(encryptedMessage, nonce, secret, senderPublicKey) {
+	decryptMessage(encryptedMessage, nonce, passphrase, senderPublicKey) {
 		return {
 			message: this.liskCrypto
-				.decryptMessageWithSecret(encryptedMessage, nonce, secret, senderPublicKey),
+				.decryptMessageWithSecret(encryptedMessage, nonce, passphrase, senderPublicKey),
 		};
 	}
 

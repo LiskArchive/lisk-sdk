@@ -31,7 +31,7 @@ const decryptDescription = `Decrypt an encrypted message from a given sender pub
 const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
 	cryptoModule.decryptMessage(data, nonce, passphrase, senderPublicKey);
 
-const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
+const decryptMessage = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;
 	const messageSource = options.message;
 
@@ -51,7 +51,7 @@ const decrypt = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 		.then(printResult(vorpal, options));
 };
 
-function decryptCommand(vorpal) {
+function decryptMessageCommand(vorpal) {
 	vorpal
 		.command('decrypt message <senderPublicKey> <nonce> [message]')
 		.option(...commonOptions.passphrase)
@@ -59,7 +59,7 @@ function decryptCommand(vorpal) {
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
 		.description(decryptDescription)
-		.action(decrypt(vorpal));
+		.action(decryptMessage(vorpal));
 }
 
-export default decryptCommand;
+export default decryptMessageCommand;

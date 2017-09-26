@@ -170,7 +170,7 @@ describe('input utils', () => {
 				});
 		});
 
-		it('should prompt for the pass phrase once', () => {
+		it('should prompt for the passphrase once', () => {
 			return getPassphraseFromPrompt(vorpal, { displayName })
 				.then(() => {
 					(promptStub.calledOnce).should.be.true();
@@ -194,7 +194,7 @@ describe('input utils', () => {
 		});
 
 		describe('with repetition', () => {
-			it('should prompt for the pass phrase twice', () => {
+			it('should prompt for the passphrase twice', () => {
 				return getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat: true })
 					.then(() => {
 						(promptStub.calledTwice).should.be.true();
@@ -217,7 +217,7 @@ describe('input utils', () => {
 					});
 			});
 
-			it('should complain if the pass phrase is not successfully repeated', () => {
+			it('should complain if the passphrase is not successfully repeated', () => {
 				promptStub.onSecondCall().resolves(badPassphrase);
 				return (getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat: true }))
 					.should.be.rejectedWith({ message: 'Your custom passphrase was not successfully repeated.' });
