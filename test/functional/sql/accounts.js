@@ -1,24 +1,28 @@
 'use strict';
 
-var node    = require('../../node.js');
-var _       = node._;
-var bignum  = node.bignum;
-var expect  = node.expect;
-var slots   = require('../../../helpers/slots.js');
-var Promise = require('bluebird');
+var node      = require('../../node.js');
+var _         = node._;
+var bignum    = node.bignum;
+var expect    = node.expect;
+var slots     = require('../../../helpers/slots.js');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
+var Promise   = require('bluebird');
 
 describe('SQL triggers related to accounts', function () {
-	var library, deleteLastBlockPromise, processed_txs = [];
+	var dbSandbox, library, deleteLastBlockPromise, processed_txs = [];
 
 	before(function (done) {
-		node.initApplication(function (scope) {
-			library = scope;
+        dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_accounts');
+        dbSandbox.create(function (err, __db) {
+            node.initApplication(function (err, scope) {
+                library = scope;
 
-			// Set delegates module as loaded to allow manual forging
-			library.rewiredModules.delegates.__set__('__private.loaded', true);
+                // Set delegates module as loaded to allow manual forging
+                library.rewiredModules.delegates.__set__('__private.loaded', true);
 
-			setTimeout(done, 3000);
-		})
+                setTimeout(done, 3000);
+            }, {db: __db});
+        });
 	});
 
 	before(function (done) {
@@ -27,6 +31,11 @@ describe('SQL triggers related to accounts', function () {
 		var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
 		loadDelegates(done);
 	});
+
+    after(function (done) {
+        dbSandbox.destroy();
+        node.appCleanup(done);
+    });
 
 	function normalizeAccounts(rows) {
 		var accounts = {};
@@ -41,25 +50,25 @@ describe('SQL triggers related to accounts', function () {
 			};
 		});
 		return accounts;
-	};
+	}
 
 	function getAccounts () {
 		return library.db.query('SELECT * FROM accounts').then(function (rows) {
 			return normalizeAccounts(rows);
 		});
-	};
+	}
 
 	function getAccountByAddress (address) {
 		return library.db.query('SELECT * FROM accounts WHERE address = ${address}', {address: address}).then(function (rows) {
 			return normalizeAccounts(rows);
 		});
-	};
+	}
 
 	function getSignatureByTxId (id) {
 		return library.db.query('SELECT * FROM signatures WHERE "transactionId" = ${id}', {id: id}).then(function (rows) {
 			return rows;
 		});
-	};
+	}
 
 	function getExpectedAccounts(transactions) {
 		var expected = {};
@@ -108,7 +117,7 @@ describe('SQL triggers related to accounts', function () {
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
 			return library.rewiredModules.delegates.__get__('__private.delegatesList')[(slot + offset) % slots.delegates];
-		};
+		}
 
 		var transactionPool = library.rewiredModules.transactions.__get__('__private.transactionPool');
 		var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
@@ -189,7 +198,7 @@ describe('SQL triggers related to accounts', function () {
 				expect(rows[0].result).to.equal(expected);
 			});
 		});
-	})
+	});
 
 	describe('accounts table', function () {
 
@@ -332,7 +341,7 @@ describe('SQL triggers related to accounts', function () {
 							});
 
 							it('should credit balance', function () {
-								var expected = new bignum(recipient_before.balance).plus(tx.amount).toString()
+								var expected = new bignum(recipient_before.balance).plus(tx.amount).toString();
 								expect(recipient.balance).to.equal(expected);
 							});
 						});
