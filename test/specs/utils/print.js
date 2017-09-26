@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { printResult } from '../../src/utils/print';
-import tablify from '../../src/utils/tablify';
+import { printResult } from '../../../src/utils/print';
+import tablify from '../../../src/utils/tablify';
 
 let {
 	vorpal,

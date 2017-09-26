@@ -2,7 +2,7 @@ import fs from 'fs';
 import {
 	readJsonSync,
 	writeJsonSync,
-} from '../../src/utils/fs';
+} from '../../../src/utils/fs';
 
 describe('fs module', () => {
 	const path = '/some/path/to/file.json';

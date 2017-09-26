@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import tablify from '../../src/utils/tablify';
+import tablify from '../../../src/utils/tablify';
 
 describe('#tablify', () => {
 	it('should create a table from an object', () => {

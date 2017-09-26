@@ -15,13 +15,13 @@
  */
 import fs from 'fs';
 import os from 'os';
-import set from '../../src/commands/set';
-import env from '../../src/utils/env';
+import set from '../../../src/commands/set';
+import env from '../../../src/utils/env';
 import {
 	readJsonSync,
 	writeJsonSync,
-} from '../../src/utils/fs';
-import liskInstance from '../../src/utils/liskInstance';
+} from '../../../src/utils/fs';
+import liskInstance from '../../../src/utils/liskInstance';
 import {
 	getCommands,
 	getRequiredArgs,

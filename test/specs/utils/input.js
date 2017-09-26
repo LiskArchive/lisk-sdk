@@ -27,7 +27,7 @@ import {
 	getFirstLineFromString,
 	getDataFromFile,
 	getData,
-} from '../../src/utils/input';
+} from '../../../src/utils/input';
 
 const createStreamStub = on => ({
 	resume: () => {},

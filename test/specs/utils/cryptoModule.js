@@ -14,7 +14,7 @@
  *
  */
 import lisk from 'lisk-js';
-import cryptoModule from '../../src/utils/cryptoModule';
+import cryptoModule from '../../../src/utils/cryptoModule';
 
 describe('cryptoModule', () => {
 	const passphrase = 'secret passphrase';

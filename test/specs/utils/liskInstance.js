@@ -14,7 +14,7 @@
  *
  */
 import lisk from 'lisk-js';
-import liskInstance from '../../src/utils/liskInstance';
+import liskInstance from '../../../src/utils/liskInstance';
 
 const thenTheLiskInstanceShouldBeALiskJSApiInstance = () => {
 	(liskInstance).should.be.instanceOf(lisk.api);

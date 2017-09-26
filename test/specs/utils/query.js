@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from '../../src/utils/liskInstance';
-import query from '../../src/utils/query';
+import lisk from '../../../src/utils/liskInstance';
+import query from '../../../src/utils/query';
 
 describe('Query class', () => {
 	let stub;

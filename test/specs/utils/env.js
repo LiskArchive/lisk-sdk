@@ -15,9 +15,9 @@
  */
 import fs from 'fs';
 import os from 'os';
-import defaultConfig from '../../defaultConfig.json';
+import defaultConfig from '../../../defaultConfig.json';
 
-const fsUtils = require('../../src/utils/fs');
+const fsUtils = require('../../../src/utils/fs');
 
 const userConfig = {
 	name: 'custom',
@@ -30,7 +30,7 @@ const userConfig = {
 	},
 };
 
-const envPath = '../../src/utils/env';
+const envPath = '../../../src/utils/env';
 const configDirName = '.lisky';
 const configFileName = 'config.json';
 const homedir = os.homedir();
