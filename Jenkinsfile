@@ -5,7 +5,7 @@ node('lisky-01') {
 			checkout scm
 		}
 
-		stage ('Build Dependencies') {
+		stage ('Install dependencies') {
 			try {
 				sh '''
 				npm install --verbose
@@ -17,12 +17,12 @@ node('lisky-01') {
 			}
 		}
 
-		stage ('Run Eslint') {
+		stage ('Run lint') {
 			try {
-				sh 'grunt eslint'
+				sh 'npm run lint'
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
-				error('Stopping build, tests failed')
+				error('Stopping build, linting failed')
 			}
 		}
 
@@ -38,14 +38,14 @@ node('lisky-01') {
 			}
 		}
 
-		stage ('Run Snyk') {
+		stage ('Run vulnerabilities check') {
 			try {
 				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
 					sh 'snyk test'
 				}
 			} catch (err) {
 				currentBuild.result = 'FAILURE'
-				error('Stopping build, snyk test failed')
+				error('Stopping build, vulnerabilities check failed')
 			}
 		}
 

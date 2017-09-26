@@ -14,7 +14,6 @@
 		"lint": "eslint .",
 		"prebuild": "rm -r dist",
 		"build": "babel src -d dist",
-		"jenkins": "npm test && nyc report --reporter=text-lcov | coveralls",
 		"prepush": "npm run lint && npm test",
 		"prepublishOnly": "npm run build"
 	},
