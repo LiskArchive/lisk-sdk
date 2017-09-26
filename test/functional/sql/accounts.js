@@ -12,17 +12,17 @@ describe('SQL triggers related to accounts', function () {
 	var dbSandbox, library, deleteLastBlockPromise, processed_txs = [];
 
 	before(function (done) {
-        dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_accounts');
-        dbSandbox.create(function (err, __db) {
-            node.initApplication(function (err, scope) {
-                library = scope;
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_accounts');
+		dbSandbox.create(function (err, __db) {
+			node.initApplication(function (err, scope) {
+				library = scope;
 
-                // Set delegates module as loaded to allow manual forging
-                library.rewiredModules.delegates.__set__('__private.loaded', true);
+				// Set delegates module as loaded to allow manual forging
+				library.rewiredModules.delegates.__set__('__private.loaded', true);
 
-                setTimeout(done, 3000);
-            }, {db: __db});
-        });
+				setTimeout(done, 3000);
+			}, {db: __db});
+		});
 	});
 
 	before(function (done) {
@@ -32,10 +32,10 @@ describe('SQL triggers related to accounts', function () {
 		loadDelegates(done);
 	});
 
-    after(function (done) {
-        dbSandbox.destroy();
-        node.appCleanup(done);
-    });
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
+	});
 
 	function normalizeAccounts(rows) {
 		var accounts = {};
