@@ -13,6 +13,7 @@ require('./helpers/wsApi');
 require('./helpers/z_schema');
 
 require('./logic/account');
+require('./logic/delegate');
 require('./logic/peer');
 require('./logic/peers');
 require('./logic/multisignature');
@@ -39,5 +40,4 @@ require('./schema/delegates');
 // with long timeouts
 require('./helpers/pg-notify');
 require('./logic/blockReward');
-require('./logic/delegate');
 require('./sql/blockRewards');

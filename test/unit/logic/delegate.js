@@ -449,10 +449,14 @@ describe('delegate', function () {
 			});
 
 			after(function () {
-				describe('schema dynamic tests', function () {
+				describe('schema dynamic tests: delegate', function () {
+
 					schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(delegate.objectNormalize, trs, 'asset.delegate');
 
-					schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
+					describe('username', function () {
+
+						schemaDynamicTest.schema.shouldFailAgainst.nonString.property(delegate.objectNormalize, trs, 'asset.delegate.username');
+					});
 				});
 			});
 

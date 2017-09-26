@@ -90,7 +90,7 @@ describe('handshake', function () {
 			height: 1
 		};
 
-		describe('schema', function () {
+		describe('schema dynamic tests: handshake wsApi', function () {
 
 			var schemaDynamicTests = new SchemaDynamicTests({
 				customArgumentAssertion: function (input, expectedType, err) {
@@ -110,22 +110,27 @@ describe('handshake', function () {
 			schemaDynamicTests.schema.shouldFailAgainst.nonObject.arguments(handshake);
 
 			describe('nonce', function () {
+
 				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nonce');
 			});
 
 			describe('height', function () {
+
 				schemaDynamicTests.schema.shouldFailAgainst.nonInteger.property(handshake, validHeaders, 'height');
 			});
 
 			describe('nethash', function () {
+
 				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nethash');
 			});
 
 			describe('version', function () {
+
 				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'version');
 			});
 
 			describe('required properties', function () {
+
 				schemaDynamicTests.schema.shouldFailWithoutRequiredProperties(handshake, validHeaders, ['port', 'version', 'nonce', 'nethash', 'height']);
 			});
 		});
