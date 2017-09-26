@@ -1,7 +1,7 @@
-/* Recreate protect Mem Accounts Columns
- * While popping a last block containing transactions with a delegate registration, undo and undoUnconfirmed actions are performed.
- * 'username' and 'u_username' fields are set back to null. Previous implementation of revert_mem_account was blocking that change.
- * As a result the mem_accounts table was malformed with state different than applied transactions.
+/*
+ * Recreate revert_mem_account trigger
+ *
+ * Allowing 'u_username' and 'username' fields to be set to NULL when undoing transactions
  */
 
 BEGIN;
