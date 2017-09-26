@@ -123,7 +123,6 @@ SchemaDynamicTest.prototype.testArgument = function (expectedType, invalidInputs
 	self.carpetTesting(test, invalidInputs, 'should return an error when invoked with %s');
 };
 
-
 SchemaDynamicTest.prototype.testProperty = function (expectedType, invalidInputs, testedFunction, validArgument, property) {
 	var assertion = self.customPropertyAssertion ? self.customPropertyAssertion.bind(self) : self.standardInvalidPropertyAssertion;
 	var test = function (invalidInput, eachCb) {
