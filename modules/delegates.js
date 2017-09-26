@@ -100,7 +100,11 @@ __private.getKeysSortByVote = function (cb) {
  */
 __private.getDelegatesFromPreviousRound = function (cb) {
 	library.db.query(sql.getDelegatesSnapshot, {limit: slots.delegates}).then(function (rows) {
-		return setImmediate(cb, null, rows);
+		var delegatesPublicKeys = [];
+		rows.forEach(function (row) {
+			delegatesPublicKeys.push(row.publicKey.toString('hex'))
+		});
+		return setImmediate(cb, null, delegatesPublicKeys);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Database search failed');
@@ -433,8 +437,8 @@ Delegates.prototype.generateDelegateList = function (height, source, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error message | cb
  */
-Delegates.prototype.validateBlockSlot = function (height, cb) {
-	__private.validateBlockSlot(height, __private.getKeysSortByVote, cb);
+Delegates.prototype.validateBlockSlot = function (block, cb) {
+	__private.validateBlockSlot(block, __private.getKeysSortByVote, cb);
 };
 
 /**
@@ -444,8 +448,8 @@ Delegates.prototype.validateBlockSlot = function (height, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error message | cb
  */
-Delegates.prototype.validateBlockSlotAgainstPreviousRound = function (height, cb) {
-	__private.validateBlockSlot(height, __private.getDelegatesFromPreviousRound, cb);
+Delegates.prototype.validateBlockSlotAgainstPreviousRound = function (block, cb) {
+	__private.validateBlockSlot(block, __private.getDelegatesFromPreviousRound, cb);
 };
 
 /**
