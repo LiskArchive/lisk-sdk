@@ -309,12 +309,13 @@ describe('#getTransactionBytes', () => {
 
 describe('getTransactionBytes functions', () => {
 	describe('#checkRequiredFields', () => {
-		const arrayToCheck = ['OneValue', 'SecondValue', 'ThirdValue'];
+		const arrayToCheck = ['OneValue', 'SecondValue', 'ThirdValue', 1];
 		it('should accept array and object to check for required fields', () => {
 			const objectParameter = {
 				OneValue: '1',
 				SecondValue: '2',
 				ThirdValue: '3',
+				1: 10,
 			};
 
 			(checkRequiredFields(arrayToCheck, objectParameter)).should.be.true();
@@ -324,30 +325,10 @@ describe('getTransactionBytes functions', () => {
 			const objectParameter = {
 				OneValue: '1',
 				SecondValue: '2',
+				1: 10,
 			};
 
 			(checkRequiredFields.bind(null, arrayToCheck, objectParameter)).should.throw('ThirdValue is a required parameter.');
-		});
-
-		it('should work with non-string keys', () => {
-			const arrayToCheckNonString = [0, 1, 2, 3];
-			const objectParameter = {
-				0: 0,
-				1: 10,
-				2: 20,
-				3: 30,
-			};
-			(checkRequiredFields(arrayToCheckNonString, objectParameter)).should.be.true();
-		});
-
-		it('should work with non-string keys', () => {
-			const arrayToCheckNonString = [0, 1, 2, 3];
-			const objectParameter = {
-				0: 0,
-				1: 10,
-				2: 20,
-			};
-			(checkRequiredFields.bind(null, arrayToCheckNonString, objectParameter)).should.throw('3 is a required parameter.');
 		});
 	});
 

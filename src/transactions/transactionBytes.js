@@ -151,7 +151,7 @@ export function getAssetDataForDappInTransaction({ inTransfer }) {
 }
 
 /**
- * @method getASsetDataForDappOutTransaction
+ * @method getAssetDataForDappOutTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
@@ -208,7 +208,7 @@ export function checkTransaction(transaction) {
 }
 
 /**
-* A utility method to get transaction byteSizes
+* A utility method to get transaction bytes
 *
 * @method TransactionBytes
 * @param {Object} transaction

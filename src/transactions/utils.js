@@ -35,17 +35,7 @@ const prepareTransaction = (transaction, secret, secondSecret) => {
 	return transactionWithId;
 };
 
-const isValidValue = (value) => {
-	if (
-		// eslint-disable-next-line no-self-compare
-		value !== value
-		|| value === undefined
-		|| value === false
-	) {
-		return false;
-	}
-	return true;
-};
+const isValidValue = value => ![undefined, false, NaN].includes(value);
 
 module.exports = {
 	prepareTransaction,
