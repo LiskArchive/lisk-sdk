@@ -240,7 +240,6 @@ describe('peers', function () {
 
 		it('should return true if peer with same nonce is on the list', function () {
 			var res = peers.upsert(validPeer);
-			console.log(res);
 			var list = peers.list(true);
 			expect(list.length).equal(1);
 			expect(peers.exists({ip: validPeer.ip, port: validPeer.port, nonce: validPeer.nonce})).to.be.ok;
