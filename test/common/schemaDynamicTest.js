@@ -91,7 +91,7 @@ function SchemaDynamicTest (config) {
 				}
 			}
 		},
-		shouldFailWithoutRequiredProperties: self.testRequired
+		shouldFailWithoutRequiredProperties: self.testRequired.bind(self)
 	};
 }
 
@@ -113,29 +113,29 @@ SchemaDynamicTest.prototype.standardInvalidPropertyAssertion = function (input, 
 };
 
 SchemaDynamicTest.prototype.testArgument = function (expectedType, invalidInputs, testedFunction) {
-	var assertion = self.customArgumentAssertion ? self.customArgumentAssertion.bind(self) : self.standardInvalidArgumentAssertion;
+	var assertion = this.customArgumentAssertion || this.standardInvalidArgumentAssertion;
 	var test = function (invalidInput, eachCb) {
-		self.testStyle(testedFunction, invalidInput.input, function (err) {
+		this.testStyle(testedFunction, invalidInput.input, function (err) {
 			assertion(invalidInput, expectedType, err);
 			eachCb();
 		});
-	};
-	self.carpetTesting(test, invalidInputs, 'should return an error when invoked with %s');
+	}.bind(this);
+	this.carpetTesting(test, invalidInputs, 'should return an error when invoked with %s');
 };
 
 SchemaDynamicTest.prototype.testProperty = function (expectedType, invalidInputs, testedFunction, validArgument, property) {
-	var assertion = self.customPropertyAssertion ? self.customPropertyAssertion.bind(self) : self.standardInvalidPropertyAssertion;
+	var assertion = this.customPropertyAssertion || this.standardInvalidPropertyAssertion;
 	var test = function (invalidInput, eachCb) {
 		var malformedPart = {};
 		set(malformedPart, property, invalidInput.input);
 
 		var invalidArgument = assign({}, validArgument, malformedPart);
-		self.testStyle(testedFunction, invalidArgument, function (err) {
+		this.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(invalidInput, expectedType, property, err);
 			eachCb();
 		});
-	};
-	self.carpetTesting(test, invalidInputs, 'should return an error when ' + property + ' is %s');
+	}.bind(this);
+	this.carpetTesting(test, invalidInputs, 'should return an error when ' + property + ' is %s');
 };
 
 SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = function (property, err) {
@@ -144,19 +144,19 @@ SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = functio
 };
 
 SchemaDynamicTest.prototype.testRequired = function (testedFunction, validArgument, properties) {
-	var assertion = self.customRequiredPropertiesAssertion ? self.customRequiredPropertiesAssertion.bind(self) : self.standardMissingRequiredPropertiesAssertion;
+	var assertion = this.customRequiredPropertiesAssertion || this.standardMissingRequiredPropertiesAssertion;
 	var test = function (missingProperty, eachCb) {
 		var invalidArgument = assign({}, validArgument);
 		delete invalidArgument[missingProperty.description];
-		self.testStyle(testedFunction, invalidArgument, function (err) {
+		this.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(missingProperty.description, err);
 			eachCb();
 		});
-	};
+	}.bind(this);
 	var missingFieldsDescriptions = properties.map(function (property) {
 		return {description: property};
 	});
-	self.carpetTesting(test, missingFieldsDescriptions, 'should return an error when invoked without %s');
+	this.carpetTesting(test, missingFieldsDescriptions, 'should return an error when invoked without %s');
 };
 
 module.exports = SchemaDynamicTest;
