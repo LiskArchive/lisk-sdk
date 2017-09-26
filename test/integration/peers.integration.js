@@ -33,7 +33,8 @@ var SYNC_MODE_DEFAULT_ARGS = {
 
 var WAIT_BEFORE_CONNECT_MS = 25000;
 
-var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+SYNC_MODE_DEFAULT_ARGS.ALL_TO_GROUP.INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_GROUP, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 var monitorWSClient = {
 	protocol: 'http',
@@ -81,7 +82,17 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 			break;
 
 		case SYNC_MODE.ALL_TO_GROUP:
-			throw new Error('To implement');
+			if (!Array.isArray(syncModeArgs.ALL_TO_GROUP.INDICES)) {
+				throw new Error('Provide peers indices to sync with as an array');
+			}
+			Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
+				if (syncModeArgs.ALL_TO_GROUP.INDICES.indexOf(index) !== -1) {
+					peersList.push({
+						ip: '127.0.0.1',
+						port: 5000 + index
+					});
+				}
+			});
 	}
 	return peersList;
 }
