@@ -29,12 +29,31 @@ function putDelegates (params, done) {
 	});
 }
 
-describe('PUT /api/accounts/delegates without funds', function () {
-	var account;
+var account;
+var validParams;
 
-	beforeEach(function (done) {
+function enrichRandomAccount (cb) {
+	account = node.randomAccount();
+	validParams = {
+		secret: account.password,
+		username: account.username
+	};
+	sendLISK({
+		secret: node.gAccount.password,
+		amount: node.LISK,
+		recipientId: account.address
+	}, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res.body).to.have.property('transactionId');
+		node.expect(res.body.transactionId).to.be.not.empty;
+		node.onNewBlock(cb);
+	});
+}
+
+describe('PUT /api/accounts/delegates without funds', function () {
+
+	beforeEach(function () {
 		account = node.randomAccount();
-		done();
 	});
 
 	it('when upvoting should fail', function (done) {
@@ -61,11 +80,11 @@ describe('PUT /api/accounts/delegates without funds', function () {
 });
 
 describe('PUT /api/delegates without funds', function () {
+
 	var account;
 
-	beforeEach(function (done) {
+	beforeEach(function () {
 		account = node.randomAccount();
-		done();
 	});
 
 	it('using valid parameters should fail', function (done) {
@@ -81,26 +100,8 @@ describe('PUT /api/delegates without funds', function () {
 });
 
 describe('PUT /api/accounts/delegates with funds', function () {
-	var account = node.randomAccount();
 
-	before(function (done) {
-		sendLISK({
-			secret: node.gAccount.password,
-			amount: node.LISK,
-			recipientId: account.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId');
-			node.expect(res.body.transactionId).to.be.not.empty;
-			done();
-		});
-	});
-
-	beforeEach(function (done) {
-		node.onNewBlock(function (err) {
-			done();
-		});
-	});
+	beforeEach(enrichRandomAccount);
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
 		var votedDelegate = Array.apply(null, Array(2)).map(function () { return '+' + node.eAccount.publicKey;});
@@ -253,114 +254,95 @@ describe('PUT /api/accounts/delegates with funds', function () {
 });
 
 describe('PUT /api/delegates with funds', function () {
-	var account, validParams;
 
-	beforeEach(function () {
-		account = node.randomAccount();
-		validParams = {
-			secret: account.password,
-			username: account.username
-		};
-	});
+	describe('using', function () {
 
-	beforeEach(function (done) {
-		sendLISK({
-			secret: node.gAccount.password,
-			amount: node.LISK,
-			recipientId: account.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId');
-			node.expect(res.body.transactionId).to.be.not.empty;
-			node.onNewBlock(function () {
+		beforeEach(enrichRandomAccount);
+
+		it('using valid params should be ok', function (done) {
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
-	});
 
-	it('using valid params should be ok', function (done) {
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			done();
+		it('using blank pasphrase should fail', function (done) {
+			validParams.secret = '';
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
 		});
-	});
 
-	it('using blank pasphrase should fail', function (done) {
-		validParams.secret = '';
+		it('using invalid pasphrase should fail', function (done) {
+			validParams.secret = [];
 
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
 		});
-	});
 
-	it('using invalid pasphrase should fail', function (done) {
-		validParams.secret = [];
+		it('using invalid username should fail', function (done) {
+			validParams.username = '~!@#$%^&*()_+.,?/';
 
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
 		});
-	});
 
-	it('using invalid username should fail', function (done) {
-		validParams.username = '~!@#$%^&*()_+.,?/';
+		it('using username longer than 20 characters should fail', function (done) {
+			validParams.username = 'ABCDEFGHIJKLMNOPQRSTU';
 
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
 		});
-	});
 
-	it('using username longer than 20 characters should fail', function (done) {
-		validParams.username = 'ABCDEFGHIJKLMNOPQRSTU';
+		it('using blank username should fail', function (done) {
+			validParams.username = '';
 
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
+				done();
+			});
 		});
-	});
 
-	it('using blank username should fail', function (done) {
-		validParams.username = '';
+		it('using uppercase username should be registered in lowercase', function (done) {
+			validParams.username = account.username.toUpperCase();
 
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
+				node.expect(res.body.transaction.fee).to.equal(node.fees.delegateRegistrationFee);
+				node.expect(res.body.transaction).to.have.property('asset').that.is.an('object');
+				node.expect(res.body.transaction.asset.delegate.username).to.equal(account.username.toLowerCase());
+				node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(account.publicKey);
+				node.expect(res.body.transaction.type).to.equal(node.txTypes.DELEGATE);
+				node.expect(res.body.transaction.amount).to.equal(0);
+				done();
+			});
 		});
-	});
 
-	it('using uppercase username should be registered in lowercase', function (done) {
-		validParams.username = account.username.toUpperCase();
+		it('using same account twice in two different blocks should fail', function (done) {
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').that.is.an('object');
 
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			node.expect(res.body.transaction.fee).to.equal(node.fees.delegateRegistrationFee);
-			node.expect(res.body.transaction).to.have.property('asset').that.is.an('object');
-			node.expect(res.body.transaction.asset.delegate.username).to.equal(account.username.toLowerCase());
-			node.expect(res.body.transaction.asset.delegate.publicKey).to.equal(account.publicKey);
-			node.expect(res.body.transaction.type).to.equal(node.txTypes.DELEGATE);
-			node.expect(res.body.transaction.amount).to.equal(0);
-			done();
-		});
-	});
-
-	it('using same account twice in two different blocks should fail', function (done) {
-		putDelegates(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-
-			node.onNewBlock(function () {
-				putDelegates(validParams, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
-					done();
+				node.onNewBlock(function () {
+					putDelegates(validParams, function (err, res) {
+						node.expect(res.body).to.have.property('success').to.be.not.ok;
+						node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
+						done();
+					});
 				});
 			});
 		});
@@ -414,7 +396,9 @@ describe('PUT /api/delegates with funds', function () {
 					var firstResponse;
 					var secondResponse;
 
-					beforeEach(function (done) {
+					before(enrichRandomAccount);
+
+					before(function (done) {
 						node.async.series({
 							first: function (cb) {
 								return putDelegates(validParams, cb);
@@ -443,7 +427,9 @@ describe('PUT /api/delegates with funds', function () {
 
 				describe('with different timestamp', function () {
 
-					beforeEach(function (done) {
+					before(enrichRandomAccount);
+
+					before(function (done) {
 						sendTwice(function (cb) {
 							setTimeout(function () {
 								return putDelegates(validParams, cb);
@@ -468,7 +454,9 @@ describe('PUT /api/delegates with funds', function () {
 
 				var differentUsernameParams;
 
-				beforeEach(function (done) {
+				before(enrichRandomAccount);
+
+				before(function (done) {
 					differentUsernameParams = {
 						secret: account.password,
 						username: node.randomUsername()
@@ -496,7 +484,7 @@ describe('PUT /api/delegates with funds', function () {
 			var secondAccount;
 			var secondAccountValidParams;
 
-			beforeEach(function (done) {
+			var enrichSecondRandomAccount = function (cb) {
 				secondAccount = node.randomAccount();
 				secondAccountValidParams = {
 					secret: secondAccount.password,
@@ -510,13 +498,19 @@ describe('PUT /api/delegates with funds', function () {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transactionId');
 					node.expect(res.body.transactionId).to.be.not.empty;
-					node.onNewBlock(done);
+					cb();
+				});
+			};
+
+			before(function (done) {
+				enrichSecondRandomAccount(function () {
+					enrichRandomAccount(done);
 				});
 			});
 
 			describe('using same username', function () {
 
-				beforeEach(function (done) {
+				before(function (done) {
 					secondAccountValidParams.username = validParams.username;
 					sendTwice(function (cb) {
 						return putDelegates(secondAccountValidParams, cb);
@@ -540,7 +534,13 @@ describe('PUT /api/delegates with funds', function () {
 				var firstConfirmedTransaction;
 				var secondConfirmedTransaction;
 
-				beforeEach(function (done) {
+				before(function (done) {
+					enrichSecondRandomAccount(function () {
+						enrichRandomAccount(done);
+					});
+				});
+
+				before(function (done) {
 					sendTwice(function (cb) {
 						return putDelegates(secondAccountValidParams, cb);
 					}, function () {
