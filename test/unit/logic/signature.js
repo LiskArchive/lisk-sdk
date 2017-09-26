@@ -10,7 +10,8 @@ var sinon   = require('sinon');
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
+
+var typesRepresentatives = require('../../common/typesRepresentatives.js');
 
 var Signature = rewire('../../../logic/signature.js');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
@@ -359,15 +360,22 @@ describe('signature', function () {
 				}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
 			});
 
-			after(function () {
-				var schemaDynamicTest = new SchemaDynamicTest({
-					testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
-					customPropertyAssertion: function (input, expectedType, property, err) {
-						expect(err).to.equal('Failed to validate delegate schema: Expected type ' + expectedType + ' but found type ' + input.expectation);
-					}
+			_.difference(typesRepresentatives.allTypes, typesRepresentatives.strings).forEach(function (type) {
+				it('should throw when username type is ' + type.description, function () {
+					trs.asset.signature.publicKey = type.input;
+					expect(function () {
+						signature.objectNormalize(trs);
+					}).to.throw('Failed to validate signature schema: Expected type string but found type ' + type.expectation);
 				});
+			});
 
-				schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(signature.objectNormalize, trs, 'asset.signature.username');
+			_.difference(typesRepresentatives.nonEmptyStrings).forEach(function (type) {
+				it('should throw when username type is ' + type.description, function () {
+					trs.asset.signature.publicKey = type.input;
+					expect(function () {
+						signature.objectNormalize(trs);
+					}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: ' + type.input);
+				});
 			});
 		});
 
