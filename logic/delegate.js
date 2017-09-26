@@ -45,7 +45,7 @@ Delegate.prototype.calculateFee = function (trs, sender) {
  * @param {transaction} trs
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|Object} returns error if invalid parameter | 
+ * @returns {setImmediateCallback|Object} returns error if invalid parameter |
  * trs validated.
  */
 Delegate.prototype.verify = function (trs, sender, cb) {
@@ -156,13 +156,10 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 		address: sender.address,
 		u_isDelegate: 0,
 		isDelegate: 1,
-		vote: 0
+		vote: 0,
+		u_username: null,
+		username: trs.asset.delegate.username
 	};
-
-	if (trs.asset.delegate.username) {
-		data.u_username = null;
-		data.username = trs.asset.delegate.username;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
@@ -180,13 +177,10 @@ Delegate.prototype.undo = function (trs, block, sender, cb) {
 		address: sender.address,
 		u_isDelegate: 1,
 		isDelegate: 0,
-		vote: 0
+		vote: 0,
+		username: null,
+		u_username: trs.asset.delegate.username
 	};
-
-	if (!sender.nameexist && trs.asset.delegate.username) {
-		data.username = null;
-		data.u_username = trs.asset.delegate.username;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
@@ -202,19 +196,16 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	var data = {
 		address: sender.address,
 		u_isDelegate: 1,
-		isDelegate: 0
+		isDelegate: 0,
+		username: null,
+		u_username: trs.asset.delegate.username
 	};
-
-	if (trs.asset.delegate.username) {
-		data.username = null;
-		data.u_username = trs.asset.delegate.username;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
 
 /**
- * Checks trs delegate and calls modules.accounts.setAccountAndGet() with 
+ * Checks trs delegate and calls modules.accounts.setAccountAndGet() with
  * username and u_username both null.
  * @implements module:accounts#Accounts~setAccountAndGet
  * @param {transaction} trs
@@ -225,13 +216,10 @@ Delegate.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	var data = {
 		address: sender.address,
 		u_isDelegate: 0,
-		isDelegate: 0
+		isDelegate: 0,
+		username: null,
+		u_username: null
 	};
-
-	if (trs.asset.delegate.username) {
-		data.username = null;
-		data.u_username = null;
-	}
 
 	modules.accounts.setAccountAndGet(data, cb);
 };
@@ -240,12 +228,12 @@ Delegate.prototype.schema = {
 	id: 'Delegate',
 	type: 'object',
 	properties: {
-		publicKey: {
+		username: {
 			type: 'string',
-			format: 'publicKey'
+			format: 'username'
 		}
 	},
-	required: ['publicKey']
+	required: ['username']
 };
 
 /**
@@ -258,7 +246,7 @@ Delegate.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.delegate, Delegate.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate delegate schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate delegate schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
