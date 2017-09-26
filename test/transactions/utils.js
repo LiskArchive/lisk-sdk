@@ -81,4 +81,21 @@ describe('transactions utils module', () => {
 			});
 		});
 	});
+
+	describe('isInvalidValue', () => {
+		it('should return false on invalid values', () => {
+			const allInvalidValues = [NaN, false, undefined];
+			allInvalidValues.forEach((value) => {
+				const invalid = utils.isValidValue(value);
+				(invalid).should.be.false();
+			});
+		});
+		it('should return true on valid values', () => {
+			const exampleValidValues = ['123', 123, { 1: 2, 3: 4 }, [1, 2, 3]];
+			exampleValidValues.forEach((value) => {
+				const valid = utils.isValidValue(value);
+				(valid).should.be.true();
+			});
+		});
+	});
 });
