@@ -1,15 +1,17 @@
 'use strict';/*eslint*/
 
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var diff = require('../../../helpers/diff.js');
 var crypto = require('crypto');
 var async = require('async');
 
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
+
+var node = require('./../../node.js');
+var ed = require('../../../helpers/ed');
+var diff = require('../../../helpers/diff.js');
 var transactionTypes = require('../../../helpers/transactionTypes');
+var constants = require('../../../helpers/constants.js');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var TransactionLogic = require('../../../logic/transaction.js');
@@ -262,8 +264,8 @@ describe('vote', function () {
 
 		it('should return error when voting for an account twice', function (done) {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = Array(2).fill(votedDelegates[0]).map(function (v, i) {
-				return (i % 2 ? '+': '-') + v;
+			trs.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
+				return (i % 2 ? '+': '-') + votedDelegates[0];
 			});
 
 			vote.verify(trs, validSender, function (err) {
@@ -343,7 +345,9 @@ describe('vote', function () {
 
 		it('should return error for casting multiple votes for same account in a transaction', function (done) {
 			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = Array(2).fill('+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37');
+			trs.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
+				return '+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37';
+			});
 			vote.verify(trs, validSender, function (err) {
 				expect(err).to.equal('Multiple votes for same delegate are not allowed');
 				done();
@@ -570,10 +574,20 @@ describe('vote', function () {
 			trs.asset.votes.push(trs.asset.votes[0]);
 			expect(function () {
 				vote.objectNormalize.call(transaction, trs);
-			}).to.throw('Failed to validate vote schema'); 
+			}).to.throw('Failed to validate vote schema: Array items are not unique (indexes 0 and 3)');
 		});
 
+		it('should return error when votes array is longer than maximum acceptable', function () {
+			var trs = _.cloneDeep(validTransaction);
+			trs.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
+				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			});
+			expect(function () {
+				vote.objectNormalize.call(transaction, trs);
+			}).to.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
+		});
 	});
+
 	describe('dbRead', function () {
 
 		it('should read votes correct', function () {
@@ -591,6 +605,7 @@ describe('vote', function () {
 			})).to.eql(null);
 		});
 	});
+
 	describe('dbSave', function () {
 
 		it('should create return db save promise', function () {

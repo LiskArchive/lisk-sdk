@@ -3,8 +3,9 @@
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions');
-var jobsQueue = require('../helpers/jobsQueue.js');
 var ip = require('ip');
+var jobsQueue = require('../helpers/jobsQueue.js');
+var Peer = require('../logic/peer.js');
 var schema = require('../schema/loader.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/loader.js');
@@ -168,6 +169,7 @@ __private.loadSignatures = function (cb) {
 			library.logger.log('Loading signatures from: ' + peer.string);
 			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
+					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 					return setImmediate(waterCb, err);
 				} else {
 					library.schema.validate(res, schema.loadSignatures, function (err) {
@@ -227,6 +229,7 @@ __private.loadTransactions = function (cb) {
 			library.logger.log('Loading transactions from: ' + peer.string);
 			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
+					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 					return setImmediate(waterCb, err);
 				}
 				library.schema.validate(res, schema.loadTransactions, function (err) {
