@@ -16,10 +16,12 @@
 import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 
-let vorpal;
-let logSpy;
-let result;
-let returnValue;
+let {
+	vorpal,
+	logSpy,
+	result,
+	returnValue,
+} = context;
 
 const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
 	vorpal = {
