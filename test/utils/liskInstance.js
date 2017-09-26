@@ -16,10 +16,12 @@
 import lisk from 'lisk-js';
 import liskInstance from '../../src/utils/liskInstance';
 
-describe('liskInstance', () => {
-	describe('default export', () => {
-		it('should be an instance of lisk api', () => {
-			(liskInstance).should.be.instanceOf(lisk.api);
-		});
+const thenTheLiskInstanceShouldBeALiskJSApiInstance = () => {
+	(liskInstance).should.be.instanceOf(lisk.api);
+};
+
+describe('liskInstance util', () => {
+	describe('When the default export is imported', () => {
+		it('Then the lisk instance should be a lisk-js api instance', thenTheLiskInstanceShouldBeALiskJSApiInstance);
 	});
 });
