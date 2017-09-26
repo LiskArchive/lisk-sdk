@@ -16,35 +16,67 @@
 import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 
+let vorpal;
+let logSpy;
+let result;
+let returnValue;
+
+const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
+	vorpal = {
+		activeCommand: {
+			log: sandbox.spy(),
+		},
+	};
+	logSpy = vorpal.activeCommand.log;
+};
+
+const givenThereIsAResultToPrint = () => {
+	result = { lisk: 'JS' };
+};
+
+const whenTheResultIsPrinted = () => {
+	returnValue = printResult(vorpal)(result);
+};
+
+const whenTheResultIsPrintedWithTheJSONOptionSetToTrue = () => {
+	returnValue = printResult(vorpal, { json: true })(result);
+};
+
+const thenTheResultShouldBeReturned = () => {
+	(returnValue).should.equal(result);
+};
+
+const thenATableShouldBeLogged = () => {
+	const tableOutput = tablify(result).toString();
+	(logSpy.calledWithExactly(tableOutput)).should.be.true();
+};
+
+const thenJSONOutputShouldBeLogged = () => {
+	const jsonOutput = JSON.stringify(result);
+	(logSpy.calledWithExactly(jsonOutput)).should.be.true();
+};
+
 describe('print utils', () => {
 	describe('#printResult', () => {
-		let vorpal;
-		let result;
-		let stub;
+		describe('Given there is a Vorpal instance with an active command that can log', () => {
+			beforeEach(givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog);
 
-		beforeEach(() => {
-			vorpal = {
-				activeCommand: {
-					log: () => {},
-				},
-			};
-			result = { lisk: 'JS' };
-			stub = sandbox.stub(vorpal.activeCommand, 'log');
-		});
+			describe('And there is a result to print', () => {
+				beforeEach(givenThereIsAResultToPrint);
 
-		it('should return the result', () => {
-			const returnValue = printResult(vorpal)(result);
-			(returnValue).should.equal(result);
-		});
+				describe('When the result is printed', () => {
+					beforeEach(whenTheResultIsPrinted);
 
-		it('should print a table', () => {
-			printResult(vorpal)(result);
-			(stub.calledWithExactly(tablify(result).toString())).should.be.true();
-		});
+					it('Then the result should be returned', thenTheResultShouldBeReturned);
+					it('Then a table should be logged', thenATableShouldBeLogged);
+				});
+				describe('When the result is printed with the JSON option set to true', () => {
+					beforeEach(whenTheResultIsPrintedWithTheJSONOptionSetToTrue);
 
-		it('should print JSON', () => {
-			printResult(vorpal, { json: true })(result);
-			(stub.calledWithExactly(JSON.stringify(result))).should.be.true();
+					it('Then the result should be returned', thenTheResultShouldBeReturned);
+					it('Then JSON output should be logged', thenJSONOutputShouldBeLogged);
+				});
+			});
 		});
 	});
 });
