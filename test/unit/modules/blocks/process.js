@@ -13,26 +13,6 @@ var constants = require('../../../../helpers/constants.js');
 var slots = require('../../../../helpers/slots.js');
 var blocksData = require('./processBlocks.json');
 var promisify = require('promisify-any');
-var _ = require('lodash');
-var testAccount = [{
-	account: {
-		username: 'test_process_1',
-		isDelegate: 1,
-		address: '2737453412992791987L',
-		publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		balance: 5300000000000000,
-	},
-	secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
-},{
-	account: {
-		username: 'test_process_2',
-		isDelegate: 0,
-		address: '2896019180726908125L',
-		publicKey: '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		balance: 3500000000000000,
-	},
-	secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
-}];
 
 var forkOneScenarios = [
 	{
@@ -229,11 +209,28 @@ var forkFiveScenarios = [
 		'transactions': []
 	},
 	{
-		'id': '10926931574281732446',
+		'id': '16056852016774003157',
 		'version': 0,
 		'timestamp': 35566044,
 		'height': 4,
-		'previousBlock': '6031210250236390844',
+		'previousBlock': '5306579532562076080',
+		'numberOfTransactions': 0,
+		'totalAmount': 0,
+		'totalFee': 0,
+		'reward': 0,
+		'payloadLength': 0,
+		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
+		'generatorId': '17110047919889272525L',
+		'blockSignature': '6ab68499289da80618f4e4b01f40c90d72c2bb3a6ca1785c44b03507140c7c86a4d580c4f60d0fd58a18ea9e125ca6061c2493b2d4cb9d5f1b6735e927f8d301',
+		'transactions': []
+	},
+	{
+		'id': '10809124178179825767',
+		'version': 0,
+		'timestamp': 35566044,
+		'height': 4,
+		'previousBlock': '5306579532562076080',
 		'numberOfTransactions': 0,
 		'totalAmount': 0,
 		'totalFee': 0,
@@ -242,41 +239,24 @@ var forkFiveScenarios = [
 		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 		'generatorPublicKey': '03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a',
 		'generatorId': '11506830473925742632L',
-		'blockSignature': '3fac1aed675e35ec7e60878f32d18e39295d37a364be4bfd412d2576fad3d5fd128f1b0e4ba30f7ae90333a5f7c74a226ba1a59f65319f6a77d60252a12f4007',
+		'blockSignature': 'f0ab0aae9d57cc37b00e530d35ab5612a04b8f894c45bed2e1c8efc3d05723b72e2d0313ea8b4129fd58627a38847720c19fb172d68ce2d5e625fd5b0156110e',
 		'transactions': []
 	},
 	{
-		'id': '2237733427461633785',
+		'id': '11989800390883044151',
 		'version': 0,
-		'timestamp': 35566044,
+		'timestamp': 35566055,
 		'height': 4,
-		'previousBlock': '6031210250236390844',
+		'previousBlock': '5306579532562076080',
 		'numberOfTransactions': 0,
 		'totalAmount': 0,
 		'totalFee': 0,
 		'reward': 0,
 		'payloadLength': 0,
 		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
-		'generatorId': '17110047919889272525L',
-		'blockSignature': '4a7e8b5d7884a63a4f81dcf8022653003a8e169fb9393e7f408f591a5a86553625bd67e52e151cdc586670d0cc7c949487e1a4b2999413f3608f18e385cb5f09',
-		'transactions': []
-	},
-	{
-		'id': '15780158931460205205',
-		'version': 0,
-		'timestamp': 35566025,
-		'height': 4,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
-		'generatorId': '17110047919889272525L',
-		'blockSignature': 'cf903495ecfc5856f86982ad4932621278116b8f78f069be8232777f614619fd77fe2e7f8828c4773f7cd8b1248029c1731615d2cfd1b18228c1d6b2fd0b0b0c',
+		'generatorPublicKey': '031e27beab583e2c94cb3167d128fc1a356c1ae88adfcfaa2334abffa3ae0b4c',
+		'generatorId': '11004588490103196952L',
+		'blockSignature': '15436564bb46222bfe462f92e3a4c1d932ae5b9cbef9b181b2c2652217346acfaa28676f749f39d9af60651ee04bb431e3d64ad6487924e642c988beaf902601',
 		'transactions': []
 	}
 ];
@@ -445,25 +425,6 @@ describe('blocks/process', function () {
 			});
 		});		
 	}
-	it('should be ok when generate account 1', function (done) {
-		accounts.setAccountAndGet(testAccount[0].account, function (err, newaccount) {
-			if (err) {
-				return done(err);
-			}
-			expect(newaccount.address).to.equal(testAccount[0].account.address);
-			done();
-		});
-	});
-	
-	it('should be ok when generate account 2', function (done) {
-		accounts.setAccountAndGet(testAccount[1].account, function (err, newaccount) {
-			if (err) {
-				return done(err);
-			}
-			expect(newaccount.address).to.equal(testAccount[1].account.address);
-			done();
-		});
-	});
 	
 	describe('onReceiveBlock (empty transactions)', function () {
 
@@ -776,6 +737,322 @@ describe('blocks/process', function () {
 			});
 		});
 
+	
+		describe('receiveForkFive', function () {
+			
+			toBlockchain(blocksData, 'restore', 1);
+
+			describe('timestamp is greather than previous block', function () {
+
+				it('should be ok when last block stands and blocks have same publicKey generator', function (done) {
+					modulesLoader.scope.sequence.add = function (cb) {
+						var fn = promisify(cb);
+						fn().then(function (err, res) {
+							expect(err).to.be.undefined;
+							expect(res).to.be.undefined;
+							expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
+							expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
+							expect(info.args[0][0]).to.equal('Fork');
+							expect(info.args[0][1].cause).to.equal(5);
+							expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[0].generatorPublicKey);
+							expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[0].height);
+							expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[0].id);
+							expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[0].previousBlock);
+							expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[0].timestamp);
+							expect(info.args[1][0]).to.equal('Last block stands');
+							forkFiveScenarios[0].timestamp = timestamp;
+							done();
+						});
+					};
+					var timestamp = forkFiveScenarios[0].timestamp;
+					forkFiveScenarios[0].timestamp = blocksData[1].timestamp + 1;
+					blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
+				});
+
+				it('should be ok when last block stands and blocks have different publicKey generator', function (done) {
+					modulesLoader.scope.sequence.add = function (cb) {
+						var fn = promisify(cb);
+						fn().then(function (err, res) {
+							expect(err).to.be.undefined;
+							expect(res).to.be.undefined;
+							expect(info.args[0][0]).to.equal('Fork');
+							expect(info.args[0][1].cause).to.equal(5);
+							expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[2].generatorPublicKey);
+							expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[2].height);
+							expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[2].id);
+							expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[2].previousBlock);
+							expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[2].timestamp);
+							expect(info.args[1][0]).to.equal('Last block stands');
+							done();
+						});
+					};
+					blocksProcess.onReceiveBlock(forkFiveScenarios[2]);
+				});
+			});
+
+			describe('timestamp is lower than previous block', function () {
+
+				it('should fail when block object normalize', function (done) {
+					modulesLoader.scope.sequence.add = function (cb) {
+						var fn = promisify(cb);
+						fn().catch(function (err) {
+							expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
+							expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
+							expect(info.args[0][0]).to.equal('Fork');
+							expect(info.args[0][1].cause).to.equal(5);
+							expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[0].generatorPublicKey);
+							expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[0].height);
+							expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[0].id);
+							expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[0].previousBlock);
+							expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[0].timestamp);
+							expect(info.args[1][0]).to.equal('Last block loses');
+							expect(error.args[0][0]).to.equal('Fork recovery failed');
+							expect(error.args[0][1]).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', forkFiveScenarios[0].blockSignature].join(' '));
+							expect(err.message).to.equal(['Failed to validate block schema: Object didn\'t pass validation for format signature:', forkFiveScenarios[0].blockSignature].join(' '));
+							forkFiveScenarios[0].blockSignature = blockSignature;
+							done();
+						});
+					};
+					forkFiveScenarios[0].timestamp = forkFiveScenarios[0].timestamp;
+					var blockSignature = forkFiveScenarios[0].blockSignature;
+					forkFiveScenarios[0].blockSignature = 'invalid-block-signature';
+					blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
+				});
+		
+				it('should fail when block verify receipt', function (done) {
+					modulesLoader.scope.sequence.add = function (cb) {
+						var fn = promisify(cb);
+						fn().catch(function (err) {
+							expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
+							expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
+							expect(info.args[0][0]).to.equal('Fork');
+							expect(info.args[0][1].cause).to.equal(5);
+							expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[0].generatorPublicKey);
+							expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[0].height);
+							expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[0].id);
+							expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[0].previousBlock);
+							expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[0].timestamp);
+							expect(info.args[1][0]).to.equal('Last block loses');
+							expect(error.args[0][1]).to.equal('Failed to verify block signature');
+							expect(error.args[1][0]).to.equal('Fork recovery failed');
+							expect(error.args[1][1]).to.equal('Failed to verify block signature');
+							expect(err.message).to.equal('Failed to verify block signature');
+							forkFiveScenarios[0].blockSignature = blockSignature;
+							done();
+						});
+					};
+					var blockSignature = forkFiveScenarios[0].blockSignature;
+					forkFiveScenarios[0].blockSignature = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+					blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
+				});
+				
+				describe('Same round', function () {
+
+					it('should fail when blocks have different generator and last block generator is invalid', function (done) {
+						modulesLoader.scope.sequence.add = function (cb) {
+							var fn = promisify(cb);
+							fn().catch(function (err) {
+								expect(err.message).to.equal('Failed to verify slot: 3556603');
+								expect(error.args[0][0]).to.equal('Expected generator: 01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746 Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
+								expect(error.args[1][0]).to.equal('Fork recovery failed');
+								expect(error.args[1][1]).to.equal('Failed to verify slot: 3556603');
+								expect(info.args[0][0]).to.equal('Fork');
+								expect(info.args[0][1].cause).to.equal(5);
+								expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[1].generatorPublicKey);
+								expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[1].height);
+								expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[1].id);
+								expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[1].previousBlock);
+								expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[1].timestamp);
+								expect(info.args[1][0]).to.equal('Last block loses');
+								done()
+							});
+						};
+						blocksProcess.onReceiveBlock(forkFiveScenarios[1]);
+					});
+					
+					it('should be ok when last block loses and blocks have same publicKey generator', function (done) {
+						modulesLoader.scope.sequence.add = function (cb) {
+							var fn = promisify(cb);
+							fn().then(function (err, res) {
+								expect(err).to.be.undefined;
+								expect(res).to.be.undefined;
+								expect(debug.args[0][0]).to.equal('Performing backward tick');
+								expect(debug.args[1][0]).to.equal('Block applied correctly with 0 transactions');
+								expect(debug.args[2][0]).to.equal('Performing forward tick');
+								expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
+								expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
+								expect(warn.args[1][0]).to.equal('Deleting last block');
+								expect(warn.args[1][1].id).to.equal(blocksData[1].id);
+								expect(info.args[0][0]).to.equal('Fork');
+								expect(info.args[0][1].cause).to.equal(5);
+								expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[0].generatorPublicKey);
+								expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[0].height);
+								expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[0].id);
+								expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[0].previousBlock);
+								expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[0].timestamp);
+								expect(info.args[1][0]).to.equal('Last block loses');
+								expect(info.args[2][0]).to.equal([
+									'Received new block id:', forkFiveScenarios[0].id,
+									'height:', forkFiveScenarios[0].height,
+									'round:',  rounds.calc(forkFiveScenarios[0].height),
+									'slot:', slots.getSlotNumber(forkFiveScenarios[0].timestamp),
+									'reward:', forkFiveScenarios[0].reward
+								].join(' '));
+								done();
+							});
+						};
+						blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
+					});
+
+					deleteLastBlock();
+					toBlockchain(forkFiveScenarios, 'previous generator missed round', 2);
+
+					it('should be ok when last block loses and blocks have different publicKey generator', function (done) {
+						modulesLoader.scope.sequence.add = function (cb) {
+							var fn = promisify(cb);
+							fn().then(function (err, res) {
+								expect(err).to.be.undefined;
+								expect(res).to.be.undefined;
+								expect(debug.args[0][0]).to.equal('Performing backward tick');
+								expect(debug.args[1][0]).to.equal('Block applied correctly with 0 transactions');
+								expect(debug.args[2][0]).to.equal('Performing forward tick');
+								expect(debug.args[3][0]).to.equal('Performing round snapshot...');
+								expect(warn.args[0][0]).to.equal('Deleting last block');
+								expect(warn.args[0][1].id).to.equal(forkFiveScenarios[2].id);
+								expect(info.args[0][0]).to.equal('Fork');
+								expect(info.args[0][1].cause).to.equal(5);
+								expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[0].generatorPublicKey);
+								expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[0].height);
+								expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[0].id);
+								expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[0].previousBlock);
+								expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[0].timestamp);
+								expect(info.args[1][0]).to.equal('Last block loses');
+								expect(info.args[2][0]).to.equal([
+									'Received new block id:', forkFiveScenarios[0].id,
+									'height:', forkFiveScenarios[0].height,
+									'round:',  rounds.calc(forkFiveScenarios[0].height),
+									'slot:', slots.getSlotNumber(forkFiveScenarios[0].timestamp),
+									'reward:', forkFiveScenarios[0].reward
+								].join(' '));
+								done();
+							});
+						};
+						blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
+					});
+				});
+
+				describe('Round changes', function () {
+					
+					deleteLastBlock();
+					toBlockchain(blocksData, 'restore', 1);
+					toBlockchain(blocksData, 'restore', 2);
+
+					it('should fail when last block loses and block generator not match last block of round generator', function (done) {
+						modulesLoader.scope.sequence.add = function (cb) {
+							var fn = promisify(cb);
+							fn().catch(function (err) {
+								expect(err.message).to.equal('Failed to verify slot: 3556604');
+								expect(error.args[0][0]).to.equal('Expected generator: 03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
+								expect(error.args[1][0]).to.equal('Fork recovery failed');
+								expect(error.args[1][1]).to.equal('Failed to verify slot: 3556604');
+								expect(info.args[0][0]).to.equal('Fork');
+								expect(info.args[0][1].cause).to.equal(5);
+								expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[3].generatorPublicKey);
+								expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[3].height);
+								expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[3].id);
+								expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[3].previousBlock);
+								expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[3].timestamp);
+								expect(info.args[1][0]).to.equal('Last block loses');
+								done()
+							});
+						};
+						blocksProcess.onReceiveBlock(forkFiveScenarios[3]);
+					});
+
+					it('should be ok when blocks have same publicKey generator', function (done) {
+						modulesLoader.scope.sequence.add = function (cb) {
+							var fn = promisify(cb);
+							fn().then(function (err, res) {
+								expect(err).to.be.undefined;
+								expect(res).to.be.undefined;
+								expect(debug.args[0][0]).to.equal('Summing round');
+								expect(debug.args[0][1]).to.equal(1);
+								expect(debug.args[1][0]).to.equal('Performing backward tick');
+								expect(debug.args[2][0]).to.equal('Restoring mem_round snapshot...');
+								expect(debug.args[3][0]).to.equal('Restoring mem_accounts.vote snapshot...');
+								expect(debug.args[4][0]).to.equal('Block applied correctly with 0 transactions');
+								expect(debug.args[5][0]).to.equal('Summing round');
+								expect(debug.args[5][1]).to.equal(1);
+								expect(debug.args[6][0]).to.equal('Performing forward tick');
+								expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
+								expect(warn.args[0][1]).to.equal(forkFiveScenarios[4].generatorPublicKey);
+								expect(warn.args[1][0]).to.equal('Deleting last block');
+								expect(warn.args[1][1].id).to.equal(blocksData[2].id);
+								expect(info.args[0][0]).to.equal('Fork');
+								expect(info.args[0][1].cause).to.equal(5);
+								expect(info.args[0][1].delegate).to.equal(forkFiveScenarios[4].generatorPublicKey);
+								expect(info.args[0][1].block.height).to.equal(forkFiveScenarios[4].height);
+								expect(info.args[0][1].block.id).to.equal(forkFiveScenarios[4].id);
+								expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[4].previousBlock);
+								expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[4].timestamp);
+								expect(info.args[1][0]).to.equal('Last block loses');
+								expect(info.args[2][0]).to.equal([
+									'Received new block id:', forkFiveScenarios[4].id,
+									'height:', forkFiveScenarios[4].height,
+									'round:',  rounds.calc(forkFiveScenarios[4].height),
+									'slot:', slots.getSlotNumber(forkFiveScenarios[4].timestamp),
+									'reward:', forkFiveScenarios[4].reward
+								].join(' '));
+								done();
+							});
+						};
+						blocksProcess.onReceiveBlock(forkFiveScenarios[4]);
+					});
+	
+					deleteLastBlock();
+					toBlockchain(forkFiveScenarios, 'previous generator missed round', 5);
+	
+					it('should be ok when last block loses and block match last block of round generator', function (done) {
+						modulesLoader.scope.sequence.add = function (cb) {
+							var fn = promisify(cb);
+							fn().then(function (err, res) {
+								expect(err).to.be.undefined;
+								expect(res).to.be.undefined;
+								expect(debug.args[0][0]).to.equal('Summing round');
+								expect(debug.args[0][1]).to.equal(1);
+								expect(debug.args[1][0]).to.equal('Performing backward tick');
+								expect(debug.args[2][0]).to.equal('Restoring mem_round snapshot...');
+								expect(debug.args[3][0]).to.equal('Restoring mem_accounts.vote snapshot...');
+								expect(debug.args[4][0]).to.equal('Block applied correctly with 0 transactions');
+								expect(debug.args[5][0]).to.equal('Summing round');
+								expect(debug.args[5][1]).to.equal(1);
+								expect(debug.args[6][0]).to.equal('Performing forward tick');
+								expect(warn.args[0][0]).to.equal('Deleting last block');
+								expect(warn.args[0][1].id).to.equal(forkFiveScenarios[5].id);
+								expect(info.args[0][0]).to.equal('Fork');
+								expect(info.args[0][1].cause).to.equal(5);
+								expect(info.args[0][1].delegate).to.equal(blocksData[2].generatorPublicKey);
+								expect(info.args[0][1].block.height).to.equal(blocksData[2].height);
+								expect(info.args[0][1].block.id).to.equal(blocksData[2].id);
+								expect(info.args[0][1].block.previousBlock).to.equal(blocksData[2].previousBlock);
+								expect(info.args[0][1].block.timestamp).to.equal(blocksData[2].timestamp);
+								expect(info.args[1][0]).to.equal('Last block loses');
+								expect(info.args[2][0]).to.equal([
+									'Received new block id:', blocksData[2].id,
+									'height:', blocksData[2].height,
+									'round:',  rounds.calc(blocksData[2].height),
+									'slot:', slots.getSlotNumber(blocksData[2].timestamp),
+									'reward:', blocksData[2].reward
+								].join(' '));
+								done();
+							});
+						};
+						blocksProcess.onReceiveBlock(blocksData[2]);
+					});
+				});
+			});
+		});
+
 		describe('skipped blocks', function () {
 
 			it('should fail when block already processed', function (done) {
@@ -785,11 +1062,11 @@ describe('blocks/process', function () {
 						expect(err).to.be.undefined;
 						expect(res).to.be.undefined;
 						expect(debug.args[0][0]).to.equal('Block already processed');
-						expect(debug.args[0][1]).to.equal(blocksData[0].id);
+						expect(debug.args[0][1]).to.equal(blocksData[2].id);
 						done();
 					});
 				};
-				blocksProcess.onReceiveBlock(blocksData[0]);
+				blocksProcess.onReceiveBlock(blocksData[2]);
 			});
 	
 			it('should fail when discarded block', function (done) {
