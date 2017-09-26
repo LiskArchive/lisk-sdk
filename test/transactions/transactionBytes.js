@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getTransactionBytes,
+import getTransactionBytes, {
 	getAssetDataForSendTransaction,
 	getAssetDataForSignatureTransaction,
 	getAssetDataForDelegateTransaction,
@@ -122,6 +121,16 @@ describe('#getTransactionBytes', () => {
 			requiredProperties.forEach((parameter) => {
 				const defaultTransactionClone = Object.assign({}, defaultTransaction);
 				delete defaultTransactionClone[parameter];
+				(getTransactionBytes.bind(null, defaultTransactionClone)).should.throw(`${parameter} is a required parameter.`);
+			});
+		});
+
+		it('should throw on required parameters as undefined', () => {
+			const requiredProperties = ['type', 'timestamp', 'senderPublicKey', 'amount'];
+
+			requiredProperties.forEach((parameter) => {
+				const defaultTransactionClone = Object.assign({}, defaultTransaction);
+				defaultTransactionClone[parameter] = undefined;
 				(getTransactionBytes.bind(null, defaultTransactionClone)).should.throw(`${parameter} is a required parameter.`);
 			});
 		});
@@ -298,7 +307,7 @@ describe('#getTransactionBytes', () => {
 	});
 });
 
-describe('getTransactionBytes helper functions', () => {
+describe('getTransactionBytes functions', () => {
 	describe('#checkRequiredFields', () => {
 		const arrayToCheck = ['OneValue', 'SecondValue', 'ThirdValue'];
 		it('should accept array and object to check for required fields', () => {
@@ -319,10 +328,31 @@ describe('getTransactionBytes helper functions', () => {
 
 			(checkRequiredFields.bind(null, arrayToCheck, objectParameter)).should.throw('ThirdValue is a required parameter.');
 		});
+
+		it('should work with non-string keys', () => {
+			const arrayToCheckNonString = [0, 1, 2, 3];
+			const objectParameter = {
+				0: 0,
+				1: 10,
+				2: 20,
+				3: 30,
+			};
+			(checkRequiredFields(arrayToCheckNonString, objectParameter)).should.be.true();
+		});
+
+		it('should work with non-string keys', () => {
+			const arrayToCheckNonString = [0, 1, 2, 3];
+			const objectParameter = {
+				0: 0,
+				1: 10,
+				2: 20,
+			};
+			(checkRequiredFields.bind(null, arrayToCheckNonString, objectParameter)).should.throw('3 is a required parameter.');
+		});
 	});
 
-	const defaultEmptyBuffer = Buffer.alloc(0);
 	describe('#getAssetDataForSendTransaction', () => {
+		const defaultEmptyBuffer = Buffer.alloc(0);
 		it('should return Buffer for data asset', () => {
 			const expectedBuffer = Buffer.from('my data input', 'utf8');
 			const assetDataBuffer = getAssetDataForSendTransaction({
@@ -440,11 +470,11 @@ describe('getTransactionBytes helper functions', () => {
 		const defaultType = 0;
 		const defaultLink = 'https://github.com/MaxKK/guestbookDapp/archive/master.zip';
 		const defaultIcon = 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png';
-		const dappNameBuffer = Buffer.from(defaultDappName, 'utf8');
-		const dappDescriptionBuffer = Buffer.from(defaultDescription, 'utf8');
-		const dappTagsBuffer = Buffer.from(defaultTags, 'utf8');
-		const dappLinkBuffer = Buffer.from(defaultLink, 'utf8');
-		const dappIconBuffer = Buffer.from(defaultIcon, 'utf8');
+		const dappNameBuffer = Buffer.from('TGlzayBHdWVzdGJvb2s=', 'base64');
+		const dappDescriptionBuffer = Buffer.from('VGhlIG9mZmljaWFsIExpc2sgZ3Vlc3Rib29r', 'base64');
+		const dappTagsBuffer = Buffer.from('Z3Vlc3Rib29rIG1lc3NhZ2Ugc2lkZWNoYWlu', 'base64');
+		const dappLinkBuffer = Buffer.from('aHR0cHM6Ly9naXRodWIuY29tL01heEtLL2d1ZXN0Ym9va0RhcHAvYXJjaGl2ZS9tYXN0ZXIuemlw', 'base64');
+		const dappIconBuffer = Buffer.from('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL01heEtLL2d1ZXN0Ym9va0RhcHAvbWFzdGVyL2ljb24ucG5n', 'base64');
 		const dappTypeBuffer = Buffer.alloc(4, defaultType);
 		const dappCategoryBuffer = Buffer.alloc(4, defaultCategory);
 		it('should return Buffer for create dapp asset', () => {
@@ -538,23 +568,30 @@ describe('getTransactionBytes helper functions', () => {
 	});
 
 	describe('#checkTransaction', () => {
-		it('should throw on too many data in send asset', () => {
-			const maxDataLength = 64;
-			const defaultTransaction = {
+		const maxDataLength = 64;
+		let defaultTransaction;
+		beforeEach(() => {
+			defaultTransaction = {
 				type: 0,
 				fee: 0.1 * fixedPoint,
 				amount: defaultAmount,
 				recipientId: defaultRecipient,
 				timestamp: defaultTimestamp,
-				asset: {
-					data: new Array(maxDataLength + 1).fill('1').join(''),
-				},
+				asset: {},
 				senderPublicKey: defaultSenderPublicKey,
 				senderId: defaultSenderId,
 				signature: defaultSignature,
 				id: defaultTransactionId,
 			};
+		});
+		it('should throw on too many data in send asset', () => {
+			defaultTransaction.asset.data = new Array(maxDataLength + 1).fill('1').join('');
 			(checkTransaction.bind(null, defaultTransaction)).should.throw('Transaction asset data exceeds size of 64.');
+		});
+
+		it('should return true on asset data exactly at max data length', () => {
+			defaultTransaction.asset.data = new Array(maxDataLength).fill('1').join('');
+			(checkTransaction(defaultTransaction)).should.be.true();
 		});
 	});
 });

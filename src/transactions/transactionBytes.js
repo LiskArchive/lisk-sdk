@@ -13,6 +13,7 @@
  *
  */
 import bignum from 'browserify-bignum';
+import { isValidValue } from './utils';
 
 export const BYTESIZES = {
 	TYPE: 1,
@@ -34,9 +35,9 @@ export const BYTESIZES = {
  */
 
 export function checkRequiredFields(requiredFields, data) {
+	const dataFields = Object.keys(data);
 	requiredFields.forEach((parameter) => {
-		const dataFields = Object.keys(data);
-		if (!dataFields.includes(parameter)) {
+		if (!dataFields.includes(parameter.toString()) || !isValidValue(data[parameter])) {
 			throw new Error(`${parameter} is a required parameter.`);
 		}
 	});
@@ -117,23 +118,23 @@ export function getAssetDataForMultisignatureTransaction({ multisignature }) {
 export function getAssetDataForDappTransaction({ dapp }) {
 	checkRequiredFields(['name', 'link', 'type', 'category'], dapp);
 	const { name, description, tags, link, icon, type, category } = dapp;
-	const dappNameBuffer = Buffer.from(name, 'utf8');
-	const dappLinkBuffer = Buffer.from(link, 'utf8');
-	const dappTypeBuffer = Buffer.alloc(4, type);
-	const dappCategoryBuffer = Buffer.alloc(4, category);
+	const nameBuffer = Buffer.from(name, 'utf8');
+	const linkBuffer = Buffer.from(link, 'utf8');
+	const typeBuffer = Buffer.alloc(4, type);
+	const categoryBuffer = Buffer.alloc(4, category);
 
-	const dappDescriptionBuffer = description ? Buffer.from(description, 'utf8') : Buffer.alloc(0);
-	const dappTagsBuffer = tags ? Buffer.from(tags, 'utf8') : Buffer.alloc(0);
-	const dappIconBuffer = icon ? Buffer.from(icon, 'utf8') : Buffer.alloc(0);
+	const descriptionBuffer = description ? Buffer.from(description, 'utf8') : Buffer.alloc(0);
+	const tagsBuffer = tags ? Buffer.from(tags, 'utf8') : Buffer.alloc(0);
+	const iconBuffer = icon ? Buffer.from(icon, 'utf8') : Buffer.alloc(0);
 
 	return Buffer.concat([
-		dappNameBuffer,
-		dappDescriptionBuffer,
-		dappTagsBuffer,
-		dappLinkBuffer,
-		dappIconBuffer,
-		dappTypeBuffer,
-		dappCategoryBuffer,
+		nameBuffer,
+		descriptionBuffer,
+		tagsBuffer,
+		linkBuffer,
+		iconBuffer,
+		typeBuffer,
+		categoryBuffer,
 	]);
 }
 
@@ -158,19 +159,19 @@ export function getAssetDataForDappInTransaction({ inTransfer }) {
 export function getAssetDataForDappOutTransaction({ outTransfer }) {
 	checkRequiredFields(['dappId', 'transactionId'], outTransfer);
 	const { dappId, transactionId } = outTransfer;
-	const dappOutAppIdBuffer = Buffer.from(dappId, 'utf8');
-	const dappOutTransactionIdBuffer = Buffer.from(transactionId, 'utf8');
+	const outAppIdBuffer = Buffer.from(dappId, 'utf8');
+	const outTransactionIdBuffer = Buffer.from(transactionId, 'utf8');
 
-	return Buffer.concat([dappOutAppIdBuffer, dappOutTransactionIdBuffer]);
+	return Buffer.concat([outAppIdBuffer, outTransactionIdBuffer]);
 }
 
 /**
- * @method getAssetBytesHelper
+ * @method getAssetBytes
  * @param {Object} transaction
  * @return {Buffer}
  */
 
-export function getAssetBytesHelper(transaction) {
+export function getAssetBytes(transaction) {
 	const assetDataGetters = {
 		0: getAssetDataForSendTransaction,
 		1: getAssetDataForSignatureTransaction,
@@ -185,20 +186,7 @@ export function getAssetBytesHelper(transaction) {
 	return assetDataGetters[transaction.type](transaction.asset);
 }
 
-/**
- * @method checkTransaction
- * @throws
- */
-
-export function checkTransaction(transaction) {
-	if (transaction.asset.data) {
-		if (transaction.asset.data.length > BYTESIZES.DATA) {
-			throw new Error(`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`);
-		}
-	}
-}
-
-const REQUIRED_TRANSACTION_PARAMETER = [
+const REQUIRED_TRANSACTION_PARAMETERS = [
 	'type',
 	'timestamp',
 	'senderPublicKey',
@@ -206,20 +194,30 @@ const REQUIRED_TRANSACTION_PARAMETER = [
 ];
 
 /**
-* A utility class to get transaction byteSizes
+ * @method checkTransaction
+ * @throws
+ */
+
+export function checkTransaction(transaction) {
+	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
+	const { asset: { data } } = transaction;
+	if (data && data.length > BYTESIZES.DATA) {
+		throw new Error(`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`);
+	}
+	return true;
+}
+
+/**
+* A utility method to get transaction byteSizes
 *
-* @class TransactionBytes
+* @method TransactionBytes
 * @param {Object} transaction
-* @constructor
+*
 */
 
-export function getTransactionBytes(transaction) {
+export default function getTransactionBytes(transaction) {
 	checkTransaction(transaction);
-	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETER, transaction);
-
-	const transactionType = Buffer.alloc(BYTESIZES.TYPE);
-	transactionType.writeInt8(transaction.type);
-
+	const transactionType = Buffer.alloc(BYTESIZES.TYPE, transaction.type);
 	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 	transactionTimestamp.writeIntLE(transaction.timestamp, 0, BYTESIZES.TIMESTAMP);
 
@@ -234,12 +232,12 @@ export function getTransactionBytes(transaction) {
 				transaction.recipientId.slice(0, -1),
 			).toBuffer({ size: BYTESIZES.RECIPIENT_ID }),
 		)
-		: Buffer.alloc(BYTESIZES.RECIPIENT_ID).fill(0);
+		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 	const transactionAmount = Buffer.alloc(BYTESIZES.AMOUNT);
 	transactionAmount.writeInt32LE(transaction.amount, 0, BYTESIZES.AMOUNT);
 
-	const transactionAssetData = getAssetBytesHelper(transaction);
+	const transactionAssetData = getAssetBytes(transaction);
 
 	const transactionSignature = transaction.signature
 		? Buffer.from(transaction.signature, 'hex')
