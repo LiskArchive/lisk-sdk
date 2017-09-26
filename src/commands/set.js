@@ -21,6 +21,11 @@ import { CONFIG_VARIABLES } from '../utils/constants';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 
+const description = `Set configuration <variable> to <value>. Variables available: json, testnet. Configuration is persisted in \`${configFilePath}\`.
+
+	Example: set json true
+`;
+
 const writeConfigToFile = (vorpal, newConfig) => {
 	try {
 		fse.writeJsonSync(configFilePath, newConfig, {
@@ -80,7 +85,7 @@ const set = vorpal => ({ variable, value }) => {
 export default function setCommand(vorpal) {
 	vorpal
 		.command('set <variable> <value>')
-		.description(`Set configuration <variable> to <value>. Configuration is persisted in \`${configFilePath}\`.`)
+		.description(description)
 		.autocomplete(CONFIG_VARIABLES)
 		.action(set(vorpal));
 }

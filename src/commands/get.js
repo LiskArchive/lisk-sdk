@@ -23,6 +23,13 @@ import {
 	shouldUseJsonOutput,
 } from '../utils/helpers';
 
+const description = `Get information from <type> with parameter <input>. Types available: account, address, block, delegate, transaction.
+
+	Examples:
+		- get delegate lightcurve
+		- get block 5510510593472232540
+`;
+
 const handlers = {
 	account: account => query.isAccountQuery(account),
 	address: address => query.isAccountQuery(address),
@@ -49,7 +56,7 @@ export default function getCommand(vorpal) {
 		.command('get <type> <input>')
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
-		.description('Get information from <type> with parameter <input>.\n  Types available: account, address, block, delegate, transaction\n  Example: get delegate lightcurve\n  Example: get block 5510510593472232540')
+		.description(description)
 		.autocomplete(COMMAND_TYPES)
 		.action(get(vorpal));
 }

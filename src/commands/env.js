@@ -15,11 +15,16 @@
  */
 import config from '../utils/env';
 
+const description = `Print environmental configuration.
+
+	Example: env
+`;
+
 const env = vorpal => () => Promise.resolve(vorpal.activeCommand.log(JSON.stringify(config, null, '\t')));
 
 export default function envCommand(vorpal) {
 	vorpal
 		.command('env')
-		.description('Print environmental configuration.')
+		.description(description)
 		.action(env(vorpal));
 }

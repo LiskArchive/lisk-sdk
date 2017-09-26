@@ -23,7 +23,7 @@ import {
 	getData,
 } from '../utils/input';
 
-const decryptDescription = `Decrypt an encrypted message from a given sender public key for a known nonce using your secret passphrase.
+const description = `Decrypt an encrypted message from a given sender public key for a known nonce using your secret passphrase.
 
 	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
@@ -58,7 +58,7 @@ function decryptMessageCommand(vorpal) {
 		.option(...commonOptions.message)
 		.option(...commonOptions.json)
 		.option(...commonOptions.noJson)
-		.description(decryptDescription)
+		.description(description)
 		.action(decryptMessage(vorpal));
 }
 
