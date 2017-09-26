@@ -101,7 +101,9 @@ describe('PUT /api/delegates without funds', function () {
 
 describe('PUT /api/accounts/delegates with funds', function () {
 
-	beforeEach(enrichRandomAccount);
+	before(enrichRandomAccount);
+
+	beforeEach(node.onNewBlock);
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
 		var votedDelegate = Array.apply(null, Array(2)).map(function () { return '+' + node.eAccount.publicKey;});
