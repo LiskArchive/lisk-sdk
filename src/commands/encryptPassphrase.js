@@ -30,12 +30,26 @@ const description = `Encrypt your secret passphrase under a password.
 	Example: encrypt passphrase
 `;
 
-const handleInput = ([passphrase, password]) =>
-	cryptoModule.encryptPassphrase(passphrase, password);
+const outputPublicKeyOption = [
+	'--output-public-key',
+	'Includes the public key in the output. This option is provided for the convenience of node operators.',
+];
+
+const handleInput = outputPublicKey => ([passphrase, password]) => {
+	const cipherAndIv = cryptoModule.encryptPassphrase(passphrase, password);
+	return outputPublicKey
+		? Object.assign({}, cipherAndIv, {
+			publicKey: cryptoModule.getKeys(passphrase).publicKey,
+		})
+		: cipherAndIv;
+};
 
 const encryptPassphrase = vorpal => ({ options }) => {
-	const passphraseSource = options.passphrase;
-	const passwordSource = options.password;
+	const {
+		passphrase: passphraseSource,
+		password: passwordSource,
+		'output-public-key': outputPublicKey,
+	} = options;
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
@@ -51,7 +65,7 @@ const encryptPassphrase = vorpal => ({ options }) => {
 				.then(password => [passphrase, password]),
 			),
 		)
-		.then(handleInput)
+		.then(handleInput(outputPublicKey))
 		.catch(createErrorHandler('Could not encrypt passphrase'))
 		.then(printResult(vorpal, options));
 };
@@ -59,6 +73,7 @@ const encryptPassphrase = vorpal => ({ options }) => {
 function encryptPassphraseCommand(vorpal) {
 	vorpal
 		.command('encrypt passphrase')
+		.option(...outputPublicKeyOption)
 		.option(...commonOptions.passphrase)
 		.option(...commonOptions.password)
 		.option(...commonOptions.json)
