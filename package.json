@@ -15,7 +15,7 @@
 		"prebuild": "rm -r dist",
 		"build": "babel src -d dist",
 		"jenkins": "npm test && nyc report --reporter=text-lcov | coveralls",
-		"prepush": "grunt eslint && npm test",
+		"prepush": "npm run lint && npm test",
 		"prepublishOnly": "npm run build"
 	},
 	"repository": {
@@ -45,9 +45,6 @@
 		"eslint-config-airbnb-base": "=11.2.0",
 		"eslint-config-lisk-base": "=0.1.0",
 		"eslint-plugin-import": "=2.7.0",
-		"grunt": "=1.0.1",
-		"grunt-mocha-test": "=0.13.2",
-		"gruntify-eslint": "=4.0.0",
 		"husky": "=0.14.3",
 		"mocha": "=3.3.0",
 		"nyc": "=11.0.3",
