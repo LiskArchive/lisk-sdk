@@ -1,0 +1,66 @@
+def report(){
+	step([
+		$class: 'GitHubCommitStatusSetter',
+		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
+		contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins-ci/integration'],
+		statusResultSource: [
+			$class: 'ConditionalStatusResultSource',
+			results: [
+					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
+					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
+					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build some how escaped evaluation']
+			]
+		]
+	])
+}
+
+def statusFail() {
+	currentBuild.result = 'FAILURE'
+	error('Stopping build, build failed')
+	report()
+	cleanUp()
+}
+
+def cleanUp(){
+	sh '''#!/bin/bash
+		node_modules/.bin/pm2 kill
+	'''
+}
+
+node('node-06'){
+	lock(resource: "core-integration-tests", inversePrecedence: true) {
+		stage ('Prepare Workspace') {
+			try {
+				deleteDir()
+				checkout scm
+
+				sh '''#!/bin/bash
+					# Cycle postgres, install deps and prepare config
+					sudo service postgresql restart
+					npm install
+					cp test/config.json test/genesisBlock.json .
+				'''
+			} catch (err) {
+				statusFail()
+			}
+		}
+
+		stage ('Integration Tests') {
+			try {
+				sh '''#!/bin/bash
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run test-integration > >(tee integrationTests.logs) 2> >(tee integrationTests.logs >&2)
+				'''
+			} catch (err) {
+				statusFail()
+			}
+		}
+
+		stage ('Set milestone') {
+			milestone 1
+			currentBuild.result = 'SUCCESS'
+			report()
+			cleanUp()
+		}
+	}
+}

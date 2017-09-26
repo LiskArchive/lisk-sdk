@@ -4,8 +4,11 @@ var _ = require('lodash');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var System = require('../../../modules/system');
+
+var failureCodes = require('../../../api/ws/rpc/failureCodes');
+var PeerUpdateError = require('../../../api/ws/rpc/failureCodes').PeerUpdateError;
 var PromiseDefer = require('../../../helpers/promiseDefer');
+var System = require('../../../modules/system');
 
 var wsServer = null;
 
@@ -23,12 +26,12 @@ var wsRPC = {
 	},
 
 	/**
-	 * @throws {Error} thrown if wsServer haven't been initialized before
+	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 */
 	getServer: function () {
 		if (!wsServer) {
-			throw new Error('WS server haven\'t been initialized!');
+			throw new Error('WS server has not been initialized!');
 		}
 		return wsServer;
 	},
@@ -51,6 +54,17 @@ var wsRPC = {
 			this.clientsConnectionsMap[address] = connectionState;
 		}
 		return connectionState.stub;
+	},
+
+	/**
+	 * @throws {Error} if WS server has not been initialized yet
+	 * @returns {MasterWAMPServer} wsServer
+	 */
+	getServerAuthKey: function () {
+		if (!wsServer) {
+			throw new Error('WS server has not been initialized!');
+		}
+		return wsServer.socketCluster.options.authKey;
 	}
 };
 
@@ -130,7 +144,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	var clientSocket = wsRPC.scClient.connect(options);
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
-	clientSocket.on('connect', function () {
+	clientSocket.on('accepted', function () {
 		return connectionState.resolve(clientSocket);
 	});
 
@@ -138,12 +152,12 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 		clientSocket.disconnect();
 	});
 
-	clientSocket.on('connectAbort', function (err, data) {
-		connectionState.reject('Connection rejected by failed handshake procedure');
+	clientSocket.on('connectAbort', function () {
+		connectionState.reject(new PeerUpdateError(failureCodes.HANDSHAKE_ERROR, failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]));
 	});
 
-	clientSocket.on('disconnect', function () {
-		connectionState.reject('Connection disconnected');
+	clientSocket.on('disconnect', function (code, description) {
+		connectionState.reject(new PeerUpdateError(code, failureCodes.errorMessages[code], description));
 	});
 };
 
@@ -154,8 +168,7 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 	return function (procedureName) {
 		/**
-		 * @param {object} data [data={}] argument passed to procedure
-		 * @param {function} cb [cb=function(){}] cb
+		 * @param {Object} data [data={}] argument passed to procedure
 		 */
 		return function (data, cb) {
 			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
@@ -166,7 +179,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 				ClientRPCStub.prototype.initializeNewConnection(connectionState);
 			}
 
-			connectionState.socketDefer.promise.then(function (socket) {
+			connectionState.socketDefer.promise.timeout(1000).then(function (socket) {
 				return socket.wampSend(procedureName, data)
 					.then(function (res) {
 						return setImmediate(cb, null, res);
@@ -175,14 +188,26 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 						return setImmediate(cb, err);
 					});
 			}).catch(function (err) {
+				if (err && err.name === 'TimeoutError') {
+					err = new PeerUpdateError(failureCodes.CONNECTION_TIMEOUT, failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
+				}
 				return setImmediate(cb, err);
 			});
 		};
 	};
 };
 
+var remoteAction = function () {
+	throw new Error('Function invoked on master instead of slave process');
+};
+
+var slaveRPCStub = {
+	updateMyself: remoteAction
+};
+
 module.exports = {
 	wsRPC: wsRPC,
 	ConnectionState: ConnectionState,
-	ClientRPCStub: ClientRPCStub
+	ClientRPCStub: ClientRPCStub,
+	slaveRPCStub: slaveRPCStub
 };

@@ -28,6 +28,7 @@ function Block (ed, schema, transaction, cb) {
 		schema: schema,
 		transaction: transaction,
 	};
+	__private.blockReward = new BlockReward();
 	if (cb) {
 		return setImmediate(cb, null, this);
 	}
@@ -38,7 +39,6 @@ function Block (ed, schema, transaction, cb) {
  * Creates a blockReward instance.
  * @private
  */
-__private.blockReward = new BlockReward();
 
 /**
  * Gets address by public
@@ -143,7 +143,7 @@ Block.prototype.create = function (data) {
 Block.prototype.sign = function (block, keypair) {
 	var hash = this.getHash(block);
 
-	return this.scope.ed.sign(hash, keypair).toString('hex');
+	return this.scope.ed.sign(hash, keypair.privateKey).toString('hex');
 };
 
 /**

@@ -50,7 +50,7 @@ var TransactionsSql = {
 
 	getVotesById: 'SELECT votes AS "v_votes" FROM votes WHERE "transactionId" = ${id}',
 
-	getDelegateById: 'SELECT username AS "d_username" FROM delegates WHERE "transactionId" = ${id}',
+	getDelegateById: 'SELECT name AS "d_username" FROM delegates WHERE "tx_id" = ${id}',
 
 	getSignatureById: 'SELECT ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" = ${id}',
 
