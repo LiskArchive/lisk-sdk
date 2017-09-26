@@ -33,38 +33,35 @@ describe('blocks/utils', function () {
 		
 		it('should loop through all given rows');
 		
-		it('should call library.logic.block.dbRead with current row');
-
-		describe('when block exists', function () {
-
-			describe('and block.id is not already in the blocks array', function () {
-				
-				describe('and is genesis block', function () {
-					
-					it('should generate a fake signature for it');		
-				});
-
-				it('should push the block.id to order array');
-
-				it('should add the block to block array');
-			});
+		it('should call library.logic.block.dbRead with every row');
+		
+		describe('when block indices are duplicated', function () {
 			
-			it('should call library.logic.transaction.dbRead with current row');
-			
-			describe('and there are no transactions in the block', function () {
-				
-				it('should set transactions to an empty object');		
-			});
-			
-			describe('and a transaction exists', function () {
-				
-				it('should be added to the block if it is not added yet');				
-			});
+			it('should remove duplicated block indices');
 		});
 		
-		it('should reorganize the block array');
-		
-		it('should return the block array');		
+		describe('when block indices are unique', function () {
+			
+			describe('when block with id exists', function () {
+				
+   				it('should return the block');
+			});
+			
+			describe('when block with id does not exist', function () {
+				
+   				it('should not return the block');
+			});
+			
+			describe('when there are no transactions in the block', function () {
+				
+				it('should return the block containing transactions = {}');		
+			});
+			
+			describe('when there are transactions in the block', function () {
+				
+				it('should return the block containing transactions');			
+			});
+		});	
 	});
 	
 	describe('loadBlocksPart', function () {
@@ -72,9 +69,19 @@ describe('blocks/utils', function () {
 		describe('when there is no error when loading block array', function () {
 			
 			it('should be normalized');			
+			
+			it('should call callback with error = undefined');
+			
+			it('should call callback with blocks as result');
 		});
 		
-		it('should return callback with the error object and blocks as params');
+		describe('when error is defined', function () {
+			
+			it('should call callback with the error object');
+			
+			it('should call callback with blocks as result');
+		});
+		
 	});
 	
 	describe('loadLastBlock', function () {
@@ -110,9 +117,9 @@ describe('blocks/utils', function () {
 
 			it('should call modules.blocks.lastBlock.set with block');
 
-			it('should return callback with error = null');
+			it('should call callback with error = null');
 
-			it('should return callback with result containing the block');			
+			it('should call callback with result containing the block');			
 		});
 	});
 	
@@ -144,7 +151,7 @@ describe('blocks/utils', function () {
 		
 			it('should add the last block to the beginning of the block array, if it does not contain it already');
 
-			it('should return callback with error = null');
+			it('should call callback with error = null');
 			
 			describe('result object', function () {
 				
@@ -153,7 +160,7 @@ describe('blocks/utils', function () {
 				it('should assign ids to a string of the block ids');
 			});
 
-			it('should return callback with result object');
+			it('should call callback with result object');
 		});	
 	});
 	
@@ -171,7 +178,7 @@ describe('blocks/utils', function () {
 		
 		describe('when filter.id and filter.lastId are defined',function () {
 			
-			it('should return callback with Invalid Filter error');
+			it('should call callback with Invalid Filter error');
 		});
 		
 		describe('when filter.lastId is undefined and filter.id is defined', function () {
@@ -231,9 +238,9 @@ describe('blocks/utils', function () {
 			
 			describe('when db query succeeds', function () {
 				
-				it('should return callback with error = null');
+				it('should call callback with error = null');
 				
-				it('should return callback with result containing the rows');				
+				it('should call callback with result containing the rows');				
 			});
 		});
 	});
@@ -264,25 +271,24 @@ describe('blocks/utils', function () {
 				
 				describe('when this.applied = 1', function () {
 					
-					it('should call log');					
+					it('should call this.log');					
 				});
 				
 				describe('when this.applied = this.target', function () {
 					
-					it('should call log');					
+					it('should call this.log');					
 				});
 				
 				describe('when this.applied %this.step = 1', function () {
 					
-					it('should call log');					
+					it('should call this.log');					
 				});
 			});
 			
 			describe('log function', function () {
 				
-				it('should call library.logger.info');
+				it('should call library.logger.info with msg');
 				
-				it('should call library.logger.info with msg');				
 				it('should call library.logger.info with message');				
 			});
 		});
