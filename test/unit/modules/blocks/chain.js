@@ -71,29 +71,21 @@ describe('blocks/chain', function () {
 		
 		describe('call library.db.tx', function () {
 			
-			it('should call __private.promiseTransactions with t');
-			
-			it('should call __private.promiseTransactions with block');
-			
-			it('should call __private.promiseTransactions with promises');
-			
-			it('should call t.batch with promises');
+			it('should call library.logic.block.dbSave with block');
 		});
 		
-		describe('when library.db.tx fails', function () {
+		describe('when library.db.tx callback throws', function () {
 			
 			it('should call logger.error with error stack');
 
 			it('should call callback with Blocks#saveBlock error');
 		});
 		
-		describe('when library.db.tx succeeds', function () {
+		describe('when library.db.tx callback does not throw', function () {
 			
-			it('should return __private.afterSave');
+			it('should call __private.afterSave with block');
 			
-			it('should return __private.afterSave with block');
-			
-			it('should return __private.afterSave with callback');
+			it('should call __private.afterSave with callback');
 		});
 	});
 	
@@ -119,61 +111,21 @@ describe('blocks/chain', function () {
 			});
 		});
 		
-		//TODO
 		describe('promiseTransactions', function () {
 			
 			describe('when block.transactions is empty', function () {
 				
 				it('should return t');
 			});
+
+			it('should loop through block.transactions');
 			
-			/*describe('transactionIterator', function () {
-					 
-				it('should set transaction.blockId to block.id');
-			
-				it('should return library.logic.transaction.dbSave(transaction)');
+			describe('for every transaction', function () {
+				
+				it('should call library.logic.transaction.dbSave with transaction');
+				
+				it('should call t.none params');
 			});
-			
-			describe('promiseGrouper', function () {
-				
-				describe('when promise and promise.table are defined', function () {
-					
-					it('should return promise.table');
-				});
-				
-				describe('when promise.table or promise are undefined', function () {
-					
-					it('should throw "Invalid promise" error');
-				});
-			});
-			
-			describe('typeIterator', function () {
-				
-				describe('loop through type', function () {
-					describe('when  promise and promise.values are defined', function () {
-						it('should set values to values.concat(promise.values)');
-					});
-					
-					describe('when promise.values or promise are undefined', function () {
-					
-						it('should throw "Invalid promise" error');
-					});
-				});
-				
-				it('should set inserts to a new instance of Inserts');
-					
-				it('should call t.none(inserts.template(), inserts)');
-			});*/
-			
-			it('should call _.flatMap with block.transactions');
-			
-			it('should call _.flatMap with transactionIterator');
-
-			it('should loop through promises');
-
-			it('should call typeIterator with each promise');
-
-			it('should return t');
 		});
 	});
 	
@@ -192,7 +144,7 @@ describe('blocks/chain', function () {
 		
 		describe('when library.db.none succeeds', function () {
 				
-			it('should return callback');
+			it('should call callback');
 		});
 	});
 	
@@ -211,9 +163,9 @@ describe('blocks/chain', function () {
 		
 		describe('when library.db.query succeeds', function () {
 			
-			it('should return callback with error = null');
+			it('should call callback with error = null');
 				
-			it('should return callback with result');
+			it('should call callback with result');
 		});
 	});
 	
@@ -242,7 +194,7 @@ describe('blocks/chain', function () {
 						it('should assign block');
 					});
 				
-					it('should return callback with result object');
+					it('should call callback with result object');
 				});
 
 				it('should apply transaction');
@@ -287,7 +239,7 @@ describe('blocks/chain', function () {
 					it('should assign block');
 				});
 				
-				it('should return callback with result object');
+				it('should call callback with result object');
 			});
 			
 			it('should call modules.transactions.apply with sender');
@@ -309,7 +261,7 @@ describe('blocks/chain', function () {
 					it('should assign block');
 				});
 				
-				it('should return callback with result object');
+				it('should call callback with result object');
 			});
 			
 			it('should call callback');
@@ -552,12 +504,12 @@ describe('blocks/chain', function () {
 				
 					describe('when error is defined', function () {
 						
-						it('should return callback with error');
+						it('should call callback with error');
 					});
 					
 					describe('when previousBlock is empty', function () {
 						
-						it('should return callback with error');
+						it('should call callback with error');
 					});
 					
 					describe('loop through reversed oldLastBlock.transactions', function () {
@@ -632,7 +584,7 @@ describe('blocks/chain', function () {
 		
 		describe('when lastBlock.height equals 1', function () {
 			
-			it('should return callback with error "Cannot delete genesis block');
+			it('should call callback with error "Cannot delete genesis block');
 		});
 		
 		describe('call __private.popLastBlock with lastBlock', function () {
