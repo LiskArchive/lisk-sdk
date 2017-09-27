@@ -39,5 +39,10 @@ pipeline {
         sh 'npm run jenkins'
       }
     }
+    stage('Cleanup') {
+      steps {
+        deleteDir()
+      }
+    }
   }
 }
