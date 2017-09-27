@@ -35,31 +35,29 @@ describe('blocks/utils', function () {
 		
 		it('should call library.logic.block.dbRead with every row');
 		
-		describe('when block indices are duplicated', function () {
+		describe('when block with id does not exists', function () {
 			
-			it('should remove duplicated block indices');
+			it('should not return the block');
 		});
 		
-		describe('when block indices are unique', function () {
-			
-			describe('when block with id exists', function () {
+		describe('when block with id exists', function () {
+
+			describe('and block indices are duplicated', function () {
 				
-   				it('should return the block');
+				it('should not return duplicated blocks');
 			});
 			
-			describe('when block with id does not exist', function () {
-				
-   				it('should not return the block');
-			});
-			
-			describe('when there are no transactions in the block', function () {
-				
-				it('should return the block containing transactions = {}');		
-			});
-			
-			describe('when there are transactions in the block', function () {
-				
-				it('should return the block containing transactions');			
+			describe('and block indices are unique', function () {
+
+				describe('and there are no transactions in the block', function () {
+
+					it('should return the block containing transactions = {}');
+				});
+
+				describe('and there are transactions in the block', function () {
+
+					it('should return the block containing transactions');
+				});
 			});
 		});	
 	});
@@ -81,7 +79,6 @@ describe('blocks/utils', function () {
 			
 			it('should call callback with blocks as result');
 		});
-		
 	});
 	
 	describe('loadLastBlock', function () {
@@ -119,7 +116,7 @@ describe('blocks/utils', function () {
 
 			it('should call callback with error = null');
 
-			it('should call callback with result containing the block');			
+			it('should call callback with result containing the block');
 		});
 	});
 	
@@ -240,7 +237,7 @@ describe('blocks/utils', function () {
 				
 				it('should call callback with error = null');
 				
-				it('should call callback with result containing the rows');				
+				it('should call callback with result containing the rows');
 			});
 		});
 	});
