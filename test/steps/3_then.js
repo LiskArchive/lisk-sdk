@@ -16,44 +16,44 @@
 import lisk from 'lisk-js';
 import tablify from '../../src/utils/tablify';
 
-export const thenTheLiskInstanceShouldBeALiskJSApiInstance = () => {
-	(context.liskInstance).should.be.instanceOf(lisk.api);
-};
+export function thenTheLiskInstanceShouldBeALiskJSApiInstance() {
+	(this.test.ctx.liskInstance).should.be.instanceOf(lisk.api);
+}
 
-export const thenTheResultShouldBeReturned = () => {
-	(context.returnValue).should.equal(context.result);
-};
+export function thenTheResultShouldBeReturned() {
+	(this.test.ctx.returnValue).should.equal(this.test.ctx.result);
+}
 
-export const thenATableShouldBeLogged = () => {
-	const tableOutput = tablify(context.result).toString();
-	(context.vorpal.activeCommand.log.calledWithExactly(tableOutput)).should.be.true();
-};
+export function thenATableShouldBeLogged() {
+	const tableOutput = tablify(this.test.ctx.result).toString();
+	(this.test.ctx.vorpal.activeCommand.log.calledWithExactly(tableOutput)).should.be.true();
+}
 
-export const thenJSONOutputShouldBeLogged = () => {
-	const jsonOutput = JSON.stringify(context.result);
-	(context.vorpal.activeCommand.log.calledWithExactly(jsonOutput)).should.be.true();
-};
+export function thenJSONOutputShouldBeLogged() {
+	const jsonOutput = JSON.stringify(this.test.ctx.result);
+	(this.test.ctx.vorpal.activeCommand.log.calledWithExactly(jsonOutput)).should.be.true();
+}
 
-export const thenTheLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID = () => {
+export function thenTheLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
 	const route = 'blocks/get';
-	const options = { id: context.blockId };
-	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
-};
+	const options = { id: this.test.ctx.blockId };
+	(this.test.ctx.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+}
 
-export const thenTheLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress = () => {
+export function thenTheLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
 	const route = 'accounts';
-	const options = { address: context.address };
-	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
-};
+	const options = { address: this.test.ctx.address };
+	(this.test.ctx.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+}
 
-export const thenTheLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID = () => {
+export function thenTheLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
 	const route = 'transactions/get';
-	const options = { id: context.transactionId };
-	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
-};
+	const options = { id: this.test.ctx.transactionId };
+	(this.test.ctx.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+}
 
-export const thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername = () => {
+export function thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
 	const route = 'delegates/get';
-	const options = { username: context.delegateUsername };
-	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
-};
+	const options = { username: this.test.ctx.delegateUsername };
+	(this.test.ctx.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+}

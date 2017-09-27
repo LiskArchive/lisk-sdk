@@ -34,7 +34,7 @@ import {
 	thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername,
 } from '../../steps/3_then';
 
-describe.only('Query class', () => {
+describe('Query class', () => {
 	describe('Given a lisk instance', () => {
 		beforeEach(givenALiskInstance);
 

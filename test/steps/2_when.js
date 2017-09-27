@@ -16,30 +16,30 @@
 import liskInstance from '../../src/utils/liskInstance';
 import { printResult } from '../../src/utils/print';
 
-export const whenTheLiskInstanceIsImported = () => {
-	context.liskInstance = liskInstance;
-};
+export function whenTheLiskInstanceIsImported() {
+	this.test.ctx.liskInstance = liskInstance;
+}
 
-export const whenTheResultIsPrinted = () => {
-	context.returnValue = printResult(context.vorpal)(context.result);
-};
+export function whenTheResultIsPrinted() {
+	this.test.ctx.returnValue = printResult(this.test.ctx.vorpal)(this.test.ctx.result);
+}
 
-export const whenTheResultIsPrintedWithTheJSONOptionSetToTrue = () => {
-	context.returnValue = printResult(context.vorpal, { json: true })(context.result);
-};
+export function whenTheResultIsPrintedWithTheJSONOptionSetToTrue() {
+	this.test.ctx.returnValue = printResult(this.test.ctx.vorpal, { json: true })(this.test.ctx.result);
+}
 
-export const whenTheQueryInstanceGetsABlockUsingTheID = () => {
-	context.returnValue = context.queryInstance.isBlockQuery(context.blockId);
-};
+export function whenTheQueryInstanceGetsABlockUsingTheID() {
+	this.test.ctx.returnValue = this.test.ctx.queryInstance.isBlockQuery(this.test.ctx.blockId);
+}
 
-export const whenTheQueryInstanceGetsAnAccountUsingTheAddress = () => {
-	context.returnValue = context.queryInstance.isAccountQuery(context.address);
-};
+export function whenTheQueryInstanceGetsAnAccountUsingTheAddress() {
+	this.test.ctx.returnValue = this.test.ctx.queryInstance.isAccountQuery(this.test.ctx.address);
+}
 
-export const whenTheQueryInstanceGetsATransactionUsingTheID = () => {
-	context.returnValue = context.queryInstance.isTransactionQuery(context.transactionId);
-};
+export function whenTheQueryInstanceGetsATransactionUsingTheID() {
+	this.test.ctx.returnValue = this.test.ctx.queryInstance.isTransactionQuery(this.test.ctx.transactionId);
+}
 
-export const whenTheQueryInstanceGetsADelegateUsingTheUsername = () => {
-	context.returnValue = context.queryInstance.isDelegateQuery(context.delegateUsername);
-};
+export function whenTheQueryInstanceGetsADelegateUsingTheUsername() {
+	this.test.ctx.returnValue = this.test.ctx.queryInstance.isDelegateQuery(this.test.ctx.delegateUsername);
+}

@@ -34,5 +34,3 @@ should.use((_, Assertion) => {
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create();
-
-global.context = {};

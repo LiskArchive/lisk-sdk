@@ -17,39 +17,39 @@ import liskInstance from '../../src/utils/liskInstance';
 import queryInstance from '../../src/utils/query';
 import { getFirstQuotedString } from './utils';
 
-export const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
-	context.vorpal = {
+export function givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
+	this.test.ctx.vorpal = {
 		activeCommand: {
 			log: sandbox.spy(),
 		},
 	};
-};
+}
 
-export const givenThereIsAResultToPrint = () => {
-	context.result = { lisk: 'JS' };
-};
+export function givenThereIsAResultToPrint() {
+	this.test.ctx.result = { lisk: 'JS' };
+}
 
-export const givenALiskInstance = () => {
-	context.liskInstance = liskInstance;
-};
+export function givenALiskInstance() {
+	this.test.ctx.liskInstance = liskInstance;
+}
 
-export const givenAQueryInstance = () => {
-	context.queryInstance = queryInstance;
+export function givenAQueryInstance() {
+	this.test.ctx.queryInstance = queryInstance;
 	sandbox.stub(liskInstance, 'sendRequest');
-};
+}
 
 export function givenABlockID() {
-	context.blockID = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.blockID = getFirstQuotedString(this.test.parent.title);
 }
 
 export function givenAnAddress() {
-	context.address = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.address = getFirstQuotedString(this.test.parent.title);
 }
 
 export function givenATransactionID() {
-	context.transactionId = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.transactionId = getFirstQuotedString(this.test.parent.title);
 }
 
 export function givenADelegateUsername() {
-	context.delegateUsername = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.delegateUsername = getFirstQuotedString(this.test.parent.title);
 }
