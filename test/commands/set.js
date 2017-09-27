@@ -132,6 +132,35 @@ describe('lisky set command palette', () => {
 	});
 
 	describe('options', () => {
+		const nameProperty = 'name';
+		const customName = 'my-custom-name';
+		const setNameCommand = `set ${nameProperty} ${customName}`;
+		const setNameResult = `Successfully set ${nameProperty} to ${customName}.`;
+
+		describe('name option', () => {
+			beforeEach(() => {
+				return vorpal.exec(setNameCommand);
+			});
+
+			it('should set name to my-custom-name in the in-memory config', () => {
+				(env)
+					.should.have.property(nameProperty)
+					.be.equal(customName);
+			});
+
+			it('should set name to my-custom-name in the config file', () => {
+				const config = readJsonSync(configFilePath);
+
+				(config)
+					.should.have.property(nameProperty)
+					.be.equal(customName);
+			});
+
+			it('should inform the user that the config name has been updated to my-custom-name', () => {
+				(capturedOutput[0]).should.be.equal(setNameResult);
+			});
+		});
+
 		describe('json option', () => {
 			const setJsonTrueCommand = 'set json true';
 			const setJsonFalseCommand = 'set json false';

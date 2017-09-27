@@ -47,6 +47,15 @@ const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	return obj[pathComponent];
 };
 
+const attemptWriteToFile = (vorpal, variable, value) => {
+	const writeSuccess = writeConfigToFile(vorpal, config);
+
+	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
+		return `Could not set ${variable} to ${value}.`;
+	}
+	return `Successfully set ${variable} to ${value}.`;
+};
+
 const setBoolean = (variable, path) => (vorpal, value) => {
 	if (!checkBoolean(value)) {
 		return `Cannot set ${variable} to ${value}.`;
@@ -59,16 +68,17 @@ const setBoolean = (variable, path) => (vorpal, value) => {
 		liskInstance.setTestnet(newValue);
 	}
 
-	const writeSuccess = writeConfigToFile(vorpal, config);
+	return attemptWriteToFile(vorpal, variable, value);
+};
 
-	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
-		return `Could not set ${variable} to ${value}.`;
-	}
-	return `Successfully set ${variable} to ${value}.`;
+const setString = (variable, path) => (vorpal, value) => {
+	path.reduce(setNestedConfigProperty(value), config);
+	return attemptWriteToFile(vorpal, variable, value);
 };
 
 const handlers = {
 	json: setBoolean('json output', ['json']),
+	name: setString('name', ['name']),
 	testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 };
 
