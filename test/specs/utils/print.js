@@ -13,50 +13,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { printResult } from '../../../src/utils/print';
-import tablify from '../../../src/utils/tablify';
-
-let {
-	vorpal,
-	logSpy,
-	result,
-	returnValue,
-} = context;
-
-const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
-	vorpal = {
-		activeCommand: {
-			log: sandbox.spy(),
-		},
-	};
-	logSpy = vorpal.activeCommand.log;
-};
-
-const givenThereIsAResultToPrint = () => {
-	result = { lisk: 'JS' };
-};
-
-const whenTheResultIsPrinted = () => {
-	returnValue = printResult(vorpal)(result);
-};
-
-const whenTheResultIsPrintedWithTheJSONOptionSetToTrue = () => {
-	returnValue = printResult(vorpal, { json: true })(result);
-};
-
-const thenTheResultShouldBeReturned = () => {
-	(returnValue).should.equal(result);
-};
-
-const thenATableShouldBeLogged = () => {
-	const tableOutput = tablify(result).toString();
-	(logSpy.calledWithExactly(tableOutput)).should.be.true();
-};
-
-const thenJSONOutputShouldBeLogged = () => {
-	const jsonOutput = JSON.stringify(result);
-	(logSpy.calledWithExactly(jsonOutput)).should.be.true();
-};
+import {
+	givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog,
+	givenThereIsAResultToPrint,
+} from '../../steps/1_given';
+import {
+	whenTheResultIsPrinted,
+	whenTheResultIsPrintedWithTheJSONOptionSetToTrue,
+} from '../../steps/2_when';
+import {
+	thenTheResultShouldBeReturned,
+	thenATableShouldBeLogged,
+	thenJSONOutputShouldBeLogged,
+} from '../../steps/3_then';
 
 describe('print utils', () => {
 	describe('#printResult', () => {
@@ -72,6 +41,7 @@ describe('print utils', () => {
 					it('Then the result should be returned', thenTheResultShouldBeReturned);
 					it('Then a table should be logged', thenATableShouldBeLogged);
 				});
+
 				describe('When the result is printed with the JSON option set to true', () => {
 					beforeEach(whenTheResultIsPrintedWithTheJSONOptionSetToTrue);
 

@@ -13,17 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	whenTheLiskInstanceIsImported,
-} from '../../steps/2_when';
-import {
-	thenTheLiskInstanceShouldBeALiskJSApiInstance,
-} from '../../steps/3_then';
+import liskInstance from '../../src/utils/liskInstance';
+import { printResult } from '../../src/utils/print';
 
-describe('liskInstance util', () => {
-	describe('When the lisk instance is imported', () => {
-		beforeEach(whenTheLiskInstanceIsImported);
+export const whenTheLiskInstanceIsImported = () => {
+	context.liskInstance = liskInstance;
+};
 
-		it('Then the lisk instance should be a lisk-js api instance', thenTheLiskInstanceShouldBeALiskJSApiInstance);
-	});
-});
+export const whenTheResultIsPrinted = () => {
+	context.returnValue = printResult(context.vorpal)(context.result);
+};
+
+export const whenTheResultIsPrintedWithTheJSONOptionSetToTrue = () => {
+	context.returnValue = printResult(context.vorpal, { json: true })(context.result);
+};

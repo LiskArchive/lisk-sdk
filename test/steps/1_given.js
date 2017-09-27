@@ -13,17 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	whenTheLiskInstanceIsImported,
-} from '../../steps/2_when';
-import {
-	thenTheLiskInstanceShouldBeALiskJSApiInstance,
-} from '../../steps/3_then';
+export const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
+	context.vorpal = {
+		activeCommand: {
+			log: sandbox.spy(),
+		},
+	};
+};
 
-describe('liskInstance util', () => {
-	describe('When the lisk instance is imported', () => {
-		beforeEach(whenTheLiskInstanceIsImported);
-
-		it('Then the lisk instance should be a lisk-js api instance', thenTheLiskInstanceShouldBeALiskJSApiInstance);
-	});
-});
+export const givenThereIsAResultToPrint = () => {
+	context.result = { lisk: 'JS' };
+};
