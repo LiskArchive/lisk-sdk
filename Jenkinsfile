@@ -16,7 +16,7 @@ pipeline {
 			}
 		}
 		stage('Run lint') {
-			steps{
+			steps {
 				sh 'npm run lint'
 			}
 		}
