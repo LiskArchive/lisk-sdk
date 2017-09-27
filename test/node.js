@@ -27,6 +27,7 @@ node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
+node.Promise = require('bluebird');
 var randomString = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
@@ -104,19 +105,6 @@ if (process.env.SILENT === 'true') {
 
 // Random LSK amount
 node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
-
-// Returns a random delegate name
-node.randomDelegateName = function () {
-	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
-	var delegateName = '';
-	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-
-	for (var i = 0; i < size; i++) {
-		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return delegateName;
-};
 
 // Returns a random property from the given object
 node.randomProperty = function (obj, needKey) {
@@ -276,43 +264,77 @@ node.expectedFeeForTrsWithData = function (amount) {
 	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
 };
 
-// Returns a random username
+// Returns a random username of 16 characters
 node.randomUsername = function () {
-	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
-	var username = '';
-	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var randomLetter = randomString.generate({
+	  length: 1,
+	  charset: 'alphabetic',
+		capitalization: 'lowercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = randomString.generate({
+		length: 15,
+		charset: custom
+	});
 
-	for (var i = 0; i < size; i++) {
-		username += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return username;
+	return randomLetter.concat(username);
 };
 
-// Returns a random capitialized username
+// Returns a random delegate name of 20 characters
+node.randomDelegateName = function () {
+	var randomLetter = randomString.generate({
+	  length: 1,
+	  charset: 'alphabetic',
+		capitalization: 'lowercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = randomString.generate({
+		length: 19,
+		charset: custom
+	});
+
+	return randomLetter.concat(username);
+};
+
+// Returns a random capitialized username of 16 characters
 node.randomCapitalUsername = function () {
-	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
-	var username = 'A';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var randomLetter = randomString.generate({
+	  length: 1,
+	  charset: 'alphabetic',
+		capitalization: 'uppercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = randomString.generate({
+		length: 15,
+		charset: custom
+	});
 
-	for (var i = 0; i < size - 1; i++) {
-		username += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return username;
+	return randomLetter.concat(username);
 };
 
-// Returns a random application name
+// Returns a random application name of 32 characteres
 node.randomApplicationName = function () {
-	var size = node.randomNumber(1, 32); // Min. username size is 1, Max. username size is 32
-	var name = 'A';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	for (var i = 0; i < size - 1; i++) {
-		name += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
+	return randomString.generate({
+		length: 32,
+		charset: custom
+	});
+};
 
-	return name;
+// Test random application
+node.randomApplication = function () {
+	var application = {
+		category: node.randomNumber(0,9),
+		name: node.randomApplicationName(),
+		description: 'Blockchain based home monitoring tool',
+		tags: 'monitoring temperature power sidechain',
+		type: node.randomNumber(0,2),
+		link: 'https://' + node.randomApplicationName() + '.zip',
+		icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
+	};
+
+	return application;
 };
 
 // Returns a basic random account
@@ -339,6 +361,13 @@ node.randomTxAccount = function () {
 		totalPaidFee: '',
 		transactions: []
 	});
+};
+
+// Returns an random basic transaction to send 1 LSK from genesis account to a random account
+node.randomTx = function (offset) {
+	var randomAccount = node.randomAccount();
+
+	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password, offset);
 };
 
 // Returns a random password
