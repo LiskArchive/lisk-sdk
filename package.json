@@ -12,7 +12,7 @@
 		"test:watch": "npm test -- --watch --reporter=min",
 		"cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
 		"lint": "eslint .",
-		"prebuild": "rm -r dist",
+		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "babel src -d dist",
 		"prepush": "npm run lint && npm test",
 		"prepublishOnly": "npm run build"
