@@ -17,6 +17,9 @@ import lisk from 'lisk-js';
 import cryptoModule from '../../src/utils/cryptoModule';
 
 describe('cryptoModule', () => {
+	const passphrase = 'secret passphrase';
+	const password = 'testing123';
+
 	describe('exports', () => {
 		it('should export an object', () => {
 			(cryptoModule).should.be.type('object');
@@ -26,7 +29,7 @@ describe('cryptoModule', () => {
 			(cryptoModule.constructor).should.have.property('name').and.be.equal('Crypto');
 		});
 
-		it('should have lisk-js as a property', () => {
+		it('should have lisk-js crypto as a property', () => {
 			(cryptoModule).should.have.property('liskCrypto').and.be.equal(lisk.crypto);
 		});
 	});
@@ -123,9 +126,6 @@ describe('cryptoModule', () => {
 	});
 
 	describe('#encryptPassphrase', () => {
-		const passphrase = 'secret passphrase';
-		const password = 'testing123';
-
 		let encryptPassphraseWithPasswordResult;
 		let encryptPassphraseWithPasswordStub;
 
@@ -170,8 +170,6 @@ describe('cryptoModule', () => {
 		const cipher = 'abcd';
 		const iv = '0123';
 		const cipherAndIv = { cipher, iv };
-		const password = 'testing123';
-		const passphrase = 'secret passphrase';
 
 		let decryptPassphraseWithPasswordStub;
 
@@ -203,6 +201,47 @@ describe('cryptoModule', () => {
 			decryptPassphraseWithPasswordStub.throws(error);
 
 			const result = cryptoModule.decryptPassphrase(cipherAndIv, password);
+
+			(result).should.have.property('error', errorMessage);
+		});
+	});
+
+	describe('#getKeys', () => {
+		let getKeysStub;
+		let keys;
+
+		beforeEach(() => {
+			keys = {
+				publicKey: '7980b6fcc57907cca971b80b764775b37b9278aad348dbbe608a378e899e7978',
+				privateKey: 'b6a2b12beb4179538bfb42423cce2e98ccdebcc684145ba977f2f80630eb278e7980b6fcc57907cca971b80b764775b37b9278aad348dbbe608a378e899e7978',
+			};
+			getKeysStub = sinon
+				.stub(lisk.crypto, 'getKeys')
+				.returns(keys);
+		});
+
+		afterEach(() => {
+			getKeysStub.restore();
+		});
+
+		it('should use lisk-js getKeys', () => {
+			cryptoModule.getKeys(passphrase);
+
+			(getKeysStub.calledWithExactly(passphrase))
+				.should.be.true();
+		});
+
+		it('should return the processed result of lisk-js getKeys', () => {
+			const result = cryptoModule.getKeys(passphrase);
+			(result).should.be.eql(keys);
+		});
+
+		it('should handle error responses', () => {
+			const errorMessage = 'Cannot read property \'length\' of null';
+			const error = new TypeError(errorMessage);
+			getKeysStub.throws(error);
+
+			const result = cryptoModule.getKeys(passphrase);
 
 			(result).should.have.property('error', errorMessage);
 		});

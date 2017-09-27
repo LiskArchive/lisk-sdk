@@ -32,6 +32,7 @@ class Crypto {
 			'decryptMessage',
 			'encryptPassphrase',
 			'decryptPassphrase',
+			'getKeys',
 		].forEach((methodName) => {
 			this[methodName] = wrapFunction(this[methodName].bind(this));
 		});
@@ -56,6 +57,10 @@ class Crypto {
 		return {
 			passphrase: this.liskCrypto.decryptPassphraseWithPassword(cipherAndIv, password),
 		};
+	}
+
+	getKeys(passphrase) {
+		return this.liskCrypto.getKeys(passphrase);
 	}
 }
 
