@@ -34,7 +34,7 @@ import {
 	thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername,
 } from '../../steps/3_then';
 
-describe('Query class', () => {
+describe.only('Query class', () => {
 	describe('Given a lisk instance', () => {
 		beforeEach(givenALiskInstance);
 
@@ -42,7 +42,7 @@ describe('Query class', () => {
 			beforeEach(givenAQueryInstance);
 
 			describe('#isBlockQuery', () => {
-				describe('Given a block ID', () => {
+				describe('Given a block ID "5650160629533476718"', () => {
 					beforeEach(givenABlockID);
 
 					describe('When the query instance gets a block using the ID', () => {
@@ -54,7 +54,7 @@ describe('Query class', () => {
 			});
 
 			describe('#isAccountQuery', () => {
-				describe('Given an address', () => {
+				describe('Given an address "13782017140058682841L"', () => {
 					beforeEach(givenAnAddress);
 
 					describe('When the query instance gets an account using the address', () => {
@@ -66,7 +66,7 @@ describe('Query class', () => {
 			});
 
 			describe('#isTransactionQuery', () => {
-				describe('Given a transaction ID', () => {
+				describe('Given a transaction ID "16388447461355055139"', () => {
 					beforeEach(givenATransactionID);
 
 					describe('When the query instance gets a transaction using the ID', () => {
@@ -78,7 +78,7 @@ describe('Query class', () => {
 			});
 
 			describe('#isDelegateQuery', () => {
-				describe('Given a delegate username', () => {
+				describe('Given a delegate username "lightcurve"', () => {
 					beforeEach(givenADelegateUsername);
 
 					describe('When the query instance gets a delegate using the username', () => {

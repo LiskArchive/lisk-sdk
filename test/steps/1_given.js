@@ -15,6 +15,7 @@
  */
 import liskInstance from '../../src/utils/liskInstance';
 import queryInstance from '../../src/utils/query';
+import { getFirstQuotedString } from './utils';
 
 export const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
 	context.vorpal = {
@@ -37,18 +38,18 @@ export const givenAQueryInstance = () => {
 	sandbox.stub(liskInstance, 'sendRequest');
 };
 
-export const givenABlockID = () => {
-	context.blockID = '5650160629533476718';
-};
+export function givenABlockID() {
+	context.blockID = getFirstQuotedString(this.test.parent.title);
+}
 
-export const givenAnAddress = () => {
-	context.address = '13782017140058682841L';
-};
+export function givenAnAddress() {
+	context.address = getFirstQuotedString(this.test.parent.title);
+}
 
-export const givenATransactionID = () => {
-	context.transactionId = '16388447461355055139';
-};
+export function givenATransactionID() {
+	context.transactionId = getFirstQuotedString(this.test.parent.title);
+}
 
-export const givenADelegateUsername = () => {
-	context.delegateUsername = 'lightcurve';
-};
+export function givenADelegateUsername() {
+	context.delegateUsername = getFirstQuotedString(this.test.parent.title);
+}
