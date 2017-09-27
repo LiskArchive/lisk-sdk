@@ -1,57 +1,36 @@
-node('lisky-01') {
-	lock(resource: 'lisky-01', inversePrecedence: true) {
-		stage ('Prepare Workspace') {
-			deleteDir()
-			checkout scm
+pipeline {
+	agent { node { label 'lisky' } }
+	stages {
+		stage('Prepare workspace') {
+			steps {
+				deleteDir()
+				checkout scm
+			}
 		}
-
-		stage ('Install dependencies') {
-			try {
+		stage('Install dependencies') {
+			steps {
 				sh '''
 				npm install --verbose
 				cp ~/.coveralls.yml-lisky .coveralls.yml
 				'''
-			} catch (err) {
-				currentBuild.result = 'FAILURE'
-				error('Stopping build, installation failed')
 			}
 		}
-
-		stage ('Run lint') {
-			try {
+		stage('Run lint') {
+			steps{
 				sh 'npm run lint'
-			} catch (err) {
-				currentBuild.result = 'FAILURE'
-				error('Stopping build, linting failed')
 			}
 		}
-
-		stage ('Run tests') {
-			try {
+		stage('Run tests') {
+			steps {
 				sh 'npm run test'
+			}
+		}
+		stage('Run vulnerabilities check') {
+			steps {
 				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
 					sh 'snyk test'
 				}
-			} catch (err) {
-				currentBuild.result = 'FAILURE'
-				error('Stopping build, tests failed')
 			}
-		}
-
-		stage ('Run vulnerabilities check') {
-			try {
-				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
-					sh 'snyk test'
-				}
-			} catch (err) {
-				currentBuild.result = 'FAILURE'
-				error('Stopping build, vulnerabilities check failed')
-			}
-		}
-
-		stage ('Set milestone') {
-			milestone 1
-			currentBuild.result = 'SUCCESS'
 		}
 	}
 }
