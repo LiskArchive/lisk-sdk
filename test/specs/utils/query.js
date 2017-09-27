@@ -13,53 +13,81 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from '../../../src/utils/liskInstance';
-import query from '../../../src/utils/query';
+import {
+	givenALiskInstance,
+	givenAQueryInstance,
+	givenABlockID,
+	givenAnAddress,
+	givenATransactionID,
+	givenADelegateUsername,
+} from '../../steps/1_given';
+import {
+	whenTheQueryInstanceGetsABlockUsingTheID,
+	whenTheQueryInstanceGetsAnAccountUsingTheAddress,
+	whenTheQueryInstanceGetsATransactionUsingTheID,
+	whenTheQueryInstanceGetsADelegateUsingTheUsername,
+} from '../../steps/2_when';
+import {
+	thenTheLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID,
+	thenTheLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress,
+	thenTheLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID,
+	thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername,
+} from '../../steps/3_then';
 
 describe('Query class', () => {
-	let stub;
+	describe('Given a lisk instance', () => {
+		beforeEach(givenALiskInstance);
 
-	beforeEach(() => {
-		stub = sandbox.stub(lisk, 'sendRequest');
-	});
+		describe('Given a query instance', () => {
+			beforeEach(givenAQueryInstance);
 
-	it('#isBlockQuery should get a block by id', () => {
-		const route = 'blocks/get';
-		const id = '5650160629533476718';
-		const options = { id };
+			describe('#isBlockQuery', () => {
+				describe('Given a block ID', () => {
+					beforeEach(givenABlockID);
 
-		query.isBlockQuery(id);
+					describe('When the query instance gets a block using the ID', () => {
+						beforeEach(whenTheQueryInstanceGetsABlockUsingTheID);
 
-		(stub.calledWithExactly(route, options)).should.be.true();
-	});
+						it('Then the lisk instance should send a request to the blocks/get API endpoint with the block ID', thenTheLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID);
+					});
+				});
+			});
 
-	it('#isAccountQuery should get an account by address', () => {
-		const route = 'accounts';
-		const address = '13782017140058682841L';
-		const options = { address };
+			describe('#isAccountQuery', () => {
+				describe('Given an address', () => {
+					beforeEach(givenAnAddress);
 
-		query.isAccountQuery(address);
+					describe('When the query instance gets an account using the address', () => {
+						beforeEach(whenTheQueryInstanceGetsAnAccountUsingTheAddress);
 
-		(stub.calledWithExactly(route, options)).should.be.true();
-	});
+						it('Then the lisk instance should send a request to the accounts API endpoint with the address', thenTheLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress);
+					});
+				});
+			});
 
-	it('#isTransactionQuery should get a transaction by id', () => {
-		const route = 'transactions/get';
-		const id = '16388447461355055139';
-		const options = { id };
+			describe('#isTransactionQuery', () => {
+				describe('Given a transaction ID', () => {
+					beforeEach(givenATransactionID);
 
-		query.isTransactionQuery(id);
+					describe('When the query instance gets a transaction using the ID', () => {
+						beforeEach(whenTheQueryInstanceGetsATransactionUsingTheID);
 
-		(stub.calledWithExactly(route, options)).should.be.true();
-	});
+						it('Then the lisk instance should send a request to the transactions/get API endpoint with the transaction ID', thenTheLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID);
+					});
+				});
+			});
 
-	it('#isDelegateQuery should get a delegate by username', () => {
-		const route = 'delegates/get';
-		const username = 'lightcurve';
-		const options = { username };
+			describe('#isDelegateQuery', () => {
+				describe('Given a delegate username', () => {
+					beforeEach(givenADelegateUsername);
 
-		query.isDelegateQuery(username);
+					describe('When the query instance gets a delegate using the username', () => {
+						beforeEach(whenTheQueryInstanceGetsADelegateUsingTheUsername);
 
-		(stub.calledWithExactly(route, options)).should.be.true();
+						it('Then the lisk instance should send a request to the delegates/get API endpoint with the username', thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername);
+					});
+				});
+			});
+		});
 	});
 });

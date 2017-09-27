@@ -27,3 +27,19 @@ export const whenTheResultIsPrinted = () => {
 export const whenTheResultIsPrintedWithTheJSONOptionSetToTrue = () => {
 	context.returnValue = printResult(context.vorpal, { json: true })(context.result);
 };
+
+export const whenTheQueryInstanceGetsABlockUsingTheID = () => {
+	context.returnValue = context.queryInstance.isBlockQuery(context.blockId);
+};
+
+export const whenTheQueryInstanceGetsAnAccountUsingTheAddress = () => {
+	context.returnValue = context.queryInstance.isAccountQuery(context.address);
+};
+
+export const whenTheQueryInstanceGetsATransactionUsingTheID = () => {
+	context.returnValue = context.queryInstance.isTransactionQuery(context.transactionId);
+};
+
+export const whenTheQueryInstanceGetsADelegateUsingTheUsername = () => {
+	context.returnValue = context.queryInstance.isDelegateQuery(context.delegateUsername);
+};

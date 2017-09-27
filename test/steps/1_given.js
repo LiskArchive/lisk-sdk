@@ -13,6 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import liskInstance from '../../src/utils/liskInstance';
+import queryInstance from '../../src/utils/query';
+
 export const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
 	context.vorpal = {
 		activeCommand: {
@@ -23,4 +26,29 @@ export const givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog = () => {
 
 export const givenThereIsAResultToPrint = () => {
 	context.result = { lisk: 'JS' };
+};
+
+export const givenALiskInstance = () => {
+	context.liskInstance = liskInstance;
+};
+
+export const givenAQueryInstance = () => {
+	context.queryInstance = queryInstance;
+	sandbox.stub(liskInstance, 'sendRequest');
+};
+
+export const givenABlockID = () => {
+	context.blockID = '5650160629533476718';
+};
+
+export const givenAnAddress = () => {
+	context.address = '13782017140058682841L';
+};
+
+export const givenATransactionID = () => {
+	context.transactionId = '16388447461355055139';
+};
+
+export const givenADelegateUsername = () => {
+	context.delegateUsername = 'lightcurve';
 };

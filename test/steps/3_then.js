@@ -33,3 +33,27 @@ export const thenJSONOutputShouldBeLogged = () => {
 	const jsonOutput = JSON.stringify(context.result);
 	(context.vorpal.activeCommand.log.calledWithExactly(jsonOutput)).should.be.true();
 };
+
+export const thenTheLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID = () => {
+	const route = 'blocks/get';
+	const options = { id: context.blockId };
+	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+};
+
+export const thenTheLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress = () => {
+	const route = 'accounts';
+	const options = { address: context.address };
+	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+};
+
+export const thenTheLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID = () => {
+	const route = 'transactions/get';
+	const options = { id: context.transactionId };
+	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+};
+
+export const thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername = () => {
+	const route = 'delegates/get';
+	const options = { username: context.delegateUsername };
+	(context.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+};
