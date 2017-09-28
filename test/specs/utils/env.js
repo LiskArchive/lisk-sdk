@@ -13,254 +13,184 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import fs from 'fs';
 import os from 'os';
-import defaultConfig from '../../../defaultConfig.json';
 
-const fsUtils = require('../../../src/utils/fs');
+import {
+	setUpFsStubs,
+	setUpConsoleStubs,
+	setUpProcessStubs,
+} from '../../steps/utils';
+import {
+	givenADefaultConfig,
+	givenAConfigDirectoryPath,
+	givenAConfigFileName,
+	givenTheConfigDirectoryDoesNotExist,
+	givenTheConfigDirectoryDoesExist,
+	givenTheConfigDirectoryCannotBeCreated,
+	givenTheConfigDirectoryCanBeCreated,
+	givenTheConfigFileDoesNotExist,
+	givenTheConfigFileDoesExist,
+	givenTheConfigFileCannotBeWritten,
+	givenTheConfigFileCanBeWritten,
+	givenTheConfigFileCannotBeRead,
+	givenTheConfigFileCanBeRead,
+	givenTheConfigFileIsNotValidJSON,
+	givenTheConfigFileIsValidJSON,
+} from '../../steps/1_given';
+import {
+	whenTheConfigIsLoaded,
+} from '../../steps/2_when';
+import {
+	thenTheDefaultConfigShouldBeExported,
+	thenTheUsersConfigShouldBeExported,
+	thenTheDefaultConfigShouldBeWrittenToTheConfigFile,
+	thenTheConfigFileShouldNotBeWritten,
+	thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted,
+	thenTheUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect,
+	thenTheUserShouldBeInformedThatTheConfigFileIsNotValidJSON,
+	thenTheProcessShouldExitWithErrorCode,
+} from '../../steps/3_then';
 
-const userConfig = {
-	name: 'custom',
-	json: true,
-	liskJS: {
-		testnet: true,
-		node: 'custom',
-		port: 7000,
-		ssl: true,
-	},
-};
-
-const envPath = '../../../src/utils/env';
-const configDirName = '.lisky';
-const configFileName = 'config.json';
-const homedir = os.homedir();
-const configDirPath = `${homedir}/${configDirName}`;
-const configFilePath = `${configDirPath}/${configFileName}`;
-
-// eslint-disable-next-line global-require, import/no-dynamic-require
-const reloadConfig = () => require(envPath).default;
-
-const shouldExportTheDefaultConfig = (exportedConfig) => {
-	(exportedConfig).should.eql(defaultConfig);
-};
-
-const shouldExportTheUsersConfig = (exportedConfig) => {
-	(exportedConfig).should.eql(userConfig);
-};
-
-const shouldNotWriteToTheConfigFile = (writeJsonSyncStub) => {
-	(writeJsonSyncStub.called).should.be.false();
-};
-
-const shouldWriteTheDefaultConfigToTheConfigFile = (writeJsonSyncStub) => {
-	(writeJsonSyncStub.calledWithExactly(configFilePath, defaultConfig))
-		.should.be.true();
-};
-
-const shouldWarnTheUserThatTheConfigWillNotBePersisted = (consoleWarnStub) => {
-	(consoleWarnStub.args
-		.some(args => args[0].match(/Your configuration will not be persisted\./))
-	).should.be.true();
-};
-
-const shouldPrintAnErrorInformingTheUserThatTheConfigFilePermissionsAreInconsistent =
-	(consoleErrorStub) => {
-		(consoleErrorStub.calledWithExactly(`Could not read config file. Please check permissions for ${configFilePath} or delete the file so we can create a new one from defaults.`))
-			.should.be.true();
-	};
-
-const shouldPrintAnErrorInformingTheUserThatTheConfigFileIsNotValidJSON = (consoleErrorStub) => {
-	(consoleErrorStub.calledWithExactly(`Config file is not valid JSON. Please check ${configFilePath} or delete the file so we can create a new one from defaults.`))
-		.should.be.true();
-};
-
-const shouldExitTheProcessWithAnErrorCode = (processExitStub, code) => {
-	(processExitStub.calledWithExactly(code)).should.be.true();
-};
+const CONFIG_PATH = '../../../src/utils/env';
 
 describe('env util', () => {
-	let existsSyncStub;
-	let mkdirSyncStub;
-	let readJsonSyncStub;
-	let writeJsonSyncStub;
-	let accessSyncStub;
-	let consoleWarnStub;
-	let consoleErrorStub;
-	let processExitStub;
-	let exportedConfig;
-
 	beforeEach(() => {
-		delete require.cache[require.resolve(envPath)];
-
-		existsSyncStub = sandbox.stub(fs, 'existsSync');
-		mkdirSyncStub = sandbox.stub(fs, 'mkdirSync');
-		readJsonSyncStub = sandbox.stub(fsUtils, 'readJsonSync');
-		writeJsonSyncStub = sandbox.stub(fsUtils, 'writeJsonSync');
-		accessSyncStub = sandbox.stub(fs, 'accessSync');
-		consoleWarnStub = sandbox.stub(console, 'warn');
-		consoleErrorStub = sandbox.stub(console, 'error');
-		processExitStub = sandbox.stub(process, 'exit');
+		setUpFsStubs();
+		setUpConsoleStubs();
+		setUpProcessStubs();
+		delete require.cache[require.resolve(CONFIG_PATH)];
 	});
 
-	describe('when lisky config directory does not exist', () => {
-		beforeEach(() => {
-			existsSyncStub.withArgs(configDirPath).returns(false);
-			readJsonSyncStub.throws('Cannot read file');
-		});
+	describe('Given a default config', () => {
+		beforeEach(givenADefaultConfig);
 
-		describe('when lisky config directory cannot be created', () => {
-			beforeEach(() => {
-				mkdirSyncStub.throws('Cannot make directory');
-				exportedConfig = reloadConfig();
-			});
+		describe(`Given a config directory path "${os.homedir()}/.lisky"`, () => {
+			beforeEach(givenAConfigDirectoryPath);
 
-			it('should warn the user that the config will not be persisted',
-				() => shouldWarnTheUserThatTheConfigWillNotBePersisted(consoleWarnStub),
-			);
+			describe('Given a config file name "config.json"', () => {
+				beforeEach(givenAConfigFileName);
 
-			it('should export the default config',
-				() => shouldExportTheDefaultConfig(exportedConfig),
-			);
-		});
+				describe('Given the config directory does not exist', () => {
+					beforeEach(givenTheConfigDirectoryDoesNotExist);
 
-		describe('when lisky config directory can be created', () => {
-			beforeEach(() => {
-				readJsonSyncStub.returns(Object.assign({}, defaultConfig));
-				exportedConfig = reloadConfig();
-			});
+					describe('Given the config directory cannot be created', () => {
+						beforeEach(givenTheConfigDirectoryCannotBeCreated);
 
-			it('should write the default config to the config file',
-				() => shouldWriteTheDefaultConfigToTheConfigFile(writeJsonSyncStub),
-			);
+						describe('When the config is loaded', () => {
+							beforeEach(whenTheConfigIsLoaded);
 
-			it('should export the default config',
-				() => shouldExportTheDefaultConfig(exportedConfig),
-			);
-		});
-	});
+							it('Then the user should be warned that the config will not be persisted', thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted);
 
-	describe('when lisky config directory does exist', () => {
-		beforeEach(() => {
-			existsSyncStub.withArgs(configDirPath).returns(true);
-		});
-
-		describe('when lisky config file does not exist', () => {
-			beforeEach(() => {
-				existsSyncStub.withArgs(configFilePath).returns(false);
-				readJsonSyncStub.throws('Cannot read file');
-			});
-
-			describe('when lisky config file is not writable', () => {
-				beforeEach(() => {
-					writeJsonSyncStub.throws('Cannot write to file');
-					exportedConfig = reloadConfig();
-				});
-
-				it('should warn the user that the config will not be persisted',
-					() => shouldWarnTheUserThatTheConfigWillNotBePersisted(consoleWarnStub),
-				);
-
-				it('should export the default config',
-					() => shouldExportTheDefaultConfig(exportedConfig),
-				);
-			});
-
-			describe('when lisky config file is writable', () => {
-				beforeEach(() => {
-					exportedConfig = reloadConfig();
-				});
-
-				it('should write the default config to the config file',
-					() => shouldWriteTheDefaultConfigToTheConfigFile(writeJsonSyncStub),
-				);
-
-				it('should export the default config',
-					() => shouldExportTheDefaultConfig(exportedConfig),
-				);
-			});
-		});
-
-		describe('when lisky config file does exist', () => {
-			beforeEach(() => {
-				existsSyncStub.withArgs(configFilePath).returns(true);
-			});
-
-			describe('when lisky config file is not readable', () => {
-				beforeEach(() => {
-					readJsonSyncStub.throws('Cannot read file');
-					accessSyncStub.withArgs(configFilePath, fs.constants.R_OK).throws('Cannot read file');
-					exportedConfig = reloadConfig();
-				});
-
-				it('should print an error informing the user that the config file permissions are incorrect',
-					() => shouldPrintAnErrorInformingTheUserThatTheConfigFilePermissionsAreInconsistent(
-						consoleErrorStub,
-					),
-				);
-
-				it('should exit the process with error code 1',
-					() => shouldExitTheProcessWithAnErrorCode(processExitStub, 1),
-				);
-
-				it('should not write to the config file',
-					() => shouldNotWriteToTheConfigFile(writeJsonSyncStub),
-				);
-			});
-
-			describe('when lisky config file is readable', () => {
-				describe('when lisky config file is not valid JSON', () => {
-					beforeEach(() => {
-						readJsonSyncStub.throws('Invalid JSON');
-						exportedConfig = reloadConfig();
+							it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+						});
 					});
 
-					it('should print an error informing the user that the config file is not valid JSON',
-						() => shouldPrintAnErrorInformingTheUserThatTheConfigFileIsNotValidJSON(
-							consoleErrorStub,
-						),
-					);
+					describe('Given the config directory can be created', () => {
+						beforeEach(givenTheConfigDirectoryCanBeCreated);
 
-					it('should exit the process with error code 2',
-						() => shouldExitTheProcessWithAnErrorCode(processExitStub, 2),
-					);
+						describe('When the config is loaded', () => {
+							beforeEach(whenTheConfigIsLoaded);
 
-					it('should not write to the config file',
-						() => shouldNotWriteToTheConfigFile(writeJsonSyncStub),
-					);
+							it('Then the default config should be written to the config file', thenTheDefaultConfigShouldBeWrittenToTheConfigFile);
+
+							it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+						});
+					});
 				});
 
-				describe('when lisky config file is valid JSON', () => {
-					beforeEach(() => {
-						readJsonSyncStub.returns(Object.assign({}, userConfig));
-					});
+				describe('Given the config directory does exist', () => {
+					beforeEach(givenTheConfigDirectoryDoesExist);
 
-					describe('when lisky config file is not writable', () => {
-						beforeEach(() => {
-							writeJsonSyncStub.throws('Cannot write JSON');
-							exportedConfig = reloadConfig();
+					describe('Given the config file does not exist', () => {
+						beforeEach(givenTheConfigFileDoesNotExist);
+
+						describe('Given the config file cannot be written', () => {
+							beforeEach(givenTheConfigFileCannotBeWritten);
+
+							describe('When the config is loaded', () => {
+								beforeEach(whenTheConfigIsLoaded);
+
+								it('Then the user should be warned that the config will not be persisted', thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted);
+
+								it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+							});
 						});
 
-						it('should not write to the config file',
-							() => shouldNotWriteToTheConfigFile(writeJsonSyncStub),
-						);
+						describe('Given the config file can be written', () => {
+							beforeEach(givenTheConfigFileCanBeWritten);
 
-						it('should export the user’s config',
-							() => shouldExportTheUsersConfig(exportedConfig),
-						);
+							describe('When the config is loaded', () => {
+								beforeEach(whenTheConfigIsLoaded);
+
+								it('Then the default config should be written to the config file', thenTheDefaultConfigShouldBeWrittenToTheConfigFile);
+
+								it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+							});
+						});
 					});
 
-					describe('when lisky config file is writable', () => {
-						beforeEach(() => {
-							exportedConfig = reloadConfig();
+					describe('Given the config file does exist', () => {
+						beforeEach(givenTheConfigFileDoesExist);
+
+						describe('Given the config file is not readable', () => {
+							beforeEach(givenTheConfigFileCannotBeRead);
+
+							describe('When the config is loaded', () => {
+								beforeEach(whenTheConfigIsLoaded);
+
+								it('Then the user should be informed that the config file permissions are incorrect', thenTheUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect);
+
+								it('Then the process should exit with error code "1"', thenTheProcessShouldExitWithErrorCode);
+
+								it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
+							});
 						});
 
-						it('should not write to the config file',
-							() => shouldNotWriteToTheConfigFile(writeJsonSyncStub),
-						);
+						describe('Given the config file can be read', () => {
+							beforeEach(givenTheConfigFileCanBeRead);
 
-						it('should export the user’s config',
-							() => shouldExportTheUsersConfig(exportedConfig),
-						);
+							describe('Given the config file is not valid JSON', () => {
+								beforeEach(givenTheConfigFileIsNotValidJSON);
+
+								describe('When the config is loaded', () => {
+									beforeEach(whenTheConfigIsLoaded);
+
+									it('Then the user should be informed that the config file is not valid JSON', thenTheUserShouldBeInformedThatTheConfigFileIsNotValidJSON);
+
+									it('Then the process should exit with error code "2"', thenTheProcessShouldExitWithErrorCode);
+
+									it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
+								});
+							});
+
+							describe('Given the config file is valid JSON', () => {
+								beforeEach(givenTheConfigFileIsValidJSON);
+
+								describe('Given the config file cannot be written', () => {
+									beforeEach(givenTheConfigFileCannotBeWritten);
+
+									describe('When the config is loaded', () => {
+										beforeEach(whenTheConfigIsLoaded);
+
+										it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
+
+										it('Then the user’s config should be exported', thenTheUsersConfigShouldBeExported);
+									});
+								});
+
+								describe('Given the config file can be written', () => {
+									beforeEach(givenTheConfigFileCanBeWritten);
+
+									describe('When the config is loaded', () => {
+										beforeEach(whenTheConfigIsLoaded);
+
+										it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
+
+										it('Then the user’s config should be exported', thenTheUsersConfigShouldBeExported);
+									});
+								});
+							});
+						});
 					});
 				});
 			});

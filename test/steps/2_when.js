@@ -142,3 +142,9 @@ export function whenAnErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientP
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptoInstance.decryptMessage(encryptedMessage, nonce, recipientPassphrase, keys.publicKey);
 }
+
+export function whenTheConfigIsLoaded() {
+	const envPath = '../../src/utils/env';
+	// eslint-disable-next-line global-require, import/no-dynamic-require
+	this.test.ctx.config = require(envPath).default;
+}

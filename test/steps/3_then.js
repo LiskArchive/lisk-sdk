@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import lisk from 'lisk-js';
+import * as fsUtils from '../../src/utils/fs';
 import tablify from '../../src/utils/tablify';
 import { getFirstQuotedString } from './utils';
 
@@ -222,4 +223,44 @@ export function thenLiskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
 export function thenTheDecryptedMessageShouldBeReturned() {
 	const { returnValue, message } = this.test.ctx;
 	(returnValue).should.eql({ message });
+}
+
+export function thenTheDefaultConfigShouldBeExported() {
+	const { config, defaultConfig } = this.test.ctx;
+	(config).should.eql(defaultConfig);
+}
+
+export function thenTheUsersConfigShouldBeExported() {
+	const { config, userConfig } = this.test.ctx;
+	(config).should.eql(userConfig);
+}
+
+export function thenTheDefaultConfigShouldBeWrittenToTheConfigFile() {
+	const { configFilePath, defaultConfig } = this.test.ctx;
+	(fsUtils.writeJsonSync.calledWithExactly(configFilePath, defaultConfig)).should.be.true();
+}
+
+export function thenTheConfigFileShouldNotBeWritten() {
+	(fsUtils.writeJsonSync.called).should.be.false();
+}
+
+export function thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
+	(console.warn.calledWithMatch(/Your configuration will not be persisted\./)).should.be.true();
+}
+
+export function thenTheUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
+	const { configFilePath } = this.test.ctx;
+	(console.error.calledWithExactly(`Could not read config file. Please check permissions for ${configFilePath} or delete the file so we can create a new one from defaults.`))
+		.should.be.true();
+}
+
+export function thenTheUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
+	const { configFilePath } = this.test.ctx;
+	(console.error.calledWithExactly(`Config file is not valid JSON. Please check ${configFilePath} or delete the file so we can create a new one from defaults.`))
+		.should.be.true();
+}
+
+export function thenTheProcessShouldExitWithErrorCode() {
+	const errorCode = parseInt(getFirstQuotedString(this.test.title), 10);
+	(process.exit.calledWithExactly(errorCode)).should.be.true();
 }

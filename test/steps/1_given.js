@@ -15,7 +15,9 @@
  */
 import fs from 'fs';
 import lisk from 'lisk-js';
+import defaultConfig from '../../defaultConfig.json';
 import cryptoInstance from '../../src/utils/cryptoModule';
+import * as fsUtils from '../../src/utils/fs';
 import liskInstance from '../../src/utils/liskInstance';
 import queryInstance from '../../src/utils/query';
 import {
@@ -213,4 +215,83 @@ export function givenAnEncryptedMessageWithANonce() {
 	lisk.crypto.encryptMessageWithSecret.returns(encryptedMessageWithNonce);
 
 	this.test.ctx.encryptedMessageWithNonce = encryptedMessageWithNonce;
+}
+
+export function givenADefaultConfig() {
+	this.test.ctx.defaultConfig = defaultConfig;
+}
+
+export function givenAConfigDirectoryPath() {
+	this.test.ctx.configDirectoryPath = getFirstQuotedString(this.test.parent.title);
+}
+
+export function givenAConfigFileName() {
+	const { configDirectoryPath } = this.test.ctx;
+	const configFileName = getFirstQuotedString(this.test.parent.title);
+
+	this.test.ctx.configFileName = configFileName;
+	this.test.ctx.configFilePath = `${configDirectoryPath}/${configFileName}`;
+}
+
+export function givenTheConfigDirectoryDoesNotExist() {
+	const { configDirectoryPath } = this.test.ctx;
+	fs.existsSync.withArgs(configDirectoryPath).returns(false);
+	fsUtils.readJsonSync.throws('Cannot read file');
+}
+
+export function givenTheConfigDirectoryDoesExist() {
+	const { configDirectoryPath } = this.test.ctx;
+	fs.existsSync.withArgs(configDirectoryPath).returns(true);
+}
+
+export function givenTheConfigDirectoryCannotBeCreated() {
+	fs.mkdirSync.throws('Cannot make directory');
+}
+
+export function givenTheConfigDirectoryCanBeCreated() {}
+
+export function givenTheConfigFileDoesNotExist() {
+	const { configFilePath } = this.test.ctx;
+	fs.existsSync.withArgs(configFilePath).returns(false);
+	fsUtils.readJsonSync.throws('Cannot read file');
+}
+
+export function givenTheConfigFileDoesExist() {
+	const { configFilePath } = this.test.ctx;
+	fs.existsSync.withArgs(configFilePath).returns(true);
+}
+
+export function givenTheConfigFileCannotBeWritten() {
+	fsUtils.writeJsonSync.throws('Cannot write to file');
+}
+
+export function givenTheConfigFileCanBeWritten() {}
+
+export function givenTheConfigFileCannotBeRead() {
+	const { configFilePath } = this.test.ctx;
+	fsUtils.readJsonSync.throws('Cannot read file');
+	fs.accessSync.withArgs(configFilePath, fs.constants.R_OK).throws('Cannot read file');
+}
+
+export function givenTheConfigFileCanBeRead() {}
+
+export function givenTheConfigFileIsNotValidJSON() {
+	fsUtils.readJsonSync.throws('Invalid JSON');
+}
+
+export function givenTheConfigFileIsValidJSON() {
+	const userConfig = {
+		name: 'custom-name',
+		json: true,
+		liskJS: {
+			testnet: true,
+			node: 'my-node',
+			port: 7357,
+			ssl: true,
+		},
+	};
+
+	this.test.ctx.userConfig = userConfig;
+
+	fsUtils.readJsonSync.returns(userConfig);
 }
