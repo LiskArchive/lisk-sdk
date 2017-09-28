@@ -13,64 +13,69 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import tablify from '../../../src/utils/tablify';
+import {
+	givenAnEmptyObject,
+	givenANonEmptyObject,
+	givenAnArrayOfObjectsWithTheSameKeys,
+	givenAnArrayOfObjectsWithDivergentKeys,
+} from '../../steps/1_given';
+import {
+	whenTheObjectIsTablified,
+	whenTheArrayIsTablified,
+} from '../../steps/2_when';
+import {
+	thenTheReturnedTableShouldHaveNoHead,
+	thenTheReturnedTableShouldHaveNoRows,
+	thenTheReturnedTableShouldHaveAHeadWithTheObjectKeys,
+	thenTheReturnedTableShouldHaveARowWithTheObjectValues,
+	thenTheReturnedTableShouldHaveAHeadWithTheObjectsKeys,
+	thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectValues,
+	thenTheReturnedTableShouldHaveAHeadWithEveryUniqueKey,
+	thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues,
+} from '../../steps/3_then';
 
-describe('#tablify', () => {
-	it('should create a table from an object', () => {
-		const data = {
-			head1: 'one',
-			head2: 'two',
-		};
-		const table = tablify(data);
+describe('tablify util', () => {
+	describe('Given an empty object', () => {
+		beforeEach(givenAnEmptyObject);
 
-		(table).should.have.property('options').have.property('head').eql(Object.keys(data));
-		(table).should.have.property('0').eql(Object.values(data));
+		describe('When the object is tablified', () => {
+			beforeEach(whenTheObjectIsTablified);
+
+			it('Then the returned table should have no head', thenTheReturnedTableShouldHaveNoHead);
+			it('Then the returned table should have no rows', thenTheReturnedTableShouldHaveNoRows);
+		});
 	});
 
-	it('should create a table from an empty object', () => {
-		const data = {};
-		const table = tablify(data);
+	describe('Given a non-empty object', () => {
+		beforeEach(givenANonEmptyObject);
 
-		(table).should.not.have.property('0');
+		describe('When the object is tablified', () => {
+			beforeEach(whenTheObjectIsTablified);
+
+			it('Then the returned table should have a head with the object’s keys', thenTheReturnedTableShouldHaveAHeadWithTheObjectKeys);
+			it('Then the returned table should have a row with the object’s values', thenTheReturnedTableShouldHaveARowWithTheObjectValues);
+		});
 	});
 
-	it('should create a table from an array of objects', () => {
-		const data = [
-			{
-				head1: 'one',
-				head2: 'two',
-			},
-			{
-				head1: 'three',
-				head2: 'four',
-			},
-		];
-		const table = tablify(data);
+	describe('Given an array of objects with the same keys', () => {
+		beforeEach(givenAnArrayOfObjectsWithTheSameKeys);
 
-		(table).should.have.property('options').have.property('head').eql(Object.keys(data[0]));
-		(table).should.have.property('0').eql(Object.values(data[0]));
-		(table).should.have.property('1').eql(Object.values(data[1]));
+		describe('When the array is tablified', () => {
+			beforeEach(whenTheArrayIsTablified);
+
+			it('Then the returned table should have a head with the objects’ keys', thenTheReturnedTableShouldHaveAHeadWithTheObjectsKeys);
+			it('Then the returned table should have a row for each object with the object’s values', thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectValues);
+		});
 	});
 
-	it('should create a table from an array of objects with different keys', () => {
-		// const nullField = '-';
-		const data = [
-			{
-				head1: 'one',
-				head2: 'two',
-			},
-			{
-				head1: 'three',
-				head3: 'four',
-				head4: 'five',
-				head5: 'six',
-			},
-		];
+	describe('Given an array of objects with divergent keys', () => {
+		beforeEach(givenAnArrayOfObjectsWithDivergentKeys);
 
-		const table = tablify(data);
+		describe('When the array is tablified', () => {
+			beforeEach(whenTheArrayIsTablified);
 
-		(table).should.have.property('options').have.property('head').eql(['head1', 'head2', 'head3', 'head4', 'head5']);
-		(table).should.have.property('0').eql(['one', 'two', undefined, undefined, undefined]);
-		(table).should.have.property('1').eql(['three', undefined, 'four', 'five', 'six']);
+			it('Then the returned table should have a head with every unique key', thenTheReturnedTableShouldHaveAHeadWithEveryUniqueKey);
+			it('Then the returned table should have a row for each object with the object’s values', thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues);
+		});
 	});
 });

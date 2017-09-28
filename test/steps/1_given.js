@@ -82,3 +82,48 @@ export function givenThereIsAnObjectThatShouldBeWrittenToPath() {
 	sandbox.stub(JSON, 'stringify').returns(this.test.ctx.stringifiedObject);
 	sandbox.stub(fs, 'writeFileSync');
 }
+
+export function givenAnEmptyObject() {
+	this.test.ctx.testObject = {};
+}
+
+export function givenANonEmptyObject() {
+	this.test.ctx.testObject = {
+		lisk: 'js',
+		version: 1,
+	};
+}
+
+export function givenAnArrayOfObjectsWithTheSameKeys() {
+	this.test.ctx.testArray = [
+		{
+			lisk: 'js',
+			version: 1,
+		},
+		{
+			lisk: 'ts',
+			version: 2,
+		},
+		{
+			lisk: 'jsx',
+			version: 3,
+		},
+	];
+}
+
+export function givenAnArrayOfObjectsWithDivergentKeys() {
+	this.test.ctx.testArray = [
+		{
+			lisk: 'js',
+			version: 1,
+		},
+		{
+			lisky: 'ts',
+			version: 2,
+		},
+		{
+			nano: 'jsx',
+			react: true,
+		},
+	];
+}

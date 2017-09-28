@@ -18,6 +18,7 @@ import {
 	writeJsonSync,
 } from '../../src/utils/fs';
 import { printResult } from '../../src/utils/print';
+import tablify from '../../src/utils/tablify';
 
 export function whenTheResultIsPrinted() {
 	this.test.ctx.returnValue = printResult(this.test.ctx.vorpal)(this.test.ctx.result);
@@ -49,4 +50,12 @@ export function whenTheJSONIsRead() {
 
 export function whenTheJSONIsWritten() {
 	this.test.ctx.returnValue = writeJsonSync(this.test.ctx.path, this.test.ctx.objectToWrite);
+}
+
+export function whenTheObjectIsTablified() {
+	this.test.ctx.returnValue = tablify(this.test.ctx.testObject);
+}
+
+export function whenTheArrayIsTablified() {
+	this.test.ctx.returnValue = tablify(this.test.ctx.testArray);
 }

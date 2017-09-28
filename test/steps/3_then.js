@@ -83,3 +83,54 @@ export function thenJSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation(
 export function thenFsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
 	(fs.writeFileSync.calledWithExactly(this.test.ctx.path, this.test.ctx.stringifiedObject)).should.be.true();
 }
+
+export function thenTheReturnedTableShouldHaveNoHead() {
+	(this.test.ctx.returnValue.options).should.have.property('head').eql([]);
+}
+
+export function thenTheReturnedTableShouldHaveNoRows() {
+	(this.test.ctx.returnValue).should.have.length(0);
+}
+
+export function thenTheReturnedTableShouldHaveAHeadWithTheObjectKeys() {
+	const keys = Object.keys(this.test.ctx.testObject);
+	(this.test.ctx.returnValue.options).should.have.property('head').eql(keys);
+}
+
+export function thenTheReturnedTableShouldHaveARowWithTheObjectValues() {
+	const values = Object.values(this.test.ctx.testObject);
+	(this.test.ctx.returnValue[0]).should.eql(values);
+}
+
+export function thenTheReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
+	const keys = Object.keys(this.test.ctx.testArray[0]);
+	(this.test.ctx.returnValue.options).should.have.property('head').eql(keys);
+}
+
+export function thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
+	this.test.ctx.testArray.forEach((testObject, i) => {
+		const values = Object.values(testObject);
+		(this.test.ctx.returnValue[i]).should.eql(values);
+	});
+}
+
+export function thenTheReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
+	const uniqueKeys = this.test.ctx.testArray
+		.reduce((keys, testObject) => {
+			const newKeys = Object.keys(testObject).filter(key => !keys.includes(key));
+			return [...keys, ...newKeys];
+		}, []);
+	(this.test.ctx.returnValue.options).should.have.property('head').eql(uniqueKeys);
+}
+
+export function thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues() {
+	this.test.ctx.testArray.forEach((testObject, i) => {
+		const row = this.test.ctx.returnValue[i];
+		const values = Object.values(testObject);
+
+		values.forEach(value => (row).should.containEql(value));
+		row
+			.filter(value => !values.includes(value))
+			.forEach(value => should(value).be.undefined());
+	});
+}
