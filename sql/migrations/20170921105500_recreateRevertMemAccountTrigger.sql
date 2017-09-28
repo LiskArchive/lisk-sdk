@@ -19,7 +19,7 @@ BEGIN
   END IF;
 
   -- Revert any change of u_username except of setting to null (see pop last block procedures)
-  IF NEW."u_username" <> OLD."u_username" AND NEW."username" IS NOT NULL AND OLD."u_username" IS NOT NULL THEN
+  IF NEW."u_username" <> OLD."u_username" AND NEW."u_username" IS NOT NULL AND OLD."u_username" IS NOT NULL THEN
     RAISE WARNING 'Reverting change of u_username from % to %', OLD."u_username", NEW."u_username";
     NEW."u_username" = OLD."u_username";
   END IF;
