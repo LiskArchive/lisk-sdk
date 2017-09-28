@@ -21,6 +21,8 @@ import {
 import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 
+const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
+
 export function whenTheResultIsPrinted() {
 	const { vorpal, result } = this.test.ctx;
 	this.test.ctx.returnValue = printResult(vorpal)(result);
@@ -78,11 +80,10 @@ export function whenNoErrorOccursAttemptingToGetTheKeysForThePassphrase() {
 
 export function whenAnErrorOccursAttemptingToGetTheKeysForThePassphrase() {
 	const { cryptoInstance, passphrase } = this.test.ctx;
-	const errorMessage = 'Cannot read property \'length\' of null';
 
-	lisk.crypto.getKeys.throws(new TypeError(errorMessage));
+	lisk.crypto.getKeys.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
-	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptoInstance.getKeys(passphrase);
 }
 
@@ -93,11 +94,10 @@ export function whenNoErrorOccursAttemptingToEncryptThePassphraseWithThePassword
 
 export function whenAnErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
 	const { cryptoInstance, passphrase, password } = this.test.ctx;
-	const errorMessage = 'Cannot read property \'length\' of null';
 
-	lisk.crypto.encryptPassphraseWithPassword.throws(new TypeError(errorMessage));
+	lisk.crypto.encryptPassphraseWithPassword.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
-	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptoInstance.encryptPassphrase(passphrase, password);
 }
 
@@ -108,11 +108,10 @@ export function whenNoErrorOccursAttemptingToDecryptThePassphraseWithThePassword
 
 export function whenAnErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
 	const { cryptoInstance, cipherAndIv, password } = this.test.ctx;
-	const errorMessage = 'Cannot read property \'length\' of null';
 
-	lisk.crypto.decryptPassphraseWithPassword.throws(new TypeError(errorMessage));
+	lisk.crypto.decryptPassphraseWithPassword.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
-	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptoInstance.decryptPassphrase(cipherAndIv, password);
 }
 
@@ -123,11 +122,10 @@ export function whenNoErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsi
 
 export function whenAnErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
 	const { cryptoInstance, message, passphrase, recipientKeys } = this.test.ctx;
-	const errorMessage = 'Cannot read property \'length\' of null';
 
-	lisk.crypto.encryptMessageWithSecret.throws(new TypeError(errorMessage));
+	lisk.crypto.encryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
-	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptoInstance.encryptMessage(message, passphrase, recipientKeys.publicKey);
 }
 
@@ -138,10 +136,9 @@ export function whenNoErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientP
 
 export function whenAnErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
 	const { cryptoInstance, encryptedMessageWithNonce: { encryptedMessage, nonce }, recipientPassphrase, keys } = this.test.ctx;
-	const errorMessage = 'Cannot read property \'length\' of null';
 
-	lisk.crypto.decryptMessageWithSecret.throws(new TypeError(errorMessage));
+	lisk.crypto.decryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
-	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptoInstance.decryptMessage(encryptedMessage, nonce, recipientPassphrase, keys.publicKey);
 }
