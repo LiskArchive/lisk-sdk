@@ -4,6 +4,21 @@ First off, thanks for taking the time to contribute! :raised_hands:
 
 The following is a set of guidelines for contributing to Lisk-JS, which are hosted in the [LiskHQ Organization](https://github.com/LiskHQ) on GitHub. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
+#### Table Of Contents
+
+[Code of Conduct](#code-of-conduct)
+
+[I don't want to read this whole thing, I just have a question!!!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
+
+[How Can I Contribute?](#how-can-i-contribute)
+  * [Reporting Bugs](#reporting-bugs)
+  * [Suggesting Enhancements](#suggesting-enhancements)
+  * [Pull Requests](#pull-requests)
+
+[Styleguides](#styleguides)
+  * [Git Commit Messages](#git-commit-messages)
+  * [JavaScript Styleguide](#javascript-styleguide)
+
 ## Code of Conduct
 
 This project and everyone participating in it is governed by the [Lisk-JS Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [info@lisk.io](mailto:info@lisk.io).
