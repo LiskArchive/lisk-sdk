@@ -61,6 +61,14 @@ In case you've never submitted a pull request (PR) via GitHub before, please rea
 5. Check that Jenkins CI tests pass (pull request turns green).
 New developers probably need to wait for a trusted team member to start Jenkins CI on a Pull Request
 
+* Include issue numbers in the PR title, at the end with: ```Description - Closes #IssueNumber```
+* Include screenshots and animated GIFs in your pull request whenever possible.
+* Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from airbnb with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
+* Document new code based on the [YuiDoc Documentation Styleguide](http://yui.github.io/yuidoc/)
+* End all files with a newline
+* Every new code must come with complete test coverage
+* Update the Readme for the changes that adhere to your new code
+
 ### Reporting Bugs
 
 This section guides you through submitting a bug report for Lisk-JS. Following these guidelines helps maintainers and the community understand your report :pencil:, reproduce the behavior :computer: :computer:, and find related reports :mag_right:.
@@ -94,7 +102,6 @@ Provide more context by answering these questions:
 * **Did the problem start happening recently** (e.g. after updating to a new version of Lisk-JS, Lisk or any other repository) or was this always a problem?
 * If the problem started happening recently, **can you reproduce the problem in an older version of Lisk-JS?** What's the most recent version in which the problem doesn't happen? You can download older versions of Lisk-JS from [the releases page](https://github.com/LiskHQ/lisk-js/releases).
 * **Can you reliably reproduce the issue?** If not, provide details about how often the problem happens and under which conditions it normally happens.
-* If the problem is related to working with files (e.g. opening and editing files), **does the problem happen for all files and projects or only some?** Does the problem happen only when working with local or remote files (e.g. on network drives), with files of a specific type (e.g. only JavaScript or Python files), with large files or files with very long lines, or with files in a specific encoding? Is there anything else special about the files you are using?
 
 Include details about your configuration and environment:
 
@@ -107,7 +114,7 @@ Include details about your configuration and environment:
 
 This section guides you through submitting an enhancement suggestion for Lisk-JS, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
 
-Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion) as you might find out that you don't need to create one. When you are creating an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion). Fill in [the template](ISSUE_TEMPLATE.md), including the steps that you imagine you would take if the feature you're requesting existed.
+ When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](ISSUE_TEMPLATE.md), including the steps that you imagine you would take if the feature you're requesting existed.
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
 
@@ -122,16 +129,6 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **List some other text editors or applications where this enhancement exists.**
 * **Specify which version of Lisk and Lisk-JS you're using.**
 * **Specify the name and version of the OS you're using.**
-
-### Pull Requests
-
-* Include issue numbers in the PR title, at the end with: ```Description - Closes #IssueNumber```
-* Include screenshots and animated GIFs in your pull request whenever possible.
-* Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from airbnb with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
-* Document new code based on the [YuiDoc Documentation Styleguide](http://yui.github.io/yuidoc/)
-* End all files with a newline
-* Every new code must come with complete test coverage
-* Update the Readme for the changes that adhere to your new code
 
 ## Styleguides
 
