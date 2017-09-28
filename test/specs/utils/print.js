@@ -32,7 +32,7 @@ describe('print utils', () => {
 		describe('Given there is a Vorpal instance with an active command that can log', () => {
 			beforeEach(givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog);
 
-			describe('And there is a result to print', () => {
+			describe('Given there is a result to print', () => {
 				beforeEach(givenThereIsAResultToPrint);
 
 				describe('When the result is printed', () => {

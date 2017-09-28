@@ -14,15 +14,15 @@
  *
  */
 import {
-	whenTheLiskInstanceIsImported,
-} from '../../steps/2_when';
+	givenALiskInstance,
+} from '../../steps/1_given';
 import {
 	thenTheLiskInstanceShouldBeALiskJSApiInstance,
 } from '../../steps/3_then';
 
 describe('liskInstance util', () => {
-	describe('When the lisk instance is imported', () => {
-		beforeEach(whenTheLiskInstanceIsImported);
+	describe('Given a lisk instance', () => {
+		beforeEach(givenALiskInstance);
 
 		it('Then the lisk instance should be a lisk-js api instance', thenTheLiskInstanceShouldBeALiskJSApiInstance);
 	});

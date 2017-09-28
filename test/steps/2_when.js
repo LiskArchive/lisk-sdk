@@ -13,12 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskInstance from '../../src/utils/liskInstance';
 import { printResult } from '../../src/utils/print';
-
-export function whenTheLiskInstanceIsImported() {
-	this.test.ctx.liskInstance = liskInstance;
-}
 
 export function whenTheResultIsPrinted() {
 	this.test.ctx.returnValue = printResult(this.test.ctx.vorpal)(this.test.ctx.result);
