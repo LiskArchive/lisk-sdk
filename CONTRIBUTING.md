@@ -8,7 +8,7 @@ The following is a set of guidelines for contributing to Lisk-JS, which are host
 
 [Code of Conduct](#code-of-conduct)
 
-[I don't want to read this whole thing, I just have a question!!!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
+[Help! I don't want to read this whole thing, I just have one question. :mag_right:](#help!-i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
 
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
@@ -28,7 +28,7 @@ This project and everyone participating in it is governed by the [Lisk-JS Code o
 Every repository within LiskHQ comes with a LICENSE file. Please read it carefully before commiting your code to one of the repositories.
 
 
-## I don't want to read this whole thing I just have a question!!!
+## Help! I don't want to read this whole thing, I just have a question. :mag_right:
 
 Lisk is an open-source decentralized project, there are many ways and platforms to get help. These are some of them
 
