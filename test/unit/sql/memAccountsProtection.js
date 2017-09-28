@@ -121,7 +121,7 @@ describe('mem_accounts protection', function () {
 					queries.updateUsername(validAccount, nonNullValidUsername, done);
 				});
 
-				it('should fail and leave the old username', function (done) {
+				it('should leave the old username', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
 						expect(updatedAccount).to.have.property('username').equal(validAccount.username);
 						return done(err);
@@ -135,7 +135,7 @@ describe('mem_accounts protection', function () {
 					queries.updateUsername(validAccount, null, done);
 				});
 
-				it('should succeed', function (done) {
+				it('should set username = null', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
 						expect(err).to.be.null;
 						expect(updatedAccount).to.have.property('username').to.be.null;
@@ -169,7 +169,7 @@ describe('mem_accounts protection', function () {
 					queries.updateUsername(noUsernameAccount, validUsername, done);
 				});
 
-				it('should succeed', function (done) {
+				it('should set the new value', function (done) {
 					queries.getAccountByAddress(noUsernameAccount.address, function (err, updatedAccount) {
 						expect(err).to.be.null;
 						expect(updatedAccount).to.have.property('username').equal(validUsername);
@@ -200,7 +200,7 @@ describe('mem_accounts protection', function () {
 					queries.updateU_username(validAccount, nonNullValidUsername, done);
 				});
 
-				it('should fail and leave the old username', function (done) {
+				it('should leave the old username', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
 						expect(err).to.be.null;
 						expect(updatedAccount).to.have.property('u_username').equal(validAccount.u_username);
@@ -215,7 +215,7 @@ describe('mem_accounts protection', function () {
 					queries.updateU_username(validAccount, null, done);
 				});
 
-				it('should succeed', function (done) {
+				it('should set u_username = null', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
 						expect(err).to.be.null;
 						expect(updatedAccount).to.have.property('u_username').to.be.null;
@@ -241,7 +241,7 @@ describe('mem_accounts protection', function () {
 				queries.deleteAccount(noU_usernameAccount, done);
 			});
 
-			describe('for valid username', function () {
+			describe('for valid u_username', function () {
 
 				var validU_username = randomstring.generate(10).toLowerCase();
 
@@ -249,7 +249,7 @@ describe('mem_accounts protection', function () {
 					queries.updateU_username(noU_usernameAccount, validU_username, done);
 				});
 
-				it('should succeed', function (done) {
+				it('should set the new value', function (done) {
 					queries.getAccountByAddress(noU_usernameAccount.address, function (err, updatedAccount) {
 						expect(err).to.be.null;
 						expect(updatedAccount).to.have.property('u_username').equal(validU_username);
