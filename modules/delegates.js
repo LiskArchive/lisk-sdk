@@ -102,7 +102,7 @@ __private.getDelegatesFromPreviousRound = function (cb) {
 	library.db.query(sql.getDelegatesSnapshot, {limit: slots.delegates}).then(function (rows) {
 		var delegatesPublicKeys = [];
 		rows.forEach(function (row) {
-			delegatesPublicKeys.push(row.publicKey.toString('hex'))
+			delegatesPublicKeys.push(row.publicKey.toString('hex'));
 		});
 		return setImmediate(cb, null, delegatesPublicKeys);
 	}).catch(function (err) {

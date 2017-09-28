@@ -421,7 +421,7 @@ describe('blocks/process', function () {
 				if (err) {
 					done(err);
 				}
-				done()
+				done();
 			});
 		});		
 	}
@@ -612,7 +612,7 @@ describe('blocks/process', function () {
 								expect(info.args[0][1].block.previousBlock).to.equal(forkOneScenarios[1].previousBlock);
 								expect(info.args[0][1].block.timestamp).to.equal(forkOneScenarios[1].timestamp);
 								expect(info.args[1][0]).to.equal('Last block and parent loses');
-								done()
+								done();
 							});
 						};
 						blocksProcess.onReceiveBlock(forkOneScenarios[1]);
@@ -701,7 +701,7 @@ describe('blocks/process', function () {
 								expect(info.args[0][1].block.previousBlock).to.equal(forkOneScenarios[4].previousBlock);
 								expect(info.args[0][1].block.timestamp).to.equal(forkOneScenarios[4].timestamp);
 								expect(info.args[1][0]).to.equal('Last block and parent loses');
-								done()
+								done();
 							});
 						};
 						blocksProcess.onReceiveBlock(forkOneScenarios[4]);
@@ -864,7 +864,7 @@ describe('blocks/process', function () {
 								expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[1].previousBlock);
 								expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[1].timestamp);
 								expect(info.args[1][0]).to.equal('Last block loses');
-								done()
+								done();
 							});
 						};
 						blocksProcess.onReceiveBlock(forkFiveScenarios[1]);
@@ -963,7 +963,7 @@ describe('blocks/process', function () {
 								expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[3].previousBlock);
 								expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[3].timestamp);
 								expect(info.args[1][0]).to.equal('Last block loses');
-								done()
+								done();
 							});
 						};
 						blocksProcess.onReceiveBlock(forkFiveScenarios[3]);
