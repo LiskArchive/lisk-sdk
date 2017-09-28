@@ -12,7 +12,7 @@ var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTa
 var constants = require('../../../../helpers/constants.js');
 var slots = require('../../../../helpers/slots.js');
 var blocksData = require('./processBlocks.json');
-var promisify = require('promisify-any');
+var Promise = require('bluebird');
 
 var forkOneScenarios = [
 	{
@@ -377,7 +377,7 @@ describe('blocks/process', function () {
 				blocks.lastBlock.set(genesisBlock);
 			}
 			modulesLoader.scope.sequence.add = function (cb) {
-				var fn = promisify(cb);
+				var fn = Promise.promisify(cb);
 
 				fn().then(function (err, res) {
 					expect(err).to.be.undefined;
@@ -435,7 +435,8 @@ describe('blocks/process', function () {
 
 				it('should fail when block generator is not a delegate', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.Promise.promisify(cb);
+
 						fn().catch(function (err, res) {
 							expect(err.message).to.equal('Failed to verify slot: 3556603');
 							expect(info.args[0][0]).to.equal([
@@ -461,7 +462,7 @@ describe('blocks/process', function () {
 
 				it('should fail when block generator is not the calculated slot delegate', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().catch(function (err, res) {
 							expect(err.message).to.equal('Failed to verify slot: 3556603');
 							expect(info.args[0][0]).to.equal([
@@ -492,7 +493,7 @@ describe('blocks/process', function () {
 
 				it('should be ok when last block stands', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().then(function (err, res) {
 							expect(err).to.be.undefined;
 							expect(res).to.be.undefined;
@@ -519,7 +520,7 @@ describe('blocks/process', function () {
 				
 				it('should fail when block object normalize', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().catch(function (err) {
 							expect(info.args[0][0]).to.equal('Fork');
 							expect(info.args[0][1].cause).to.equal(1);
@@ -543,7 +544,7 @@ describe('blocks/process', function () {
 
 				it('should fail when block verify receipt', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().catch(function (err) {
 							expect(info.args[0][0]).to.equal('Fork');
 							expect(info.args[0][1].cause).to.equal(1);
@@ -570,7 +571,7 @@ describe('blocks/process', function () {
 
 					it('should be ok when blocks have same publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -598,7 +599,7 @@ describe('blocks/process', function () {
 
 					it('should fail when blocks have different publicKey generator and last block generator is invalid', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556603');
 								expect(error.args[0][0]).to.equal('Expected generator: 01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746 Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -620,7 +621,7 @@ describe('blocks/process', function () {
 
 					it('should be ok when blocks have different publicKey generator and last block generator is valid', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -654,7 +655,7 @@ describe('blocks/process', function () {
 			
 					it('should be ok when blocks have same publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -687,7 +688,7 @@ describe('blocks/process', function () {
 
 					it('should fail when block generator not match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556604');
 								expect(error.args[0][0]).to.equal('Expected generator: 01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746 Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -709,7 +710,7 @@ describe('blocks/process', function () {
 
 					it('should be ok when block match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -746,7 +747,7 @@ describe('blocks/process', function () {
 
 				it('should be ok when last block stands and blocks have same publicKey generator', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().then(function (err, res) {
 							expect(err).to.be.undefined;
 							expect(res).to.be.undefined;
@@ -771,7 +772,7 @@ describe('blocks/process', function () {
 
 				it('should be ok when last block stands and blocks have different publicKey generator', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().then(function (err, res) {
 							expect(err).to.be.undefined;
 							expect(res).to.be.undefined;
@@ -794,7 +795,7 @@ describe('blocks/process', function () {
 
 				it('should fail when block object normalize', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().catch(function (err) {
 							expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
 							expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
@@ -821,7 +822,7 @@ describe('blocks/process', function () {
 		
 				it('should fail when block verify receipt', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
-						var fn = promisify(cb);
+						var fn = Promise.promisify(cb);
 						fn().catch(function (err) {
 							expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
 							expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
@@ -850,7 +851,7 @@ describe('blocks/process', function () {
 
 					it('should fail when blocks have different generator and last block generator is invalid', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556603');
 								expect(error.args[0][0]).to.equal('Expected generator: 01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746 Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -872,7 +873,7 @@ describe('blocks/process', function () {
 					
 					it('should be ok when last block loses and blocks have same publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -909,7 +910,7 @@ describe('blocks/process', function () {
 
 					it('should be ok when last block loses and blocks have different publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -949,7 +950,7 @@ describe('blocks/process', function () {
 
 					it('should fail when last block loses and block generator not match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556604');
 								expect(error.args[0][0]).to.equal('Expected generator: 03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -971,7 +972,7 @@ describe('blocks/process', function () {
 
 					it('should be ok when blocks have same publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -1014,7 +1015,7 @@ describe('blocks/process', function () {
 	
 					it('should be ok when last block loses and block match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = promisify(cb);
+							var fn = Promise.promisify(cb);
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -1057,7 +1058,7 @@ describe('blocks/process', function () {
 
 			it('should fail when block already processed', function (done) {
 				modulesLoader.scope.sequence.add = function (cb) {
-					var fn = promisify(cb);
+					var fn = Promise.promisify(cb);
 					fn().then(function (err, res) {
 						expect(err).to.be.undefined;
 						expect(res).to.be.undefined;
@@ -1071,7 +1072,7 @@ describe('blocks/process', function () {
 	
 			it('should fail when discarded block', function (done) {
 				modulesLoader.scope.sequence.add = function (cb) {
-					var fn = promisify(cb);
+					var fn = Promise.promisify(cb);
 					fn().then(function (err, res) {
 						expect(err).to.be.undefined;
 						expect(res).to.be.undefined;

@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "bitcore-mnemonic": "=1.1.1",
+    "bluebird": "=3.5.0",
     "browserify-bignum": "=1.3.0-2",
     "chai": "=3.5.0",
     "chai-bignumber": "=2.0.0",
@@ -74,7 +75,6 @@
     "jsdox": "=0.4.10",
     "mocha": "=3.2.0",
     "moment": "=2.17.1",
-    "promisify-any": "=2.0.1",
     "sinon": "=1.17.7",
     "supertest": "=3.0.0"
   }
