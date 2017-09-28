@@ -56,30 +56,41 @@ export function givenADelegateUsername() {
 }
 
 export function givenThereIsAFileWithUtf8EncodedJSONContentsAtPath() {
-	this.test.ctx.path = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.fileContents = '{\n\t"lisk": "js",\n\t"version": 1\n}';
-	this.test.ctx.parsedFileContents = {
+	const fileContents = '{\n\t"lisk": "js",\n\t"version": 1\n}';
+	const parsedFileContents = {
 		lisk: 'js',
 		version: 1,
 	};
-	sandbox.stub(JSON, 'parse').returns(this.test.ctx.parsedFileContents);
-	sandbox.stub(fs, 'readFileSync').returns(this.test.ctx.fileContents);
+
+	this.test.ctx.path = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.fileContents = fileContents;
+	this.test.ctx.parsedFileContents = parsedFileContents;
+
+	sandbox.stub(JSON, 'parse').returns(parsedFileContents);
+	sandbox.stub(fs, 'readFileSync').returns(fileContents);
 }
 
 export function givenTheFileHasABOM() {
 	const BOM = '\uFEFF';
-	this.test.ctx.fileContents = `${BOM}${this.test.ctx.fileContents}`;
-	fs.readFileSync.returns(this.test.ctx.fileContents);
+	const fileContents = `${BOM}${this.test.ctx.fileContents}`;
+
+	this.test.ctx.fileContents = fileContents;
+
+	fs.readFileSync.returns(fileContents);
 }
 
 export function givenThereIsAnObjectThatShouldBeWrittenToPath() {
-	this.test.ctx.path = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.objectToWrite = {
+	const objectToWrite = {
 		lisk: 'js',
 		version: 1,
 	};
-	this.test.ctx.stringifiedObject = '{\n\t"lisk": "js",\n\t"version": 1\n}';
-	sandbox.stub(JSON, 'stringify').returns(this.test.ctx.stringifiedObject);
+	const stringifiedObject = '{\n\t"lisk": "js",\n\t"version": 1\n}';
+
+	this.test.ctx.path = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.objectToWrite = objectToWrite;
+	this.test.ctx.stringifiedObject = stringifiedObject;
+
+	sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
 	sandbox.stub(fs, 'writeFileSync');
 }
 

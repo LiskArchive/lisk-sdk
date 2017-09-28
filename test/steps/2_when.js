@@ -21,41 +21,51 @@ import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 
 export function whenTheResultIsPrinted() {
-	this.test.ctx.returnValue = printResult(this.test.ctx.vorpal)(this.test.ctx.result);
+	const { vorpal, result } = this.test.ctx;
+	this.test.ctx.returnValue = printResult(vorpal)(result);
 }
 
 export function whenTheResultIsPrintedWithTheJSONOptionSetToTrue() {
-	this.test.ctx.returnValue = printResult(this.test.ctx.vorpal, { json: true })(this.test.ctx.result);
+	const { vorpal, result } = this.test.ctx;
+	this.test.ctx.returnValue = printResult(vorpal, { json: true })(result);
 }
 
 export function whenTheQueryInstanceGetsABlockUsingTheID() {
-	this.test.ctx.returnValue = this.test.ctx.queryInstance.isBlockQuery(this.test.ctx.blockId);
+	const { queryInstance, blockId } = this.test.ctx;
+	this.test.ctx.returnValue = queryInstance.isBlockQuery(blockId);
 }
 
 export function whenTheQueryInstanceGetsAnAccountUsingTheAddress() {
-	this.test.ctx.returnValue = this.test.ctx.queryInstance.isAccountQuery(this.test.ctx.address);
+	const { queryInstance, address } = this.test.ctx;
+	this.test.ctx.returnValue = queryInstance.isAccountQuery(address);
 }
 
 export function whenTheQueryInstanceGetsATransactionUsingTheID() {
-	this.test.ctx.returnValue = this.test.ctx.queryInstance.isTransactionQuery(this.test.ctx.transactionId);
+	const { queryInstance, transactionId } = this.test.ctx;
+	this.test.ctx.returnValue = queryInstance.isTransactionQuery(transactionId);
 }
 
 export function whenTheQueryInstanceGetsADelegateUsingTheUsername() {
-	this.test.ctx.returnValue = this.test.ctx.queryInstance.isDelegateQuery(this.test.ctx.delegateUsername);
+	const { queryInstance, delegateUsername } = this.test.ctx;
+	this.test.ctx.returnValue = queryInstance.isDelegateQuery(delegateUsername);
 }
 
 export function whenTheJSONIsRead() {
-	this.test.ctx.returnValue = readJsonSync(this.test.ctx.path);
+	const { path } = this.test.ctx;
+	this.test.ctx.returnValue = readJsonSync(path);
 }
 
 export function whenTheJSONIsWritten() {
-	this.test.ctx.returnValue = writeJsonSync(this.test.ctx.path, this.test.ctx.objectToWrite);
+	const { path, objectToWrite } = this.test.ctx;
+	this.test.ctx.returnValue = writeJsonSync(path, objectToWrite);
 }
 
 export function whenTheObjectIsTablified() {
-	this.test.ctx.returnValue = tablify(this.test.ctx.testObject);
+	const { testObject } = this.test.ctx;
+	this.test.ctx.returnValue = tablify(testObject);
 }
 
 export function whenTheArrayIsTablified() {
-	this.test.ctx.returnValue = tablify(this.test.ctx.testArray);
+	const { testArray } = this.test.ctx;
+	this.test.ctx.returnValue = tablify(testArray);
 }
