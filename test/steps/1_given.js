@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import fs from 'fs';
 import liskInstance from '../../src/utils/liskInstance';
 import queryInstance from '../../src/utils/query';
 import { getFirstQuotedString } from './utils';
@@ -52,4 +53,32 @@ export function givenATransactionID() {
 
 export function givenADelegateUsername() {
 	this.test.ctx.delegateUsername = getFirstQuotedString(this.test.parent.title);
+}
+
+export function givenThereIsAFileWithUtf8EncodedJSONContentsAtPath() {
+	this.test.ctx.path = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.fileContents = '{\n\t"lisk": "js",\n\t"version": 1\n}';
+	this.test.ctx.parsedFileContents = {
+		lisk: 'js',
+		version: 1,
+	};
+	sandbox.stub(JSON, 'parse').returns(this.test.ctx.parsedFileContents);
+	sandbox.stub(fs, 'readFileSync').returns(this.test.ctx.fileContents);
+}
+
+export function givenTheFileHasABOM() {
+	const BOM = '\uFEFF';
+	this.test.ctx.fileContents = `${BOM}${this.test.ctx.fileContents}`;
+	fs.readFileSync.returns(this.test.ctx.fileContents);
+}
+
+export function givenThereIsAnObjectThatShouldBeWrittenToPath() {
+	this.test.ctx.path = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.objectToWrite = {
+		lisk: 'js',
+		version: 1,
+	};
+	this.test.ctx.stringifiedObject = '{\n\t"lisk": "js",\n\t"version": 1\n}';
+	sandbox.stub(JSON, 'stringify').returns(this.test.ctx.stringifiedObject);
+	sandbox.stub(fs, 'writeFileSync');
 }

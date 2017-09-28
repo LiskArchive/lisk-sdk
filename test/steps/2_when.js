@@ -13,6 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	readJsonSync,
+	writeJsonSync,
+} from '../../src/utils/fs';
 import { printResult } from '../../src/utils/print';
 
 export function whenTheResultIsPrinted() {
@@ -37,4 +41,12 @@ export function whenTheQueryInstanceGetsATransactionUsingTheID() {
 
 export function whenTheQueryInstanceGetsADelegateUsingTheUsername() {
 	this.test.ctx.returnValue = this.test.ctx.queryInstance.isDelegateQuery(this.test.ctx.delegateUsername);
+}
+
+export function whenTheJSONIsRead() {
+	this.test.ctx.returnValue = readJsonSync(this.test.ctx.path);
+}
+
+export function whenTheJSONIsWritten() {
+	this.test.ctx.returnValue = writeJsonSync(this.test.ctx.path, this.test.ctx.objectToWrite);
 }

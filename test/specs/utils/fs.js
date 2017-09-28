@@ -1,64 +1,73 @@
-import fs from 'fs';
+/*
+ * LiskHQ/lisky
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import {
-	readJsonSync,
-	writeJsonSync,
-} from '../../../src/utils/fs';
+	givenThereIsAFileWithUtf8EncodedJSONContentsAtPath,
+	givenTheFileHasABOM,
+	givenThereIsAnObjectThatShouldBeWrittenToPath,
+} from '../../steps/1_given';
+import {
+	whenTheJSONIsRead,
+	whenTheJSONIsWritten,
+} from '../../steps/2_when';
+import {
+	thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding,
+	thenJSONParseShouldBeCalledWithTheFileContentsAsAString,
+	thenJSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM,
+	thenTheParsedFileContentsShouldBeReturned,
+	thenJSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation,
+	thenFsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON,
+} from '../../steps/3_then';
 
 describe('fs module', () => {
-	const path = '/some/path/to/file.json';
-	const stringContents = '{\n\t"foo": "bar",\n\t"n": 5\n}';
-	const json = {
-		foo: 'bar',
-		n: 5,
-	};
-	const tab = '\t';
-	const BOM = '\uFEFF';
+	describe('#readJsonSync', () => {
+		describe('Given there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"', () => {
+			beforeEach(givenThereIsAFileWithUtf8EncodedJSONContentsAtPath);
 
-	let readFileSyncStub;
-	let writeFileSyncStub;
-	let JSONParseStub;
-	let JSONStringifyStub;
-	let result;
+			describe('When the JSON is read', () => {
+				beforeEach(whenTheJSONIsRead);
 
-	describe('readJsonSync', () => {
-		beforeEach(() => {
-			readFileSyncStub = sandbox.stub(fs, 'readFileSync').returns(stringContents);
-			JSONParseStub = sandbox.stub(JSON, 'parse').returns(json);
-			result = readJsonSync(path);
-		});
+				it('Then fs.readFileSync should be called with the path and encoding', thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding);
+				it('Then JSON.parse should be called with the file contents as a string', thenJSONParseShouldBeCalledWithTheFileContentsAsAString);
+				it('Then the parsed file contents should be returned', thenTheParsedFileContentsShouldBeReturned);
+			});
 
-		it('should use fs.readFileSync', () => {
-			(readFileSyncStub.calledWithExactly(path, 'utf8')).should.be.true();
-		});
+			describe('Given the file has a BOM', () => {
+				beforeEach(givenTheFileHasABOM);
 
-		it('should use JSON.parse', () => {
-			(JSONParseStub.calledWithExactly(stringContents)).should.be.true();
-		});
+				describe('When the JSON is read', () => {
+					beforeEach(whenTheJSONIsRead);
 
-		it('should strip BOM', () => {
-			readFileSyncStub.returns(`${BOM}${stringContents}`);
-			result = readJsonSync(path);
-			(JSONParseStub.secondCall.calledWithExactly(stringContents)).should.be.true();
-		});
-
-		it('should return JSON', () => {
-			(result).should.equal(json);
+					it('Then fs.readFileSync should be called with the path and encoding', thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding);
+					it('Then JSON.parse should be called with the file contents as a string without the BOM', thenJSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM);
+					it('Then the parsed file contents should be returned', thenTheParsedFileContentsShouldBeReturned);
+				});
+			});
 		});
 	});
 
-	describe('writeJsonSync', () => {
-		beforeEach(() => {
-			writeFileSyncStub = sandbox.stub(fs, 'writeFileSync');
-			JSONStringifyStub = sandbox.stub(JSON, 'stringify').returns(stringContents);
-			result = writeJsonSync(path, json);
-		});
+	describe('#writeJsonSync', () => {
+		describe('Given there is an object that should be written to path "/some/path/to/file.json"', () => {
+			beforeEach(givenThereIsAnObjectThatShouldBeWrittenToPath);
 
-		it('should use JSON.stringify', () => {
-			(JSONStringifyStub.calledWithExactly(json, null, tab)).should.be.true();
-		});
+			describe('When the JSON is written', () => {
+				beforeEach(whenTheJSONIsWritten);
 
-		it('should use fs.writeFileSync', () => {
-			(writeFileSyncStub.calledWithExactly(path, stringContents)).should.be.true();
+				it('Then JSON.stringify should be called with the object using tab indentation', thenJSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation);
+				it('Then fs.writeFileSync should be called with the path and the stringified JSON', thenFsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON);
+			});
 		});
 	});
 });

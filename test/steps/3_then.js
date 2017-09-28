@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import fs from 'fs';
 import lisk from 'lisk-js';
 import tablify from '../../src/utils/tablify';
 
@@ -56,4 +57,29 @@ export function thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpoin
 	const route = 'delegates/get';
 	const options = { username: this.test.ctx.delegateUsername };
 	(this.test.ctx.liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+}
+
+export function thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
+	(fs.readFileSync.calledWithExactly(this.test.ctx.path, 'utf8')).should.be.true();
+}
+
+export function thenJSONParseShouldBeCalledWithTheFileContentsAsAString() {
+	(JSON.parse.calledWithExactly(this.test.ctx.fileContents)).should.be.true();
+}
+
+export function thenJSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
+	(JSON.parse.calledWithExactly(this.test.ctx.fileContents.slice(1))).should.be.true();
+}
+
+export function thenTheParsedFileContentsShouldBeReturned() {
+	(this.test.ctx.returnValue).should.equal(this.test.ctx.parsedFileContents);
+}
+
+export function thenJSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
+	const tab = '\t';
+	(JSON.stringify.calledWithExactly(this.test.ctx.objectToWrite, null, tab)).should.be.true();
+}
+
+export function thenFsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
+	(fs.writeFileSync.calledWithExactly(this.test.ctx.path, this.test.ctx.stringifiedObject)).should.be.true();
 }
