@@ -30,12 +30,12 @@ Every repository within LiskHQ comes with a LICENSE file. Please read it careful
 
 ## Help! I don't want to read this whole thing, I just have a question. :mag_right:
 
-Lisk is an open-source decentralized project, there are many ways and platforms to get help. These are some of them
+Lisk is an open-source decentralized project, there are many ways and platforms to get help. These are some of them:
 
 * [Discuss and Ask on Reddit](https://www.reddit.com/r/Lisk/)
 * [Lisk FAQ](https://docs.lisk.io/docs/faq)
 
-If you prefer to chat with LiskHQ and other developers directly::
+If you prefer to chat with LiskHQ and other developers directly:
 
 * [Join the LiskHQ Gitter](https://gitter.im/LiskHQ/lisk)
 * Even though Gitter is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
@@ -55,19 +55,16 @@ In case you've never submitted a pull request (PR) via GitHub before, please rea
 *Before* submitting a pull request, please make sure the following is done:
 
 1. Fork the repo and create your branch from `master`.
-2. If you've added code that should be tested, add tests!
-3. Ensure the test suite passes (`npm test`).
-4. Submit a pull request via GitHub.
+2. Add tests to the code you have contributed!
+All new code must come with complete test coverage.
+End all files with a newline. Generally, should conform to the .editorconfig rules.
+Document new code based on the [YuiDoc Documentation Styleguide](http://yui.github.io/yuidoc/).
+Update the README for the changes that adhere to your new code.
+3. Ensure the test and linting suite passes (`npm test`).
+Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from Airbnb with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
+4. Submit a pull request via GitHub. Include issue numbers in the PR title, at the end with: ```Description - Closes #IssueNumber```.
 5. Check that Jenkins CI tests pass (pull request turns green).
-New developers probably need to wait for a trusted team member to start Jenkins CI on a Pull Request
-
-* Include issue numbers in the PR title, at the end with: ```Description - Closes #IssueNumber```
-* Include screenshots and animated GIFs in your pull request whenever possible.
-* Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from airbnb with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
-* Document new code based on the [YuiDoc Documentation Styleguide](http://yui.github.io/yuidoc/)
-* End all files with a newline
-* Every new code must come with complete test coverage
-* Update the Readme for the changes that adhere to your new code
+First time contributors will need to wait for a trusted team member to start Jenkins CI on a Pull Request.
 
 ### Reporting Bugs
 
@@ -90,7 +87,7 @@ Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
 * **Use a clear and descriptive title** for the issue to identify the problem.
-* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Lisk-JS, e.g. which command exactly you used in the terminal, or how you started Lisk-JS otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Lisk-JS command, and if so which one?
+* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Lisk-JS, e.g. with NodeJS or in the Browser, or how you started Lisk-JS otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you have used an API model provide the configuration you have chosen and the functions you have executed. **Make sure to erase sensitive information from the configuration or details you are passing - NEVER SHARE YOUR SECRET PASSPHRASES OR PRIVATE KEYS**
 * **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why.**
@@ -126,7 +123,6 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
 * **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Lisk-JS which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **Explain why this enhancement would be useful** to most Lisk and Lisk-JS users.
-* **List some other text editors or applications where this enhancement exists.**
 * **Specify which version of Lisk and Lisk-JS you're using.**
 * **Specify the name and version of the OS you're using.**
 
@@ -157,6 +153,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 ### JavaScript Styleguide
 
+On Lisk-JS we are using [ESLint](https://eslint.org/).
 Our JavaScript style expands [Airbnb's](https://github.com/airbnb/javascript) style. You can get more details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
 These contribution guidelines were inspired by and are based on Atom's contribution guidelines. They were modified for the purposes of this repository. https://github.com/atom/atom/blob/master/CONTRIBUTING.md - Copyright (c) 2011-2017 GitHub Inc. (MIT)
