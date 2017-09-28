@@ -18,7 +18,7 @@ Have you read Lisk-JS's Code of Conduct? By filing an Issue, you are expected to
 
 ### Versions
 
-You can get this information from copy and pasting the output of `atom --version` and `apm --version` from the command line. Also, please include the OS and what version of the OS you're running.
+Please provide the version you are working with. Also, please include the OS and what version of the OS you're running.
 
 ### Additional Information
 

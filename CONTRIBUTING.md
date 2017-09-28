@@ -1,6 +1,6 @@
 # Contributing to Lisk-JS
 
-:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
+First off, thanks for taking the time to contribute! :raised_hands:
 
 The following is a set of guidelines for contributing to Lisk-JS, which are hosted in the [LiskHQ Organization](https://github.com/LiskHQ) on GitHub. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
@@ -20,7 +20,7 @@ Lisk is an open-source decentralized project, there are many ways and platforms 
 * [Discuss and Ask on Reddit](https://www.reddit.com/r/Lisk/)
 * [Lisk FAQ](https://docs.lisk.io/docs/faq)
 
-If chat is more your speed, you can join the LiskHQ Gitter:
+If you prefer to chat with LiskHQ and other developers directly::
 
 * [Join the LiskHQ Gitter](https://gitter.im/LiskHQ/lisk)
 * Even though Gitter is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
@@ -67,16 +67,16 @@ Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
 * **Use a clear and descriptive title** for the issue to identify the problem.
-* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Atom, e.g. which command exactly you used in the terminal, or how you started Atom otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Atom command, and if so which one?
+* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Lisk-JS, e.g. which command exactly you used in the terminal, or how you started Lisk-JS otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Lisk-JS command, and if so which one?
 * **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why.**
-* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. If you use the keyboard while following the steps, **record the GIF with the [Keybinding Resolver](https://github.com/atom/keybinding-resolver) shown**. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
 
 Provide more context by answering these questions:
 
-* **Did the problem start happening recently** (e.g. after updating to a new version of Lisk-Js, Lisk or any other repository) or was this always a problem?
+* **Did the problem start happening recently** (e.g. after updating to a new version of Lisk-JS, Lisk or any other repository) or was this always a problem?
 * If the problem started happening recently, **can you reproduce the problem in an older version of Lisk-JS?** What's the most recent version in which the problem doesn't happen? You can download older versions of Lisk-JS from [the releases page](https://github.com/LiskHQ/lisk-js/releases).
 * **Can you reliably reproduce the issue?** If not, provide details about how often the problem happens and under which conditions it normally happens.
 * If the problem is related to working with files (e.g. opening and editing files), **does the problem happen for all files and projects or only some?** Does the problem happen only when working with local or remote files (e.g. on network drives), with files of a specific type (e.g. only JavaScript or Python files), with large files or files with very long lines, or with files in a specific encoding? Is there anything else special about the files you are using?
@@ -85,8 +85,8 @@ Include details about your configuration and environment:
 
 * **Which version of Lisk / Lisk-JS are you using?**
 * **What's the name and version of the OS you're using**?
-* **Are you running Lisk-Js or Lisk in a virtual machine?** If so, which VM software are you using and which operating systems and versions are used for the host and the guest?
-* **Are you using [local configuration files](https://docs.lisk.io/v1.2.1/docs/api/)** `config.json`? If so, provide the contents of those files, preferably in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines) or with a link to a [gist](https://gist.github.com/).
+* **Are you running Lisk-JS or Lisk in a virtual machine?** If so, which VM software are you using and which operating systems and versions are used for the host and the guest?
+* **Are you using [local configuration files](https://docs.lisk.io/docs)** `config.json`? If so, provide the contents of those files, preferably in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines) or with a link to a [gist](https://gist.github.com/).
 
 ### Suggesting Enhancements
 
@@ -102,7 +102,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
 * **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
-* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Atom which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Lisk-JS which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **Explain why this enhancement would be useful** to most Lisk and Lisk-JS users.
 * **List some other text editors or applications where this enhancement exists.**
 * **Specify which version of Lisk and Lisk-JS you're using.**
@@ -147,4 +147,4 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 Our JavaScript style expands [Airbnb's](https://github.com/airbnb/javascript) style. You can get more details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
-These contribution guidelines were inspired by and are based on Atom's contribution guidelines. They were modified for the purposes of this repository. https://github.com/atom/atom/blob/master/CONTRIBUTING.md
+These contribution guidelines were inspired by and are based on Atom's contribution guidelines. They were modified for the purposes of this repository. https://github.com/atom/atom/blob/master/CONTRIBUTING.md - Copyright (c) 2011-2017 GitHub Inc. (MIT)
