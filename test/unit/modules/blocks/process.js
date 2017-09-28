@@ -283,7 +283,7 @@ function restoreSpiesState () {
 }
 
 describe('blocks/process', function () {
-	
+
 	var blocksProcess;
 	var blockLogic;
 	var blocks;
@@ -299,7 +299,7 @@ describe('blocks/process', function () {
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
 			if (err) {
 				return done(err);
-			}			
+			}
 			blockLogic = __blockLogic;
 
 			modulesLoader.initModules([
@@ -377,6 +377,7 @@ describe('blocks/process', function () {
 				blocks.lastBlock.set(genesisBlock);
 			}
 			modulesLoader.scope.sequence.add = function (cb) {
+
 				var fn = Promise.promisify(cb);
 
 				fn().then(function (err, res) {
@@ -411,11 +412,13 @@ describe('blocks/process', function () {
 					done();
 				});
 			};
+
 			blocksProcess.onReceiveBlock(blocksDataArray[blockNumber]);
 		});
 	}
 
 	function deleteLastBlock () {
+
 		it('should be ok when deleting last block', function (done) {
 			blocks.chain.deleteLastBlock(function (err, cb) {
 				if (err) {
@@ -423,18 +426,20 @@ describe('blocks/process', function () {
 				}
 				done();
 			});
-		});		
+		});
 	}
-	
+
 	describe('onReceiveBlock (empty transactions)', function () {
 
 		describe('receiveBlock', function () {
+
 			toBlockchain(blocksData, 'received', 0);
 
 			describe('validateBlockSlot error - fork 3', function () {
 
 				it('should fail when block generator is not a delegate', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.Promise.promisify(cb);
 
 						fn().catch(function (err, res) {
@@ -457,12 +462,15 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					blocksProcess.onReceiveBlock(forkThreeScenarios[0]);
 				});
 
 				it('should fail when block generator is not the calculated slot delegate', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().catch(function (err, res) {
 							expect(err.message).to.equal('Failed to verify slot: 3556603');
 							expect(info.args[0][0]).to.equal([
@@ -483,17 +491,21 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					blocksProcess.onReceiveBlock(forkThreeScenarios[1]);
 				});
 			});
 		});
-		
+
 		describe('receiveForkOne', function () {
+
 			describe('timestamp is greather than previous block', function () {
 
 				it('should be ok when last block stands', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().then(function (err, res) {
 							expect(err).to.be.undefined;
 							expect(res).to.be.undefined;
@@ -509,18 +521,23 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					var previousBlock = blocksData[1].previousBlock;
+
 					blocksData[1].previousBlock = forkOneScenarios[0].id;
 					blocksProcess.onReceiveBlock(blocksData[1]);
 				});
 			});
 
 			describe('timestamp is lower than previous block', function () {
+
 				toBlockchain(blocksData, 'received', 1);
-				
+
 				it('should fail when block object normalize', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().catch(function (err) {
 							expect(info.args[0][0]).to.equal('Fork');
 							expect(info.args[0][1].cause).to.equal(1);
@@ -537,14 +554,18 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					var blockSignature = forkOneScenarios[0].blockSignature;
+
 					forkOneScenarios[0].blockSignature = 'invalid-block-signature';
 					blocksProcess.onReceiveBlock(forkOneScenarios[0]);
 				});
 
 				it('should fail when block verify receipt', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().catch(function (err) {
 							expect(info.args[0][0]).to.equal('Fork');
 							expect(info.args[0][1].cause).to.equal(1);
@@ -562,7 +583,9 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					var blockSignature = forkOneScenarios[0].blockSignature;
+
 					forkOneScenarios[0].blockSignature = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
 					blocksProcess.onReceiveBlock(forkOneScenarios[0]);
 				});
@@ -571,7 +594,9 @@ describe('blocks/process', function () {
 
 					it('should be ok when blocks have same publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -591,15 +616,18 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkOneScenarios[0]);
 					});
-					
+
 					toBlockchain(blocksData, 'restore', 0);
 					toBlockchain(blocksData, 'restore', 1);
 
 					it('should fail when blocks have different publicKey generator and last block generator is invalid', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556603');
 								expect(error.args[0][0]).to.equal('Expected generator: 01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746 Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -616,12 +644,15 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkOneScenarios[1]);
 					});
 
 					it('should be ok when blocks have different publicKey generator and last block generator is valid', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -644,18 +675,22 @@ describe('blocks/process', function () {
 								console.log(err,res);
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkOneScenarios[2]);
 					});
 				});
 
 				describe('Round changes', function () {
+
 					toBlockchain(blocksData, 'restore', 0);
 					toBlockchain(blocksData, 'restore', 1);
 					toBlockchain(blocksData, 'restore', 2);
-			
+
 					it('should fail when block generator not match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556604');
 								expect(error.args[0][0]).to.equal('Expected generator: 01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746 Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -672,12 +707,15 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkOneScenarios[4]);
 					});
 
 					it('should be ok when block match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -699,22 +737,25 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkOneScenarios[5]);
 					});
 				});
 			});
 		});
 
-	
+
 		describe('receiveForkFive', function () {
-			
+
 			toBlockchain(blocksData, 'restore', 1);
 
 			describe('timestamp is greather than previous block', function () {
 
 				it('should be ok when last block stands and blocks have same publicKey generator', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().then(function (err, res) {
 							expect(err).to.be.undefined;
 							expect(res).to.be.undefined;
@@ -732,14 +773,18 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					var timestamp = forkFiveScenarios[0].timestamp;
+
 					forkFiveScenarios[0].timestamp = blocksData[1].timestamp + 1;
 					blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
 				});
 
 				it('should be ok when last block stands and blocks have different publicKey generator', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().then(function (err, res) {
 							expect(err).to.be.undefined;
 							expect(res).to.be.undefined;
@@ -754,6 +799,7 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					blocksProcess.onReceiveBlock(forkFiveScenarios[2]);
 				});
 			});
@@ -762,7 +808,9 @@ describe('blocks/process', function () {
 
 				it('should fail when block object normalize', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().catch(function (err) {
 							expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
 							expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
@@ -781,15 +829,18 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
-					forkFiveScenarios[0].timestamp = forkFiveScenarios[0].timestamp;
+
 					var blockSignature = forkFiveScenarios[0].blockSignature;
+
 					forkFiveScenarios[0].blockSignature = 'invalid-block-signature';
 					blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
 				});
-		
+
 				it('should fail when block verify receipt', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
+
 						var fn = Promise.promisify(cb);
+
 						fn().catch(function (err) {
 							expect(warn.args[0][0]).to.equal('Delegate forging on multiple nodes');
 							expect(warn.args[0][1]).to.equal(forkFiveScenarios[0].generatorPublicKey);
@@ -809,16 +860,20 @@ describe('blocks/process', function () {
 							done();
 						});
 					};
+
 					var blockSignature = forkFiveScenarios[0].blockSignature;
+
 					forkFiveScenarios[0].blockSignature = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
 					blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
 				});
-				
+
 				describe('Same round', function () {
 
 					it('should fail when blocks have different generator and last block generator is invalid', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556603');
 								expect(error.args[0][0]).to.equal('Expected generator: 01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746 Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -835,12 +890,15 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkFiveScenarios[1]);
 					});
-					
+
 					it('should be ok when last block loses and blocks have same publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -869,6 +927,7 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
 					});
 
@@ -877,7 +936,9 @@ describe('blocks/process', function () {
 
 					it('should be ok when last block loses and blocks have different publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -905,19 +966,22 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkFiveScenarios[0]);
 					});
 				});
 
 				describe('Round changes', function () {
-					
+
 					deleteLastBlock();
 					toBlockchain(blocksData, 'restore', 1);
 					toBlockchain(blocksData, 'restore', 2);
 
 					it('should fail when last block loses and block generator not match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().catch(function (err) {
 								expect(err.message).to.equal('Failed to verify slot: 3556604');
 								expect(error.args[0][0]).to.equal('Expected generator: 03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a Received generator: 0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1');
@@ -934,12 +998,15 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkFiveScenarios[3]);
 					});
 
 					it('should be ok when blocks have same publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -974,15 +1041,18 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(forkFiveScenarios[4]);
 					});
-	
+
 					deleteLastBlock();
 					toBlockchain(forkFiveScenarios, 'previous generator missed round', 5);
-	
+
 					it('should be ok when last block loses and block match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
+
 							var fn = Promise.promisify(cb);
+
 							fn().then(function (err, res) {
 								expect(err).to.be.undefined;
 								expect(res).to.be.undefined;
@@ -1015,6 +1085,7 @@ describe('blocks/process', function () {
 								done();
 							});
 						};
+
 						blocksProcess.onReceiveBlock(blocksData[2]);
 					});
 				});
@@ -1025,7 +1096,9 @@ describe('blocks/process', function () {
 
 			it('should fail when block already processed', function (done) {
 				modulesLoader.scope.sequence.add = function (cb) {
+
 					var fn = Promise.promisify(cb);
+
 					fn().then(function (err, res) {
 						expect(err).to.be.undefined;
 						expect(res).to.be.undefined;
@@ -1034,12 +1107,15 @@ describe('blocks/process', function () {
 						done();
 					});
 				};
+
 				blocksProcess.onReceiveBlock(blocksData[2]);
 			});
-	
+
 			it('should fail when discarded block', function (done) {
 				modulesLoader.scope.sequence.add = function (cb) {
+
 					var fn = Promise.promisify(cb);
+
 					fn().then(function (err, res) {
 						expect(err).to.be.undefined;
 						expect(res).to.be.undefined;
@@ -1053,6 +1129,7 @@ describe('blocks/process', function () {
 						done();
 					});
 				};
+
 				blocksProcess.onReceiveBlock(forkOneScenarios[0]);
 			});
 		});
