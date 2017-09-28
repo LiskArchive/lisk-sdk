@@ -12,54 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-node('lisk-js-01'){
-  lock(resource: "lisk-js-01", inversePrecedence: true) {
-    stage ('Prepare Workspace') {
-      deleteDir()
-      checkout scm
+pipeline {
+  agent { node { label 'lisk-js' } }
+  stages {
+    stage('Prepare workspace') {
+      steps {
+        deleteDir()
+        checkout scm
+      }
     }
-
-    stage ('Build Dependencies') {
-      try {
-        sh '''#!/bin/bash
-        # Install Deps
+    stage('Install dependencies') {
+      steps {
+        sh '''
         npm install --verbose
         cp ~/.coveralls.yml .
         '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, installation failed')
       }
     }
-
-    stage ('Run Eslint') {
-      try {
-        sh '''#!/bin/bash
-        # Run Tests
-        grunt eslint-ci
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, tests failed')
+    stage('Run lint') {
+      steps{
+        sh 'grunt eslint-ci'
       }
     }
-
-    stage ('Run tests') {
-      try {
-        sh '''#!/bin/bash
-        # Run Tests
-        npm run jenkins
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, tests failed')
+    stage('Run tests') {
+      steps {
+        sh 'npm run jenkins'
       }
     }
-
-    stage ('Set milestone') {
-      milestone 1
-      deleteDir()
-      currentBuild.result = 'SUCCESS'
+    stage('Cleanup') {
+      steps {
+        deleteDir()
+      }
     }
   }
 }
