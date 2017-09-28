@@ -34,16 +34,11 @@ before(function (done) {
 	});
 });
 
-
 describe('GET /api/delegates (cache)', function () {
 	var cache;
 
 	before(function (done) {
 		node.config.cacheEnabled = true;
-		done();
-	});
-
-	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			node.expect(err).to.not.exist;
@@ -52,16 +47,16 @@ describe('GET /api/delegates (cache)', function () {
 		});
 	});
 
-	after(function (done) {
-		cache.quit(done);
-	});
-
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			node.expect(err).to.not.exist;
 			node.expect(status).to.equal('OK');
 			done(err, status);
 		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
 	});
 
 	it('cache delegates when response is a success', function (done) {
