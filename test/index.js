@@ -1,5 +1,6 @@
 require('./unit/helpers/request-limiter.js');
 require('./unit/logic/blockReward.js');
+require('./unit/logic/blocks.js');
 require('./unit/sql/blockRewards.js');
 require('./unit/modules/peers.js');
 require('./unit/modules/blocks.js');
@@ -11,6 +12,7 @@ require('./api/dapps');
 require('./api/delegates');
 require('./api/loader');
 require('./api/multisignatures');
+require('./api/multisignature.with.other.transactions');
 require('./api/peer');
 require('./api/peer.transactions.main');
 require('./api/peer.transactions.collision');
