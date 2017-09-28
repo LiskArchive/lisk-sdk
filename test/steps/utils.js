@@ -13,5 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// eslint-disable-next-line import/prefer-default-export
-export const getFirstQuotedString = title => title.match(/"(.+?)"/)[1];
+const regExp = /"(.+?)"/;
+
+export const getFirstQuotedString = title => title.match(regExp)[1];
+
+export const getQuotedStrings = (title) => {
+	const globalRegExp = new RegExp(regExp, 'g');
+	return title
+		.match(globalRegExp)
+		.map(match => match.match(regExp)[1]);
+};

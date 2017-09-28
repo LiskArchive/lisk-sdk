@@ -16,6 +16,7 @@
 import fs from 'fs';
 import lisk from 'lisk-js';
 import tablify from '../../src/utils/tablify';
+import { getFirstQuotedString } from './utils';
 
 export function thenTheLiskInstanceShouldBeALiskJSApiInstance() {
 	const { liskInstance } = this.test.ctx;
@@ -155,4 +156,70 @@ export function thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectsVal
 			.filter(value => !values.includes(value))
 			.forEach(value => should(value).be.undefined());
 	});
+}
+
+export function thenTheCryptoInstanceShouldHaveName() {
+	const { cryptoInstance } = this.test.ctx;
+	const name = getFirstQuotedString(this.test.title);
+	(cryptoInstance.constructor).should.have.property('name').equal(name);
+}
+
+export function thenTheCryptoInstanceShouldHaveLiskJSAsAProperty() {
+	const { cryptoInstance } = this.test.ctx;
+	(cryptoInstance).should.have.property('liskCrypto').equal(lisk.crypto);
+}
+
+export function thenLiskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {
+	const { passphrase } = this.test.ctx;
+	(lisk.crypto.getKeys.calledWithExactly(passphrase)).should.be.true();
+}
+
+export function thenTheKeysShouldBeReturned() {
+	const { returnValue, keys } = this.test.ctx;
+	(returnValue).should.eql(keys);
+}
+
+export function thenTheErrorResponseShouldBeHandled() {
+	const { returnValue, errorMessage } = this.test.ctx;
+	(returnValue).should.eql({ error: errorMessage });
+}
+
+export function thenLiskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
+	const { passphrase, password } = this.test.ctx;
+	(lisk.crypto.encryptPassphraseWithPassword.calledWithExactly(passphrase, password)).should.be.true();
+}
+
+export function thenTheEncryptedPassphraseAndIVShouldBeReturned() {
+	const { returnValue, cipherAndIv } = this.test.ctx;
+	(returnValue).should.eql(cipherAndIv);
+}
+
+export function thenLiskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
+	const { cipherAndIv, password } = this.test.ctx;
+	(lisk.crypto.decryptPassphraseWithPassword.calledWithExactly(cipherAndIv, password)).should.be.true();
+}
+
+export function thenTheDecryptedPassphraseShouldBeReturned() {
+	const { returnValue, passphrase } = this.test.ctx;
+	(returnValue).should.eql({ passphrase });
+}
+
+export function thenLiskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
+	const { message, passphrase, recipientKeys } = this.test.ctx;
+	(lisk.crypto.encryptMessageWithSecret.calledWithExactly(message, passphrase, recipientKeys.publicKey)).should.be.true();
+}
+
+export function thenTheEncryptedMessageAndNonceShouldBeReturned() {
+	const { returnValue, encryptedMessageWithNonce } = this.test.ctx;
+	(returnValue).should.eql(encryptedMessageWithNonce);
+}
+
+export function thenLiskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
+	const { encryptedMessageWithNonce: { encryptedMessage, nonce }, recipientPassphrase, keys } = this.test.ctx;
+	(lisk.crypto.decryptMessageWithSecret.calledWithExactly(encryptedMessage, nonce, recipientPassphrase, keys.publicKey)).should.be.true();
+}
+
+export function thenTheDecryptedMessageShouldBeReturned() {
+	const { returnValue, message } = this.test.ctx;
+	(returnValue).should.eql({ message });
 }
