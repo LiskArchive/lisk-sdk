@@ -653,39 +653,6 @@ describe('blocks/process', function () {
 					toBlockchain(blocksData, 'restore', 1);
 					toBlockchain(blocksData, 'restore', 2);
 			
-					it('should be ok when blocks have same publicKey generator', function (done) {
-						modulesLoader.scope.sequence.add = function (cb) {
-							var fn = Promise.promisify(cb);
-							fn().then(function (err, res) {
-								expect(err).to.be.undefined;
-								expect(res).to.be.undefined;
-								expect(info.args[0][0]).to.equal('Fork');
-								expect(info.args[0][1].cause).to.equal(1);
-								expect(info.args[0][1].delegate).to.equal(forkOneScenarios[3].generatorPublicKey);
-								expect(info.args[0][1].block.height).to.equal(forkOneScenarios[3].height);
-								expect(info.args[0][1].block.id).to.equal(forkOneScenarios[3].id);
-								expect(info.args[0][1].block.previousBlock).to.equal(forkOneScenarios[3].previousBlock);
-								expect(info.args[0][1].block.timestamp).to.equal(forkOneScenarios[3].timestamp);
-								expect(info.args[1][0]).to.equal('Last block and parent loses');
-								expect(debug.args[0][0]).to.equal('Summing round');
-								expect(debug.args[0][1]).to.equal(1);
-								expect(debug.args[1][0]).to.equal('Performing backward tick');
-								expect(debug.args[2][0]).to.equal('Restoring mem_round snapshot...');
-								expect(debug.args[3][0]).to.equal('Restoring mem_accounts.vote snapshot...');
-								expect(debug.args[4][0]).to.equal('Performing backward tick');
-								expect(warn.args[0][0]).to.equal('Deleting last block');
-								expect(warn.args[0][1].id).to.equal(blocksData[2].id);
-								expect(warn.args[1][0]).to.equal('Deleting last block');
-								expect(warn.args[1][1].id).to.equal(blocksData[1].id);
-								done();
-							});
-						};
-						blocksProcess.onReceiveBlock(forkOneScenarios[3]);
-					});
-
-					toBlockchain(blocksData, 'restore', 1);
-					toBlockchain(blocksData, 'restore', 2);
-
 					it('should fail when block generator not match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
 							var fn = Promise.promisify(cb);
