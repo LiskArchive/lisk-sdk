@@ -186,7 +186,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         '''
       }
       },
-      "Functional Multisignatures" : {
+      "Functional Multisignatures - 2" : {
         node('node-01'){
         sh '''
         export TEST=test/api/multisignature.with.other.transactions.js TEST_TYPE='FUNC'

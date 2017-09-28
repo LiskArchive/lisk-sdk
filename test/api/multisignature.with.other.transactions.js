@@ -30,15 +30,11 @@ function putSignature (params, cb) {
 }
 
 function putDelegates (params, cb) {
-	node.put('/api/delegates', params, function (err, res) {
-		cb(err, res);
-	});
+	node.put('/api/delegates', params, cb);
 }
 
 function putAccountsDelegates (params, cb) {
-	node.put('/api/accounts/delegates', params, function (err, res) {
-		cb(err, res);
-	});
+	node.put('/api/accounts/delegates', params, cb);
 }
 
 function confirmTransaction (transactionId, passphrases, cb) {
@@ -60,9 +56,7 @@ function confirmTransaction (transactionId, passphrases, cb) {
 			count++;
 			return untilCb();
 		});
-	}, function (err) {
-		cb(err);
-	});
+	}, cb);
 }
 
 function createDapp (params, cb) {
@@ -186,6 +180,7 @@ describe('for an account with lisk', function () {
 		});
 
 		describe('with multiple type 0', function () {
+
 			var transactionsToCheckIds;
 
 			beforeEach(function (done) {
@@ -324,6 +319,7 @@ describe('for an account with lisk', function () {
 		});
 
 		describe('with one type 4', function () {
+
 			var transactionInCheckId;
 
 			beforeEach(function (done) {
@@ -353,6 +349,7 @@ describe('for an account with lisk', function () {
 		});
 
 		describe('with one type 5', function () {
+
 			var transactionInCheckId;
 
 			beforeEach(function (done) {
@@ -376,6 +373,7 @@ describe('for an account with lisk', function () {
 		});
 
 		describe('with multiple type 5', function () {
+
 			var transactionsToCheckIds;
 
 			beforeEach(function (done) {
@@ -503,6 +501,7 @@ describe('for an account with lisk', function () {
 		});
 
 		describe('when multiple inTransfer are already transaction made', function () {
+
 			var inTransferId;
 			var inTransferIds;
 
