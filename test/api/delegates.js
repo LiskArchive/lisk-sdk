@@ -92,7 +92,7 @@ describe('GET /api/delegates (cache)', function () {
 		});
 	});
 
-	it('should flush cache on the next round', function (done) {
+	it('should flush cache on the next round @slow', function (done) {
 		var url;
 		url = '/api/delegates';
 
