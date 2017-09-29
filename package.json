@@ -10,6 +10,7 @@
     "coverageReport": "./node_modules/.bin/grunt coverageReport --verbose",
     "test": "./node_modules/.bin/grunt test --verbose",
     "test-unit": "./node_modules/.bin/grunt test-unit --verbose",
+    "test-unit-slow": "./node_modules/.bin/grunt test-unit-slow --verbose",
     "test-integration": "grunt test-integration",
     "test-functional": "grunt test-functional",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",

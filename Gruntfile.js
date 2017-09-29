@@ -77,6 +77,11 @@ module.exports = function (grunt) {
 				maxBuffer: maxBufferSize
 			},
 
+			coverageUnitSlow: {
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
+				maxBuffer: maxBufferSize
+			},
+
 			testFunctional: {
 				command: './node_modules/.bin/mocha test/api/index.js',
 				maxBuffer: maxBufferSize
@@ -147,6 +152,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
+	grunt.registerTask('test-unit-slow', ['eslint', 'exec:coverageUnitSlow']);
 	grunt.registerTask('test-functional', ['eslint', 'exec:testFunctional']);
 	grunt.registerTask('test-integration', ['eslint', 'exec:testIntegration']);
 
