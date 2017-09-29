@@ -22,20 +22,20 @@ import {
 } from '../../steps/utils';
 import {
 	givenADefaultConfig,
-	givenAConfigDirectoryPath,
+	givenADirectoryPath,
 	givenAConfigFileName,
-	givenTheConfigDirectoryDoesNotExist,
-	givenTheConfigDirectoryDoesExist,
-	givenTheConfigDirectoryCannotBeCreated,
-	givenTheConfigDirectoryCanBeCreated,
-	givenTheConfigFileDoesNotExist,
-	givenTheConfigFileDoesExist,
-	givenTheConfigFileCannotBeWritten,
-	givenTheConfigFileCanBeWritten,
-	givenTheConfigFileCannotBeRead,
-	givenTheConfigFileCanBeRead,
-	givenTheConfigFileIsNotValidJSON,
-	givenTheConfigFileIsValidJSON,
+	givenTheDirectoryDoesNotExist,
+	givenTheDirectoryDoesExist,
+	givenTheDirectoryCannotBeCreated,
+	givenTheDirectoryCanBeCreated,
+	givenTheFileDoesNotExist,
+	givenTheFileDoesExist,
+	givenTheFileCannotBeWritten,
+	givenTheFileCanBeWritten,
+	givenTheFileCannotBeRead,
+	givenTheFileCanBeRead,
+	givenTheFileIsNotValidJSON,
+	givenTheFileIsValidJSON,
 } from '../../steps/1_given';
 import {
 	whenTheConfigIsLoaded,
@@ -64,17 +64,17 @@ describe('env util', () => {
 	describe('Given a default config', () => {
 		beforeEach(givenADefaultConfig);
 
-		describe(`Given a config directory path "${os.homedir()}/.lisky"`, () => {
-			beforeEach(givenAConfigDirectoryPath);
+		describe(`Given a directory path "${os.homedir()}/.lisky"`, () => {
+			beforeEach(givenADirectoryPath);
 
 			describe('Given a config file name "config.json"', () => {
 				beforeEach(givenAConfigFileName);
 
-				describe('Given the config directory does not exist', () => {
-					beforeEach(givenTheConfigDirectoryDoesNotExist);
+				describe('Given the directory does not exist', () => {
+					beforeEach(givenTheDirectoryDoesNotExist);
 
-					describe('Given the config directory cannot be created', () => {
-						beforeEach(givenTheConfigDirectoryCannotBeCreated);
+					describe('Given the directory cannot be created', () => {
+						beforeEach(givenTheDirectoryCannotBeCreated);
 
 						describe('When the config is loaded', () => {
 							beforeEach(whenTheConfigIsLoaded);
@@ -86,7 +86,7 @@ describe('env util', () => {
 					});
 
 					describe('Given the config directory can be created', () => {
-						beforeEach(givenTheConfigDirectoryCanBeCreated);
+						beforeEach(givenTheDirectoryCanBeCreated);
 
 						describe('When the config is loaded', () => {
 							beforeEach(whenTheConfigIsLoaded);
@@ -99,13 +99,13 @@ describe('env util', () => {
 				});
 
 				describe('Given the config directory does exist', () => {
-					beforeEach(givenTheConfigDirectoryDoesExist);
+					beforeEach(givenTheDirectoryDoesExist);
 
 					describe('Given the config file does not exist', () => {
-						beforeEach(givenTheConfigFileDoesNotExist);
+						beforeEach(givenTheFileDoesNotExist);
 
 						describe('Given the config file cannot be written', () => {
-							beforeEach(givenTheConfigFileCannotBeWritten);
+							beforeEach(givenTheFileCannotBeWritten);
 
 							describe('When the config is loaded', () => {
 								beforeEach(whenTheConfigIsLoaded);
@@ -117,7 +117,7 @@ describe('env util', () => {
 						});
 
 						describe('Given the config file can be written', () => {
-							beforeEach(givenTheConfigFileCanBeWritten);
+							beforeEach(givenTheFileCanBeWritten);
 
 							describe('When the config is loaded', () => {
 								beforeEach(whenTheConfigIsLoaded);
@@ -130,10 +130,10 @@ describe('env util', () => {
 					});
 
 					describe('Given the config file does exist', () => {
-						beforeEach(givenTheConfigFileDoesExist);
+						beforeEach(givenTheFileDoesExist);
 
 						describe('Given the config file is not readable', () => {
-							beforeEach(givenTheConfigFileCannotBeRead);
+							beforeEach(givenTheFileCannotBeRead);
 
 							describe('When the config is loaded', () => {
 								beforeEach(whenTheConfigIsLoaded);
@@ -147,10 +147,10 @@ describe('env util', () => {
 						});
 
 						describe('Given the config file can be read', () => {
-							beforeEach(givenTheConfigFileCanBeRead);
+							beforeEach(givenTheFileCanBeRead);
 
 							describe('Given the config file is not valid JSON', () => {
-								beforeEach(givenTheConfigFileIsNotValidJSON);
+								beforeEach(givenTheFileIsNotValidJSON);
 
 								describe('When the config is loaded', () => {
 									beforeEach(whenTheConfigIsLoaded);
@@ -164,10 +164,10 @@ describe('env util', () => {
 							});
 
 							describe('Given the config file is valid JSON', () => {
-								beforeEach(givenTheConfigFileIsValidJSON);
+								beforeEach(givenTheFileIsValidJSON);
 
 								describe('Given the config file cannot be written', () => {
-									beforeEach(givenTheConfigFileCannotBeWritten);
+									beforeEach(givenTheFileCannotBeWritten);
 
 									describe('When the config is loaded', () => {
 										beforeEach(whenTheConfigIsLoaded);
@@ -179,7 +179,7 @@ describe('env util', () => {
 								});
 
 								describe('Given the config file can be written', () => {
-									beforeEach(givenTheConfigFileCanBeWritten);
+									beforeEach(givenTheFileCanBeWritten);
 
 									describe('When the config is loaded', () => {
 										beforeEach(whenTheConfigIsLoaded);

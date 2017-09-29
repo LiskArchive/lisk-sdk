@@ -13,15 +13,30 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import fs from 'fs';
 import lisk from 'lisk-js';
 import {
 	readJsonSync,
 	writeJsonSync,
 } from '../../src/utils/fs';
+import {
+	splitSource,
+	createPromptOptions,
+	getFirstLineFromString,
+	getPassphraseFromPrompt,
+	getStdIn,
+	getPassphraseFromEnvVariable,
+	getPassphraseFromFile,
+	getPassphraseFromSource,
+	getPassphrase,
+	getDataFromFile,
+	getData,
+} from '../../src/utils/input';
 import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
-
-const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
+import {
+	DEFAULT_ERROR_MESSAGE,
+} from './utils';
 
 export function whenTheResultIsPrinted() {
 	const { vorpal, result } = this.test.ctx;
@@ -54,13 +69,13 @@ export function whenTheQueryInstanceGetsADelegateUsingTheUsername() {
 }
 
 export function whenTheJSONIsRead() {
-	const { path } = this.test.ctx;
-	this.test.ctx.returnValue = readJsonSync(path);
+	const { filePath } = this.test.ctx;
+	this.test.ctx.returnValue = readJsonSync(filePath);
 }
 
 export function whenTheJSONIsWritten() {
-	const { path, objectToWrite } = this.test.ctx;
-	this.test.ctx.returnValue = writeJsonSync(path, objectToWrite);
+	const { filePath, objectToWrite } = this.test.ctx;
+	this.test.ctx.returnValue = writeJsonSync(filePath, objectToWrite);
 }
 
 export function whenTheObjectIsTablified() {
@@ -144,7 +159,123 @@ export function whenAnErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientP
 }
 
 export function whenTheConfigIsLoaded() {
+	// IMPORTANT: This is a workaround because Node’s `require` implementation uses `fs.readFileSync`.
+	// If this step gets reused in other tests we’ll have to find a better solution.
+	const isSpy = fs.readFileSync.restore;
+	if (isSpy) fs.readFileSync.restore();
+
 	const envPath = '../../src/utils/env';
 	// eslint-disable-next-line global-require, import/no-dynamic-require
 	this.test.ctx.config = require(envPath).default;
+
+	if (isSpy) sandbox.stub(fs, 'readFileSync');
+}
+
+export function whenTheSourceIsSplit() {
+	const { source } = this.test.ctx;
+	this.test.ctx.returnValue = splitSource(source);
+}
+
+export function whenCreatePromptOptionsIsCalledWithTheMessage() {
+	const { promptMessage } = this.test.ctx;
+	this.test.ctx.returnValue = createPromptOptions(promptMessage);
+}
+
+export function whenGetPassphraseFromPromptIsCalled() {
+	const { vorpal, displayName, shouldRepeat } = this.test.ctx;
+	const returnValue = getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat });
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetStdInIsCalledWithTheRelevantOptions() {
+	const { passphraseIsRequired, dataIsRequired } = this.test.ctx;
+	const options = (passphraseIsRequired || dataIsRequired)
+		? {
+			passphraseIsRequired,
+			dataIsRequired,
+		}
+		: undefined;
+	const returnValue = getStdIn(options);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
+export function whenGetPassphraseFromEnvVariableIsCalled() {
+	const { environmentalVariableName, displayName } = this.test.ctx;
+	const returnValue = getPassphraseFromEnvVariable(environmentalVariableName, displayName);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetPassphraseFromFileIsCalledOnThePath() {
+	const { filePath } = this.test.ctx;
+	const returnValue = getPassphraseFromFile(filePath);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs() {
+	const { filePath } = this.test.ctx;
+	const returnValue = getPassphraseFromFile(filePath);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetPassphraseFromSourceIsCalledWithTheRelevantSource() {
+	const { passphraseSource, displayName } = this.test.ctx;
+	const returnValue = getPassphraseFromSource(passphraseSource, { displayName });
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetPassphraseIsPassedAPassphraseDirectly() {
+	const { passphrase } = this.test.ctx;
+	const returnValue = getPassphrase(null, null, passphrase);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetPassphraseIsPassedASourceButNoPassphrase() {
+	const { passphraseSource } = this.test.ctx;
+	const returnValue = getPassphrase(null, passphraseSource);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetPassphraseIsPassedNeitherASourceNorAPassphrase() {
+	const { vorpal } = this.test.ctx;
+	const returnValue = getPassphrase(vorpal);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetFirstLineFromStringIsCalledOnTheString() {
+	const { testString } = this.test.ctx;
+	this.test.ctx.returnValue = getFirstLineFromString(testString);
+}
+
+export function whenGetDataFromFileIsCalledWithThePath() {
+	const { filePath } = this.test.ctx;
+	const returnValue = getDataFromFile(filePath);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function whenGetDataIsCalled() {
+	const { argData, sourceData, stdInData } = this.test.ctx;
+	const returnValue = getData(argData, sourceData, stdInData);
+
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
 }

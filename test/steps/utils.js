@@ -16,7 +16,9 @@
 import fs from 'fs';
 import * as fsUtils from '../../src/utils/fs';
 
-const regExp = /"(.+?)"/;
+export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
+
+const regExp = /"((.|\s\S)+?)"/;
 
 export const getFirstQuotedString = title => title.match(regExp)[1];
 
@@ -32,6 +34,8 @@ export const setUpFsStubs = () => {
 		'accessSync',
 		'existsSync',
 		'mkdirSync',
+		'readFileSync',
+		'createReadStream',
 	].forEach(methodName => sandbox.stub(fs, methodName));
 	[
 		'readJsonSync',
@@ -50,3 +54,30 @@ export const setUpConsoleStubs = () => {
 export const setUpProcessStubs = () => {
 	sandbox.stub(process, 'exit');
 };
+
+export const setUpEnvVariable = variable => function setUpEnv() {
+	this.test.ctx.initialEnvVariableValue = process.env[variable];
+};
+
+export const restoreEnvVariable = variable => function restoreEnv() {
+	const { initialEnvVariableValue } = this.test.ctx;
+	if (typeof initialEnvVariableValue !== 'undefined') process.env[variable] = initialEnvVariableValue;
+};
+
+export const createFakeInterface = value => ({
+	on: ((type, callback) => {
+		if (type === 'line') {
+			value.split('\n').forEach(callback);
+		}
+		if (type === 'close') {
+			callback();
+		}
+		return createFakeInterface(value);
+	}),
+});
+
+export const createStreamStub = on => ({
+	resume: () => {},
+	close: () => {},
+	on,
+});
