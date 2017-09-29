@@ -39,12 +39,10 @@ function putAccountsDelegates (params, cb) {
 
 function confirmTransaction (transactionId, passphrases, cb) {
 	var count = 0;
-
 	async.until(function () {
 		return (count >= passphrases.length);
 	}, function (untilCb) {
 		var passphrase = passphrases[count];
-
 		node.post('/api/multisignatures/sign', {
 			secret: passphrase,
 			transactionId: transactionId
@@ -99,32 +97,26 @@ function checkConfirmedTransactions (ids, cb) {
 function createMultisignatureAndConfirm (account, cb) {
 	var totalMembers = 15;
 	var requiredSignatures = 15;
-
 	var passphrases;
 	var accounts = [];
 	var keysgroup = [];
-
 	for (var i = 0; i < totalMembers; i++) {
 		accounts[i] = node.randomAccount();
 		var member = '+' + accounts[i].publicKey;
 		keysgroup.push(member);
 	}
-
 	passphrases = accounts.map(function (account) {
 		return account.password;
 	});
-
 	var params = {
 		secret: account.password,
 		lifetime: parseInt(node.randomNumber(1,72)),
 		min: requiredSignatures,
 		keysgroup: keysgroup
 	};
-
 	node.put('/api/multisignatures', params, function (err, res) {
 		expect(res.body.success).to.equal(true);
 		expect(res.body.transactionId).to.exist;
-
 		confirmTransaction(res.body.transactionId, passphrases, function (err, result) {
 			expect(err).to.not.exist;
 			cb(err, res);
@@ -192,17 +184,13 @@ describe('for an account with lisk', function () {
 					}, cb);
 				}, function (err, results) {
 					expect(err).to.not.exist;
-
 					results.forEach(function (res) {
 						expect(res.body.success).to.equal(true);
 					});
-
 					transactionsToCheckIds = results.map(function (res) {
 						return res.body.transactionId;
 					});
-
 					transactionsToCheckIds.push(multisigTransactionId);
-
 					node.onNewBlock(done);
 				});
 			});
@@ -225,9 +213,7 @@ describe('for an account with lisk', function () {
 				putSignature(params, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.body.success).to.equal(true);
-
 					transactionInCheckId = res.body.transactionId || res.body.transaction.id;
-
 					node.onNewBlock(done);
 				});
 			});
@@ -250,9 +236,7 @@ describe('for an account with lisk', function () {
 				putDelegates(params, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.body.success).to.equal(true);
-
 					transactionInCheckId = res.body.transactionId || res.body.transaction.id;
-
 					node.onNewBlock(done);
 				});
 			});
@@ -273,9 +257,7 @@ describe('for an account with lisk', function () {
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.body.success).to.equal(true);
-
 					transactionInCheckId = res.body.transactionId || res.body.transaction.id;
-
 					node.onNewBlock(done);
 				});
 			});
@@ -292,7 +274,6 @@ describe('for an account with lisk', function () {
 			beforeEach(function (done) {
 
 				async.map([genesisDelegates.delegates[0], genesisDelegates.delegates[1], genesisDelegates.delegates[2]], function (delegate, cb) {
-
 					putAccountsDelegates({
 						secret: multisigAccount.password,
 						delegates: ['+' + delegate.publicKey]
@@ -302,13 +283,10 @@ describe('for an account with lisk', function () {
 					results.forEach(function (res) {
 						expect(res.body.success).to.equal(true);
 					});
-
 					transactionsToCheckIds = results.map(function (res) {
 						return res.body.transaction.id;
 					});
-
 					transactionsToCheckIds.push(multisigTransactionId);
-
 					node.onNewBlock(done);
 				});
 			});
@@ -326,7 +304,6 @@ describe('for an account with lisk', function () {
 				createMultisignatureAndConfirm(multisigAccount, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.body.success).to.equal(true);
-
 					transactionInCheckId = res.body.transactionId || res.body.transaction.id;
 					node.onNewBlock(done);
 				});
@@ -360,9 +337,7 @@ describe('for an account with lisk', function () {
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.body.success).to.equal(true);
-
 					transactionInCheckId = res.body.transactionId || res.body.transaction.id;
-
 					node.onNewBlock(done);
 				});
 			});
@@ -387,13 +362,10 @@ describe('for an account with lisk', function () {
 					results.forEach(function (res) {
 						expect(res.body.success).to.equal(true);
 					});
-
 					transactionsToCheckIds = results.map(function (res) {
 						return res.body.transaction.id;
 					});
-
 					transactionsToCheckIds.push(multisigTransactionId);
-
 					node.onNewBlock(done);
 				});
 			});
@@ -416,7 +388,6 @@ describe('for an account with lisk', function () {
 			}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.body.success).to.equal(true);
-
 				dappId = res.body.transactionId || res.body.transaction.id;
 				node.onNewBlock(done);
 			});
@@ -445,7 +416,6 @@ describe('for an account with lisk', function () {
 						dappId: dappId,
 						amount: 10000
 					};
-
 					createIntransfer(params, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res.body.success).to.equal(true);
@@ -465,14 +435,12 @@ describe('for an account with lisk', function () {
 
 				beforeEach(function (done) {
 					var amounts = [5000000, 1000000, 15000000];
-
 					async.map(amounts, function (amount, cb) {
 						var params = {
 							secret: multisigAccount.password,
 							dappId: dappId,
 							amount: amount
 						};
-
 						createIntransfer(params, function (err, res) {
 							expect(err).to.not.exist;
 							expect(res.body.success).to.equal(true);
@@ -487,9 +455,7 @@ describe('for an account with lisk', function () {
 						transactionsToCheckIds = results.map(function (res) {
 							return res.body.transactionId;
 						});
-
 						transactionsToCheckIds.push(multisigTransactionId);
-
 						node.onNewBlock(done);
 					});
 				});
@@ -507,14 +473,12 @@ describe('for an account with lisk', function () {
 
 			beforeEach(function (done) {
 				var amounts = [5000000, 1000000, 15000000];
-
 				async.map(amounts, function (amount, cb) {
 					var params = {
 						secret: multisigAccount.password,
 						dappId: dappId,
 						amount: amount
 					};
-
 					createIntransfer(params, function (err, res) {
 						expect(err).to.not.exist;
 						expect(res.body.success).to.equal(true);
@@ -525,14 +489,11 @@ describe('for an account with lisk', function () {
 					results.forEach(function (res) {
 						expect(res.body.success).to.equal(true);
 					});
-
 					var transactionIds = results.map(function (res) {
 						return res.body.transactionId;
 					});
-
 					inTransferId = transactionIds[0];
 					inTransferIds = transactionIds;
-
 					node.onNewBlock(done);
 				});
 			});
@@ -562,12 +523,10 @@ describe('for an account with lisk', function () {
 							transactionId: inTransferId,
 							secret: multisigAccount.password
 						};
-
 						createOutTransfer(outTransferParams, function (err, res) {
 							expect(err).to.not.exist;
 							expect(res.body.success).to.equal(true);
 							transactionInCheckId = res.body.transactionId || res.body.transaction.id;
-
 							node.onNewBlock(done);
 						});
 					});
@@ -577,14 +536,12 @@ describe('for an account with lisk', function () {
 					});
 				});
 
-
 				describe('with multiple type 7', function () {
 
 					var transactionsToCheckIds;
 
 					beforeEach(function (done) {
 						var amounts = [5000000, 1000000, 15000000];
-
 						async.map(amounts, function (amount, cb) {
 							var outTransferParams = {
 								amount: 1000,
@@ -593,7 +550,6 @@ describe('for an account with lisk', function () {
 								transactionId: inTransferIds[amounts.indexOf(amount)],
 								secret: multisigAccount.password
 							};
-
 							createOutTransfer(outTransferParams, function (err, res) {
 								expect(err).to.not.exist;
 								expect(res.body.success).to.equal(true);
@@ -604,13 +560,10 @@ describe('for an account with lisk', function () {
 							results.forEach(function (res) {
 								expect(res.body.success).to.equal(true);
 							});
-
 							transactionsToCheckIds = results.map(function (res) {
 								return res.body.transactionId || res.body.transaction.id;
 							});
-
 							transactionsToCheckIds.push(multisigTransactionId);
-
 							node.onNewBlock(done);
 						});
 					});
@@ -639,7 +592,6 @@ describe('for an account with lisk', function () {
 									secret: multisigAccount.password,
 									secondSecret: multisigAccount.secondPassword
 								};
-
 								putSignature(params, cb);
 							},
 							function type2 (cb) {
@@ -647,7 +599,6 @@ describe('for an account with lisk', function () {
 									secret: multisigAccount.password,
 									username: multisigAccount.username
 								};
-
 								putDelegates(params, cb);
 							},
 							function type3 (cb) {
@@ -659,7 +610,6 @@ describe('for an account with lisk', function () {
 							},
 							function type5 (cb) {
 								var applicationName = node.randomApplicationName();
-
 								createDapp({
 									account: multisigAccount,
 									applicationName: applicationName,
@@ -691,7 +641,6 @@ describe('for an account with lisk', function () {
 							transactionsToCheckIds = result.map(function (res) {
 								return res.body.transactionId || res.body.transaction.id;
 							});
-
 							transactionsToCheckIds.push(multisigTransactionId);
 							node.onNewBlock(done);
 						});

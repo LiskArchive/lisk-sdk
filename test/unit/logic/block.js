@@ -15,7 +15,6 @@ var Block = rewire('../../../logic/block.js');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
-
 var validDataForBlock = {
 	keypair: validKeypair,
 	timestamp: 41898500,
@@ -218,7 +217,6 @@ var transactionsByTypes = {
 	}
 };
 
-
 function expectedOrderOfTransactions (sortedTransactions) {
 	var sorted = true;
 	for (var i = 0; i < sortedTransactions.length - 1; i++) {
@@ -271,6 +269,7 @@ describe('block', function () {
 		});
 
 		describe('create', function () {
+
 			var blockNormalizeStub;
 
 			before(function () {
@@ -297,14 +296,12 @@ describe('block', function () {
 				beforeEach(function () {
 					data.transactions = transactions;
 					generatedBlock = block.create(data);
-
 					transactionsOrder = generatedBlock.transactions.map(function (trs) {
 						return trs.type;
 					});
 				});
 
 				it('should sort transactions in the correct order', function () {
-
 					expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
 					expect(transactionsOrder).to.eql(correctOrder);
 				});
@@ -315,6 +312,7 @@ describe('block', function () {
 				var correctOrderOfTransactions = [0, 1, 2, 3, 5, 6, 7, 4, 4, 4, 4, 4, 4];
 
 				describe('in the beginning', function () {
+
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
@@ -322,7 +320,6 @@ describe('block', function () {
 					beforeEach(function () {
 						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = multipleMultisigTx.concat(transactions);
-
 						generatedBlock = block.create(data);
 						transactionsOrder = generatedBlock.transactions.map(function (trs) {
 							return trs.type;
@@ -337,6 +334,7 @@ describe('block', function () {
 				});
 
 				describe('at the middle', function () {
+
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
@@ -346,7 +344,6 @@ describe('block', function () {
 						// Add multisig transactions after the 3rd transaction transactions array.
 						transactions.splice.apply(transactions, [3, 0].concat(multipleMultisigTx));
 						data.transactions = transactions;
-
 						generatedBlock = block.create(data);
 						transactionsOrder = generatedBlock.transactions.map(function (trs) {
 							return trs.type;
@@ -361,6 +358,7 @@ describe('block', function () {
 				});
 
 				describe('at the end', function () {
+
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
@@ -368,12 +366,10 @@ describe('block', function () {
 					beforeEach(function () {
 						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = transactions.concat(multipleMultisigTx);
-
 						generatedBlock = block.create(data);
 						transactionsOrder = generatedBlock.transactions.map(function (trs) {
 							return trs.type;
 						});
-
 					});
 
 					it('should sort transactions in the correct order', function () {
@@ -384,6 +380,7 @@ describe('block', function () {
 				});
 
 				describe('shuffled', function () {
+
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
@@ -391,7 +388,6 @@ describe('block', function () {
 					beforeEach(function () {
 						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = _.shuffle(transactions.concat(multipleMultisigTx));
-
 						generatedBlock = block.create(data);
 						transactionsOrder = generatedBlock.transactions.map(function (trs) {
 							return trs.type;
