@@ -17,7 +17,7 @@
  * @class transaction
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { sendFee, dataFee } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -37,7 +37,7 @@ export default function createTransaction(
 	recipientId, amount, secret, secondSecret, data, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
-	const fee = data ? (constants.fees.send + constants.fees.data) : constants.fees.send;
+	const fee = data ? (sendFee + dataFee) : sendFee;
 	const transaction = {
 		type: 0,
 		amount,

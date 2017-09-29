@@ -17,7 +17,7 @@
  * @class dapp
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { dappFee } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -61,7 +61,7 @@ export default function createDapp(secret, secondSecret, options, timeOffset) {
 	const transaction = {
 		type: 5,
 		amount: 0,
-		fee: constants.fees.dapp,
+		fee: dappFee,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),

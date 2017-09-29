@@ -17,7 +17,7 @@
  * @class vote
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { voteFee } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -37,7 +37,7 @@ export default function createVote(secret, delegates, secondSecret, timeOffset) 
 	const transaction = {
 		type: 3,
 		amount: 0,
-		fee: constants.fees.vote,
+		fee: voteFee,
 		recipientId: cryptoModule.getAddress(keys.publicKey),
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),

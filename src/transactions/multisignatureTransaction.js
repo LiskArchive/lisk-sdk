@@ -18,7 +18,7 @@
  * @class multisignature
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { sendFee } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -42,7 +42,7 @@ export default function createTransaction(
 	const transaction = {
 		type: 0,
 		amount,
-		fee: constants.fees.send,
+		fee: sendFee,
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		requesterPublicKey: requesterPublicKey || keys.publicKey,

@@ -14,7 +14,7 @@
  *
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { multisignatureFee } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 /**
@@ -38,7 +38,7 @@ export default function createMultisignature(
 	const transaction = {
 		type: 4,
 		amount: 0,
-		fee: (constants.fees.multisignature * keygroupFees),
+		fee: (multisignatureFee * keygroupFees),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),

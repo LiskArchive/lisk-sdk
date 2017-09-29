@@ -18,7 +18,7 @@
  * @class transfer
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { inTransferFee } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -39,7 +39,7 @@ export default function createInTransfer(dappId, amount, secret, secondSecret, t
 	const transaction = {
 		type: 6,
 		amount,
-		fee: constants.fees.send,
+		fee: inTransferFee,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
