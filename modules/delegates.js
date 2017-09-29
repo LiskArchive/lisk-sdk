@@ -107,23 +107,12 @@ __private.getDelegatesFromPreviousRound = function (cb) {
 		return setImmediate(cb, null, delegatesPublicKeys);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Database search failed');
+		return setImmediate(cb, 'getDelegatesSnapshot database query failed');
 	});
 };
 
 /**
- * Gets delegate public keys sorted by vote descending.
- * @private
- * @param {function} delegatesSourceFunction - Function for returning delegates.
- * @param {function} cb - Callback function.
- * @returns {function} Calls delegatesSourceFunction() with callback as argument
- */
-__private.getDelegatesForList = function (delegatesSourceFunction, cb) {
-	delegatesSourceFunction(cb);
-};
-
-/**
- * Generates delegate list and checks if block generator public Key
+ * Generates delegate list and checks if block generator publicKey
  * matches delegate id.
  * @param {block} block
  * @param {function} source - Source function for get delegates
