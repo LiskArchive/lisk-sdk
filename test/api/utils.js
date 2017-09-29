@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import utils from '../../src/api/utils';
+const utils = require('../../src/api/utils');
 
 afterEach(() => sandbox.restore());
 
@@ -31,20 +31,6 @@ describe('api utils module', () => {
 		};
 		sendRequestResult = { success: true, sendRequest: true };
 		sendRequestStub = sandbox.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
-	});
-
-	describe('exports', () => {
-		it('should be an object', () => {
-			(utils).should.be.type('object');
-		});
-
-		it('should export trimObj function', () => {
-			(utils).should.have.property('trimObj').be.type('function');
-		});
-
-		it('should export toQueryString function', () => {
-			(utils).should.have.property('toQueryString').be.type('function');
-		});
 	});
 
 	describe('#trimObj', () => {

@@ -19,7 +19,7 @@ const secondSignTransaction = (transactionObject, secondSecret) => Object.assign
 		signSignature: cryptoModule.signTransaction(transactionObject, secondSecret),
 	});
 
-const prepareTransaction = (transaction, secret, secondSecret) => {
+export const prepareTransaction = (transaction, secret, secondSecret) => {
 	const singleSignedTransaction = Object.assign({}, transaction, {
 		signature: cryptoModule.signTransaction(transaction, secret),
 	});
@@ -35,9 +35,4 @@ const prepareTransaction = (transaction, secret, secondSecret) => {
 	return transactionWithId;
 };
 
-const isValidValue = value => ![undefined, false, NaN].includes(value);
-
-module.exports = {
-	prepareTransaction,
-	isValidValue,
-};
+export const isValidValue = value => ![undefined, false, NaN].includes(value);

@@ -12,74 +12,57 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import constants from '../src/constants';
+import {
+	FIXED_POINT,
+	DAPP_FEE,
+	DELEGATE_FEE,
+	IN_TRANSFER_FEE,
+	OUT_TRANSFER_FEE,
+	MULTISIGNATURE_FEE,
+	SIGNATURE_FEE,
+	SEND_FEE,
+	VOTE_FEE,
+	DATA_FEE,
+} from '../src/constants';
 
-describe('constants module', () => {
-	it('should have a fixedPoint integer', () => {
-		const { fixedPoint } = constants;
-		(fixedPoint).should.be.an.integer();
+describe('constants', () => {
+	it('FIXED_POINT should be an integer', () => {
+		(FIXED_POINT).should.be.an.integer();
 	});
 
-	describe('fees', () => {
-		const { fees, fee } = constants;
+	it('DAPP_FEE should be an integer', () => {
+		(DAPP_FEE).should.be.an.integer();
+	});
 
-		it('should have a send fee integer equal to send transaction fee', () => {
-			const { send } = fees;
-			const sendTransactionFee = fee[0];
+	it('DELEGATE_FEE should be an integer', () => {
+		(DELEGATE_FEE).should.be.an.integer();
+	});
 
-			(send).should.be.an.integer();
-			(sendTransactionFee).should.be.an.integer();
-			(send).should.be.equal(sendTransactionFee);
-		});
+	it('IN_TRANSFER_FEE should be an integer', () => {
+		(IN_TRANSFER_FEE).should.be.an.integer();
+	});
 
-		it('should have a signature fee integer equal to signature transaction fee', () => {
-			const { signature } = fees;
-			const signatureTransactionFee = fee[1];
+	it('OUT_TRANSFER_FEE should be an integer', () => {
+		(OUT_TRANSFER_FEE).should.be.an.integer();
+	});
 
-			(signature).should.be.an.integer();
-			(signatureTransactionFee).should.be.an.integer();
-			(signature).should.be.equal(signatureTransactionFee);
-		});
+	it('MULTISIGNATURE_FEE should be an integer', () => {
+		(MULTISIGNATURE_FEE).should.be.an.integer();
+	});
 
-		it('should have a delegate fee integer equal to delegate transaction fee', () => {
-			const { delegate } = fees;
-			const delegateTransactionFee = fee[2];
+	it('SIGNATURE_FEE should be an integer', () => {
+		(SIGNATURE_FEE).should.be.an.integer();
+	});
 
-			(delegate).should.be.an.integer();
-			(delegateTransactionFee).should.be.an.integer();
-			(delegate).should.be.equal(delegateTransactionFee);
-		});
+	it('SEND_FEE should be an integer', () => {
+		(SEND_FEE).should.be.an.integer();
+	});
 
-		it('should have a vote fee integer equal to vote transaction fee', () => {
-			const { vote } = fees;
-			const voteTransactionFee = fee[3];
+	it('VOTE_FEE should be an integer', () => {
+		(VOTE_FEE).should.be.an.integer();
+	});
 
-			(vote).should.be.an.integer();
-			(voteTransactionFee).should.be.an.integer();
-			(vote).should.be.equal(voteTransactionFee);
-		});
-
-		it('should have a multisignature fee integer equal to multisignature transaction fee', () => {
-			const { multisignature } = fees;
-			const multisignatureTransactionFee = fee[4];
-
-			(multisignature).should.be.an.integer();
-			(multisignatureTransactionFee).should.be.an.integer();
-			(multisignature).should.be.equal(multisignatureTransactionFee);
-		});
-
-		it('should have a dapp fee integer equal to dapp transaction fee', () => {
-			const { dapp } = fees;
-			const dappTransactionFee = fee[5];
-
-			(dapp).should.be.an.integer();
-			(dappTransactionFee).should.be.an.integer();
-			(dapp).should.be.equal(dappTransactionFee);
-		});
-
-		it('should have a data fee integer', () => {
-			const { data } = fees;
-			(data).should.be.an.integer();
-		});
+	it('DATA_FEE should be an integer', () => {
+		(DATA_FEE).should.be.an.integer();
 	});
 });

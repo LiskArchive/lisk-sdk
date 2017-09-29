@@ -12,48 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Multisignature module provides functions for creating multisignature group registration
- * transactions, and signing transactions requiring multisignatures.
- * @class multisignature
- */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { MULTISIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
-
-/**
- * @method createTransaction
- * @param recipientId string
- * @param amount number
- * @param secret secret
- * @param secondSecret secret
- * @param requesterPublicKey string
- * @param timeOffset number
- *
- * @return {string}
- */
-
-function createTransaction(
-	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
-) {
-	const keys = cryptoModule.getKeys(secret);
-
-	const transaction = {
-		type: 0,
-		amount,
-		fee: constants.fees.send,
-		recipientId,
-		senderPublicKey: keys.publicKey,
-		requesterPublicKey: requesterPublicKey || keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {},
-		signatures: [],
-	};
-
-	return prepareTransaction(transaction, secret, secondSecret);
-}
-
 /**
  * @method createMultisignature
  * @param secret string
@@ -66,14 +28,16 @@ function createTransaction(
  * @return {Object}
  */
 
-function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
+export default function createMultisignature(
+	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
+) {
 	const keys = cryptoModule.getKeys(secret);
 	const keygroupFees = keysgroup.length + 1;
 
 	const transaction = {
 		type: 4,
 		amount: 0,
-		fee: (constants.fees.multisignature * keygroupFees),
+		fee: (MULTISIGNATURE_FEE * keygroupFees),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
@@ -88,8 +52,3 @@ function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, ti
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-module.exports = {
-	createMultisignature,
-	createTransaction,
-};

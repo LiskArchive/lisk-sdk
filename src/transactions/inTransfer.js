@@ -18,7 +18,7 @@
  * @class transfer
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { IN_TRANSFER_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -33,13 +33,13 @@ import { prepareTransaction } from './utils';
  * @return {Object}
  */
 
-function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
+export default function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
 		type: 6,
 		amount,
-		fee: constants.fees.send,
+		fee: IN_TRANSFER_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
@@ -52,44 +52,3 @@ function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-/**
- * @method createOutTransfer
- * @param dappId
- * @param transactionId
- * @param recipientId
- * @param amount
- * @param secret
- * @param secondSecret
- * @param timeOffset
- *
- * @return {Object}
- */
-
-function createOutTransfer(
-	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
-) {
-	const keys = cryptoModule.getKeys(secret);
-
-	const transaction = {
-		type: 7,
-		amount,
-		fee: constants.fees.send,
-		recipientId,
-		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {
-			outTransfer: {
-				dappId,
-				transactionId,
-			},
-		},
-	};
-
-	return prepareTransaction(transaction, secret, secondSecret);
-}
-
-module.exports = {
-	createInTransfer,
-	createOutTransfer,
-};

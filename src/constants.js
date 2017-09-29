@@ -20,33 +20,13 @@
  * @type object
  */
 
-const fixedPoint = 10 ** 8;
-
-const sendFee = 0.1 * fixedPoint;
-const dataFee = 0.1 * fixedPoint;
-const signatureFee = 5 * fixedPoint;
-const delegateFee = 25 * fixedPoint;
-const voteFee = 1 * fixedPoint;
-const multisignatureFee = 5 * fixedPoint;
-const dappFee = 25 * fixedPoint;
-
-module.exports = {
-	fixedPoint,
-	fees: {
-		send: sendFee,
-		signature: signatureFee,
-		delegate: delegateFee,
-		vote: voteFee,
-		multisignature: multisignatureFee,
-		dapp: dappFee,
-		data: dataFee,
-	},
-	fee: {
-		0: sendFee,
-		1: signatureFee,
-		2: delegateFee,
-		3: voteFee,
-		4: multisignatureFee,
-		5: dappFee,
-	},
-};
+export const FIXED_POINT = 10 ** 8;
+export const SEND_FEE = 0.1 * FIXED_POINT;
+export const DATA_FEE = 0.1 * FIXED_POINT;
+export const IN_TRANSFER_FEE = 0.1 * FIXED_POINT;
+export const OUT_TRANSFER_FEE = 0.1 * FIXED_POINT;
+export const SIGNATURE_FEE = 5 * FIXED_POINT;
+export const DELEGATE_FEE = 25 * FIXED_POINT;
+export const VOTE_FEE = 1 * FIXED_POINT;
+export const MULTISIGNATURE_FEE = 5 * FIXED_POINT;
+export const DAPP_FEE = 25 * FIXED_POINT;

@@ -21,7 +21,7 @@
  * @return result object
  */
 
-const optionallyCallCallback = (callback, result) => {
+export const optionallyCallCallback = (callback, result) => {
 	if (typeof callback === 'function') {
 		callback(result);
 	}
@@ -36,7 +36,7 @@ const optionallyCallCallback = (callback, result) => {
  * @return request object
  */
 
-const constructRequestData = (providedObject, optionsOrCallback) => {
+export const constructRequestData = (providedObject, optionsOrCallback) => {
 	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
 	return Object.assign({}, providedOptions, providedObject);
 };
@@ -50,7 +50,7 @@ const constructRequestData = (providedObject, optionsOrCallback) => {
  * @return function wrappedSendRequest
  */
 
-const wrapSendRequest = (method, endpoint, getDataFn) =>
+export const wrapSendRequest = (method, endpoint, getDataFn) =>
 	function wrappedSendRequest(value, optionsOrCallback, callbackIfOptions) {
 		const callback = callbackIfOptions || optionsOrCallback;
 		const data = constructRequestData(getDataFn(value, optionsOrCallback), optionsOrCallback);
@@ -63,7 +63,7 @@ const wrapSendRequest = (method, endpoint, getDataFn) =>
  * @return options object
  */
 
-const checkOptions = (options) => {
+export const checkOptions = (options) => {
 	Object.entries(options)
 		.forEach(([key, value]) => {
 			if (value === undefined || Number.isNaN(value)) {
@@ -80,7 +80,7 @@ const checkOptions = (options) => {
  *
  * @return trimmed object
  */
-function trimObj(obj) {
+export const trimObj = (obj) => {
 	const isArray = Array.isArray(obj);
 	if (!isArray && typeof obj !== 'object') {
 		return Number.isInteger(obj)
@@ -104,7 +104,7 @@ function trimObj(obj) {
 					[trimmedKey]: trimmedValue,
 				});
 			}, {});
-}
+};
 
 /**
  * @method toQueryString
@@ -112,7 +112,7 @@ function trimObj(obj) {
  *
  * @return query string
  */
-function toQueryString(obj) {
+export const toQueryString = (obj) => {
 	const parts = Object.entries(obj)
 		.reduce((accumulator, [key, value]) => [
 			...accumulator,
@@ -120,7 +120,7 @@ function toQueryString(obj) {
 		], []);
 
 	return parts.join('&');
-}
+};
 
 /**
  * @method serialiseHTTPData
@@ -129,18 +129,8 @@ function toQueryString(obj) {
  * @return serialisedData string
  */
 
-const serialiseHTTPData = (data) => {
+export const serialiseHTTPData = (data) => {
 	const trimmed = trimObj(data);
 	const queryString = toQueryString(trimmed);
 	return `?${queryString}`;
-};
-
-module.exports = {
-	trimObj,
-	toQueryString,
-	serialiseHTTPData,
-	checkOptions,
-	constructRequestData,
-	wrapSendRequest,
-	optionallyCallCallback,
 };
