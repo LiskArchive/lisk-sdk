@@ -385,11 +385,11 @@ __private.loadDelegates = function (cb) {
 // Public methods
 
 /**
- * Gets delegate list by vote and changes order.
+ * Gets delegate list based on input function by vote and changes order.
  * @param {number} height
+ * @param {function} source - Source function for get delegates.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} err | truncated delegate list.
- * @todo explain seed.
  */
 Delegates.prototype.generateDelegateList = function (height, source, cb) {
 	// Set default function for getting delegates
