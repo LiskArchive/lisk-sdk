@@ -18,6 +18,7 @@ require('./logic/peers');
 require('./logic/multisignature');
 require('./logic/transaction');
 require('./logic/transfer');
+require('./logic/signature.js');
 require('./logic/vote');
 
 require('./modules/blocks/process');
