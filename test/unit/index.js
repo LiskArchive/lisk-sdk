@@ -13,6 +13,7 @@ require('./helpers/wsApi');
 require('./helpers/z_schema');
 
 require('./logic/account');
+require('./logic/delegate');
 require('./logic/peer');
 require('./logic/peers');
 require('./logic/multisignature');

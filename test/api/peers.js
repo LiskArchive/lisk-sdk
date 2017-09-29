@@ -11,9 +11,12 @@ var wsServer = require('../common/wsServer');
 var testConfig = require('../config.json');
 
 var validHeaders;
+var wsServerPort = 9998;
+var originalWsServerPort;
 
 before(function (done) {
-	wsServer.options.port = 9998;
+	originalWsServerPort = wsServer.options.port;
+	wsServer.options.port = wsServerPort;
 	validHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.options.port);
 	wsServer.start();
 	var validClientSocketOptions = {
@@ -31,6 +34,7 @@ before(function (done) {
 
 after(function () {
 	wsServer.stop();
+	wsServer.options.port = originalWsServerPort;
 });
 
 describe('GET /api/peers/version', function () {
@@ -54,7 +58,7 @@ describe('GET /api/peers/count', function () {
 			node.expect(res.body).to.have.property('connected').that.is.a('number').at.least(1);
 			node.expect(res.body).to.have.property('disconnected').that.is.a('number');
 			node.expect(res.body).to.have.property('banned').that.is.a('number');
-			done ();
+			done();
 		});
 	});
 });
@@ -507,7 +511,7 @@ describe('GET /api/peers', function () {
 	});
 });
 
-describe.skip('GET /api/peers/get', function () {
+describe('GET /api/peers/get', function () {
 
 	it('using known ip address with no port should fail', function (done) {
 		http.get('/api/peers/get?ip=127.0.0.1', function (err, res) {
