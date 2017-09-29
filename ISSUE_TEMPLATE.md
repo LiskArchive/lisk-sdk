@@ -7,8 +7,8 @@ Have you read Lisk-JS's Code of Conduct? By filing an Issue, you are expected to
 ### Steps to Reproduce
 
 1. [First Step]
-2. [Second Step]
-3. [and so on...]
+1. [Second Step]
+1. [and so on...]
 
 **Expected behavior:** [What you expect to happen]
 
