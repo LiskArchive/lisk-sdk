@@ -126,12 +126,12 @@ __private.validateBlockSlot = function (block, source, cb) {
 		}
 
 		var currentSlot = slots.getSlotNumber(block.timestamp);
-		var delegate_id = activeDelegates[currentSlot % slots.delegates];
+		var delegateId = activeDelegates[currentSlot % slots.delegates];
 
-		if (delegate_id && block.generatorPublicKey === delegate_id) {
+		if (delegateId && block.generatorPublicKey === delegateId) {
 			return setImmediate(cb);
 		} else {
-			library.logger.error('Expected generator: ' + delegate_id + ' Received generator: ' + block.generatorPublicKey);
+			library.logger.error('Expected generator: ' + delegateId + ' Received generator: ' + block.generatorPublicKey);
 			return setImmediate(cb, 'Failed to verify slot: ' + currentSlot);
 		}
 	});
@@ -156,10 +156,10 @@ __private.getBlockSlotData = function (slot, height, cb) {
 
 		for (; currentSlot < lastSlot; currentSlot += 1) {
 			var delegate_pos = currentSlot % slots.delegates;
-			var delegate_id = activeDelegates[delegate_pos];
+			var delegateId = activeDelegates[delegate_pos];
 
-			if (delegate_id && __private.keypairs[delegate_id]) {
-				return setImmediate(cb, null, {time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegate_id]});
+			if (delegateId && __private.keypairs[delegateId]) {
+				return setImmediate(cb, null, {time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegateId]});
 			}
 		}
 
