@@ -30,7 +30,7 @@ const voteFee = 1 * fixedPoint;
 const multisignatureFee = 5 * fixedPoint;
 const dappFee = 25 * fixedPoint;
 
-module.exports = {
+export default {
 	fixedPoint,
 	fees: {
 		send: sendFee,

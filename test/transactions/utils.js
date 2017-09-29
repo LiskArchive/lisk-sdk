@@ -1,18 +1,7 @@
-import utils from '../../src/transactions/utils';
+import { prepareTransaction, isValidValue } from '../../src/transactions/utils';
 
 describe('transactions utils module', () => {
-	describe('exports', () => {
-		it('should be an object', () => {
-			(utils).should.be.type('object');
-		});
-
-		it('should export prepareTransaction function', () => {
-			(utils).should.have.property('prepareTransaction').and.be.type('function');
-		});
-	});
-
 	describe('#prepareTransaction', () => {
-		const { prepareTransaction } = utils;
 		const secret = 'secret';
 		const keys = {
 			privateKey: '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -86,14 +75,14 @@ describe('transactions utils module', () => {
 		it('should return false on invalid values', () => {
 			const allInvalidValues = [NaN, false, undefined];
 			allInvalidValues.forEach((value) => {
-				const invalid = utils.isValidValue(value);
+				const invalid = isValidValue(value);
 				(invalid).should.be.false();
 			});
 		});
 		it('should return true on valid values', () => {
 			const exampleValidValues = ['123', 123, { 1: 2, 3: 4 }, [1, 2, 3]];
 			exampleValidValues.forEach((value) => {
-				const valid = utils.isValidValue(value);
+				const valid = isValidValue(value);
 				(valid).should.be.true();
 			});
 		});
