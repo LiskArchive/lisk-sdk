@@ -13,8 +13,9 @@
  *
  */
 import LiskAPI from '../../src/api/liskApi';
-import privateApi from '../../src/api/privateApi';
-import utils from '../../src/api/utils';
+
+const privateApi = require('../../src/api/privateApi');
+const utils = require('../../src/api/utils');
 
 afterEach(() => sandbox.restore());
 

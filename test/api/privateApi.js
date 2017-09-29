@@ -13,7 +13,8 @@
  *
  */
 import { PopsicleError } from 'popsicle';
-import privateApi from '../../src/api/privateApi';
+
+const privateApi = require('../../src/api/privateApi');
 
 afterEach(() => sandbox.restore());
 

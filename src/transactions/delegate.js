@@ -17,7 +17,7 @@
  * @class delegate
  */
 import cryptoModule from '../crypto';
-import constants from '../constants';
+import { DELEGATE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -31,13 +31,13 @@ import { prepareTransaction } from './utils';
  * @return {Object}
  */
 
-function createDelegate(secret, username, secondSecret, timeOffset) {
+export default function createDelegate(secret, username, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
 		type: 2,
 		amount: 0,
-		fee: constants.fees.delegate,
+		fee: DELEGATE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
@@ -50,7 +50,3 @@ function createDelegate(secret, username, secondSecret, timeOffset) {
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-module.exports = {
-	createDelegate,
-};
