@@ -26,7 +26,7 @@ module.exports = function configureGrunt(grunt) {
 			prepareDistNode: 'rm -r dist-node/* || mkdir dist-node | echo',
 			prepareDistBrowser: 'rm -r dist-browser/* || mkdir dist-browser | echo',
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
-			babelTest: './node_modules/.bin/babel src --out-dir ./browsertest/src && ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
+			babelTest: './node_modules/.bin/babel src --out-dir ./browsertest/src && BABEL_ENV=browsertest ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
 			tidyTest: 'rm -r browsertest/{src,test}',
 		},
 
@@ -36,11 +36,11 @@ module.exports = function configureGrunt(grunt) {
 
 		browserify: {
 			dist: {
-				src: './dist-node/*',
+				src: './dist-node/*.js',
 				dest: './dist-browser/lisk-js.js',
 			},
 			test: {
-				src: './browsertest/test/**/*.js',
+				src: ['./browsertest/test/*.js', './browsertest/test/**/*.js'],
 				dest: './browsertest/browsertest.js',
 			},
 			options: {

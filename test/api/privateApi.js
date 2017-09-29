@@ -14,7 +14,8 @@
  */
 import { PopsicleError } from 'popsicle';
 import privateApi from '../../src/api/privateApi';
-import utils from '../../src/api/utils';
+
+afterEach(() => sandbox.restore());
 
 describe('privateApi module', () => {
 	const port = 7000;
@@ -61,11 +62,7 @@ describe('privateApi module', () => {
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
-		sendRequestStub = sinon.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
-	});
-
-	afterEach(() => {
-		sendRequestStub.restore();
+		sendRequestStub = sandbox.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
 	});
 
 	describe('#netHashOptions', () => {
@@ -123,7 +120,7 @@ describe('privateApi module', () => {
 		let result;
 
 		beforeEach(() => {
-			getURLPrefixStub = sinon.stub().returns(URLPrefix);
+			getURLPrefixStub = sandbox.stub().returns(URLPrefix);
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetURLPrefixStub = privateApi.__set__('getURLPrefix', getURLPrefixStub);
 			result = getFullURL.call(LSK);
@@ -194,7 +191,7 @@ describe('privateApi module', () => {
 		let restoreGetPeersStub;
 
 		beforeEach(() => {
-			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			getPeersStub = sandbox.stub().returns([].concat(defaultPeers));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
 		});
@@ -237,7 +234,7 @@ describe('privateApi module', () => {
 		let restoreGetRandomPeer;
 
 		beforeEach(() => {
-			getRandomPeerStub = sinon.stub().returns(getRandomPeerResult);
+			getRandomPeerStub = sandbox.stub().returns(getRandomPeerResult);
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetRandomPeer = privateApi.__set__('getRandomPeer', getRandomPeerStub);
 		});
@@ -343,21 +340,18 @@ describe('privateApi module', () => {
 		const { checkReDial } = privateApi;
 		let getPeersStub;
 		let restoreGetPeersStub;
-		let netHashOptionsStub;
 		let setTestnetStub;
 
 		beforeEach(() => {
-			getPeersStub = sinon.stub().returns([].concat(defaultPeers));
+			getPeersStub = sandbox.stub().returns([].concat(defaultPeers));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetPeersStub = privateApi.__set__('getPeers', getPeersStub);
-			netHashOptionsStub = sinon.stub(privateApi, 'netHashOptions');
-			setTestnetStub = sinon.stub(LSK, 'setTestnet');
+			sandbox.stub(privateApi, 'netHashOptions');
+			setTestnetStub = sandbox.stub(LSK, 'setTestnet');
 		});
 
 		afterEach(() => {
 			restoreGetPeersStub();
-			netHashOptionsStub.restore();
-			setTestnetStub.restore();
 		});
 
 		describe('with random peer', () => {
@@ -450,77 +444,6 @@ describe('privateApi module', () => {
 		});
 	});
 
-	describe('#checkOptions', () => {
-		const { checkOptions } = privateApi;
-		const goodOptions = {
-			key1: 'value 1',
-			key2: 2,
-		};
-
-		it('should throw an error if any option is undefined', () => {
-			const optionsWithUndefined = Object.assign({
-				badKey: undefined,
-			}, goodOptions);
-
-			(checkOptions.bind(null, optionsWithUndefined)).should.throw('"badKey" option should not be undefined');
-		});
-
-		it('should throw an error if any option is NaN', () => {
-			const optionsWithNaN = Object.assign({
-				badKey: NaN,
-			}, goodOptions);
-
-			(checkOptions.bind(null, optionsWithNaN)).should.throw('"badKey" option should not be NaN');
-		});
-
-		it('should return the options if they are all ok', () => {
-			const result = checkOptions(Object.assign({}, goodOptions));
-			(result).should.be.eql(goodOptions);
-		});
-	});
-
-	describe('#serialiseHTTPData', () => {
-		const { serialiseHTTPData } = privateApi;
-		const queryStringData = 'key%2F1=value%20%252&key3=4';
-
-		let data;
-		let trimmedData;
-		let trimObjStub;
-		let toQueryStringStub;
-		let serialisedData;
-
-		beforeEach(() => {
-			data = {
-				' key/1 ': '  value %2',
-				key3: 4,
-			};
-			trimmedData = {
-				'key%2F': 'value%20%252',
-				key3: 4,
-			};
-			trimObjStub = sinon.stub(utils, 'trimObj').returns(trimmedData);
-			toQueryStringStub = sinon.stub(utils, 'toQueryString').returns(queryStringData);
-			serialisedData = serialiseHTTPData(data);
-		});
-
-		afterEach(() => {
-			trimObjStub.restore();
-			toQueryStringStub.restore();
-		});
-
-		it('should trim the object', () => {
-			(trimObjStub.calledWithExactly(data)).should.be.true();
-		});
-
-		it('should convert the trimmed object to a query string', () => {
-			(toQueryStringStub.calledWithExactly(trimmedData)).should.be.true();
-		});
-
-		it('should prepend a question mark to the query string', () => {
-			(serialisedData).should.equal(`?${queryStringData}`);
-		});
-	});
-
 	describe('#createRequestObject', () => {
 		let options;
 		let expectedObject;
@@ -570,50 +493,6 @@ describe('privateApi module', () => {
 		});
 	});
 
-	describe('#constructRequestData', () => {
-		const address = '18160565574430594874L';
-		const customAddress = '123l';
-		const defaultRequestLimit = 10;
-		const defaultRequestOffset = 101;
-		const optionsObject = {
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-		const expectedObject = {
-			address,
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-		const optionsWithConflictObject = {
-			address: customAddress,
-			limit: 4,
-			offset: 5,
-		};
-		const resolvedConflictObject = {
-			address: customAddress,
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-
-		it('should merge a data object with an options object', () => {
-			const requestData = privateApi.constructRequestData({ address }, optionsObject);
-			(requestData).should.be.eql(expectedObject);
-		});
-
-		it('should recognise when a callback function is passed instead of an options object', () => {
-			const providedObj = { address };
-			const requestData = privateApi.constructRequestData(providedObj, () => true);
-			(requestData).should.be.eql(providedObj);
-		});
-
-		it('should prioritise values from the data object when the data object and options object conflict', () => {
-			const requestData = privateApi.constructRequestData(
-				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, optionsWithConflictObject,
-			);
-			(requestData).should.be.eql(resolvedConflictObject);
-		});
-	});
-
 	describe('#sendRequestPromise', () => {
 		const { sendRequestPromise } = privateApi;
 
@@ -634,7 +513,9 @@ describe('privateApi module', () => {
 				headers: {},
 				body: {},
 			};
-			createRequestObjectStub = sinon.stub().returns(Object.assign({}, createRequestObjectResult));
+			createRequestObjectStub = sandbox
+				.stub()
+				.returns(Object.assign({}, createRequestObjectResult));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreCreateRequestObject = privateApi.__set__('createRequestObject', createRequestObjectStub);
 			sendRequestPromiseResult = sendRequestPromise
@@ -658,91 +539,6 @@ describe('privateApi module', () => {
 				.then((result) => {
 					(result).should.be.instanceof(PopsicleError);
 				});
-		});
-	});
-
-	describe('#wrapSendRequest', () => {
-		const { wrapSendRequest } = privateApi;
-		const value = '123';
-
-		let options;
-		let getDataFnResult;
-		let getDataFnStub;
-		let constructRequestDataResult;
-		let constructRequestDataStub;
-		let restoreConstructRequestDataStub;
-		let callback;
-		let returnedFunction;
-
-		beforeEach(() => {
-			options = {
-				key1: 'value 1',
-				key2: 2,
-			};
-			getDataFnResult = {
-				key3: 'value3',
-				key4: 4,
-			};
-			constructRequestDataResult = {
-				key5: 'value 5',
-				key6: 6,
-			};
-			getDataFnStub = sinon.stub().returns(Object.assign({}, getDataFnResult));
-			constructRequestDataStub = sinon.stub()
-				.returns(Object.assign({}, constructRequestDataResult));
-			// eslint-disable-next-line no-underscore-dangle
-			restoreConstructRequestDataStub = privateApi.__set__('constructRequestData', constructRequestDataStub);
-			returnedFunction = wrapSendRequest(defaultMethod, defaultEndpoint, getDataFnStub);
-			callback = () => {};
-		});
-
-		afterEach(() => {
-			restoreConstructRequestDataStub();
-		});
-
-		it('should return a function', () => {
-			(returnedFunction).should.be.type('function');
-		});
-
-		describe('returned function', () => {
-			it('should call the provided getData function on the provided value and options', () => {
-				return returnedFunction.call(LSK, value, options)
-					.then(() => {
-						(getDataFnStub.calledWithExactly(value, options)).should.be.true();
-					});
-			});
-
-			it('should construct request data using the provided data and options', () => {
-				return returnedFunction.call(LSK, value, options)
-					.then(() => {
-						(constructRequestDataStub.calledWithExactly(getDataFnResult, options)).should.be.true();
-					});
-			});
-
-			it('should send a request with the constructed data and a callback if options are provided', () => {
-				return returnedFunction.call(LSK, value, options, callback)
-					.then(() => {
-						(sendRequestStub.calledWithExactly(
-							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
-						)).should.be.true();
-					});
-			});
-
-			it('should send a request with the constructed data and a callback if options are not provided', () => {
-				return returnedFunction.call(LSK, value, callback)
-					.then(() => {
-						(sendRequestStub.calledWithExactly(
-							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
-						)).should.be.true();
-					});
-			});
-
-			it('should return the result of the sent request', () => {
-				return returnedFunction.call(LSK, value, callback)
-					.then((result) => {
-						(result).should.be.eql(sendRequestResult);
-					});
-			});
 		});
 	});
 
@@ -840,20 +636,19 @@ describe('privateApi module', () => {
 				key2: 2,
 			};
 			error = new Error('Test error.');
-			setNodeSpy = sinon.spy(LSK, 'setNode');
-			banNodeSpy = sinon.spy();
+			setNodeSpy = sandbox.spy(LSK, 'setNode');
+			banNodeSpy = sandbox.spy();
 			// eslint-disable-next-line no-underscore-dangle
 			restoreBanNodeSpy = privateApi.__set__('banNode', banNodeSpy);
 		});
 
 		afterEach(() => {
-			setNodeSpy.restore();
 			restoreBanNodeSpy();
 		});
 
 		describe('if a redial is possible', () => {
 			beforeEach(() => {
-				checkReDialStub = sinon.stub().returns(true);
+				checkReDialStub = sandbox.stub().returns(true);
 				// eslint-disable-next-line no-underscore-dangle
 				restoreCheckReDialStub = privateApi.__set__('checkReDial', checkReDialStub);
 			});
@@ -862,10 +657,19 @@ describe('privateApi module', () => {
 				restoreCheckReDialStub();
 			});
 
-			it('should ban the node', () => {
+			it('should ban the node with options randomPeer true', () => {
+				LSK.randomPeer = true;
 				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
 						(banNodeSpy.calledOn(LSK)).should.be.true();
+					});
+			});
+
+			it('should not ban the node with options randomPeer false', () => {
+				LSK.randomPeer = false;
+				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(() => {
+						(banNodeSpy.calledOn(LSK)).should.be.false();
 					});
 			});
 
@@ -894,11 +698,7 @@ describe('privateApi module', () => {
 
 		describe('if no redial is possible', () => {
 			beforeEach(() => {
-				checkReDialStub = sinon.stub(privateApi, 'checkReDial').returns(false);
-			});
-
-			afterEach(() => {
-				checkReDialStub.restore();
+				checkReDialStub = sandbox.stub(privateApi, 'checkReDial').returns(false);
 			});
 
 			it('should resolve to an object with success set to false', () => {
@@ -921,35 +721,6 @@ describe('privateApi module', () => {
 						(result).should.have.property('message').and.be.equal('Could not create an HTTP request to any known peers.');
 					});
 			});
-		});
-	});
-
-	describe('#optionallyCallCallback', () => {
-		const { optionallyCallCallback } = privateApi;
-		const result = 'result';
-		const spy = sinon.spy();
-
-		it('should return the result with a callback', () => {
-			const returnValue = optionallyCallCallback(spy, result);
-			(returnValue).should.equal(result);
-		});
-
-		it('should return the result without a callback', () => {
-			const returnValue = optionallyCallCallback(undefined, result);
-			(returnValue).should.equal(result);
-		});
-
-		it('should not call the callback if it is not a function', () => {
-			(optionallyCallCallback.bind(null, { foo: 'bar' }, result)).should.not.throw();
-		});
-
-		it('should not call the callback if it is undefined', () => {
-			(optionallyCallCallback.bind(null, undefined, result)).should.not.throw();
-		});
-
-		it('should call the callback with the result if callback is a function', () => {
-			optionallyCallCallback(spy, result);
-			(spy.calledWithExactly(result)).should.be.true();
 		});
 	});
 });

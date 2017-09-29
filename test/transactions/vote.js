@@ -16,6 +16,8 @@ import vote from '../../src/transactions/vote';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('vote module', () => {
 	describe('exports', () => {
 		it('should be an object', () => {
@@ -37,18 +39,11 @@ describe('vote module', () => {
 		const address = '18160565574430594874L';
 		const timeWithOffset = 38350076;
 
-		let getAddressStub;
 		let getTimeWithOffsetStub;
 		let voteTransaction;
 
 		beforeEach(() => {
-			getAddressStub = sinon.stub(cryptoModule, 'getAddress').returns(address);
-			getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-		});
-
-		afterEach(() => {
-			getAddressStub.restore();
-			getTimeWithOffsetStub.restore();
+			getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 		});
 
 		describe('without second secret', () => {
@@ -58,10 +53,6 @@ describe('vote module', () => {
 
 			it('should create a vote transaction', () => {
 				(voteTransaction).should.be.ok();
-			});
-
-			it('should use crypto.getAddress to calculate the recipient id', () => {
-				(getAddressStub.calledWithExactly(publicKey)).should.be.true();
 			});
 
 			it('should use slots.getTimeWithOffset to calculate the timestamp', () => {

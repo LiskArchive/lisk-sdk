@@ -16,6 +16,8 @@ import multisignature from '../../src/transactions/multisignature';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
+afterEach(() => sandbox.restore());
+
 describe('multisignature module', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
@@ -32,20 +34,12 @@ describe('multisignature module', () => {
 	let getTimeWithOffsetStub;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sinon.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-	});
-
-	afterEach(() => {
-		getTimeWithOffsetStub.restore();
+		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('exports', () => {
 		it('should be an object', () => {
 			(multisignature).should.be.type('object');
-		});
-
-		it('should export signTransaction function', () => {
-			(multisignature).should.have.property('signTransaction').be.type('function');
 		});
 
 		it('should export createMultisignature function', () => {
@@ -336,50 +330,6 @@ describe('multisignature module', () => {
 					(result).should.not.be.ok();
 				});
 			});
-		});
-	});
-
-	describe('#signTransaction', () => {
-		const { signTransaction } = multisignature;
-		const transaction = {
-			type: 0,
-			amount: 10e8,
-			fee: 0.1e8,
-			recipientId: '58191285901858109L',
-			timestamp: 35593081,
-			asset: {},
-			senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-			signature: 'cc1dc3ee73022ed7c10bdfff9183d93e71bd503e57078c32b8e6582bd13450fd9f113f95b101a568b9c757f7e739f15ed9cc77ca7dede62c61f358e30f9dc80d',
-			id: '4758205935095999374',
-		};
-		const signature = '78a09cf9804efdae4f70d2d0ffd66aa063ebf24bd7703dab968dd5f5eeb112cc24d6d25e47d627b1f33ecdf65475cc496bd36ebd590c8216b49977670dcb8f0f';
-		const length = 128; // crypto_sign_BYTES length
-
-		let cryptoGetKeysStub;
-		let cryptoMultiSignStub;
-		let signedTransaction;
-
-		beforeEach(() => {
-			cryptoGetKeysStub = sinon.stub(cryptoModule, 'getKeys').returns(keys);
-			cryptoMultiSignStub = sinon.stub(cryptoModule, 'multiSignTransaction').returns(signature);
-			signedTransaction = signTransaction(transaction, secret);
-		});
-
-		afterEach(() => {
-			cryptoGetKeysStub.restore();
-			cryptoMultiSignStub.restore();
-		});
-
-		it('should return a hex string', () => {
-			(signedTransaction).should.be.a.hexString();
-		});
-
-		it('should have a fixed signature length of 128 bytes', () => {
-			(signedTransaction).should.have.lengthOf(length);
-		});
-
-		it('should use crypto.multiSignTransaction to get the signature', () => {
-			(cryptoMultiSignStub.calledWithExactly(transaction, secret)).should.be.true();
 		});
 	});
 });

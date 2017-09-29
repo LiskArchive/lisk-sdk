@@ -35,6 +35,9 @@ const prepareTransaction = (transaction, secret, secondSecret) => {
 	return transactionWithId;
 };
 
+const isValidValue = value => ![undefined, false, NaN].includes(value);
+
 module.exports = {
 	prepareTransaction,
+	isValidValue,
 };

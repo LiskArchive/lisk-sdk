@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Buffer } from 'buffer';
 import bignum from 'browserify-bignum';
 import ed2curve from 'ed2curve';
 import { getSha256Hash } from './hash';
-import { getTransactionBytes } from '../transactions/transactionBytes';
+import getTransactionBytes from '../transactions/transactionBytes';
 
 /**
  * @method bufferToHex
@@ -37,7 +36,7 @@ export function bufferToHex(buffer) {
  */
 
 export function hexToBuffer(hex) {
-	return naclInstance.from_hex(hex);
+	return Buffer.from(hex, 'hex');
 }
 
 /**

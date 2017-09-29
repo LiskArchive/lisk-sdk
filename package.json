@@ -6,12 +6,11 @@
 	"scripts": {
 		"test": "nyc mocha test/**/*.js",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test/**/*.js\" --initial",
-		"test:now": "npm run test -- --grep @now",
-		"test:now:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test/**/*.js --grep @now\" --initial",
 		"cover": "istanbul cover --dir ./coverage _mocha",
 		"eslint": "./node_modules/.bin/grunt eslint --verbose",
 		"jenkins": "./node_modules/.bin/grunt jenkins --verbose",
 		"build": "grunt",
+		"buildBrowsertest": "grunt build-browsertest",
 		"prepush": "grunt eslint && npm test",
 		"prepublishOnly": "npm run build"
 	},
@@ -25,8 +24,6 @@
 		"babel-polyfill": "=6.23.0",
 		"bitcore-mnemonic": "LiskHQ/bitcore-mnemonic#v1.2.5",
 		"browserify-bignum": "=1.3.0-2",
-		"buffer": "=5.0.6",
-		"bytebuffer": "=5.0.1",
 		"ed2curve": "=0.2.1",
 		"js-nacl": "LiskHQ/js-nacl#6dc1417",
 		"popsicle": "=9.1.0"

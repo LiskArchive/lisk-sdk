@@ -14,6 +14,9 @@
  */
 import LiskAPI from '../../src/api/liskApi';
 import privateApi from '../../src/api/privateApi';
+import utils from '../../src/api/utils';
+
+afterEach(() => sandbox.restore());
 
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
@@ -43,10 +46,6 @@ describe('Lisk API module', () => {
 	const defaultSecondSecret = 'second secret';
 	const GET = 'GET';
 	const POST = 'POST';
-	const defaultAddress = {
-		publicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-		address: '18160565574430594874L',
-	};
 	const defaultRequestLimit = 10;
 	const defaultRequestOffset = 101;
 	const defaultAmount = 1 * fixedPoint;
@@ -73,44 +72,30 @@ describe('Lisk API module', () => {
 	let LSK;
 
 	beforeEach(() => {
-		selectNodeStub = sinon
+		selectNodeStub = sandbox
 			.stub(privateApi, 'selectNode')
 			.returns(defaultSelectedNode);
-		sendRequestPromiseStub = sinon
+		sendRequestPromiseStub = sandbox
 			.stub(privateApi, 'sendRequestPromise')
 			.resolves(Object.assign({}, defaultRequestPromiseResult));
-		checkOptionsStub = sinon
-			.stub(privateApi, 'checkOptions')
+		checkOptionsStub = sandbox
+			.stub(utils, 'checkOptions')
 			.returns(Object.assign({}, defaultCheckedOptions));
-		handleTimestampIsInFutureFailuresStub = sinon
+		handleTimestampIsInFutureFailuresStub = sandbox
 			.stub(privateApi, 'handleTimestampIsInFutureFailures')
 			.resolves(Object.assign({}, defaultRequestPromiseResult.body));
-		handleSendRequestFailuresStub = sinon
+		handleSendRequestFailuresStub = sandbox
 			.stub(privateApi, 'handleSendRequestFailures');
-		getFullURLStub = sinon
+		getFullURLStub = sandbox
 			.stub(privateApi, 'getFullURL')
 			.returns(defaultUrl);
 
 		LSK = new LiskAPI();
 	});
 
-	afterEach(() => {
-		selectNodeStub.restore();
-		sendRequestPromiseStub.restore();
-		checkOptionsStub.restore();
-		handleTimestampIsInFutureFailuresStub.restore();
-		handleSendRequestFailuresStub.restore();
-		getFullURLStub.restore();
-	});
-
 	describe('LiskAPI()', () => {
 		it('should create a new instance of LiskAPI', () => {
 			(LSK).should.be.type('object').and.be.instanceof(LiskAPI);
-		});
-
-		it('should return a new instance of LiskAPI if called with a different context', () => {
-			LSK = LiskAPI.call({});
-			LSK.should.be.type('object').and.be.instanceof(LiskAPI);
 		});
 
 		it('should set currentPeer string by default', () => {
@@ -362,12 +347,6 @@ describe('Lisk API module', () => {
 		});
 	});
 
-	describe('#getAddressFromSecret', () => {
-		it('should create correct address and publicKey', () => {
-			(LSK.getAddressFromSecret(defaultSecret)).should.eql(defaultAddress);
-		});
-	});
-
 	describe('#broadcastSignedTransaction', () => {
 		it('should use getFullURL to get the url', () => {
 			return new Promise((resolve) => {
@@ -449,7 +428,6 @@ describe('Lisk API module', () => {
 		it('should check options if provided', () => {
 			return LSK.sendRequest(method, endpoint, options)
 				.then(() => {
-					(checkOptionsStub.calledOn(LSK)).should.be.true();
 					(checkOptionsStub.calledWithExactly(options)).should.be.true();
 				});
 		});
@@ -497,15 +475,10 @@ describe('Lisk API module', () => {
 
 	describe('API methods', () => {
 		let callback;
-		let sendRequestStub;
 
 		beforeEach(() => {
 			callback = () => {};
-			sendRequestStub = sinon.stub(LSK, 'sendRequest');
-		});
-
-		afterEach(() => {
-			sendRequestStub.restore();
+			sandbox.stub(LSK, 'sendRequest');
 		});
 
 		describe('#getAccount', () => {
