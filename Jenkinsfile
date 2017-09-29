@@ -11,8 +11,8 @@ def initBuild() {
 
 def buildDependency() {
 	try {
-		sh '''#!/bin/bash
-		# Install Deps
+		sh '''
+		rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
 		npm install
 		'''
 	} catch (err) {
@@ -55,6 +55,17 @@ def report(){
 lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	stage ('Prepare Workspace') {
 		parallel(
+			"Build cached dependencies" : {
+				node('master-01'){
+					sh '''#!/bin/bash -xe
+					if [ $JENKINS_PROFILE == "jenkins-extensive" ]; then
+						rm -Rf "$WORKSPACE/node_modules/"
+						npm install
+						rsync -axl --delete "$WORKSPACE/node_modules/" /var/lib/jenkins/lisk/node_modules/
+					fi
+					'''
+				}
+			},
 			"Build Node-01" : {
 				node('node-01'){
 					initBuild()
