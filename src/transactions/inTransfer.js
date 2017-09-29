@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -13,40 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/**
+ * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
+ * an individual dapp account).
+ * @class transfer
+ */
 import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+
 /**
- * @method createMultisignature
- * @param secret string
- * @param secondSecret string
- * @param keysgroup array
- * @param lifetime number
- * @param min number
- * @param timeOffset number
+ * @method createInTransfer
+ * @param dappId
+ * @param amount
+ * @param secret
+ * @param secondSecret
+ * @param timeOffset
  *
  * @return {Object}
  */
 
-export default function createMultisignature(
-	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
-) {
+export default function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
-	const keygroupFees = keysgroup.length + 1;
 
 	const transaction = {
-		type: 4,
-		amount: 0,
-		fee: (constants.fees.multisignature * keygroupFees),
+		type: 6,
+		amount,
+		fee: constants.fees.send,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			multisignature: {
-				min,
-				lifetime,
-				keysgroup,
+			inTransfer: {
+				dappId,
 			},
 		},
 	};

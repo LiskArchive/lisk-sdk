@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -13,42 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/**
+ * Multisignature module provides functions for creating multisignature group registration
+ * transactions, and signing transactions requiring multisignatures.
+ * @class multisignature
+ */
 import cryptoModule from '../crypto';
 import constants from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+
 /**
- * @method createMultisignature
- * @param secret string
- * @param secondSecret string
- * @param keysgroup array
- * @param lifetime number
- * @param min number
+ * @method createTransaction
+ * @param recipientId string
+ * @param amount number
+ * @param secret secret
+ * @param secondSecret secret
+ * @param requesterPublicKey string
  * @param timeOffset number
  *
- * @return {Object}
+ * @return {string}
  */
 
-export default function createMultisignature(
-	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
+export default function createTransaction(
+	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
-	const keygroupFees = keysgroup.length + 1;
 
 	const transaction = {
-		type: 4,
-		amount: 0,
-		fee: (constants.fees.multisignature * keygroupFees),
-		recipientId: null,
+		type: 0,
+		amount,
+		fee: constants.fees.send,
+		recipientId,
 		senderPublicKey: keys.publicKey,
+		requesterPublicKey: requesterPublicKey || keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {
-			multisignature: {
-				min,
-				lifetime,
-				keysgroup,
-			},
-		},
+		asset: {},
+		signatures: [],
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);
