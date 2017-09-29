@@ -13,6 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import fs from 'fs';
+import * as fsUtils from '../../src/utils/fs';
+
 const regExp = /"(.+?)"/;
 
 export const getFirstQuotedString = title => title.match(regExp)[1];
@@ -22,4 +25,28 @@ export const getQuotedStrings = (title) => {
 	return title
 		.match(globalRegExp)
 		.map(match => match.match(regExp)[1]);
+};
+
+export const setUpFsStubs = () => {
+	[
+		'accessSync',
+		'existsSync',
+		'mkdirSync',
+	].forEach(methodName => sandbox.stub(fs, methodName));
+	[
+		'readJsonSync',
+		'writeJsonSync',
+	].forEach(methodName => sandbox.stub(fsUtils, methodName));
+};
+
+export const setUpConsoleStubs = () => {
+	[
+		'info',
+		'warn',
+		'error',
+	].forEach(methodName => sandbox.stub(console, methodName));
+};
+
+export const setUpProcessStubs = () => {
+	sandbox.stub(process, 'exit');
 };
