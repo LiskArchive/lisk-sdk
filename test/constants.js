@@ -22,6 +22,7 @@ import {
 	SIGNATURE_FEE,
 	SEND_FEE,
 	VOTE_FEE,
+	DATA_FEE,
 } from '../src/constants';
 
 describe('constants', () => {
@@ -59,5 +60,9 @@ describe('constants', () => {
 
 	it('VOTE_FEE should be an integer', () => {
 		(VOTE_FEE).should.be.an.integer();
+	});
+
+	it('DATA_FEE should be an integer', () => {
+		(DATA_FEE).should.be.an.integer();
 	});
 });
