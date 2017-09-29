@@ -338,9 +338,6 @@ __private.verifyBlockSlot = function (block, lastBlock, result) {
  */
 Verify.prototype.verifyReceipt = function (block) {
 	var lastBlock = modules.blocks.lastBlock.get();
-
-	block = __private.setHeight(block, lastBlock);
-
 	var result = { verified: false, errors: [] };
 
 	result = __private.verifySignature(block, result);
