@@ -338,9 +338,6 @@ __private.verifyBlockSlot = function (block, lastBlock, result) {
  */
 Verify.prototype.verifyReceipt = function (block) {
 	var lastBlock = modules.blocks.lastBlock.get();
-
-	block = __private.setHeight(block, lastBlock);
-
 	var result = { verified: false, errors: [] };
 
 	result = __private.verifySignature(block, result);
@@ -400,13 +397,12 @@ Verify.prototype.verifyBlock = function (block) {
  * @method processBlock
  * @param  {Object}   block Full block
  * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
- * @param  {Function} cb Callback function
  * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
- * @param  {boolean}  checked Indicator that block was previously checked
+ * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
+Verify.prototype.processBlock = function (block, broadcast, saveBlock, cb) {
 	if (modules.blocks.isCleaning.get()) {
 		// Break processing if node shutdown reqested
 		return setImmediate(cb, 'Cleaning up');

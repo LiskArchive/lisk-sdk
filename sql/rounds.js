@@ -29,7 +29,7 @@ var RoundsSql = {
 
 	clearVotesSnapshot: 'DROP TABLE IF EXISTS mem_votes_snapshot',
 
-	performVotesSnapshot: 'CREATE TABLE mem_votes_snapshot AS SELECT address, vote FROM mem_accounts WHERE "isDelegate" = 1',
+	performVotesSnapshot: 'CREATE TABLE mem_votes_snapshot AS SELECT address, "publicKey", vote FROM mem_accounts WHERE "isDelegate" = 1',
 
 	restoreVotesSnapshot: 'UPDATE mem_accounts m SET vote = b.vote FROM mem_votes_snapshot b WHERE m.address = b.address'
 };
