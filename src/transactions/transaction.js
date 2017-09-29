@@ -33,7 +33,9 @@ import { prepareTransaction } from './utils';
  * @return {Object}
  */
 
-function createTransaction(recipientId, amount, secret, secondSecret, data, timeOffset) {
+export default function createTransaction(
+	recipientId, amount, secret, secondSecret, data, timeOffset,
+) {
 	const keys = cryptoModule.getKeys(secret);
 	const fee = data ? (constants.fees.send + constants.fees.data) : constants.fees.send;
 	const transaction = {
@@ -53,7 +55,3 @@ function createTransaction(recipientId, amount, secret, secondSecret, data, time
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-module.exports = {
-	createTransaction,
-};

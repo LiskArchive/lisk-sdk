@@ -12,25 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import vote from '../../src/transactions/vote';
+import createVote from '../../src/transactions/vote';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
 describe('vote module', () => {
-	describe('exports', () => {
-		it('should be an object', () => {
-			(vote).should.be.type('object');
-		});
-
-		it('should export createVote function', () => {
-			(vote).should.have.property('createVote').be.type('function');
-		});
-	});
-
 	describe('#createVote', () => {
-		const { createVote } = vote;
 		const secret = 'secret';
 		const secondSecret = 'second secret';
 		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';

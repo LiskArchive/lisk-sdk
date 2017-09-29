@@ -34,7 +34,7 @@ import { prepareTransaction } from './utils';
  * @return {string}
  */
 
-function createTransaction(
+export function createTransaction(
 	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
@@ -66,7 +66,7 @@ function createTransaction(
  * @return {Object}
  */
 
-function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
+export function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 	const keygroupFees = keysgroup.length + 1;
 
@@ -88,8 +88,3 @@ function createMultisignature(secret, secondSecret, keysgroup, lifetime, min, ti
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-module.exports = {
-	createMultisignature,
-	createTransaction,
-};

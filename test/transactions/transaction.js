@@ -12,25 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transaction from '../../src/transactions/transaction';
+import createTransaction from '../../src/transactions/transaction';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
 describe('transaction module', () => {
-	describe('exports', () => {
-		it('should be an object', () => {
-			(transaction).should.be.type('object');
-		});
-
-		it('should export createTransaction function', () => {
-			(transaction).should.have.property('createTransaction').be.type('function');
-		});
-	});
-
 	describe('#createTransaction', () => {
-		const { createTransaction } = transaction;
 		const fixedPoint = 10 ** 8;
 		const recipientAddress = '58191285901858109L';
 		const testData = 'data';

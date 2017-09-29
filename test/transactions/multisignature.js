@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import multisignature from '../../src/transactions/multisignature';
+import { createMultisignature, createTransaction } from '../../src/transactions/multisignature';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
@@ -37,22 +37,7 @@ describe('multisignature module', () => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
-	describe('exports', () => {
-		it('should be an object', () => {
-			(multisignature).should.be.type('object');
-		});
-
-		it('should export createMultisignature function', () => {
-			(multisignature).should.have.property('createMultisignature').be.type('function');
-		});
-
-		it('should export createTransaction function', () => {
-			(multisignature).should.have.property('createTransaction').be.type('function');
-		});
-	});
-
 	describe('#createMultisignature', () => {
-		const { createMultisignature } = multisignature;
 		const keysgroup = ['+123456789', '-987654321'];
 		const lifetime = 5;
 		const min = 2;
@@ -193,7 +178,6 @@ describe('multisignature module', () => {
 	});
 
 	describe('#createTransaction', () => {
-		const { createTransaction } = multisignature;
 		const recipientId = '123456789L';
 		const amount = 50e8;
 		const sendFee = 0.1e8;

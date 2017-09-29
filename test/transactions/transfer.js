@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transfer from '../../src/transactions/transfer';
+import { createInTransfer, createOutTransfer } from '../../src/transactions/transfer';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
@@ -35,23 +35,7 @@ describe('transfer module', () => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
-	describe('exports', () => {
-		it('should be an object', () => {
-			(transfer).should.be.type('object');
-		});
-
-		it('should export createInTransfer function', () => {
-			(transfer).should.have.property('createInTransfer').be.type('function');
-		});
-
-		it('should export createOutTransfer function', () => {
-			(transfer).should.have.property('createOutTransfer').be.type('function');
-		});
-	});
-
 	describe('#createInTransfer', () => {
-		const { createInTransfer } = transfer;
-
 		let inTransferTransaction;
 
 		describe('without second secret', () => {
@@ -167,7 +151,6 @@ describe('transfer module', () => {
 	});
 
 	describe('#createOutTransfer', () => {
-		const { createOutTransfer } = transfer;
 		const transactionId = '9876567';
 		const recipientId = '989234L';
 

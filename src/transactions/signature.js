@@ -42,7 +42,7 @@ function newSignature(secondSecret) {
  * @return {Object}
  */
 
-function createSignature(secret, secondSecret, timeOffset) {
+export default function createSignature(secret, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const signature = newSignature(secondSecret);
@@ -60,7 +60,3 @@ function createSignature(secret, secondSecret, timeOffset) {
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-module.exports = {
-	createSignature,
-};

@@ -12,25 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import dapp from '../../src/transactions/dapp';
+import createDapp from '../../src/transactions/dapp';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
 describe('dapp module', () => {
-	describe('exports', () => {
-		it('should be an object', () => {
-			(dapp).should.be.type('object');
-		});
-
-		it('should export createDapp function', () => {
-			(dapp).should.have.property('createDapp').be.type('function');
-		});
-	});
-
 	describe('#createDapp', () => {
-		const { createDapp } = dapp;
 		const secret = 'secret';
 		const secondSecret = 'second secret';
 		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';

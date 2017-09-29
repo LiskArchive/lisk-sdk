@@ -33,7 +33,7 @@ import { prepareTransaction } from './utils';
  * @return {Object}
  */
 
-function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
+export function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -66,7 +66,7 @@ function createInTransfer(dappId, amount, secret, secondSecret, timeOffset) {
  * @return {Object}
  */
 
-function createOutTransfer(
+export function createOutTransfer(
 	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
@@ -88,8 +88,3 @@ function createOutTransfer(
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-module.exports = {
-	createInTransfer,
-	createOutTransfer,
-};

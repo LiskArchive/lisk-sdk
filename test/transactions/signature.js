@@ -12,25 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import signature from '../../src/transactions/signature';
+import createSignature from '../../src/transactions/signature';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
 describe('signature module', () => {
-	describe('exports', () => {
-		it('should be an object', () => {
-			(signature).should.be.type('object');
-		});
-
-		it('should export createSignature function', () => {
-			(signature).should.have.property('createSignature').be.type('function');
-		});
-	});
-
 	describe('#createSignature', () => {
-		const { createSignature } = signature;
 		const secret = 'secret';
 		const secondSecret = 'second secret';
 		const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';

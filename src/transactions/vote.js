@@ -31,7 +31,7 @@ import { prepareTransaction } from './utils';
  * @return {Object}
  */
 
-function createVote(secret, delegates, secondSecret, timeOffset) {
+export default function createVote(secret, delegates, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -48,7 +48,3 @@ function createVote(secret, delegates, secondSecret, timeOffset) {
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }
-
-module.exports = {
-	createVote,
-};
