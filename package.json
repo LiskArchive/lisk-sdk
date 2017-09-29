@@ -54,6 +54,7 @@
     "z-schema": "=3.18.2"
   },
   "devDependencies": {
+    "rewire": "=2.5.2",
     "bitcore-mnemonic": "=1.1.1",
     "browserify-bignum": "=1.3.0-2",
     "chai": "=3.5.0",
