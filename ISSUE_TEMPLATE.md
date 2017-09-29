@@ -19,7 +19,7 @@ Have you read Lisk-JS's Code of Conduct? By filing an Issue, you are expected to
 ### Versions
 
 Please provide the version you are working with. Please include the OS and what version of the OS you're running.
-Also please provide if you are using the NodeJS or Browser version of Lisk-JS.
+Also please tell us whether you are using Lisk-JS in a browser (which one? which version?) or in Node.js.
 
 ### Additional Information
 
