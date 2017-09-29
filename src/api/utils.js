@@ -135,7 +135,7 @@ const serialiseHTTPData = (data) => {
 	return `?${queryString}`;
 };
 
-module.exports = {
+export default {
 	trimObj,
 	toQueryString,
 	serialiseHTTPData,

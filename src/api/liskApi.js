@@ -40,7 +40,7 @@
  * @main lisk
  */
 import privateApi from './privateApi';
-import { checkOptions, optionallyCallCallback, wrapSendRequest } from './utils';
+import utils from './utils';
 import config from '../../config.json';
 
 const GET = 'GET';
@@ -56,7 +56,7 @@ const getDefaultPort = (options) => {
 	return livePort;
 };
 
-class LiskAPI {
+export default class LiskAPI {
 	constructor(providedOptions) {
 		const options = Object.assign({}, config.options, providedOptions);
 
@@ -180,7 +180,7 @@ class LiskAPI {
 	sendRequest(requestMethod, requestType, optionsOrCallback, callbackIfOptions) {
 		const callback = callbackIfOptions || optionsOrCallback;
 		const options = (typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined')
-			? checkOptions(optionsOrCallback)
+			? utils.checkOptions(optionsOrCallback)
 			: {};
 
 		return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
@@ -189,7 +189,7 @@ class LiskAPI {
 				this, requestMethod, requestType, options,
 			))
 			.catch(privateApi.handleSendRequestFailures.bind(this, requestMethod, requestType, options))
-			.then(optionallyCallCallback.bind(null, callback));
+			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
 
 	/**
@@ -217,7 +217,7 @@ class LiskAPI {
  * @return API object
  */
 
-LiskAPI.prototype.getAccount = wrapSendRequest(GET, 'accounts', address => ({ address }));
+LiskAPI.prototype.getAccount = utils.wrapSendRequest(GET, 'accounts', address => ({ address }));
 
 /**
  * @method getActiveDelegates
@@ -228,7 +228,7 @@ LiskAPI.prototype.getAccount = wrapSendRequest(GET, 'accounts', address => ({ ad
  * @return API object
  */
 
-LiskAPI.prototype.getActiveDelegates = wrapSendRequest(GET, 'delegates', limit => ({ limit }));
+LiskAPI.prototype.getActiveDelegates = utils.wrapSendRequest(GET, 'delegates', limit => ({ limit }));
 
 /**
  * @method getStandbyDelegates
@@ -239,7 +239,7 @@ LiskAPI.prototype.getActiveDelegates = wrapSendRequest(GET, 'delegates', limit =
  * @return API object
  */
 
-LiskAPI.prototype.getStandbyDelegates = wrapSendRequest(GET, 'delegates', (limit, { orderBy = 'rate:asc', offset = 101 }) => ({ limit, orderBy, offset }));
+LiskAPI.prototype.getStandbyDelegates = utils.wrapSendRequest(GET, 'delegates', (limit, { orderBy = 'rate:asc', offset = 101 }) => ({ limit, orderBy, offset }));
 
 /**
  * @method searchDelegatesByUsername
@@ -250,7 +250,7 @@ LiskAPI.prototype.getStandbyDelegates = wrapSendRequest(GET, 'delegates', (limit
  * @return API object
  */
 
-LiskAPI.prototype.searchDelegatesByUsername = wrapSendRequest(GET, 'delegates', search => ({ search }));
+LiskAPI.prototype.searchDelegatesByUsername = utils.wrapSendRequest(GET, 'delegates', search => ({ search }));
 
 /**
  * @method getBlocks
@@ -261,7 +261,7 @@ LiskAPI.prototype.searchDelegatesByUsername = wrapSendRequest(GET, 'delegates', 
  * @return API object
  */
 
-LiskAPI.prototype.getBlocks = wrapSendRequest(GET, 'blocks', limit => ({ limit }));
+LiskAPI.prototype.getBlocks = utils.wrapSendRequest(GET, 'blocks', limit => ({ limit }));
 
 /**
  * @method getForgedBlocks
@@ -272,7 +272,7 @@ LiskAPI.prototype.getBlocks = wrapSendRequest(GET, 'blocks', limit => ({ limit }
  * @return API object
  */
 
-LiskAPI.prototype.getForgedBlocks = wrapSendRequest(GET, 'blocks', generatorPublicKey => ({ generatorPublicKey }));
+LiskAPI.prototype.getForgedBlocks = utils.wrapSendRequest(GET, 'blocks', generatorPublicKey => ({ generatorPublicKey }));
 
 /**
  * @method getBlock
@@ -283,7 +283,7 @@ LiskAPI.prototype.getForgedBlocks = wrapSendRequest(GET, 'blocks', generatorPubl
  * @return API object
  */
 
-LiskAPI.prototype.getBlock = wrapSendRequest(GET, 'blocks', height => ({ height }));
+LiskAPI.prototype.getBlock = utils.wrapSendRequest(GET, 'blocks', height => ({ height }));
 
 /**
  * @method getTransactions
@@ -294,7 +294,7 @@ LiskAPI.prototype.getBlock = wrapSendRequest(GET, 'blocks', height => ({ height 
  * @return API object
  */
 
-LiskAPI.prototype.getTransactions = wrapSendRequest(GET, 'transactions', recipientId => ({ recipientId }));
+LiskAPI.prototype.getTransactions = utils.wrapSendRequest(GET, 'transactions', recipientId => ({ recipientId }));
 
 /**
  * @method getTransaction
@@ -305,7 +305,7 @@ LiskAPI.prototype.getTransactions = wrapSendRequest(GET, 'transactions', recipie
  * @return API object
  */
 
-LiskAPI.prototype.getTransaction = wrapSendRequest(GET, 'transactions', transactionId => ({ transactionId }));
+LiskAPI.prototype.getTransaction = utils.wrapSendRequest(GET, 'transactions', transactionId => ({ transactionId }));
 
 /**
  * @method getVotes
@@ -316,7 +316,7 @@ LiskAPI.prototype.getTransaction = wrapSendRequest(GET, 'transactions', transact
  * @return API object
  */
 
-LiskAPI.prototype.getVotes = wrapSendRequest(GET, 'votes', address => ({ address }));
+LiskAPI.prototype.getVotes = utils.wrapSendRequest(GET, 'votes', address => ({ address }));
 
 /**
  * @method getVoters
@@ -327,7 +327,7 @@ LiskAPI.prototype.getVotes = wrapSendRequest(GET, 'votes', address => ({ address
  * @return API object
  */
 
-LiskAPI.prototype.getVoters = wrapSendRequest(GET, 'voters', username => ({ username }));
+LiskAPI.prototype.getVoters = utils.wrapSendRequest(GET, 'voters', username => ({ username }));
 
 /**
  * @method getUnsignedMultisignatureTransactions
@@ -338,7 +338,7 @@ LiskAPI.prototype.getVoters = wrapSendRequest(GET, 'voters', username => ({ user
  * @return API object
  */
 
-LiskAPI.prototype.getUnsignedMultisignatureTransactions = wrapSendRequest(GET, 'transactions/unsigned', data => data);
+LiskAPI.prototype.getUnsignedMultisignatureTransactions = utils.wrapSendRequest(GET, 'transactions/unsigned', data => data);
 
 /**
  * @method getDapp
@@ -349,7 +349,7 @@ LiskAPI.prototype.getUnsignedMultisignatureTransactions = wrapSendRequest(GET, '
  * @return API object
  */
 
-LiskAPI.prototype.getDapp = wrapSendRequest(GET, 'dapps', transactionId => ({ transactionId }));
+LiskAPI.prototype.getDapp = utils.wrapSendRequest(GET, 'dapps', transactionId => ({ transactionId }));
 
 /**
  * @method getDapps
@@ -360,7 +360,7 @@ LiskAPI.prototype.getDapp = wrapSendRequest(GET, 'dapps', transactionId => ({ tr
  * @return API object
  */
 
-LiskAPI.prototype.getDapps = wrapSendRequest(GET, 'dapps', data => data);
+LiskAPI.prototype.getDapps = utils.wrapSendRequest(GET, 'dapps', data => data);
 
 /**
  * @method getDappsByCategory
@@ -371,7 +371,4 @@ LiskAPI.prototype.getDapps = wrapSendRequest(GET, 'dapps', data => data);
  * @return API object
  */
 
-LiskAPI.prototype.getDappsByCategory = wrapSendRequest(GET, 'dapps', category => ({ category }));
-
-
-module.exports = LiskAPI;
+LiskAPI.prototype.getDappsByCategory = utils.wrapSendRequest(GET, 'dapps', category => ({ category }));
