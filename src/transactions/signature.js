@@ -17,7 +17,7 @@
  * @class signature
  */
 import cryptoModule from '../crypto';
-import { signatureFee } from '../constants';
+import { SIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -49,7 +49,7 @@ export default function createSignature(secret, secondSecret, timeOffset) {
 	const transaction = {
 		type: 1,
 		amount: 0,
-		fee: signatureFee,
+		fee: SIGNATURE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),

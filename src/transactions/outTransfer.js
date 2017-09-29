@@ -18,7 +18,7 @@
  * @class transfer
  */
 import cryptoModule from '../crypto';
-import { outTransferFee } from '../constants';
+import { OUT_TRANSFER_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
@@ -43,7 +43,7 @@ export default function createOutTransfer(
 	const transaction = {
 		type: 7,
 		amount,
-		fee: outTransferFee,
+		fee: OUT_TRANSFER_FEE,
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),

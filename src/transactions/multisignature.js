@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2017 Lisk Foundation
  *
@@ -14,7 +13,7 @@
  *
  */
 import cryptoModule from '../crypto';
-import { multisignatureFee } from '../constants';
+import { MULTISIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 /**
@@ -38,7 +37,7 @@ export default function createMultisignature(
 	const transaction = {
 		type: 4,
 		amount: 0,
-		fee: (multisignatureFee * keygroupFees),
+		fee: (MULTISIGNATURE_FEE * keygroupFees),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),

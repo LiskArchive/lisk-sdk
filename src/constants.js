@@ -20,13 +20,13 @@
  * @type object
  */
 
-export const fixedPoint = 10 ** 8;
-export const sendFee = 0.1 * fixedPoint;
-export const dataFee = 0.1 * fixedPoint;
-export const inTransferFee = 0.1 * fixedPoint;
-export const outTransferFee = 0.1 * fixedPoint;
-export const signatureFee = 5 * fixedPoint;
-export const delegateFee = 25 * fixedPoint;
-export const voteFee = 1 * fixedPoint;
-export const multisignatureFee = 5 * fixedPoint;
-export const dappFee = 25 * fixedPoint;
+export const FIXED_POINT = 10 ** 8;
+export const SEND_FEE = 0.1 * FIXED_POINT;
+export const DATA_FEE = 0.1 * FIXED_POINT;
+export const IN_TRANSFER_FEE = 0.1 * FIXED_POINT;
+export const OUT_TRANSFER_FEE = 0.1 * FIXED_POINT;
+export const SIGNATURE_FEE = 5 * FIXED_POINT;
+export const DELEGATE_FEE = 25 * FIXED_POINT;
+export const VOTE_FEE = 1 * FIXED_POINT;
+export const MULTISIGNATURE_FEE = 5 * FIXED_POINT;
+export const DAPP_FEE = 25 * FIXED_POINT;

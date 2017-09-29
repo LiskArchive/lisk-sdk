@@ -13,51 +13,51 @@
  *
  */
 import {
-	fixedPoint,
-	dappFee,
-	delegateFee,
-	inTransferFee,
-	outTransferFee,
-	multisignatureFee,
-	signatureFee,
-	sendFee,
-	voteFee,
+	FIXED_POINT,
+	DAPP_FEE,
+	DELEGATE_FEE,
+	IN_TRANSFER_FEE,
+	OUT_TRANSFER_FEE,
+	MULTISIGNATURE_FEE,
+	SIGNATURE_FEE,
+	SEND_FEE,
+	VOTE_FEE,
 } from '../src/constants';
 
 describe('constants', () => {
-	it('should know the fixedPoint', () => {
-		(fixedPoint).should.be.equal(1e8);
+	it('FIXED_POINT should be an integer', () => {
+		(FIXED_POINT).should.be.an.integer();
 	});
 
-	it('dappFee', () => {
-		(dappFee).should.be.equal(25e8);
+	it('DAPP_FEE should be an integer', () => {
+		(DAPP_FEE).should.be.an.integer();
 	});
 
-	it('delegateFee', () => {
-		(delegateFee).should.be.equal(25e8);
+	it('DELEGATE_FEE should be an integer', () => {
+		(DELEGATE_FEE).should.be.an.integer();
 	});
 
-	it('inTransferFee', () => {
-		(inTransferFee).should.be.equal(0.1e8);
+	it('IN_TRANSFER_FEE should be an integer', () => {
+		(IN_TRANSFER_FEE).should.be.an.integer();
 	});
 
-	it('outTransferFee', () => {
-		(outTransferFee).should.be.equal(0.1e8);
+	it('OUT_TRANSFER_FEE should be an integer', () => {
+		(OUT_TRANSFER_FEE).should.be.an.integer();
 	});
 
-	it('multisignatureFee', () => {
-		(multisignatureFee).should.be.equal(5e8);
+	it('MULTISIGNATURE_FEE should be an integer', () => {
+		(MULTISIGNATURE_FEE).should.be.an.integer();
 	});
 
-	it('signatureFee', () => {
-		(signatureFee).should.be.equal(5e8);
+	it('SIGNATURE_FEE should be an integer', () => {
+		(SIGNATURE_FEE).should.be.an.integer();
 	});
 
-	it('sendFee', () => {
-		(sendFee).should.be.equal(0.1e8);
+	it('SEND_FEE should be an integer', () => {
+		(SEND_FEE).should.be.an.integer();
 	});
 
-	it('voteFee', () => {
-		(voteFee).should.be.equal(1e8);
+	it('VOTE_FEE should be an integer', () => {
+		(VOTE_FEE).should.be.an.integer();
 	});
 });

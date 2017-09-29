@@ -80,7 +80,7 @@ export const checkOptions = (options) => {
  *
  * @return trimmed object
  */
-export function trimObj(obj) {
+export const trimObj = (obj) => {
 	const isArray = Array.isArray(obj);
 	if (!isArray && typeof obj !== 'object') {
 		return Number.isInteger(obj)
@@ -104,7 +104,7 @@ export function trimObj(obj) {
 					[trimmedKey]: trimmedValue,
 				});
 			}, {});
-}
+};
 
 /**
  * @method toQueryString
@@ -112,7 +112,7 @@ export function trimObj(obj) {
  *
  * @return query string
  */
-export function toQueryString(obj) {
+export const toQueryString = (obj) => {
 	const parts = Object.entries(obj)
 		.reduce((accumulator, [key, value]) => [
 			...accumulator,
@@ -120,7 +120,7 @@ export function toQueryString(obj) {
 		], []);
 
 	return parts.join('&');
-}
+};
 
 /**
  * @method serialiseHTTPData
@@ -134,13 +134,3 @@ export const serialiseHTTPData = (data) => {
 	const queryString = toQueryString(trimmed);
 	return `?${queryString}`;
 };
-//
-// export default {
-// 	trimObj,
-// 	toQueryString,
-// 	serialiseHTTPData,
-// 	checkOptions,
-// 	constructRequestData,
-// 	wrapSendRequest,
-// 	optionallyCallCallback,
-// };
