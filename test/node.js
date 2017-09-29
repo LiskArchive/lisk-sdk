@@ -267,13 +267,13 @@ node.expectedFeeForTrsWithData = function (amount) {
 // Returns a random username of 16 characters
 node.randomUsername = function () {
 	var randomLetter = randomString.generate({
-	  length: 1,
-	  charset: 'alphabetic',
+		length: 1,
+		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = randomString.generate({
-		length: 15,
+		length: node.randomNumber(1,15),
 		charset: custom
 	});
 
@@ -283,13 +283,13 @@ node.randomUsername = function () {
 // Returns a random delegate name of 20 characters
 node.randomDelegateName = function () {
 	var randomLetter = randomString.generate({
-	  length: 1,
-	  charset: 'alphabetic',
+		length: 1,
+		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = randomString.generate({
-		length: 19,
+		length: node.randomNumber(1,19),
 		charset: custom
 	});
 
@@ -299,13 +299,13 @@ node.randomDelegateName = function () {
 // Returns a random capitialized username of 16 characters
 node.randomCapitalUsername = function () {
 	var randomLetter = randomString.generate({
-	  length: 1,
-	  charset: 'alphabetic',
+		length: 1,
+		charset: 'alphabetic',
 		capitalization: 'uppercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = randomString.generate({
-		length: 15,
+		length: node.randomNumber(1,15),
 		charset: custom
 	});
 
@@ -317,7 +317,7 @@ node.randomApplicationName = function () {
 	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	return randomString.generate({
-		length: 32,
+		length: node.randomNumber(1,32),
 		charset: custom
 	});
 };
@@ -383,7 +383,7 @@ node.initApplication = function (cb, initScope) {
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
-	    promiseLib: Promise
+		promiseLib: Promise
 	};
 	var db = initScope.db;
 	if (!db) {
