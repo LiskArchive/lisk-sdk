@@ -39,8 +39,8 @@
  * @class lisk.api()
  * @main lisk
  */
-import privateApi from './privateApi';
-import utils from './utils';
+import * as privateApi from './privateApi';
+import * as utils from './utils';
 import config from '../../config.json';
 
 const GET = 'GET';

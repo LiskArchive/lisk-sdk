@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import utils from '../../src/api/utils';
+const utils = require('../../src/api/utils');
 
 afterEach(() => sandbox.restore());
 

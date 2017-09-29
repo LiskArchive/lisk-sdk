@@ -13,7 +13,7 @@
  *
  */
 import * as popsicle from 'popsicle';
-import utils from './utils';
+import * as utils from './utils';
 
 const GET = 'GET';
 
@@ -23,7 +23,7 @@ const GET = 'GET';
  * @private
  */
 
-function netHashOptions() {
+export function netHashOptions() {
 	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 
@@ -53,7 +53,7 @@ function netHashOptions() {
  * @private
  */
 
-function getURLPrefix() {
+export function getURLPrefix() {
 	return this.ssl
 		? 'https'
 		: 'http';
@@ -65,7 +65,7 @@ function getURLPrefix() {
  * @private
  */
 
-function getFullURL() {
+export function getFullURL() {
 	const nodeUrl = this.port
 		? `${this.currentPeer}:${this.port}`
 		: this.currentPeer;
@@ -79,7 +79,7 @@ function getFullURL() {
  * @private
  */
 
-function getPeers() {
+export function getPeers() {
 	if (this.testnet) return this.defaultTestnetPeers;
 	if (this.ssl) return this.defaultSSLPeers;
 	return this.defaultPeers;
@@ -91,7 +91,7 @@ function getPeers() {
  * @private
  */
 
-function getRandomPeer() {
+export function getRandomPeer() {
 	const peers = getPeers.call(this)
 		.filter(peer => !this.bannedPeers.includes(peer));
 
@@ -109,7 +109,7 @@ function getRandomPeer() {
  * @private
  */
 
-function selectNode() {
+export function selectNode() {
 	const providedNode = this.options.node;
 
 	if (this.randomPeer) {
@@ -129,7 +129,7 @@ function selectNode() {
  * @private
  */
 
-function banNode() {
+export function banNode() {
 	if (!this.bannedPeers.includes(this.currentPeer)) {
 		this.bannedPeers.push(this.currentPeer);
 	}
@@ -141,7 +141,7 @@ function banNode() {
  * @private
  */
 
-function checkReDial() {
+export function checkReDial() {
 	const peers = getPeers.call(this);
 
 	// RandomPeer discovery explicitly set
@@ -178,7 +178,7 @@ function checkReDial() {
  * @return request Object
  */
 
-function createRequestObject(method, requestType, providedOptions) {
+export function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
 	const url = method === GET
 		? `${getFullURL.call(this)}/api/${requestType}${utils.serialiseHTTPData.call(this, options)}`
@@ -202,7 +202,7 @@ function createRequestObject(method, requestType, providedOptions) {
  * @return APIcall Promise
  */
 
-function sendRequestPromise(requestMethod, requestType, options) {
+export function sendRequestPromise(requestMethod, requestType, options) {
 	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
 
 	return popsicle
@@ -221,7 +221,7 @@ function sendRequestPromise(requestMethod, requestType, options) {
  * @return Promise
  */
 
-function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
+export function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
 	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
 		const newOptions = Object.assign({}, options, {
 			timeOffset: (options.timeOffset || 0) + 10,
@@ -243,7 +243,7 @@ function handleTimestampIsInFutureFailures(requestMethod, requestType, options, 
  * @return Promise
  */
 
-function handleSendRequestFailures(requestMethod, requestType, options, error) {
+export function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	const that = this;
 	if (checkReDial.call(that)) {
 		return new Promise(((resolve, reject) => {
@@ -263,18 +263,3 @@ function handleSendRequestFailures(requestMethod, requestType, options, error) {
 		message: 'Could not create an HTTP request to any known peers.',
 	});
 }
-
-export default {
-	netHashOptions,
-	getFullURL,
-	getURLPrefix,
-	selectNode,
-	getPeers,
-	getRandomPeer,
-	banNode,
-	checkReDial,
-	sendRequestPromise,
-	createRequestObject,
-	handleTimestampIsInFutureFailures,
-	handleSendRequestFailures,
-};
