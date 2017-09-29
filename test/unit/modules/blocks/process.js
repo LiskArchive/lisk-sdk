@@ -14,252 +14,10 @@ var slots = require('../../../../helpers/slots.js');
 var blocksData = require('./processBlocks.json');
 var Promise = require('bluebird');
 
-var forkOneScenarios = [
-	{
-		'id': '7534227321230411012',
-		'version': 0,
-		'timestamp': 35566034,
-		'height': 4,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746',
-		'generatorId': '2581762640681118072L',
-		'blockSignature': 'ece34388285d63c030c94c696fa0122a3954c442633eb1ba5fbf71b06ed2d32cff406fe38daa8fdbb79c40a488d5a2cac4926592043d1fab3f03a8d44ddde602',
-		'transactions': []
-	},
-	{
-		'id': '2161998821711735087',
-		'version': 0,
-		'timestamp': 35566034,
-		'height': 4,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
-		'generatorId': '17110047919889272525L',
-		'blockSignature': 'b0040270fe25b22aa7f2004f14b94eb987511eb36acc0cacd025692d113d11db61a9d2bab19f79cd8129b81359f32515f6bf43483374de0ca137945cec4c950f',
-		'transactions': []
-	},
-	{
-		'id': '13256639310355104827',
-		'version': 0,
-		'timestamp': 35566015,
-		'height': 4,
-		'previousBlock': '6524861224470851795',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '031e27beab583e2c94cb3167d128fc1a356c1ae88adfcfaa2334abffa3ae0b4c',
-		'generatorId': '11004588490103196952L',
-		'blockSignature': '5d01ceb6a85943bbcd763b2a6ac90e0ec51a82b00469314ef193b4396e2be06eb70f1f7296422d4eaa03ad464d00e36dd742b7b7e878a56eb4da9cadc2982d0a',
-		'transactions': []
-	},
-	{
-		'id': '10926931574281732446',
-		'version': 0,
-		'timestamp': 35566044,
-		'height': 5,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a',
-		'generatorId': '11506830473925742632L',
-		'blockSignature': '3fac1aed675e35ec7e60878f32d18e39295d37a364be4bfd412d2576fad3d5fd128f1b0e4ba30f7ae90333a5f7c74a226ba1a59f65319f6a77d60252a12f4007',
-		'transactions': []
-	},
-	{
-		'id': '2237733427461633785',
-		'version': 0,
-		'timestamp': 35566044,
-		'height': 5,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
-		'generatorId': '17110047919889272525L',
-		'blockSignature': '4a7e8b5d7884a63a4f81dcf8022653003a8e169fb9393e7f408f591a5a86553625bd67e52e151cdc586670d0cc7c949487e1a4b2999413f3608f18e385cb5f09',
-		'transactions': []
-	},
-	{
-		'id': '15780158931460205205',
-		'version': 0,
-		'timestamp': 35566025,
-		'height': 5,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
-		'generatorId': '17110047919889272525L',
-		'blockSignature': 'cf903495ecfc5856f86982ad4932621278116b8f78f069be8232777f614619fd77fe2e7f8828c4773f7cd8b1248029c1731615d2cfd1b18228c1d6b2fd0b0b0c',
-		'transactions': []
-	}
-];
+var forkOneScenarios = require('./forks/forkOneScenarios.json');
+var forkThreeScenarios = require('./forks/forkThreeScenarios.json');
+var forkFiveScenarios = require('./forks/forkFiveScenarios.json');
 
-var forkThreeScenarios = [
-	{
-		'id': '11404057301523722164',
-		'version': 0,
-		'timestamp': 35566035,
-		'height': 3,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a',
-		'generatorId': '11506830473925742632L',
-		'blockSignature': '5e1e51601c0303d0be6b5b1278e65dd69337fd214f230e6181130812a6b6f0f70debe4662ee3f82911ecb20d0d5292334126b496713c2d78272155882ae70c04',
-		'transactions': []
-	},
-	{
-		'id': '1994488132345507931',
-		'version': 0,
-		'timestamp': 35566035,
-		'height': 3,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		'generatorId': '2581762640681118072L',
-		'blockSignature': '399d31e64ce8cbf985acce3304712a08b1a148829cdaaf19fdec1e5dc70346137bce814fd24584d68c15695122c45a3b1ce60da4174e1b2aea1ffb0d73226d0e',
-		'transactions': []
-	}
-];
-
-var forkFiveScenarios = [
-	{
-		'id': '7534227321230411012',
-		'version': 0,
-		'timestamp': 35566034,
-		'height': 3,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746',
-		'generatorId': '2581762640681118072L',
-		'blockSignature': 'ece34388285d63c030c94c696fa0122a3954c442633eb1ba5fbf71b06ed2d32cff406fe38daa8fdbb79c40a488d5a2cac4926592043d1fab3f03a8d44ddde602',
-		'transactions': []
-	},
-	{
-		'id': '2161998821711735087',
-		'version': 0,
-		'timestamp': 35566034,
-		'height': 3,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
-		'generatorId': '17110047919889272525L',
-		'blockSignature': 'b0040270fe25b22aa7f2004f14b94eb987511eb36acc0cacd025692d113d11db61a9d2bab19f79cd8129b81359f32515f6bf43483374de0ca137945cec4c950f',
-		'transactions': []
-	},
-	{
-		'id': '10926931574281732446',
-		'version': 0,
-		'timestamp': 35566044,
-		'height': 3,
-		'previousBlock': '6031210250236390844',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a',
-		'generatorId': '11506830473925742632L',
-		'blockSignature': '3fac1aed675e35ec7e60878f32d18e39295d37a364be4bfd412d2576fad3d5fd128f1b0e4ba30f7ae90333a5f7c74a226ba1a59f65319f6a77d60252a12f4007',
-		'transactions': []
-	},
-	{
-		'id': '16056852016774003157',
-		'version': 0,
-		'timestamp': 35566044,
-		'height': 4,
-		'previousBlock': '5306579532562076080',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1',
-		'generatorId': '17110047919889272525L',
-		'blockSignature': '6ab68499289da80618f4e4b01f40c90d72c2bb3a6ca1785c44b03507140c7c86a4d580c4f60d0fd58a18ea9e125ca6061c2493b2d4cb9d5f1b6735e927f8d301',
-		'transactions': []
-	},
-	{
-		'id': '10809124178179825767',
-		'version': 0,
-		'timestamp': 35566044,
-		'height': 4,
-		'previousBlock': '5306579532562076080',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a',
-		'generatorId': '11506830473925742632L',
-		'blockSignature': 'f0ab0aae9d57cc37b00e530d35ab5612a04b8f894c45bed2e1c8efc3d05723b72e2d0313ea8b4129fd58627a38847720c19fb172d68ce2d5e625fd5b0156110e',
-		'transactions': []
-	},
-	{
-		'id': '11989800390883044151',
-		'version': 0,
-		'timestamp': 35566055,
-		'height': 4,
-		'previousBlock': '5306579532562076080',
-		'numberOfTransactions': 0,
-		'totalAmount': 0,
-		'totalFee': 0,
-		'reward': 0,
-		'payloadLength': 0,
-		'payloadHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		'generatorPublicKey': '031e27beab583e2c94cb3167d128fc1a356c1ae88adfcfaa2334abffa3ae0b4c',
-		'generatorId': '11004588490103196952L',
-		'blockSignature': '15436564bb46222bfe462f92e3a4c1d932ae5b9cbef9b181b2c2652217346acfaa28676f749f39d9af60651ee04bb431e3d64ad6487924e642c988beaf902601',
-		'transactions': []
-	}
-];
 // Set spies for logger
 var debug = sinon.stub(modulesLoader.scope.logger, 'debug');
 var info = sinon.stub(modulesLoader.scope.logger, 'info');
@@ -371,7 +129,11 @@ describe('blocks/process', function () {
 		restoreSpiesState();
 	});
 
-	function toBlockchain (blocksDataArray, operationType, blockNumber) {
+	/* 
+	 * Adds a block to blockchain from blocksDataArray, position blockNumber, and logs the	
+	 * operation from opeartionType: add, restore.
+	 */
+	function addBlock (blocksDataArray, operationType, blockNumber) {
 		it(['should be ok when', operationType, 'block', blockNumber + 1].join(' '), function (done) {
 			if (blockNumber === 0) {
 				blocks.lastBlock.set(genesisBlock);
@@ -433,7 +195,7 @@ describe('blocks/process', function () {
 
 		describe('receiveBlock', function () {
 
-			toBlockchain(blocksData, 'received', 0);
+			addBlock(blocksData, 'received', 0);
 
 			describe('validateBlockSlot error - fork 3', function () {
 
@@ -531,7 +293,7 @@ describe('blocks/process', function () {
 
 			describe('timestamp is lower than previous block', function () {
 
-				toBlockchain(blocksData, 'received', 1);
+				addBlock(blocksData, 'received', 1);
 
 				it('should fail when block object normalize', function (done) {
 					modulesLoader.scope.sequence.add = function (cb) {
@@ -620,8 +382,8 @@ describe('blocks/process', function () {
 						blocksProcess.onReceiveBlock(forkOneScenarios[0]);
 					});
 
-					toBlockchain(blocksData, 'restore', 0);
-					toBlockchain(blocksData, 'restore', 1);
+					addBlock(blocksData, 'restore', 0);
+					addBlock(blocksData, 'restore', 1);
 
 					it('should fail when blocks have different publicKey generator and last block generator is invalid', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
@@ -682,9 +444,9 @@ describe('blocks/process', function () {
 
 				describe('Round changes', function () {
 
-					toBlockchain(blocksData, 'restore', 0);
-					toBlockchain(blocksData, 'restore', 1);
-					toBlockchain(blocksData, 'restore', 2);
+					addBlock(blocksData, 'restore', 0);
+					addBlock(blocksData, 'restore', 1);
+					addBlock(blocksData, 'restore', 2);
 
 					it('should fail when block generator not match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
@@ -747,7 +509,7 @@ describe('blocks/process', function () {
 
 		describe('receiveForkFive', function () {
 
-			toBlockchain(blocksData, 'restore', 1);
+			addBlock(blocksData, 'restore', 1);
 
 			describe('timestamp is greather than previous block', function () {
 
@@ -932,7 +694,7 @@ describe('blocks/process', function () {
 					});
 
 					deleteLastBlock();
-					toBlockchain(forkFiveScenarios, 'previous generator missed round', 2);
+					addBlock(forkFiveScenarios, 'previous generator missed round', 2);
 
 					it('should be ok when last block loses and blocks have different publicKey generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
@@ -974,8 +736,8 @@ describe('blocks/process', function () {
 				describe('Round changes', function () {
 
 					deleteLastBlock();
-					toBlockchain(blocksData, 'restore', 1);
-					toBlockchain(blocksData, 'restore', 2);
+					addBlock(blocksData, 'restore', 1);
+					addBlock(blocksData, 'restore', 2);
 
 					it('should fail when last block loses and block generator not match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
@@ -1046,7 +808,7 @@ describe('blocks/process', function () {
 					});
 
 					deleteLastBlock();
-					toBlockchain(forkFiveScenarios, 'previous generator missed round', 5);
+					addBlock(forkFiveScenarios, 'previous generator missed round', 5);
 
 					it('should be ok when last block loses and block match last block of round generator', function (done) {
 						modulesLoader.scope.sequence.add = function (cb) {
