@@ -28,6 +28,7 @@ module.exports = function configureGrunt(grunt) {
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
 			babelTest: './node_modules/.bin/babel src --out-dir ./browsertest/src && BABEL_ENV=browsertest ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
 			tidyTest: 'rm -r browsertest/{src,test}',
+			browserifyRewireify: 'browserify -e ./browsertest/test/*.js ./browsertest/test/**/*.js -o ./browsertest/browsertest.js -t rewireify -s browsertest',
 		},
 
 		eslint: {
@@ -38,10 +39,6 @@ module.exports = function configureGrunt(grunt) {
 			dist: {
 				src: './dist-node/*.js',
 				dest: './dist-browser/lisk-js.js',
-			},
-			test: {
-				src: ['./browsertest/test/*.js', './browsertest/test/**/*.js'],
-				dest: './browsertest/browsertest.js',
 			},
 			options: {
 				browserifyOptions: {
@@ -90,7 +87,7 @@ module.exports = function configureGrunt(grunt) {
 	]);
 	grunt.registerTask('build-browsertest', [
 		'exec:babelTest',
-		'browserify:test',
+		'exec:browserifyRewireify',
 		'uglify:test',
 		'exec:tidyTest',
 	]);
