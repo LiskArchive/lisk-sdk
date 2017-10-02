@@ -5,6 +5,7 @@ require('./api/ws/workers/slaveToMasterSender');
 
 require('./helpers/ed');
 require('./helpers/jobs-queue');
+require('./helpers/orderBy');
 require('./helpers/peersManager');
 require('./helpers/pg-notify');
 require('./helpers/request-limiter');
