@@ -12,7 +12,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
 var AccountModule = require('../../../modules/accounts.js');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var validAccount = {
@@ -65,12 +65,10 @@ describe('account', function () {
 	before(function (done) {
 		node.initApplication(function (err, __scope) {
 			// wait for mem_accounts to be populated
-			setTimeout(function () {
-				__scope.modules.blocks.lastBlock.set({height: 10});
-				accounts = __scope.modules.accounts;
-				accountLogic = __scope.logic.account;
-				done();
-			}, 5000);
+			__scope.modules.blocks.lastBlock.set({height: 10});
+			accounts = __scope.modules.accounts;
+			accountLogic = __scope.logic.account;
+			done();
 		}, db);
 	});
 

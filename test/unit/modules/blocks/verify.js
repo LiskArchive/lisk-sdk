@@ -5,7 +5,7 @@ var async = require('async');
 var sinon = require('sinon');
 
 var node = require('../../../node');
-var modulesLoader = require('../../../common/initModule').modulesLoader;
+var modulesLoader = require('../../../common/modulesLoader');
 var exceptions = require('../../../../helpers/exceptions.js');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
 var DBSandbox = require('../../../common/globalBefore').DBSandbox;
@@ -236,20 +236,18 @@ describe('blocks/verify', function () {
 
 	before(function (done) {
 		node.initApplication(function (err, scope) {
-			setTimeout(function () {
-				scope.modules.blocks.verify.onBind(scope.modules);
-				scope.modules.delegates.onBind(scope.modules);
-				scope.modules.transactions.onBind(scope.modules);
-				scope.modules.blocks.chain.onBind(scope.modules);
-				scope.modules.transport.onBind(scope.modules);
-				accounts = scope.modules.accounts;
-				blocksVerify = scope.modules.blocks.verify;
-				blockLogic = scope.logic.block;
-				blocks = scope.modules.blocks;
-				delegates = scope.modules.delegates;
-				db = scope.db;
-				done();
-			}, 5000);
+			scope.modules.blocks.verify.onBind(scope.modules);
+			scope.modules.delegates.onBind(scope.modules);
+			scope.modules.transactions.onBind(scope.modules);
+			scope.modules.blocks.chain.onBind(scope.modules);
+			scope.modules.transport.onBind(scope.modules);
+			accounts = scope.modules.accounts;
+			blocksVerify = scope.modules.blocks.verify;
+			blockLogic = scope.logic.block;
+			blocks = scope.modules.blocks;
+			delegates = scope.modules.delegates;
+			db = scope.db;
+			done();
 		}, {db: db, bus: modulesLoader.scope.bus});
 	});
 

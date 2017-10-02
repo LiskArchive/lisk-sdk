@@ -604,7 +604,13 @@ node.initApplication = function (cb, initScope) {
 			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			cb(err, scope);
+			// Wait for mem_accounts populate
+			if (initScope.skipMemAccountsPopulate) {
+				return cb(err, scope);
+			}
+			setTimeout(function () {
+				cb(err, scope);
+			}, 5000);
 		});
 	});
 };

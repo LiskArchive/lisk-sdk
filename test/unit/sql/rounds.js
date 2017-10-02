@@ -154,7 +154,7 @@ describe('Rounds-related SQL triggers', function () {
 			node.initApplication(function (err, scope) {
 				library = scope;
 				done(err);
-			}, {db: db});
+			}, {db: db, skipMemAccountsPopulate: true});
 		});
 	});
 
