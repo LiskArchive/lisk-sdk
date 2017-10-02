@@ -581,7 +581,6 @@ Transactions.prototype.isLoaded = function () {
 Transactions.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
-		transactions: scope.transactions,
 		transport: scope.transport
 	};
 
