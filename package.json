@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node app.js",
     "jenkins": "./node_modules/.bin/grunt jenkins --verbose",
+    "jenkins-extensive": "./node_modules/.bin/grunt jenkins-extensive --verbose",
     "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
     "coverageReport": "./node_modules/.bin/grunt coverageReport --verbose",

@@ -53,6 +53,13 @@ def report(){
 }
 
 lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
+
+	properties([
+	  parameters([
+	    string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow test, change this value to jenkins-extensive.', )
+	   ])
+	])
+
 	stage ('Prepare Workspace') {
 		parallel(
 			"Build cached dependencies" : {
@@ -168,7 +175,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -177,7 +184,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -186,7 +193,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/dapps.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -195,7 +202,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/delegates.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -204,7 +211,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/loader.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -213,7 +220,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/multisignatures.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -222,7 +229,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/multisignatures.post.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -231,7 +238,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -240,7 +247,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/http/get/peers.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},  // End node-01 functional tests
@@ -249,7 +256,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/ws/transport.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -258,7 +265,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/ws/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -267,7 +274,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/ws/transport.client.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -276,7 +283,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/ws/transport.handshake.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -285,7 +292,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/ws/transport.transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			}, // End Node-02 Tests
@@ -303,7 +310,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/unit/sql/blockRewards.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
@@ -312,7 +319,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/unit/logic/blockReward.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},// End Node-03 unit tests
@@ -321,7 +328,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					sh '''
 					export TEST=test/functional/ws/transport.transactions.stress.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			} // End Node-04
