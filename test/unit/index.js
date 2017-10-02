@@ -11,6 +11,7 @@ require('./helpers/ed');
 require('./helpers/git');
 require('./helpers/inserts');
 require('./helpers/jobs-queue');
+require('./helpers/orderBy');
 require('./helpers/peersManager');
 require('./helpers/pg-notify');
 require('./helpers/promiseDefer');
