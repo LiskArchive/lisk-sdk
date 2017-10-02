@@ -127,12 +127,13 @@ function createMultisignatureAndConfirm (account, cb) {
 describe('for an account with lisk', function () {
 
 	var multisigAccount;
+	var amounts = [100000000*10, 100000000*12, 100000000*11];
 
 	beforeEach(function (done) {
 		multisigAccount = node.randomAccount();
 		createAccountWithLisk({
 			recipientId: multisigAccount.address,
-			amount: 100000000000000
+			amount: 100000000*1000
 		}, done);
 	});
 
@@ -414,7 +415,7 @@ describe('for an account with lisk', function () {
 					var params = {
 						secret: multisigAccount.password,
 						dappId: dappId,
-						amount: 10000
+						amount: 100000000*10
 					};
 					createIntransfer(params, function (err, res) {
 						expect(err).to.not.exist;
@@ -434,7 +435,6 @@ describe('for an account with lisk', function () {
 				var transactionsToCheckIds;
 
 				beforeEach(function (done) {
-					var amounts = [5000000, 1000000, 15000000];
 					async.map(amounts, function (amount, cb) {
 						var params = {
 							secret: multisigAccount.password,
@@ -472,7 +472,6 @@ describe('for an account with lisk', function () {
 			var inTransferIds;
 
 			beforeEach(function (done) {
-				var amounts = [5000000, 1000000, 15000000];
 				async.map(amounts, function (amount, cb) {
 					var params = {
 						secret: multisigAccount.password,
@@ -541,7 +540,6 @@ describe('for an account with lisk', function () {
 					var transactionsToCheckIds;
 
 					beforeEach(function (done) {
-						var amounts = [5000000, 1000000, 15000000];
 						async.map(amounts, function (amount, cb) {
 							var outTransferParams = {
 								amount: 1000,
