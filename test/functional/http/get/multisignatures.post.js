@@ -2,10 +2,10 @@
 
 var async = require('async');
 
-var constants = require('../../helpers/constants');
-var node = require('./../node.js');
-var sendLISK = require('../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../common/complexTransactions.js').sendTransaction;
+var constants = require('../../../../helpers/constants');
+var node = require('../../../node.js');
+var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
+var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
 
 var multisigAccount = node.randomAccount();
 var memberAccount1 = node.randomAccount();
@@ -28,7 +28,7 @@ describe('POST /api/multisignatures', function () {
 	it('using null member in keysgroup should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, null], 1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.equal('Invalid member in keysgroup');
 			done();
@@ -38,7 +38,7 @@ describe('POST /api/multisignatures', function () {
 	it('using invalid member in keysgroup should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey + 'A', '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
  			node.expect(res).to.have.property('message').to.equal('Invalid public key in multisignature keysgroup');
 			done();
@@ -48,7 +48,7 @@ describe('POST /api/multisignatures', function () {
 	it('using empty keysgroup should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, [], 1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
  			node.expect(res).to.have.property('message').to.match(/Array is too short \(0\), minimum 1$/);
 			done();
@@ -60,7 +60,7 @@ describe('POST /api/multisignatures', function () {
 
 		delete multiSigTx.asset.multisignature.keysgroup;
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
  			node.expect(res).to.have.property('message').to.match(/Missing required property: keysgroup$/);
 			done();
@@ -70,7 +70,7 @@ describe('POST /api/multisignatures', function () {
 	it('using sender in the keysgroup should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + multisigAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
  			node.expect(res).to.have.property('message').to.equal('Invalid multisignature keysgroup. Can not contain sender');
 			done();
@@ -80,7 +80,7 @@ describe('POST /api/multisignatures', function () {
 	it('using no math operator in keysgroup should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, [node.eAccount.publicKey], 1, 1);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.equal('Invalid math operator in multisignature keysgroup');
 			done();
@@ -90,7 +90,7 @@ describe('POST /api/multisignatures', function () {
 	it('using invalid math operator in keysgroup should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['-' + node.eAccount.publicKey], 1, 1);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.equal('Invalid math operator in multisignature keysgroup');
 			done();
@@ -100,7 +100,7 @@ describe('POST /api/multisignatures', function () {
 	it('using same member twice should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + memberAccount1.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.equal('Encountered duplicate public key in multisignature keysgroup');
 			done();
@@ -114,7 +114,7 @@ describe('POST /api/multisignatures', function () {
 
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Array is too long \(16\), maximum 15$/);
 			done();
@@ -126,7 +126,7 @@ describe('POST /api/multisignatures', function () {
 
 		multiSigTx.asset.multisignature.keysgroup = 'invalid';
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Expected type array but found type string$/);
 			done();
@@ -138,7 +138,7 @@ describe('POST /api/multisignatures', function () {
 
 		delete multiSigTx.asset.multisignature.lifetime;
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Missing required property: lifetime$/);
 			done();
@@ -150,7 +150,7 @@ describe('POST /api/multisignatures', function () {
 
 		multiSigTx.asset.multisignature.lifetime = 'inv4lid';
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Expected type integer but found type string$/);
 			done();
@@ -160,7 +160,7 @@ describe('POST /api/multisignatures', function () {
 	it('using lifetime greater than maximum allowed should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], constants.multisigConstraints.lifetime.maximum + 1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Value 73 is greater than maximum 72$/);
 			done();
@@ -170,7 +170,7 @@ describe('POST /api/multisignatures', function () {
 	it('using lifetime == 0 should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 0, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Value 0 is less than minimum 1$/);
 			done();
@@ -180,7 +180,7 @@ describe('POST /api/multisignatures', function () {
 	it('using negative lifetime should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], -1, 2);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Value -1 is less than minimum 1$/);
 			done();
@@ -192,7 +192,7 @@ describe('POST /api/multisignatures', function () {
 
 		delete multiSigTx.asset.multisignature.min;
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Missing required property: min$/);
 			done();
@@ -204,7 +204,7 @@ describe('POST /api/multisignatures', function () {
 
 		multiSigTx.asset.multisignature.min = 'inv4lid';
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Expected type integer but found type string$/);
 			done();
@@ -214,7 +214,7 @@ describe('POST /api/multisignatures', function () {
 	it('using min greater than keysgroup size plus 1 should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 5);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.equal('Invalid multisignature min. Must be less than or equal to keysgroup size');
 			done();
@@ -224,7 +224,7 @@ describe('POST /api/multisignatures', function () {
 	it('using min greater than maximum acceptable should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 16);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Value 16 is greater than maximum 15$/);
 			done();
@@ -234,7 +234,7 @@ describe('POST /api/multisignatures', function () {
 	it('using min less than minimum acceptable should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 0);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Value 0 is less than minimum 1$/);
 			done();
@@ -244,7 +244,7 @@ describe('POST /api/multisignatures', function () {
 	it('using negative min should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, -1);
 
-		sendTransaction(multiSigTx, function (res) {
+		sendTransaction(multiSigTx, function (err, res) {
 			node.expect(res).to.have.property('success').to.be.not.ok;
 			node.expect(res).to.have.property('message').to.match(/Value -1 is less than minimum 1$/);
 			done();
