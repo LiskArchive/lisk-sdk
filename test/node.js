@@ -273,7 +273,7 @@ node.randomUsername = function () {
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = randomString.generate({
-		length: node.randomNumber(1,15),
+		length: node.randomNumber(1, 15),
 		charset: custom
 	});
 
@@ -289,7 +289,7 @@ node.randomDelegateName = function () {
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = randomString.generate({
-		length: node.randomNumber(1,19),
+		length: node.randomNumber(1, 19),
 		charset: custom
 	});
 
@@ -305,7 +305,7 @@ node.randomCapitalUsername = function () {
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = randomString.generate({
-		length: node.randomNumber(1,15),
+		length: node.randomNumber(1, 15),
 		charset: custom
 	});
 
@@ -317,7 +317,7 @@ node.randomApplicationName = function () {
 	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	return randomString.generate({
-		length: node.randomNumber(1,32),
+		length: node.randomNumber(1, 32),
 		charset: custom
 	});
 };
@@ -325,11 +325,11 @@ node.randomApplicationName = function () {
 // Test random application
 node.randomApplication = function () {
 	var application = {
-		category: node.randomNumber(0,9),
+		category: node.randomNumber(0, 9),
 		name: node.randomApplicationName(),
 		description: 'Blockchain based home monitoring tool',
 		tags: 'monitoring temperature power sidechain',
-		type: node.randomNumber(0,2),
+		type: node.randomNumber(0, 2),
 		link: 'https://' + node.randomApplicationName() + '.zip',
 		icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
 	};

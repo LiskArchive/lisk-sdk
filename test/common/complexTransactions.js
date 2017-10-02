@@ -33,7 +33,6 @@ function sendSignature (signature, transaction, cb) {
 }
 
 function sendLISK (params, cb) {
-	console.log(params);
 	var transaction = lisk.transaction.createTransaction(params.address, params.amount, params.secret, params.secondSecret);
 	sendTransaction(transaction, cb);
 }
