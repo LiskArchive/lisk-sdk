@@ -1,11 +1,11 @@
 'use strict';
 
 var async = require('async');
-var node = require('../node.js');
-var http = require('../common/httpCommunication.js');
-var sendLISK = require('../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../common/complexTransactions.js').sendTransaction;
-var sendSignature = require('../common/complexTransactions.js').sendSignature;
+var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
+var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
+var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
+var sendSignature = require('../../../common/complexTransactions.js').sendSignature;
 
 var multisigAccount = node.randomAccount();
 var multisigTransaction;
@@ -24,7 +24,8 @@ before(function (done) {
 		amount: node.randomLISK(),
 		address: multisigAccount.address
 	}, function (err, res) {
-		node.expect(err).to.be.null;
+		node.expect(res).to.have.property('success').to.be.ok;
+		node.expect(res).to.have.property('transactionId').that.is.not.empty;
 		node.onNewBlock(function () {
 			keysGroup = accounts.map(function (account) { 
 				return '+' + account.publicKey; 
@@ -118,7 +119,8 @@ describe('POST signatures/sign (regular account)', function () {
 				node.expect(res.body.transaction).to.have.property('id').to.equal(transaction.id);
 				var signature = node.lisk.multisignature.signTransaction(transaction, multisigAccount.password);
 				sendSignature(signature, transaction, function (err, res) {
-					node.expect(err).not.to.be.empty;
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').to.equal('Error processing signature: Transaction not found');
 					done();
 				});
 			});
