@@ -36,17 +36,17 @@ describe('OrderBy', function () {
 	});
 
 	describe('quoteField', function () {
-		it('defaults to true', function () {
+		it('should add double quotes (default) when omitted', function () {
 			var orderBy = OrderBy('afield:desc',{sortFields: sortFields});
 			expect(orderBy.sortField).to.equal('\"afield\"');
 		});
 
-		it('set to true', function () {
+		it('should add double quotes when set to true', function () {
 			var orderBy = OrderBy('afield:desc',{sortFields: sortFields, quoteField: true});
 			expect(orderBy.sortField).to.equal('\"afield\"');
 		});
 
-		it('set to false', function () {
+		it('should not add double quotes when set to false', function () {
 			var orderBy = OrderBy('afield:desc',{sortFields: sortFields, quoteField: false});
 			expect(orderBy.sortField).to.equal('afield');
 		});
@@ -58,7 +58,7 @@ describe('OrderBy', function () {
 			expect(orderBy.sortField).to.equal('b_afield');
 		});
 
-		it('uses a function as the var', function () {
+		it('should add prefix when use function as parameter', function () {
 			var orderBy = OrderBy('afield:desc',
 				{
 					sortFields: sortFields,
@@ -69,8 +69,14 @@ describe('OrderBy', function () {
 		});
 	});
 
-	describe('invalid sort field', function () {
-		it('returns an error of Invalid sort field', function () {
+	describe('sort field', function () {
+		/* Todo
+		it('should be ok when using allowed sort field', function () {
+			var orderBy = OrderBy('notvalid:desc',{sortFields: sortFields});
+			expect(orderBy.error).to.equal('Invalid sort field');
+		});
+		*/
+		it('should return an error when using Invalid sort field', function () {
 			var orderBy = OrderBy('notvalid:desc',{sortFields: sortFields});
 			expect(orderBy.error).to.equal('Invalid sort field');
 		});
