@@ -177,7 +177,7 @@ Transfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
 
 /**
  * @typedef {Object} transfer 
- * @property {String} data
+ * @property {string} data
  */
 Transfer.prototype.schema = {
 	id: 'transfer',
@@ -227,7 +227,7 @@ Transfer.prototype.dbFields = [
 
 /**
  * @typedef transferAsset
- * @property {String} data
+ * @property {string} data
  */
 
 /**
@@ -246,8 +246,8 @@ Transfer.prototype.dbRead = function (raw) {
 /**
  * @typedef trsPromise
  * @property {string} table
- * @property {array} fields
- * @property {object} values
+ * @property {Array} fields
+ * @property {Object} values
  */
 
 /**

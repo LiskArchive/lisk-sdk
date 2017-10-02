@@ -47,9 +47,9 @@ function DBSandbox (dbConfig, testDatabaseName) {
 
 /**
  * @param {Function} cb
- * @param {Number} [retries=10] retries
- * @param {Number} [timeout=200] timeout
- * @param {String} [baseUrl='http://localhost:5000'] timeout
+ * @param {number} [retries=10] retries
+ * @param {number} [timeout=200] timeout
+ * @param {string} [baseUrl='http://localhost:5000'] timeout
  */
 function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 	if (!retries) {

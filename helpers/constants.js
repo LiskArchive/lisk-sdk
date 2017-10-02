@@ -10,7 +10,7 @@
  * @property {number} blockReceiptTimeOut
  * @property {number} confirmationLength
  * @property {Date} epochTime
- * @property {object} fees - The default values for fees.
+ * @property {Object} fees - The default values for fees.
  * @property {number} fees.send
  * @property {number} fees.vote
  * @property {number} fees.secondsignature
@@ -33,7 +33,7 @@
  * @property {string[]} nethashes - Mainnet and Testnet.
  * @property {number} numberLength
  * @property {number} requestLength
- * @property {object} rewards
+ * @property {Object} rewards
  * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
  * @property {number} rewards.offset - Start rewards at block (n).
  * @property {number} rewards.distance - Distance between each milestone

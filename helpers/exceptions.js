@@ -2,7 +2,7 @@
 /**
  * @namespace exceptions
  * @memberof module:helpers
- * @property {object} genesisPublicKey
+ * @property {Object} genesisPublicKey
  * @property {string} genesisPublicKey.mainnet
  * @property {string} genesisPublicKey.testnet
  * @property {Strin[]} senderPublicKey

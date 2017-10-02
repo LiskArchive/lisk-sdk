@@ -36,7 +36,7 @@ var Router = function () {
 	/**
 	 * Adds one middleware to an array of routes.
 	 * @param {Function} middleware
-	 * @param {String} routes
+	 * @param {string} routes
 	 */
 	router.attachMiddlwareForUrls = function (middleware, routes) {
 		routes.forEach(function (entry) {

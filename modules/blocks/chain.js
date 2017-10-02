@@ -79,7 +79,7 @@ Chain.prototype.saveGenesisBlock = function (cb) {
  * @param  {Function} cb Callback function
  * @return {Function|afterSave} cb If SQL transaction was OK - returns safterSave execution,
  *                                 if not returns callback function from params (through setImmediate)
- * @return {String}   cb.err Error if occurred
+ * @return {string}   cb.err Error if occurred
  */
 Chain.prototype.saveBlock = function (block, cb) {
 	// Prepare and execute SQL transaction
@@ -491,7 +491,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 /**
  * Broadcast reduced block to increase network performance.
  * @param {Object} reducedBlock reduced block
- * @param {Number} blockId
+ * @param {number} blockId
  * @param {boolean} broadcast Indicator that block needs to be broadcasted
  */
 Chain.prototype.broadcastReducedBlock = function (reducedBlock, blockId, broadcast) {

@@ -79,7 +79,7 @@ var middleware = {
 
 	/**
 	 * Uses req.sanitize for particular endpoint.
-	 * @param {String} property
+	 * @param {string} property
 	 * @param {Object} schema
 	 * @param {Function} cb
 	 * @return {Function} Sanitize middleware.
@@ -180,7 +180,7 @@ var middleware = {
 /**
  * Adds 'success' field to every response and attach error message if needed.
  * @param {Object} res
- * @param {String} err
+ * @param {string} err
  * @param {Object} response
  */
 function respond (res, err, response) {
@@ -193,7 +193,7 @@ function respond (res, err, response) {
 
 /**
  * Register router in express app using default middleware.
- * @param {String} route
+ * @param {string} route
  * @param {Object} app
  * @param {Object} router
  * @param {Function} isLoaded

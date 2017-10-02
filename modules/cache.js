@@ -23,7 +23,7 @@ function Cache (cb, scope) {
 
 /**
  * It gets the status of the redis connection
- * @returns {Boolean} status
+ * @returns {boolean} status
  */
 Cache.prototype.isConnected = function () {
 	// using client.ready because this variable is updated on client connected
@@ -32,7 +32,7 @@ Cache.prototype.isConnected = function () {
 
 /**
  * It gets the caching readiness and the connection of redis
- * @returns {Boolean} status
+ * @returns {boolean} status
  */
 Cache.prototype.isReady = function () {
 	return cacheReady && self.isConnected();
@@ -40,7 +40,7 @@ Cache.prototype.isReady = function () {
 
 /**
  * It gets the json value for a key from redis
- * @param {String} key
+ * @param {string} key
  * @param {Function} cb
  * @returns {Function} cb
  */
@@ -59,7 +59,7 @@ Cache.prototype.getJsonForKey = function (key, cb) {
  
 /**
  * It sets json value for a key in redis
- * @param {String} key
+ * @param {string} key
  * @param {Object} value
  * @param {Function} cb
  */
@@ -73,7 +73,7 @@ Cache.prototype.setJsonForKey = function (key, value, cb) {
 
 /**
  * It deletes json value for a key in redis
- * @param {String} key
+ * @param {string} key
  */
 Cache.prototype.deleteJsonForKey = function (key, cb) {
 	if (!self.isConnected()) {
@@ -84,7 +84,7 @@ Cache.prototype.deleteJsonForKey = function (key, cb) {
 
 /**
  * It scans keys with provided pattern in redis db and deletes the entries that match
- * @param {String} pattern
+ * @param {string} pattern
  * @param {Function} cb
  */
 Cache.prototype.removeByPattern = function (pattern, cb) {
@@ -166,9 +166,9 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 
 /**
  * This function will be triggered when round has changed, it will clear all cache entries.
- * @param {object} data Data received from postgres
- * @param {object} data.round Current round
- * @param {object} data.list Delegates list used for slot calculations
+ * @param {Object} data Data received from postgres
+ * @param {Object} data.round Current round
+ * @param {Object} data.list Delegates list used for slot calculations
  * @param {Function} cb
  */
 Cache.prototype.onRoundChanged = function (data, cb) {

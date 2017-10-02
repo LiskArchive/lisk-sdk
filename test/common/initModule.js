@@ -174,7 +174,7 @@ var modulesLoader = new function () {
 	 * Initializes all created Modules in directory
 	 *
 	 * @param {Function} cb
-	 * @param {object} [scope={}] scope
+	 * @param {Object} [scope={}] scope
 	 */
 	this.initAllModules = function (cb, scope) {
 		this.initModules([
