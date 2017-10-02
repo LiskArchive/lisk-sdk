@@ -6,9 +6,27 @@ var _ = require('underscore');
 var httpApi = require('../../../helpers/httpApi');
 
 describe('httpApi', function () {
+
 	describe('middleware', function () {
+
 		describe('cors', function () {
-			it('headers are set correctly', function () {
+
+			it('should set Access-Control-Allow-Origin to "*"', function () {
+
+				var headers = {};
+				var called = false;
+				var res = {
+					header: function (key, value) {
+						headers[key] = value;
+					}
+				};
+				httpApi.middleware.cors(null, res, function () {called = true;});
+				expect(headers).to.eql({'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers': 'Origin, X-Objected-With, Content-Type, Accept'});
+				expect(called).to.be.true;
+			});
+
+			it('should set Access-Control-Allow-Headers to "Origin, X-Objected-With, Content-Type, Accept"', function () {
+
 				var headers = {};
 				var called = false;
 				var res = {
@@ -23,7 +41,9 @@ describe('httpApi', function () {
 		});
 
 		describe('errorLogger', function () {
+
 			var traceCalled = false;
+
 			beforeEach(function () {
 				sinon.stub(console,'trace').callsFake(function (err) {
 					traceCalled = true;
@@ -34,14 +54,17 @@ describe('httpApi', function () {
 				traceCalled = false;
 			});
 
-			it('error = null', function () {
+			it('should return trace as false when error is null', function () {
+
 				var nextCalled = false;
+
 				httpApi.middleware.errorLogger(null, null, null, null, function () {nextCalled = true;});
 				expect(nextCalled).to.be.true;
 				expect(traceCalled).to.be.false;
 			});
 
-			it('error != null', function () {
+			it('should return trace as true when error is not null', function () {
+
 				var nextCalled = false;
 				var errorCalled = false;
 				var sendCalled = false;
@@ -73,7 +96,9 @@ describe('httpApi', function () {
 		});
 
 		describe('logClientConnections', function () {
-			it('logs the message on the logger', function () {
+
+			it('should log the message using logger on error', function () {
+
 				var loggerCalled = false;
 				var nextCalled = false;
 				var logger = {
@@ -83,6 +108,7 @@ describe('httpApi', function () {
 					}
 				};
 				var req = {method: 'GET', url: 'req/url', ip: '127.0.0.1'};
+
 				httpApi.middleware.logClientConnections(logger, req, null, function () {nextCalled = true;});
 				expect(loggerCalled).to.be.true;
 				expect(nextCalled).to.be.true;
@@ -90,15 +116,19 @@ describe('httpApi', function () {
 		});
 
 		describe('blockchainReady', function () {
-			it('is ready', function () {
+
+			it('should be true when blockchainReady is true', function () {
 				var nextCalled = false;
 				httpApi.middleware.blockchainReady(function () {return true;}, null, null, function () {nextCalled = true;});
 				expect(nextCalled).to.be.true;
 			});
-			it('is not ready', function () {
+
+			it('should be false when blockchainReady is false', function () {
+
 				var nextCalled = false;
 				var sendCalled = false;
 				var res = {
+
 					status: function (httpCode) {
 						expect(httpCode).to.equal(500);
 						return {
@@ -117,7 +147,9 @@ describe('httpApi', function () {
 		});
 
 		describe('notFound', function () {
-			it('calls the not found method', function () {
+
+			it('should return notFound when success is false', function () {
+
 				var sendCalled = false;
 				var res = {
 					status: function (httpCode) {
@@ -131,13 +163,15 @@ describe('httpApi', function () {
 						};
 					}
 				};
+
 				httpApi.middleware.notFound(null, res, null);
 				expect(sendCalled).to.be.true;
 			});
 		});
 
 		describe('sanitize', function () {
-			it('report is not valid', function (){
+
+			it('should return error when report is not valid', function (){
 				var calledSanitize = false;
 				var calledCallback = false;
 				var cb = function (sanitize, binded) {
@@ -163,12 +197,14 @@ describe('httpApi', function () {
 						return true;
 					}
 				};
+
 				rfunction(req, res, null);
 				expect(calledSanitize).to.be.true;
 				expect(calledCallback).to.be.false;
 			});
 
-			it('report is valid', function (){
+			it('should return success when report is valid', function (){
+
 				var calledSanitize = false;
 				var calledCallback = false;
 				var cb = function (sanitize, binded) {
@@ -194,6 +230,7 @@ describe('httpApi', function () {
 						return true;
 					}
 				};
+
 				rfunction(req, res, null);
 				expect(calledSanitize).to.be.true;
 				expect(calledCallback).to.be.true;
@@ -201,7 +238,8 @@ describe('httpApi', function () {
 		});
 
 		describe('attachResponseHeader', function () {
-			it('adds one header', function () {
+
+			it('should add single header when setHeaderCalled is true', function () {
 				var setHeaderCalled = false;
 				var cbCalled = false;
 				var res = {
@@ -215,7 +253,8 @@ describe('httpApi', function () {
 				expect(setHeaderCalled).to.be.true;
 				expect(cbCalled).to.be.true;
 			});
-			it('adds all the headers', function () {
+
+			it('should add all headers when setHeaderCalled is true', function () {
 				var headers = {header1: 'header1', header2: 'header2'};
 				var getHeaders = function () { return headers;};
 				var setHeaderCalled = false;
@@ -233,7 +272,8 @@ describe('httpApi', function () {
 		});
 
 		describe('useCache', function () {
-			it('is not ready', function () {
+
+			it('should return error when useCache is false', function () {
 				var nextCalled = false;
 				var next = function () {
 					nextCalled = true;
@@ -241,8 +281,10 @@ describe('httpApi', function () {
 				httpApi.middleware.useCache(null, {isReady: function () {return false;}}, null, null, next);
 				expect(nextCalled).to.be.true;
 			});
+
 			describe('is ready', function () {
-				it('cached value', function () {
+
+				it('should return cached value without reqJsonCalled', function () {
 					var debugCalled = false;
 					var nextCalled = false;
 					var cachedValue = 'cachedValue';
@@ -270,11 +312,14 @@ describe('httpApi', function () {
 							cb(null, cachedValue);
 						}
 					};
+
 					httpApi.middleware.useCache(logger, cache, req, res, next);
 					expect(nextCalled).to.be.false;
 					expect(debugCalled).to.be.true;
 				});
-				it('cached value', function () {
+
+				it('should return cached value with reqJesonCalled', function () {
+
 					var debugCalled = false;
 					var nextCalled = false;
 					var resJsonCalled = false;
@@ -309,6 +354,7 @@ describe('httpApi', function () {
 							expect(thisresponse).to.eql(response);
 						}
 					};
+
 					httpApi.middleware.useCache(logger, cache, req, res, next);
 					res.json({success: true});
 					expect(nextCalled).to.be.true;
@@ -319,7 +365,7 @@ describe('httpApi', function () {
 
 			describe('applyAPIAccessRules', function () {
 
-				it('matches the peer url', function () {
+				it('should return true when peering is enabled', function () {
 					var req = {
 						url: {
 							match: function (regex) {
@@ -349,7 +395,7 @@ describe('httpApi', function () {
 					httpApi.middleware.applyAPIAccessRules(config, req, res, next);
 				});
 
-				it('does not matches the peer url does not call next', function () {
+				it('should return API Access Denied when public is disabled', function () {
 					var sendCalled = false;
 					var nextCalled = false;
 					var matchCalled = false;
@@ -384,13 +430,15 @@ describe('httpApi', function () {
 							};
 						}
 					};
+
 					httpApi.middleware.applyAPIAccessRules(config, req, res, next);
 					expect(sendCalled).to.be.true;
 					expect(nextCalled).to.be.false;
 					expect(matchCalled).to.be.true;
 				});
 
-				it('does not matches the peer url does call next', function () {
+				it('should be ok when ip is whitelisted', function () {
+
 					var sendCalled = false;
 					var nextCalled = false;
 					var matchCalled = false;
@@ -424,6 +472,7 @@ describe('httpApi', function () {
 							};
 						}
 					};
+
 					httpApi.middleware.applyAPIAccessRules(config, req, res, next);
 					expect(sendCalled).to.be.false;
 					expect(nextCalled).to.be.true;
@@ -434,7 +483,8 @@ describe('httpApi', function () {
 	});
 
 	describe('registerEndpoint', function () {
-		it('registers the endpoint', function () {
+
+		it('should be ok to register a route', function () {
 			var called = 0;
 			var appUseCalled = false;
 			var router = {
@@ -451,6 +501,7 @@ describe('httpApi', function () {
 					appUseCalled = true;
 				}
 			};
+
 			httpApi.registerEndpoint('route', app, router, false);
 			expect(called).to.equal(2);
 			expect(appUseCalled).to.be.true;
@@ -458,7 +509,8 @@ describe('httpApi', function () {
 	});
 
 	describe('respond', function () {
-		it('error', function () {
+
+		it('should return an error when error is provided', function () {
 			var error = 'an error occured';
 			var resJsonCalled = false;
 			var res = {
@@ -468,10 +520,12 @@ describe('httpApi', function () {
 					resJsonCalled = true;
 				}
 			};
+
 			httpApi.respond(res, error, null);
 			expect(resJsonCalled).to.be.true;
 		});
-		it('success', function () {
+
+		it('should return success when success is provided', function () {
 			var success = {message: 'successful'};
 			var resJsonCalled = false;
 			var res = {
@@ -481,6 +535,7 @@ describe('httpApi', function () {
 					resJsonCalled = true;
 				}
 			};
+
 			httpApi.respond(res, null, success);
 			expect(resJsonCalled).to.be.true;
 		});
