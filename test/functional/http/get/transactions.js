@@ -2,10 +2,10 @@
 
 var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
-var ws = require('../../../common/wsCommunication');
+var ws = require('../../../common/wsCommunication.js');
 var sendLiskTrs = require('../../../common/complexTransactions.js').sendLISK;
-var transactionSortFields = require('../../../../sql/transactions').sortFields;
-var modulesLoader = require('../../../common/initModule').modulesLoader;
+var transactionSortFields = require('../../../../sql/transactions.js').sortFields;
+var modulesLoader = require('../../../common/modulesLoader.js');
 var transactionTypes = require('../../../../helpers/transactionTypes.js');
 var genesisblock = require('../../../genesisBlock.json');
 

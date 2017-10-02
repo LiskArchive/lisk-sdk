@@ -2,7 +2,7 @@
 
 var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
-var modulesLoader = require('../../../common/initModule').modulesLoader;
+var modulesLoader = require('../common/modulesLoader');
 
 var block = {
 	blockHeight: 0,
