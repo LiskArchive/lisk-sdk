@@ -38,62 +38,62 @@ import {
 	DEFAULT_ERROR_MESSAGE,
 } from './utils';
 
-export function whenTheResultIsPrinted() {
+export function theResultIsPrinted() {
 	const { vorpal, result } = this.test.ctx;
 	this.test.ctx.returnValue = printResult(vorpal)(result);
 }
 
-export function whenTheResultIsPrintedWithTheJSONOptionSetToTrue() {
+export function theResultIsPrintedWithTheJSONOptionSetToTrue() {
 	const { vorpal, result } = this.test.ctx;
 	this.test.ctx.returnValue = printResult(vorpal, { json: true })(result);
 }
 
-export function whenTheQueryInstanceGetsABlockUsingTheID() {
+export function theQueryInstanceGetsABlockUsingTheID() {
 	const { queryInstance, blockId } = this.test.ctx;
 	this.test.ctx.returnValue = queryInstance.isBlockQuery(blockId);
 }
 
-export function whenTheQueryInstanceGetsAnAccountUsingTheAddress() {
+export function theQueryInstanceGetsAnAccountUsingTheAddress() {
 	const { queryInstance, address } = this.test.ctx;
 	this.test.ctx.returnValue = queryInstance.isAccountQuery(address);
 }
 
-export function whenTheQueryInstanceGetsATransactionUsingTheID() {
+export function theQueryInstanceGetsATransactionUsingTheID() {
 	const { queryInstance, transactionId } = this.test.ctx;
 	this.test.ctx.returnValue = queryInstance.isTransactionQuery(transactionId);
 }
 
-export function whenTheQueryInstanceGetsADelegateUsingTheUsername() {
+export function theQueryInstanceGetsADelegateUsingTheUsername() {
 	const { queryInstance, delegateUsername } = this.test.ctx;
 	this.test.ctx.returnValue = queryInstance.isDelegateQuery(delegateUsername);
 }
 
-export function whenTheJSONIsRead() {
+export function theJSONIsRead() {
 	const { filePath } = this.test.ctx;
 	this.test.ctx.returnValue = readJsonSync(filePath);
 }
 
-export function whenTheJSONIsWritten() {
+export function theJSONIsWritten() {
 	const { filePath, objectToWrite } = this.test.ctx;
 	this.test.ctx.returnValue = writeJsonSync(filePath, objectToWrite);
 }
 
-export function whenTheObjectIsTablified() {
+export function theObjectIsTablified() {
 	const { testObject } = this.test.ctx;
 	this.test.ctx.returnValue = tablify(testObject);
 }
 
-export function whenTheArrayIsTablified() {
+export function theArrayIsTablified() {
 	const { testArray } = this.test.ctx;
 	this.test.ctx.returnValue = tablify(testArray);
 }
 
-export function whenNoErrorOccursAttemptingToGetTheKeysForThePassphrase() {
+export function noErrorOccursAttemptingToGetTheKeysForThePassphrase() {
 	const { cryptoInstance, passphrase } = this.test.ctx;
 	this.test.ctx.returnValue = cryptoInstance.getKeys(passphrase);
 }
 
-export function whenAnErrorOccursAttemptingToGetTheKeysForThePassphrase() {
+export function anErrorOccursAttemptingToGetTheKeysForThePassphrase() {
 	const { cryptoInstance, passphrase } = this.test.ctx;
 
 	lisk.crypto.getKeys.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
@@ -102,12 +102,12 @@ export function whenAnErrorOccursAttemptingToGetTheKeysForThePassphrase() {
 	this.test.ctx.returnValue = cryptoInstance.getKeys(passphrase);
 }
 
-export function whenNoErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
+export function noErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
 	const { cryptoInstance, passphrase, password } = this.test.ctx;
 	this.test.ctx.returnValue = cryptoInstance.encryptPassphrase(passphrase, password);
 }
 
-export function whenAnErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
+export function anErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
 	const { cryptoInstance, passphrase, password } = this.test.ctx;
 
 	lisk.crypto.encryptPassphraseWithPassword.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
@@ -116,12 +116,12 @@ export function whenAnErrorOccursAttemptingToEncryptThePassphraseWithThePassword
 	this.test.ctx.returnValue = cryptoInstance.encryptPassphrase(passphrase, password);
 }
 
-export function whenNoErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
+export function noErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
 	const { cryptoInstance, cipherAndIv, password } = this.test.ctx;
 	this.test.ctx.returnValue = cryptoInstance.decryptPassphrase(cipherAndIv, password);
 }
 
-export function whenAnErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
+export function anErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
 	const { cryptoInstance, cipherAndIv, password } = this.test.ctx;
 
 	lisk.crypto.decryptPassphraseWithPassword.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
@@ -130,12 +130,12 @@ export function whenAnErrorOccursAttemptingToDecryptThePassphraseWithThePassword
 	this.test.ctx.returnValue = cryptoInstance.decryptPassphrase(cipherAndIv, password);
 }
 
-export function whenNoErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
+export function noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
 	const { cryptoInstance, message, passphrase, recipientKeys } = this.test.ctx;
 	this.test.ctx.returnValue = cryptoInstance.encryptMessage(message, passphrase, recipientKeys.publicKey);
 }
 
-export function whenAnErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
+export function anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
 	const { cryptoInstance, message, passphrase, recipientKeys } = this.test.ctx;
 
 	lisk.crypto.encryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
@@ -144,12 +144,12 @@ export function whenAnErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsi
 	this.test.ctx.returnValue = cryptoInstance.encryptMessage(message, passphrase, recipientKeys.publicKey);
 }
 
-export function whenNoErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
+export function noErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
 	const { cryptoInstance, encryptedMessageWithNonce: { encryptedMessage, nonce }, recipientPassphrase, keys } = this.test.ctx;
 	this.test.ctx.returnValue = cryptoInstance.decryptMessage(encryptedMessage, nonce, recipientPassphrase, keys.publicKey);
 }
 
-export function whenAnErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
+export function anErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
 	const { cryptoInstance, encryptedMessageWithNonce: { encryptedMessage, nonce }, recipientPassphrase, keys } = this.test.ctx;
 
 	lisk.crypto.decryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
@@ -158,7 +158,7 @@ export function whenAnErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientP
 	this.test.ctx.returnValue = cryptoInstance.decryptMessage(encryptedMessage, nonce, recipientPassphrase, keys.publicKey);
 }
 
-export function whenTheConfigIsLoaded() {
+export function theConfigIsLoaded() {
 	// IMPORTANT: This is a workaround because Node’s `require` implementation uses `fs.readFileSync`.
 	// If this step gets reused in other tests we’ll have to find a better solution.
 	const isSpy = fs.readFileSync.restore;
@@ -171,17 +171,17 @@ export function whenTheConfigIsLoaded() {
 	if (isSpy) sandbox.stub(fs, 'readFileSync');
 }
 
-export function whenTheSourceIsSplit() {
+export function theSourceIsSplit() {
 	const { source } = this.test.ctx;
 	this.test.ctx.returnValue = splitSource(source);
 }
 
-export function whenCreatePromptOptionsIsCalledWithTheMessage() {
+export function createPromptOptionsIsCalledWithTheMessage() {
 	const { promptMessage } = this.test.ctx;
 	this.test.ctx.returnValue = createPromptOptions(promptMessage);
 }
 
-export function whenGetPassphraseFromPromptIsCalled() {
+export function getPassphraseFromPromptIsCalled() {
 	const { vorpal, displayName, shouldRepeat } = this.test.ctx;
 	const returnValue = getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat });
 
@@ -189,7 +189,7 @@ export function whenGetPassphraseFromPromptIsCalled() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetStdInIsCalledWithTheRelevantOptions() {
+export function getStdInIsCalledWithTheRelevantOptions() {
 	const { passphraseIsRequired, dataIsRequired } = this.test.ctx;
 	const options = (passphraseIsRequired || dataIsRequired)
 		? {
@@ -203,7 +203,7 @@ export function whenGetStdInIsCalledWithTheRelevantOptions() {
 	return returnValue;
 }
 
-export function whenGetPassphraseFromEnvVariableIsCalled() {
+export function getPassphraseFromEnvVariableIsCalled() {
 	const { environmentalVariableName, displayName } = this.test.ctx;
 	const returnValue = getPassphraseFromEnvVariable(environmentalVariableName, displayName);
 
@@ -211,7 +211,7 @@ export function whenGetPassphraseFromEnvVariableIsCalled() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetPassphraseFromFileIsCalledOnThePath() {
+export function getPassphraseFromFileIsCalledOnThePath() {
 	const { filePath } = this.test.ctx;
 	const returnValue = getPassphraseFromFile(filePath);
 
@@ -219,7 +219,7 @@ export function whenGetPassphraseFromFileIsCalledOnThePath() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs() {
+export function getPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs() {
 	const { filePath } = this.test.ctx;
 	const returnValue = getPassphraseFromFile(filePath);
 
@@ -227,7 +227,7 @@ export function whenGetPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccur
 	return returnValue.catch(e => e);
 }
 
-export function whenGetPassphraseFromSourceIsCalledWithTheRelevantSource() {
+export function getPassphraseFromSourceIsCalledWithTheRelevantSource() {
 	const { passphraseSource, displayName } = this.test.ctx;
 	const returnValue = getPassphraseFromSource(passphraseSource, { displayName });
 
@@ -235,7 +235,7 @@ export function whenGetPassphraseFromSourceIsCalledWithTheRelevantSource() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetPassphraseIsPassedAPassphraseDirectly() {
+export function getPassphraseIsPassedAPassphraseDirectly() {
 	const { passphrase } = this.test.ctx;
 	const returnValue = getPassphrase(null, null, passphrase);
 
@@ -243,7 +243,7 @@ export function whenGetPassphraseIsPassedAPassphraseDirectly() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetPassphraseIsPassedASourceButNoPassphrase() {
+export function getPassphraseIsPassedASourceButNoPassphrase() {
 	const { passphraseSource } = this.test.ctx;
 	const returnValue = getPassphrase(null, passphraseSource);
 
@@ -251,7 +251,7 @@ export function whenGetPassphraseIsPassedASourceButNoPassphrase() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetPassphraseIsPassedNeitherASourceNorAPassphrase() {
+export function getPassphraseIsPassedNeitherASourceNorAPassphrase() {
 	const { vorpal } = this.test.ctx;
 	const returnValue = getPassphrase(vorpal);
 
@@ -259,12 +259,12 @@ export function whenGetPassphraseIsPassedNeitherASourceNorAPassphrase() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetFirstLineFromStringIsCalledOnTheString() {
+export function getFirstLineFromStringIsCalledOnTheString() {
 	const { testString } = this.test.ctx;
 	this.test.ctx.returnValue = getFirstLineFromString(testString);
 }
 
-export function whenGetDataFromFileIsCalledWithThePath() {
+export function getDataFromFileIsCalledWithThePath() {
 	const { filePath } = this.test.ctx;
 	const returnValue = getDataFromFile(filePath);
 
@@ -272,7 +272,7 @@ export function whenGetDataFromFileIsCalledWithThePath() {
 	return returnValue.catch(e => e);
 }
 
-export function whenGetDataIsCalled() {
+export function getDataIsCalled() {
 	const { argData, sourceData, stdInData } = this.test.ctx;
 	const returnValue = getData(argData, sourceData, stdInData);
 

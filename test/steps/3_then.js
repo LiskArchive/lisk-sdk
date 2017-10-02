@@ -19,116 +19,116 @@ import * as fsUtils from '../../src/utils/fs';
 import tablify from '../../src/utils/tablify';
 import { getFirstQuotedString } from './utils';
 
-export function thenTheLiskInstanceShouldBeALiskJSApiInstance() {
+export function theLiskInstanceShouldBeALiskJSApiInstance() {
 	const { liskInstance } = this.test.ctx;
 	return (liskInstance).should.be.instanceOf(lisk.api);
 }
 
-export function thenTheResultShouldBeReturned() {
+export function theResultShouldBeReturned() {
 	const { returnValue, result } = this.test.ctx;
 	return (returnValue).should.equal(result);
 }
 
-export function thenATableShouldBeLogged() {
+export function aTableShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const tableOutput = tablify(result).toString();
 	return (vorpal.activeCommand.log.calledWithExactly(tableOutput)).should.be.true();
 }
 
-export function thenJSONOutputShouldBeLogged() {
+export function jSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(result);
 	return (vorpal.activeCommand.log.calledWithExactly(jsonOutput)).should.be.true();
 }
 
-export function thenTheLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
+export function theLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
 	const { blockId, liskInstance } = this.test.ctx;
 	const route = 'blocks/get';
 	const options = { id: blockId };
 	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
 }
 
-export function thenTheLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
+export function theLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
 	const { address, liskInstance } = this.test.ctx;
 	const route = 'accounts';
 	const options = { address };
 	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
 }
 
-export function thenTheLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
+export function theLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
 	const { transactionId, liskInstance } = this.test.ctx;
 	const route = 'transactions/get';
 	const options = { id: transactionId };
 	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
 }
 
-export function thenTheLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
+export function theLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
 	const { delegateUsername, liskInstance } = this.test.ctx;
 	const route = 'delegates/get';
 	const options = { username: delegateUsername };
 	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
 }
 
-export function thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
+export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
 	const { filePath } = this.test.ctx;
 	return (fs.readFileSync.calledWithExactly(filePath, 'utf8')).should.be.true();
 }
 
-export function thenJSONParseShouldBeCalledWithTheFileContentsAsAString() {
+export function jSONParseShouldBeCalledWithTheFileContentsAsAString() {
 	const { fileContents } = this.test.ctx;
 	return (JSON.parse.calledWithExactly(fileContents)).should.be.true();
 }
 
-export function thenJSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
+export function jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
 	const { fileContents } = this.test.ctx;
 	return (JSON.parse.calledWithExactly(fileContents.slice(1))).should.be.true();
 }
 
-export function thenTheParsedFileContentsShouldBeReturned() {
+export function theParsedFileContentsShouldBeReturned() {
 	const { returnValue, parsedFileContents } = this.test.ctx;
 	return (returnValue).should.equal(parsedFileContents);
 }
 
-export function thenJSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
+export function jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
 	const { objectToWrite } = this.test.ctx;
 	const tab = '\t';
 	return (JSON.stringify.calledWithExactly(objectToWrite, null, tab)).should.be.true();
 }
 
-export function thenFsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
+export function fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
 	const { filePath, stringifiedObject } = this.test.ctx;
 	return (fs.writeFileSync.calledWithExactly(filePath, stringifiedObject)).should.be.true();
 }
 
-export function thenTheReturnedTableShouldHaveNoHead() {
+export function theReturnedTableShouldHaveNoHead() {
 	const { returnValue } = this.test.ctx;
 	return (returnValue.options).should.have.property('head').eql([]);
 }
 
-export function thenTheReturnedTableShouldHaveNoRows() {
+export function theReturnedTableShouldHaveNoRows() {
 	const { returnValue } = this.test.ctx;
 	return (returnValue).should.have.length(0);
 }
 
-export function thenTheReturnedTableShouldHaveAHeadWithTheObjectKeys() {
+export function theReturnedTableShouldHaveAHeadWithTheObjectKeys() {
 	const { returnValue, testObject } = this.test.ctx;
 	const keys = Object.keys(testObject);
 	return (returnValue.options).should.have.property('head').eql(keys);
 }
 
-export function thenTheReturnedTableShouldHaveARowWithTheObjectValues() {
+export function theReturnedTableShouldHaveARowWithTheObjectValues() {
 	const { returnValue, testObject } = this.test.ctx;
 	const values = Object.values(testObject);
 	return (returnValue[0]).should.eql(values);
 }
 
-export function thenTheReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
+export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
 	const { returnValue, testArray } = this.test.ctx;
 	const keys = Object.keys(testArray[0]);
 	return (returnValue.options).should.have.property('head').eql(keys);
 }
 
-export function thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
+export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
 	const { returnValue, testArray } = this.test.ctx;
 	testArray.forEach((testObject, i) => {
 		const values = Object.values(testObject);
@@ -136,7 +136,7 @@ export function thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectValu
 	});
 }
 
-export function thenTheReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
+export function theReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
 	const { returnValue, testArray } = this.test.ctx;
 	const uniqueKeys = testArray
 		.reduce((keys, testObject) => {
@@ -146,7 +146,7 @@ export function thenTheReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
 	return (returnValue.options).should.have.property('head').eql(uniqueKeys);
 }
 
-export function thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues() {
+export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues() {
 	const { returnValue, testArray } = this.test.ctx;
 	testArray.forEach((testObject, i) => {
 		const row = returnValue[i];
@@ -159,130 +159,130 @@ export function thenTheReturnedTableShouldHaveARowForEachObjectWithTheObjectsVal
 	});
 }
 
-export function thenTheCryptoInstanceShouldHaveName() {
+export function theCryptoInstanceShouldHaveName() {
 	const { cryptoInstance } = this.test.ctx;
 	const name = getFirstQuotedString(this.test.title);
 	return (cryptoInstance.constructor).should.have.property('name').equal(name);
 }
 
-export function thenTheCryptoInstanceShouldHaveLiskJSAsAProperty() {
+export function theCryptoInstanceShouldHaveLiskJSAsAProperty() {
 	const { cryptoInstance } = this.test.ctx;
 	return (cryptoInstance).should.have.property('liskCrypto').equal(lisk.crypto);
 }
 
-export function thenLiskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {
+export function liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {
 	const { passphrase } = this.test.ctx;
 	return (lisk.crypto.getKeys.calledWithExactly(passphrase)).should.be.true();
 }
 
-export function thenTheKeysShouldBeReturned() {
+export function theKeysShouldBeReturned() {
 	const { returnValue, keys } = this.test.ctx;
 	return (returnValue).should.eql(keys);
 }
 
-export function thenTheErrorResponseShouldBeHandled() {
+export function theErrorResponseShouldBeHandled() {
 	const { returnValue, errorMessage } = this.test.ctx;
 	return (returnValue).should.eql({ error: errorMessage });
 }
 
-export function thenLiskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
+export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
 	const { passphrase, password } = this.test.ctx;
 	return (lisk.crypto.encryptPassphraseWithPassword.calledWithExactly(passphrase, password)).should.be.true();
 }
 
-export function thenTheEncryptedPassphraseAndIVShouldBeReturned() {
+export function theEncryptedPassphraseAndIVShouldBeReturned() {
 	const { returnValue, cipherAndIv } = this.test.ctx;
 	return (returnValue).should.eql(cipherAndIv);
 }
 
-export function thenLiskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
+export function liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
 	const { cipherAndIv, password } = this.test.ctx;
 	return (lisk.crypto.decryptPassphraseWithPassword.calledWithExactly(cipherAndIv, password)).should.be.true();
 }
 
-export function thenTheDecryptedPassphraseShouldBeReturned() {
+export function theDecryptedPassphraseShouldBeReturned() {
 	const { returnValue, passphrase } = this.test.ctx;
 	return (returnValue).should.eql({ passphrase });
 }
 
-export function thenLiskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
+export function liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
 	const { message, passphrase, recipientKeys } = this.test.ctx;
 	return (lisk.crypto.encryptMessageWithSecret.calledWithExactly(message, passphrase, recipientKeys.publicKey)).should.be.true();
 }
 
-export function thenTheEncryptedMessageAndNonceShouldBeReturned() {
+export function theEncryptedMessageAndNonceShouldBeReturned() {
 	const { returnValue, encryptedMessageWithNonce } = this.test.ctx;
 	return (returnValue).should.eql(encryptedMessageWithNonce);
 }
 
-export function thenLiskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
+export function liskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
 	const { encryptedMessageWithNonce: { encryptedMessage, nonce }, recipientPassphrase, keys } = this.test.ctx;
 	return (lisk.crypto.decryptMessageWithSecret.calledWithExactly(encryptedMessage, nonce, recipientPassphrase, keys.publicKey)).should.be.true();
 }
 
-export function thenTheDecryptedMessageShouldBeReturned() {
+export function theDecryptedMessageShouldBeReturned() {
 	const { returnValue, message } = this.test.ctx;
 	return (returnValue).should.eql({ message });
 }
 
-export function thenTheDefaultConfigShouldBeExported() {
+export function theDefaultConfigShouldBeExported() {
 	const { config, defaultConfig } = this.test.ctx;
 	return (config).should.eql(defaultConfig);
 }
 
-export function thenTheUsersConfigShouldBeExported() {
+export function theUsersConfigShouldBeExported() {
 	const { config, userConfig } = this.test.ctx;
 	return (config).should.eql(userConfig);
 }
 
-export function thenTheDefaultConfigShouldBeWrittenToTheConfigFile() {
+export function theDefaultConfigShouldBeWrittenToTheConfigFile() {
 	const { filePath, defaultConfig } = this.test.ctx;
 	return (fsUtils.writeJsonSync.calledWithExactly(filePath, defaultConfig)).should.be.true();
 }
 
-export function thenTheConfigFileShouldNotBeWritten() {
+export function theConfigFileShouldNotBeWritten() {
 	return (fsUtils.writeJsonSync.called).should.be.false();
 }
 
-export function thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
+export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
 	return (console.warn.calledWithMatch(/Your configuration will not be persisted\./)).should.be.true();
 }
 
-export function thenTheUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
+export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
 	const { filePath } = this.test.ctx;
 	return (console.error.calledWithExactly(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`))
 		.should.be.true();
 }
 
-export function thenTheUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
+export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
 	return (console.error.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`))
 		.should.be.true();
 }
 
-export function thenTheProcessShouldExitWithErrorCode() {
+export function theProcessShouldExitWithErrorCode() {
 	const errorCode = parseInt(getFirstQuotedString(this.test.title), 10);
 	return (process.exit.calledWithExactly(errorCode)).should.be.true();
 }
 
-export function thenTheResultShouldHaveSourceType() {
+export function theResultShouldHaveSourceType() {
 	const { returnValue } = this.test.ctx;
 	const sourceType = getFirstQuotedString(this.test.title);
 	return (returnValue).should.have.property('sourceType').equal(sourceType);
 }
 
-export function thenTheResultShouldHaveAnEmptySourceIdentifier() {
+export function theResultShouldHaveAnEmptySourceIdentifier() {
 	const { returnValue } = this.test.ctx;
 	return (returnValue).should.have.property('sourceIdentifier').equal('');
 }
 
-export function thenTheResultShouldHaveSourceIdentifier() {
+export function theResultShouldHaveSourceIdentifier() {
 	const { returnValue } = this.test.ctx;
 	const sourceIdentifier = getFirstQuotedString(this.test.title);
 	return (returnValue).should.have.property('sourceIdentifier').equal(sourceIdentifier);
 }
 
-export function thenAnOptionsObjectWithTheMessageShouldBeReturned() {
+export function anOptionsObjectWithTheMessageShouldBeReturned() {
 	const { returnValue, promptMessage } = this.test.ctx;
 	return (returnValue).should.eql({
 		type: 'password',
@@ -291,27 +291,27 @@ export function thenAnOptionsObjectWithTheMessageShouldBeReturned() {
 	});
 }
 
-export function thenAUIParentShouldBeSet() {
+export function aUIParentShouldBeSet() {
 	const { vorpal } = this.test.ctx;
 	return (vorpal.ui.parent).should.equal(vorpal);
 }
 
-export function thenTheUIParentShouldBeMaintained() {
+export function theUIParentShouldBeMaintained() {
 	const { vorpal, vorpalUIParent } = this.test.ctx;
 	return (vorpal.ui.parent).should.equal(vorpalUIParent);
 }
 
-export function thenItShouldPromptForThePassphraseOnce() {
+export function itShouldPromptForThePassphraseOnce() {
 	const { vorpal } = this.test.ctx;
 	return (vorpal.activeCommand.prompt.calledOnce).should.be.true();
 }
 
-export function thenItShouldPromptForThePassphraseTwice() {
+export function itShouldPromptForThePassphraseTwice() {
 	const { vorpal } = this.test.ctx;
 	return (vorpal.activeCommand.prompt.calledTwice).should.be.true();
 }
 
-export function thenItShouldUseOptionsWithTheMessage() {
+export function itShouldUseOptionsWithTheMessage() {
 	const { vorpal } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
 	return (vorpal.activeCommand.prompt.calledWithExactly({
@@ -321,30 +321,30 @@ export function thenItShouldUseOptionsWithTheMessage() {
 	})).should.be.true();
 }
 
-export function thenItShouldResolveToThePassphrase() {
+export function itShouldResolveToThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith(passphrase);
 }
 
-export function thenItShouldRejectWithMessage() {
+export function itShouldRejectWithMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
 	return (returnValue).should.be.rejectedWith(message);
 }
 
-export function thenItShouldReturnAnEmptyObject() {
+export function itShouldReturnAnEmptyObject() {
 	const { returnValue } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({});
 }
 
-export function thenItShouldReturnAnObjectWithThePassphrase() {
+export function itShouldReturnAnObjectWithThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({
 		passphrase,
 	});
 }
 
-export function thenItShouldReturnAnObjectWithTheData() {
+export function itShouldReturnAnObjectWithTheData() {
 	const { returnValue, data } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({
 		passphrase: null,
@@ -352,7 +352,7 @@ export function thenItShouldReturnAnObjectWithTheData() {
 	});
 }
 
-export function thenItShouldReturnAnObjectWithThePassphraseAndTheData() {
+export function itShouldReturnAnObjectWithThePassphraseAndTheData() {
 	const { returnValue, passphrase, data } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({
 		passphrase,
@@ -360,24 +360,24 @@ export function thenItShouldReturnAnObjectWithThePassphraseAndTheData() {
 	});
 }
 
-export function thenItShouldResolveToTheFirstLineOfTheFile() {
+export function itShouldResolveToTheFirstLineOfTheFile() {
 	const { returnValue, passphrase } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith(passphrase);
 }
 
-export function thenItShouldReturnNull() {
+export function itShouldReturnNull() {
 	const { returnValue } = this.test.ctx;
 	return should(returnValue).be.null();
 }
 
-export function thenItShouldReturnString() {
+export function itShouldReturnString() {
 	const { returnValue } = this.test.ctx;
 	const expectedString = getFirstQuotedString(this.test.title);
 
 	return (returnValue).should.equal(expectedString);
 }
 
-export function thenItShouldResolveToTheDataAsAString() {
+export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith(data);
 }

@@ -28,7 +28,7 @@ import {
 	createStreamStub,
 } from './utils';
 
-export function givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
+export function thereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
 	this.test.ctx.vorpal = {
 		activeCommand: {
 			log: sandbox.spy(),
@@ -36,7 +36,7 @@ export function givenThereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
 	};
 }
 
-export function givenAVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt() {
+export function aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt() {
 	const { passphrase } = this.test.ctx;
 	this.test.ctx.vorpal = {
 		ui: {},
@@ -46,36 +46,36 @@ export function givenAVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt() {
 	};
 }
 
-export function givenThereIsAResultToPrint() {
+export function thereIsAResultToPrint() {
 	this.test.ctx.result = { lisk: 'JS' };
 }
 
-export function givenALiskInstance() {
+export function aLiskInstance() {
 	this.test.ctx.liskInstance = liskInstance;
 }
 
-export function givenAQueryInstance() {
+export function aQueryInstance() {
 	this.test.ctx.queryInstance = queryInstance;
 	sandbox.stub(liskInstance, 'sendRequest');
 }
 
-export function givenABlockID() {
+export function aBlockID() {
 	this.test.ctx.blockID = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenAnAddress() {
+export function anAddress() {
 	this.test.ctx.address = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenATransactionID() {
+export function aTransactionID() {
 	this.test.ctx.transactionId = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenADelegateUsername() {
+export function aDelegateUsername() {
 	this.test.ctx.delegateUsername = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenThereIsAFileWithUtf8EncodedJSONContentsAtPath() {
+export function thereIsAFileWithUtf8EncodedJSONContentsAtPath() {
 	const fileContents = '{\n\t"lisk": "js",\n\t"version": 1\n}';
 	const parsedFileContents = {
 		lisk: 'js',
@@ -90,7 +90,7 @@ export function givenThereIsAFileWithUtf8EncodedJSONContentsAtPath() {
 	this.test.ctx.parsedFileContents = parsedFileContents;
 }
 
-export function givenTheFileHasABOM() {
+export function theFileHasABOM() {
 	const BOM = '\uFEFF';
 	const fileContents = `${BOM}${this.test.ctx.fileContents}`;
 
@@ -99,7 +99,7 @@ export function givenTheFileHasABOM() {
 	this.test.ctx.fileContents = fileContents;
 }
 
-export function givenThereIsAnObjectThatShouldBeWrittenToPath() {
+export function thereIsAnObjectThatShouldBeWrittenToPath() {
 	const objectToWrite = {
 		lisk: 'js',
 		version: 1,
@@ -114,18 +114,18 @@ export function givenThereIsAnObjectThatShouldBeWrittenToPath() {
 	this.test.ctx.stringifiedObject = stringifiedObject;
 }
 
-export function givenAnEmptyObject() {
+export function anEmptyObject() {
 	this.test.ctx.testObject = {};
 }
 
-export function givenANonEmptyObject() {
+export function aNonEmptyObject() {
 	this.test.ctx.testObject = {
 		lisk: 'js',
 		version: 1,
 	};
 }
 
-export function givenAnArrayOfObjectsWithTheSameKeys() {
+export function anArrayOfObjectsWithTheSameKeys() {
 	this.test.ctx.testArray = [
 		{
 			lisk: 'js',
@@ -142,7 +142,7 @@ export function givenAnArrayOfObjectsWithTheSameKeys() {
 	];
 }
 
-export function givenAnArrayOfObjectsWithDivergentKeys() {
+export function anArrayOfObjectsWithDivergentKeys() {
 	this.test.ctx.testArray = [
 		{
 			lisk: 'js',
@@ -159,7 +159,7 @@ export function givenAnArrayOfObjectsWithDivergentKeys() {
 	];
 }
 
-export function givenACryptoInstance() {
+export function aCryptoInstance() {
 	[
 		'getKeys',
 		'encryptPassphraseWithPassword',
@@ -171,11 +171,11 @@ export function givenACryptoInstance() {
 	this.test.ctx.cryptoInstance = cryptoInstance;
 }
 
-export function givenAPassphrase() {
+export function aPassphrase() {
 	this.test.ctx.passphrase = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenAPassphraseWithPrivateKeyAndPublicKey() {
+export function aPassphraseWithPrivateKeyAndPublicKey() {
 	const [passphrase, privateKey, publicKey] = getQuotedStrings(this.test.parent.title);
 	const keys = {
 		privateKey,
@@ -189,11 +189,11 @@ export function givenAPassphraseWithPrivateKeyAndPublicKey() {
 	this.test.ctx.keys = keys;
 }
 
-export function givenAPassword() {
+export function aPassword() {
 	this.test.ctx.password = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenAnEncryptedPassphraseWithAnIV() {
+export function anEncryptedPassphraseWithAnIV() {
 	const [encryptedPassphrase, iv] = getQuotedStrings(this.test.parent.title);
 	const cipherAndIv = {
 		cipher: encryptedPassphrase,
@@ -205,7 +205,7 @@ export function givenAnEncryptedPassphraseWithAnIV() {
 	this.test.ctx.cipherAndIv = cipherAndIv;
 }
 
-export function givenAMessage() {
+export function aMessage() {
 	const message = getFirstQuotedString(this.test.parent.title);
 
 	lisk.crypto.decryptMessageWithSecret.returns(message);
@@ -213,7 +213,7 @@ export function givenAMessage() {
 	this.test.ctx.message = message;
 }
 
-export function givenARecipientPassphraseWithPrivateKeyAndPublicKey() {
+export function aRecipientPassphraseWithPrivateKeyAndPublicKey() {
 	const [passphrase, privateKey, publicKey] = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.recipientPassphrase = passphrase;
 	this.test.ctx.recipientKeys = {
@@ -222,7 +222,7 @@ export function givenARecipientPassphraseWithPrivateKeyAndPublicKey() {
 	};
 }
 
-export function givenAnEncryptedMessageWithANonce() {
+export function anEncryptedMessageWithANonce() {
 	const [encryptedMessage, nonce] = getQuotedStrings(this.test.parent.title);
 	const encryptedMessageWithNonce = {
 		encryptedMessage,
@@ -234,15 +234,15 @@ export function givenAnEncryptedMessageWithANonce() {
 	this.test.ctx.encryptedMessageWithNonce = encryptedMessageWithNonce;
 }
 
-export function givenADefaultConfig() {
+export function aDefaultConfig() {
 	this.test.ctx.defaultConfig = defaultConfig;
 }
 
-export function givenADirectoryPath() {
+export function aDirectoryPath() {
 	this.test.ctx.directoryPath = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenAConfigFileName() {
+export function aConfigFileName() {
 	const { directoryPath } = this.test.ctx;
 	const configFileName = getFirstQuotedString(this.test.parent.title);
 
@@ -250,24 +250,24 @@ export function givenAConfigFileName() {
 	this.test.ctx.filePath = `${directoryPath}/${configFileName}`;
 }
 
-export function givenTheDirectoryDoesNotExist() {
+export function theDirectoryDoesNotExist() {
 	const { directoryPath } = this.test.ctx;
 	fs.existsSync.withArgs(directoryPath).returns(false);
 	fsUtils.readJsonSync.throws('Cannot read file');
 }
 
-export function givenTheDirectoryDoesExist() {
+export function theDirectoryDoesExist() {
 	const { directoryPath } = this.test.ctx;
 	fs.existsSync.withArgs(directoryPath).returns(true);
 }
 
-export function givenTheDirectoryCannotBeCreated() {
+export function theDirectoryCannotBeCreated() {
 	fs.mkdirSync.throws('Cannot make directory');
 }
 
-export function givenTheDirectoryCanBeCreated() {}
+export function theDirectoryCanBeCreated() {}
 
-export function givenTheFileDoesNotExist() {
+export function theFileDoesNotExist() {
 	const { filePath } = this.test.ctx;
 	const error = new Error('ENOENT: no such file or directory');
 	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
@@ -278,18 +278,18 @@ export function givenTheFileDoesNotExist() {
 	fsUtils.readJsonSync.throws('Cannot read file');
 }
 
-export function givenTheFileDoesExist() {
+export function theFileDoesExist() {
 	const { filePath } = this.test.ctx;
 	fs.existsSync.withArgs(filePath).returns(true);
 }
 
-export function givenTheFileCannotBeWritten() {
+export function theFileCannotBeWritten() {
 	fsUtils.writeJsonSync.throws('Cannot write to file');
 }
 
-export function givenTheFileCanBeWritten() {}
+export function theFileCanBeWritten() {}
 
-export function givenTheFileCannotBeRead() {
+export function theFileCannotBeRead() {
 	const { filePath } = this.test.ctx;
 	const error = new Error('EACCES: permission denied');
 	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
@@ -300,7 +300,7 @@ export function givenTheFileCannotBeRead() {
 	fsUtils.readJsonSync.throws('Cannot read file');
 }
 
-export function givenTheFileCanBeRead() {
+export function theFileCanBeRead() {
 	const { fileContents } = this.test.ctx;
 	const streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(fileContents)));
 
@@ -308,7 +308,7 @@ export function givenTheFileCanBeRead() {
 	fs.readFileSync.returns(fileContents);
 }
 
-export function givenAnUnknownErrorOccursWhenReadingTheFile() {
+export function anUnknownErrorOccursWhenReadingTheFile() {
 	const errorMessage = getFirstQuotedString(this.test.parent.title);
 	const error = new Error(errorMessage);
 	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
@@ -317,11 +317,11 @@ export function givenAnUnknownErrorOccursWhenReadingTheFile() {
 	fs.readFileSync.throws(error);
 }
 
-export function givenTheFileIsNotValidJSON() {
+export function theFileIsNotValidJSON() {
 	fsUtils.readJsonSync.throws('Invalid JSON');
 }
 
-export function givenTheFileIsValidJSON() {
+export function theFileIsValidJSON() {
 	const userConfig = {
 		name: 'custom-name',
 		json: true,
@@ -338,41 +338,41 @@ export function givenTheFileIsValidJSON() {
 	fsUtils.readJsonSync.returns(userConfig);
 }
 
-export function givenASourceWithoutDelimiter() {
+export function aSourceWithoutDelimiter() {
 	this.test.ctx.source = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenASourceWithDelimiter() {
+export function aSourceWithDelimiter() {
 	this.test.ctx.source = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenAPromptMessage() {
+export function aPromptMessage() {
 	this.test.ctx.promptMessage = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenAPromptDisplayName() {
+export function aPromptDisplayName() {
 	this.test.ctx.displayName = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenThePassphraseIsProvidedViaThePrompt() {
+export function thePassphraseIsProvidedViaThePrompt() {
 	const { passphrase } = this.test.ctx;
 	this.test.ctx.vorpal.activeCommand.prompt.resolves({ passphrase });
 }
 
-export function givenThePassphraseShouldNotBeRepeated() {
+export function thePassphraseShouldNotBeRepeated() {
 	this.test.ctx.shouldRepeat = false;
 }
 
-export function givenThePassphraseShouldBeRepeated() {
+export function thePassphraseShouldBeRepeated() {
 	this.test.ctx.shouldRepeat = true;
 }
 
-export function givenTheVorpalInstanceHasNoUIParent() {
+export function theVorpalInstanceHasNoUIParent() {
 	const { vorpal } = this.test.ctx;
 	delete vorpal.ui.parent;
 }
 
-export function givenTheVorpalInstanceHasAUIParent() {
+export function theVorpalInstanceHasAUIParent() {
 	const { vorpal } = this.test.ctx;
 	const parent = { existing: 'parent' };
 
@@ -380,27 +380,27 @@ export function givenTheVorpalInstanceHasAUIParent() {
 	vorpal.ui.parent = parent;
 }
 
-export function givenThePassphraseIsNotSuccessfullyRepeated() {
+export function thePassphraseIsNotSuccessfullyRepeated() {
 	const { vorpal, passphrase } = this.test.ctx;
 	vorpal.activeCommand.prompt.onSecondCall().resolves({
 		passphrase: `${passphrase.slice(0, -1)}y`,
 	});
 }
 
-export function givenThePassphraseIsSuccessfullyRepeated() {
+export function thePassphraseIsSuccessfullyRepeated() {
 	const { vorpal, passphrase } = this.test.ctx;
 	vorpal.activeCommand.prompt.onSecondCall().resolves({ passphrase });
 }
 
-export function givenSomeData() {
+export function someData() {
 	this.test.ctx.data = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenNeitherThePassphraseNorTheDataIsProvidedViaStdIn() {
+export function neitherThePassphraseNorTheDataIsProvidedViaStdIn() {
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(''));
 }
 
-export function givenThePassphraseIsProvidedViaStdIn() {
+export function thePassphraseIsProvidedViaStdIn() {
 	const { passphrase } = this.test.ctx;
 
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(passphrase));
@@ -408,7 +408,7 @@ export function givenThePassphraseIsProvidedViaStdIn() {
 	this.test.ctx.passphraseIsRequired = true;
 }
 
-export function givenTheDataIsProvidedViaStdIn() {
+export function theDataIsProvidedViaStdIn() {
 	const { data } = this.test.ctx;
 
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(data));
@@ -416,7 +416,7 @@ export function givenTheDataIsProvidedViaStdIn() {
 	this.test.ctx.dataIsRequired = true;
 }
 
-export function givenBothThePassphraseAndTheDataAreProvidedViaStdIn() {
+export function bothThePassphraseAndTheDataAreProvidedViaStdIn() {
 	const { passphrase, data } = this.test.ctx;
 
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(`${passphrase}\n${data}`));
@@ -425,7 +425,7 @@ export function givenBothThePassphraseAndTheDataAreProvidedViaStdIn() {
 	this.test.ctx.dataIsRequired = true;
 }
 
-export function givenThePassphraseIsStoredInEnvironmentalVariable() {
+export function thePassphraseIsStoredInEnvironmentalVariable() {
 	const { passphrase } = this.test.ctx;
 	const environmentalVariableName = getFirstQuotedString(this.test.parent.title);
 
@@ -435,7 +435,7 @@ export function givenThePassphraseIsStoredInEnvironmentalVariable() {
 	this.test.ctx.passphraseSource = `env:${environmentalVariableName}`;
 }
 
-export function givenEnvironmentalVariableIsNotSet() {
+export function environmentalVariableIsNotSet() {
 	const environmentalVariableName = getFirstQuotedString(this.test.parent.title);
 
 	delete process.env[environmentalVariableName];
@@ -443,7 +443,7 @@ export function givenEnvironmentalVariableIsNotSet() {
 	this.test.ctx.environmentalVariableName = environmentalVariableName;
 }
 
-export function givenAPassphraseFilePath() {
+export function aPassphraseFilePath() {
 	const { passphrase } = this.test.ctx;
 	const filePath = getFirstQuotedString(this.test.parent.title);
 
@@ -452,24 +452,24 @@ export function givenAPassphraseFilePath() {
 	this.test.ctx.passphraseSource = `file:${filePath}`;
 }
 
-export function givenAnUnknownPassphraseSource() {
+export function anUnknownPassphraseSource() {
 	this.test.ctx.passphraseSource = 'unknownSource';
 }
 
-export function givenThePassphraseIsProvidedAsPlaintext() {
+export function thePassphraseIsProvidedAsPlaintext() {
 	const { passphrase } = this.test.ctx;
 	this.test.ctx.passphraseSource = `pass:${passphrase}`;
 }
 
-export function givenThereIsNoStringAvailable() {
+export function thereIsNoStringAvailable() {
 	this.test.ctx.testString = null;
 }
 
-export function givenThereIsAString() {
+export function thereIsAString() {
 	this.test.ctx.testString = getFirstQuotedString(this.test.parent.title);
 }
 
-export function givenADataFilePath() {
+export function aDataFilePath() {
 	const { data } = this.test.ctx;
 	const filePath = getFirstQuotedString(this.test.parent.title);
 
@@ -477,23 +477,23 @@ export function givenADataFilePath() {
 	this.test.ctx.filePath = filePath;
 }
 
-export function givenNoDataIsProvided() {}
+export function noDataIsProvided() {}
 
-export function givenDataIsProvidedViaStdIn() {
+export function dataIsProvidedViaStdIn() {
 	const { data } = this.test.ctx;
 	this.test.ctx.stdInData = data;
 }
 
-export function givenDataIsProvidedAsAnArgument() {
+export function dataIsProvidedAsAnArgument() {
 	const { data } = this.test.ctx;
 	this.test.ctx.argData = data;
 }
 
-export function givenDataIsProvidedViaAnUnknownSource() {
+export function dataIsProvidedViaAnUnknownSource() {
 	this.test.ctx.sourceData = 'unknownSource';
 }
 
-export function givenDataIsProvidedViaAFileSource() {
+export function dataIsProvidedViaAFileSource() {
 	const { filePath } = this.test.ctx;
 	this.test.ctx.sourceData = `file:${filePath}`;
 }

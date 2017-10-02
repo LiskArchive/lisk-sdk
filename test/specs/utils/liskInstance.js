@@ -13,17 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	givenALiskInstance,
-} from '../../steps/1_given';
-import {
-	thenTheLiskInstanceShouldBeALiskJSApiInstance,
-} from '../../steps/3_then';
+import * as given from '../../steps/1_given';
+import * as then from '../../steps/3_then';
 
 describe('liskInstance util', () => {
 	describe('Given a lisk instance', () => {
-		beforeEach(givenALiskInstance);
+		beforeEach(given.aLiskInstance);
 
-		it('Then the lisk instance should be a lisk-js api instance', thenTheLiskInstanceShouldBeALiskJSApiInstance);
+		it('Then the lisk instance should be a lisk-js api instance', then.theLiskInstanceShouldBeALiskJSApiInstance);
 	});
 });

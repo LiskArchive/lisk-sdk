@@ -20,36 +20,9 @@ import {
 	setUpConsoleStubs,
 	setUpProcessStubs,
 } from '../../steps/utils';
-import {
-	givenADefaultConfig,
-	givenADirectoryPath,
-	givenAConfigFileName,
-	givenTheDirectoryDoesNotExist,
-	givenTheDirectoryDoesExist,
-	givenTheDirectoryCannotBeCreated,
-	givenTheDirectoryCanBeCreated,
-	givenTheFileDoesNotExist,
-	givenTheFileDoesExist,
-	givenTheFileCannotBeWritten,
-	givenTheFileCanBeWritten,
-	givenTheFileCannotBeRead,
-	givenTheFileCanBeRead,
-	givenTheFileIsNotValidJSON,
-	givenTheFileIsValidJSON,
-} from '../../steps/1_given';
-import {
-	whenTheConfigIsLoaded,
-} from '../../steps/2_when';
-import {
-	thenTheDefaultConfigShouldBeExported,
-	thenTheUsersConfigShouldBeExported,
-	thenTheDefaultConfigShouldBeWrittenToTheConfigFile,
-	thenTheConfigFileShouldNotBeWritten,
-	thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted,
-	thenTheUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect,
-	thenTheUserShouldBeInformedThatTheConfigFileIsNotValidJSON,
-	thenTheProcessShouldExitWithErrorCode,
-} from '../../steps/3_then';
+import * as given from '../../steps/1_given';
+import * as when from '../../steps/2_when';
+import * as then from '../../steps/3_then';
 
 const CONFIG_PATH = '../../../src/utils/env';
 
@@ -62,131 +35,121 @@ describe('env util', () => {
 	});
 
 	describe('Given a default config', () => {
-		beforeEach(givenADefaultConfig);
+		beforeEach(given.aDefaultConfig);
 
 		describe(`Given a directory path "${os.homedir()}/.lisky"`, () => {
-			beforeEach(givenADirectoryPath);
+			beforeEach(given.aDirectoryPath);
 
 			describe('Given a config file name "config.json"', () => {
-				beforeEach(givenAConfigFileName);
+				beforeEach(given.aConfigFileName);
 
 				describe('Given the directory does not exist', () => {
-					beforeEach(givenTheDirectoryDoesNotExist);
+					beforeEach(given.theDirectoryDoesNotExist);
 
 					describe('Given the directory cannot be created', () => {
-						beforeEach(givenTheDirectoryCannotBeCreated);
+						beforeEach(given.theDirectoryCannotBeCreated);
 
 						describe('When the config is loaded', () => {
-							beforeEach(whenTheConfigIsLoaded);
+							beforeEach(when.theConfigIsLoaded);
 
-							it('Then the user should be warned that the config will not be persisted', thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted);
-
-							it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+							it('Then the user should be warned that the config will not be persisted', then.theUserShouldBeWarnedThatTheConfigWillNotBePersisted);
+							it('Then the default config should be exported', then.theDefaultConfigShouldBeExported);
 						});
 					});
 
 					describe('Given the config directory can be created', () => {
-						beforeEach(givenTheDirectoryCanBeCreated);
+						beforeEach(given.theDirectoryCanBeCreated);
 
 						describe('When the config is loaded', () => {
-							beforeEach(whenTheConfigIsLoaded);
+							beforeEach(when.theConfigIsLoaded);
 
-							it('Then the default config should be written to the config file', thenTheDefaultConfigShouldBeWrittenToTheConfigFile);
-
-							it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+							it('Then the default config should be written to the config file', then.theDefaultConfigShouldBeWrittenToTheConfigFile);
+							it('Then the default config should be exported', then.theDefaultConfigShouldBeExported);
 						});
 					});
 				});
 
 				describe('Given the config directory does exist', () => {
-					beforeEach(givenTheDirectoryDoesExist);
+					beforeEach(given.theDirectoryDoesExist);
 
 					describe('Given the config file does not exist', () => {
-						beforeEach(givenTheFileDoesNotExist);
+						beforeEach(given.theFileDoesNotExist);
 
 						describe('Given the config file cannot be written', () => {
-							beforeEach(givenTheFileCannotBeWritten);
+							beforeEach(given.theFileCannotBeWritten);
 
 							describe('When the config is loaded', () => {
-								beforeEach(whenTheConfigIsLoaded);
+								beforeEach(when.theConfigIsLoaded);
 
-								it('Then the user should be warned that the config will not be persisted', thenTheUserShouldBeWarnedThatTheConfigWillNotBePersisted);
-
-								it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+								it('Then the user should be warned that the config will not be persisted', then.theUserShouldBeWarnedThatTheConfigWillNotBePersisted);
+								it('Then the default config should be exported', then.theDefaultConfigShouldBeExported);
 							});
 						});
 
 						describe('Given the config file can be written', () => {
-							beforeEach(givenTheFileCanBeWritten);
+							beforeEach(given.theFileCanBeWritten);
 
 							describe('When the config is loaded', () => {
-								beforeEach(whenTheConfigIsLoaded);
+								beforeEach(when.theConfigIsLoaded);
 
-								it('Then the default config should be written to the config file', thenTheDefaultConfigShouldBeWrittenToTheConfigFile);
-
-								it('Then the default config should be exported', thenTheDefaultConfigShouldBeExported);
+								it('Then the default config should be written to the config file', then.theDefaultConfigShouldBeWrittenToTheConfigFile);
+								it('Then the default config should be exported', then.theDefaultConfigShouldBeExported);
 							});
 						});
 					});
 
 					describe('Given the config file does exist', () => {
-						beforeEach(givenTheFileDoesExist);
+						beforeEach(given.theFileDoesExist);
 
 						describe('Given the config file is not readable', () => {
-							beforeEach(givenTheFileCannotBeRead);
+							beforeEach(given.theFileCannotBeRead);
 
 							describe('When the config is loaded', () => {
-								beforeEach(whenTheConfigIsLoaded);
+								beforeEach(when.theConfigIsLoaded);
 
-								it('Then the user should be informed that the config file permissions are incorrect', thenTheUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect);
-
-								it('Then the process should exit with error code "1"', thenTheProcessShouldExitWithErrorCode);
-
-								it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
+								it('Then the user should be informed that the config file permissions are incorrect', then.theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect);
+								it('Then the process should exit with error code "1"', then.theProcessShouldExitWithErrorCode);
+								it('Then the config file should not be written', then.theConfigFileShouldNotBeWritten);
 							});
 						});
 
 						describe('Given the config file can be read', () => {
-							beforeEach(givenTheFileCanBeRead);
+							beforeEach(given.theFileCanBeRead);
 
 							describe('Given the config file is not valid JSON', () => {
-								beforeEach(givenTheFileIsNotValidJSON);
+								beforeEach(given.theFileIsNotValidJSON);
 
 								describe('When the config is loaded', () => {
-									beforeEach(whenTheConfigIsLoaded);
+									beforeEach(when.theConfigIsLoaded);
 
-									it('Then the user should be informed that the config file is not valid JSON', thenTheUserShouldBeInformedThatTheConfigFileIsNotValidJSON);
-
-									it('Then the process should exit with error code "2"', thenTheProcessShouldExitWithErrorCode);
-
-									it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
+									it('Then the user should be informed that the config file is not valid JSON', then.theUserShouldBeInformedThatTheConfigFileIsNotValidJSON);
+									it('Then the process should exit with error code "2"', then.theProcessShouldExitWithErrorCode);
+									it('Then the config file should not be written', then.theConfigFileShouldNotBeWritten);
 								});
 							});
 
 							describe('Given the config file is valid JSON', () => {
-								beforeEach(givenTheFileIsValidJSON);
+								beforeEach(given.theFileIsValidJSON);
 
 								describe('Given the config file cannot be written', () => {
-									beforeEach(givenTheFileCannotBeWritten);
+									beforeEach(given.theFileCannotBeWritten);
 
 									describe('When the config is loaded', () => {
-										beforeEach(whenTheConfigIsLoaded);
+										beforeEach(when.theConfigIsLoaded);
 
-										it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
-
-										it('Then the user’s config should be exported', thenTheUsersConfigShouldBeExported);
+										it('Then the config file should not be written', then.theConfigFileShouldNotBeWritten);
+										it('Then the user’s config should be exported', then.theUsersConfigShouldBeExported);
 									});
 								});
 
 								describe('Given the config file can be written', () => {
-									beforeEach(givenTheFileCanBeWritten);
+									beforeEach(given.theFileCanBeWritten);
 
 									describe('When the config is loaded', () => {
-										beforeEach(whenTheConfigIsLoaded);
+										beforeEach(when.theConfigIsLoaded);
 
-										it('Then the config file should not be written', thenTheConfigFileShouldNotBeWritten);
-
-										it('Then the user’s config should be exported', thenTheUsersConfigShouldBeExported);
+										it('Then the config file should not be written', then.theConfigFileShouldNotBeWritten);
+										it('Then the user’s config should be exported', then.theUsersConfigShouldBeExported);
 									});
 								});
 							});

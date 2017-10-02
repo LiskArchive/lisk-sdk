@@ -13,46 +13,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	givenThereIsAFileWithUtf8EncodedJSONContentsAtPath,
-	givenTheFileHasABOM,
-	givenThereIsAnObjectThatShouldBeWrittenToPath,
-} from '../../steps/1_given';
-import {
-	whenTheJSONIsRead,
-	whenTheJSONIsWritten,
-} from '../../steps/2_when';
-import {
-	thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding,
-	thenJSONParseShouldBeCalledWithTheFileContentsAsAString,
-	thenJSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM,
-	thenTheParsedFileContentsShouldBeReturned,
-	thenJSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation,
-	thenFsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON,
-} from '../../steps/3_then';
+import * as given from '../../steps/1_given';
+import * as when from '../../steps/2_when';
+import * as then from '../../steps/3_then';
 
 describe('fs module', () => {
 	describe('#readJsonSync', () => {
 		describe('Given there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"', () => {
-			beforeEach(givenThereIsAFileWithUtf8EncodedJSONContentsAtPath);
+			beforeEach(given.thereIsAFileWithUtf8EncodedJSONContentsAtPath);
 
 			describe('When the JSON is read', () => {
-				beforeEach(whenTheJSONIsRead);
+				beforeEach(when.theJSONIsRead);
 
-				it('Then fs.readFileSync should be called with the path and encoding', thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding);
-				it('Then JSON.parse should be called with the file contents as a string', thenJSONParseShouldBeCalledWithTheFileContentsAsAString);
-				it('Then the parsed file contents should be returned', thenTheParsedFileContentsShouldBeReturned);
+				it('Then fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
+				it('Then JSON.parse should be called with the file contents as a string', then.jSONParseShouldBeCalledWithTheFileContentsAsAString);
+				it('Then the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
 			});
 
 			describe('Given the file has a BOM', () => {
-				beforeEach(givenTheFileHasABOM);
+				beforeEach(given.theFileHasABOM);
 
 				describe('When the JSON is read', () => {
-					beforeEach(whenTheJSONIsRead);
+					beforeEach(when.theJSONIsRead);
 
-					it('Then fs.readFileSync should be called with the path and encoding', thenFsReadFileSyncShouldBeCalledWithThePathAndEncoding);
-					it('Then JSON.parse should be called with the file contents as a string without the BOM', thenJSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM);
-					it('Then the parsed file contents should be returned', thenTheParsedFileContentsShouldBeReturned);
+					it('Then fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
+					it('Then JSON.parse should be called with the file contents as a string without the BOM', then.jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM);
+					it('Then the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
 				});
 			});
 		});
@@ -60,13 +46,13 @@ describe('fs module', () => {
 
 	describe('#writeJsonSync', () => {
 		describe('Given there is an object that should be written to path "/some/path/to/file.json"', () => {
-			beforeEach(givenThereIsAnObjectThatShouldBeWrittenToPath);
+			beforeEach(given.thereIsAnObjectThatShouldBeWrittenToPath);
 
 			describe('When the JSON is written', () => {
-				beforeEach(whenTheJSONIsWritten);
+				beforeEach(when.theJSONIsWritten);
 
-				it('Then JSON.stringify should be called with the object using tab indentation', thenJSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation);
-				it('Then fs.writeFileSync should be called with the path and the stringified JSON', thenFsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON);
+				it('Then JSON.stringify should be called with the object using tab indentation', then.jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation);
+				it('Then fs.writeFileSync should be called with the path and the stringified JSON', then.fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON);
 			});
 		});
 	});
