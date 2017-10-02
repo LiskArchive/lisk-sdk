@@ -4,7 +4,7 @@ var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
 var ws = require('../../../common/wsCommunication.js');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
-var modulesLoader = require('../common/modulesLoader');
+var modulesLoader = require('../../../common/modulesLoader');
 
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', { transaction: transaction }, done, true);
