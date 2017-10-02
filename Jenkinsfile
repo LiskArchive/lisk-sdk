@@ -286,7 +286,25 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run test-unit
 					'''
 				}
-			}, // End Node-03 unit tests
+			},
+			"Unit Tests - sql blockRewards" : {
+				node('node-03'){
+					sh '''
+					export TEST=test/unit/sql/blockRewards.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},
+			"Unit Tests - logic blockReward" : {
+				node('node-03'){
+					sh '''
+					export TEST=test/unit/logic/blockReward.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run jenkins
+					'''
+				}
+			},// End Node-03 unit tests
 			"Functional Stress - Transactions" : {
 				node('node-04'){
 					sh '''
