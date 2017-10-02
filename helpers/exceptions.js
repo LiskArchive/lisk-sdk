@@ -5,10 +5,10 @@
  * @property {Object} genesisPublicKey
  * @property {string} genesisPublicKey.mainnet
  * @property {string} genesisPublicKey.testnet
- * @property {Strin[]} senderPublicKey
- * @property {Strin[]} signatures
- * @property {Strin[]} multisignatures
- * @property {Strin[]} votes
+ * @property {string[]} senderPublicKey
+ * @property {string[]} signatures
+ * @property {string[]} multisignatures
+ * @property {string[]} votes
  */	
 module.exports = {
 	blockRewards: [],

@@ -11,8 +11,8 @@ def initBuild() {
 
 def buildDependency() {
 	try {
-		sh '''#!/bin/bash
-		# Install Deps
+		sh '''
+		rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
 		npm install
 		'''
 	} catch (err) {
@@ -53,8 +53,26 @@ def report(){
 }
 
 lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
+
+	properties([
+	  parameters([
+	    string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow test, change this value to jenkins-extensive.', )
+	   ])
+	])
+
 	stage ('Prepare Workspace') {
 		parallel(
+			"Build cached dependencies" : {
+				node('master-01'){
+					sh '''#!/bin/bash -xe
+					if [ $JENKINS_PROFILE == "jenkins-extensive" ]; then
+						rm -Rf "$WORKSPACE/node_modules/"
+						npm install
+						rsync -axl --delete "$WORKSPACE/node_modules/" /var/lib/jenkins/lisk/node_modules/
+					fi
+					'''
+				}
+			},
 			"Build Node-01" : {
 				node('node-01'){
 					initBuild()
@@ -155,129 +173,129 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Functional Accounts" : {
 				node('node-01'){
 					sh '''
-					export TEST=test/api/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/http/get/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
 			"Functional Blocks" : {
 				node('node-01'){
 					sh '''
-					export TEST=test/api/blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/http/get/blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
-				}
-			},
-			"Functional Delegates" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/api/delegates.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
 			"Functional Dapps" : {
 				node('node-01'){
 					sh '''
-					export TEST=test/api/dapps.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/http/get/dapps.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
+					'''
+				}
+			},
+			"Functional Delegates" : {
+				node('node-01'){
+					sh '''
+					export TEST=test/functional/http/get/delegates.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
 			"Functional Loader" : {
 				node('node-01'){
 					sh '''
-					export TEST=test/api/loader.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/http/get/loader.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
-				}
-			},
-			"Functional Transport - Handshake" : {
-				node('node-02'){
-					sh '''
-					export TEST=test/api/transport/transport.handshake.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
 			"Functional Multisignatures" : {
 				node('node-01'){
 					sh '''
-					export TEST=test/api/multisignatures.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/http/get/multisignatures.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
-			"Functional Multisignatures POST" : {
+			"Functional Multisignatures post" : {
 				node('node-01'){
 					sh '''
-					export TEST=test/api/multisignatures.post.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/http/get/multisignatures.post.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
 			"Functional Transactions" : {
 				node('node-01'){
 					sh '''
-					export TEST=test/api/transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/http/get/transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
-			}, //End node-01 functional tests
+			},
+			"Functional Peers" : {
+				node('node-02'){
+					sh '''
+					export TEST=test/functional/http/get/peers.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run $JENKINS_PROFILE
+					'''
+				}
+			},  // End node-01 functional tests
 			"Functional Transport - Main" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/transport/transport.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/ws/transport.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
 			"Functional Transport - Blocks" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/transport/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/ws/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
 			"Functional Transport - Client" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/transport/transport.client.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/ws/transport.client.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
-			"Functional Transport - Transactions Main" : {
+			"Functional Transport - Handshake" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/transport/transport.transactions.main.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/ws/transport.handshake.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
 			},
-			"Functional Transport - Peers" : {
+			"Functional Transport - Transactions" : {
 				node('node-02'){
 					sh '''
-					export TEST=test/api/peers.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/ws/transport.transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
-			},  // End Node-02 functional tests
+			}, // End Node-02 Tests
 			"Unit Tests" : {
 				node('node-03'){
 					sh '''
@@ -286,16 +304,34 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run test-unit
 					'''
 				}
-			}, // End Node-03 unit tests
+			},
+			"Unit Tests - sql blockRewards" : {
+				node('node-03'){
+					sh '''
+					export TEST=test/unit/sql/blockRewards.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run $JENKINS_PROFILE
+					'''
+				}
+			},
+			"Unit Tests - logic blockReward" : {
+				node('node-03'){
+					sh '''
+					export TEST=test/unit/logic/blockReward.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run $JENKINS_PROFILE
+					'''
+				}
+			},// End Node-03 unit tests
 			"Functional Stress - Transactions" : {
 				node('node-04'){
 					sh '''
-					export TEST=test/api/transport/transport.transactions.stress.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					export TEST=test/functional/ws/transport.transactions.stress.js TEST_TYPE='FUNC' NODE_ENV='TEST'
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
+					npm run $JENKINS_PROFILE
 					'''
 				}
-			}
+			} // End Node-04
 		) // End Parallel
 	}
 

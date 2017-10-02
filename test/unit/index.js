@@ -6,6 +6,7 @@ require('./api/ws/workers/slaveToMasterSender');
 require('./helpers/ed');
 require('./helpers/jobs-queue');
 require('./helpers/peersManager');
+require('./helpers/pg-notify');
 require('./helpers/request-limiter');
 require('./helpers/RPC');
 require('./helpers/slots');
@@ -36,8 +37,3 @@ require('./sql/delegatesList');
 require('./sql/rounds');
 
 require('./schema/delegates');
-
-// with long timeouts
-require('./helpers/pg-notify');
-require('./logic/blockReward');
-require('./sql/blockRewards');
