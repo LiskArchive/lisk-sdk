@@ -76,6 +76,11 @@ module.exports = function (grunt) {
 				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.js',
 				maxBuffer: maxBufferSize
 			},
+      
+			coverageUnitSlow: {
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
+				maxBuffer: maxBufferSize
+			},
 
 			testFunctionalWs: {
 				command: './node_modules/.bin/_mocha test/functional/ws/index.js',
@@ -152,6 +157,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
+	grunt.registerTask('test-unit-slow', ['eslint', 'exec:coverageUnitSlow']);
 	grunt.registerTask('test-functional-ws', ['eslint', 'exec:testFunctionalWs']);
 	grunt.registerTask('test-functional-http', ['eslint', 'exec:testFunctionalHttp']);
 	grunt.registerTask('test-integration', ['eslint', 'exec:testIntegration']);
