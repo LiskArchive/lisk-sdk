@@ -1,37 +1,28 @@
 'use strict';
 
 var chai = require('chai');
+var child_process = require('child_process');
+var cluster = require('cluster');
 var expect = require('chai').expect;
 var crypto = require('crypto');
 
 var constants = require('../../../helpers/constants');
+var config = require('../../config.json');
 
-// ToDo: Ensure that different app instance is not running - port collision
-describe.skip('app', function () {
+describe('app', function () {
 
 	var app;
 
 	before(function (done) {
-		// Run the app
+		// Run the app on a different than default port
+		process.argv.push('-p');
+		process.argv.push(config.port += 1);
+		process.argv.push('-h');
+		process.argv.push(config.httpPort += 1);
 		require('../../../app');
 		// Wait for modules to be initialized
-		setTimeout(done, 3000);
-		done();
+		setTimeout(done, 5000);
 	});
 
-	describe('setting constants', function () {
-
-		describe('nonce', function () {
-
-			it('should be set after app starts', function () {
-				var nonce = constants.getConst('headers').nonce;
-				expect(nonce).not.to.be.empty;
-			});
-
-			it('should be a string', function () {
-				var nonce = constants.getConst('headers').nonce;
-				expect(nonce).to.be.a('string');
-			});
-		});
-	});
+	it('should be ok');
 });
