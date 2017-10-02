@@ -6,26 +6,30 @@ var expect = require('chai').expect;
 var express = require('express');
 var sinon = require('sinon');
 
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
+var node = require('../../node');
 
 describe('blocks', function () {
 
 	var blocks;
+	var db;
+	var dbSandbox;
 
 	before(function (done) {
-		modulesLoader.initModules([
-			{blocks: require('../../../modules/blocks')}
-		], [
-			{'transaction': require('../../../logic/transaction')},
-			{'block': require('../../../logic/block')},
-			{'peers': require('../../../logic/peers.js')}
-		], {}, function (err, __blocks) {
-			if (err) {
-				return done(err);
-			}
-			blocks = __blocks.blocks;
-			done();
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_modules_blocks');
+		dbSandbox.create(function (err, __db) {
+			db = __db;
+			node.initApplication(function (err, scope) {
+				blocks = scope.modules.blocks;
+				done();
+			}, {db: db});
 		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	describe('getBlockProgressLogger', function () {

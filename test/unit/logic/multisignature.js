@@ -11,11 +11,9 @@ var sinon = require('sinon');
 var _  = require('lodash');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
-var modulesLoader = require('../../common/initModule').modulesLoader;
-var Transaction = require('../../../logic/transaction.js');
-var AccountLogic = require('../../../logic/account.js');
-var AccountModule = require('../../../modules/accounts.js');
+var modulesLoader = require('../../common/modulesLoader');
 
 var Multisignature = require('../../../logic/multisignature.js');
 
@@ -53,38 +51,28 @@ describe('multisignature', function () {
 
 	var transaction;
 	var multisignature;
-	var trs;
 	var sender;
 
-	var attachMultiSigAsset = function (transaction, accountLogic, done) {
-		modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
-			multisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transaction, modulesLoader.logger);
-			multisignature.bind(__accountModule);
-			transaction.attachAssetType(transactionTypes.MULTI, multisignature);
-			done();
-		}, {
-			logic: {
-				account: accountLogic,
-				transaction: transaction
-			}
-		});
-	};
+	var db;
+	var dbSandbox;
 
 	before(function (done) {
-		async.auto({
-			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb);
-			},
-			transaction: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(Transaction, cb, {
-					ed: require('../../../helpers/ed'),
-					account: result.accountLogic
-				});
-			}]
-		}, function (err, result) {
-			transaction = result.transaction;
-			attachMultiSigAsset(transaction, result.accountLogic, done);
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_multisignature');
+		dbSandbox.create(function (err, __db) {
+			db = __db;
+			node.initApplication(function (err, scope) {
+				transaction = scope.logic.transaction;
+				multisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transaction, modulesLoader.logger);
+				multisignature.bind(scope.modules.accounts);
+				transaction.attachAssetType(transactionTypes.MULTI, multisignature);
+				done();
+			}, {db: db});
 		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	beforeEach(function () {

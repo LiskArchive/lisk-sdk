@@ -8,12 +8,14 @@ var expect = require('chai').expect;
 var _  = require('lodash');
 
 var node = require('./../../node.js');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
+
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff.js');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants.js');
 
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var TransactionLogic = require('../../../logic/transaction.js');
 var Vote = require('../../../logic/vote.js');
 var Transfer = require('../../../logic/transfer.js');
@@ -120,56 +122,38 @@ describe('vote', function () {
 		});
 	}
 
+	var accountsModule;
+	var delegatesModule;
+
+	var db;
+	var dbSandbox;
+
 	before(function (done) {
-		async.auto({
-			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb, {});
-			},
-			transactionLogic: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(TransactionLogic, function (err, __transaction) {
-					cb(err, __transaction);
-				}, {
-					ed: require('../../../helpers/ed'),
-					account: result.account
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_vote');
+		dbSandbox.create(function (err, __db) {
+			db = __db;
+			node.initApplication(function (err, scope) {
+				accountsModule = scope.modules.accounts;
+				delegatesModule = scope.modules.delegates;
+				vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
+				voteBindings = {
+					delegate: delegatesModule,
+					account: accountsModule
+				};
+				vote.bind(delegatesModule);
+				delegatesModule.onBind({
+					accounts: accountsModule
 				});
-			}],
-			accountModule: ['accountLogic', 'transactionLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(AccountModule, cb, {
-					logic: {
-						account: result.accountLogic,
-						transaction: result.transactionLogic
-					}
-				});
-			}],
-			delegateModule: ['accountModule', function (result, cb) {
-				modulesLoader.initModuleWithDb(DelegateModule, function (err, __delegates) {
-					// not all required bindings, only the ones required for votes
-					__delegates.onBind({
-						accounts: result.accountModule,
-					});
-					cb(err, __delegates);
-				}, {
-					logic: {
-						transaction: result.transactionLogic
-					},
-					library: {
-						schema: modulesLoader.scope.schema
-					}
-				});
-			}]
-		}, function (err, result) {
-			expect(err).to.not.exist;
-			vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
-			voteBindings = {
-				delegate: result.delegateModule,
-				account: result.accountModule
-			};
-			vote.bind(result.delegateModule);
-			transaction = result.transactionLogic;
-			transaction.attachAssetType(transactionTypes.VOTE, vote);
-			accountsModule = result.accountModule;
-			done();
+				transaction = scope.logic.transaction;
+				transaction.attachAssetType(transactionTypes.VOTE, vote);
+				done();
+			}, {db: db});
 		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	before(function (done) {
