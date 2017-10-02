@@ -243,10 +243,10 @@ Transaction.prototype.ready = function (trs, sender) {
  * @return {setImmediateCallback} error | row.count
  */
 Transaction.prototype.countById = function (trs, cb) {
-	this.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
+	self.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
 		return setImmediate(cb, null, row.count);
 	}).catch(function (err) {
-		this.scope.logger.error(err.stack);
+		self.scope.logger.error(err.stack);
 		return setImmediate(cb, 'Transaction#countById error');
 	});
 };
@@ -1032,7 +1032,7 @@ Transaction.prototype.objectNormalize = function (trs) {
 	var report = this.scope.schema.validate(trs, Transaction.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate transaction schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate transaction schema: ' + self.scope.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
