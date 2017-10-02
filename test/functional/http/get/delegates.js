@@ -1,12 +1,11 @@
 'use strict';
 
-var node = require('../node.js');
-var http = require('../common/httpCommunication.js');
-var sendLISK = require('../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../common/complexTransactions.js').sendTransaction;
-var modulesLoader = require('./../common/initModule.js').modulesLoader;
-var genesisDelegates = require('../genesisDelegates.json');
-
+var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
+var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
+var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
+var modulesLoader = require('../../../common/initModule.js').modulesLoader;
+var genesisDelegates = require('../../../genesisDelegates.json');
 var testDelegate = genesisDelegates.delegates[0];
 
 function getForgingStatus (publicKey, cb) {
@@ -23,7 +22,8 @@ before(function (done) {
 		amount: node.randomLISK(),
 		address: delegate.address
 	}, function (err, res) {
-		node.expect(err).to.be.null;
+		node.expect(res).to.have.property('success').to.be.ok;
+		node.expect(res).to.have.property('transactionId').that.is.not.empty;
 		node.onNewBlock(function () {
 			var insertDelegateTrs = node.lisk.delegate.createDelegate(delegate.password, delegate.username);
 			sendTransaction(insertDelegateTrs, function (err, res) {
@@ -34,16 +34,11 @@ before(function (done) {
 	});
 });
 
-
 describe('GET /api/delegates (cache)', function () {
 	var cache;
 
 	before(function (done) {
 		node.config.cacheEnabled = true;
-		done();
-	});
-
-	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			node.expect(err).to.not.exist;
@@ -52,16 +47,16 @@ describe('GET /api/delegates (cache)', function () {
 		});
 	});
 
-	after(function (done) {
-		cache.quit(done);
-	});
-
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			node.expect(err).to.not.exist;
 			node.expect(status).to.equal('OK');
 			done(err, status);
 		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
 	});
 
 	it('cache delegates when response is a success', function (done) {
@@ -97,7 +92,7 @@ describe('GET /api/delegates (cache)', function () {
 		});
 	});
 
-	it('should flush cache on the next round', function (done) {
+	it('should flush cache on the next round @slow', function (done) {
 		var url;
 		url = '/api/delegates';
 
