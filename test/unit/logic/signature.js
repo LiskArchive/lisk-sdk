@@ -90,7 +90,6 @@ describe('signature', function () {
 	});
 
 	afterEach(function () {
-		debugger;
 		transactionMock.restore();
 		accountsMock.setAccountAndGet.reset();
 	});
@@ -277,20 +276,24 @@ describe('signature', function () {
 				height: 1
 			};
 
-			it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
+			describe('with mocked accounts.setAccountAndGet', function () {
+
 				function callback () {}
 
-				accountsMock.setAccountAndGet.once().withExactArgs({
-					address: sender.address,
-					secondSignature: 1,
-					u_secondSignature: 0,
-					secondPublicKey: trs.asset.signature.publicKey
-				}, callback);
+				beforeEach(function () {
+					accountsMock.setAccountAndGet.once().withExactArgs({
+						address: sender.address,
+						secondSignature: 1,
+						u_secondSignature: 0,
+						secondPublicKey: trs.asset.signature.publicKey
+					}, callback);
+				});
 
-				signature.apply.call(transactionMock, trs, dummyBlock, sender, callback);
-				accountsMock.setAccountAndGet.verify();
-
-				done();
+				it('it should call setAccountAndGet with correct parameters', function (done) {
+					signature.apply.call(transactionMock, trs, dummyBlock, sender, callback);
+					accountsMock.setAccountAndGet.verify();
+					done();
+				});
 			});
 		});
 
@@ -301,72 +304,94 @@ describe('signature', function () {
 				height: 1
 			};
 
-			it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
+			describe('with mocked accounts.setAccountAndGet', function () {
+
 				function callback () {}
 
-				accountsMock.setAccountAndGet.once().withExactArgs({
-					address: sender.address,
-					secondSignature: 0,
-					u_secondSignature: 1,
-					secondPublicKey: null
-				}, callback);
+				beforeEach(function () {
+					accountsMock.setAccountAndGet.once().withExactArgs({
+						address: sender.address,
+						secondSignature: 0,
+						u_secondSignature: 1,
+						secondPublicKey: null
+					}, callback);
+				});
 
-				signature.undo.call(transactionMock, trs, dummyBlock, sender, callback);
-				accountsMock.setAccountAndGet.verify();
+				it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
+					signature.undo.call(transactionMock, trs, dummyBlock, sender, callback);
+					accountsMock.setAccountAndGet.verify();
 
-				done();
+					done();
+				});
 			});
 		});
 
 		describe('applyUnconfirmed', function () {
 
-			it('should call callback with error if u_secondSignature already exists', function (done) {
-				sender.u_secondSignature = 'some-second-siganture';
+			describe('when sender has u_secondSignature', function () {
 
-				signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
-					expect(err).to.equal('Second signature already enabled');
-					done();
-				}); 
+				beforeEach(function () {
+					sender.u_secondSignature = 'some-second-siganture';
+				});
+
+				it('should call callback with error', function (done) {
+					signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
+						expect(err).to.equal('Second signature already enabled');
+						done();
+					});
+				});
 			});
 
-			it('should call callback with error if secondSignature already exists', function (done) {
-				sender.secondSignature = 'some-second-siganture';
+			describe('when sender has secondSignature', function () {
 
-				signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
-					expect(err).to.equal('Second signature already enabled');
-					done();
-				}); 
+				beforeEach(function () {
+					sender.secondSignature = 'some-second-siganture';
+				});
+
+
+				it('should call callback with error', function (done) {
+					signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
+						expect(err).to.equal('Second signature already enabled');
+						done();
+					});
+				});
 			});
 
-			it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
+			describe('with accounts.setAccountAndGet mocked', function () {
+
 				function callback () {}
 
-				accountsMock.setAccountAndGet.once().withExactArgs({
-					address: sender.address,
-					u_secondSignature: 1
-				}, callback);
+				before(function () {
+					accountsMock.setAccountAndGet.once().withExactArgs({
+						address: sender.address,
+						u_secondSignature: 1
+					}, callback);
+				});
 
-				signature.applyUnconfirmed.call(transactionMock, trs, sender, callback);
-				accountsMock.setAccountAndGet.verify();
-
-				done();
+				it('should call module with correct parameters', function () {
+					signature.applyUnconfirmed.call(transactionMock, trs, sender, callback);
+					accountsMock.setAccountAndGet.verify();
+				});
 			});
 		});
 
 		describe('undoUnconfirmed', function () {
 
-			it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
+			describe('with accounts.setAccountAndGet mocked', function () {
+
 				function callback () {}
 
-				accountsMock.setAccountAndGet.once().withExactArgs({
-					address: sender.address,
-					u_secondSignature: 0
-				}, callback);
+				before(function () {
+					accountsMock.setAccountAndGet.once().withExactArgs({
+						address: sender.address,
+						u_secondSignature: 0
+					}, callback);
+				});
 
-				signature.undoUnconfirmed.call(transactionMock, trs, sender, callback);
-				accountsMock.setAccountAndGet.verify();
-
-				done();
+				it('should call setAccountAndGet with correct params', function () {
+					signature.undoUnconfirmed.call(transactionMock, trs, sender, callback);
+					accountsMock.setAccountAndGet.verify();
+				});
 			});
 		});
 
@@ -437,17 +462,28 @@ describe('signature', function () {
 
 		describe('dbRead', function () {
 
-			it('should return null if publicKey undefined', function () {
-				delete rawTrs.s_publicKey;
-				expect(signature.dbRead(rawTrs)).to.eql(null);
+			describe('when publicKey is undefined', function () {
+
+				beforeEach(function () {
+					delete rawTrs.s_publicKey;
+				});
+
+				it('should return null', function () {
+					expect(signature.dbRead(rawTrs)).to.eql(null);
+				});
 			});
 
-			it('should return signature asset for raw signature transaction', function () {
-				expect(signature.dbRead(rawTrs)).to.eql({
-					signature: {
-						publicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
-						transactionId: '5197781214824378819'
-					}
+			describe('with valid signature properties', function () {
+
+				var publicKey = 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7';
+				var transactionId = '5197781214824378819';
+
+				it('should return publicKey property', function () {
+					expect(signature.dbRead(rawTrs).signature.publicKey).to.equal(publicKey);
+				});
+
+				it('should return transactionId', function () {
+					expect(signature.dbRead(rawTrs).signature.transactionId).to.eql(transactionId);
 				});
 			});
 		});
@@ -462,8 +498,8 @@ describe('signature', function () {
 				}).to.throw();
 			});
 
-			it('should return signature db promise for signature transaction', function () {
-				expect(signature.dbSave(trs)).to.eql({
+			describe('for valid transaction', function () {
+				var expectedPromise = {
 					table: 'signatures',
 					fields: [
 						'transactionId',
@@ -473,6 +509,10 @@ describe('signature', function () {
 						transactionId: trs.id,
 						publicKey: Buffer.from(trs.asset.signature.publicKey, 'hex')
 					}
+				};
+
+				it('should return signature db promise for signature transaction', function () {
+					expect(signature.dbSave(trs)).to.eql(expectedPromise);
 				});
 			});
 		});
