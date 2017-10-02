@@ -35,7 +35,7 @@ var Router = function () {
 	};
 	/**
 	 * Adds one middleware to an array of routes.
-	 * @param {Function} middleware
+	 * @param {function} middleware
 	 * @param {string} routes
 	 */
 	router.attachMiddlwareForUrls = function (middleware, routes) {

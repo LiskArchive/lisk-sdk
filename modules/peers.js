@@ -696,8 +696,8 @@ Peers.prototype.shared = {
 	 * @async
 	 * @method version
 	 * @param  {Object}   req HTTP request object
-	 * @param  {Function} cb Callback function
-	 * @return {Function} cb Callback function from params (through setImmediate)
+	 * @param  {function} cb Callback function
+	 * @return {function} cb Callback function from params (through setImmediate)
 	 * @return {Object}   cb.err Always return `null` here
 	 * @return {Object}   cb.obj Anonymous object with version info
 	 * @return {string}   cb.obj.build Build information (if available, otherwise '')

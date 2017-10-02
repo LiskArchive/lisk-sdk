@@ -16,7 +16,7 @@ var testDatabaseNames = [];
  * @param {string} table
  * @param {Logger} logger
  * @param {Object} db
- * @param {Function} cb
+ * @param {function} cb
  */
 function clearDatabaseTable (db, logger, table, cb) {
 	db.query('DELETE FROM ' + table).then(function (result) {
@@ -46,7 +46,7 @@ function DBSandbox (dbConfig, testDatabaseName) {
 }
 
 /**
- * @param {Function} cb
+ * @param {function} cb
  * @param {number} [retries=10] retries
  * @param {number} [timeout=200] timeout
  * @param {string} [baseUrl='http://localhost:5000'] timeout

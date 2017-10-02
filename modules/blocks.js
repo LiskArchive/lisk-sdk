@@ -162,8 +162,8 @@ Blocks.prototype.onBind = function (scope) {
  * @public
  * @method cleanup
  * @listens module:app~event:cleanup
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  */
 Blocks.prototype.cleanup = function (cb) {
 	__private.loaded = false;

@@ -10,7 +10,7 @@ var cacheEnabled;
 /**
  * Cache module
  * @constructor
- * @param {Function} cb
+ * @param {function} cb
  * @param {Object} scope
  */
 function Cache (cb, scope) {
@@ -41,8 +41,8 @@ Cache.prototype.isReady = function () {
 /**
  * It gets the json value for a key from redis
  * @param {string} key
- * @param {Function} cb
- * @returns {Function} cb
+ * @param {function} cb
+ * @returns {function} cb
  */
 Cache.prototype.getJsonForKey = function (key, cb) {
 	if (!self.isConnected()) { 
@@ -61,7 +61,7 @@ Cache.prototype.getJsonForKey = function (key, cb) {
  * It sets json value for a key in redis
  * @param {string} key
  * @param {Object} value
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.setJsonForKey = function (key, value, cb) {
 	if (!self.isConnected()) {
@@ -85,7 +85,7 @@ Cache.prototype.deleteJsonForKey = function (key, cb) {
 /**
  * It scans keys with provided pattern in redis db and deletes the entries that match
  * @param {string} pattern
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.removeByPattern = function (pattern, cb) {
 	if (!self.isConnected()) {
@@ -113,7 +113,7 @@ Cache.prototype.removeByPattern = function (pattern, cb) {
 
 /**
  * It removes all entries from redis db
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.flushDb = function (cb) {
 	if (!self.isConnected()) { 
@@ -124,7 +124,7 @@ Cache.prototype.flushDb = function (cb) {
 
 /**
  * On application clean event, it quits the redis connection
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.cleanup = function (cb) {
 	self.quit(cb);
@@ -132,7 +132,7 @@ Cache.prototype.cleanup = function (cb) {
 
 /**
  * it quits the redis connection
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.quit = function (cb) {
 	if (!self.isConnected()) {
@@ -146,7 +146,7 @@ Cache.prototype.quit = function (cb) {
  * This function will be triggered on new block, it will clear all cache entires.
  * @param {Block} block
  * @param {Broadcast} broadcast
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 	cb = cb || function () {};
@@ -169,7 +169,7 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
  * @param {Object} data Data received from postgres
  * @param {Object} data.round Current round
  * @param {Object} data.list Delegates list used for slot calculations
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.onRoundChanged = function (data, cb) {
 	cb = cb || function () {};
@@ -190,7 +190,7 @@ Cache.prototype.onRoundChanged = function (data, cb) {
 /**
  * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
  * @param {Transactions[]} transactions
- * @param {Function} cb
+ * @param {function} cb
  */
 Cache.prototype.onTransactionsSaved = function (transactions, cb) {
 	cb = cb || function () {};
