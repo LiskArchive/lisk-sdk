@@ -77,6 +77,7 @@ var modulesLoader = new function () {
 	 */
 	this.initLogic = function (Logic, scope, cb) {
 		jobsQueue.jobs = {};
+		scope = _.assign({}, this.scope, scope);
 		switch (Logic.name) {
 			case 'Account':
 				new Logic(scope.db, scope.schema, scope.logger, cb);
@@ -119,6 +120,7 @@ var modulesLoader = new function () {
 	 */
 	this.initModule = function (Module, scope, cb) {
 		jobsQueue.jobs = {};
+		scope = _.assign({}, this.scope, scope);
 		return new Module(cb, scope);
 	};
 
@@ -131,12 +133,9 @@ var modulesLoader = new function () {
 	 * @param {Function} cb
 	 */
 	this.initModules = function (modules, logic, scope, cb) {
+		scope = _.assign({}, this.scope, scope);
 		async.waterfall([
 			function (waterCb) {
-				this.getDbConnection(waterCb);
-			}.bind(this),
-			function (db, waterCb) {
-				scope = _.merge(this.scope, {db: db}, scope);
 				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
@@ -146,7 +145,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope = _.merge(this.scope, {logic: logic}, scope);
+				scope = _.assign({}, this.scope, scope, {logic: logic});
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
@@ -194,28 +193,6 @@ var modulesLoader = new function () {
 			{'block': require('../../logic/block')},
 			{'peers': require('../../logic/peers.js')}
 		], scope || {}, cb);
-	};
-
-	/**
-	 * Initializes Module class with basic conf
-	 *
-	 * @param {Function} Module
-	 * @param {Function} cb
-	 * @param {Object=} scope
-	 */
-	this.initModuleWithDb = function (Module, cb, scope) {
-		this.initWithDb(Module, this.initModule, cb, scope);
-	};
-
-	/**
-	 * Initializes Logic class with basic conf
-	 *
-	 * @param {Function} Logic
-	 * @param {Function} cb
-	 * @param {Object=} scope
-	 */
-	this.initLogicWithDb = function (Logic, cb, scope) {
-		this.initWithDb(Logic, this.initLogic, cb, scope);
 	};
 
 	/**
@@ -272,6 +249,4 @@ var modulesLoader = new function () {
 	};
 };
 
-module.exports = {
-	modulesLoader: modulesLoader
-};
+module.exports = modulesLoader;
