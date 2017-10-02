@@ -21,8 +21,6 @@ require('./helpers/request-limiter');
 require('./helpers/router');
 require('./helpers/RPC');
 require('./helpers/slots');
-require('./helpers/RPC');
-require('./helpers/request-limiter.js');
 require('./helpers/wsApi');
 require('./helpers/z_schema-express');
 require('./helpers/z_schema');
