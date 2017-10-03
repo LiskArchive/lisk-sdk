@@ -18,6 +18,7 @@ import {
 	verifyMessageWithPublicKey,
 	verifyMessageWithTwoPublicKeys,
 	printSignedMessage,
+	printSignedMessageWithTwoSecrets,
 	signAndPrintMessage,
 	encryptMessageWithSecret,
 	decryptMessageWithSecret,
@@ -115,8 +116,22 @@ ${defaultSignature}
 		});
 	});
 
-	describe('#signMessageWithTwoSecrets', () => {
-		it('should signTransaction a message using two secrets', () => {
+	describe('signTransaction and print messages with two secrets', () => {
+		const signedMessageWithTwoSecretsExample = `
+-----BEGIN LISK SIGNED MESSAGE-----
+-----MESSAGE-----
+not secret message
+-----PUBLIC KEY-----
+${defaultPublicKey}
+-----SECOND PUBLIC KEY-----
+${defaultSecondPublicKey}
+-----SIGNATURE-----
+${defaultSignature}
+-----SECOND SIGNATURE-----
+${defaultSecondSignature}
+-----END LISK SIGNED MESSAGE-----
+`.trim();
+		it('#signMessageWithTwoSecret should signTransaction using two secrets', () => {
 			const signedMessage = signMessageWithTwoSecrets(
 				notSecretMessage, defaultSecret, defaultSecondSecret,
 			);
@@ -129,6 +144,25 @@ ${defaultSignature}
 			};
 
 			(signedMessage).should.be.eql(expectedSignedMessage);
+		});
+
+		it('#printSignedMessage should wrap the signed message into a printed Lisk template', () => {
+			const signedMessage = {
+				message: notSecretMessage,
+				publicKey: defaultPublicKey,
+				secondPublicKey: defaultSecondPublicKey,
+				signature: defaultSignature,
+				secondSignature: defaultSecondSignature,
+			};
+			const printedMessage = printSignedMessageWithTwoSecrets(signedMessage);
+
+			(printedMessage).should.be.equal(signedMessageWithTwoSecretsExample);
+		});
+
+		it('#signAndPrintMessage should wrap the signed message into a printed Lisk template', () => {
+			const signedAndPrintedMessage =
+				signAndPrintMessage(notSecretMessage, defaultSecret, defaultSecondSecret);
+			(signedAndPrintedMessage).should.be.equal(signedMessageWithTwoSecretsExample);
 		});
 	});
 

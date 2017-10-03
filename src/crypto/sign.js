@@ -25,6 +25,14 @@ import {
 } from './keys';
 import { getTransactionHash, getSha256Hash } from './hash';
 
+const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
+const messageHeader = '-----MESSAGE-----';
+const publicKeyHeader = '-----PUBLIC KEY-----';
+const secondPublicKeyHeader = '-----SECOND PUBLIC KEY-----';
+const signatureHeader = '-----SIGNATURE-----';
+const secondSignatureHeader = '-----SECOND SIGNATURE-----';
+const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
+
 /**
  * @method signMessageWithSecret
  * @param message - utf8
@@ -153,12 +161,6 @@ export function verifyMessageWithTwoPublicKeys(
  */
 
 export function printSignedMessage({ message, signature, publicKey }) {
-	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
-	const messageHeader = '-----MESSAGE-----';
-	const publicKeyHeader = '-----PUBLIC KEY-----';
-	const signatureHeader = '-----SIGNATURE-----';
-	const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
-
 	const outputArray = [
 		signedMessageHeader,
 		messageHeader,
@@ -173,17 +175,50 @@ export function printSignedMessage({ message, signature, publicKey }) {
 	return outputArray.join('\n');
 }
 
+/*
+*/
+
+export function printSignedMessageWithTwoSecrets(
+	{ message, signature, publicKey, secondSignature, secondPublicKey }) {
+	const outputArray = [
+		signedMessageHeader,
+		messageHeader,
+		message,
+		publicKeyHeader,
+		publicKey,
+		secondPublicKeyHeader,
+		secondPublicKey,
+		signatureHeader,
+		signature,
+		secondSignatureHeader,
+		secondSignature,
+		signatureFooter,
+	];
+
+	return outputArray.join('\n');
+}
+
 /**
  * @method signAndPrintMessage
  * @param message
  * @param secret
+ * @param secondSecret
  *
  * @return {string}
  */
 
-export function signAndPrintMessage(message, secret) {
-	const signedMessage = signMessageWithSecret(message, secret);
-	return printSignedMessage(signedMessage);
+export function signAndPrintMessage(message, secret, secondSecret) {
+	let signedMessage;
+	let result;
+	if (secondSecret) {
+		signedMessage = signMessageWithTwoSecrets(message, secret, secondSecret);
+		result = printSignedMessageWithTwoSecrets(signedMessage);
+	} else {
+		signedMessage = signMessageWithSecret(message, secret);
+		result = printSignedMessage(signedMessage);
+	}
+
+	return result;
 }
 
 /**
