@@ -7,6 +7,7 @@ var constants = require('../../helpers/constants.js');
 var jobsQueue = require('../../helpers/jobsQueue.js');
 var transactionTypes = require('../../helpers/transactionTypes.js');
 var bignum = require('../../helpers/bignum.js');
+var slots = require('../../helpers/slots.js');
 
 // Private fields
 var modules, library, self, __private = {}, pool = {};
@@ -161,7 +162,7 @@ __private.add = function (transaction, poolList, cb) {
 		return setImmediate(cb, 'Transaction pool is full');
 	}
 	if (pool.invalid.transactions[transaction.id] !== undefined) {
-		return setImmediate(cb, 'Transaction is invalid: ' + transaction.id);
+		return setImmediate(cb, 'Transaction is already processed as invalid: ' + transaction.id);
 	}
 	if (__private.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
@@ -184,6 +185,15 @@ __private.addReady = function (transaction, poolList, cb) {
 	poolList.transactions[transaction.id] = transaction;
 	poolList.count++;
 	return setImmediate(cb);
+};
+
+/**
+ * Adds transaction id to invalid pool list.
+ * @param {string} id
+ */
+__private.addInvalid = function (id) {
+	pool.invalid.transactions[id] = true;
+	pool.invalid.count++;
 };
 
 /**
@@ -239,7 +249,7 @@ __private.expireTxsFromList = function (poolList, cb) {
 			return setImmediate(eachSeriesCb);
 		}
 	}, function (err) {
-		return setImmediate(cb, err);
+		return setImmediate(cb, err, null);
 	});
 };
 
@@ -299,6 +309,7 @@ __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
 		function processTransaction (sender, requester, waterCb) {
 			library.logic.transaction.process(transaction, sender, requester, function (err) {
 				if (err) {
+					__private.addInvalid(transaction.id);
 					return setImmediate(waterCb, err);
 				} else {
 					return setImmediate(waterCb, null, sender);
@@ -310,12 +321,14 @@ __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
 				transaction = library.logic.transaction.objectNormalize(transaction);
 				return setImmediate(waterCb, null, sender);
 			} catch (err) {
+				__private.addInvalid(transaction.id);
 				return setImmediate(waterCb, err);
 			}
 		},
 		function verifyTransaction (sender, waterCb) {
 			library.logic.transaction.verify(transaction, sender, function (err) {
 				if (err) {
+					__private.addInvalid(transaction.id);
 					return setImmediate(waterCb, err);
 				} else {
 					return setImmediate(waterCb, null, sender);
@@ -324,7 +337,7 @@ __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
 		}
 	], function (err, sender) {
 		if (!err) {
-			library.bus.message('unconfirmedTransaction', transaction, broadcast);
+			library.bus.message('unverifiedTransaction', transaction, broadcast);
 		}
 
 		return setImmediate(cb, err, sender);
@@ -404,7 +417,7 @@ TxPool.prototype.get = function (id) {
 TxPool.prototype.getAll  = function (filter, params) {
 	switch (filter) {
 		case 'unverified':
-			return __private.getTxsFromPoolList(pool.unverified.transactions, params.reverse, params.limit);
+			return __private.getTxsFromPoolList(pool.unverified.transactions, params.limit);
 		case 'pending':
 			return __private.getTxsFromPoolList(pool.verified.pending.transactions, params.reverse, params.limit);
 		case 'ready':
@@ -443,7 +456,9 @@ TxPool.prototype.getReady = function (limit) {
  * @return {setImmediateCallback} err, transactions
  */
 TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
-	var poolBalance = new bignum('0'), paymentTxs, receiptTxs;
+	var poolBalance = new bignum('0');
+	var paymentTxs;
+	var receiptTxs;
 
 	library.logic.account.get({ address: sender.address }, 'balance', function (err, account) {
 		if (err) {
@@ -452,28 +467,24 @@ TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
 
 		// total payments
 		paymentTxs = self.getAll('sender_id', { id: sender.address });
-		['unverified','pending','ready'].forEach(function (paymentTxList) {
-			if (paymentTxs[paymentTxList].length > 0) {
-				paymentTxs[paymentTxList].forEach(function (paymentTx) {
-					if (paymentTx.amount) {
-						poolBalance = poolBalance.minus(paymentTx.amount.toString());
-					}
-					poolBalance = poolBalance.minus(paymentTx.fee.toString());
-				});
-			}
-		});
+		if (paymentTxs.ready.length > 0) {
+			paymentTxs.ready.forEach(function (paymentTx) {
+				if (paymentTx.amount) {
+					poolBalance = poolBalance.minus(paymentTx.amount.toString());
+				}
+				poolBalance = poolBalance.minus(paymentTx.fee.toString());
+			});
+		}
 		
 		// total receipts
 		receiptTxs = self.getAll('recipient_id', { id: sender.address });
-		['unverified','pending','ready'].forEach(function (receiptTxList) {
-			if (receiptTxs[receiptTxList].length > 0) {
-				receiptTxs[receiptTxList].forEach(function (receiptTx) {
-					if (receiptTx.type === transactionTypes.SEND) {
-						poolBalance = poolBalance.plus(receiptTx.amount.toString());
-					}
-				});
-			}
-		});
+		if (receiptTxs.ready.length > 0) {
+			receiptTxs.ready.forEach(function (receiptTx) {
+				if (receiptTx.type === transactionTypes.SEND) {
+					poolBalance = poolBalance.plus(receiptTx.amount.toString());
+				}
+			});
+		}
 
 		// total balance
 		var balance = new bignum(account.balance.toString());
@@ -581,8 +592,6 @@ TxPool.prototype.processPool = function (cb) {
 				__private.processUnverifiedTransaction(transaction, true, function (err, sender) {
 					if (err) {
 						library.logger.error('Failed to process unverified transaction: ' + transaction.id, err);
-						pool.invalid.transactions[transaction.id] = true;
-						pool.invalid.count++;
 						return setImmediate(eachSeriesCb);
 					}
 					self.checkBalance(transaction, sender, function (err, balance) {
@@ -591,7 +600,9 @@ TxPool.prototype.processPool = function (cb) {
 							return setImmediate(eachSeriesCb);
 						}
 						transaction.receivedAt = new Date();
-						if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures || transaction.receivedAt < transaction.timestamp)) {
+						var receiveAtToTime = transaction.receivedAt.getTime();
+						var timestampToTime = slots.getRealTime(transaction.timestamp);
+						if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures) || receiveAtToTime < timestampToTime) {
 							__private.add(transaction, pool.verified.pending, eachSeriesCb);
 						} else {
 							// check transaction and if ok add to verified.ready
