@@ -90,7 +90,7 @@ describe('sign', () => {
 		const signedMessageExample = `
 -----BEGIN LISK SIGNED MESSAGE-----
 -----MESSAGE-----
-not secret message
+${notSecretMessage}
 -----PUBLIC KEY-----
 ${defaultPublicKey}
 -----SIGNATURE-----
@@ -119,7 +119,7 @@ ${defaultSignature}
 		const signedMessageWithTwoSecretsExample = `
 -----BEGIN LISK SIGNED MESSAGE-----
 -----MESSAGE-----
-not secret message
+${notSecretMessage}
 -----PUBLIC KEY-----
 ${defaultPublicKey}
 -----SECOND PUBLIC KEY-----
@@ -130,7 +130,7 @@ ${defaultSignature}
 ${defaultSecondSignature}
 -----END LISK SIGNED MESSAGE-----
 `.trim();
-		it('#signMessageWithTwoSecret should signTransaction using two secrets', () => {
+		it('#signMessageWithTwoSecrets should signTransaction using two secrets', () => {
 			const signedMessage = signMessageWithTwoSecrets(
 				notSecretMessage, defaultSecret, defaultSecondSecret,
 			);

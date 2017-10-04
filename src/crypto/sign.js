@@ -153,12 +153,7 @@ export function verifyMessageWithTwoPublicKeys(
 
 /**
  * @method printSignedMessage
- * @param message
- * @param signedMessage
- * @param publicKey
- * @param secondSignature
- * @param secondPublicKey
- *
+ * @param {object}
  * @return {string}
  */
 
