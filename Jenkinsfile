@@ -1,5 +1,5 @@
 def initBuild() {
-	sh '''#!/bin/bash
+	sh '''
 	pkill -f app.js -9 || true
 	sudo service postgresql restart
 	dropdb lisk_test || true
@@ -24,10 +24,9 @@ def buildDependency() {
 
 def startLisk() {
 	try {
-		sh '''#!/bin/bash
+		sh '''
 		cp test/config.json test/genesisBlock.json .
-		export NODE_ENV=test
-		JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
+		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
 		'''
 	} catch (err) {
 		currentBuild.result = 'FAILURE'
@@ -339,7 +338,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		parallel(
 			"Gather Coverage Node-01" : {
 				node('node-01'){
-					sh '''#!/bin/bash
+					sh '''
 					export HOST=127.0.0.1:4000
 					npm run fetchCoverage
 					# Submit coverage reports to Master
@@ -349,7 +348,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Gather Coverage Node-02" : {
 				node('node-02'){
-					sh '''#!/bin/bash
+					sh '''
 					export HOST=127.0.0.1:4000
 					npm run fetchCoverage
 					# Submit coverage reports to Master
@@ -359,7 +358,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Gather Coverage Node-03" : {
 				node('node-03'){
-					sh '''#!/bin/bash
+					sh '''
 					export HOST=127.0.0.1:4000
 					# Gathers unit test into single lcov.info
 					npm run coverageReport
@@ -372,7 +371,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Gather Coverage Node-04" : {
 				node('node-04'){
-					sh '''#!/bin/bash
+					sh '''
 					export HOST=127.0.0.1:4000
 					npm run fetchCoverage
 					# Submit coverage reports to Master
