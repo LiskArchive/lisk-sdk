@@ -6,17 +6,17 @@ var modulesLoader = require('../../../common/initModule').modulesLoader;
 var transactionTypes = require('../../../../helpers/transactionTypes.js');
 var genesisblock = require('../../../genesisBlock.json');
 
-var creditAccountPromise = require('../../../common/complexTransactions').creditAccountPromise;
-var sendTransactionPromise = require('../../../common/complexTransactions').sendTransactionPromise;
-var getTransactionsPromise = require('../../../common/complexTransactions').getTransactionsPromise;
-var getTransactionPromise = require('../../../common/complexTransactions').getTransactionPromise;
-var getQueuedTransactionPromise = require('../../../common/complexTransactions').getQueuedTransactionPromise;
-var getQueuedTransactionsPromise = require('../../../common/complexTransactions').getQueuedTransactionsPromise;
-var getUnconfirmedTransactionPromise = require('../../../common/complexTransactions').getUnconfirmedTransactionPromise;
-var getUnconfirmedTransactionsPromise = require('../../../common/complexTransactions').getUnconfirmedTransactionsPromise;
-var getMultisignaturesTransactionPromise = require('../../../common/complexTransactions').getMultisignaturesTransactionPromise;
-var getMultisignaturesTransactionsPromise = require('../../../common/complexTransactions').getMultisignaturesTransactionsPromise;
-var getCountPromise = require('../../../common/complexTransactions').getCountPromise;
+var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var getTransactionsPromise = require('../../../common/apiHelpers').getTransactionsPromise;
+var getTransactionPromise = require('../../../common/apiHelpers').getTransactionPromise;
+var getQueuedTransactionPromise = require('../../../common/apiHelpers').getQueuedTransactionPromise;
+var getQueuedTransactionsPromise = require('../../../common/apiHelpers').getQueuedTransactionsPromise;
+var getUnconfirmedTransactionPromise = require('../../../common/apiHelpers').getUnconfirmedTransactionPromise;
+var getUnconfirmedTransactionsPromise = require('../../../common/apiHelpers').getUnconfirmedTransactionsPromise;
+var getMultisignaturesTransactionPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionPromise;
+var getMultisignaturesTransactionsPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionsPromise;
+var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
 
 var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
 

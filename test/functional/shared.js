@@ -2,10 +2,10 @@
 
 var node = require('../node');
 
-var sendTransactionPromise = require('../common/complexTransactions').sendTransactionPromise;
-var getTransactionPromise = require('../common/complexTransactions').getTransactionPromise;
-var getUnconfirmedTransactionPromise = require('../common/complexTransactions').getUnconfirmedTransactionPromise;
-var getPendingMultisignaturePromise = require('../common/complexTransactions').getPendingMultisignaturePromise;
+var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
+var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
+var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
+var getPendingMultisignaturePromise = require('../common/apiHelpers').getPendingMultisignaturePromise;
 var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
 
 var tests = [
