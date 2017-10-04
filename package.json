@@ -1,6 +1,6 @@
 {
   "name": "lisky",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "A command line interface for Lisk",
   "main": "./dist/index.js",
   "directories": {
