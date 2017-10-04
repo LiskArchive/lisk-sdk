@@ -242,6 +242,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},
+            "Functional - SQL" : {
+                node('node-01'){
+                    sh '''
+                    export TEST=test/functional/sql/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+                    cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+                    npm run $JENKINS_PROFILE
+                    '''
+                }
+            }, // End Node-01 Tests
 			"Functional Peers" : {
 				node('node-02'){
 					sh '''
@@ -295,16 +304,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run $JENKINS_PROFILE
 					'''
 				}
-			},
-            "Functional - SQL" : {
-                node('node-02'){
-                    sh '''
-                    export TEST=test/functional/sql/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-                    cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-                    npm run $JENKINS_PROFILE
-                    '''
-                }
-            }, // End Node-02 Tests
+			}, // End Node-02 Tests
 			"Unit Tests" : {
 				node('node-03'){
 					sh '''
