@@ -101,7 +101,9 @@ TransactionPool.prototype.transactionInPool = function (id) {
 		self.bundled.index[id],
 		self.queued.index[id],
 		self.multisignature.index[id]
-	].filter(Boolean).length > 0;
+	].filter(function (inList) {
+		return inList !== undefined;
+	}).length > 0;
 };
 
 /**
@@ -314,7 +316,7 @@ TransactionPool.prototype.addQueuedTransaction = function (transaction) {
 };
 
 /**
- * Removes id from queued index and transactions. 
+ * Removes id from queued index and transactions.
  * @param {string} id
  */
 TransactionPool.prototype.removeQueuedTransaction = function (id) {
@@ -347,7 +349,7 @@ TransactionPool.prototype.addMultisignatureTransaction = function (transaction) 
 };
 
 /**
- * Removes id from multisignature index and transactions. 
+ * Removes id from multisignature index and transactions.
  * @param {string} id
  */
 TransactionPool.prototype.removeMultisignatureTransaction = function (id) {
