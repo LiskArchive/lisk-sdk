@@ -44,7 +44,7 @@ var paths = [
 	'./schema/delegates.js'
 ];
 
-var pararrelTestsRunning = {};
+var parallelTestsRunning = {};
 paths.forEach(function (test) {
 	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), 'test/unit/' + test], {
 		cwd: __dirname + '/../..',
@@ -52,15 +52,15 @@ paths.forEach(function (test) {
 		stdio: 'inherit'
 	});
 	console.log('Running the test:', test, 'as a separate process - pid', child.pid);
-	pararrelTestsRunning[child.pid] = test;
+	parallelTestsRunning[child.pid] = test;
 	child.on('close', function (code) {
 		if (code === 0) {
 			console.log('Test finished successfully:', test);
-			delete pararrelTestsRunning[child.pid];
-			if (Object.keys(pararrelTestsRunning).length === 0) {
+			delete parallelTestsRunning[child.pid];
+			if (Object.keys(parallelTestsRunning).length === 0) {
 				return console.log('All tests finished successfully.');
 			}
-			return console.log('Still running: ', pararrelTestsRunning);
+			return console.log('Still running: ', parallelTestsRunning);
 		}
 		console.log('Test failed:', test);
 		process.exit(code);
