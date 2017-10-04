@@ -3,14 +3,26 @@ require('./api/ws/workers/peersUpdateRules');
 require('./api/ws/workers/rules');
 require('./api/ws/workers/slaveToMasterSender');
 
+require('./helpers/bignum');
+require('./helpers/bson');
+require('./helpers/cache');
+require('./helpers/checkIpInList');
+require('./helpers/config');
 require('./helpers/ed');
+require('./helpers/httpApi');
+require('./helpers/git');
+require('./helpers/inserts');
 require('./helpers/jobs-queue');
+require('./helpers/orderBy');
 require('./helpers/peersManager');
 require('./helpers/pg-notify');
+require('./helpers/promiseDefer');
 require('./helpers/request-limiter');
+require('./helpers/router');
 require('./helpers/RPC');
 require('./helpers/slots');
 require('./helpers/wsApi');
+require('./helpers/z_schema-express');
 require('./helpers/z_schema');
 
 require('./logic/account');
@@ -33,7 +45,8 @@ require('./modules/loader');
 require('./modules/peers');
 require('./modules/transactions');
 
+require('./schema/delegates');
+
+require('./sql/blockRewards');
 require('./sql/delegatesList');
 require('./sql/rounds');
-
-require('./schema/delegates');
