@@ -156,29 +156,13 @@ export function verifyMessageWithTwoPublicKeys(
  * @param message
  * @param signedMessage
  * @param publicKey
+ * @param secondSignature
+ * @param secondPublicKey
  *
  * @return {string}
  */
 
-export function printSignedMessage({ message, signature, publicKey }) {
-	const outputArray = [
-		signedMessageHeader,
-		messageHeader,
-		message,
-		publicKeyHeader,
-		publicKey,
-		signatureHeader,
-		signature,
-		signatureFooter,
-	];
-
-	return outputArray.join('\n');
-}
-
-/*
-*/
-
-export function printSignedMessageWithTwoSecrets(
+export function printSignedMessage(
 	{ message, signature, publicKey, secondSignature, secondPublicKey }) {
 	const outputArray = [
 		signedMessageHeader,
@@ -186,14 +170,14 @@ export function printSignedMessageWithTwoSecrets(
 		message,
 		publicKeyHeader,
 		publicKey,
-		secondPublicKeyHeader,
+		secondPublicKey ? secondPublicKeyHeader : null,
 		secondPublicKey,
 		signatureHeader,
 		signature,
-		secondSignatureHeader,
+		secondSignature ? secondSignatureHeader : null,
 		secondSignature,
 		signatureFooter,
-	];
+	].filter(Boolean);
 
 	return outputArray.join('\n');
 }
@@ -208,17 +192,11 @@ export function printSignedMessageWithTwoSecrets(
  */
 
 export function signAndPrintMessage(message, secret, secondSecret) {
-	let signedMessage;
-	let result;
-	if (secondSecret) {
-		signedMessage = signMessageWithTwoSecrets(message, secret, secondSecret);
-		result = printSignedMessageWithTwoSecrets(signedMessage);
-	} else {
-		signedMessage = signMessageWithSecret(message, secret);
-		result = printSignedMessage(signedMessage);
-	}
+	const signedMessage = secondSecret ?
+		signMessageWithTwoSecrets(message, secret, secondSecret) :
+		signMessageWithSecret(message, secret);
 
-	return result;
+	return printSignedMessage(signedMessage);
 }
 
 /**

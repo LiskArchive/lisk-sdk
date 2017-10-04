@@ -18,7 +18,6 @@ import {
 	verifyMessageWithPublicKey,
 	verifyMessageWithTwoPublicKeys,
 	printSignedMessage,
-	printSignedMessageWithTwoSecrets,
 	signAndPrintMessage,
 	encryptMessageWithSecret,
 	decryptMessageWithSecret,
@@ -154,7 +153,7 @@ ${defaultSecondSignature}
 				signature: defaultSignature,
 				secondSignature: defaultSecondSignature,
 			};
-			const printedMessage = printSignedMessageWithTwoSecrets(signedMessage);
+			const printedMessage = printSignedMessage(signedMessage);
 
 			(printedMessage).should.be.equal(signedMessageWithTwoSecretsExample);
 		});
