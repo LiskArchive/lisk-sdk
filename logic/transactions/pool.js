@@ -95,23 +95,17 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 
 // Private
 /**
- * Gets reversed or limited transactions from input parameter.
+ * Gets all or limited number of transactions from input array.
  * @private
  * @param {transaction[]} transactions
- * @param {boolean} reverse
  * @param {number} limit
  * @return {transaction[]}
  */
-__private.getTxsFromPoolList = function (transactions, reverse, limit) {
+__private.getTxsFromPoolList = function (transactions, limit) {
 	var txs;
-	if (reverse || limit){
-		txs = Object.keys(transactions).reverse();
-	}
-	if (reverse) {
-		txs = txs.reverse();
-	}
+
 	if (limit) {
-		txs.splice(limit);
+		txs = Object.keys(transactions).splice(limit);
 	}
 
 	return txs;
@@ -419,9 +413,9 @@ TxPool.prototype.getAll  = function (filter, params) {
 		case 'unverified':
 			return __private.getTxsFromPoolList(pool.unverified.transactions, params.limit);
 		case 'pending':
-			return __private.getTxsFromPoolList(pool.verified.pending.transactions, params.reverse, params.limit);
+			return __private.getTxsFromPoolList(pool.verified.pending.transactions, params.limit);
 		case 'ready':
-			return __private.getTxsFromPoolList(pool.verified.ready.transactions, params.reverse, params.limit);
+			return __private.getTxsFromPoolList(pool.verified.ready.transactions, params.limit);
 		case 'sender_id':
 			return __private.getAllPoolTxsByFilter({'senderId': params.id});
 		case 'sender_pk':
