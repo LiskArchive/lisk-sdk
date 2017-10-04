@@ -44,6 +44,7 @@ module.exports = function configureGrunt(grunt) {
 				dest: './browsertest/browsertest.js',
 			},
 			options: {
+				transform: ['rewireify'],
 				browserifyOptions: {
 					standalone: 'lisk',
 				},
