@@ -2,7 +2,7 @@
 
 var expect = require('chai').expect;
 var sinon  = require('sinon');
-
+var _ = require('lodash');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var TxPool = require('../../../../logic/transactions/pool.js');
 var Transaction = require('../../../../logic/transaction.js');
@@ -34,17 +34,17 @@ var transactions = [
 	{
 		'type': 1,
 		'amount': 0,
-		'timestamp': 37943881,
 		'fee': 500000000,
+		'recipientId': null,
+		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
+		'timestamp': 41808966,
 		'asset': {
 			'signature': {
-				'publicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb'
+				'publicKey': '8ccfeb0e05a84124fb8e9932ea5d1744617907ef5b51ffde12e24a805ae992fa'
 			}
 		},
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'senderId': '2737453412992791987L',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '2'
+		'signature': '82dc975a49b5fcb19d05b736f7c53978c9973619ef2822e0dfaf0160e1d21a7c5ceb81abb62ebcacfa1c8c3a501035103e252d65fbd5518e38db71f7acc3c20d',
+		'id': '16927110199431968159'
 	},
 	/* type: 2 - Register a delegate */
 	{
@@ -113,18 +113,6 @@ var transactions = [
 		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
 		'id': '6'
 	},
-	/* type: 0 - Transmit funds Account does not have enough LSK*/
-	{
-		'type': 0,
-		'amount': 800000000,
-		'fee': 10000000,
-		'timestamp': 37943885,
-		'recipientId': '2737453412992791987L',
-		'senderId': '2896019180726908125L',
-		'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '7'
-	}
 ];
 
 var extraTransaction = 	{
@@ -140,19 +128,34 @@ var extraTransaction = 	{
 };
 
 var invalidsTxs = [
-	/* type: 0 - Transmit funds invalid senderId and recipientId*/
+	/* type: 0 - Transmit funds account without enough credit*/
 	{
 		'type': 0,
-		'amount': 300000000,
+		'amount': 4400000000,
 		'fee': 10000000,
-		'timestamp': 37943880,
-		'recipientId': '09876543210987654321L',
-		'senderId': '12345678901234567890L',
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '9'
+		'recipientId': '2737453412992791987L',
+		'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
+		'timestamp': 42412477,
+		'asset': {},
+		'signature': '90e303cb9d547acb680852c8fd583b3c798011e9e01739cd4755f8b4a34607157a9629441e3a2093f46f441de3ed6609080be1e5a2bf13c46b8cfea68d4ada09',
+		'id': '5123711709529859173'
 	},
-	{},
+	/* type: 1 - Register a second signature account without enough credit*/
+	{
+		'type': 1,
+		'amount': 0,
+		'fee': 500000000,
+		'recipientId': null,
+		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
+		'timestamp': 41808966,
+		'asset': {
+			'signature': {
+				'publicKey': '8ccfeb0e05a84124fb8e9932ea5d1744617907ef5b51ffde12e24a805ae992fa'
+			}
+		},
+		'signature': '82dc975a49b5fcb19d05b736f7c53978c9973619ef2822e0dfaf0160e1d21a7c5ceb81abb62ebcacfa1c8c3a501035103e252d65fbd5518e38db71f7acc3c20d',
+		'id': '16927110199431968159'
+	},
 	{},
 	{},
 	{
@@ -175,6 +178,7 @@ var invalidsTxs = [
 		'signature': '6f3e29e8e4d16f3e808133f6bf73858a3e2a932e19173260a4aaf78041399de67ef505186360a8f11a4b6b471f4f146bb9cbb388e3deb12e19540b8524a8760d',
 		'id': '2761953166306398206'
 	}
+	/* type: 0 - Transmit funds invalid senderId and recipientId*/
 ];
 
 var testAccounts = [
@@ -354,11 +358,24 @@ describe('txPool', function () {
 
 	describe('process workers', function () {
 		
+		it('should be ok when get pool totals to initialize local counter', function (done) {
+			var totals = txPool.getUsage();
+
+			expect(totals).to.be.an('object');
+			expect(totals.unverified).to.be.a('number');
+			expect(totals.pending).to.be.a('number');
+			expect(totals.ready).to.be.a('number');
+			expect(totals.invalid).to.be.a('number');
+			poolTotals = totals;
+			done();
+		});
+
 		describe('processPool', function () {
 
 			describe('Tx type: 0 - Transmit funds', function () {
+				var tmpTxInvalid_Id;
 
-				it('should be ok when add transaction type 0 to unverified', function (done) {
+				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[0], function (err, cbtx) {
 						if (err) {
 							done(err);
@@ -367,9 +384,85 @@ describe('txPool', function () {
 						done();
 					});
 				});
-	
-				it('should be ok when add invalid transaction type 0 to unverified', function (done) {
+
+				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[0], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should be ok when add transaction to unverified with invalid id', function (done) {
+					tmpTxInvalid_Id = _.cloneDeep(invalidsTxs[0]);
+					tmpTxInvalid_Id.id = '1234567890123456789';
+
+					txPool.add(tmpTxInvalid_Id, function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when process pool txs', function (done) {
+					txPool.processPool(function (err, cbprPool) {
+						if (err) {
+							done(err);
+						}
+						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[0].id);
+						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 3'].join(' '));
+						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + tmpTxInvalid_Id.id);
+						expect(error.args[1][1]).to.equal('Invalid transaction id');
+						poolTotals.invalid += 1;
+						poolTotals.ready += 1;
+						done();
+					});
+				});
+	
+				it('should be ok when get pool totals', function (done) {
+					var totals = txPool.getUsage();
+	
+					expect(totals).to.be.an('object');
+					expect(totals.unverified).to.be.equal(poolTotals.unverified);
+					expect(totals.pending).to.be.equal(poolTotals.pending);
+					expect(totals.ready).to.be.equal(poolTotals.ready);
+					expect(totals.invalid).to.be.equal(poolTotals.invalid);
+					done();
+				});
+	
+				it('should fail when add same normal transaction to unverified', function (done) {
+					txPool.add(transactions[0], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already in pool: ' + transactions[0].id);
+						done();
+					});
+				});
+
+				it('should fail when add same transaction with invalid id to unverified', function (done) {
+					txPool.add(tmpTxInvalid_Id, function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + tmpTxInvalid_Id.id);
+						done();
+					});
+				});
+			});
+			
+			describe('Tx type: 1 - Register a second signature', function () {
+
+				it('should be ok when add transaction to unverified', function (done) {
+					txPool.add(transactions[1], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when add invalid transaction to unverified', function (done) {
+					txPool.add(invalidsTxs[1], function (err, cbtx) {
 						if (err) {
 							done(err);
 						}
@@ -384,7 +477,9 @@ describe('txPool', function () {
 							done(err);
 						}
 						expect(error.args[0][0]).to.equal('Failed to process unverified transaction: 9');
-						expect(error.args[10][1]).to.equal('Invalid transaction id');
+						expect(error.args[0][1]).to.equal('Invalid transaction id');
+						poolTotals.ready += 1;
+						poolTotals.invalid += 1;
 						done();
 					});
 				});
@@ -393,17 +488,23 @@ describe('txPool', function () {
 					var totals = txPool.getUsage();
 	
 					expect(totals).to.be.an('object');
-					expect(totals.unverified).to.be.equal(0);
-					expect(totals.pending).to.be.equal(0);
-					expect(totals.ready).to.be.equal(1);
-					expect(totals.invalid).to.be.equal(1);
-					poolTotals = totals;
+					expect(totals.unverified).to.be.equal(poolTotals.unverified);
+					expect(totals.pending).to.be.equal(poolTotals.pending);
+					expect(totals.ready).to.be.equal(poolTotals.ready);
+					expect(totals.invalid).to.be.equal(poolTotals.invalid);
 					done();
 				});
 	
-				it('should fail when add same invalid transaction type 0 to unverified', function (done) {
-					txPool.add(invalidsTxs[0], function (err, cbtx) {
-						expect(err).to.equal('Transaction is invalid: ' + invalidsTxs[0].id);
+				it('should fail when add same transaction to unverified', function (done) {
+					txPool.add(transactions[1], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already in pool: ' + transactions[1].id);
+						done();
+					});
+				});
+
+				it('should fail when add same invalid transaction to unverified', function (done) {
+					txPool.add(invalidsTxs[1], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidsTxs[1].id);
 						done();
 					});
 				});
@@ -418,46 +519,8 @@ describe('txPool', function () {
 
 		describe('method add', function () {
 
-			it('should be ok when get pool totals', function (done) {
-				var totals = txPool.getUsage();
-
-				expect(totals).to.be.an('object');
-				expect(totals.unverified).to.be.a('number');
-				expect(totals.pending).to.be.a('number');
-				expect(totals.ready).to.be.a('number');
-				expect(totals.invalid).to.be.a('number');
-				poolTotals = totals;
-				done();
-			});
-
-			it('should be ok when add transaction type 0 to unverified', function (done) {
-				txPool.add(transactions[0], function (err, cbtx) {
-					if (err) {
-						done(err);
-					}
-					expect(cbtx).to.be.undefined;
-					done();
-				});
-			});
-
-			it('should be ok when check unverified value increased in 1', function (done) {
-				var totals = txPool.getUsage();
-
-				expect(totals).to.be.an('object');
-				expect(totals.unverified).to.equal(poolTotals.unverified + 1);
-				poolTotals = totals;
-				done();
-			});
-
-			it('should fail when add same transaction type 0 to unverified', function (done) {
-				txPool.add(transactions[0], function (err, cbtx) {
-					expect(err).to.equal('Transaction is already in pool: ' + transactions[0].id);
-					done();
-				});
-			});
-
 			it('should be ok when add transactions to fill pool storage', function (done) {
-				var trx = transactions.slice(1,transactions.length-1);
+				var trx = transactions.slice(1,transactions.length-2);
 				txPool.add(trx, function (err, cbtx) {
 					if (err) {
 						done(err);
@@ -659,25 +722,25 @@ describe('txPool', function () {
 			describe('by pool list', function () {
 
 				it('should be ok when pool list is unverified', function (done) {
-					var txs = txPool.getAll('unverified', { reverse: true, limit: null});
+					var txs = txPool.getAll('unverified', { limit: null});
 					expect(txs.length).to.equal(0);
 					done();
 				});
 	
 				it('should be ok when pool list is pending', function (done) {
-					var txs = txPool.getAll('pending', { reverse: true, limit: null});
+					var txs = txPool.getAll('pending', { limit: null});
 					expect(txs.length).to.equal(0);
 					done();
 				});
 				
 				it('should be ok when pool list is ready', function (done) {
-					var txs = txPool.getAll('ready', { reverse: true, limit: null});
+					var txs = txPool.getAll('ready', { limit: null});
 					expect(txs.length).to.equal(5);
 					done();
 				});
 	
 				it('should fail when filter is invalid', function (done) {
-					var txs = txPool.getAll('unknown', { reverse: true, limit: null});
+					var txs = txPool.getAll('unknown', { limit: null});
 					expect(txs).to.equal('Invalid filter');
 					done();
 				});
