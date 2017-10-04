@@ -9,24 +9,24 @@ var getPendingMultisignaturePromise = require('../common/apiHelpers').getPending
 var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
 
 var tests = [
-	{describe: 'null',							args: null},
-	{describe: 'undefined',					args: undefined},
-	{describe: 'NaN',								args: NaN},
-	{describe: 'Infinity',					args: Infinity},
-	{describe: '0 integer',					args: 0},
-	{describe: 'negative integer',	args: -1},
-	{describe: 'float',							args: 1.2},
-	{describe: 'negative float',		args: -1.2},
-	{describe: 'empty string',			args: ''},
-	{describe: '0 as string',				args: '0'},
-	{describe: 'regular string',		args: String('abc')},
-	{describe: 'uppercase string',	args: String('ABC')},
-	{describe: 'invalid chars',			args: String('/')},
-	{describe: 'date',							args: new Date()},
-	{describe: 'true boolean',			args: true},
-	{describe: 'false boolean',			args: false},
-	{describe: 'empty array',				args: []},
-	{describe: 'empty object',			args: {}}
+	{describe: 'null',              args: null},
+	{describe: 'undefined',         args: undefined},
+	{describe: 'NaN',               args: NaN},
+	{describe: 'Infinity',          args: Infinity},
+	{describe: '0 integer',         args: 0},
+	{describe: 'negative integer',  args: -1},
+	{describe: 'float',             args: 1.2},
+	{describe: 'negative float',    args: -1.2},
+	{describe: 'empty string',      args: ''},
+	{describe: '0 as string',       args: '0'},
+	{describe: 'regular string',    args: String('abc')},
+	{describe: 'uppercase string',  args: String('ABC')},
+	{describe: 'invalid chars',     args: String('/')},
+	{describe: 'date',              args: new Date()},
+	{describe: 'true boolean',      args: true},
+	{describe: 'false boolean',     args: false},
+	{describe: 'empty array',       args: []},
+	{describe: 'empty object',      args: {}}
 ];
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
