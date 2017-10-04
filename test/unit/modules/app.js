@@ -1,9 +1,7 @@
 'use strict';
 
 var chai = require('chai');
-var child_process = require('child_process');
 var cluster = require('cluster');
-var expect = require('chai').expect;
 var crypto = require('crypto');
 
 var constants = require('../../../helpers/constants');
