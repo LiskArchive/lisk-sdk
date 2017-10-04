@@ -295,7 +295,16 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					npm run $JENKINS_PROFILE
 					'''
 				}
-			}, // End Node-02 Tests
+			},
+            "Functional - SQL" : {
+                node('node-02'){
+                    sh '''
+                    export TEST=test/functional/sql/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+                    cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+                    npm run $JENKINS_PROFILE
+                    '''
+                }
+            }, // End Node-02 Tests
 			"Unit Tests" : {
 				node('node-03'){
 					sh '''
@@ -323,15 +332,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},// End Node-03 unit tests
-			"Functional - SQL" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/functional/sql/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run jenkins
-					'''
-				}
-			}, // Begin node-04
 			"Functional Stress - Transactions" : {
 				node('node-04'){
 					sh '''
