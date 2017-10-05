@@ -304,7 +304,7 @@ Delegate.prototype.dbSave = function (trs) {
  * Evaluates transaction signatures and sender multisignatures.
  * @param {transaction} trs - signatures.
  * @param {account} sender
- * @return {Boolean} logic based on trs signatures and sender multisignatures.
+ * @return {boolean} logic based on trs signatures and sender multisignatures.
  */
 Delegate.prototype.ready = function (trs, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

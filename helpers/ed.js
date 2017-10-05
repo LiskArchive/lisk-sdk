@@ -41,7 +41,7 @@ ed.sign = function (hash, privateKey) {
  * @param {hash} hash
  * @param {Buffer} signature
  * @param {Buffer} publicKey
- * @return {Boolean} true id verified
+ * @return {boolean} true id verified
  */
 ed.verify = function (hash, signature, publicKey) {
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);

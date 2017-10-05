@@ -499,17 +499,22 @@ describe('signature', function () {
 			});
 
 			describe('for valid transaction', function () {
-				var expectedPromise = {
-					table: 'signatures',
-					fields: [
-						'transactionId',
-						'publicKey'
-					],
-					values: {
-						transactionId: trs.id,
-						publicKey: Buffer.from(trs.asset.signature.publicKey, 'hex')
-					}
-				};
+
+				var expectedPromise;
+
+				beforeEach(function () {
+					expectedPromise = {
+						table: 'signatures',
+						fields: [
+							'transactionId',
+							'publicKey'
+						],
+						values: {
+							transactionId: trs.id,
+							publicKey: Buffer.from(trs.asset.signature.publicKey, 'hex')
+						}
+					};
+				});
 
 				it('should return signature db promise for signature transaction', function () {
 					expect(signature.dbSave(trs)).to.eql(expectedPromise);
