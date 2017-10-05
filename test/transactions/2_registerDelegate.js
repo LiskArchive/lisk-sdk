@@ -28,7 +28,7 @@ describe('#registerDelegate', () => {
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
-	let delegateTransaction;
+	let registerDelegateTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
@@ -36,11 +36,11 @@ describe('#registerDelegate', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			delegateTransaction = registerDelegate(secret, username);
+			registerDelegateTransaction = registerDelegate(secret, username);
 		});
 
 		it('should create a delegate transaction', () => {
-			(delegateTransaction).should.be.ok();
+			(registerDelegateTransaction).should.be.ok();
 		});
 
 		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
@@ -56,63 +56,63 @@ describe('#registerDelegate', () => {
 
 		describe('returned delegate transaction', () => {
 			it('should be an object', () => {
-				(delegateTransaction).should.be.type('object');
+				(registerDelegateTransaction).should.be.type('object');
 			});
 
 			it('should have an id string', () => {
-				(delegateTransaction).should.have.property('id').and.be.type('string');
+				(registerDelegateTransaction).should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type number equal to 2', () => {
-				(delegateTransaction).should.have.property('type').and.be.type('number').and.equal(2);
+				(registerDelegateTransaction).should.have.property('type').and.be.type('number').and.equal(2);
 			});
 
 			it('should have amount number equal to 0', () => {
-				(delegateTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
+				(registerDelegateTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 			});
 
 			it('should have fee number equal to 25 LSK', () => {
-				(delegateTransaction).should.have.property('fee').and.be.type('number').and.equal(fee);
+				(registerDelegateTransaction).should.have.property('fee').and.be.type('number').and.equal(fee);
 			});
 
 			it('should have recipientId equal to null', () => {
-				(delegateTransaction).should.have.property('recipientId').and.be.null();
+				(registerDelegateTransaction).should.have.property('recipientId').and.be.null();
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				(delegateTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+				(registerDelegateTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
-				(delegateTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				(registerDelegateTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				(delegateTransaction).should.have.property('signature').and.be.hexString();
+				(registerDelegateTransaction).should.have.property('signature').and.be.hexString();
 			});
 
 			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(delegateTransaction);
+				const result = cryptoModule.verifyTransaction(registerDelegateTransaction);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly if modified', () => {
-				delegateTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(delegateTransaction);
+				registerDelegateTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(registerDelegateTransaction);
 				(result).should.be.not.ok();
 			});
 
 			it('should have asset', () => {
-				(delegateTransaction).should.have.property('asset').and.not.be.empty();
+				(registerDelegateTransaction).should.have.property('asset').and.not.be.empty();
 			});
 
 			describe('delegate asset', () => {
 				it('should be an object', () => {
-					(delegateTransaction.asset).should.have.property('delegate').and.be.type('object');
+					(registerDelegateTransaction.asset).should.have.property('delegate').and.be.type('object');
 				});
 
 				it('should have the provided username as a string', () => {
-					(delegateTransaction.asset.delegate).should.have.property('username').and.be.type('string').and.equal(username);
+					(registerDelegateTransaction.asset.delegate).should.have.property('username').and.be.type('string').and.equal(username);
 				});
 			});
 		});
@@ -120,28 +120,30 @@ describe('#registerDelegate', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			delegateTransaction = registerDelegate(secret, username, secondSecret);
+			registerDelegateTransaction = registerDelegate(secret, username, secondSecret);
 		});
 
 		it('should create a delegate transaction with a second secret', () => {
-			const delegateTransactionWithoutSecondSecret = registerDelegate(secret, username);
-			(delegateTransaction).should.be.ok();
-			(delegateTransaction).should.not.be.equal(delegateTransactionWithoutSecondSecret);
+			const registerDelegateTransactionWithoutSecondSecret = registerDelegate(secret, username);
+			(registerDelegateTransaction).should.be.ok();
+			(registerDelegateTransaction).should.not.be.equal(
+				registerDelegateTransactionWithoutSecondSecret,
+			);
 		});
 
 		describe('returned delegate transaction', () => {
 			it('should have second signature hex string', () => {
-				(delegateTransaction).should.have.property('signSignature').and.be.hexString();
+				(registerDelegateTransaction).should.have.property('signSignature').and.be.hexString();
 			});
 
 			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
+				const result = cryptoModule.verifyTransaction(registerDelegateTransaction, secondPublicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be second signed correctly if modified', () => {
-				delegateTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(delegateTransaction, secondPublicKey);
+				registerDelegateTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(registerDelegateTransaction, secondPublicKey);
 				(result).should.not.be.ok();
 			});
 		});
