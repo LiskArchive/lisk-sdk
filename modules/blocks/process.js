@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var constants = require('../../helpers/constants.js');
 var Peer = require('../../logic/peer.js');
@@ -46,6 +47,148 @@ function Process (logger, block, peers, transaction, schema, db, dbSequence, seq
 }
 
 /**
+ * Receive block - logs info about received block, updates last receipt, processes block
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block Full normalized block
+ * @param {function} cb Callback function
+ */
+__private.receiveBlock = function (block, cb) {
+	library.logger.info([
+		'Received new block id:', block.id,
+		'height:', block.height,
+		'round:',  slots.calcRound(block.height),
+		'slot:', slots.getSlotNumber(block.timestamp),
+		'reward:', block.reward
+	].join(' '));
+
+	// Update last receipt
+	modules.blocks.lastReceipt.update();
+	// Start block processing - broadcast: true, saveBlock: true
+	modules.blocks.verify.processBlock(block, true, cb, true);
+};
+
+/**
+ * Receive block detected as fork cause 1: Consecutive height but different previous block id
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block Received block
+ * @param {function} cb Callback function
+ */
+__private.receiveForkOne = function (block, lastBlock, cb) {
+	var tmp_block = _.clone(block);
+
+	// Fork: Consecutive height but different previous block id
+	modules.delegates.fork(block, 1);
+
+	// Keep the oldest block, or if both have same age, keep block with lower id
+	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+		library.logger.info('Last block stands');
+		return setImmediate(cb); // Discard received block
+	} else {
+		library.logger.info('Last block and parent loses');
+		async.series([
+			function (seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Check received block before any deletion
+			function (seriesCb) {
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			},
+			// Delete last 2 blocks
+			modules.blocks.chain.deleteLastBlock,
+			modules.blocks.chain.deleteLastBlock
+		], function (err) {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return setImmediate(cb, err);
+		});
+	}
+};
+
+/**
+ * Receive block detected as fork cause 5: Same height and previous block id, but different block id
+ *
+ * @private
+ * @async
+ * @method receiveBlock
+ * @param {Object}   block Received block
+ * @param {function} cb Callback function
+ */
+__private.receiveForkFive = function (block, lastBlock, cb) {
+	var tmp_block = _.clone(block);
+
+	// Fork: Same height and previous block id, but different block id
+	modules.delegates.fork(block, 5);
+
+	// Check if delegate forged on more than one node
+	if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
+		library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
+	}
+
+	// Keep the oldest block, or if both have same age, keep block with lower id
+	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
+		library.logger.info('Last block stands');
+		return setImmediate(cb); // Discard received block
+	} else {
+		library.logger.info('Last block loses');
+		async.series([
+			function (seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Check received block before any deletion
+			function (seriesCb) {
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(['Block', tmp_block.id, 'verification failed'].join(' '), check.errors.join(', '));
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				} else {
+					return setImmediate(seriesCb);
+				}
+			},
+			// Delete last block
+			function (seriesCb) {
+				modules.blocks.chain.deleteLastBlock(seriesCb);
+			},
+			// Process received block
+			function (seriesCb) {
+				return __private.receiveBlock(block, seriesCb);
+			}
+		], function (err) {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return setImmediate(cb, err);
+		});
+	}
+};
+
+/**
  * Performs chain comparison with remote peer
  * WARNING: Can trigger chain recovery
  *
@@ -54,8 +197,8 @@ function Process (logger, block, peers, transaction, schema, db, dbSequence, seq
  * @method getCommonBlock
  * @param  {Peer}     peer Peer to perform chain comparison with
  * @param  {number}   height Block height
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.res Result object
  */
@@ -133,15 +276,15 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method loadBlocksOffset
  * @param  {number}   limit Limit amount of blocks
  * @param  {number}   offset Offset to start at
  * @param  {boolean}  verify Indicator that block needs to be verified
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.lastBlock Current last block
  */
@@ -181,14 +324,14 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 						verifyBlock: function (seriesCb) {
 							// Sanity check of the block, if values are coherent.
 							// No access to database
-							modules.blocks.verify.verifyBlock(block, function (err) {
-								if (err) {
-									library.logger.error(['Block', block.id, 'verification failed'].join(' '), err);
-									return setImmediate(seriesCb, err);
-								}
+							var result = modules.blocks.verify.verifyBlock(block);
 
+							if (!result.verified) {
+								library.logger.error(['Block', block.id, 'verification failed'].join(' '), result.errors[0]);
+								return setImmediate(seriesCb, result.errors[0]);
+							} else {
 								return setImmediate(seriesCb);
-							});
+							}
 						}
 					}, function (err) {
 						if (err) {
@@ -230,8 +373,8 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
  * @public
  * @method loadBlocksFromPeer
  * @param  {Peer}     peer Peer to perform chain comparison with
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.lastValidBlock Normalized new last block
  */
@@ -314,14 +457,14 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 /**
  * Generate new block
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method generateBlock
  * @param  {Object}   keypair Pair of private and public keys, see: helpers.ed.makeKeypair
  * @param  {number}   timestamp Slot time, see: helpers.slots.getSlotTime
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error message if error occurred
  */
 Process.prototype.generateBlock = function (keypair, timestamp, cb) {
@@ -368,16 +511,12 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 };
 
 /**
- * EVENTS
- */
-
-/**
  * Handle newly received block
  *
  * @public
  * @method  onReceiveBlock
  * @listens module:transport~event:receiveBlock
- * @param   {block}   block New block
+ * @param   {block} block New block
  */
 Process.prototype.onReceiveBlock = function (block) {
 	var lastBlock;
@@ -391,83 +530,36 @@ Process.prototype.onReceiveBlock = function (block) {
 			return;
 		}
 
+		// Get the last block
 		lastBlock = modules.blocks.lastBlock.get();
 
-		// Initial check if new block looks fine
+		// Detect sane block
 		if (block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height) {
 			// Process received block
 			return __private.receiveBlock(block, cb);
 		} else if (block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height) {
-			// Fork: Consecutive height but different previous block id.
-			modules.delegates.fork(block, 1);
-
-			// We should keep the oldest one or if both have same age - keep one with lower id
-			if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-				library.logger.info('Last block stands');
-				return setImmediate(cb);
-			} else {
-				// In other cases - we have wrong parent and should rewind.
-				library.logger.info('Last block and parent loses');
-				// Delete last 2 blocks
-				async.series([
-					modules.blocks.chain.deleteLastBlock,
-					modules.blocks.chain.deleteLastBlock
-				], cb);
-			}
+			// Process received fork cause 1
+			return __private.receiveForkOne(block, lastBlock, cb);
 		} else if (block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id) {
-			// Fork: Same height and previous block id, but different block id.
-			modules.delegates.fork(block, 5);
-
-			// Check if delegate forged on more than one node.
-			if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
-				library.logger.warn('Delegate forging on multiple nodes', block.generatorPublicKey);
-			}
-
-			// Two competiting blocks on same height, we should keep the oldest one or if both have same age - keep one with lower id
-			if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
-				library.logger.info('Last block stands');
-				return setImmediate(cb);
-			} else {
-				library.logger.info('Last block loses');
-				async.series([
-					function (seriesCb) {
-						// Delete last block
-						modules.blocks.chain.deleteLastBlock(seriesCb);
-					},
-					function (seriesCb) {
-						// Process received block
-						return __private.receiveBlock(block, seriesCb);
-					}
-				], cb);
-			}
+			// Process received fork cause 5
+			return __private.receiveForkFive(block, lastBlock, cb);
 		} else {
+			if (block.id === lastBlock.id) {
+				library.logger.debug('Block already processed', block.id);
+			} else {
+				library.logger.warn([
+					'Discarded block that does not match with current chain:', block.id,
+					'height:', block.height,
+					'round:',  slots.calcRound(block.height),
+					'slot:', slots.getSlotNumber(block.timestamp),
+					'generator:', block.generatorPublicKey
+				].join(' '));
+			}
+
+			// Discard received block
 			return setImmediate(cb);
 		}
 	});
-};
-
-/**
- * Receive block - logs info about received block, updates last receipt, fires processing
- *
- * @private
- * @async
- * @method receiveBlock
- * @param {Object}   block Full normalized block
- * @param {Function} cb Callback function
- */
-__private.receiveBlock = function (block, cb) {
-	library.logger.info([
-		'Received new block id:', block.id,
-		'height:', block.height,
-		'round:',  slots.calcRound(block.height),
-		'slot:', slots.getSlotNumber(block.timestamp),
-		'reward:', block.reward
-	].join(' '));
-
-	// Update last receipt
-	modules.blocks.lastReceipt.update();
-	// Start block processing - broadcast: true, saveBlock: true
-	modules.blocks.verify.processBlock(block, true, cb, true);
 };
 
 /**

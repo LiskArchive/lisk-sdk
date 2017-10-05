@@ -16,7 +16,7 @@ function postTransactions (transactions, done) {
 	}, done, true);
 }
 
-describe('postTransactions', function () {
+describe('postTransactions @slow', function () {
 
 	describe('sending 1000 bundled transfers to random addresses', function () {
 

@@ -56,7 +56,7 @@ module.exports = {
 			},
 			senderPublicKeys: {
 				type: 'array',
-				minLength: 1,
+				minItems: 1,
 				'items': {
 					type: 'string',
 					format: 'publicKey'
@@ -64,7 +64,7 @@ module.exports = {
 			},
 			recipientPublicKeys: {
 				type: 'array',
-				minLength: 1,
+				minItems: 1,
 				'items': {
 					type: 'string',
 					format: 'publicKey'
@@ -72,7 +72,7 @@ module.exports = {
 			},
 			senderIds: {
 				type: 'array',
-				minLength: 1,
+				minItems: 1,
 				'items': {
 					type: 'string',
 					format: 'address',
@@ -82,7 +82,7 @@ module.exports = {
 			},
 			recipientIds: {
 				type: 'array',
-				minLength: 1,
+				minItems: 1,
 				'items': {
 					type: 'string',
 					format: 'address',

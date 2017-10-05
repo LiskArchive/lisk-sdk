@@ -1,6 +1,6 @@
 'use strict';
 
-var node = require('./../../node.js'); 
+var node = require('./../../node.js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
@@ -14,10 +14,6 @@ describe('cache', function () {
 
 	before(function (done) {
 		node.config.cacheEnabled = true;
-		done();
-	});
-
-	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;
@@ -27,16 +23,16 @@ describe('cache', function () {
 		});
 	});
 
-	after(function (done) {
-		cache.quit(done);
-	});
-
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			expect(err).to.not.exist;
 			expect(status).to.equal('OK');
 			done(err, status);
 		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
 	});
 
 	describe('setJsonForKey', function () {
@@ -173,7 +169,7 @@ describe('cache', function () {
 		});
 
 	});
-	
+
 	describe('onNewBlock', function () {
 
 		it('should remove all keys matching pattern /api/transactions', function (done) {
@@ -312,7 +308,6 @@ describe('cache', function () {
 				});
 			});
 		});
-
 	});
 
 	describe('onTransactionsSaved', function (done) {

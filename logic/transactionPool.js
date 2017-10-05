@@ -671,7 +671,7 @@ __private.getTransactionList = function (transactions, reverse, limit) {
  * @implements {logic.transaction.process}
  * @implements {logic.transaction.verify}
  * @param {transaction} transaction
- * @param {object} broadcast
+ * @param {Object} broadcast
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} errors | sender
  */

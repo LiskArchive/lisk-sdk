@@ -20,7 +20,6 @@ var ed = require('../../helpers/ed');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Transaction = require('../../logic/transaction.js');
 var Account = require('../../logic/account.js');
-var Sequence = require('../../helpers/sequence.js');
 
 var modulesLoader = new function () {
 
@@ -72,11 +71,12 @@ var modulesLoader = new function () {
 	/**
 	 * Initializes Logic class with params
 	 *
-	 * @param {Function} Logic
+	 * @param {function} Logic
 	 * @param {Object} scope
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initLogic = function (Logic, scope, cb) {
+		jobsQueue.jobs = {};
 		switch (Logic.name) {
 			case 'Account':
 				new Logic(scope.db, scope.schema, scope.logger, cb);
@@ -113,11 +113,12 @@ var modulesLoader = new function () {
 	/**
 	 * Initializes Module class with params
 	 *
-	 * @param {Function} Module
+	 * @param {function} Module
 	 * @param {Object} scope
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initModule = function (Module, scope, cb) {
+		jobsQueue.jobs = {};
 		return new Module(cb, scope);
 	};
 
@@ -127,7 +128,7 @@ var modulesLoader = new function () {
 	 * @param {Array<{name: Module}>} modules
 	 * @param {Array<{name: Logic}>} logic
 	 * @param {Object>} scope
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initModules = function (modules, logic, scope, cb) {
 		async.waterfall([
@@ -169,22 +170,16 @@ var modulesLoader = new function () {
 		], cb);
 	};
 
-	this.clear = function () {
-		jobsQueue.jobs = {};
-	};
-
 	/**
 	 * Initializes all created Modules in directory
 	 *
-	 * @param {Function} cb
-	 * @param {object} [scope={}] scope
+	 * @param {function} cb
+	 * @param {Object} [scope={}] scope
 	 */
 	this.initAllModules = function (cb, scope) {
-		this.clear();
 		this.initModules([
 			{accounts: require('../../modules/accounts')},
 			{blocks: require('../../modules/blocks')},
-			{crypto: require('../../modules/crypto')},
 			{delegates: require('../../modules/delegates')},
 			{loader: require('../../modules/loader')},
 			{multisignatures: require('../../modules/multisignatures')},
@@ -204,8 +199,8 @@ var modulesLoader = new function () {
 	/**
 	 * Initializes Module class with basic conf
 	 *
-	 * @param {Function} Module
-	 * @param {Function} cb
+	 * @param {function} Module
+	 * @param {function} cb
 	 * @param {Object=} scope
 	 */
 	this.initModuleWithDb = function (Module, cb, scope) {
@@ -215,8 +210,8 @@ var modulesLoader = new function () {
 	/**
 	 * Initializes Logic class with basic conf
 	 *
-	 * @param {Function} Logic
-	 * @param {Function} cb
+	 * @param {function} Logic
+	 * @param {function} cb
 	 * @param {Object=} scope
 	 */
 	this.initLogicWithDb = function (Logic, cb, scope) {
@@ -226,9 +221,9 @@ var modulesLoader = new function () {
 	/**
 	 * Accepts Class to invoke (Logic or Module) and fills the scope with basic conf
 	 *
-	 * @param {Function} Klass
-	 * @param {Function} moduleConstructor
-	 * @param {Function} cb
+	 * @param {function} Klass
+	 * @param {function} moduleConstructor
+	 * @param {function} cb
 	 * @param {Object=} scope
 	 */
 	this.initWithDb = function (Klass, moduleConstructor, cb, scope) {
@@ -244,13 +239,13 @@ var modulesLoader = new function () {
 	/**
 	 * Starts and returns db connection
 	 *
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.getDbConnection = function (cb) {
 		if (this.db) {
 			return cb(null, this.db);
 		}
-		database.connect(config.db, this.logger, function (err, db) {
+		database.connect(this.scope.config.db, this.logger, function (err, db) {
 			if (err) {
 				return cb(err);
 			}
@@ -261,7 +256,7 @@ var modulesLoader = new function () {
 
 	/**
 	 * Initializes Cache module
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initCache = function (cb) {
 		var cacheEnabled, cacheConfig;

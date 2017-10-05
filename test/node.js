@@ -27,7 +27,11 @@ node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
+node.Promise = require('bluebird');
 var randomString = require('randomstring');
+
+var jobsQueue = require('../helpers/jobsQueue.js');
+
 require('colors');
 
 // Node configuration
@@ -87,7 +91,9 @@ node.gAccount = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	password: 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
-	balance: '10000000000000000'
+	balance: '10000000000000000',
+	encryptedSecret: 'ddbb37d465228d52a78ad13555e609750ec30e8f5912a1b8fbdb091f50e269cbcc3875dad032115e828976f0c7f5ed71ce925e16974233152149e902b48cec51d93c2e40a6c95de75c1c5a2c369e6d24',
+	key: 'elephant tree paris dragon chair galaxy',
 };
 
 // Optional logging
@@ -99,19 +105,6 @@ if (process.env.SILENT === 'true') {
 
 // Random LSK amount
 node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
-
-// Returns a random delegate name
-node.randomDelegateName = function () {
-	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
-	var delegateName = '';
-	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-
-	for (var i = 0; i < size; i++) {
-		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return delegateName;
-};
 
 // Returns a random property from the given object
 node.randomProperty = function (obj, needKey) {
@@ -219,7 +212,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 			});
 		},
 		function () {
-			return actualHeight === height;
+			return actualHeight >= height;
 		},
 		function (err) {
 			if (err) {
@@ -231,9 +224,10 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 	);
 };
 
-node.generatePeerHeaders = function (ip, port) {
+node.generatePeerHeaders = function (ip, port, nonce) {
 	port = port || 9999;
 	ip = ip || '127.0.0.1';
+	nonce = nonce || randomString.generate(16);
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
 	var version = node.version;
@@ -246,7 +240,7 @@ node.generatePeerHeaders = function (ip, port) {
 		ip: ip,
 		port: port,
 		version: version,
-		nonce: randomString.generate(16)
+		nonce: nonce
 	};
 };
 
@@ -270,43 +264,77 @@ node.expectedFeeForTrsWithData = function (amount) {
 	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
 };
 
-// Returns a random username
+// Returns a random username of 16 characters
 node.randomUsername = function () {
-	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
-	var username = '';
-	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var randomLetter = randomString.generate({
+		length: 1,
+		charset: 'alphabetic',
+		capitalization: 'lowercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = randomString.generate({
+		length: node.randomNumber(1, 15),
+		charset: custom
+	});
 
-	for (var i = 0; i < size; i++) {
-		username += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return username;
+	return randomLetter.concat(username);
 };
 
-// Returns a random capitialized username
+// Returns a random delegate name of 20 characters
+node.randomDelegateName = function () {
+	var randomLetter = randomString.generate({
+		length: 1,
+		charset: 'alphabetic',
+		capitalization: 'lowercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = randomString.generate({
+		length: node.randomNumber(1, 19),
+		charset: custom
+	});
+
+	return randomLetter.concat(username);
+};
+
+// Returns a random capitialized username of 16 characters
 node.randomCapitalUsername = function () {
-	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
-	var username = 'A';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var randomLetter = randomString.generate({
+		length: 1,
+		charset: 'alphabetic',
+		capitalization: 'uppercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = randomString.generate({
+		length: node.randomNumber(1, 15),
+		charset: custom
+	});
 
-	for (var i = 0; i < size - 1; i++) {
-		username += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return username;
+	return randomLetter.concat(username);
 };
 
-// Returns a random application name
+// Returns a random application name of 32 characteres
 node.randomApplicationName = function () {
-	var size = node.randomNumber(1, 32); // Min. username size is 1, Max. username size is 32
-	var name = 'A';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	for (var i = 0; i < size - 1; i++) {
-		name += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
+	return randomString.generate({
+		length: node.randomNumber(1, 32),
+		charset: custom
+	});
+};
 
-	return name;
+// Test random application
+node.randomApplication = function () {
+	var application = {
+		category: node.randomNumber(0, 9),
+		name: node.randomApplicationName(),
+		description: 'Blockchain based home monitoring tool',
+		tags: 'monitoring temperature power sidechain',
+		type: node.randomNumber(0, 2),
+		link: 'https://' + node.randomApplicationName() + '.zip',
+		icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
+	};
+
+	return application;
 };
 
 // Returns a basic random account
@@ -335,22 +363,34 @@ node.randomTxAccount = function () {
 	});
 };
 
+// Returns an random basic transaction to send 1 LSK from genesis account to a random account
+node.randomTx = function (offset) {
+	var randomAccount = node.randomAccount();
+
+	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password, offset);
+};
+
 // Returns a random password
 node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
 };
 
+var currentAppScope;
 
 // Init whole application inside tests
-node.initApplication = function (cb) {
+node.initApplication = function (cb, initScope) {
+	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
-	    promiseLib: Promise
+		promiseLib: Promise
 	};
-	var pgp = require('pg-promise')(options);
-	node.config.db.user = node.config.db.user || process.env.USER;
-	var db = pgp(node.config.db);
+	var db = initScope.db;
+	if (!db) {
+		var pgp = require('pg-promise')(options);
+		node.config.db.user = node.config.db.user || process.env.USER;
+		db = pgp(node.config.db);
+	}
 
 	// Clear tables
 	db.task(function (t) {
@@ -360,10 +400,7 @@ node.initApplication = function (cb) {
 			t.none('DELETE FROM mem_accounts')
 		]);
 	}).then(function () {
-		// Force rewards start at 150-th block
-		node.constants.rewards.offset = 150;
-
-		var logger = {
+		var logger = initScope.logger || {
 			trace: sinon.spy(),
 			debug: sinon.spy(),
 			info:  sinon.spy(),
@@ -384,7 +421,6 @@ node.initApplication = function (cb) {
 			delegates: '../modules/delegates.js',
 			multisignatures: '../modules/multisignatures.js',
 			dapps: '../modules/dapps.js',
-			crypto: '../modules/crypto.js',
 			// cache: '../modules/cache.js'
 		};
 
@@ -415,8 +451,7 @@ node.initApplication = function (cb) {
 				var wsRPC = require('../api/ws/rpc/wsRPC.js').wsRPC;
 
 				wsRPC.setServer(dummyWAMPServer);
-				wsRPC.getServer().registerRPCEndpoints({status: function () {}});
-
+				wsRPC.clientsConnectionsMap = {};
 				cb();
 			}],
 			logger: function (cb) {
@@ -452,7 +487,8 @@ node.initApplication = function (cb) {
 
 			bus: ['ed', function (scope, cb) {
 				var changeCase = require('change-case');
-				var bus = function () {
+
+				var bus = initScope.bus || new (function () {
 					this.message = function () {
 						var args = [];
 						Array.prototype.push.apply(args, arguments);
@@ -462,6 +498,7 @@ node.initApplication = function (cb) {
 						// Iterate over modules and execute event functions (on*)
 						modules.forEach(function (module) {
 							if (typeof(module[eventName]) === 'function') {
+								jobsQueue.jobs = {};
 								module[eventName].apply(module[eventName], args);
 							}
 							if (module.submodules) {
@@ -473,8 +510,8 @@ node.initApplication = function (cb) {
 							}
 						});
 					};
-				};
-				cb(null, new bus());
+				})();
+				cb(null, bus);
 			}],
 			db: function (cb) {
 				cb(null, db);
@@ -482,6 +519,21 @@ node.initApplication = function (cb) {
 			pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
 				var pg_notify = require('../helpers/pg-notify.js');
 				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
+			}],
+			rpc: ['db', 'bus', 'logger', function (scope, cb) {
+				var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
+				var transport = require('../api/ws/transport');
+				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+
+				var socketClusterMock = {
+					on: sinon.spy()
+				};
+				wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
+
+				// Register RPC
+				var transportModuleMock = {internal: {}, shared: {}};
+				transport(transportModuleMock);
+				cb();
 			}],
 			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
@@ -524,7 +576,7 @@ node.initApplication = function (cb) {
 					}]
 				}, cb);
 			}],
-			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+			modules: ['network', 'webSocket', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'rpc', function (scope, cb) {
 				var tasks = {};
 				scope.rewiredModules = {};
 
@@ -544,7 +596,6 @@ node.initApplication = function (cb) {
 			ready: ['modules', 'bus', 'logic', function (scope, cb) {
 				// Fire onBind event in every module
 				scope.bus.message('bind', scope.modules);
-
 				scope.logic.peers.bindModules(scope.modules);
 				cb();
 			}]
@@ -552,9 +603,26 @@ node.initApplication = function (cb) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
-
-			cb(scope);
+			currentAppScope = scope;
+			cb(err, scope);
 		});
+	});
+};
+
+node.appCleanup = function (done) {
+	node.async.eachSeries(currentAppScope.modules, function (module, cb) {
+		if (typeof(module.cleanup) === 'function') {
+			module.cleanup(cb);
+		} else {
+			cb();
+		}
+	}, function (err) {
+		if (err) {
+			currentAppScope.logger.error(err);
+		} else {
+			currentAppScope.logger.info('Cleaned up successfully');
+		}
+		done();
 	});
 };
 

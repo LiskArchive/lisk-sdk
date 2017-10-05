@@ -1,8 +1,8 @@
 'use strict';
 
-var node = require('../node.js');
-var http = require('../common/httpCommunication.js');
-var modulesLoader = require('../common/initModule').modulesLoader;
+var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
+var modulesLoader = require('../../../common/initModule').modulesLoader;
 
 var block = {
 	blockHeight: 0,

@@ -9,8 +9,6 @@ var sql = require('../../sql/blocks.js');
 
 var modules, library, self, __private = {};
 
-__private.blockReward = new BlockReward();
-
 /**
  * Initializes library.
  * @memberof module:blocks
@@ -34,7 +32,7 @@ function API (logger, db, block, schema, dbSequence) {
 		},
 	};
 	self = this;
-
+	__private.blockReward = new BlockReward();
 	library.logger.trace('Blocks->API: Submodule initialized.');
 	return self;
 }
@@ -46,8 +44,8 @@ function API (logger, db, block, schema, dbSequence) {
  * @async
  * @method getById
  * @param  {string}   id Block ID
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.block Block object
  */
@@ -84,8 +82,8 @@ __private.getById = function (id, cb) {
  * @param  {number}   filter.limit Limit of blocks to retrieve, default: 100, max: 100
  * @param  {number}   filter.offset Offset from where to start
  * @param  {string}   filter.orderBy Sort order, default: height:desc
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.data List of normalized blocks
  */
