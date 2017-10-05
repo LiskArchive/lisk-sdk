@@ -76,12 +76,16 @@ describe('signature', function () {
 	var transactionMock;
 	var accountsMock;
 	var signature;
-
+	var dummyBlock;
 
 	beforeEach(function (done) {
+		dummyBlock = {
+			id: '9314232245035524467',
+			height: 1
+		};
 		transactionMock = sinon.mock({});
 		accountsMock = {
-			setAccountAndGet: sinon.mock()
+			setAccountAndGet: sinon.mock().callsArg(1)
 		};
 		signature = new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
 		signature.bind(accountsMock);
@@ -126,17 +130,14 @@ describe('signature', function () {
 
 		describe('bind', function () {
 
-			it('should attach empty object to private modules.accounts variable', function () {
-				signature.bind({});
-				var modules = Signature.__get__('modules');
-				expect(modules.accounts).to.eql({});
-			});
+			describe('modules', function () {
 
-			it('should attach accounts object to private modules.accounts variable', function () {
-				signature.bind(accountsMock);
-				var modules = Signature.__get__('modules');
-				expect(modules).to.eql({
-					accounts: accountsMock
+				it('should assign accounts', function () {
+					signature.bind(accountsMock);
+					var modules = Signature.__get__('modules');
+					expect(modules).to.eql({
+						accounts: accountsMock
+					});
 				});
 			});
 		});
@@ -149,7 +150,7 @@ describe('signature', function () {
 				fee = signature.calculateFee.call(transactionMock, trs);
 			});
 
-			it('should return the correct fee for second signature transaction', function () {
+			it('should return constants.fees.secondsignature', function () {
 				expect(fee).to.equal(node.constants.fees.secondsignature);
 			});
 		});
@@ -158,55 +159,70 @@ describe('signature', function () {
 
 			describe('when transaction is invalid', function () {
 
-				it('should call callback with error if asset is undefined', function (done) {
-					delete trs.asset;
+				describe('when asset = undefined', function () {
 
-					signature.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid transaction asset');
-						done();
+					it('should call callback with error = "Invalid transaction asset"', function (done) {
+						delete trs.asset;
+
+						signature.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid transaction asset');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if signature is undefined', function (done) {
-					delete trs.asset.signature;
+				describe('when signature = undefined', function () {
 
-					signature.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid transaction asset');
-						done();
+					it('should call callback with error = "Invalid transaction asset', function (done) {
+						delete trs.asset.signature;
+
+						signature.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid transaction asset');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if amount is not equal to 0', function (done) {
-					trs.amount = 1;
+				describe('when amount != 0', function () {
 
-					signature.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid transaction amount');
-						done();
+					it('should call callback with error = "Invalid transaction amount', function (done) {
+						trs.amount = 1;
+
+						signature.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid transaction amount');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if publicKey is undefined', function (done) {
-					delete trs.asset.signature.publicKey;
+				describe('when publicKey = undefined', function () {
 
-					signature.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid public key');
-						done();
+					it('should call callback with error = "Invalid public key', function (done) {
+						delete trs.asset.signature.publicKey;
+
+						signature.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid public key');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if publicKey is invalid', function (done) {
-					trs.asset.signature.publicKey = 'invalid-public-key';
+				describe('when publicKey is invalid', function () {
 
-					signature.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid public key');
-						done();
+					it('should call callback with error = "Invalid public key', function (done) {
+						trs.asset.signature.publicKey = 'invalid-public-key';
+
+						signature.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid public key');
+							done();
+						});
 					});
 				});
 			});
 
 			describe('when transaction is valid', function () {
 
-				it('should call callback with error = null for valid transaction', function (done) {
+				it('should call callback with error = null', function (done) {
 					signature.verify(trs, sender, done);
 				});
 			});
@@ -214,8 +230,15 @@ describe('signature', function () {
 
 		describe('process', function () {
 
-			it('should call callback', function (done) {
+			it('should call callback with error = null', function (done) {
 				signature.process(trs, sender, done);
+			});
+
+			it('should call callback with result = trs', function (done) {
+				signature.process(trs, sender, function (err, res) {
+					expect(res).to.eql(trs);
+					done();
+				});
 			});
 		});
 
@@ -236,7 +259,7 @@ describe('signature', function () {
 					});
 				});
 
-				describe('when trs.asset is undefined', function () {
+				describe('when trs.asset = undefined', function () {
 
 					beforeEach(function () {
 						delete trs.asset;
@@ -271,58 +294,55 @@ describe('signature', function () {
 
 		describe('apply', function () {
 
-			var dummyBlock = {
-				id: '9314232245035524467',
-				height: 1
-			};
+			beforeEach(function (done) {
+				signature.apply(validTransaction, dummyBlock, sender, done);
+			});
 
-			describe('with mocked accounts.setAccountAndGet', function () {
+			it('should call modules.accounts.setAccountAndGet', function () {
+				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+			});
 
-				function callback () {}
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({address: sender.address}))).to.be.true;
+			});
 
-				beforeEach(function () {
-					accountsMock.setAccountAndGet.once().withExactArgs({
-						address: sender.address,
-						secondSignature: 1,
-						u_secondSignature: 0,
-						secondPublicKey: trs.asset.signature.publicKey
-					}, callback);
-				});
+			it('should call modules.accounts.setAccountAndGet with secondSignature = 1', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({secondSignature: 1}))).to.be.true;
+			});
 
-				it('it should call setAccountAndGet with correct parameters', function (done) {
-					signature.apply.call(transactionMock, trs, dummyBlock, sender, callback);
-					accountsMock.setAccountAndGet.verify();
-					done();
-				});
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({u_secondSignature: 0}))).to.be.true;
+			});
+
+			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({secondPublicKey: validTransaction.asset.signature.publicKey}))).to.be.true;
 			});
 		});
 
 		describe('undo', function () {
 
-			var dummyBlock = {
-				id: '9314232245035524467',
-				height: 1
-			};
+			beforeEach(function (done) {
+				signature.undo(validTransaction, dummyBlock, sender, done);
+			});
 
-			describe('with mocked accounts.setAccountAndGet', function () {
+			it('should call modules.accounts.setAccountAndGet', function () {
+				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+			});
 
-				function callback () {}
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({address: sender.address}))).to.be.true;
+			});
 
-				beforeEach(function () {
-					accountsMock.setAccountAndGet.once().withExactArgs({
-						address: sender.address,
-						secondSignature: 0,
-						u_secondSignature: 1,
-						secondPublicKey: null
-					}, callback);
-				});
+			it('should call modules.accounts.setAccountAndGet with secondSignature = 0', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({secondSignature: 0}))).to.be.true;
+			});
 
-				it('should call accounts.setAccountAndGet module with correct parameters', function (done) {
-					signature.undo.call(transactionMock, trs, dummyBlock, sender, callback);
-					accountsMock.setAccountAndGet.verify();
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({u_secondSignature: 1}))).to.be.true;
+			});
 
-					done();
-				});
+			it('should call modules.accounts.setAccountAndGet with secondPublicKey = null', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({secondPublicKey: null}))).to.be.true;
 			});
 		});
 
@@ -357,41 +377,39 @@ describe('signature', function () {
 				});
 			});
 
-			describe('with accounts.setAccountAndGet mocked', function () {
+			beforeEach(function (done) {
+				signature.applyUnconfirmed(validTransaction, sender, done);
+			});
 
-				function callback () {}
+			it('should call modules.accounts.setAccountAndGet', function () {
+				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+			});
 
-				before(function () {
-					accountsMock.setAccountAndGet.once().withExactArgs({
-						address: sender.address,
-						u_secondSignature: 1
-					}, callback);
-				});
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({address: sender.address}))).to.be.true;
+			});
 
-				it('should call module with correct parameters', function () {
-					signature.applyUnconfirmed.call(transactionMock, trs, sender, callback);
-					accountsMock.setAccountAndGet.verify();
-				});
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({u_secondSignature: 1}))).to.be.true;
 			});
 		});
 
 		describe('undoUnconfirmed', function () {
 
-			describe('with accounts.setAccountAndGet mocked', function () {
+			beforeEach(function (done) {
+				signature.undoUnconfirmed(validTransaction, sender, done);
+			});
 
-				function callback () {}
+			it('should call modules.accounts.setAccountAndGet', function () {
+				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+			});
 
-				before(function () {
-					accountsMock.setAccountAndGet.once().withExactArgs({
-						address: sender.address,
-						u_secondSignature: 0
-					}, callback);
-				});
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({address: sender.address}))).to.be.true;
+			});
 
-				it('should call setAccountAndGet with correct params', function () {
-					signature.undoUnconfirmed.call(transactionMock, trs, sender, callback);
-					accountsMock.setAccountAndGet.verify();
-				});
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', function () {
+				expect(accountsMock.setAccountAndGet.calledWith(sinon.match({u_secondSignature: 0}))).to.be.true;
 			});
 		});
 
