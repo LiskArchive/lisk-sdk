@@ -32,56 +32,56 @@ export function theResultShouldBeReturned() {
 export function aTableShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const tableOutput = tablify(result).toString();
-	return (vorpal.activeCommand.log.calledWithExactly(tableOutput)).should.be.true();
+	return (vorpal.activeCommand.log).should.be.calledWithExactly(tableOutput);
 }
 
 export function jSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(result);
-	return (vorpal.activeCommand.log.calledWithExactly(jsonOutput)).should.be.true();
+	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
 }
 
 export function theLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
 	const { blockId, liskInstance } = this.test.ctx;
 	const route = 'blocks/get';
 	const options = { id: blockId };
-	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
 export function theLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
 	const { address, liskInstance } = this.test.ctx;
 	const route = 'accounts';
 	const options = { address };
-	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
 export function theLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
 	const { transactionId, liskInstance } = this.test.ctx;
 	const route = 'transactions/get';
 	const options = { id: transactionId };
-	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
 export function theLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
 	const { delegateUsername, liskInstance } = this.test.ctx;
 	const route = 'delegates/get';
 	const options = { username: delegateUsername };
-	return (liskInstance.sendRequest.calledWithExactly(route, options)).should.be.true();
+	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
 export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
 	const { filePath } = this.test.ctx;
-	return (fs.readFileSync.calledWithExactly(filePath, 'utf8')).should.be.true();
+	return (fs.readFileSync).should.be.calledWithExactly(filePath, 'utf8');
 }
 
 export function jSONParseShouldBeCalledWithTheFileContentsAsAString() {
 	const { fileContents } = this.test.ctx;
-	return (JSON.parse.calledWithExactly(fileContents)).should.be.true();
+	return (JSON.parse).should.be.calledWithExactly(fileContents);
 }
 
 export function jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
 	const { fileContents } = this.test.ctx;
-	return (JSON.parse.calledWithExactly(fileContents.slice(1))).should.be.true();
+	return (JSON.parse).should.be.calledWithExactly(fileContents.slice(1));
 }
 
 export function theParsedFileContentsShouldBeReturned() {
@@ -92,12 +92,12 @@ export function theParsedFileContentsShouldBeReturned() {
 export function jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
 	const { objectToWrite } = this.test.ctx;
 	const tab = '\t';
-	return (JSON.stringify.calledWithExactly(objectToWrite, null, tab)).should.be.true();
+	return (JSON.stringify).should.be.calledWithExactly(objectToWrite, null, tab);
 }
 
 export function fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
 	const { filePath, stringifiedObject } = this.test.ctx;
-	return (fs.writeFileSync.calledWithExactly(filePath, stringifiedObject)).should.be.true();
+	return (fs.writeFileSync).should.be.calledWithExactly(filePath, stringifiedObject);
 }
 
 export function theReturnedTableShouldHaveNoHead() {
@@ -172,7 +172,7 @@ export function theCryptoInstanceShouldHaveLiskJSAsAProperty() {
 
 export function liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {
 	const { passphrase } = this.test.ctx;
-	return (lisk.crypto.getKeys.calledWithExactly(passphrase)).should.be.true();
+	return (lisk.crypto.getKeys).should.be.calledWithExactly(passphrase);
 }
 
 export function theKeysShouldBeReturned() {
@@ -187,7 +187,7 @@ export function theErrorResponseShouldBeHandled() {
 
 export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
 	const { passphrase, password } = this.test.ctx;
-	return (lisk.crypto.encryptPassphraseWithPassword.calledWithExactly(passphrase, password)).should.be.true();
+	return (lisk.crypto.encryptPassphraseWithPassword).should.be.calledWithExactly(passphrase, password);
 }
 
 export function theEncryptedPassphraseAndIVShouldBeReturned() {
@@ -197,7 +197,7 @@ export function theEncryptedPassphraseAndIVShouldBeReturned() {
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
 	const { cipherAndIv, password } = this.test.ctx;
-	return (lisk.crypto.decryptPassphraseWithPassword.calledWithExactly(cipherAndIv, password)).should.be.true();
+	return (lisk.crypto.decryptPassphraseWithPassword).should.be.calledWithExactly(cipherAndIv, password);
 }
 
 export function theDecryptedPassphraseShouldBeReturned() {
@@ -207,7 +207,7 @@ export function theDecryptedPassphraseShouldBeReturned() {
 
 export function liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
 	const { message, passphrase, recipientKeys } = this.test.ctx;
-	return (lisk.crypto.encryptMessageWithSecret.calledWithExactly(message, passphrase, recipientKeys.publicKey)).should.be.true();
+	return (lisk.crypto.encryptMessageWithSecret).should.be.calledWithExactly(message, passphrase, recipientKeys.publicKey);
 }
 
 export function theEncryptedMessageAndNonceShouldBeReturned() {
@@ -217,7 +217,7 @@ export function theEncryptedMessageAndNonceShouldBeReturned() {
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
 	const { encryptedMessageWithNonce: { encryptedMessage, nonce }, recipientPassphrase, keys } = this.test.ctx;
-	return (lisk.crypto.decryptMessageWithSecret.calledWithExactly(encryptedMessage, nonce, recipientPassphrase, keys.publicKey)).should.be.true();
+	return (lisk.crypto.decryptMessageWithSecret).should.be.calledWithExactly(encryptedMessage, nonce, recipientPassphrase, keys.publicKey);
 }
 
 export function theDecryptedMessageShouldBeReturned() {
@@ -237,32 +237,30 @@ export function theUsersConfigShouldBeExported() {
 
 export function theDefaultConfigShouldBeWrittenToTheConfigFile() {
 	const { filePath, defaultConfig } = this.test.ctx;
-	return (fsUtils.writeJsonSync.calledWithExactly(filePath, defaultConfig)).should.be.true();
+	return (fsUtils.writeJsonSync).should.be.calledWithExactly(filePath, defaultConfig);
 }
 
 export function theConfigFileShouldNotBeWritten() {
-	return (fsUtils.writeJsonSync.called).should.be.false();
+	return (fsUtils.writeJsonSync).should.not.be.called();
 }
 
 export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
-	return (console.warn.calledWithMatch(/Your configuration will not be persisted\./)).should.be.true();
+	return (console.warn).should.be.calledWithMatch(/Your configuration will not be persisted\./);
 }
 
 export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
 	const { filePath } = this.test.ctx;
-	return (console.error.calledWithExactly(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`))
-		.should.be.true();
+	return (console.error).should.be.calledWithExactly(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`);
 }
 
 export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
-	return (console.error.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`))
-		.should.be.true();
+	return (console.error).should.be.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`);
 }
 
 export function theProcessShouldExitWithErrorCode() {
 	const errorCode = parseInt(getFirstQuotedString(this.test.title), 10);
-	return (process.exit.calledWithExactly(errorCode)).should.be.true();
+	return (process.exit).should.be.calledWithExactly(errorCode);
 }
 
 export function theResultShouldHaveSourceType() {
@@ -303,22 +301,22 @@ export function theUIParentShouldBeMaintained() {
 
 export function itShouldPromptForThePassphraseOnce() {
 	const { vorpal } = this.test.ctx;
-	return (vorpal.activeCommand.prompt.calledOnce).should.be.true();
+	return (vorpal.activeCommand.prompt).should.be.calledOnce();
 }
 
 export function itShouldPromptForThePassphraseTwice() {
 	const { vorpal } = this.test.ctx;
-	return (vorpal.activeCommand.prompt.calledTwice).should.be.true();
+	return (vorpal.activeCommand.prompt).should.be.calledTwice();
 }
 
 export function itShouldUseOptionsWithTheMessage() {
 	const { vorpal } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return (vorpal.activeCommand.prompt.calledWithExactly({
+	return (vorpal.activeCommand.prompt).should.be.calledWithExactly({
 		type: 'password',
 		name: 'passphrase',
 		message,
-	})).should.be.true();
+	});
 }
 
 export function itShouldResolveToThePassphrase() {
