@@ -49,7 +49,7 @@ function Migrator (pgp, db) {
 	/**
 	 * Gets last migration record from `migrations` trable.
 	 * @method
-	 * @param {Boolean} hasMigrations
+	 * @param {boolean} hasMigrations
 	 * @param {function} waterCb - Callback function
 	 * @return {function} waterCb with error | row data
 	 */

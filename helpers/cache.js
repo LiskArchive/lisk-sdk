@@ -4,10 +4,10 @@ var redis = require('redis');
 
 /**
  * Connects with redis server using the config provided via parameters
- * @param {Boolean} cacheEnabled
+ * @param {boolean} cacheEnabled
  * @param {Object} config - Redis configuration
  * @param {Object} logger
- * @param {Function} cb
+ * @param {function} cb
  */
 module.exports.connect = function (cacheEnabled, config, logger, cb) {
 	var isRedisLoaded = false;

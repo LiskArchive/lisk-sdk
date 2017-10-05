@@ -579,9 +579,9 @@ Delegates.prototype.onBind = function (scope) {
  * @public
  * @method onRoundChanged
  * @listens module:pg-notify~event:roundChanged
- * @param {object} data Data received from postgres
- * @param {object} data.round Current round
- * @param {object} data.list Delegates list used for slot calculations
+ * @param {Object} data Data received from postgres
+ * @param {Object} data.round Current round
+ * @param {Object} data.list Delegates list used for slot calculations
  */
 Delegates.prototype.onRoundChanged = function (data) {
 	__private.delegatesList = data.list;

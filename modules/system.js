@@ -69,7 +69,7 @@ function System (cb, scope) {
 
 /**
  * Sets the entire __private variable
- * @param {object} headers
+ * @param {Object} headers
  */
 System.setHeaders = function (headers) {
 	__private = headers;
