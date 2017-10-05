@@ -35,7 +35,7 @@ import prepareTransaction from './utils/prepareTransaction';
  * @return {Object}
  */
 
-export default function dappOutTransfer(
+export default function transferOutDapp(
 	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);

@@ -21,7 +21,7 @@ describe('#multisignatureSend', () => {
 	const requesterPublicKey = 'abc123';
 	const timeWithOffset = 38350076;
 
-	let sendTransaction;
+	let multiSignatureSendTransaction;
 	let getTimeWithOffsetStub;
 
 	beforeEach(() => {
@@ -30,7 +30,7 @@ describe('#multisignatureSend', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			sendTransaction = multisignatureSend(
+			multiSignatureSendTransaction = multisignatureSend(
 				recipientId,
 				amount,
 				secret,
@@ -40,7 +40,7 @@ describe('#multisignatureSend', () => {
 		});
 
 		it('should create a multisignature transaction', () => {
-			(sendTransaction).should.be.ok();
+			(multiSignatureSendTransaction).should.be.ok();
 		});
 
 		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
@@ -56,78 +56,78 @@ describe('#multisignatureSend', () => {
 
 		describe('returned multisignature transaction', () => {
 			it('should be an object', () => {
-				(sendTransaction).should.be.type('object');
+				(multiSignatureSendTransaction).should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				(sendTransaction).should.have.property('id').and.be.type('string');
+				(multiSignatureSendTransaction).should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type number equal to 0', () => {
-				(sendTransaction).should.have.property('type').and.be.type('number').and.equal(0);
+				(multiSignatureSendTransaction).should.have.property('type').and.be.type('number').and.equal(0);
 			});
 
 			it('should have amount number equal to 500 LSK', () => {
-				(sendTransaction).should.have.property('amount').and.be.type('number').and.equal(amount);
+				(multiSignatureSendTransaction).should.have.property('amount').and.be.type('number').and.equal(amount);
 			});
 
 			it('should have fee number equal to 0.1 LSK', () => {
-				(sendTransaction).should.have.property('fee').and.be.type('number').and.equal(sendFee);
+				(multiSignatureSendTransaction).should.have.property('fee').and.be.type('number').and.equal(sendFee);
 			});
 
 			it('should have recipientId string equal to 123456789L', () => {
-				(sendTransaction).should.have.property('recipientId').and.be.equal(recipientId);
+				(multiSignatureSendTransaction).should.have.property('recipientId').and.be.equal(recipientId);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				(sendTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(keys.publicKey);
+				(multiSignatureSendTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(keys.publicKey);
 			});
 
 			it('should have requesterPublicKey hex string equal to provided requester public key', () => {
-				(sendTransaction.requesterPublicKey).should.be.equal(requesterPublicKey);
+				(multiSignatureSendTransaction.requesterPublicKey).should.be.equal(requesterPublicKey);
 			});
 
 			it('should have requesterPublicKey hex string equal to sender public key if requester public key is not provided', () => {
-				sendTransaction = multisignatureSend(recipientId, amount, secret);
-				(sendTransaction.requesterPublicKey).should.be.equal(keys.publicKey);
+				multiSignatureSendTransaction = multisignatureSend(recipientId, amount, secret);
+				(multiSignatureSendTransaction.requesterPublicKey).should.be.equal(keys.publicKey);
 			});
 
 			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
-				(sendTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				(multiSignatureSendTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				(sendTransaction).should.have.property('signature').and.be.hexString();
+				(multiSignatureSendTransaction).should.have.property('signature').and.be.hexString();
 			});
 
 			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(sendTransaction);
+				const result = cryptoModule.verifyTransaction(multiSignatureSendTransaction);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly if modified', () => {
-				sendTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(sendTransaction);
+				multiSignatureSendTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(multiSignatureSendTransaction);
 				(result).should.be.not.ok();
 			});
 
 			it('should have empty asset object', () => {
-				(sendTransaction).should.have.property('asset').and.be.type('object').and.be.empty();
+				(multiSignatureSendTransaction).should.have.property('asset').and.be.type('object').and.be.empty();
 			});
 
 			it('should not have a second signature', () => {
-				(sendTransaction).should.not.have.property('signSignature');
+				(multiSignatureSendTransaction).should.not.have.property('signSignature');
 			});
 
 			it('should have an empty signatures array', () => {
-				(sendTransaction).should.have.property('signatures').and.be.an.Array().and.be.empty();
+				(multiSignatureSendTransaction).should.have.property('signatures').and.be.an.Array().and.be.empty();
 			});
 		});
 	});
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			sendTransaction = multisignatureSend(
+			multiSignatureSendTransaction = multisignatureSend(
 				recipientId,
 				amount,
 				secret,
@@ -137,30 +137,30 @@ describe('#multisignatureSend', () => {
 		});
 
 		it('should create a multisignature transaction with a second secret', () => {
-			const sendTransactionWithoutSecondSecret = multisignatureSend(
+			const multiSignatureSendTransactionWithoutSecondSecret = multisignatureSend(
 				recipientId,
 				amount,
 				secret,
 				null,
 				requesterPublicKey,
 			);
-			(sendTransaction).should.be.ok();
-			(sendTransaction).should.not.be.equal(sendTransactionWithoutSecondSecret);
+			(multiSignatureSendTransaction).should.be.ok();
+			(multiSignatureSendTransaction).should.not.be.equal(multiSignatureSendTransactionWithoutSecondSecret);
 		});
 
 		describe('returned multisignature transaction', () => {
 			it('should have second signature hex string', () => {
-				(sendTransaction).should.have.property('signSignature').and.be.hexString();
+				(multiSignatureSendTransaction).should.have.property('signSignature').and.be.hexString();
 			});
 
 			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(sendTransaction, secondKeys.publicKey);
+				const result = cryptoModule.verifyTransaction(multiSignatureSendTransaction, secondKeys.publicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be second signed correctly if modified', () => {
-				sendTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(sendTransaction, secondKeys.publicKey);
+				multiSignatureSendTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(multiSignatureSendTransaction, secondKeys.publicKey);
 				(result).should.not.be.ok();
 			});
 		});
