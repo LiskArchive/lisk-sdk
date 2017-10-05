@@ -1,12 +1,12 @@
 'use strict';
 
-var node = require('../../../node.js');
-var http = require('../../../common/httpCommunication.js');
-var ws = require('../../../common/wsCommunication.js');
-var sendLiskTrs = require('../../../common/complexTransactions.js').sendLISK;
-var transactionSortFields = require('../../../../sql/transactions.js').sortFields;
-var modulesLoader = require('../../../common/modulesLoader.js');
-var transactionTypes = require('../../../../helpers/transactionTypes.js');
+var node = require('../../../node');
+var http = require('../../../common/httpCommunication');
+var ws = require('../../../common/wsCommunication');
+var sendLiskTrs = require('../../../common/complexTransactions').sendLISK;
+var transactionSortFields = require('../../../../sql/transactions').sortFields;
+var modulesLoader = require('../../../common/modulesLoader');
+var transactionTypes = require('../../../../helpers/transactionTypes');
 var genesisblock = require('../../../genesisBlock.json');
 
 var account = node.randomTxAccount();
