@@ -23,8 +23,6 @@ describe('blocks/utils', function () {
 		});
 
 		it('should set self to this');
-
-		it('should call library.logger.trace');
 		
 		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."');
 
@@ -287,8 +285,6 @@ describe('blocks/utils', function () {
 			});
 
 			describe('log function', function () {
-
-				it('should call library.logger.info');
 
 				it('should call library.logger.info with msg');
 

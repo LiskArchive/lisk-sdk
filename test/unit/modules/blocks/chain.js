@@ -26,6 +26,8 @@ describe('blocks/chain', function () {
 
 		it('should set self to this');
 
+		it('should call library.logger.trace"');
+		
 		it('should call library.logger.trace with "Blocks->Chain: Submodule initialized."');
 
 		it('should return self');
@@ -89,9 +91,9 @@ describe('blocks/chain', function () {
 
 			it('should call logger.error');
 			
-			it('should call logger.error with error stack');
+			it('should call logger.error with err.stack');
 
-			it('should call callback with Blocks#saveBlock error');
+			it('should call callback with "Blocks#saveBlock error"');
 		});
 
 		describe('when library.db.tx callback does not throw', function () {
@@ -260,6 +262,8 @@ describe('blocks/chain', function () {
 
 		describe('applyTransaction', function () {
 
+			it('should call modules.transactions.applyUnconfirmed');
+			
 			it('should call modules.transactions.applyUnconfirmed with transaction');
 
 			it('should call modules.transactions.applyUnconfirmed with sender');
@@ -506,8 +510,6 @@ describe('blocks/chain', function () {
 
 						describe('when modules.accounts.getAccount fails', function () {
 							
-							it('should call library.logger.error');
-							
 							it('should call library.logger.error with error');
 							
 							it('should call library.logger.error "Failed to undo transactions"');
@@ -535,7 +537,6 @@ describe('blocks/chain', function () {
 							it('should call self.deleteBlock with oldLastBlock.id');
 							
 							describe('when self.deleteBlock fails', function () {
-								it('should call library.logger.error');
 								
 								it('should call library.logger.error with error');
 								
@@ -602,16 +603,12 @@ describe('blocks/chain', function () {
 
 		describe('when self.deleteLastBlock fails', function () {
 			
-			it('should call logger.error');
-			
 			it('should call logger.error with "Recovery failed"');
 			
 			it('should return callback with error');
 		});
 		
 		describe('when self.deleteLastBlock succeeds', function () {
-			
-			it('should call logger.info');
 			
 			it('should call logger.info with newLastBlock.id');
 			
@@ -622,8 +619,6 @@ describe('blocks/chain', function () {
 	});
 
 	describe('onBind', function () {
-
-		it('should call logger.trace');
 		
 		it('should call logger.trace with "Blocks->Chain: Shared modules bind."');
 
