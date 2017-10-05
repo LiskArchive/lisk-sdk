@@ -4,8 +4,8 @@ var async = require('async');
 
 var constants = require('../../../../helpers/constants');
 var node = require('../../../node.js');
-var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
+var sendLISK = require('../../../common/apiHelpers.js').sendLISK;
+var sendTransaction = require('../../../common/apiHelpers.js').sendTransaction;
 
 var multisigAccount = node.randomAccount();
 var memberAccount1 = node.randomAccount();
