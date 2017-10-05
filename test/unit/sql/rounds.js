@@ -19,7 +19,6 @@ var DBSandbox     = require('../../common/globalBefore').DBSandbox;
 
 describe('Rounds-related SQL triggers', function () {
 
-	var db;
 	var dbSandbox;
 	var originalBlockRewardsOffset;
 	var library;
@@ -147,14 +146,13 @@ describe('Rounds-related SQL triggers', function () {
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_rounds');
 		dbSandbox.create(function (err, __db) {
-			db = __db;
 			// Force rewards start at 150-th block
 			originalBlockRewardsOffset = node.constants.rewards.offset;
 			node.constants.rewards.offset = 150;
 			node.initApplication(function (err, scope) {
 				library = scope;
 				done(err);
-			}, {db: db, skipMemAccountsPopulate: true});
+			}, {db: __db, noWaitForGenesisBlock: true});
 		});
 	});
 
