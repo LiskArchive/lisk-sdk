@@ -510,9 +510,9 @@ describe('blocks/chain', function () {
 							
 							it('should call library.logger.error with error');
 							
-							it('should call library.logger.error "Failed to undo transactions"')
+							it('should call library.logger.error "Failed to undo transactions"');
 							
-							it('should call process.exit with 0')
+							it('should call process.exit with 0');
 						});
 						
 						describe('when modules.accounts.getAccount succeeds', function () {
