@@ -535,9 +535,10 @@ node.initApplication = function (cb, initScope) {
 				transport(transportModuleMock);
 				cb();
 			}],
-			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
+			logic: ['db', 'bus', 'schema', 'network', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
 				var Block = require('../logic/block.js');
+				var Multisignature = require('../logic/multisignature.js');
 				var Account = require('../logic/account.js');
 				var Peers = require('../logic/peers.js');
 
@@ -573,6 +574,9 @@ node.initApplication = function (cb, initScope) {
 					}],
 					peers: ['logger', function (scope, cb) {
 						new Peers(scope.logger, cb);
+					}],
+					multisignature: ['schema', 'transaction', 'logger', function (scope, cb) {
+						cb(null, new Multisignature(scope.schema, scope.network, scope.transaction, scope.logger));
 					}]
 				}, cb);
 			}],
@@ -604,10 +608,10 @@ node.initApplication = function (cb, initScope) {
 			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			// Wait for mem_accounts populate
-			if (initScope.skipMemAccountsPopulate) {
+			if (initScope.noWaitForGenesisBlock) {
 				return cb(err, scope);
 			}
+			// Wait for genesis block's transactions to be applied into mem_accounts
 			setTimeout(function () {
 				cb(err, scope);
 			}, 5000);

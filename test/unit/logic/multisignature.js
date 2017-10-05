@@ -14,9 +14,6 @@ var constants = require('../../../helpers/constants');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var modulesLoader = require('../../common/modulesLoader');
-
-var Multisignature = require('../../../logic/multisignature.js');
-
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
@@ -53,20 +50,16 @@ describe('multisignature', function () {
 	var multisignature;
 	var sender;
 
-	var db;
 	var dbSandbox;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_multisignature');
 		dbSandbox.create(function (err, __db) {
-			db = __db;
 			node.initApplication(function (err, scope) {
 				transaction = scope.logic.transaction;
-				multisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transaction, modulesLoader.logger);
-				multisignature.bind(scope.modules.accounts);
-				transaction.attachAssetType(transactionTypes.MULTI, multisignature);
+				multisignature = scope.logic.multisignature;
 				done();
-			}, {db: db});
+			}, {db: __db});
 		});
 	});
 
