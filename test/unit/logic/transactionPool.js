@@ -16,13 +16,12 @@ var transactionTypes = require('../../../helpers/transactionTypes');
 describe('txPool', function () {
 
 	var txPool;
+	var jobsQueueRegisterStub;
 
 	before(function (done) {
-		jobsQueue.jobs = {};
 		// Init transaction logic
 		modulesLoader.initLogic(TransactionLogic, modulesLoader.scope, function (err, __trsLogic) {
 			expect(err).to.not.exist;
-
 			txPool = new TransactionPool(
 				modulesLoader.scope.config.broadcasts.broadcastInterval,
 				modulesLoader.scope.config.broadcasts.releaseLimit,
@@ -50,8 +49,12 @@ describe('txPool', function () {
 		});
 	});
 
-	after(function () {
-		jobsQueue.jobs = {};
+	beforeEach(function () {
+		jobsQueueRegisterStub = sinon.stub(jobsQueue, 'register');
+	});
+
+	afterEach(function () {
+		jobsQueueRegisterStub.restore();
 	});
 
 	describe('receiveTransactions', function () {
