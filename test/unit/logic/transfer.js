@@ -96,13 +96,11 @@ describe('transfer', function () {
 	var transferBindings;
 	var accountModule;
 
-	var db;
 	var dbSandbox;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transfer');
 		dbSandbox.create(function (err, __db) {
-			db = __db;
 			node.initApplication(function (err, scope) {
 				accountModule = scope.modules.accounts;
 				transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
@@ -113,7 +111,7 @@ describe('transfer', function () {
 				transaction = scope.logic.transaction;
 				transaction.attachAssetType(transactionTypes.SEND, transfer);
 				done();
-			}, {db: db});
+			}, {db: __db});
 		});
 	});
 

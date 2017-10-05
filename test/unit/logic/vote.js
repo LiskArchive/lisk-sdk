@@ -75,9 +75,11 @@ var validTransaction = {
 
 describe('vote', function () {
 
+	var dbSandbox;
 	var voteBindings;
 	var vote;
 	var accountsModule;
+	var delegatesModule;
 	var transaction;
 	var dummyBlock = {
 		id: '9314232245035524467',
@@ -122,16 +124,9 @@ describe('vote', function () {
 		});
 	}
 
-	var accountsModule;
-	var delegatesModule;
-
-	var db;
-	var dbSandbox;
-
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_vote');
 		dbSandbox.create(function (err, __db) {
-			db = __db;
 			node.initApplication(function (err, scope) {
 				accountsModule = scope.modules.accounts;
 				delegatesModule = scope.modules.delegates;
@@ -147,7 +142,7 @@ describe('vote', function () {
 				transaction = scope.logic.transaction;
 				transaction.attachAssetType(transactionTypes.VOTE, vote);
 				done();
-			}, {db: db});
+			}, {db: __db});
 		});
 	});
 

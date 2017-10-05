@@ -13,17 +13,15 @@ var node = require('../../node');
 describe('blocks', function () {
 
 	var blocks;
-	var db;
 	var dbSandbox;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_modules_blocks');
 		dbSandbox.create(function (err, __db) {
-			db = __db;
 			node.initApplication(function (err, scope) {
 				blocks = scope.modules.blocks;
 				done();
-			}, {db: db});
+			}, {db: __db});
 		});
 	});
 

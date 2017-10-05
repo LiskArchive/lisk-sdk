@@ -54,17 +54,15 @@ var validAccount = {
 describe('account', function () {
 
 	var account;
-	var db;
 	var dbSandbox;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_accounts');
 		dbSandbox.create(function (err, __db) {
-			db = __db;
 			node.initApplication(function (err, scope) {
 				account = scope.logic.account;
 				done();
-			}, {db: db});
+			}, {db: __db});
 		});
 	});
 

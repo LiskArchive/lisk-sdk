@@ -49,27 +49,19 @@ describe('account', function () {
 
 	var accounts;
 	var accountLogic;
-
-	var db;
 	var dbSandbox;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_accounts');
 		dbSandbox.create(function (err, __db) {
-			modulesLoader.db = __db;
-			db = __db;
-			done(err);
+			node.initApplication(function (err, __scope) {
+				// For correctly initializing setting blocks module
+				__scope.modules.blocks.lastBlock.set({height: 10});
+				accounts = __scope.modules.accounts;
+				accountLogic = __scope.logic.account;
+				done(err);
+			}, {db: __db});
 		});
-	});
-
-	before(function (done) {
-		node.initApplication(function (err, __scope) {
-			// wait for mem_accounts to be populated
-			__scope.modules.blocks.lastBlock.set({height: 10});
-			accounts = __scope.modules.accounts;
-			accountLogic = __scope.logic.account;
-			done();
-		}, db);
 	});
 
 	after(function (done) {
