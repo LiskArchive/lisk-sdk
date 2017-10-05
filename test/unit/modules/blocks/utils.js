@@ -24,6 +24,8 @@ describe('blocks/utils', function () {
 
 		it('should set self to this');
 
+		it('should call library.logger.trace');
+		
 		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."');
 
 		it('should return self');
@@ -33,35 +35,39 @@ describe('blocks/utils', function () {
 
 		it('should loop through all given rows');
 
-		it('should call library.logic.block.dbRead with current row');
+		
+		
+		describe('for every row in rows', function () {
+			
+			it('should call library.logic.block.dbRead with current row');
+			
+			describe('when block exists', function () {
 
-		describe('when block exists', function () {
+				describe('and block.id is not already in the blocks array', function () {
 
-			describe('and block.id is not already in the blocks array', function () {
+					describe('and is genesis block', function () {
 
-				describe('and is genesis block', function () {
+						it('should generate a fake signature for it');
+					});
 
-					it('should generate a fake signature for it');
+					it('should push the block.id to order array');
+
+					it('should add the block to block array');
 				});
 
-				it('should push the block.id to order array');
+				it('should call library.logic.transaction.dbRead with current row');
 
-				it('should add the block to block array');
-			});
+				describe('and there are no transactions in the block', function () {
 
-			it('should call library.logic.transaction.dbRead with current row');
+					it('should set transactions to an empty object');
+				});
 
-			describe('and there are no transactions in the block', function () {
+				describe('and a transaction exists', function () {
 
-				it('should set transactions to an empty object');
-			});
-
-			describe('and a transaction exists', function () {
-
-				it('should be added to the block if it is not added yet');
+					it('should be added to the block if it is not added yet');
+				});
 			});
 		});
-
 		it('should reorganize the block array');
 
 		it('should return the block array');
@@ -108,11 +114,13 @@ describe('blocks/utils', function () {
 				});
 			});
 
+			it('should call modules.blocks.lastBlock.set');
+			
 			it('should call modules.blocks.lastBlock.set with block');
 
 			it('should return callback with error = null');
 
-			it('should return callback with result containing the block');
+			it('should return callback with result = block');
 		});
 	});
 
