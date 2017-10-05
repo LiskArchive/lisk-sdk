@@ -30,7 +30,6 @@ describe('blocks/process', function () {
 			// Force rewards start at 150-th block
 			originalBlockRewardsOffset = node.constants.rewards.offset;
 			node.constants.rewards.offset = 150;
-			// wait for mem_accounts to be populated
 			node.initApplication(function (err, __scope) {
 				scope = __scope;
 				accounts = __scope.modules.accounts;

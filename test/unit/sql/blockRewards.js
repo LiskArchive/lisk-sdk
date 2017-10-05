@@ -81,7 +81,6 @@ describe('BlockRewardsSQL', function () {
 			originalBlockRewardsOffset = constants.rewards.offset;
 			constants.rewards.distance = 3000000;
 			constants.rewards.offset = 1451520;
-			// wait for mem_accounts to be populated
 			node.initApplication(done, {db: db});
 		});
 	});
