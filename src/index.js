@@ -29,8 +29,8 @@ import registerDelegate from './transactions/2_registerDelegate';
 import castVotes from './transactions/3_castVotes';
 import createDapp from './transactions/5_createDapp';
 import registerMultisignature from './transactions/4_registerMultisignatureAccount';
-import dappInTransfer from './transactions/6_transferInDapp';
-import dappOutTransfer from './transactions/7_transferOutDapp';
+import transferInDapp from './transactions/6_transferInDapp';
+import transferOutDapp from './transactions/7_transferOutDapp';
 import multiSignatureSend from './transactions/multisignatureSend';
 
 global.naclFactory = naclFactory;
@@ -47,8 +47,8 @@ const transaction = Object.assign({},
 	castVotes,
 	createDapp,
 	registerMultisignature,
-	dappInTransfer,
-	dappOutTransfer,
+	transferInDapp,
+	transferOutDapp,
 	multiSignatureSend,
 );
 
