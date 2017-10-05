@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import list from '../../src/commands/list';
-import query from '../../src/utils/query';
+import list from '../../../src/commands/list';
+import query from '../../../src/utils/query';
 import { setUpVorpalWithCommand } from './utils';
 
-const tablify = require('../../src/utils/tablify');
+const tablify = require('../../../src/utils/tablify');
 
 const testCommandCallsQueryMethodWithValues = (
 	vorpal, command, queryMethodName, values,

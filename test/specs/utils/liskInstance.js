@@ -13,15 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
-import liskInstance from '../../src/utils/liskInstance';
+import * as given from '../../steps/1_given';
+import * as then from '../../steps/3_then';
 
-describe('liskInstance', () => {
-	it('should be ok', () => {
-		(liskInstance).should.be.ok();
-	});
+describe('liskInstance util', () => {
+	describe('Given a lisk instance', () => {
+		beforeEach(given.aLiskInstance);
 
-	it('should be an instance of lisk api', () => {
-		(liskInstance).should.be.instanceOf(lisk.api);
+		it('Then the lisk instance should be a lisk-js api instance', then.theLiskInstanceShouldBeALiskJSApiInstance);
 	});
 });

@@ -14,13 +14,13 @@
  *
  */
 import os from 'os';
-import set from '../../src/commands/set';
-import env from '../../src/commands/env';
-import configObj from '../../src/utils/env';
+import set from '../../../src/commands/set';
+import env from '../../../src/commands/env';
+import configObj from '../../../src/utils/env';
 import {
 	readJsonSync,
 	writeJsonSync,
-} from '../../src/utils/fs';
+} from '../../../src/utils/fs';
 import {
 	getCommands,
 	getRequiredArgs,
