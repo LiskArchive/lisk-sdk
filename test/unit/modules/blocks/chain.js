@@ -52,7 +52,7 @@ describe('blocks/chain', function () {
 
 		describe('when db query succeeds', function () {
 
-			describe('and blockId is undefined', function () {
+			describe('when genesis block does not exist', function () {
 
 				it('should call self.saveBlock');
 
@@ -62,30 +62,21 @@ describe('blocks/chain', function () {
 					
 					it('should call callback with error');
 				});
-				
-				describe('when self.saveBlock succeeds', function () {
-					
-					it('should call callback with error = undefined');
-				});
 			});
 
-			describe('and blockId is defined', function () {
+			it('should call callback with error = undefined');
 
-				it('should call callback with error = undefined');
-				
-				it('should call callback with result = undefined');
-			});
+			it('should call callback with result = undefined');
 		});
 	});
 
 	describe('saveBlock', function () {
+		
+		it('should call library.db.tx');
 
-		describe('call library.db.tx', function () {
+		it('should call library.logic.block.dbSave');
 
-			it('should call library.logic.block.dbSave');
-			
-			it('should call library.logic.block.dbSave with block');
-		});
+		it('should call library.logic.block.dbSave with block');
 
 		describe('when library.db.tx callback throws', function () {
 
@@ -318,7 +309,7 @@ describe('blocks/chain', function () {
 		it('should call modules.blocks.isActive');
 		
 		it('should call modules.blocks.isActive with true');
-		//undoUnconfirmedList
+
 		it('should call modules.transactions.undoUnconfirmedList');
 
 		describe('when modules.transactions.undoUnconfirmedList fails', function () {
@@ -330,7 +321,6 @@ describe('blocks/chain', function () {
 
 		describe('when modules.transactions.undoUnconfirmedList succeeds', function () {
 
-		//applyUnconfirmed
 			describe('for every block.transactions', function () {
 
 				it('should call modules.accounts.setAccountAndGet');
@@ -371,8 +361,7 @@ describe('blocks/chain', function () {
 						});
 					});
 				});
-		
-				//applyConfirmed
+
 				describe('for every block.transactions', function () {
 
 					it('should call modules.accounts.getAccount');
@@ -408,8 +397,6 @@ describe('blocks/chain', function () {
 							it ('should call modules.transactions.removeUnconfirmedTransaction');
 							
 							it ('should call modules.transactions.removeUnconfirmedTransaction with transaction.id');
-									
-							//SaveBlock
 
 							it('should call modules.blocks.lastBlock.set');
 							
@@ -434,7 +421,6 @@ describe('blocks/chain', function () {
 
 									it('should call library.logger.debug');
 								});
-								//applyUnconfirmedIds
 
 								it('should call modules.transactions.applyUnconfirmedIds');
 								
@@ -454,7 +440,6 @@ describe('blocks/chain', function () {
 								
 								describe('when modules.transactions.applyUnconfirmedIds succeeds', function () {
 
-								//after executing all functions of async.series
 									it('should return series callback with error = undefined');
 									
 									it('should return series callback with result = undefined');
@@ -531,7 +516,6 @@ describe('blocks/chain', function () {
 							
 							it('should call modules.transactions.undoUnconfirmed with transaction');
 							
-							//after loop through oldLastBlock.transactions
 							it('should call self.deleteBlock');
 							
 							it('should call self.deleteBlock with oldLastBlock.id');
