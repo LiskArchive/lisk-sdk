@@ -23,7 +23,7 @@ describe('blocks/utils', function () {
 		});
 
 		it('should set self to this');
-		
+
 		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."');
 
 		it('should return self');
@@ -33,42 +33,33 @@ describe('blocks/utils', function () {
 
 		it('should loop through all given rows');
 
-		
-		
-		describe('for every row in rows', function () {
-			
-			it('should call library.logic.block.dbRead with current row');
-			
-			describe('when block exists', function () {
+		it('should call library.logic.block.dbRead with every row');
 
-				describe('and block.id is not already in the blocks array', function () {
+		describe('when block with id does not exist', function () {
 
-					describe('and is genesis block', function () {
+			it('should not return the block');
+		});
 
-						it('should generate a fake signature for it');
-					});
+		describe('when block with id exists', function () {
 
-					it('should push the block.id to order array');
+			describe('and block indices are duplicated', function () {
 
-					it('should add the block to block array');
-				});
+				it('should not return duplicated blocks');
+			});
 
-				it('should call library.logic.transaction.dbRead with current row');
+			describe('and block indices are unique', function () {
 
 				describe('and there are no transactions in the block', function () {
 
-					it('should set transactions to an empty object');
+					it('should return the block containing transactions = {}');
 				});
 
-				describe('and a transaction exists', function () {
+				describe('and there are transactions in the block', function () {
 
-					it('should be added to the block if it is not added yet');
+					it('should return the block containing transactions');
 				});
 			});
 		});
-		it('should reorganize the block array');
-
-		it('should return the block array');
 	});
 
 	describe('loadBlocksPart', function () {
@@ -76,9 +67,18 @@ describe('blocks/utils', function () {
 		describe('when there is no error when loading block array', function () {
 
 			it('should be normalized');
+
+			it('should call callback with error = undefined');
+
+			it('should call callback with blocks as result');
 		});
 
-		it('should return callback with the error object and blocks as params');
+		describe('when error is defined', function () {
+
+			it('should call callback with the error object');
+
+			it('should call callback with blocks as result');
+		});
 	});
 
 	describe('loadLastBlock', function () {
@@ -112,13 +112,11 @@ describe('blocks/utils', function () {
 				});
 			});
 
-			it('should call modules.blocks.lastBlock.set');
-			
 			it('should call modules.blocks.lastBlock.set with block');
 
-			it('should return callback with error = null');
+			it('should call callback with error = null');
 
-			it('should return callback with result = block');
+			it('should call callback with result containing the block');
 		});
 	});
 
@@ -150,7 +148,7 @@ describe('blocks/utils', function () {
 
 			it('should add the last block to the beginning of the block array, if it does not contain it already');
 
-			it('should return callback with error = null');
+			it('should call callback with error = null');
 
 			describe('result object', function () {
 
@@ -159,7 +157,7 @@ describe('blocks/utils', function () {
 				it('should assign ids to a string of the block ids');
 			});
 
-			it('should return callback with result object');
+			it('should call callback with result object');
 		});
 	});
 
@@ -177,7 +175,7 @@ describe('blocks/utils', function () {
 
 		describe('when filter.id and filter.lastId are defined',function () {
 
-			it('should return callback with Invalid Filter error');
+			it('should call callback with Invalid Filter error');
 		});
 
 		describe('when filter.lastId is undefined and filter.id is defined', function () {
@@ -237,9 +235,9 @@ describe('blocks/utils', function () {
 
 			describe('when db query succeeds', function () {
 
-				it('should return callback with error = null');
+				it('should call callback with error = null');
 
-				it('should return callback with result containing the rows');
+				it('should call callback with result containing the rows');
 			});
 		});
 	});
@@ -270,17 +268,17 @@ describe('blocks/utils', function () {
 
 				describe('when this.applied = 1', function () {
 
-					it('should call log');
+					it('should call this.log');
 				});
 
 				describe('when this.applied = this.target', function () {
 
-					it('should call log');
+					it('should call this.log');
 				});
 
 				describe('when this.applied %this.step = 1', function () {
 
-					it('should call log');
+					it('should call this.log');
 				});
 			});
 
