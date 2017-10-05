@@ -10,7 +10,7 @@ var modulesLoader = require('../../common/initModule').modulesLoader;
 
 describe('blocks', function () {
 	
-	describe('Blocks', function () {
+	describe('Blocks constructor', function () {
 		
 		describe('library', function () {
 			
@@ -44,11 +44,21 @@ describe('blocks', function () {
 		
 		it('should call this.submodules.chain.saveGenesisBlock');
 		
-		describe('callback for this.submodules.chain.saveGenesisBlock', function () {
+		it('should call callback with result = self');
+		
+		describe('when this.submodules.chain.saveGenesisBlock fails', function () {
 			
 			it('should call callback with error');
+		});
+		
+		describe('when this.submodules.chain.saveGenesisBlock succeeds', function () {
 			
-			it('should call callback with self');
+			it('should call callback with error = undefined');
+		});
+		
+		describe('callback for this.submodules.chain.saveGenesisBlock', function () {
+			
+			
 		});
 	});
 	
@@ -84,27 +94,30 @@ describe('blocks', function () {
 	
 	describe('onBind', function () {
 		
-		it('should set __private.loaded to true');
+		it('should set __private.loaded = true');
 	});
 	
 	describe('cleanup', function () {
 		
-		it('should set __private.loaded to false');
+		it('should set __private.loaded = false');
 		
-		it('should set __private.cleanup to true');
+		it('should set __private.cleanup = true');
 		
-		describe('when __private.isActive is false', function () {
+		describe('when __private.isActive = false', function () {
 			
 			it('should call callback');
 		});
 		
 		describe('when __private.isActive is true', function () {
 			
-			it('should recheck if __private.isActive is false every 10 seconds');
+			describe('after 10 seconds', function () {
+				
+				it('should call library.logger.info with "Waiting for block processing to finish..."');
+			});
 			
-			describe('when __private.isActive is false', function () {
-			
-				it('should call callback');
+			describe('after 100 seconds', function () {
+				
+				it('should call library.logger.info with "Waiting for block processing to finish..." 10 times');
 			});
 		});
 	});
