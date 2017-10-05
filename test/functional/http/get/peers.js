@@ -3,12 +3,12 @@
 var _ = require('lodash');
 var scClient = require('socketcluster-client');
 
-var node = require('../node.js');
-var http = require('../common/httpCommunication.js');
-var Peer = require('../../logic/peer.js');
-var peersSortFields = require('../../sql/peers').sortFields;
-var wsServer = require('../common/wsServer');
-var testConfig = require('../config.json');
+var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
+var Peer = require('../../../../logic/peer.js');
+var peersSortFields = require('../../../../sql/peers').sortFields;
+var wsServer = require('../../../common/wsServer');
+var testConfig = require('../../../config.json');
 
 var validHeaders;
 var wsServerPort = 9998;

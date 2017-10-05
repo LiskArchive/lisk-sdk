@@ -68,6 +68,11 @@ module.exports = function (grunt) {
 			},
 
 			coverageSingle: {
+				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST -- --grep @slow --invert',
+				maxBuffer: maxBufferSize
+			},
+
+			coverageSingleExtensive: {
 				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST',
 				maxBuffer: maxBufferSize
 			},
@@ -77,8 +82,18 @@ module.exports = function (grunt) {
 				maxBuffer: maxBufferSize
 			},
 
-			testFunctional: {
-				command: './node_modules/.bin/mocha test/api/index.js',
+			coverageUnitSlow: {
+				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
+				maxBuffer: maxBufferSize
+			},
+
+			testFunctionalWs: {
+				command: './node_modules/.bin/_mocha test/functional/ws/index.js',
+				maxBuffer: maxBufferSize
+			},
+
+			testFunctionalHttp: {
+				command: './node_modules/.bin/_mocha test/functional/http/index.js',
 				maxBuffer: maxBufferSize
 			},
 
@@ -143,11 +158,14 @@ module.exports = function (grunt) {
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('jenkins', ['exec:coverageSingle']);
+	grunt.registerTask('jenkins-extensive', ['exec:coverageSingleExtensive']);
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
-	grunt.registerTask('test-functional', ['eslint', 'exec:testFunctional']);
+	grunt.registerTask('test-unit-slow', ['eslint', 'exec:coverageUnitSlow']);
+	grunt.registerTask('test-functional-ws', ['eslint', 'exec:testFunctionalWs']);
+	grunt.registerTask('test-functional-http', ['eslint', 'exec:testFunctionalHttp']);
 	grunt.registerTask('test-integration', ['eslint', 'exec:testIntegration']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
