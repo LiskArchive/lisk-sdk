@@ -145,7 +145,9 @@ describe('#multisignatureSend', () => {
 				requesterPublicKey,
 			);
 			(multiSignatureSendTransaction).should.be.ok();
-			(multiSignatureSendTransaction).should.not.be.equal(multiSignatureSendTransactionWithoutSecondSecret);
+			(multiSignatureSendTransaction).should.not.be.equal(
+				multiSignatureSendTransactionWithoutSecondSecret,
+			);
 		});
 
 		describe('returned multisignature transaction', () => {
@@ -154,13 +156,19 @@ describe('#multisignatureSend', () => {
 			});
 
 			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(multiSignatureSendTransaction, secondKeys.publicKey);
+				const result = cryptoModule.verifyTransaction(
+					multiSignatureSendTransaction,
+					secondKeys.publicKey,
+				);
 				(result).should.be.ok();
 			});
 
 			it('should not be second signed correctly if modified', () => {
 				multiSignatureSendTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(multiSignatureSendTransaction, secondKeys.publicKey);
+				const result = cryptoModule.verifyTransaction(
+					multiSignatureSendTransaction,
+					secondKeys.publicKey,
+				);
 				(result).should.not.be.ok();
 			});
 		});
