@@ -30,17 +30,17 @@ describe('blocks', function () {
 			it('should assign chain');
 		});
 		
-		it('should set this.shared to api submodule');
+		it('should set this.shared = this.submodules.api');
 		
-		it('should set this.verify to verify submodule');
+		it('should set this.verify = this.submodules.verify');
 		
-		it('should set this.process to process submodule');
+		it('should set this.process = this.submodules.process');
 		
-		it('should set this.utils to utils submodule');
+		it('should set this.utils = this.submodules.utils');
 		
-		it('should set this.chain to chain submodule');
+		it('should set this.chain = this.submodules.chain');
 		
-		it('should set self to this');
+		it('should set self = this');
 		
 		it('should call this.submodules.chain.saveGenesisBlock');
 		
@@ -108,7 +108,7 @@ describe('blocks', function () {
 			it('should call callback');
 		});
 		
-		describe('when __private.isActive is true', function () {
+		describe('when __private.isActive = true', function () {
 			
 			describe('after 10 seconds', function () {
 				
