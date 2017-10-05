@@ -6,6 +6,7 @@ var sinon = require('sinon');
 
 var node = require('../../node');
 
+var jobsQueue = require('../../../helpers/jobsQueue');
 var TransactionPool = require('../../../logic/transactionPool');
 var TransactionLogic = require('../../../logic/transaction');
 var TransferLogic = require('../../../logic/transfer');
@@ -17,6 +18,7 @@ describe('txPool', function () {
 	var txPool;
 
 	before(function (done) {
+		jobsQueue.jobs = {};
 		// Init transaction logic
 		modulesLoader.initLogic(TransactionLogic, modulesLoader.scope, function (err, __trsLogic) {
 			expect(err).to.not.exist;
@@ -46,6 +48,10 @@ describe('txPool', function () {
 				done();
 			});
 		});
+	});
+
+	after(function () {
+		jobsQueue.jobs = {};
 	});
 
 	describe('receiveTransactions', function () {
