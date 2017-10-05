@@ -19,7 +19,7 @@ require('./logic/peer');
 require('./logic/peers');
 require('./logic/multisignature');
 require('./logic/transaction');
-require('./logic/transactions/pool');
+require('./logic/transactionPool');
 require('./logic/transfer');
 require('./logic/vote');
 
