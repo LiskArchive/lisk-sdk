@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createMultisignature from '../../src/transactions/multisignature';
+import registerMultisignatureAccount from '../../src/transactions/4_registerMultisignatureAccount';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
@@ -37,7 +37,7 @@ describe('multisignature module', () => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
-	describe('#createMultisignature', () => {
+	describe('#registerMultisignatureAccount', () => {
 		const keysgroup = ['+123456789', '-987654321'];
 		const lifetime = 5;
 		const min = 2;
@@ -46,7 +46,13 @@ describe('multisignature module', () => {
 
 		describe('without second secret', () => {
 			beforeEach(() => {
-				multisignatureTransaction = createMultisignature(secret, null, keysgroup, lifetime, min);
+				multisignatureTransaction = registerMultisignatureAccount(
+					secret,
+					null,
+					keysgroup,
+					lifetime,
+					min,
+				);
 			});
 
 			it('should create a multisignature transaction', () => {
@@ -59,7 +65,7 @@ describe('multisignature module', () => {
 
 			it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 				const offset = -10;
-				createMultisignature(secret, null, keysgroup, lifetime, min, offset);
+				registerMultisignatureAccount(secret, null, keysgroup, lifetime, min, offset);
 
 				(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 			});
@@ -142,13 +148,13 @@ describe('multisignature module', () => {
 
 		describe('with second secret', () => {
 			beforeEach(() => {
-				multisignatureTransaction = createMultisignature(
+				multisignatureTransaction = registerMultisignatureAccount(
 					secret, secondSecret, keysgroup, lifetime, min,
 				);
 			});
 
 			it('should create a multisignature transaction with a second secret', () => {
-				const multisignatureTransactionWithoutSecondSecret = createMultisignature(
+				const multisignatureTransactionWithoutSecondSecret = registerMultisignatureAccount(
 					secret, secondSecret, keysgroup, lifetime, min,
 				);
 				(multisignatureTransaction).should.be.ok();

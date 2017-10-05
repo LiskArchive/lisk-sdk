@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createOutTransfer from '../../src/transactions/outTransfer';
+import dappOutTransfer from '../../src/transactions/7_dappOutTransfer';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createOutTransfer', () => {
+describe('#dappOutTransfer', () => {
 	const transactionId = '9876567';
 	const recipientId = '989234L';
 	const dappId = '1234213';
@@ -40,7 +40,7 @@ describe('#createOutTransfer', () => {
 
 	describe('with one secret', () => {
 		beforeEach(() => {
-			outTransferTransaction = createOutTransfer(
+			outTransferTransaction = dappOutTransfer(
 				dappId, transactionId, recipientId, amount, secret,
 			);
 		});
@@ -54,7 +54,7 @@ describe('#createOutTransfer', () => {
 		});
 
 		it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
-			createOutTransfer(dappId, transactionId, recipientId, amount, secret, null, offset);
+			dappOutTransfer(dappId, transactionId, recipientId, amount, secret, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -130,13 +130,13 @@ describe('#createOutTransfer', () => {
 
 		describe('with second secret', () => {
 			beforeEach(() => {
-				outTransferTransaction = createOutTransfer(
+				outTransferTransaction = dappOutTransfer(
 					dappId, transactionId, recipientId, amount, secret, secondSecret,
 				);
 			});
 
 			it('should create an out transfer dapp transaction with a second secret', () => {
-				const outTransferTransactionWithoutSecondSecret = createOutTransfer(
+				const outTransferTransactionWithoutSecondSecret = dappOutTransfer(
 					dappId, transactionId, recipientId, amount, secret,
 				);
 				(outTransferTransaction).should.be.ok();

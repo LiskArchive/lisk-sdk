@@ -13,47 +13,45 @@
  *
  */
 /**
- * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
- * an individual dapp account).
- * @class transfer
+ * Transaction module provides functions for creating balance transfer transactions.
+ * @class transaction
  */
 import cryptoModule from '../crypto';
-import { OUT_TRANSFER_FEE } from '../constants';
+import { SEND_FEE, DATA_FEE } from '../constants';
 import slots from '../time/slots';
-import { prepareTransaction } from './utils';
+import prepareTransaction from './utils/prepareTransaction';
 
 /**
- * @method createOutTransfer
- * @param dappId
- * @param transactionId
+ * @method createTransaction
  * @param recipientId
  * @param amount
  * @param secret
  * @param secondSecret
+ * @param data
  * @param timeOffset
  *
  * @return {Object}
  */
 
-export default function createOutTransfer(
-	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
+export default function send(
+	recipientId, amount, secret, secondSecret, data, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
-
+	const fee = data ? (SEND_FEE + DATA_FEE) : SEND_FEE;
 	const transaction = {
-		type: 7,
+		type: 0,
 		amount,
-		fee: OUT_TRANSFER_FEE,
+		fee,
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {
-			outTransfer: {
-				dappId,
-				transactionId,
-			},
-		},
+		asset: {},
 	};
+
+	if (data && data.length > 0) {
+		if (data !== data.toString('utf8')) throw new Error('Invalid encoding in transaction data. Data must be utf-8 encoded.');
+		transaction.asset.data = data;
+	}
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }

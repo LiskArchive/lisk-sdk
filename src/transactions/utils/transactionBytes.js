@@ -13,7 +13,8 @@
  *
  */
 import bignum from 'browserify-bignum';
-import { isValidValue } from './utils';
+
+export const isValidValue = value => ![undefined, false, NaN].includes(value);
 
 export const BYTESIZES = {
 	TYPE: 1,

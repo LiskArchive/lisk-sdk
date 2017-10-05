@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createTransaction from '../../src/transactions/transaction';
+import send from '../../src/transactions/0_send';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createTransaction', () => {
+describe('#send', () => {
 	const fixedPoint = 10 ** 8;
 	const recipientAddress = '58191285901858109L';
 	const testData = 'data';
@@ -42,7 +42,7 @@ describe('#createTransaction', () => {
 	describe('without second secret', () => {
 		describe('without data', () => {
 			beforeEach(() => {
-				transactionTransaction = createTransaction(
+				transactionTransaction = send(
 					recipientAddress, testAmount, secret,
 				);
 			});
@@ -57,7 +57,7 @@ describe('#createTransaction', () => {
 
 			it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 				const offset = -10;
-				createTransaction(
+				send(
 					recipientAddress, testAmount, secret, null, null, offset,
 				);
 
@@ -122,13 +122,13 @@ describe('#createTransaction', () => {
 
 		describe('with data', () => {
 			beforeEach(() => {
-				transactionTransaction = createTransaction(
+				transactionTransaction = send(
 					recipientAddress, testAmount, secret, null, testData,
 				);
 			});
 
 			it('should handle invalid (non-utf8 string) data', () => {
-				(createTransaction.bind(null, recipientAddress, testAmount, secret, null, Buffer.from('hello')))
+				(send.bind(null, recipientAddress, testAmount, secret, null, Buffer.from('hello')))
 					.should.throw('Invalid encoding in transaction data. Data must be utf-8 encoded.');
 			});
 
@@ -148,13 +148,13 @@ describe('#createTransaction', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			transactionTransaction = createTransaction(
+			transactionTransaction = send(
 				recipientAddress, testAmount, secret, secondSecret,
 			);
 		});
 
 		it('should create a transaction transaction', () => {
-			const transactionTransactionWithoutSecondSecret = createTransaction(
+			const transactionTransactionWithoutSecondSecret = send(
 				recipientAddress, testAmount, secret,
 			);
 			(transactionTransaction).should.be.ok();
@@ -162,7 +162,7 @@ describe('#createTransaction', () => {
 		});
 
 		it('should create transaction with second signature and data', () => {
-			transactionTransaction = createTransaction(
+			transactionTransaction = send(
 				recipientAddress,
 				testAmount,
 				secret,
@@ -184,7 +184,7 @@ describe('#createTransaction', () => {
 			});
 
 			it('should be second signed correctly if second signature is an empty string', () => {
-				transactionTransaction = createTransaction(
+				transactionTransaction = send(
 					recipientAddress,
 					testAmount,
 					secret,

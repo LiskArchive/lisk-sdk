@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createSignature from '../../src/transactions/signature';
+import registerSecondSignature from '../../src/transactions/1_registerSecondSignature';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createSignature', () => {
+describe('#registerSecondSignature', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -32,7 +32,7 @@ describe('#createSignature', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-		signatureTransaction = createSignature(secret, secondSecret);
+		signatureTransaction = registerSecondSignature(secret, secondSecret);
 	});
 
 	it('should create a signature transaction', () => {
@@ -45,7 +45,7 @@ describe('#createSignature', () => {
 
 	it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 		const offset = -10;
-		createSignature(secret, secondSecret, offset);
+		registerSecondSignature(secret, secondSecret, offset);
 
 		(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 	});
@@ -127,7 +127,7 @@ describe('#createSignature', () => {
 			});
 
 			it('should have the correct publicKey if the provided second secret is an empty string', () => {
-				signatureTransaction = createSignature('secret', '');
+				signatureTransaction = registerSecondSignature('secret', '');
 				(signatureTransaction.asset.signature.publicKey).should.be.equal(emptyStringPublicKey);
 			});
 		});

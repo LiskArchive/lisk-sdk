@@ -13,49 +13,42 @@
  *
  */
 /**
- * Signature module provides functions for creating second signature registration transactions.
- * @class signature
+ * Multisignature module provides functions for creating multisignature group registration
+ * transactions, and signing transactions requiring multisignatures.
+ * @class multisignature
  */
 import cryptoModule from '../crypto';
-import { SIGNATURE_FEE } from '../constants';
+import { SEND_FEE } from '../constants';
 import slots from '../time/slots';
-import { prepareTransaction } from './utils';
+import prepareTransaction from './utils/prepareTransaction';
 
 /**
- * @method newSignature
- * @param secondSecret
+ * @method createTransaction
+ * @param recipientId string
+ * @param amount number
+ * @param secret secret
+ * @param secondSecret secret
+ * @param requesterPublicKey string
+ * @param timeOffset number
  *
- * @return {Object}
+ * @return {string}
  */
 
-function newSignature(secondSecret) {
-	const { publicKey } = cryptoModule.getKeys(secondSecret);
-	return { publicKey };
-}
-
-/**
- * @method createSignature
- * @param secret
- * @param secondSecret
- * @param timeOffset
- *
- * @return {Object}
- */
-
-export default function createSignature(secret, secondSecret, timeOffset) {
+export default function multisignatureSend(
+	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
+) {
 	const keys = cryptoModule.getKeys(secret);
 
-	const signature = newSignature(secondSecret);
 	const transaction = {
-		type: 1,
-		amount: 0,
-		fee: SIGNATURE_FEE,
-		recipientId: null,
+		type: 0,
+		amount,
+		fee: SEND_FEE,
+		recipientId,
 		senderPublicKey: keys.publicKey,
+		requesterPublicKey: requesterPublicKey || keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {
-			signature,
-		},
+		asset: {},
+		signatures: [],
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);

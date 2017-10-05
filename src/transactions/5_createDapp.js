@@ -19,7 +19,7 @@
 import cryptoModule from '../crypto';
 import { DAPP_FEE } from '../constants';
 import slots from '../time/slots';
-import { prepareTransaction } from './utils';
+import prepareTransaction from './utils/prepareTransaction';
 
 const isInt = n => parseInt(n, 10) === n;
 

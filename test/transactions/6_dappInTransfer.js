@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createInTransfer from '../../src/transactions/inTransfer';
+import dappInTransfer from '../../src/transactions/6_dappInTransfer';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createInTransfer', () => {
+describe('#dappInTransfer', () => {
 	const dappId = '1234213';
 	const secret = 'secret';
 	const secondSecret = 'secondSecret';
@@ -30,7 +30,7 @@ describe('#createInTransfer', () => {
 	const offset = -10;
 
 	let getTimeWithOffsetStub;
-	let inTransferTransaction;
+	let dappInTransferTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
@@ -38,11 +38,11 @@ describe('#createInTransfer', () => {
 
 	describe('with one secret', () => {
 		beforeEach(() => {
-			inTransferTransaction = createInTransfer(dappId, amount, secret);
+			dappInTransferTransaction = dappInTransfer(dappId, amount, secret);
 		});
 
 		it('should create an in transfer dapp transaction', () => {
-			(inTransferTransaction).should.be.ok();
+			(dappInTransferTransaction).should.be.ok();
 		});
 
 		it('should use time slots to get the time for the timestamp', () => {
@@ -50,66 +50,66 @@ describe('#createInTransfer', () => {
 		});
 
 		it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
-			createInTransfer(dappId, amount, secret, null, offset);
+			dappInTransfer(dappId, amount, secret, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
 		describe('returned in transfer transaction object', () => {
 			it('should be an object', () => {
-				(inTransferTransaction).should.be.type('object');
+				(dappInTransferTransaction).should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				(inTransferTransaction).should.have.property('id').and.be.type('string');
+				(dappInTransferTransaction).should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type number equal to 6', () => {
-				(inTransferTransaction).should.have.property('type').and.be.type('number').and.equal(6);
+				(dappInTransferTransaction).should.have.property('type').and.be.type('number').and.equal(6);
 			});
 
 			it('should have amount number equal to 10 LSK', () => {
-				(inTransferTransaction).should.have.property('amount').and.be.type('number').and.equal(amount);
+				(dappInTransferTransaction).should.have.property('amount').and.be.type('number').and.equal(amount);
 			});
 
 			it('should have fee number equal to 0.1 LSK', () => {
-				(inTransferTransaction).should.have.property('fee').and.be.type('number').and.equal(sendFee);
+				(dappInTransferTransaction).should.have.property('fee').and.be.type('number').and.equal(sendFee);
 			});
 
 			it('should have recipientId equal to null', () => {
-				(inTransferTransaction).should.have.property('recipientId').be.null();
+				(dappInTransferTransaction).should.have.property('recipientId').be.null();
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				(inTransferTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+				(dappInTransferTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
-				(inTransferTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				(dappInTransferTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				(inTransferTransaction).should.have.property('signature').and.be.hexString();
+				(dappInTransferTransaction).should.have.property('signature').and.be.hexString();
 			});
 
 			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(inTransferTransaction);
+				const result = cryptoModule.verifyTransaction(dappInTransferTransaction);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly if modified', () => {
-				inTransferTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(inTransferTransaction);
+				dappInTransferTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(dappInTransferTransaction);
 				(result).should.be.not.ok();
 			});
 
 			it('should have an asset object', () => {
-				(inTransferTransaction).should.have.property('asset').and.be.type('object');
+				(dappInTransferTransaction).should.have.property('asset').and.be.type('object');
 			});
 
 			describe('asset', () => {
 				it('should have the in transfer dapp id', () => {
-					(inTransferTransaction.asset)
+					(dappInTransferTransaction.asset)
 						.should.have.property('inTransfer')
 						.with.property('dappId')
 						.and.be.equal(dappId);
@@ -120,28 +120,28 @@ describe('#createInTransfer', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			inTransferTransaction = createInTransfer(dappId, amount, secret, secondSecret);
+			dappInTransferTransaction = dappInTransfer(dappId, amount, secret, secondSecret);
 		});
 
 		it('should create an in transfer dapp transaction with a second secret', () => {
-			const inTransferTransactionWithoutSecondSecret = createInTransfer(dappId, amount, secret);
-			(inTransferTransaction).should.be.ok();
-			(inTransferTransaction).should.not.be.equal(inTransferTransactionWithoutSecondSecret);
+			const dappInTransferTransactionWithoutSecondSecret = dappInTransfer(dappId, amount, secret);
+			(dappInTransferTransaction).should.be.ok();
+			(dappInTransferTransaction).should.not.be.equal(dappInTransferTransactionWithoutSecondSecret);
 		});
 
 		describe('returned in transfer transaction', () => {
 			it('should have second signature hex string', () => {
-				(inTransferTransaction).should.have.property('signSignature').and.be.hexString();
+				(dappInTransferTransaction).should.have.property('signSignature').and.be.hexString();
 			});
 
 			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
+				const result = cryptoModule.verifyTransaction(dappInTransferTransaction, secondPublicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be second signed correctly if modified', () => {
-				inTransferTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(inTransferTransaction, secondPublicKey);
+				dappInTransferTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(dappInTransferTransaction, secondPublicKey);
 				(result).should.not.be.ok();
 			});
 		});

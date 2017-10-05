@@ -23,7 +23,8 @@ import getTransactionBytes, {
 	getAssetDataForDappOutTransaction,
 	checkTransaction,
 	checkRequiredFields,
-} from '../../src/transactions/transactionBytes';
+	isValidValue,
+} from '../../../src/transactions/utils/transactionBytes';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';
@@ -573,6 +574,23 @@ describe('getTransactionBytes functions', () => {
 		it('should return true on asset data exactly at max data length', () => {
 			defaultTransaction.asset.data = new Array(maxDataLength).fill('1').join('');
 			(checkTransaction(defaultTransaction)).should.be.true();
+		});
+	});
+
+	describe('#isInvalidValue', () => {
+		it('should return false on invalid values', () => {
+			const allInvalidValues = [NaN, false, undefined];
+			allInvalidValues.forEach((value) => {
+				const invalid = isValidValue(value);
+				(invalid).should.be.false();
+			});
+		});
+		it('should return true on valid values', () => {
+			const exampleValidValues = ['123', 123, { 1: 2, 3: 4 }, [1, 2, 3]];
+			exampleValidValues.forEach((value) => {
+				const valid = isValidValue(value);
+				(valid).should.be.true();
+			});
 		});
 	});
 });

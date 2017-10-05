@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createDelegate from '../../src/transactions/delegate';
+import registerDelegate from '../../src/transactions/2_registerDelegate';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createDelegate', () => {
+describe('#registerDelegate', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -36,7 +36,7 @@ describe('#createDelegate', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			delegateTransaction = createDelegate(secret, username);
+			delegateTransaction = registerDelegate(secret, username);
 		});
 
 		it('should create a delegate transaction', () => {
@@ -49,7 +49,7 @@ describe('#createDelegate', () => {
 
 		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			createDelegate(secret, username, null, offset);
+			registerDelegate(secret, username, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -120,11 +120,11 @@ describe('#createDelegate', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			delegateTransaction = createDelegate(secret, username, secondSecret);
+			delegateTransaction = registerDelegate(secret, username, secondSecret);
 		});
 
 		it('should create a delegate transaction with a second secret', () => {
-			const delegateTransactionWithoutSecondSecret = createDelegate(secret, username);
+			const delegateTransactionWithoutSecondSecret = registerDelegate(secret, username);
 			(delegateTransaction).should.be.ok();
 			(delegateTransaction).should.not.be.equal(delegateTransactionWithoutSecondSecret);
 		});

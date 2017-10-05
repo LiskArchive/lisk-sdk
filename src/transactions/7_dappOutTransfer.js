@@ -13,42 +13,46 @@
  *
  */
 /**
- * Multisignature module provides functions for creating multisignature group registration
- * transactions, and signing transactions requiring multisignatures.
- * @class multisignature
+ * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
+ * an individual dapp account).
+ * @class transfer
  */
 import cryptoModule from '../crypto';
-import { SEND_FEE } from '../constants';
+import { OUT_TRANSFER_FEE } from '../constants';
 import slots from '../time/slots';
-import { prepareTransaction } from './utils';
+import prepareTransaction from './utils/prepareTransaction';
 
 /**
- * @method createTransaction
- * @param recipientId string
- * @param amount number
- * @param secret secret
- * @param secondSecret secret
- * @param requesterPublicKey string
- * @param timeOffset number
+ * @method createOutTransfer
+ * @param dappId
+ * @param transactionId
+ * @param recipientId
+ * @param amount
+ * @param secret
+ * @param secondSecret
+ * @param timeOffset
  *
- * @return {string}
+ * @return {Object}
  */
 
-export default function createTransaction(
-	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
+export default function dappOutTransfer(
+	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
-		type: 0,
+		type: 7,
 		amount,
-		fee: SEND_FEE,
+		fee: OUT_TRANSFER_FEE,
 		recipientId,
 		senderPublicKey: keys.publicKey,
-		requesterPublicKey: requesterPublicKey || keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {},
-		signatures: [],
+		asset: {
+			outTransfer: {
+				dappId,
+				transactionId,
+			},
+		},
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);

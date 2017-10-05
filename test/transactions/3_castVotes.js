@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createVote from '../../src/transactions/vote';
+import castVotes from '../../src/transactions/3_castVotes';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createVote', () => {
+describe('#castVotes', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -36,7 +36,7 @@ describe('#createVote', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			voteTransaction = createVote(secret, publicKeys);
+			voteTransaction = castVotes(secret, publicKeys);
 		});
 
 		it('should create a vote transaction', () => {
@@ -49,7 +49,7 @@ describe('#createVote', () => {
 
 		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			createVote(secret, publicKeys, null, offset);
+			castVotes(secret, publicKeys, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -136,11 +136,11 @@ describe('#createVote', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			voteTransaction = createVote(secret, publicKeys, secondSecret);
+			voteTransaction = castVotes(secret, publicKeys, secondSecret);
 		});
 
 		it('should create a vote transaction with a second secret', () => {
-			const voteTransactionWithoutSecondSecret = createVote(secret, publicKeys);
+			const voteTransactionWithoutSecondSecret = castVotes(secret, publicKeys);
 			(voteTransaction).should.be.ok();
 			(voteTransaction).should.not.be.equal(voteTransactionWithoutSecondSecret);
 		});

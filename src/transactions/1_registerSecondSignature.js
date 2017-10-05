@@ -13,38 +13,48 @@
  *
  */
 /**
- * Delegate module provides functions to create delegate registration transactions.
- * @class delegate
+ * Signature module provides functions for creating second signature registration transactions.
+ * @class signature
  */
 import cryptoModule from '../crypto';
-import { DELEGATE_FEE } from '../constants';
+import { SIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
-import { prepareTransaction } from './utils';
+import prepareTransaction from './utils/prepareTransaction';
 
 /**
- * @method createDapp
+ * @method newSignature
+ * @param secondSecret
+ *
+ * @return {Object}
+ */
+
+function newSignature(secondSecret) {
+	const { publicKey } = cryptoModule.getKeys(secondSecret);
+	return { publicKey };
+}
+
+/**
+ * @method createSignature
  * @param secret
- * @param username
  * @param secondSecret
  * @param timeOffset
  *
  * @return {Object}
  */
 
-export default function createDelegate(secret, username, secondSecret, timeOffset) {
+export default function registerSecondSignature(secret, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 
+	const signature = newSignature(secondSecret);
 	const transaction = {
-		type: 2,
+		type: 1,
 		amount: 0,
-		fee: DELEGATE_FEE,
+		fee: SIGNATURE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			delegate: {
-				username,
-			},
+			signature,
 		},
 	};
 

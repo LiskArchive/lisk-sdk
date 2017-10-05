@@ -12,46 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Transaction module provides functions for creating balance transfer transactions.
- * @class transaction
- */
 import cryptoModule from '../crypto';
-import { SEND_FEE, DATA_FEE } from '../constants';
+import { MULTISIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
-import { prepareTransaction } from './utils';
-
+import prepareTransaction from './utils/prepareTransaction';
 /**
- * @method createTransaction
- * @param recipientId
- * @param amount
- * @param secret
- * @param secondSecret
- * @param data
- * @param timeOffset
+ * @method createMultisignature
+ * @param secret string
+ * @param secondSecret string
+ * @param keysgroup array
+ * @param lifetime number
+ * @param min number
+ * @param timeOffset number
  *
  * @return {Object}
  */
 
-export default function createTransaction(
-	recipientId, amount, secret, secondSecret, data, timeOffset,
+export default function registerMultisignatureAccount(
+	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
-	const fee = data ? (SEND_FEE + DATA_FEE) : SEND_FEE;
+	const keygroupFees = keysgroup.length + 1;
+
 	const transaction = {
-		type: 0,
-		amount,
-		fee,
-		recipientId,
+		type: 4,
+		amount: 0,
+		fee: (MULTISIGNATURE_FEE * keygroupFees),
+		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
-		asset: {},
+		asset: {
+			multisignature: {
+				min,
+				lifetime,
+				keysgroup,
+			},
+		},
 	};
-
-	if (data && data.length > 0) {
-		if (data !== data.toString('utf8')) throw new Error('Invalid encoding in transaction data. Data must be utf-8 encoded.');
-		transaction.asset.data = data;
-	}
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }

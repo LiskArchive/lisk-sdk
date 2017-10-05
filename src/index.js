@@ -21,17 +21,17 @@ import 'babel-polyfill';
 import Mnemonic from 'bitcore-mnemonic';
 import naclFactory from 'js-nacl';
 import crypto from './crypto';
-import dapp from './transactions/dapp';
-import delegate from './transactions/delegate';
-import multisignature from './transactions/multisignature';
-import multisignatureTransaction from './transactions/multisignatureTransaction';
-import signature from './transactions/signature';
-import transaction from './transactions/transaction';
-import inTransfer from './transactions/inTransfer';
-import outTransfer from './transactions/outTransfer';
-import vote from './transactions/vote';
 import api from './api/liskApi';
 import slots from './time/slots';
+import send from './transactions/0_send';
+import registerSecondSignature from './transactions/1_registerSecondSignature';
+import registerDelegate from './transactions/2_registerDelegate';
+import castVotes from './transactions/3_castVotes';
+import createDapp from './transactions/5_createDapp';
+import registerMultisignature from './transactions/4_registerMultisignatureAccount';
+import dappInTransfer from './transactions/6_dappInTransfer';
+import dappOutTransfer from './transactions/7_dappOutTransfer';
+import multiSignatureSend from './transactions/multisignatureSend';
 
 global.naclFactory = naclFactory;
 
@@ -40,20 +40,22 @@ naclFactory.instantiate((nacl) => {
 	naclInstance = nacl;
 });
 
-const lisk = {
+const transaction = Object.assign({},
+	send,
+	registerSecondSignature,
+	registerDelegate,
+	castVotes,
+	createDapp,
+	registerMultisignature,
+	dappInTransfer,
+	dappOutTransfer,
+	multiSignatureSend,
+);
+
+export default {
 	crypto,
-	dapp,
-	delegate,
-	multisignature,
-	multisignatureTransaction,
-	signature,
 	transaction,
-	inTransfer,
-	outTransfer,
-	vote,
 	api,
 	slots,
 	Mnemonic,
 };
-
-module.exports = lisk;

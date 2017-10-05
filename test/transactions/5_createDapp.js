@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createDapp from '../../src/transactions/dapp';
+import createDapp from '../../src/transactions/5_createDapp';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
