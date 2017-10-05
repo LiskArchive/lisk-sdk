@@ -2,14 +2,13 @@
 
 var async = require('async');
 var expect = require('chai').expect;
+var sinon = require('sinon');
 
 var node = require('../../../node');
 
 var TransactionPool = require('../../../../logic/transactionPool');
 var TransactionLogic = require('../../../../logic/transaction');
 var TransferLogic = require('../../../../logic/transfer');
-var AccountModule = require('../../../../modules/accounts');
-var AccountLogic = require('../../../../logic/account');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var transactionTypes = require('../../../../helpers/transactionTypes');
 
@@ -19,59 +18,54 @@ describe('txPool', function () {
 
 	before(function (done) {
 		// Init transaction logic
-		async.auto({
-			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb);
-			},
-			transactionLogic: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(TransactionLogic, cb, {
-					account: result.accountLogic
-				});
-			}]
-		}, function (err, result) {
-			modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
+		modulesLoader.initLogic(TransactionLogic, modulesLoader.scope, function (err, __trsLogic) {
+			expect(err).to.not.exist;
+
+			txPool = new TransactionPool(
+				modulesLoader.scope.config.broadcasts.broadcastInterval,
+				modulesLoader.scope.config.broadcasts.releaseLimit,
+				__trsLogic,
+				modulesLoader.scope.bus,
+				modulesLoader.scope.logger
+			);
+
+			modulesLoader.initModules([
+				{accounts: require('../../../../modules/accounts')},
+			], [
+				{'transaction': require('../../../../logic/transaction')},
+				{'account': require('../../../../logic/account')}
+			], {}, function (err, __modules) {
 				expect(err).to.not.exist;
 
-				var account = __accountModule;
-				var accountLogic = result.accountLogic;
-
-				var txLogic = result.transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic(modulesLoader.scope.logger, modulesLoader.scope.schema));
-				txLogic.bind(account);
-
-				account.onBind({
-					accounts: account,
-				});
-
-				var accountModuleDependencies = result;
-				txPool = new TransactionPool(
-					modulesLoader.scope.config.broadcasts.broadcastInterval,
-					modulesLoader.scope.config.broadcasts.releaseLimit,
-					result.transactionLogic,
-					modulesLoader.scope.bus, // Bus
-					modulesLoader.logger // Logger
+				txPool.bind(
+					__modules.accounts,
+					null,
+					__modules.loader
 				);
-				txPool.bind(account, null, modulesLoader.scope.loader);
+				__trsLogic.attachAssetType(transactionTypes.SEND, new TransferLogic(modulesLoader.scope.logger, modulesLoader.scope.schema));
 				done();
-			}, {
-				logic: {
-					account: result.accountLogic,
-					transaction: result.transactionLogic
-				}
 			});
 		});
 	});
 
 	describe('receiveTransactions', function () {
 
-		it('should do nothing for empty array', function (done) {
+		it('should return empty array when using empty array', function (done) {
 			txPool.receiveTransactions([], false, function (err, data) {
 				expect(err).to.not.exist;
-				expect(data).to.be.empty;
+				expect(data).to.be.an('array').that.is.empty;
 				done();
 			});
 		});
 
-		it('should return error for invalid tx', function (done) {
+		it('should return error when using empty object', function (done) {
+			txPool.receiveTransactions([{}], false, function (err, data) {
+				expect(err).to.be.equal('Invalid public key');
+				done();
+			});
+		});
+
+		it('should return error when using invalid tx', function (done) {
 			txPool.receiveTransactions([{ id: '123' }], false, function (err, data) {
 				expect(err).to.exist;
 				done();
