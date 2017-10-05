@@ -346,8 +346,6 @@ function encryptAES256CBCWithPassword(plainText, password) {
  * @param {Object} Object - Object with cipher and iv as hex strings
  * @param {String} Object.cipher - hex string AES-256-CBC cipher
  * @param {String} Object.iv - hex string for the initialisation vector
- * The cipher text resulting from the AES-256-CBC encryption,
- * including the nonce { cipher: ..., nonce: ..., }
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {String} utf8
@@ -377,8 +375,6 @@ export function encryptPassphraseWithPassword(passphrase, password) {
 /**
  * @method decryptPassphraseWithPassword
  * @param {Object} cipherAndIv - Object containing the encryption cipher and the iv
- * The cipher text resulting from the AES-256-CBC encryption,
- * including the nonce { cipher: ..., nonce: ..., }
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {String}
