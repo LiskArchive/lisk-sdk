@@ -10,7 +10,7 @@ var rewire = require('rewire');
 var jobsQueue = require('../../../helpers/jobsQueue.js');
 var peers = rewire('../../../modules/peers');
 
-//These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
+// These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
 describe('helpers/jobsQueue', function () {
 	// Test global variables
 	var recallInterval = 1000;

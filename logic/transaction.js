@@ -243,7 +243,7 @@ Transaction.prototype.ready = function (trs, sender) {
  * @return {setImmediateCallback} error | row.count
  */
 Transaction.prototype.countById = function (trs, cb) {
-	self.scope.db.one(sql.countById, { id: trs.id }).then(function (row) {
+	self.scope.db.one(sql.countById, {id: trs.id}).then(function (row) {
 		return setImmediate(cb, null, row.count);
 	}).catch(function (err) {
 		self.scope.logger.error(err.stack);
