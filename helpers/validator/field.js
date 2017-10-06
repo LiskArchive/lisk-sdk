@@ -7,7 +7,7 @@ module.exports = Field;
  * @param {Validator} validator Validator instance
  * @param {string} path Validation field path
  * @param {*} value Validated value
- * @param {object} rules Set of rules
+ * @param {Object} rules Set of rules
  * @param {*} thisArg Value used as this reference within rule callback calls.
  * @constructor
  */
@@ -28,7 +28,7 @@ function Field (validator, path, value, rules, thisArg) {
  * Create child field.
  * @param {string} path Validation field path
  * @param {*} value Validated value
- * @param {object} rules Set of rules
+ * @param {Object} rules Set of rules
  * @param {*} thisArg Value used as this reference within rule callback calls.
  * @returns {Validator.Field}
  */

@@ -4,6 +4,8 @@ var _ = require('lodash');
 var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
+var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
+var PeerUpdateError = require('../../../../../api/ws/rpc/failureCodes').PeerUpdateError;
 var randomPeer = require('../../../../common/objectStubs').randomPeer;
 var connectionsTable = require('../../../../../api/ws/workers/connectionsTable');
 var PeersUpdateRules = require('../../../../../api/ws/workers/peersUpdateRules');
@@ -14,6 +16,7 @@ describe('PeersUpdateRules', function () {
 	var slaveWAMPServerMock;
 	var peersUpdateRules;
 	var validConnectionId;
+	var validErrorCode;
 	var validPeer;
 	var actionCb = sinon.spy();
 
@@ -26,8 +29,9 @@ describe('PeersUpdateRules', function () {
 			}
 		};
 		validConnectionId  = 'ABCDEF123456789';
+		validErrorCode = 4100;
 		peersUpdateRules = new PeersUpdateRules(slaveWAMPServerMock);
-		peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(2, null);
+		peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(3, null);
 		actionCb.reset();
 		validPeer = _.clone(randomPeer);
 		connectionsTable.nonceToConnectionIdMap = {};
@@ -56,28 +60,28 @@ describe('PeersUpdateRules', function () {
 
 		it('should return an error when invoked with undefined peer', function (done) {
 			peersUpdateRules.insert(undefined, validConnectionId, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Cannot read property \'nonce\' of undefined');
+				expect(err).to.have.property('message').equal('Cannot read property \'nonce\' of undefined');
 				done();
 			});
 		});
 
 		it('should return an error when invoked with peer without nonce', function (done) {
 			peersUpdateRules.insert({}, validConnectionId, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Cannot add connection table entry without nonce');
+				expect(err).to.have.property('message').equal('Cannot add connection table entry without nonce');
 				done();
 			});
 		});
 
 		it('should return an error when invoked with undefined connection id', function (done) {
 			peersUpdateRules.insert(validPeer, undefined, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Cannot add connection table entry without connectionId');
+				expect(err).to.have.property('message').equal('Cannot add connection table entry without connectionId');
 				done();
 			});
 		});
 
 		it('should not return an error when invoked with valid arguments', function (done) {
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
-				expect(err).to.be.null;
+				expect(err).to.be.undefined;
 				done();
 			});
 		});
@@ -89,7 +93,7 @@ describe('PeersUpdateRules', function () {
 
 		it('should call sendInternally with acceptPeer procedure when invoked with valid arguments', function () {
 			peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
-			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('acceptPeer')).to.be.true;
+			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer')).to.be.true;
 		});
 
 		it('should insert entries to connectionsTable when invoked with valid arguments', function () {
@@ -98,11 +102,41 @@ describe('PeersUpdateRules', function () {
 			expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionId).equal(validPeer.nonce);
 		});
 
-		it('should remove added entries from connectionsTable after receiving an error from server', function (done) {
+		it('should return an error from server when invoked with valid arguments and received error code', function (done) {
 			peersUpdateRules.slaveToMasterSender.send.restore();
-			peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(2, 'On insert error');
+			peersUpdateRules.slaveToMasterSender.send =
+				sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('On insert error');
+				expect(err).to.have.property('code').equal(validErrorCode);
+				done();
+			});
+		});
+
+		it('should return the TRANSPORT error when invoked with valid arguments but received error without code from server', function (done) {
+			peersUpdateRules.slaveToMasterSender.send.restore();
+			peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
+			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
+				expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
+				expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
+				expect(err).to.have.property('description').equal('On remove error');
+				done();
+			});
+		});
+
+		it('should remove added entries from connectionsTable after receiving an error without code from server', function (done) {
+			peersUpdateRules.slaveToMasterSender.send.restore();
+			peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On insert error');
+			peersUpdateRules.insert(validPeer, validConnectionId, function () {
+				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
+				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
+				done();
+			});
+		});
+
+		it('should remove added entries from connectionsTable after receiving an error with code from server', function (done) {
+			peersUpdateRules.slaveToMasterSender.send.restore();
+			peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
+			peersUpdateRules.insert(validPeer, validConnectionId, function () {
 				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
 				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
 				done();
@@ -152,28 +186,28 @@ describe('PeersUpdateRules', function () {
 
 		it('should return an error when invoked with undefined peer', function (done) {
 			peersUpdateRules.remove(undefined, validConnectionId, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Cannot read property \'nonce\' of undefined');
+				expect(err).to.have.property('message').equal('Cannot read property \'nonce\' of undefined');
 				done();
 			});
 		});
 
 		it('should be ok to invoke with undefined connection id', function (done) {
 			peersUpdateRules.remove(validPeer, undefined, function (err) {
-				expect(err).to.null;
+				expect(err).to.undefined;
 				done();
 			});
 		});
 
 		it('should return an error when invoked with peer without nonce', function (done) {
 			peersUpdateRules.remove({}, validConnectionId, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Cannot remove connection table entry without nonce');
+				expect(err).to.have.property('message').equal('Cannot remove connection table entry without nonce');
 				done();
 			});
 		});
 
 		it('should be ok to remove peer which was not added previously', function (done) {
 			peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
-				expect(err).to.null;
+				expect(err).to.be.undefined;
 				done();
 			});
 		});
@@ -183,9 +217,9 @@ describe('PeersUpdateRules', function () {
 			expect(peersUpdateRules.slaveToMasterSender.send.calledOnce).to.be.true;
 		});
 
-		it('should call slaveToMasterSender.send with removePeer procedure when invoked with valid arguments', function () {
+		it('should call slaveToMasterSender.send with updatePeer procedure when invoked with valid arguments', function () {
 			peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
-			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('removePeer')).to.be.true;
+			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer')).to.be.true;
 		});
 
 		describe('after peer is added', function () {
@@ -193,7 +227,7 @@ describe('PeersUpdateRules', function () {
 			beforeEach(function () {
 				peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
 				peersUpdateRules.slaveToMasterSender.send.restore();
-				peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(2, null);
+				peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(3, null);
 			});
 
 			it('should leave the connections table in empty state after successful removal', function () {
@@ -205,16 +239,49 @@ describe('PeersUpdateRules', function () {
 
 			it('should be ok to remove peer using different connection id', function (done) {
 				peersUpdateRules.remove(validPeer, 'different connection id', function (err) {
-					expect(err).to.be.null;
+					expect(err).to.be.undefined;
 					done();
 				});
 			});
 
-			it('should return an error when invoked with valid arguments but received error from server', function (done) {
+			it('should return an error from server when invoked with valid arguments and received error code', function (done) {
 				peersUpdateRules.slaveToMasterSender.send.restore();
-				peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(2, 'On remove error');
+				peersUpdateRules.slaveToMasterSender.send =
+					sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
-					expect(err).to.be.an('error').and.to.have.property('message').equal('On remove error');
+					expect(err).to.have.property('code').equal(validErrorCode);
+					done();
+				});
+			});
+
+			it('should return the TRANSPORT error when invoked with valid arguments but received error without code from server', function (done) {
+				peersUpdateRules.slaveToMasterSender.send.restore();
+				peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
+				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
+					expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
+					expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
+					expect(err).to.have.property('description').equal('On remove error');
+					done();
+				});
+			});
+
+			it('should revert removed connections tables entries when invoked with valid arguments but received error without code from server', function (done) {
+				peersUpdateRules.slaveToMasterSender.send.restore();
+				peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
+				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
+					expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
+					expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validPeer.nonce).equal(validConnectionId);
+					expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionId).equal(validPeer.nonce);
+					done();
+				});
+			});
+
+			it('should not revert removed connections tables entries when invoked with valid arguments but error with code from server', function (done) {
+				peersUpdateRules.slaveToMasterSender.send.restore();
+				peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
+				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
+					expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
+					expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
 					done();
 				});
 			});
@@ -223,15 +290,16 @@ describe('PeersUpdateRules', function () {
 
 	describe('block', function () {
 
-		it('should return an error when called', function (done) {
-			peersUpdateRules.block(validPeer, validConnectionId, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Update peer action blocked - malicious behaviour detected');
+		var validFailureCode = 4100;
+
+		it('should return the PeerUpdateError when called', function (done) {
+			peersUpdateRules.block(validFailureCode, validPeer, validConnectionId, function (err) {
+				expect(err).to.have.instanceOf(PeerUpdateError);
 				done();
 			});
 		});
 	});
-	
-	
+
 	describe('internal.update', function () {
 
 		var insertStub;
@@ -487,7 +555,7 @@ describe('PeersUpdateRules', function () {
 
 		it('should return an error when attempting to update peer which has no connection established', function (done) {
 			peersUpdateRules.external.update(minimalValidUpdateRequest, function (err) {
-				expect(err).to.be.an('error').and.to.have.property('message').equal('Connection id does not match with corresponding peer');
+				expect(err).to.have.property('message').equal('Connection id does not match with corresponding peer');
 				done();
 			});
 		});

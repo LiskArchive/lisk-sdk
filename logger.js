@@ -33,7 +33,7 @@ module.exports = function (config) {
 		fatal: 'FTL'
 	};
 
-	config.filename = __dirname + '/' + (config.filename || 'logs.log');
+	config.filename = process.cwd() + '/' + (config.filename || 'logs.log');
 
 	config.errorLevel = config.errorLevel || 'log';
 

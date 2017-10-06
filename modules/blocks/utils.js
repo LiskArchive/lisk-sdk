@@ -103,8 +103,8 @@ Utils.prototype.readDbRows = function (rows) {
  * @param  {Object}   filter Filter options
  * @param  {Object}   filter.limit Limit blocks to amount
  * @param  {Object}   filter.lastId ID of block to begin with
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.rows List of normalized blocks
  */
@@ -128,8 +128,8 @@ Utils.prototype.loadBlocksPart = function (filter, cb) {
  * @async
  * @public
  * @method loadLastBlock
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error message if error occurred
  * @return {Object}   cb.block Full normalized last block
  */
@@ -173,8 +173,8 @@ Utils.prototype.loadLastBlock = function (cb) {
  * @async
  * @method getIdSequence
  * @param  {number}   height Block height
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.res Result
  * @return {string}   cb.res.firstHeight Height of last block
@@ -236,8 +236,8 @@ Utils.prototype.getIdSequence = function (height, cb) {
  * @param  {Object}   filter Filter options
  * @param  {Object}   filter.limit Limit blocks to amount
  * @param  {Object}   filter.lastId ID of block to begin with
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.rows List of blocks
  */
@@ -343,8 +343,8 @@ Utils.prototype.getBlockProgressLogger = function (transactionsCount, logsFreque
  * @param  {string}   filter.generatorPublicKey Delegate public key
  * @param  {number}   [filter.start] Start timestamp
  * @param  {number}   [filter.end] End timestamp
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.data Rewards data
  * @return {number}   cb.data.fees Round fees
