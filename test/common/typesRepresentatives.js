@@ -109,12 +109,7 @@ var others = [
 	}
 ];
 
-var strings = [
-	{
-		input: '',
-		description: 'empty string',
-		expectation: 'string'
-	},
+var nonEmptyStrings = [
 	{
 		input: '0',
 		description: '0 as string',
@@ -152,6 +147,16 @@ var strings = [
 	}
 ];
 
+var emptyString = [
+	{
+		input: '',
+		description: 'empty string',
+		expectation: 'string'
+	}
+];
+
+var strings = nonEmptyStrings.concat(emptyString);
+
 var allTypes = arrays
 	.concat(booleans)
 	.concat(positiveIntegers)
@@ -172,5 +177,7 @@ module.exports = {
 	negativeNumbers: negativeNumbers,
 	objects: objects,
 	others: others,
-	strings: strings
+	strings: strings,
+	nonEmptyStrings: nonEmptyStrings,
+	emptyString: emptyString
 };
