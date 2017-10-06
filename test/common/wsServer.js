@@ -43,11 +43,11 @@ var wsServer = {
 
 	necessaryRPCEndpoints: {
 		status: sinon.stub().callsArgWith(1, sinon.stub().callsArgWith(1, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash})),
-		list: sinon.stub().callsArgWith(1, null),
+		list: sinon.stub().callsArgWith(1, sinon.stub().callsArgWith(1, {peers: []})),
 		updateMyself:  sinon.stub().callsArgWith(1, null),
 		postTransactions: sinon.stub().callsArgWith(1, null),
 		postSignatures: sinon.stub().callsArgWith(1, null),
-		postBlock: sinon.stub().callsArgWith(1, null),
+		postBlock: sinon.stub().callsArgWith(1, sinon.stub().callsArg(1)),
 		blocksCommon: sinon.stub().callsArgWith(1, {success: true, common: null})
 	},
 
