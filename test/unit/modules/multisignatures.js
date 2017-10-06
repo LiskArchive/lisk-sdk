@@ -37,6 +37,61 @@ describe('multisignatures', function () {
 
 	describe('processSignature', function () {
 
+		function continueSignatureProcessing () {
+
+			it('should call library.balancesSequence.add');
+
+			it('should call modules.transactions.getMultisignatureTransaction');
+
+			it('should call modules.transactions.getMultisignatureTransaction with tx.transaction');
+
+			describe('when multisignature tx.transaction does not exist', function () {
+
+				it('should call callback with error = "Transaction not found"');
+			});
+
+			describe('when multisignature tx.transaction exists', function () {
+
+				it('should call modules.accounts.getAccount');
+
+				it('should call modules.accounts.getAccount with {address: transaction.senderId}');
+
+				describe('when modules.accounts.getAccount fails', function () {
+
+					it('should call callback with error');
+				});
+
+				describe('when modules.accounts.getAccount succeeds', function () {
+
+					describe('when sender does not exist', function () {
+
+						it('should call callback with error = "Sender not found"');
+					});
+
+					describe('when sender exists', function () {
+
+						it('should call Multisignature.prototype.ready');
+
+						it('should call Multisignature.prototype.ready with multisignature with signatures containing tx.signature');
+
+						it('should call Multisignature.prototype.ready with sender');
+
+						it('should call library.bus.message');
+
+						it('should call library.bus.message with "signature"');
+
+						it('should call library.bus.message with {transaction: tx.transaction, signature: tx.signature}');
+
+						it('should call library.bus.message with true');
+
+						it('should call callback with error = undefined');
+
+						it('should call callback with result = undefined');
+					});
+				});
+			});
+		}
+
 		describe('when no trs passed', function () {
 
 			it('should call callback with error = "Unable to process signature. Signature is undefined."');
@@ -157,61 +212,6 @@ describe('multisignatures', function () {
 				});
 			});
 		});
-
-		function continueSignatureProcessing () {
-
-			it('should call library.balancesSequence.add');
-
-			it('should call modules.transactions.getMultisignatureTransaction');
-
-			it('should call modules.transactions.getMultisignatureTransaction with tx.transaction');
-
-			describe('when multisignature tx.transaction does not exist', function () {
-
-				it('should call callback with error = "Transaction not found"');
-			});
-
-			describe('when multisignature tx.transaction exists', function () {
-
-				it('should call modules.accounts.getAccount');
-
-				it('should call modules.accounts.getAccount with {address: transaction.senderId}');
-
-				describe('when modules.accounts.getAccount fails', function () {
-
-					it('should call callback with error');
-				});
-
-				describe('when modules.accounts.getAccount succeeds', function () {
-
-					describe('when sender does not exist', function () {
-
-						it('should call callback with error = "Sender not found"');
-					});
-
-					describe('when sender exists', function () {
-
-						it('should call Multisignature.prototype.ready');
-
-						it('should call Multisignature.prototype.ready with multisignature with signatures containing tx.signature');
-
-						it('should call Multisignature.prototype.ready with sender');
-
-						it('should call library.bus.message');
-
-						it('should call library.bus.message with "signature"');
-
-						it('should call library.bus.message with {transaction: tx.transaction, signature: tx.signature}');
-
-						it('should call library.bus.message with true');
-
-						it('should call callback with error = undefined');
-
-						it('should call callback with result = undefined');
-					});
-				});
-			});
-		}
 	});
 
 	describe('isLoaded', function () {
