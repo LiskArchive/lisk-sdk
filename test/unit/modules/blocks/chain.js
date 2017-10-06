@@ -2,7 +2,7 @@
 
 describe('blocks/chain', function () {
 
-	describe('Chain constructor', function () {
+	describe('constructor', function () {
 
 		describe('library', function () {
 
@@ -16,7 +16,7 @@ describe('blocks/chain', function () {
 
 			it('should assign balanceSequence');
 
-			describe('should assign logic',function () {
+			describe('should assign logic', function () {
 
 				it('should assign block');
 
@@ -27,7 +27,7 @@ describe('blocks/chain', function () {
 		it('should set self to this');
 
 		it('should call library.logger.trace"');
-		
+
 		it('should call library.logger.trace with "Blocks->Chain: Submodule initialized."');
 
 		it('should return self');
@@ -44,7 +44,7 @@ describe('blocks/chain', function () {
 		describe('when db query fails', function () {
 
 			it('should call logger.error');
-			
+
 			it('should call logger.error with err.stack');
 
 			it('should call callback with "Blocks#saveGenesisBlock error"');
@@ -57,9 +57,9 @@ describe('blocks/chain', function () {
 				it('should call self.saveBlock');
 
 				it('should call self.saveBlock with library.genesisblock.block');
-				
+
 				describe('when self.saveBlock fails', function () {
-					
+
 					it('should call callback with error');
 				});
 			});
@@ -71,7 +71,7 @@ describe('blocks/chain', function () {
 	});
 
 	describe('saveBlock', function () {
-		
+
 		it('should call library.db.tx');
 
 		it('should call library.logic.block.dbSave');
@@ -81,7 +81,7 @@ describe('blocks/chain', function () {
 		describe('when library.db.tx callback throws', function () {
 
 			it('should call logger.error');
-			
+
 			it('should call logger.error with err.stack');
 
 			it('should call callback with "Blocks#saveBlock error"');
@@ -90,7 +90,7 @@ describe('blocks/chain', function () {
 		describe('when library.db.tx callback does not throw', function () {
 
 			it('should call __private.afterSave');
-			
+
 			it('should call __private.afterSave with block');
 
 			it('should call __private.afterSave with callback');
@@ -102,20 +102,20 @@ describe('blocks/chain', function () {
 		describe('afterSave', function () {
 
 			it('should call library.bus.message');
-			
+
 			it('should call library.bus.message with "transactionsSaved"');
 
 			it('should call library.bus.message with block.transactions');
-			
+
 			it('should call library.logic.transaction.afterSave for every block.transaction');
-			
+
 			describe('when library.logic.transaction.afterSave fails', function () {
-					
+
 				it('should call callback with error');
 			});
 
 			describe('when library.logic.transaction.afterSave succeeds', function () {
-					
+
 				it('should call callback with error = undefined');
 
 				it('should call callback with result = undefined');
@@ -132,7 +132,7 @@ describe('blocks/chain', function () {
 			describe('for every block.transaction', function () {
 
 				it('should call library.logic.transaction.dbSave');
-				
+
 				it('should call library.logic.transaction.dbSave with transaction');
 
 				it('should call t.nonce');
@@ -143,7 +143,7 @@ describe('blocks/chain', function () {
 	describe('deleteBlock', function () {
 
 		it('should call library.db.none');
-		
+
 		it('should call library.db.none with sql.deleteBlock');
 
 		it('should call library.db.none with {id: blockId}');
@@ -151,7 +151,7 @@ describe('blocks/chain', function () {
 		describe('when library.db.none fails', function () {
 
 			it('should call logger.error');
-			
+
 			it('should call logger.error with err.stack');
 
 			it('should call callback with "Blocks#deleteBlock error"');
@@ -160,9 +160,9 @@ describe('blocks/chain', function () {
 		describe('when library.db.none succeeds', function () {
 
 			it('should call callback');
-			
+
 			it('should call callback with error = undefined');
-			
+
 			it('should call callback with result = undefined');
 		});
 	});
@@ -170,7 +170,7 @@ describe('blocks/chain', function () {
 	describe('deleteAfterBlock', function () {
 
 		it('should call library.db.query');
-		
+
 		it('should call library.db.query with sql.deleteAfterBlock');
 
 		it('should call library.db.query with {id: blockId}');
@@ -178,7 +178,7 @@ describe('blocks/chain', function () {
 		describe('when library.db.query fails', function () {
 
 			it('should call logger.error');
-			
+
 			it('should call logger.error with err.stack');
 
 			it('should call callback with "Blocks#deleteAfterBlock error"');
@@ -197,7 +197,7 @@ describe('blocks/chain', function () {
 		it('should sort transactions after type');
 
 		it('should call modules.blocks.utils.getBlockProgressLogger');
-		
+
 		it('should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length');
 
 		it('should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length / 100');
@@ -205,12 +205,13 @@ describe('blocks/chain', function () {
 		it('should call modules.blocks.utils.getBlockProgressLogger with "Genesis block loading"');
 
 		describe('for every block.transactions', function () {
-			
+
 			it('should call modules.accounts.setAccountAndGet');
-			
+
 			it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
 
 			describe('when modules.accounts.setAccountAndGet fails', function () {
+				
 				describe('error object', function () {
 
 					it('should assign message');
@@ -222,11 +223,11 @@ describe('blocks/chain', function () {
 
 				it('should call process.exit with 0');
 			});
-			
+
 			describe('when modules.accounts.setAccountAndGet succeeds', function () {
-					
+
 				it('should call __private.applyTransaction');
-				
+
 				it('should call __private.applyTransaction with block');
 
 				it('should call __private.applyTransaction with transaction');
@@ -243,7 +244,7 @@ describe('blocks/chain', function () {
 				it('should set genesis block as last block');
 
 				it('should call callback with error = undefined');
-				
+
 				it('should call callback with result = undefined');
 			});
 		});
@@ -254,7 +255,7 @@ describe('blocks/chain', function () {
 		describe('applyTransaction', function () {
 
 			it('should call modules.transactions.applyUnconfirmed');
-			
+
 			it('should call modules.transactions.applyUnconfirmed with transaction');
 
 			it('should call modules.transactions.applyUnconfirmed with sender');
@@ -274,7 +275,7 @@ describe('blocks/chain', function () {
 
 				it('should call callback with error object');
 			});
-			
+
 			describe('when modules.transactions.applyUnconfirmed succeeds', function () {
 
 				it('should call modules.transactions.apply with sender');
@@ -307,7 +308,7 @@ describe('blocks/chain', function () {
 	describe('applyBlock', function () {
 
 		it('should call modules.blocks.isActive');
-		
+
 		it('should call modules.blocks.isActive with true');
 
 		it('should call modules.transactions.undoUnconfirmedList');
@@ -324,39 +325,39 @@ describe('blocks/chain', function () {
 			describe('for every block.transactions', function () {
 
 				it('should call modules.accounts.setAccountAndGet');
-				
+
 				it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
-				
+
 				it('should call modules.transactions.applyUnconfirmed');
-				
+
 				it('should call modules.transactions.applyUnconfirmed with transaction');
-				
+
 				it('should call modules.transactions.applyUnconfirmed with sender');
 
 				describe('when modules.transactions.applyUnconfirmed fails', function () {
-					
+
 					it('should call library.logger.error with error');
-					
+
 					describe('for every block.transactions', function () {
-						
+
 						it('should call modules.accounts.getAccount');
-						
+
 						it('should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}');
-						
+
 						describe('when modules.accounts.getAccount fails', function () {
-							
+
 							it('should call callback with error');
 						});
-						
+
 						describe('when modules.accounts.getAccount succeeds', function () {
-							
+
 							describe('and transaction.id was already applied', function () {
-								
+
 								it('should call library.logic.transaction.undoUnconfirmed');
-								
+
 								it('should call library.logic.transaction.undoUnconfirmed with transaction');
 
-								it('should call library.logic.transaction.undoUnconfirmed with sender');		
+								it('should call library.logic.transaction.undoUnconfirmed with sender');
 							});
 						});
 					});
@@ -365,7 +366,7 @@ describe('blocks/chain', function () {
 				describe('for every block.transactions', function () {
 
 					it('should call modules.accounts.getAccount');
-					
+
 					it('should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}');
 
 					describe('when modules.accounts.getAccount fails', function () {
@@ -378,11 +379,11 @@ describe('blocks/chain', function () {
 					describe('when modules.accounts.getAccount succeeds', function () {
 
 						it('should call modules.transactions.apply');
-						
+
 						it('should call modules.transactions.apply with transaction');
-						
+
 						it('should call modules.transactions.apply with block');
-						
+
 						it('should call modules.transactions.apply with sender');
 
 						describe('when modules.transactions.apply fails', function () {
@@ -395,11 +396,11 @@ describe('blocks/chain', function () {
 						describe('when modules.transactions.apply succeeds', function () {
 
 							it ('should call modules.transactions.removeUnconfirmedTransaction');
-							
+
 							it ('should call modules.transactions.removeUnconfirmedTransaction with transaction.id');
 
 							it('should call modules.blocks.lastBlock.set');
-							
+
 							it('should call modules.blocks.lastBlock.set with block');
 
 							describe('when saveBlock is defined', function () {
@@ -423,9 +424,9 @@ describe('blocks/chain', function () {
 								});
 
 								it('should call modules.transactions.applyUnconfirmedIds');
-								
+
 								it('should call modules.transactions.applyUnconfirmedIds with unconfirmedTransactionIds');
-								
+
 								describe('when modules.transactions.applyUnconfirmedIds fails', function () {
 
 									describe('when error = "Snapshot finished"', function () {
@@ -434,17 +435,17 @@ describe('blocks/chain', function () {
 
 										it('should call process.emit with "SIGTERM"');
 									});
-									
+
 									it('should call callback with error');
 								});
-								
+
 								describe('when modules.transactions.applyUnconfirmedIds succeeds', function () {
 
 									it('should return series callback with error = undefined');
-									
+
 									it('should return series callback with result = undefined');
 								});
-	
+
 								it('should call modules.blocks.isActive.set with false');
 							});
 						});
@@ -470,60 +471,60 @@ describe('blocks/chain', function () {
 		describe('popLastBlock', function () {
 
 			describe('call library.balancesSequence.add', function () {
-				
+
 				it('should call modules.blocks.utils.loadBlocksPart');
-				
+
 				it('should call modules.blocks.utils.loadBlocksPart with { id: oldLastBlock.previousBlock }');
 
 				describe('when modules.blocks.utils.loadBlocksPart fails', function () {
 
 					it('should call callback with error');
 				});
-				
+
 				describe('when modules.blocks.utils.loadBlocksPart succeeds', function () {
-					
+
 					describe('when previousBlock is null', function () {
 
 						it('should call callback with "previousBlock is null"');
 					});
-					
+
 					describe('for every oldLastBlock.transactions', function () {
-						
+
 						it('should call modules.accounts.getAccount');
-						
+
 						it('should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}');
 
 						describe('when modules.accounts.getAccount fails', function () {
-							
+
 							it('should call library.logger.error with error');
-							
+
 							it('should call library.logger.error "Failed to undo transactions"');
-							
+
 							it('should call process.exit with 0');
 						});
-						
+
 						describe('when modules.accounts.getAccount succeeds', function () {
-							
+
 							it('should call modules.transactions.undo');
-							
+
 							it('should call modules.transactions.undo with transaction');
-							
+
 							it('should call modules.transactions.undo with oldLastBlock');
-							
+
 							it('should call modules.transactions.undo with sender');
-							
+
 							it('should call modules.transactions.undoUnconfirmed');
-							
+
 							it('should call modules.transactions.undoUnconfirmed with transaction');
-							
+
 							it('should call self.deleteBlock');
-							
+
 							it('should call self.deleteBlock with oldLastBlock.id');
-							
+
 							describe('when self.deleteBlock fails', function () {
-								
+
 								it('should call library.logger.error with error');
-								
+
 								it('should call library.logger.error with "Failed to delete block"');
 
 								it('should call process.exit with 0');
@@ -532,9 +533,9 @@ describe('blocks/chain', function () {
 							describe('when self.deleteBlock succeeds', function () {
 
 								it('should call callback');
-								
+
 								it('should call callback with error = null');
-								
+
 								it('should call callback with result = previousBlock');
 							});
 						});
@@ -554,19 +555,19 @@ describe('blocks/chain', function () {
 
 			it('should call callback with error "Cannot delete genesis block');
 		});
-		
+
 		it('should call __private.popLastBlock');
-		
+
 		it('should call __private.popLastBlock with lastBlock');
 
 		describe('when __private.popLastBlock fails', function () {
-			
+
 			it('should call logger.error with "Error deleting last block"');
-			
+
 			it('should call logger.error with lastBlock');
-			
+
 			it('should call callback with error');
-			
+
 			it('should call callback with lastBlock');
 		});
 		describe('when __private.popLastBlock succeeds', function () {
@@ -582,20 +583,20 @@ describe('blocks/chain', function () {
 	describe('recoverChain', function () {
 
 		it('should call logger.warn with warning');
-		
+
 		it('should call self.deleteLastBlock');
 
 		describe('when self.deleteLastBlock fails', function () {
-			
+
 			it('should call logger.error with "Recovery failed"');
-			
+
 			it('should return callback with error');
 		});
-		
+
 		describe('when self.deleteLastBlock succeeds', function () {
-			
+
 			it('should call logger.info with newLastBlock.id');
-			
+
 			it('should call logger.info with "Recovery complete, new last block"');
 
 			it('should call callback with error = null');
@@ -603,7 +604,7 @@ describe('blocks/chain', function () {
 	});
 
 	describe('onBind', function () {
-		
+
 		it('should call logger.trace with "Blocks->Chain: Shared modules bind."');
 
 		it('should set __private.loaded = true');
