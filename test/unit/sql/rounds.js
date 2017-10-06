@@ -152,7 +152,7 @@ describe('Rounds-related SQL triggers', function () {
 			node.initApplication(function (err, scope) {
 				library = scope;
 				done(err);
-			}, {db: __db, noWaitForGenesisBlock: true});
+			}, {db: __db, waitForGenesisBlock: true});
 		});
 	});
 

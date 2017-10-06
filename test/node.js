@@ -607,13 +607,13 @@ node.initApplication = function (cb, initScope) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {
 				// Wait for genesis block's transactions to be applied into mem_accounts
-				if (!initScope.noWaitForGenesisBlock) {
+				if (!initScope.waitForGenesisBlock) {
 					return cb(err, scope);
 				}
 			};
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			if (initScope.noWaitForGenesisBlock || initScope.bus) {
+			if (initScope.waitForGenesisBlock || initScope.bus) {
 				return cb(err, scope);
 			}
 		});
