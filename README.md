@@ -4,6 +4,8 @@ Lisky allows you to communicate with a remote or local node and carry out Lisk-r
 
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisky/development)](https://jenkins.lisk.io/job/lisky/job/development/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+<a href="https://david-dm.org/LiskyHQ/lisky"><img src="https://david-dm.org/LiskyHQ/lisky.svg" alt="Dependency Status"></a>
+<a href="https://david-dm.org/LiskyHQ/lisky/?type=dev"><img src="https://david-dm.org/LiskyHQ/lisky/dev-status.svg" alt="devDependency Status"></a>
 
 ## Prerequisites
 
