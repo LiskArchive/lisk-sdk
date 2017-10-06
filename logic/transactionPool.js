@@ -90,8 +90,8 @@ TransactionPool.prototype.bind = function (accounts, transactions, loader) {
 };
 
 /**
- * Returns true if at least one of the index values are grather than 0.
- * Index values: unconfirmed, bundled, queued, multisignature.
+ * Returns true if index exists in at least one lists of indexes.
+ * Lists: unconfirmed, bundled, queued, multisignature.
  * @param {string} id
  * @return {boolean}
  */
@@ -101,9 +101,9 @@ TransactionPool.prototype.transactionInPool = function (id) {
 		self.bundled.index[id],
 		self.queued.index[id],
 		self.multisignature.index[id]
-	].filter(function (inList) {
-		return inList !== undefined;
-	}).length > 0;
+	].some(function (index) {
+		return typeof(index) === 'number';
+	});
 };
 
 /**
