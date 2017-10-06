@@ -84,6 +84,7 @@ describe('inTransfer', function () {
 	var trs;
 	var rawTrs; 
 	var sender;
+	var dummyBlock;
 
 	before(function () {
 		dbStub = {
@@ -115,9 +116,20 @@ describe('inTransfer', function () {
 		trs = _.cloneDeep(validTransaction);
 		rawTrs = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
+		dummyBlock = {
+			id: '9314232245035524467',
+			height: 1
+		};
 	});
 
 	describe('constructor', function () {
+
+		describe('library', function () {
+
+			it('should assign db');
+
+			it('should assign schema');
+		});
 
 		it('should be attach schema and logger to library variable', function () {
 			new InTransfer(dbStub, modulesLoader.scope.schema);
@@ -132,6 +144,13 @@ describe('inTransfer', function () {
 	});
 
 	describe('bind', function () {
+
+		describe('modules', function () {
+
+			it('should assign accounts');
+		});
+
+		it('should assign shared');
 
 		it('should be okay with empty params', function () {
 			inTransfer.bind();
@@ -150,12 +169,70 @@ describe('inTransfer', function () {
 
 	describe('calculateFee', function () {
 
+		it('should return constants.fees.send');
+
 		it('should return the correct fee for second signature transaction', function () {
 			expect(inTransfer.calculateFee(trs)).to.equal(node.constants.fees.send);
 		});
 	});
 
 	describe('verify', function () {
+
+		describe('when trs.recipientId exists', function () {
+
+			it('should call callback with error = "Invalid recipient"');
+		});
+
+		describe('when trs.amount does not exist', function () {
+
+			it('should call callback with error = "Invalid transaction amount"');
+		});
+
+		describe('when trs.amount = 0', function () {
+
+			it('should call callback with error = "Invalid transaction amount"');
+		});
+
+		describe('when trs.asset does not exist', function () {
+
+			it('should call callback with error = "Invalid transaction asset"');
+		});
+
+		describe('when trs.asset.inTransfer does not exist', function () {
+
+			it('should call callback with error = "Invalid transaction asset"');
+		});
+
+		describe('when trs.asset.inTransfer = 0', function () {
+
+			it('should call callback with error = "Invalid transaction asset"');
+		});
+
+		it('should call library.db.one');
+
+		it('should call library.db.one with sql.countByTransactionId');
+
+		it('should call library.db.one with {id: trs.asset.inTransfer.dappId}');
+
+		describe('when library.db.one fails', function () {
+
+			it('should call callback with error');
+		});
+
+		describe('when library.db.one succeeds', function () {
+
+			describe('when dapp exists', function () {
+
+				it('should call callback with error = undefined');
+
+				it('should call callback with result = undefined');
+			});
+
+			describe('when dapp does not exist', function () {
+
+				it('should call callback with error');
+			});
+		});
 
 		it('should return error if receipient exists', function (done) {
 			trs.recipientId = '4835566122337813671L';
@@ -242,31 +319,92 @@ describe('inTransfer', function () {
 
 	describe('process', function () {
 
-		it('should call the callback', function (done) {
-			inTransfer.process(trs, sender, done);
+		it('should call callback with error = null', function (done) {
+			inTransfer.process(trs, sender, function (err) {
+				expect(err).to.be.null;
+				done();
+			});
+		});
+
+		it('should call callback with result = transaction', function (done) {
+			inTransfer.process(trs, sender, function (err, result) {
+				expect(result).to.eql(trs);
+				done();
+			});
 		});
 	});
 
 	describe('getBytes', function () {
 
-		it('should get bytes of valid transaction', function () {
-			expect(inTransfer.getBytes(trs).toString('hex')).to.equal('37343030323032313237363935343134343530');
+		describe('when trs.asset.inTransfer.dappId = undefined', function () {
+
+			beforeEach(function () {
+				trs.asset.inTransfer.dappId = undefined;
+			});
+
+			it('should throw', function () {
+				expect(inTransfer.getBytes.bind(null, trs)).to.throw;
+			});
 		});
 
-		it('should get bytes of valid transaction', function () {
-			expect(inTransfer.getBytes(trs).length).to.be.lte(20);
+		describe('when trs.asset.inTransfer.dappId is a valid dapp id', function () {
+
+			it('should not throw', function () {
+				expect(inTransfer.getBytes.bind(null, trs)).not.to.throw;
+			});
+
+			it('should get bytes of valid transaction', function () {
+				expect(inTransfer.getBytes(trs).toString('utf8')).to.equal(validTransaction.asset.inTransfer.dappId);
+			});
+
+			it('should return result as a Buffer type', function () {
+				expect(inTransfer.getBytes(trs)).to.be.instanceOf(Buffer);
+			});
 		});
 	});
 
 	describe('apply', function () {
 
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
+		it('should call shared.getGenesis');
+
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}');
+
+		describe('when shared.getGenesis fails', function () {
+
+			it('should call callback with error');
+		});
+
+		describe('when shared.getGenesis succeeds', function () {
+
+			it('should call modules.accounts.mergeAccountAndGet');
+
+			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId');
+
+			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount');
+
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount');
+
+			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id');
+
+			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result');
+
+			describe('when modules.accounts.mergeAccountAndGet fails', function () {
+
+				it('should call callback with error');
+			});
+
+			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
+
+				it('should call callback with error = undefined');
+
+				it('should call callback with result = undefined');
+			});
+		});
 
 		it('should return error if dapp does not exist', function (done) {
+
 			var error = 'Application genesis block not found';
+
 			sharedStub.getGenesis.withArgs({
 				dappid: trs.asset.inTransfer.dappId
 			}, sinon.match.any).yields(error);
@@ -302,10 +440,41 @@ describe('inTransfer', function () {
 
 	describe('undo', function () {
 
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
+		it('should call shared.getGenesis');
+
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}');
+
+		describe('when shared.getGenesis fails', function () {
+
+			it('should call callback with error');
+		});
+
+		describe('when shared.getGenesis succeeds', function () {
+
+			it('should call modules.accounts.mergeAccountAndGet');
+
+			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId');
+
+			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount');
+
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount');
+
+			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id');
+
+			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result');
+
+			describe('when modules.accounts.mergeAccountAndGet fails', function () {
+
+				it('should call callback with error');
+			});
+
+			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
+
+				it('should call callback with error = undefined');
+
+				it('should call callback with result = undefined');
+			});
+		});
 
 		it('should return error if dapp does not exist', function (done) {
 			var error = 'Application genesis block not found';
@@ -348,19 +517,57 @@ describe('inTransfer', function () {
 
 	describe('applyUnconfirmed', function () {
 
-		it('should call the callback function', function (done) {
-			inTransfer.applyUnconfirmed(trs, sender, done);
+		it('should call callback with error = undefined', function (done) {
+			inTransfer.applyUnconfirmed(trs, sender, function (err) {
+				expect(err).to.be.undefined;
+				done();
+			});
+		});
+
+		it('should call callback with result = undefined', function (done) {
+			inTransfer.applyUnconfirmed(trs, sender, function (err, result) {
+				expect(result).to.be.undefined;
+				done();
+			});
 		});
 	});
 
 	describe('undoUnconfirmed', function () {
 
-		it('should call the callback function', function (done) {
-			inTransfer.undoUnconfirmed(trs, sender, done);
+		it('should call callback with error = undefined', function (done) {
+			inTransfer.undoUnconfirmed(trs, sender, function (err) {
+				expect(err).to.be.undefined;
+				done();
+			});
+		});
+
+		it('should call callback with result = undefined', function (done) {
+			inTransfer.undoUnconfirmed(trs, sender, function (err, result) {
+				expect(result).to.be.undefined;
+				done();
+			});
 		});
 	});
 
 	describe('objectNormalize', function () {
+
+		it('should call library.schema.validate');
+
+		it('should call library.schema.validate with trs.asset.inTransfer');
+
+		it('should call library.schema.validate InTransfer.prototype.schema');
+
+		describe('when transaction is invalid', function () {
+
+			it('should throw', function () {
+
+			});
+		});
+
+		describe('when transaction is valid', function () {
+
+			it('should return transaction');
+		});
 
 		it('should use the correct format to validate against', function () {
 			var library = InTransfer.__get__('library');
@@ -386,22 +593,40 @@ describe('inTransfer', function () {
 
 	describe('dbRead', function () {
 
-		it('should return null dappId does not exist', function () {
-			delete rawTrs.in_dappId;
+		describe('when raw.in_dappId does not exist', function () {
 
-			expect(inTransfer.dbRead(rawTrs)).to.eql(null);
+			beforeEach(function () {
+				delete rawTrs.in_dappId;
+			});
+
+			it('should return null', function () {
+				expect(inTransfer.dbRead(rawTrs)).to.eql(null);
+			});
 		});
 
-		it('should be okay for valid input', function () {
-			expect(inTransfer.dbRead(rawTrs)).to.eql({
-				inTransfer: {
-					dappId: trs.asset.inTransfer.dappId
-				}
+		describe('when raw.in_dappId exists', function () {
+
+			it('should return result containing inTransfer', function () {
+				expect(inTransfer.dbRead(rawTrs)).to.have.property('inTransfer');
+			});
+
+			it('should return result containing inTransfer.dappId = raw.dapp_id', function () {
+				expect(inTransfer.dbRead(rawTrs)).to.have.nested.property('inTransfer.dappId').equal(rawTrs.in_dappId);
 			});
 		});
 	});
 
 	describe('dbSave', function () {
+
+		it('should return result containing table = "intransfer"');
+
+		it('should return result containing fields = ["dappId", "transactionId"]');
+
+		it('should return result containing values');
+
+		it('should return result containing values.dappId = trs.asset.inTransfer.dappId');
+
+		it('should return result containing values.transactionId = trs.id');
 
 		it('should be okay for valid input', function () {
 			expect(inTransfer.dbSave(trs)).to.eql({
@@ -415,6 +640,17 @@ describe('inTransfer', function () {
 					transactionId: trs.id
 				}
 			});
+		});
+	});
+
+	describe('afterSave', function () {
+
+		it('should call callback with error = undefined', function () {
+
+		});
+
+		it('should call callback with result = undefined', function () {
+
 		});
 	});
 
@@ -436,7 +672,7 @@ describe('inTransfer', function () {
 
 			delete trs.signature;
 			// Not really correct signature, but we are not testing that over here
-			trs.signature = crypto.randomBytes(64).toString('hex');;
+			trs.signature = crypto.randomBytes(64).toString('hex');
 			trs.signatures = [crypto.randomBytes(64).toString('hex')];
 
 			expect(inTransfer.ready(trs, sender)).to.equal(true);
