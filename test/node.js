@@ -605,16 +605,17 @@ node.initApplication = function (cb, initScope) {
 			}]
 		}, function (err, scope) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
-			scope.modules.delegates.onBlockchainReady = function () {};
+			scope.modules.delegates.onBlockchainReady = function () {
+				// Wait for genesis block's transactions to be applied into mem_accounts
+				if (!initScope.noWaitForGenesisBlock) {
+					return cb(err, scope);
+				}
+			};
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
 			if (initScope.noWaitForGenesisBlock) {
 				return cb(err, scope);
 			}
-			// Wait for genesis block's transactions to be applied into mem_accounts
-			setTimeout(function () {
-				cb(err, scope);
-			}, 5000);
 		});
 	});
 };
