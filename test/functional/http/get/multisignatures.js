@@ -3,9 +3,9 @@
 var async = require('async');
 var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
-var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
-var sendSignature = require('../../../common/complexTransactions.js').sendSignature;
+var sendLISK = require('../../../common/apiHelpers.js').sendLISK;
+var sendTransaction = require('../../../common/apiHelpers.js').sendTransaction;
+var sendSignature = require('../../../common/apiHelpers.js').sendSignature;
 
 var multisigAccount = node.randomAccount();
 var multisigTransaction;

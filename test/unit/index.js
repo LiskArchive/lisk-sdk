@@ -24,6 +24,7 @@ var paths = [
 	'./logic/peers.js',
 	'./logic/multisignature.js',
 	'./logic/transaction.js',
+	'./logic/transactionPool',
 	'./logic/transfer.js',
 	'./logic/vote.js',
 

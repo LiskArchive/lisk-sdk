@@ -1,9 +1,9 @@
 'use strict';
 
-var node = require('../../../node.js');
-var http = require('../../../common/httpCommunication.js');
-var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
+var node = require('../../../node');
+var http = require('../../../common/httpCommunication');
+var sendLISK = require('../../../common/complexTransactions').sendLISK;
+var sendTransaction = require('../../../common/complexTransactions').sendTransaction;
 var modulesLoader = require('../../../common/modulesLoader');
 var genesisDelegates = require('../../../genesisDelegates.json');
 var testDelegate = genesisDelegates.delegates[0];

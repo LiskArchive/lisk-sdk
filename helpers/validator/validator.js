@@ -84,9 +84,9 @@ Validator.prototype.getRule = function (name) {
 /**
  * Validate values with specified rules set
  * @param {*} value
- * @param {object} rules Set of rules
+ * @param {Object} rules Set of rules
  * @param {function} callback Result callback (err:Error,report:Array,output:*)=
- * @returns {object} report
+ * @returns {Object} report
  * @throws {err} If finish err parameter is true
  * @throws {Error} If callback, async and finished are not valids
  * @todo debug this function and adjust callback function parameter
@@ -155,7 +155,7 @@ Validator.prototype.Field = Field;
  * Create field instance
  * @param {string|string[]} path Field path
  * @param {*} value Validated value
- * @param {object} rules Rule set
+ * @param {Object} rules Rule set
  * @param {*=} thisArg This reference for Validation methods. Optional
  * @returns {Validator.Field}
  */
@@ -235,8 +235,8 @@ Validator.options = {
 /**
  * Validate with fast initialization. Use `options` property for constructor instance;
  * @param {*} value Validated value
- * @param {object} rules Set of rules
- * @param {object} customRules Customized rule set. Optional
+ * @param {Object} rules Set of rules
+ * @param {Object} customRules Customized rule set. Optional
  * @param {function} callback assign customRules if it is a function
  * @returns {instance} instance
  */

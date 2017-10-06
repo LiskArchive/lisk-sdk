@@ -90,7 +90,7 @@ Blocks.prototype.lastBlock = {
 	 * Returns status of last block - if it fresh or not
 	 *
 	 * @function isFresh
-	 * @return {Boolean} Fresh status of last block
+	 * @return {boolean} Fresh status of last block
 	 */
 	isFresh: function () {
 		if (!__private.lastBlock) { return false; }
@@ -119,7 +119,7 @@ Blocks.prototype.lastReceipt = {
 	 *
 	 * @public
 	 * @method lastReceipt.isStale
-	 * @return {Boolean} Stale status of last receipt
+	 * @return {boolean} Stale status of last receipt
 	 */
 	isStale: function () {
 		if (!__private.lastReceipt) { return true; }
@@ -162,8 +162,8 @@ Blocks.prototype.onBind = function (scope) {
  * @public
  * @method cleanup
  * @listens module:app~event:cleanup
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  */
 Blocks.prototype.cleanup = function (cb) {
 	__private.loaded = false;

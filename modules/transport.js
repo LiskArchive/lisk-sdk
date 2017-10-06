@@ -152,9 +152,9 @@ __private.receiveSignatures = function (query, cb) {
  * @private
  * @implements {library.schema.validate}
  * @implements {modules.multisignatures.processSignature}
- * @param {object} query
+ * @param {Object} query
  * @param {string} query.signature
- * @param {object} query.transaction
+ * @param {Object} query.transaction
  * @return {setImmediateCallback} cb | error messages
  */
 __private.receiveSignature = function (query, cb) {
