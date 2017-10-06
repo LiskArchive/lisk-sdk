@@ -613,7 +613,7 @@ node.initApplication = function (cb, initScope) {
 			};
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			if (initScope.noWaitForGenesisBlock) {
+			if (initScope.noWaitForGenesisBlock || initScope.bus) {
 				return cb(err, scope);
 			}
 		});

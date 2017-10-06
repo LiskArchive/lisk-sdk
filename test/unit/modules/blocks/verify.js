@@ -247,7 +247,10 @@ describe('blocks/verify', function () {
 			blocks = scope.modules.blocks;
 			delegates = scope.modules.delegates;
 			db = scope.db;
-			done();
+			// Bus gets overwritten - waiting for mem_accounts has to be done manually
+			setTimeout(function () {
+				done();
+			}, 5000);
 		}, {db: db, bus: modulesLoader.scope.bus});
 	});
 
