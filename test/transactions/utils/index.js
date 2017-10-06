@@ -17,8 +17,8 @@ import { getTransactionBytes, prepareTransaction } from '../../../src/transactio
 describe('transaction utils', () => {
 	describe('exports', () => {
 		it('should have getTransactionBytes and prepareTransaction functions', () => {
-			(getTransactionBytes).should.be.ok().and.be.type('function');
-			(prepareTransaction).should.be.ok().and.be.type('function');
+			(getTransactionBytes).should.be.type('function');
+			(prepareTransaction).should.be.type('function');
 		});
 	});
 });

@@ -12,7 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import getTransactionBytes from './transactionBytes';
-import prepareTransaction from './prepareTransaction';
-
-export { getTransactionBytes, prepareTransaction };
+export { default as getTransactionBytes } from './getTransactionBytes';
+export { default as prepareTransaction } from './prepareTransaction';

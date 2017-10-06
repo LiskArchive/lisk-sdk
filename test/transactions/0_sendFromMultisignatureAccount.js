@@ -83,13 +83,13 @@ describe('#sendFromMultisignatureAccount transaction', () => {
 				(sendFromMultisignatureAccountTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(keys.publicKey);
 			});
 
-			it('should have requesterPublicKey hex string equal to provided requester public key', () => {
+			it('should have requesterPublicKey equal to provided requester public key', () => {
 				(sendFromMultisignatureAccountTransaction.requesterPublicKey).should.be.equal(
 					requesterPublicKey,
 				);
 			});
 
-			it('should have requesterPublicKey hex string equal to sender public key if requester public key is not provided', () => {
+			it('should have requesterPublicKey equal to senderPublicKey', () => {
 				sendFromMultisignatureAccountTransaction = sendFromMultisignatureAccount(
 					recipientId,
 					amount,

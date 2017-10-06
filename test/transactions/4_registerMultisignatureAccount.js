@@ -30,15 +30,16 @@ describe('#registerMultisignatureAccount transaction', () => {
 		privateKey: '9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
 	};
 	const timeWithOffset = 38350076;
-	const keysgroup = ['+123456789', '-987654321'];
 	const lifetime = 5;
 	const min = 2;
 
+	let keysgroup;
 	let getTimeWithOffsetStub;
 	let registerMultisignatureTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		keysgroup = ['+123456789', '-987654321'];
 	});
 
 	describe('without second secret', () => {

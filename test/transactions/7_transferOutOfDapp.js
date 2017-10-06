@@ -135,7 +135,7 @@ describe('#transferOutOfDapp', () => {
 				);
 			});
 
-			it('should create an transfer out of dapp transaction with a second secret', () => {
+			it('should create a transfer out of dapp transaction with a second secret', () => {
 				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp(
 					dappId, transactionId, recipientId, amount, secret,
 				);
@@ -145,7 +145,7 @@ describe('#transferOutOfDapp', () => {
 				);
 			});
 
-			describe('returned transfer out of transaction', () => {
+			describe('returned transfer out of dapp transaction', () => {
 				it('should have second signature hex string', () => {
 					(transferOutOfDappTransaction).should.have.property('signSignature').and.be.hexString();
 				});
