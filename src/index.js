@@ -23,15 +23,7 @@ import naclFactory from 'js-nacl';
 import crypto from './crypto';
 import api from './api/liskApi';
 import slots from './time/slots';
-import send from './transactions/0_send';
-import sendFromMultisignatureAccount from './transactions/0_sendFromMultisignatureAccount';
-import registerSecondSignature from './transactions/1_registerSecondSignature';
-import registerDelegate from './transactions/2_registerDelegate';
-import castVotes from './transactions/3_castVotes';
-import registerMultisignature from './transactions/4_registerMultisignatureAccount';
-import createDapp from './transactions/5_createDapp';
-import transferIntoDapp from './transactions/6_transferIntoDapp';
-import transferOutOfDapp from './transactions/7_transferOutOfDapp';
+import transaction from './transactions';
 
 global.naclFactory = naclFactory;
 
@@ -39,18 +31,6 @@ global.naclInstance = null;
 naclFactory.instantiate((nacl) => {
 	naclInstance = nacl;
 });
-
-const transaction = Object.assign({},
-	send,
-	registerSecondSignature,
-	registerDelegate,
-	castVotes,
-	createDapp,
-	registerMultisignature,
-	transferIntoDapp,
-	transferOutOfDapp,
-	sendFromMultisignatureAccount,
-);
 
 export {
 	crypto,
