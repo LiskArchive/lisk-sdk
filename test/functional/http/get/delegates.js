@@ -2,8 +2,8 @@
 
 var node = require('../../../node');
 var http = require('../../../common/httpCommunication');
-var sendLISK = require('../../../common/complexTransactions').sendLISK;
-var sendTransaction = require('../../../common/complexTransactions').sendTransaction;
+var sendLISK = require('../../../common/apiHelpers').sendLISK;
+var sendTransaction = require('../../../common/apiHelpers').sendTransaction;
 var modulesLoader = require('../../../common/modulesLoader');
 var genesisDelegates = require('../../../genesisDelegates.json');
 var testDelegate = genesisDelegates.delegates[0];

@@ -2,7 +2,7 @@
 
 var node = require('../../../node');
 var transactionSortFields = require('../../../../sql/transactions').sortFields;
-var modulesLoader = require('../../../common/initModule');
+var modulesLoader = require('../../../common/modulesLoader');
 var transactionTypes = require('../../../../helpers/transactionTypes');
 var genesisblock = require('../../../genesisBlock.json');
 
