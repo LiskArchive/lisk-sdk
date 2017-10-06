@@ -152,7 +152,7 @@ describe('dapp', function () {
 
 		describe('calculateFee', function () {
 
-			it('should return the correct fee for second signature transaction', function () {
+			it('should return constants.fees.dapp', function () {
 				expect(dapp.calculateFee(trs)).to.equal(node.constants.fees.dapp);
 			});
 		});
@@ -161,138 +161,182 @@ describe('dapp', function () {
 
 			describe('with invalid transaction', function () {
 
-				it('should call callback with error if receipient exists', function (done) {
-					trs.recipientId = '4835566122337813671L';
+				describe('when receipientId exists', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid recipient');
-						done();
+					it('should call callback with error = "Invalid recipient"', function (done) {
+						trs.recipientId = '4835566122337813671L';
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid recipient');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if amount is not equal to 0', function (done) {
-					trs.amount = 1;
+				describe('when amount is not equal to 0', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid transaction amount');
-						done();
+					it('should call callback with error = "Invalid transaction amount"', function (done) {
+						trs.amount = 1;
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid transaction amount');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp cateogry is undefined', function (done) {
-					trs.asset.dapp.category = undefined;
+				describe('when dapp cateogry is undefined', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid application category');
-						done();
+					it('should call callback with error "Invalid application category"', function (done) {
+						trs.asset.dapp.category = undefined;
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid application category');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp cateogry not found', function (done) {
-					trs.asset.dapp.category = 9;
+				describe('when dapp cateogry not found', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Application category not found');
-						done();
+					it('should call callback with error "Application category not found"', function (done) {
+						trs.asset.dapp.category = 9;
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Application category not found');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp icon is not link', function (done) {
-					trs.asset.dapp.icon = 'random string';
+				describe('when dapp icon is not link', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid application icon link');
-						done();
+					it('should call callback with error = "Invalid application icon link"', function (done) {
+						trs.asset.dapp.icon = 'random string';
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid application icon link');
+							done();
+						});
+					});
+				});
+				
+				describe('when dapp icon link is invalid', function () {
+
+					it('should call callback with error = "Invalid application icon file type"', function (done) {
+						trs.asset.dapp.icon = 'https://www.youtube.com/watch?v=de1-igivvda';
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid application icon file type');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp icon link is invalid', function (done) {
-					trs.asset.dapp.icon = 'https://www.youtube.com/watch?v=de1-igivvda';
+				describe('when dapp type is invalid', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid application icon file type');
-						done();
+					it('should call callback with error = "Invalid application type"', function (done) {
+						trs.asset.dapp.type = -1;
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid application type');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp type is invalid', function (done) {
-					trs.asset.dapp.type = -1;
+				describe('when dapp link is not an actually link', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid application type');
-						done();
+					it('should call callback with error = "Invalid application link"', function (done) {
+						trs.asset.dapp.link = 'random string';
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid application link');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp link is not actually a link', function (done) {
-					trs.asset.dapp.link = 'random string';
+				describe('when dapp link is invalid', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid application link');
-						done();
+					it('should call callback with error = "Invalid application file type"', function (done) {
+						trs.asset.dapp.link = 'https://www.youtube.com/watch?v=de1-igivvda';
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Invalid application file type');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp link is invalid', function (done) {
-					trs.asset.dapp.link = 'https://www.youtube.com/watch?v=de1-igivvda';
+				describe('when dapp name is blank', function () {
+					it('should call callback with error = "Application name must not be blank"', function (done) {
+						trs.asset.dapp.name = '  ';
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Invalid application file type');
-						done();
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Application name must not be blank');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp name is blank', function (done) {
-					trs.asset.dapp.name = '  ';
+				describe('when dapp name starts and ends with space', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Application name must not be blank');
-						done();
+					it('should call callback with error = "Application name must not be blank"', function (done) {
+						trs.asset.dapp.name = ' randomname ';
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Application name must not be blank');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp name starts and ends with spac', function (done) {
-					trs.asset.dapp.name = ' randomname ';
+				describe('when dapp name is longer than 32 characters', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Application name must not be blank');
-						done();
+					it('should call callback with error = "Application name is too long. Maximum is 32 characters"', function (done) {
+						trs.asset.dapp.name = Array.apply(null, Array(33)).map(function () { return 'a';}).join('');
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Application name is too long. Maximum is 32 characters');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp name is longer than 32 characters', function (done) {
-					trs.asset.dapp.name = Array.apply(null, Array(33)).map(function () { return 'a';}).join('');
+				describe('when dapp description is longer than 160 characters', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Application name is too long. Maximum is 32 characters');
-						done();
+					it('should call callback with error = "Application description is too long. Maximum is 160 characters"', function (done) {
+						trs.asset.dapp.description = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Application description is too long. Maximum is 160 characters');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp description is longer than 160 characters', function (done) {
-					trs.asset.dapp.description = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
+				describe('when dapp tags are longer than 160 characters', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Application description is too long. Maximum is 160 characters');
-						done();
+					it('should call callback with error = "Application tags is too long. Maximum is 160 characters"', function (done) {
+						trs.asset.dapp.tags = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
+
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
+							done();
+						});
 					});
 				});
 
-				it('should call callback with error if dapp tags are longer than 160 characters', function (done) {
-					trs.asset.dapp.tags = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
+				describe('when dapp tags duplicate', function () {
 
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
-						done();
-					});
-				});
+					it('should call callback with error = "Encountered duplicate tag: a in application"', function (done) {
+						trs.asset.dapp.tags = Array.apply(null, Array(3)).map(function () { return 'a';}).join(',');
 
-				it('should call callback with error if dapp tags duplicate', function (done) {
-					trs.asset.dapp.tags = Array.apply(null, Array(3)).map(function () { return 'a';}).join(',');
-
-					dapp.verify(trs, sender, function (err) {
-						expect(err).to.equal('Encountered duplicate tag: a in application');
-						done();
+						dapp.verify(trs, sender, function (err) {
+							expect(err).to.equal('Encountered duplicate tag: a in application');
+							done();
+						});
 					});
 				});
 
@@ -300,7 +344,7 @@ describe('dapp', function () {
 
 					var dbError = new Error(); 
 
-					it('should call callback with error if database returns error', function (done) {
+					it('should call callback with error = "DApp#verify error"', function (done) {
 						dbStub.query.withArgs(sql.getExisting, {
 							name: trs.asset.dapp.name,
 							link: trs.asset.dapp.link || null,
@@ -593,7 +637,7 @@ describe('dapp', function () {
 					expect(trs).to.not.have.property('dummyUndefinedProperty');
 				});
 
-				it('should remove undefined properties', function () {
+				it('should remove null properties', function () {
 					trs = dapp.objectNormalize(trs);
 					expect(trs).to.not.have.property('dummpyNullProperty');
 				});
@@ -637,7 +681,7 @@ describe('dapp', function () {
 
 					invalidTypes.forEach(function (type) {
 
-						it.only('should throw error for: ' + type.description, function () {
+						it('should throw error for: ' + type.description, function () {
 							trs.asset.dapp.category = type.input;
 							expect(dapp.objectNormalize.bind(null, trs)).to.throw('Failed to validate dapp schema: Expected type integer but found type ' + type.expectation);
 						});
@@ -993,459 +1037,459 @@ describe('dapp', function () {
 
 				expect(dapp.ready(trs, sender)).to.equal(true);
 			});
-	});
-
-	beforeEach(function () {
-		dbStub.query.reset();
-	});
-
-	beforeEach(function () {
-		trs = _.cloneDeep(validTransaction);
-		rawTrs = _.cloneDeep(rawValidTransaction);
-		sender = _.cloneDeep(validSender);
-	});
-
-	describe('constructor', function () {
-
-		it('should be attach schema and logger to library variable', function () {
-			new Dapp(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
-			var library = Dapp.__get__('library');
-
-			expect(library).to.eql({
-				db: dbStub,
-				logger: modulesLoader.scope.logger,
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network
-			});
 		});
-	});
 
-	describe('bind', function () {
-
-		it('should be okay with empty params', function () {
-			dapp.bind();
+		beforeEach(function () {
+			dbStub.query.reset();
 		});
-	});
 
-	describe('calculateFee', function () {
-
-		it('should return the correct fee for second signature transaction', function () {
-			expect(dapp.calculateFee(trs)).to.equal(node.constants.fees.dapp);
+		beforeEach(function () {
+			trs = _.cloneDeep(validTransaction);
+			rawTrs = _.cloneDeep(rawValidTransaction);
+			sender = _.cloneDeep(validSender);
 		});
-	});
 
-	describe('verify', function () {
+		describe('constructor', function () {
 
-		it('should return error if receipient exists', function (done) {
-			trs.recipientId = '4835566122337813671L';
+			it('should be attach schema and logger to library variable', function () {
+				new Dapp(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
+				var library = Dapp.__get__('library');
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid recipient');
-				done();
+				expect(library).to.eql({
+					db: dbStub,
+					logger: modulesLoader.scope.logger,
+					schema: modulesLoader.scope.schema,
+					network: modulesLoader.scope.network
+				});
 			});
 		});
 
-		it('should return error if amount is not equal to 0', function (done) {
-			trs.amount = 1;
+		describe('bind', function () {
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid transaction amount');
-				done();
+			it('should be okay with empty params', function () {
+				dapp.bind();
 			});
 		});
 
-		it('should return error if dapp cateogry is undefined', function (done) {
-			trs.asset.dapp.category = undefined;
+		describe('calculateFee', function () {
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application category');
-				done();
+			it('should return the correct fee for second signature transaction', function () {
+				expect(dapp.calculateFee(trs)).to.equal(node.constants.fees.dapp);
 			});
 		});
 
-		it('should return error if dapp cateogry not found', function (done) {
-			trs.asset.dapp.category = 9;
+		describe('verify', function () {
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application category not found');
-				done();
+			it('should return error if receipient exists', function (done) {
+				trs.recipientId = '4835566122337813671L';
+
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid recipient');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp icon is not link', function (done) {
-			trs.asset.dapp.icon = 'random string';
+			it('should return error if amount is not equal to 0', function (done) {
+				trs.amount = 1;
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application icon link');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction amount');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp icon link is invalid', function (done) {
-			trs.asset.dapp.icon = 'https://www.youtube.com/watch?v=de1-igivvda';
+			it('should return error if dapp cateogry is undefined', function (done) {
+				trs.asset.dapp.category = undefined;
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application icon file type');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid application category');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp type is invalid', function (done) {
-			trs.asset.dapp.type = -1;
+			it('should return error if dapp cateogry not found', function (done) {
+				trs.asset.dapp.category = 9;
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application type');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application category not found');
+					done();
+				});
 			});
-		});
 
-		it('should not return error for valid type', function (done) {
-			trs.asset.dapp.type = 2;
+			it('should return error if dapp icon is not link', function (done) {
+				trs.asset.dapp.icon = 'random string';
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application type');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid application icon link');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp link is not actually a link', function (done) {
-			trs.asset.dapp.link = 'random string';
+			it('should return error if dapp icon link is invalid', function (done) {
+				trs.asset.dapp.icon = 'https://www.youtube.com/watch?v=de1-igivvda';
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application link');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid application icon file type');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp link is invalid', function (done) {
-			trs.asset.dapp.link = 'https://www.youtube.com/watch?v=de1-igivvda';
+			it('should return error if dapp type is invalid', function (done) {
+				trs.asset.dapp.type = -1;
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Invalid application file type');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid application type');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp name is blank', function (done) {
-			trs.asset.dapp.name = '  ';
+			it('should not return error for valid type', function (done) {
+				trs.asset.dapp.type = 2;
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name must not be blank');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid application type');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp name starts and ends with spac', function (done) {
-			trs.asset.dapp.name = ' randomname ';
+			it('should return error if dapp link is not actually a link', function (done) {
+				trs.asset.dapp.link = 'random string';
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name must not be blank');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid application link');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp name is longer than 32 characters', function (done) {
-			trs.asset.dapp.name = new Array(33).fill('a').join('');
+			it('should return error if dapp link is invalid', function (done) {
+				trs.asset.dapp.link = 'https://www.youtube.com/watch?v=de1-igivvda';
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name is too long. Maximum is 32 characters');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid application file type');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp description is longer than 160 characters', function (done) {
-			trs.asset.dapp.description = new Array(161).fill('a').join('');
+			it('should return error if dapp name is blank', function (done) {
+				trs.asset.dapp.name = '  ';
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application description is too long. Maximum is 160 characters');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application name must not be blank');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp tags are longer than 160 characters', function (done) {
-			trs.asset.dapp.tags = new Array(161).fill('a').join('');
+			it('should return error if dapp name starts and ends with spac', function (done) {
+				trs.asset.dapp.name = ' randomname ';
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application name must not be blank');
+					done();
+				});
 			});
-		});
 
-		it('should return error if dapp tags duplicate', function (done) {
-			trs.asset.dapp.tags = new Array(2).fill('a').join(',');
+			it('should return error if dapp name is longer than 32 characters', function (done) {
+				trs.asset.dapp.name = new Array(33).fill('a').join('');
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Encountered duplicate tag: a in application');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application name is too long. Maximum is 32 characters');
+					done();
+				});
 			});
-		});
 
-		it('should return error if application name already exists', function (done) {
-			dbStub.query.withArgs(sql.getExisting, {
-				name: trs.asset.dapp.name,
-				link: trs.asset.dapp.link || null,
-				transactionId: trs.id
-			}).resolves([{
-				name: trs.asset.dapp.name
-			}]);
+			it('should return error if dapp description is longer than 160 characters', function (done) {
+				trs.asset.dapp.description = new Array(161).fill('a').join('');
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application name already exists: ' + trs.asset.dapp.name);
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application description is too long. Maximum is 160 characters');
+					done();
+				});
 			});
-		});
 
-		it('should return error if application link already exists', function (done) {
-			dbStub.query.withArgs(sql.getExisting, {
-				name: trs.asset.dapp.name,
-				link: trs.asset.dapp.link || null,
-				transactionId: trs.id
-			}).resolves([{}]);
+			it('should return error if dapp tags are longer than 160 characters', function (done) {
+				trs.asset.dapp.tags = new Array(161).fill('a').join('');
 
-			dapp.verify(trs, sender, function (err) {
-				expect(err).to.equal('Application already exists');
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
+					done();
+				});
 			});
-		});
 
-		it('should return error if application link already exists', function (done) {
-			dbStub.query.withArgs(sql.getExisting, {
-				name: trs.asset.dapp.name,
-				link: trs.asset.dapp.link || null,
-				transactionId: trs.id
-			}).resolves([]);
+			it('should return error if dapp tags duplicate', function (done) {
+				trs.asset.dapp.tags = new Array(2).fill('a').join(',');
 
-			dapp.verify(trs, sender, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.eql(trs);
-				done();
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Encountered duplicate tag: a in application');
+					done();
+				});
 			});
-		});
-	});
 
-	describe('process', function () {
-
-		it('should call the callback', function (done) {
-			dapp.process(trs, sender, done);
-		});
-	});
-
-	describe('getBytes', function () {
-
-		it('should get bytes of valid transaction', function () {
-			expect(dapp.getBytes(trs).toString('hex')).to.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
-		});
-
-		it('should get bytes of valid transaction', function () {
-			expect(dapp.getBytes(trs).length).to.equal(93);
-		});
-
-	});
-
-	describe('apply', function () {
-
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
-
-		it('should update unconfirmed name and links private variables', function (done) {
-			dapp.apply(trs, dummyBlock, sender, function () {
-				var unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
-				var unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
-				expect(unconfirmedNames[trs.asset.dapp.name]).to.not.exist;
-				expect(unconfirmedLinks[trs.asset.dapp.link]).to.not.exist;
-				done();
-			});
-		});
-	});
-
-	describe('undo', function () {
-
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
-
-		it('should call the callback function', function (done) {
-			dapp.undo(trs, dummyBlock, sender, function () {
-				done();
-			});
-		});
-	});
-
-	describe('applyUnconfirmed', function () {
-
-		it('should return error if unconfirmed names already exists', function (done) {
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = true;
-			dappLinks[trs.asset.dapp.link] = false;
-
-			Dapp.__set__('__private.unconfirmedNames', dappNames);
-			Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-
-			dapp.applyUnconfirmed(trs, sender, function (err) {
-				expect(err).to.equal('Application name already exists');
-				done();
-			});
-		});
-
-		it('should return error if unconfirmed link already exists', function (done) {
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = false;
-			dappLinks[trs.asset.dapp.link] = true;
-
-			Dapp.__set__('__private.unconfirmedNames', dappNames);
-			Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-
-			dapp.applyUnconfirmed(trs, sender, function (err) {
-				expect(err).to.equal('Application link already exists');
-				done();
-			});
-		});
-
-		it('should update unconfirmed name and links private variable', function (done) {
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = false;
-			dappLinks[trs.asset.dapp.link] = false;
-
-			Dapp.__set__('__private.unconfirmedNames', dappNames);
-			Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-
-			dapp.applyUnconfirmed(trs, sender, function () {
-				var unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
-				var unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
-				expect(unconfirmedNames[trs.asset.dapp.name]).to.equal(true);
-				expect(unconfirmedLinks[trs.asset.dapp.link]).to.equal(true);
-				done();
-			});
-		});
-	});
-
-	describe('undoUnconfirmed', function () {
-
-		it('should update unconfirmed name and links private variables', function (done) {
-
-			var dappNames = {};
-			var dappLinks = {};
-			dappNames[trs.asset.dapp.name] = true;
-			dappLinks[trs.asset.dapp.link] = true;
-
-			Dapp.__set__('__private.unconfirmedNames', dappNames);
-			Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-
-			dapp.undoUnconfirmed(trs, sender, function () {
-				var unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
-				var unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
-				expect(unconfirmedNames[trs.asset.dapp.name]).to.not.exist;
-				expect(unconfirmedLinks[trs.asset.dapp.link]).to.not.exist;
-				done();
-			});
-		});
-	});
-
-	describe('objectNormalize', function () {
-
-		it('should use the correct format to validate against', function () {
-			var library = Dapp.__get__('library');
-			var schemaSpy = sinon.spy(library.schema, 'validate');
-			dapp.objectNormalize(trs);
-			expect(schemaSpy.calledOnce).to.equal(true);
-			expect(schemaSpy.calledWithExactly(trs.asset.dapp, Dapp.prototype.schema)).to.equal(true);
-			schemaSpy.restore();
-		});
-
-		it('should return error asset schema is invalid', function () {
-			trs.asset.dapp.tags = 2;
-
-			expect(function () {
-				dapp.objectNormalize(trs);
-			}).to.throw('Failed to validate dapp schema: Expected type string but found type integer');
-		});
-
-		it('should return transaction when asset is valid', function () {
-			expect(dapp.objectNormalize(trs)).to.eql(trs);
-		});
-	});
-
-	describe('dbRead', function () {
-
-		it('should return null publicKey is not set ', function () {
-			delete rawTrs.dapp_name;
-
-			expect(dapp.dbRead(rawTrs)).to.eql(null);
-		});
-
-		it('should be okay for valid input', function () {
-			expect(dapp.dbRead(rawTrs)).to.eql({
-				dapp: {
-					category: 2,
-					description: null,
-					icon: null,
-					link: 'http://www.lisk.io/AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi.zip',
-					name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
-					tags: null,
-					type: 1
-				}
-			});
-		});
-	});
-
-	describe('dbSave', function () {
-
-		it('should be okay for valid input', function () {
-			expect(dapp.dbSave(trs)).to.eql({
-				table: 'dapps',
-				fields: [
-					'type',
-					'name',
-					'description',
-					'tags',
-					'link',
-					'category',
-					'icon',
-					'transactionId'
-				],
-				values: {
-					type: trs.asset.dapp.type,
+			it('should return error if application name already exists', function (done) {
+				dbStub.query.withArgs(sql.getExisting, {
 					name: trs.asset.dapp.name,
-					description: trs.asset.dapp.description || null,
-					tags: trs.asset.dapp.tags || null,
 					link: trs.asset.dapp.link || null,
-					icon: trs.asset.dapp.icon || null,
-					category: trs.asset.dapp.category,
 					transactionId: trs.id
-				}
+				}).resolves([{
+					name: trs.asset.dapp.name
+				}]);
+
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application name already exists: ' + trs.asset.dapp.name);
+					done();
+				});
+			});
+
+			it('should return error if application link already exists', function (done) {
+				dbStub.query.withArgs(sql.getExisting, {
+					name: trs.asset.dapp.name,
+					link: trs.asset.dapp.link || null,
+					transactionId: trs.id
+				}).resolves([{}]);
+
+				dapp.verify(trs, sender, function (err) {
+					expect(err).to.equal('Application already exists');
+					done();
+				});
+			});
+
+			it('should return error if application link already exists', function (done) {
+				dbStub.query.withArgs(sql.getExisting, {
+					name: trs.asset.dapp.name,
+					link: trs.asset.dapp.link || null,
+					transactionId: trs.id
+				}).resolves([]);
+
+				dapp.verify(trs, sender, function (err, res) {
+					expect(err).to.not.exist;
+					expect(res).to.eql(trs);
+					done();
+				});
 			});
 		});
-	});
 
-	describe('ready', function () {
+		describe('process', function () {
 
-		it('should return true for single signature trs', function () {
-			expect(dapp.ready(trs, sender)).to.equal(true);
+			it('should call the callback', function (done) {
+				dapp.process(trs, sender, done);
+			});
 		});
 
-		it('should return false for multi signature transaction with less signatures', function () {
-			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
+		describe('getBytes', function () {
 
-			expect(dapp.ready(trs, sender)).to.equal(false);
+			it('should get bytes of valid transaction', function () {
+				expect(dapp.getBytes(trs).toString('hex')).to.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
+			});
+
+			it('should get bytes of valid transaction', function () {
+				expect(dapp.getBytes(trs).length).to.equal(93);
+			});
+
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', function () {
-			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
-			sender.multimin = 1;
+		describe('apply', function () {
 
-			delete trs.signature;
-			// Not really correct signature, but we are not testing that over here
-			trs.signature = crypto.randomBytes(64).toString('hex');;
-			trs.signatures = [crypto.randomBytes(64).toString('hex')];
+			var dummyBlock = {
+				id: '9314232245035524467',
+				height: 1
+			};
 
-			expect(dapp.ready(trs, sender)).to.equal(true);
->>>>>>> 6c19bf8bbf9b961e3cf1e5a68e07c59b700bde87
+			it('should update unconfirmed name and links private variables', function (done) {
+				dapp.apply(trs, dummyBlock, sender, function () {
+					var unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
+					var unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+					expect(unconfirmedNames[trs.asset.dapp.name]).to.not.exist;
+					expect(unconfirmedLinks[trs.asset.dapp.link]).to.not.exist;
+					done();
+				});
+			});
+		});
+
+		describe('undo', function () {
+
+			var dummyBlock = {
+				id: '9314232245035524467',
+				height: 1
+			};
+
+			it('should call the callback function', function (done) {
+				dapp.undo(trs, dummyBlock, sender, function () {
+					done();
+				});
+			});
+		});
+
+		describe('applyUnconfirmed', function () {
+
+			it('should return error if unconfirmed names already exists', function (done) {
+				var dappNames = {};
+				var dappLinks = {};
+				dappNames[trs.asset.dapp.name] = true;
+				dappLinks[trs.asset.dapp.link] = false;
+
+				Dapp.__set__('__private.unconfirmedNames', dappNames);
+				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
+
+				dapp.applyUnconfirmed(trs, sender, function (err) {
+					expect(err).to.equal('Application name already exists');
+					done();
+				});
+			});
+
+			it('should return error if unconfirmed link already exists', function (done) {
+				var dappNames = {};
+				var dappLinks = {};
+				dappNames[trs.asset.dapp.name] = false;
+				dappLinks[trs.asset.dapp.link] = true;
+
+				Dapp.__set__('__private.unconfirmedNames', dappNames);
+				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
+
+				dapp.applyUnconfirmed(trs, sender, function (err) {
+					expect(err).to.equal('Application link already exists');
+					done();
+				});
+			});
+
+			it('should update unconfirmed name and links private variable', function (done) {
+				var dappNames = {};
+				var dappLinks = {};
+				dappNames[trs.asset.dapp.name] = false;
+				dappLinks[trs.asset.dapp.link] = false;
+
+				Dapp.__set__('__private.unconfirmedNames', dappNames);
+				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
+
+				dapp.applyUnconfirmed(trs, sender, function () {
+					var unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
+					var unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+					expect(unconfirmedNames[trs.asset.dapp.name]).to.equal(true);
+					expect(unconfirmedLinks[trs.asset.dapp.link]).to.equal(true);
+					done();
+				});
+			});
+		});
+
+		describe('undoUnconfirmed', function () {
+
+			it('should update unconfirmed name and links private variables', function (done) {
+
+				var dappNames = {};
+				var dappLinks = {};
+				dappNames[trs.asset.dapp.name] = true;
+				dappLinks[trs.asset.dapp.link] = true;
+
+				Dapp.__set__('__private.unconfirmedNames', dappNames);
+				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
+
+				dapp.undoUnconfirmed(trs, sender, function () {
+					var unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
+					var unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+					expect(unconfirmedNames[trs.asset.dapp.name]).to.not.exist;
+					expect(unconfirmedLinks[trs.asset.dapp.link]).to.not.exist;
+					done();
+				});
+			});
+		});
+
+		describe('objectNormalize', function () {
+
+			it('should use the correct format to validate against', function () {
+				var library = Dapp.__get__('library');
+				var schemaSpy = sinon.spy(library.schema, 'validate');
+				dapp.objectNormalize(trs);
+				expect(schemaSpy.calledOnce).to.equal(true);
+				expect(schemaSpy.calledWithExactly(trs.asset.dapp, Dapp.prototype.schema)).to.equal(true);
+				schemaSpy.restore();
+			});
+
+			it('should return error asset schema is invalid', function () {
+				trs.asset.dapp.tags = 2;
+
+				expect(function () {
+					dapp.objectNormalize(trs);
+				}).to.throw('Failed to validate dapp schema: Expected type string but found type integer');
+			});
+
+			it('should return transaction when asset is valid', function () {
+				expect(dapp.objectNormalize(trs)).to.eql(trs);
+			});
+		});
+
+		describe('dbRead', function () {
+
+			it('should return null publicKey is not set ', function () {
+				delete rawTrs.dapp_name;
+
+				expect(dapp.dbRead(rawTrs)).to.eql(null);
+			});
+
+			it('should be okay for valid input', function () {
+				expect(dapp.dbRead(rawTrs)).to.eql({
+					dapp: {
+						category: 2,
+						description: null,
+						icon: null,
+						link: 'http://www.lisk.io/AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi.zip',
+						name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
+						tags: null,
+						type: 1
+					}
+				});
+			});
+		});
+
+		describe('dbSave', function () {
+
+			it('should be okay for valid input', function () {
+				expect(dapp.dbSave(trs)).to.eql({
+					table: 'dapps',
+					fields: [
+						'type',
+						'name',
+						'description',
+						'tags',
+						'link',
+						'category',
+						'icon',
+						'transactionId'
+					],
+					values: {
+						type: trs.asset.dapp.type,
+						name: trs.asset.dapp.name,
+						description: trs.asset.dapp.description || null,
+						tags: trs.asset.dapp.tags || null,
+						link: trs.asset.dapp.link || null,
+						icon: trs.asset.dapp.icon || null,
+						category: trs.asset.dapp.category,
+						transactionId: trs.id
+					}
+				});
+			});
+		});
+
+		describe('ready', function () {
+
+			it('should return true for single signature trs', function () {
+				expect(dapp.ready(trs, sender)).to.equal(true);
+			});
+
+			it('should return false for multi signature transaction with less signatures', function () {
+				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
+
+				expect(dapp.ready(trs, sender)).to.equal(false);
+			});
+
+			it('should return true for multi signature transaction with alteast min signatures', function () {
+				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
+				sender.multimin = 1;
+
+				delete trs.signature;
+				// Not really correct signature, but we are not testing that over here
+				trs.signature = crypto.randomBytes(64).toString('hex');;
+				trs.signatures = [crypto.randomBytes(64).toString('hex')];
+
+				expect(dapp.ready(trs, sender)).to.equal(true);
+			});
 		});
 	});
 });
