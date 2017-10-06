@@ -24,7 +24,7 @@ var paths = [
 	'./logic/peers.js',
 	'./logic/multisignature.js',
 	'./logic/transaction.js',
-	'./logic/transactionPool',
+	'./logic/transactionPool.js',
 	'./logic/transfer.js',
 	'./logic/vote.js',
 
@@ -72,4 +72,3 @@ paths.forEach(function (test) {
 		process.exit();
 	});
 });
-
