@@ -15,7 +15,7 @@
 import bignum from 'browserify-bignum';
 import ed2curve from 'ed2curve';
 import { getSha256Hash } from './hash';
-import getTransactionBytes from '../transactions/utils/transactionBytes';
+import { getTransactionBytes } from '../transactions/utils';
 
 /**
  * @method bufferToHex

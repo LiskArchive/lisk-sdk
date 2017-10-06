@@ -18,7 +18,7 @@ import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#registerSecondSignature', () => {
+describe('#registerSecondSignature transaction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -35,7 +35,7 @@ describe('#registerSecondSignature', () => {
 		registerSecondSignatureTransaction = registerSecondSignature(secret, secondSecret);
 	});
 
-	it('should create a signature transaction', () => {
+	it('should create a register second signature transaction', () => {
 		(registerSecondSignatureTransaction).should.be.ok();
 	});
 
@@ -50,7 +50,7 @@ describe('#registerSecondSignature', () => {
 		(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 	});
 
-	describe('returned signature transaction', () => {
+	describe('returned register second signature transaction', () => {
 		it('should be an object', () => {
 			(registerSecondSignatureTransaction).should.be.type('object');
 		});

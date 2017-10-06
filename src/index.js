@@ -24,14 +24,14 @@ import crypto from './crypto';
 import api from './api/liskApi';
 import slots from './time/slots';
 import send from './transactions/0_send';
+import sendFromMultisignatureAccount from './transactions/0_sendFromMultisignatureAccount';
 import registerSecondSignature from './transactions/1_registerSecondSignature';
 import registerDelegate from './transactions/2_registerDelegate';
 import castVotes from './transactions/3_castVotes';
-import createDapp from './transactions/5_createDapp';
 import registerMultisignature from './transactions/4_registerMultisignatureAccount';
-import transferInDapp from './transactions/6_transferInDapp';
-import transferOutDapp from './transactions/7_transferOutDapp';
-import multiSignatureSend from './transactions/multisignatureSend';
+import createDapp from './transactions/5_createDapp';
+import transferIntoDapp from './transactions/6_transferIntoDapp';
+import transferOutOfDapp from './transactions/7_transferOutOfDapp';
 
 global.naclFactory = naclFactory;
 
@@ -47,12 +47,12 @@ const transaction = Object.assign({},
 	castVotes,
 	createDapp,
 	registerMultisignature,
-	transferInDapp,
-	transferOutDapp,
-	multiSignatureSend,
+	transferIntoDapp,
+	transferOutOfDapp,
+	sendFromMultisignatureAccount,
 );
 
-export default {
+export {
 	crypto,
 	transaction,
 	api,

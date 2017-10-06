@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transferOutDapp from '../../src/transactions/7_transferOutDapp';
+import transferOutOfDapp from '../../src/transactions/7_transferOutOfDapp';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#transferOutDapp', () => {
+describe('#transferOutOfDapp', () => {
 	const transactionId = '9876567';
 	const recipientId = '989234L';
 	const dappId = '1234213';
@@ -32,7 +32,7 @@ describe('#transferOutDapp', () => {
 	const offset = -10;
 
 	let getTimeWithOffsetStub;
-	let transferOutDappTransaction;
+	let transferOutOfDappTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
@@ -40,13 +40,13 @@ describe('#transferOutDapp', () => {
 
 	describe('with one secret', () => {
 		beforeEach(() => {
-			transferOutDappTransaction = transferOutDapp(
+			transferOutOfDappTransaction = transferOutOfDapp(
 				dappId, transactionId, recipientId, amount, secret,
 			);
 		});
 
 		it('should create an out transfer dapp transaction', () => {
-			(transferOutDappTransaction).should.be.ok();
+			(transferOutOfDappTransaction).should.be.ok();
 		});
 
 		it('should use time slots to get the time for the timestamp', () => {
@@ -54,73 +54,73 @@ describe('#transferOutDapp', () => {
 		});
 
 		it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
-			transferOutDapp(dappId, transactionId, recipientId, amount, secret, null, offset);
+			transferOutOfDapp(dappId, transactionId, recipientId, amount, secret, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
-		describe('returned out transfer transaction object', () => {
+		describe('returned out of dapp transfer transaction object', () => {
 			it('should be an object', () => {
-				(transferOutDappTransaction).should.be.type('object');
+				(transferOutOfDappTransaction).should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				(transferOutDappTransaction).should.have.property('id').and.be.type('string');
+				(transferOutOfDappTransaction).should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type number equal to 7', () => {
-				(transferOutDappTransaction).should.have.property('type').and.be.type('number').and.equal(7);
+				(transferOutOfDappTransaction).should.have.property('type').and.be.type('number').and.equal(7);
 			});
 
 			it('should have amount number equal to 10 LSK', () => {
-				(transferOutDappTransaction).should.have.property('amount').and.be.type('number').and.equal(amount);
+				(transferOutOfDappTransaction).should.have.property('amount').and.be.type('number').and.equal(amount);
 			});
 
 			it('should have fee number equal to 0.1 LSK', () => {
-				(transferOutDappTransaction).should.have.property('fee').and.be.type('number').and.equal(sendFee);
+				(transferOutOfDappTransaction).should.have.property('fee').and.be.type('number').and.equal(sendFee);
 			});
 
 			it('should have recipientId equal to provided recipientId', () => {
-				(transferOutDappTransaction).should.have.property('recipientId').and.be.equal(recipientId);
+				(transferOutOfDappTransaction).should.have.property('recipientId').and.be.equal(recipientId);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				(transferOutDappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+				(transferOutOfDappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
-				(transferOutDappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				(transferOutOfDappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				(transferOutDappTransaction).should.have.property('signature').and.be.hexString();
+				(transferOutOfDappTransaction).should.have.property('signature').and.be.hexString();
 			});
 
 			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(transferOutDappTransaction);
+				const result = cryptoModule.verifyTransaction(transferOutOfDappTransaction);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly if modified', () => {
-				transferOutDappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(transferOutDappTransaction);
+				transferOutOfDappTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(transferOutOfDappTransaction);
 				(result).should.be.not.ok();
 			});
 
 			it('should have an asset object', () => {
-				(transferOutDappTransaction).should.have.property('asset').and.be.type('object');
+				(transferOutOfDappTransaction).should.have.property('asset').and.be.type('object');
 			});
 
 			describe('asset', () => {
 				it('should have the out transfer dapp id', () => {
-					(transferOutDappTransaction.asset)
+					(transferOutOfDappTransaction.asset)
 						.should.have.property('outTransfer')
 						.with.property('dappId')
 						.and.be.equal(dappId);
 				});
 
 				it('should have the out transfer transaction id', () => {
-					(transferOutDappTransaction.asset)
+					(transferOutOfDappTransaction.asset)
 						.should.have.property('outTransfer')
 						.with.property('transactionId')
 						.and.be.equal(transactionId);
@@ -130,36 +130,36 @@ describe('#transferOutDapp', () => {
 
 		describe('with second secret', () => {
 			beforeEach(() => {
-				transferOutDappTransaction = transferOutDapp(
+				transferOutOfDappTransaction = transferOutOfDapp(
 					dappId, transactionId, recipientId, amount, secret, secondSecret,
 				);
 			});
 
-			it('should create an out transfer dapp transaction with a second secret', () => {
-				const transferOutDappTransactionWithoutSecondSecret = transferOutDapp(
+			it('should create an transfer out of dapp transaction with a second secret', () => {
+				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp(
 					dappId, transactionId, recipientId, amount, secret,
 				);
-				(transferOutDappTransaction).should.be.ok();
-				(transferOutDappTransaction).should.not.be.equal(
-					transferOutDappTransactionWithoutSecondSecret,
+				(transferOutOfDappTransaction).should.be.ok();
+				(transferOutOfDappTransaction).should.not.be.equal(
+					transferOutOfDappTransactionWithoutSecondSecret,
 				);
 			});
 
-			describe('returned out transfer transaction', () => {
+			describe('returned transfer out of transaction', () => {
 				it('should have second signature hex string', () => {
-					(transferOutDappTransaction).should.have.property('signSignature').and.be.hexString();
+					(transferOutOfDappTransaction).should.have.property('signSignature').and.be.hexString();
 				});
 
 				it('should be second signed correctly', () => {
 					const result = cryptoModule
-						.verifyTransaction(transferOutDappTransaction, secondPublicKey);
+						.verifyTransaction(transferOutOfDappTransaction, secondPublicKey);
 					(result).should.be.ok();
 				});
 
 				it('should not be second signed correctly if modified', () => {
-					transferOutDappTransaction.amount = 100;
+					transferOutOfDappTransaction.amount = 100;
 					const result = cryptoModule
-						.verifyTransaction(transferOutDappTransaction, secondPublicKey);
+						.verifyTransaction(transferOutOfDappTransaction, secondPublicKey);
 					(result).should.not.be.ok();
 				});
 			});

@@ -18,13 +18,15 @@
  * @class transfer
  */
 import cryptoModule from '../crypto';
-import { IN_TRANSFER_FEE } from '../constants';
+import { OUT_TRANSFER_FEE } from '../constants';
 import slots from '../time/slots';
-import prepareTransaction from './utils/prepareTransaction';
+import { prepareTransaction } from './utils';
 
 /**
- * @method createInTransfer
+ * @method createOutTransfer
  * @param dappId
+ * @param transactionId
+ * @param recipientId
  * @param amount
  * @param secret
  * @param secondSecret
@@ -33,19 +35,22 @@ import prepareTransaction from './utils/prepareTransaction';
  * @return {Object}
  */
 
-export default function transferInDapp(dappId, amount, secret, secondSecret, timeOffset) {
+export default function transferOutOfDapp(
+	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
+) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
-		type: 6,
+		type: 7,
 		amount,
-		fee: IN_TRANSFER_FEE,
-		recipientId: null,
+		fee: OUT_TRANSFER_FEE,
+		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			inTransfer: {
+			outTransfer: {
 				dappId,
+				transactionId,
 			},
 		},
 	};

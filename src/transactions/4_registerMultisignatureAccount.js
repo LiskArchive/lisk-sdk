@@ -15,7 +15,7 @@
 import cryptoModule from '../crypto';
 import { MULTISIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
-import prepareTransaction from './utils/prepareTransaction';
+import { prepareTransaction } from './utils';
 /**
  * @method createMultisignature
  * @param secret string

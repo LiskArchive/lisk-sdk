@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import getTransactionBytes from './../transactions/utils/transactionBytes';
+import { getTransactionBytes } from '../transactions/utils';
 
 /**
  * @method getSha256Hash

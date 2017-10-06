@@ -18,7 +18,7 @@ import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createDapp', () => {
+describe('#createDapp transaction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -54,7 +54,7 @@ describe('#createDapp', () => {
 			createDappTransaction = createDapp(secret, null, options);
 		});
 
-		it('should create a dapp transaction', () => {
+		it('should create a create dapp transaction', () => {
 			(createDappTransaction).should.be.ok();
 		});
 
@@ -118,7 +118,7 @@ describe('#createDapp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
-		describe('returned dapp transaction', () => {
+		describe('returned create dapp transaction', () => {
 			it('should be an object', () => {
 				(createDappTransaction).should.be.type('object');
 			});
@@ -211,13 +211,13 @@ describe('#createDapp', () => {
 			createDappTransaction = createDapp(secret, secondSecret, options);
 		});
 
-		it('should create a dapp transaction with a second secret', () => {
+		it('should create a create dapp transaction with a second secret', () => {
 			const createDappTransactionWithoutSecondSecret = createDapp(secret, null, options);
 			(createDappTransaction).should.be.ok();
 			(createDappTransaction).should.not.be.equal(createDappTransactionWithoutSecondSecret);
 		});
 
-		describe('returned dapp transaction', () => {
+		describe('returned create dapp transaction', () => {
 			it('should have second signature hex string', () => {
 				(createDappTransaction).should.have.property('signSignature').and.be.hexString();
 			});

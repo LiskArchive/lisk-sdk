@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../crypto/index';
+import cryptoModule from '../../crypto';
 
 const secondSignTransaction = (transactionObject, secondSecret) => Object.assign(
 	{}, transactionObject, {

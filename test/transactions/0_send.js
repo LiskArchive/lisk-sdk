@@ -18,7 +18,7 @@ import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#send', () => {
+describe('#send transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const recipientAddress = '58191285901858109L';
 	const testData = 'data';
@@ -47,7 +47,7 @@ describe('#send', () => {
 				);
 			});
 
-			it('should create a transaction transaction', () => {
+			it('should create a send transaction', () => {
 				(sendTransaction).should.be.ok();
 			});
 
@@ -64,7 +64,7 @@ describe('#send', () => {
 				(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 			});
 
-			describe('returned transaction', () => {
+			describe('returned send transaction', () => {
 				it('should be an object', () => {
 					(sendTransaction).should.be.type('object');
 				});
@@ -153,7 +153,7 @@ describe('#send', () => {
 			);
 		});
 
-		it('should create a transaction transaction', () => {
+		it('should create a send transaction', () => {
 			const sendTransactionWithoutSecondSecret = send(
 				recipientAddress, testAmount, secret,
 			);
@@ -161,7 +161,7 @@ describe('#send', () => {
 			(sendTransaction).should.not.be.equal(sendTransactionWithoutSecondSecret);
 		});
 
-		it('should create transaction with second signature and data', () => {
+		it('should create send transaction with second signature and data', () => {
 			sendTransaction = send(
 				recipientAddress,
 				testAmount,
@@ -172,7 +172,7 @@ describe('#send', () => {
 			(sendTransaction).should.be.ok();
 		});
 
-		describe('returned transaction', () => {
+		describe('returned send transaction', () => {
 			it('should have second signature hex string', () => {
 				(sendTransaction).should.have.property('signSignature').and.be.hexString();
 			});

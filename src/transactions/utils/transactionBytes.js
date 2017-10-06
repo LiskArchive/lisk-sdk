@@ -58,36 +58,36 @@ export function getAssetDataForSendTransaction({ data }) {
 }
 
 /**
- * @method getAssetDataForSignatureTransaction
+ * @method getAssetDataForRegisterSecondSignatureTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForSignatureTransaction({ signature }) {
+export function getAssetDataForRegisterSecondSignatureTransaction({ signature }) {
 	checkRequiredFields(['publicKey'], signature);
 	const { publicKey } = signature;
 	return Buffer.from(publicKey, 'hex');
 }
 
 /**
- * @method getAssetDataForDelegateTransaction
+ * @method getAssetDataForRegisterDelegateTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForDelegateTransaction({ delegate }) {
+export function getAssetDataForRegisterDelegateTransaction({ delegate }) {
 	checkRequiredFields(['username'], delegate);
 	const { username } = delegate;
 	return Buffer.from(username, 'utf8');
 }
 
 /**
- * @method getAssetDataForVotesTransaction
+ * @method getAssetDataForCastVotesTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForVotesTransaction({ votes }) {
+export function getAssetDataForCastVotesTransaction({ votes }) {
 	if (!Array.isArray(votes)) {
 		throw new Error('votes parameter must be an Array.');
 	}
@@ -95,12 +95,12 @@ export function getAssetDataForVotesTransaction({ votes }) {
 }
 
 /**
- * @method getAssetDataForMultisignatureTransaction
+ * @method getAssetDataForRegisterMultisignatureAccountTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForMultisignatureTransaction({ multisignature }) {
+export function getAssetDataForRegisterMultisignatureAccountTransaction({ multisignature }) {
 	checkRequiredFields(['min', 'lifetime', 'keysgroup'], multisignature);
 	const { min, lifetime, keysgroup } = multisignature;
 	const minBuffer = Buffer.alloc(1, min);
@@ -111,12 +111,12 @@ export function getAssetDataForMultisignatureTransaction({ multisignature }) {
 }
 
 /**
- * @method getAssetDataForDappTransaction
+ * @method getAssetDataForCreateDappTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForDappTransaction({ dapp }) {
+export function getAssetDataForCreateDappTransaction({ dapp }) {
 	checkRequiredFields(['name', 'link', 'type', 'category'], dapp);
 	const { name, description, tags, link, icon, type, category } = dapp;
 	const nameBuffer = Buffer.from(name, 'utf8');
@@ -140,24 +140,24 @@ export function getAssetDataForDappTransaction({ dapp }) {
 }
 
 /**
- * @method getAssetDataForDappInTransaction
+ * @method getAssetDataForTransferIntoDappTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForDappInTransaction({ inTransfer }) {
+export function getAssetDataForTransferIntoDappTransaction({ inTransfer }) {
 	checkRequiredFields(['dappId'], inTransfer);
 	const { dappId } = inTransfer;
 	return Buffer.from(dappId, 'utf8');
 }
 
 /**
- * @method getAssetDataForDappOutTransaction
+ * @method getAssetDataForTransferOutOfDappTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForDappOutTransaction({ outTransfer }) {
+export function getAssetDataForTransferOutOfDappTransaction({ outTransfer }) {
 	checkRequiredFields(['dappId', 'transactionId'], outTransfer);
 	const { dappId, transactionId } = outTransfer;
 	const outAppIdBuffer = Buffer.from(dappId, 'utf8');
@@ -175,13 +175,13 @@ export function getAssetDataForDappOutTransaction({ outTransfer }) {
 export function getAssetBytes(transaction) {
 	const assetDataGetters = {
 		0: getAssetDataForSendTransaction,
-		1: getAssetDataForSignatureTransaction,
-		2: getAssetDataForDelegateTransaction,
-		3: getAssetDataForVotesTransaction,
-		4: getAssetDataForMultisignatureTransaction,
-		5: getAssetDataForDappTransaction,
-		6: getAssetDataForDappInTransaction,
-		7: getAssetDataForDappOutTransaction,
+		1: getAssetDataForRegisterSecondSignatureTransaction,
+		2: getAssetDataForRegisterDelegateTransaction,
+		3: getAssetDataForCastVotesTransaction,
+		4: getAssetDataForRegisterMultisignatureAccountTransaction,
+		5: getAssetDataForCreateDappTransaction,
+		6: getAssetDataForTransferIntoDappTransaction,
+		7: getAssetDataForTransferOutOfDappTransaction,
 	};
 
 	return assetDataGetters[transaction.type](transaction.asset);

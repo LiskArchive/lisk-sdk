@@ -18,7 +18,7 @@ import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#registerDelegate', () => {
+describe('#registerDelegate tranasction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -39,7 +39,7 @@ describe('#registerDelegate', () => {
 			registerDelegateTransaction = registerDelegate(secret, username);
 		});
 
-		it('should create a delegate transaction', () => {
+		it('should create a register delegate transaction', () => {
 			(registerDelegateTransaction).should.be.ok();
 		});
 
@@ -54,7 +54,7 @@ describe('#registerDelegate', () => {
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
-		describe('returned delegate transaction', () => {
+		describe('returned register delegate transaction', () => {
 			it('should be an object', () => {
 				(registerDelegateTransaction).should.be.type('object');
 			});

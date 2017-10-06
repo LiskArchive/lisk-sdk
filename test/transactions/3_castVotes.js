@@ -18,7 +18,7 @@ import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#castVotes', () => {
+describe('#castVotes transaction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -39,7 +39,7 @@ describe('#castVotes', () => {
 			castVotesTransaction = castVotes(secret, publicKeys);
 		});
 
-		it('should create a vote transaction', () => {
+		it('should create a cast votes transaction', () => {
 			(castVotesTransaction).should.be.ok();
 		});
 
@@ -54,7 +54,7 @@ describe('#castVotes', () => {
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
-		describe('returned vote', () => {
+		describe('returned cast votes transaction', () => {
 			it('should be an object', () => {
 				(castVotesTransaction).should.be.type('object');
 			});
@@ -145,7 +145,7 @@ describe('#castVotes', () => {
 			(castVotesTransaction).should.not.be.equal(castVotesTransactionWithoutSecondSecret);
 		});
 
-		describe('returned vote', () => {
+		describe('returned cast votes transaction', () => {
 			it('should have second signature hex string', () => {
 				(castVotesTransaction).should.have.property('signSignature').and.be.hexString();
 			});
