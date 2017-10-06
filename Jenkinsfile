@@ -251,6 +251,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					'''
 				}
 			},
+			"Functional POST tx type 1" : {
+				node('node-01'){
+					sh '''
+					export TEST=test/functional/http/post/1.second.secret.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					npm run $JENKINS_PROFILE
+					'''
+				}
+			},
 			"Functional Peers" : {
 				node('node-02'){
 					sh """
