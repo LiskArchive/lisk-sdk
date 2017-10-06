@@ -13,18 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../utils/env';
+import * as given from '../../steps/1_given';
+import * as then from '../../steps/3_then';
 
-const description = `Print environmental configuration.
+describe('liskInstance util', () => {
+	describe('Given a lisk instance', () => {
+		beforeEach(given.aLiskInstance);
 
-	Example: env
-`;
-
-const env = vorpal => () => Promise.resolve(vorpal.activeCommand.log(JSON.stringify(config, null, '\t')));
-
-export default function envCommand(vorpal) {
-	vorpal
-		.command('env')
-		.description(description)
-		.action(env(vorpal));
-}
+		it('Then the lisk instance should be a lisk-js api instance', then.theLiskInstanceShouldBeALiskJSApiInstance);
+	});
+});

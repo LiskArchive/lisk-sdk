@@ -14,18 +14,21 @@
  *
  */
 import os from 'os';
-import fse from 'fs-extra';
 import config from '../utils/env';
+import { writeJsonSync } from '../utils/fs';
 import liskInstance from '../utils/liskInstance';
 import { CONFIG_VARIABLES } from '../utils/constants';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 
+const description = `Set configuration <variable> to <value>. Variables available: json, testnet. Configuration is persisted in \`${configFilePath}\`.
+
+	Example: set json true
+`;
+
 const writeConfigToFile = (vorpal, newConfig) => {
 	try {
-		fse.writeJsonSync(configFilePath, newConfig, {
-			spaces: '\t',
-		});
+		writeJsonSync(configFilePath, newConfig);
 		return true;
 	} catch (e) {
 		vorpal.log(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
@@ -44,6 +47,15 @@ const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	return obj[pathComponent];
 };
 
+const attemptWriteToFile = (vorpal, variable, value) => {
+	const writeSuccess = writeConfigToFile(vorpal, config);
+
+	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
+		return `Could not set ${variable} to ${value}.`;
+	}
+	return `Successfully set ${variable} to ${value}.`;
+};
+
 const setBoolean = (variable, path) => (vorpal, value) => {
 	if (!checkBoolean(value)) {
 		return `Cannot set ${variable} to ${value}.`;
@@ -56,16 +68,17 @@ const setBoolean = (variable, path) => (vorpal, value) => {
 		liskInstance.setTestnet(newValue);
 	}
 
-	const writeSuccess = writeConfigToFile(vorpal, config);
+	return attemptWriteToFile(vorpal, variable, value);
+};
 
-	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
-		return `Could not set ${variable} to ${value}.`;
-	}
-	return `Successfully set ${variable} to ${value}.`;
+const setString = (variable, path) => (vorpal, value) => {
+	path.reduce(setNestedConfigProperty(value), config);
+	return attemptWriteToFile(vorpal, variable, value);
 };
 
 const handlers = {
 	json: setBoolean('json output', ['json']),
+	name: setString('name', ['name']),
 	testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 };
 
@@ -80,7 +93,7 @@ const set = vorpal => ({ variable, value }) => {
 export default function setCommand(vorpal) {
 	vorpal
 		.command('set <variable> <value>')
-		.description(`Set configuration <variable> to <value>. Configuration is persisted in \`${configFilePath}\`.`)
+		.description(description)
 		.autocomplete(CONFIG_VARIABLES)
 		.action(set(vorpal));
 }

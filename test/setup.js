@@ -16,6 +16,7 @@
 import 'babel-polyfill';
 import should from 'should';
 import sinon from 'sinon';
+import 'should-sinon';
 import '../src/utils/env';
 
 process.env.NODE_ENV = 'test';
@@ -33,3 +34,4 @@ should.use((_, Assertion) => {
 // See https://github.com/shouldjs/should.js/issues/41
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
+global.sandbox = sinon.sandbox.create();

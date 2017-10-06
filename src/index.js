@@ -14,17 +14,18 @@
  *
  */
 import 'babel-polyfill';
+import fs from 'fs';
 import path from 'path';
-import fse from 'fs-extra';
 import vorpal from 'vorpal';
 import { version } from '../package.json';
 import config from './utils/env';
 
+const name = config.name || 'lisky';
 const lisky = vorpal();
 
 const commandsDir = path.join(__dirname, 'commands');
 
-fse.readdirSync(commandsDir).forEach((command) => {
+fs.readdirSync(commandsDir).forEach((command) => {
 	const commandPath = path.join(commandsDir, command);
 	// eslint-disable-next-line global-require, import/no-dynamic-require
 	const commandModule = require(commandPath);
@@ -47,14 +48,14 @@ Type \`help\` to get started.
 const intro = `${logo}${message}`;
 
 lisky
-	.delimiter('lisky>')
-	.history('lisky');
+	.delimiter(`${name}>`)
+	.history(name);
 
 if (process.env.NON_INTERACTIVE_MODE !== 'true') {
 	lisky.log(intro).show();
 }
 
 lisky.find('help').alias('?');
-lisky.find('exit').description(`Exits ${config.name}.`);
+lisky.find('exit').description(`Exits ${name}.`);
 
 export default lisky;

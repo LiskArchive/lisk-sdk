@@ -13,12 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* eslint-disable global-require, import/no-dynamic-require */
+import fs from 'fs';
 import os from 'os';
-import fse from 'fs-extra';
-import set from '../../src/commands/set';
-import env from '../../src/utils/env';
-import liskInstance from '../../src/utils/liskInstance';
+import set from '../../../src/commands/set';
+import env from '../../../src/utils/env';
+import {
+	readJsonSync,
+	writeJsonSync,
+} from '../../../src/utils/fs';
+import liskInstance from '../../../src/utils/liskInstance';
 import {
 	getCommands,
 	getRequiredArgs,
@@ -26,9 +29,9 @@ import {
 } from './utils';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
-const writeConfig = config => fse.writeJsonSync(configFilePath, config, { spaces: '\t' });
+const writeConfig = config => writeJsonSync(configFilePath, config);
 
-const initialConfig = fse.readJsonSync(configFilePath);
+const initialConfig = readJsonSync(configFilePath);
 
 const defaultConfig = {
 	name: 'lisky',
@@ -80,14 +83,9 @@ describe('lisky set command palette', () => {
 
 		describe('without write file permissions', () => {
 			const command = 'set json true';
-			let writeJsonSyncStub;
 
 			beforeEach(() => {
-				writeJsonSyncStub = sinon.stub(fse, 'writeJsonSync').throws('EACCES: permission denied, open \'~/.lisky/config.json\'');
-			});
-
-			afterEach(() => {
-				writeJsonSyncStub.restore();
+				sandbox.stub(fs, 'writeFileSync').throws('EACCES: permission denied, open \'~/.lisky/config.json\'');
 			});
 
 			it('should show a warning if the config file is not writable', () => {
@@ -134,6 +132,35 @@ describe('lisky set command palette', () => {
 	});
 
 	describe('options', () => {
+		const nameProperty = 'name';
+		const customName = 'my-custom-name';
+		const setNameCommand = `set ${nameProperty} ${customName}`;
+		const setNameResult = `Successfully set ${nameProperty} to ${customName}.`;
+
+		describe('name option', () => {
+			beforeEach(() => {
+				return vorpal.exec(setNameCommand);
+			});
+
+			it('should set name to my-custom-name in the in-memory config', () => {
+				(env)
+					.should.have.property(nameProperty)
+					.be.equal(customName);
+			});
+
+			it('should set name to my-custom-name in the config file', () => {
+				const config = readJsonSync(configFilePath);
+
+				(config)
+					.should.have.property(nameProperty)
+					.be.equal(customName);
+			});
+
+			it('should inform the user that the config name has been updated to my-custom-name', () => {
+				(capturedOutput[0]).should.be.equal(setNameResult);
+			});
+		});
+
 		describe('json option', () => {
 			const setJsonTrueCommand = 'set json true';
 			const setJsonFalseCommand = 'set json false';
@@ -156,7 +183,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should not change the value of json in the config file', () => {
-					const config = fse.readJsonSync(configFilePath);
+					const config = readJsonSync(configFilePath);
 
 					(config)
 						.should.have.property(jsonProperty)
@@ -180,7 +207,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should set json to true in the config file', () => {
-					const config = fse.readJsonSync(configFilePath);
+					const config = readJsonSync(configFilePath);
 
 					(config)
 						.should.have.property(jsonProperty)
@@ -204,7 +231,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should set json to false in the config file', () => {
-					const config = fse.readJsonSync(configFilePath);
+					const config = readJsonSync(configFilePath);
 
 					(config)
 						.should.have.property(jsonProperty)
@@ -229,11 +256,7 @@ describe('lisky set command palette', () => {
 			let setTestnetStub;
 
 			beforeEach(() => {
-				setTestnetStub = sinon.stub(liskInstance, 'setTestnet');
-			});
-
-			afterEach(() => {
-				setTestnetStub.restore();
+				setTestnetStub = sandbox.stub(liskInstance, 'setTestnet');
 			});
 
 			describe('to a non-boolean value', () => {
@@ -247,7 +270,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should not change the value of testnet in the config file', () => {
-					const config = fse.readJsonSync(configFilePath);
+					const config = readJsonSync(configFilePath);
 
 					(config)
 						.should.have.property(testnetProperties[0])
@@ -284,7 +307,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should set testnet to true in the config file', () => {
-					const config = fse.readJsonSync(configFilePath);
+					const config = readJsonSync(configFilePath);
 
 					(config)
 						.should.have.property(testnetProperties[0])
@@ -314,7 +337,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should set testnet to false in the config file', () => {
-					const config = fse.readJsonSync(configFilePath);
+					const config = readJsonSync(configFilePath);
 
 					(config)
 						.should.have.property(testnetProperties[0])

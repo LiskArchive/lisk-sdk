@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import encryptPassphraseCommand from '../../src/commands/encryptPassphrase';
-import cryptoModule from '../../src/utils/cryptoModule';
-import * as input from '../../src/utils/input';
-import * as print from '../../src/utils/print';
+import encryptPassphraseCommand from '../../../src/commands/encryptPassphrase';
+import cryptoModule from '../../../src/utils/cryptoModule';
+import * as input from '../../../src/utils/input';
+import * as print from '../../../src/utils/print';
 import {
 	getCommands,
 	getRequiredArgs,
@@ -76,22 +76,14 @@ describe('encrypt passphrase command', () => {
 				publicKey,
 				privateKey,
 			};
-			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
-			getPassphraseStub = sinon.stub(input, 'getPassphrase');
+			getStdInStub = sandbox.stub(input, 'getStdIn').resolves({});
+			getPassphraseStub = sandbox.stub(input, 'getPassphrase');
 			getPassphraseStub.onFirstCall().resolves(passphrase);
 			getPassphraseStub.onSecondCall().resolves(password);
-			encryptPassphraseStub = sinon.stub(cryptoModule, 'encryptPassphrase').returns(cryptoEncryptPassphraseReturnObject);
-			getKeysStub = sinon.stub(cryptoModule, 'getKeys').returns(cryptoGetKeysReturnObject);
-			printSpy = sinon.spy();
-			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
-		});
-
-		afterEach(() => {
-			getStdInStub.restore();
-			getPassphraseStub.restore();
-			encryptPassphraseStub.restore();
-			getKeysStub.restore();
-			printResultStub.restore();
+			encryptPassphraseStub = sandbox.stub(cryptoModule, 'encryptPassphrase').returns(cryptoEncryptPassphraseReturnObject);
+			getKeysStub = sandbox.stub(cryptoModule, 'getKeys').returns(cryptoGetKeysReturnObject);
+			printSpy = sandbox.spy();
+			printResultStub = sandbox.stub(print, 'printResult').returns(printSpy);
 		});
 
 		describe('if the stdin cannot be retrieved', () => {

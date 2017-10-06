@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import fs from 'fs';
 import readline from 'readline';
-import fse from 'fs-extra';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
@@ -103,7 +103,7 @@ export const getPassphraseFromEnvVariable = async (key, displayName) => {
 
 
 export const getPassphraseFromFile = path => new Promise((resolve, reject) => {
-	const stream = fse.createReadStream(path);
+	const stream = fs.createReadStream(path);
 	const handleReadError = (error) => {
 		stream.close();
 		const { message } = error;
@@ -157,7 +157,7 @@ export const getFirstLineFromString = multilineString => (
 		: null
 );
 
-export const getDataFromFile = async path => fse.readFileSync(path, 'utf8');
+export const getDataFromFile = async path => fs.readFileSync(path, 'utf8');
 
 export const getData = async (arg, source, data) => {
 	if (arg) return arg;

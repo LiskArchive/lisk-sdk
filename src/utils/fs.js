@@ -13,15 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
-import liskInstance from '../../src/utils/liskInstance';
+import { readFileSync, writeFileSync } from 'fs';
 
-describe('liskInstance', () => {
-	it('should be ok', () => {
-		(liskInstance).should.be.ok();
-	});
+export const readJsonSync = (path) => {
+	const contents = readFileSync(path, 'utf8');
+	const stripped = contents.replace(/^\uFEFF/, '');
+	return JSON.parse(stripped);
+};
 
-	it('should be an instance of lisk api', () => {
-		(liskInstance).should.be.instanceOf(lisk.api);
-	});
-});
+export const writeJsonSync = (path, contents) => {
+	const json = JSON.stringify(contents, null, '\t');
+	return writeFileSync(path, json);
+};

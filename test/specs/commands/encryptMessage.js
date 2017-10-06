@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import encryptMessageCommand from '../../src/commands/encryptMessage';
-import cryptoModule from '../../src/utils/cryptoModule';
-import * as input from '../../src/utils/input';
-import * as print from '../../src/utils/print';
+import encryptMessageCommand from '../../../src/commands/encryptMessage';
+import cryptoModule from '../../../src/utils/cryptoModule';
+import * as input from '../../../src/utils/input';
+import * as print from '../../../src/utils/print';
 import {
 	getCommands,
 	getRequiredArgs,
@@ -50,9 +50,9 @@ describe('encrypt message command', () => {
 	describe('when executed', () => {
 		const data = 'Some important message';
 		const multilineData = 'Some important message\nthat spans\nmultiple lines\n';
-		const secret = 'pass phrase';
+		const passphrase = 'pass phrase';
 		const recipient = 'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
-		const defaultPassphraseSource = `pass:${secret}`;
+		const defaultPassphraseSource = `pass:${passphrase}`;
 		const commandWithRecipient = `${command} ${recipient}`;
 		const commandWithMessage = `${commandWithRecipient} "${data}"`;
 		const commandWithPassphrase = `${commandWithRecipient} --passphrase "${defaultPassphraseSource}"`;
@@ -75,20 +75,12 @@ describe('encrypt message command', () => {
 		let printResultStub;
 
 		beforeEach(() => {
-			getStdInStub = sinon.stub(input, 'getStdIn').resolves({});
-			getPassphraseStub = sinon.stub(input, 'getPassphrase').resolves(secret);
-			getDataStub = sinon.stub(input, 'getData').resolves(data);
-			encryptStub = sinon.stub(cryptoModule, 'encryptMessage').returns(cryptoEncryptReturnObject);
-			printSpy = sinon.spy();
-			printResultStub = sinon.stub(print, 'printResult').returns(printSpy);
-		});
-
-		afterEach(() => {
-			getStdInStub.restore();
-			getPassphraseStub.restore();
-			getDataStub.restore();
-			encryptStub.restore();
-			printResultStub.restore();
+			getStdInStub = sandbox.stub(input, 'getStdIn').resolves({});
+			getPassphraseStub = sandbox.stub(input, 'getPassphrase').resolves(passphrase);
+			getDataStub = sandbox.stub(input, 'getData').resolves(data);
+			encryptStub = sandbox.stub(cryptoModule, 'encryptMessage').returns(cryptoEncryptReturnObject);
+			printSpy = sandbox.spy();
+			printResultStub = sandbox.stub(print, 'printResult').returns(printSpy);
 		});
 
 		describe('if no message source has been provided', () => {
@@ -165,7 +157,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(data, secret, recipient))
+					(encryptStub.calledWithExactly(data, passphrase, recipient))
 						.should.be.true();
 				});
 
@@ -176,11 +168,11 @@ describe('encrypt message command', () => {
 			});
 
 			describe('with plaintext passphrase passed via command line', () => {
-				const passphraseSource = `pass:${secret}`;
-				const passPhrasePlainTextCommand = `${commandWithMessage} --passphrase "${passphraseSource}"`;
+				const passphraseSource = `pass:${passphrase}`;
+				const passphrasePlainTextCommand = `${commandWithMessage} --passphrase "${passphraseSource}"`;
 
 				beforeEach(() => {
-					return vorpal.exec(passPhrasePlainTextCommand);
+					return vorpal.exec(passphrasePlainTextCommand);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -204,7 +196,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(data, secret, recipient)).should.be.true();
+					(encryptStub.calledWithExactly(data, passphrase, recipient)).should.be.true();
 				});
 
 				it('should print the result', () => {
@@ -217,10 +209,10 @@ describe('encrypt message command', () => {
 			describe('with passphrase passed via environmental variable', () => {
 				const envVariable = 'TEST_PASSPHRASE';
 				const passphraseSource = `env:${envVariable}`;
-				const passPhraseEnvCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
+				const passphraseEnvCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
 
 				beforeEach(() => {
-					return vorpal.exec(passPhraseEnvCommand);
+					return vorpal.exec(passphraseEnvCommand);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -244,7 +236,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(data, secret, recipient)).should.be.true();
+					(encryptStub.calledWithExactly(data, passphrase, recipient)).should.be.true();
 				});
 
 				it('should print the result', () => {
@@ -255,11 +247,11 @@ describe('encrypt message command', () => {
 			});
 
 			describe('with passphrase passed via file path', () => {
-				const passphraseSource = 'file:/path/to/secret.txt';
-				const passPhraseFileCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
+				const passphraseSource = 'file:/path/to/passphrase.txt';
+				const passphraseFileCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
 
 				beforeEach(() => {
-					return vorpal.exec(passPhraseFileCommand);
+					return vorpal.exec(passphraseFileCommand);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -283,7 +275,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(data, secret, recipient))
+					(encryptStub.calledWithExactly(data, passphrase, recipient))
 						.should.be.true();
 				});
 
@@ -296,12 +288,12 @@ describe('encrypt message command', () => {
 
 			describe('with passphrase passed via stdin', () => {
 				const passphraseSource = 'stdin';
-				const passPhraseStdInCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
+				const passphraseStdInCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
 
 				beforeEach(() => {
-					stdInResult = { passphrase: secret };
+					stdInResult = { passphrase };
 					getStdInStub.resolves(stdInResult);
-					return vorpal.exec(passPhraseStdInCommand);
+					return vorpal.exec(passphraseStdInCommand);
 				});
 
 				it('should call the input util getStdIn with the correct parameters', () => {
@@ -314,7 +306,7 @@ describe('encrypt message command', () => {
 
 				it('should call the input util getPassphrase with the correct parameters', () => {
 					(getPassphraseStub.calledWithExactly(
-						vorpal, passphraseSource, secret, { shouldRepeat: true },
+						vorpal, passphraseSource, passphrase, { shouldRepeat: true },
 					))
 						.should.be.true();
 				});
@@ -325,7 +317,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(data, secret, recipient))
+					(encryptStub.calledWithExactly(data, passphrase, recipient))
 						.should.be.true();
 				});
 
@@ -379,7 +371,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(data, secret, recipient))
+					(encryptStub.calledWithExactly(data, passphrase, recipient))
 						.should.be.true();
 				});
 
@@ -419,7 +411,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(multilineData, secret, recipient))
+					(encryptStub.calledWithExactly(multilineData, passphrase, recipient))
 						.should.be.true();
 				});
 
@@ -461,7 +453,7 @@ describe('encrypt message command', () => {
 				});
 
 				it('should call the crypto module encrypt method with correct parameters', () => {
-					(encryptStub.calledWithExactly(multilineData, secret, recipient))
+					(encryptStub.calledWithExactly(multilineData, passphrase, recipient))
 						.should.be.true();
 				});
 
@@ -477,7 +469,7 @@ describe('encrypt message command', () => {
 			const passphraseAndDataStdInCommand = `${command} ${recipient} --message stdin --passphrase stdin`;
 
 			beforeEach(() => {
-				stdInResult = { passphrase: secret, data: multilineData };
+				stdInResult = { passphrase, data: multilineData };
 				getStdInStub.resolves(stdInResult);
 				getDataStub.resolves(multilineData);
 				return vorpal.exec(passphraseAndDataStdInCommand);
@@ -492,7 +484,7 @@ describe('encrypt message command', () => {
 			});
 
 			it('should call the input util getPassphrase with the correct parameters', () => {
-				(getPassphraseStub.calledWithExactly(vorpal, 'stdin', secret, { shouldRepeat: true }))
+				(getPassphraseStub.calledWithExactly(vorpal, 'stdin', passphrase, { shouldRepeat: true }))
 					.should.be.true();
 			});
 
@@ -502,7 +494,7 @@ describe('encrypt message command', () => {
 			});
 
 			it('should call the crypto module encrypt method with correct parameters', () => {
-				(encryptStub.calledWithExactly(multilineData, secret, recipient))
+				(encryptStub.calledWithExactly(multilineData, passphrase, recipient))
 					.should.be.true();
 			});
 

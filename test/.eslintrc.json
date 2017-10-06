@@ -3,10 +3,12 @@
 		"mocha": true
 	},
 	"globals": {
+		"sandbox": true,
 		"should": true,
 		"sinon": true
 	},
 	"rules": {
-		"arrow-body-style": "off"
+		"arrow-body-style": "off",
+		"max-len": "off"
 	}
 }
