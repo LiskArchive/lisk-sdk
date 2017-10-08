@@ -12,11 +12,16 @@ function SlaveToMasterSender (slaveWAMPServer) {
 /**
  * Sends requests to main process with SocketCluster authKey attached
  * @param {string} procedureName
+ * @param {number} updateType
  * @param {Object} peer
  * @param {function} cb
  */
-SlaveToMasterSender.prototype.send = function (procedureName, peer, cb) {
-	this.slaveWAMPServer.sendToMaster(procedureName, {peer: peer, authKey: this.slaveWAMPServer.worker.options.authKey}, peer.nonce, cb);
+SlaveToMasterSender.prototype.send = function (procedureName, updateType, peer, cb) {
+	this.slaveWAMPServer.sendToMaster(procedureName, {
+		peer: peer,
+		authKey: this.slaveWAMPServer.worker.options.authKey,
+		updateType: updateType
+	}, peer.nonce, cb);
 };
 
 /**

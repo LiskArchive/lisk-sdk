@@ -12,6 +12,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 var transactionTypes = require('../../../helpers/transactionTypes');
+var constants = require('../../../helpers/constants');
 
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var Transaction = require('../../../logic/transaction.js');
@@ -114,7 +115,9 @@ describe('multisignature', function () {
 	var sender;
 
 	before(function () {
-		transactionMock = sinon.mock(new Transaction());
+		transactionMock = {
+			verifySignature: sinon.stub()
+		};
 		accountMock = {
 			merge: sinon.mock()
 		};
@@ -131,62 +134,62 @@ describe('multisignature', function () {
 		trs = _.cloneDeep(validTransaction);
 		rawTrs = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
+		transactionMock.verifySignature.returns(1);
+	});
+
+	afterEach(function () {
+		transactionMock.verifySignature.reset();
+		accountMock.merge.reset();
+		accountsMock.setAccountAndGet.reset();
+		accountsMock.generateAddressByPublicKey.reset();
 	});
 
 	describe('constructor', function () {
 
-		it('should assign null value to privarte library variable when no parameters are passed', function () {
-			new Multisignature();
-			var library = Multisignature.__get__('library');
+		var library;
 
-			expect(library).to.eql({
-				schema: undefined,
-				network: undefined,
-				logger: undefined,
-				logic: {
-					transaction: undefined,
-				}
-			});
+		beforeEach(function () {
+			new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transactionMock, accountMock, modulesLoader.logger);
+			library = Multisignature.__get__('library');
 		});
 
-		it('should attach the parameters to private library variable correctly', function () {
-			new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transactionMock, accountMock, modulesLoader.logger);
-			var library = Multisignature.__get__('library');
+		it('should attach schema to library variable', function () {
+			expect(library.schema).to.eql(modulesLoader.scope.schema);
+		});
 
-			expect(library).to.eql({
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
-				logger: modulesLoader.logger,
-				logic: {
-					transaction: transactionMock,
-					account: accountMock
-				}
-			});
+		it('should attach network to library variable', function () {
+			expect(library.network).to.eql(modulesLoader.scope.network);
+		});
+
+		it('should attach logger to library variable', function () {
+			expect(library.logger).to.eql(modulesLoader.logger);
+		});
+
+		it('should attach logic.transaction to library variable', function () {
+			expect(library.logic.transaction).to.eql(transactionMock);
+		});
+
+		it('should attach schema to library variable', function () {
+			expect(library.logic.account).to.eql(accountMock);
 		});
 	});
 
 	describe('bind', function () {
 
-		it('should attach empty object to private modules.accounts variable', function () {
-			multisignature.bind({});
-			var modules = Multisignature.__get__('modules');
+		describe('modules', function () {
 
-			expect(modules).to.eql({
-				accounts: {}
-			});
-		});
+			it('should assign accounts', function () {
+				multisignature.bind(accountsMock);
+				var modules = Multisignature.__get__('modules');
 
-		it('should be okay with correct params', function () {
-			multisignature.bind(accountsMock);
-			var modules = Multisignature.__get__('modules');
-
-			expect(modules).to.eql({
-				accounts: accountsMock
+				expect(modules).to.eql({
+					accounts: accountsMock
+				});
 			});
 		});
 	});
 
-	describe('calculateFee', function (trs, sender) {
+	describe('calculateFee', function () {
 
 		it('should return correct fee based on formula for 1 keysgroup', function () {
 			trs.asset.multisignature.keysgroup = [
@@ -194,6 +197,7 @@ describe('multisignature', function () {
 			];
 			expect(multisignature.calculateFee(trs).toString()).to.equal('1000000000');
 		});
+
 
 		it('should return correct fee based on formula for 4 keysgroup', function () {
 			trs.asset.multisignature.keysgroup = new Array(4).fill('+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
@@ -216,135 +220,213 @@ describe('multisignature', function () {
 
 	describe('verify', function () {
 
-		it('should return error when asset property does not exist', function (done) {
-			delete trs.asset;
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid transaction asset');
+		describe('from multisignature.verify tests', function () {
+
+			it('should return error when min value is smaller than minimum acceptable value', function (done) {
+				var min = constants.multisigConstraints.min.minimum - 1;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 1);
+				trs.asset.multisignature.min = min;
+
+				multisignature.verify(trs, node.gAccount, function (err) {
+					expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
+					done();
+				});
 			});
 		});
 
-		it('should return error when asset property does not contain multisignature property', function (done) {
-			delete trs.asset.multisignature;
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid transaction asset');
-			});
-		});
+		it('should return error when min value is greater than maximum acceptable value', function (done) {
+			var min = constants.multisigConstraints.min.maximum + 1;
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, min);
 
-		it('should return error when keysgroup is an empty array', function (done) {
-			trs.asset.multisignature.keysgroup = [];
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid multisignature keysgroup. Must not be empty');
-			});
-		});
-
-		it('should return error when min required signature is less than or equal to 1', function (done) {
-			trs.asset.multisignature.min = 1;
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid multisignature min. Must be between 1 and 16');
-			});
-		});
-
-		it('should return error when min required signature is greater than 16', function (done) {
-			trs.asset.multisignature.min = 17;
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid multisignature min. Must be between 1 and 16');
-			});
-		});
-
-		it('should return error when lifetime is less than 1', function (done) {
-			trs.asset.multisignature.lifetime = 0;
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid multisignature lifetime. Must be between 1 and 72');
-			});
-		});
-
-		it('should return error when lifetime is greater than 73', function (done) {
-			trs.asset.multisignature.lifetime = 73;
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid multisignature lifetime. Must be between 1 and 72');
-			});
-		});
-
-		it('should return error if account has already enabled multisignature', function (done) {
-			sender.multisignatures = [node.lisk.crypto.getKeys(node.randomPassword()).publicKey];
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Account already has multisignatures enabled');
-			});
-		});
-
-		// check for case where we have a ready transaction - nit done; (reference confusion)
-		it('should return error when keysgroup contains sender', function (done) {
-			trs.asset.multisignature.keysgroup.push('+' + sender.publicKey);
-			
-			multisignature.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Invalid multisignature keysgroup. Can not contain sender');
-			});
-		});
-
-		it('should return error when multisignature keysgroup has an entry which does not start with + character', function (done) {
-			trs.asset.multisignature.keysgroup.push('-' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
-
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Invalid math operator in multisignature keysgroup');
+			multisignature.verify(trs, node.gAccount, function (err) {
+				expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
 				done();
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which is null', function (done) {
-			trs.asset.multisignature.keysgroup.push(null);
+		describe('when asset = undefined', function () {
 
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Invalid member in keysgroup');
-				done();
+			it('should call callback with error = "Invalid transaction asset"', function (done) {
+				delete trs.asset;
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction asset');
+					done();
+				});
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which is undefined', function (done) {
-			trs.asset.multisignature.keysgroup.push(undefined);
+		describe('when asset.multisignature = undefined', function () {
 
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Invalid member in keysgroup');
-				done();
+			it('should call callback with error = "Invalid transaction asset"', function (done) {
+				delete trs.asset.multisignature;
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid transaction asset');
+					done();
+				});
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which is an integer', function (done) {
-			trs.asset.multisignature.keysgroup.push(1);
+		describe('when asset.multisignature = []', function () {
 
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Invalid member in keysgroup');
-				done();
+			it('should call callback with error = "Invalid multisignature keysgroup. Must not be empty"', function (done) {
+				trs.asset.multisignature.keysgroup = [];
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid multisignature keysgroup. Must not be empty');
+					done();
+				});
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which is not an hex string', function (done) {
-			trs.asset.multisignature.keysgroup.push(new Array(64).fill('z').join(''));
+		describe('when min <= 1', function () {
 
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Invalid member in keysgroup');
-				done();
+			it('should call callback with error = "Invalid multisignature min. Must be between 1 and 16"', function (done) {
+				trs.asset.multisignature.min = 0;
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
+					done();
+				});
 			});
 		});
 
-		it('should return error when multisignature keysgroup has non unique elements', function (done) {
-			trs.asset.multisignature.keysgroup.push(trs.asset.multisignature.keysgroup[0]);
+		describe('when min >= 16', function () {
 
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Encountered duplicate public key in multisignature keysgroup');
-				done();
+			it('should call callback with error = "Invalid multisignature min. Must be between 1 and 15"', function (done) {
+				trs.asset.multisignature.min = 16;
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid multisignature min. Must be between 1 and 15');
+					done();
+				});
+			});
+		});
+
+		describe('when lifetime < 1', function () {
+
+			it('should call callback with error = "Invalid multisignature lifetime. Must be between 1 and 72"', function (done) {
+				trs.asset.multisignature.lifetime = 0;
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid multisignature lifetime. Must be between 1 and 72');
+					done();
+				});
+			});
+		});
+
+		describe('when lifetime > 72', function () {
+
+			it('should call callback with error = "Invalid multisignature lifetime. Must be between 1 and 72"', function (done) {
+				trs.asset.multisignature.lifetime = 73;
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid multisignature lifetime. Must be between 1 and 72');
+					done();
+				});
+			});
+		});
+
+		describe('when sender has multisignature enbled', function () {
+
+			it('should call callback with error = "Account already has multisignatures enabled"', function (done) {
+				sender.multisignatures = [node.lisk.crypto.getKeys(node.randomPassword()).publicKey];
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Account already has multisignatures enabled');
+					done();
+				});
+			});
+		});
+
+		describe('when keysgroup contains sender', function () {
+
+			// check for case where we have a ready transaction - nit done; (reference confusion)
+			it('should call callback with error = "Invalid multisignature keysgroup. Can not contain sender"', function (done) {
+				trs.asset.multisignature.keysgroup.push('+' + sender.publicKey);
+
+				multisignature.verify(trs, sender, function (err) {
+					expect(err).to.equal('Invalid multisignature keysgroup. Can not contain sender');
+					done();
+				});
+			});
+		});
+
+		describe('when keysgroup has an entry which does not start with + character', function () {
+
+			it('should call callback with error = "Invalid math operator in multisignature keysgroup"', function (done) {
+				trs.asset.multisignature.keysgroup.push('-' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
+
+				multisignature.verify(trs, node.gAccount, function (err, trs) {
+					expect(err).to.equal('Invalid math operator in multisignature keysgroup');
+					done();
+				});
+			});
+		});
+
+		describe('when multisignature keysgroup has an entry which is null', function () {
+
+			it('should call callback with error = "Invalid member in keysgroup"', function (done) {
+				trs.asset.multisignature.keysgroup.push(null);
+
+				multisignature.verify(trs, node.gAccount, function (err, trs) {
+					expect(err).to.equal('Invalid member in keysgroup');
+					done();
+				});
+			});
+		});
+
+		describe('when multisignature keysgroup has an entry which is undefined', function () {
+
+			it('should return error = "Invalid member in keysgroup"', function (done) {
+				trs.asset.multisignature.keysgroup.push(undefined);
+
+				multisignature.verify(trs, node.gAccount, function (err, trs) {
+					expect(err).to.equal('Invalid member in keysgroup');
+					done();
+				});
+			});
+		});
+
+		describe('when multisignature keysgroup has an entry which is an integer', function () { 
+
+			it('should return error = "Invalid member in keysgroup"', function (done) {
+				trs.asset.multisignature.keysgroup.push(1);
+
+				multisignature.verify(trs, node.gAccount, function (err, trs) {
+					expect(err).to.equal('Invalid member in keysgroup');
+					done();
+				});
+			});
+		});
+
+		describe('when multisignature keysgroup has an entry which is not an hex string', function () {
+
+			it('should call callback with error = Invalid member in keysgroup', function (done) {
+				trs.asset.multisignature.keysgroup.push(1);
+
+				multisignature.verify(trs, node.gAccount, function (err, trs) {
+					expect(err).to.equal('Invalid member in keysgroup');
+					done();
+				});
+			});
+		});
+
+		describe('when multisignature keysgroup has non unique elements', function () {
+
+			it('should call callback with error = Encountered duplicate public key in multisignature keysgroup', function (done) {
+				trs.asset.multisignature.keysgroup.push(trs.asset.multisignature.keysgroup[0]);
+
+				multisignature.verify(trs, node.gAccount, function (err, trs) {
+					expect(err).to.equal('Encountered duplicate public key in multisignature keysgroup');
+					done();
+				});
 			});
 		});
 
 		it('should be okay for valid transaction', function (done) {
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
+			multisignature.verify(trs, sender, function (err, trs) {
 				expect(err).to.not.exist;
 				expect(trs).to.eql(trs);
 				done();
@@ -356,8 +438,7 @@ describe('multisignature', function () {
 
 		it('should return the bytes of the multisignature asset', function () {
 			var bytes = multisignature.getBytes(trs);
-
-			expect(bytes.length).to.eql(64+1+1);
+			expect(bytes.length).to.eql(132);
 		});
 	});
 
@@ -490,7 +571,7 @@ describe('multisignature', function () {
 
 		it('should update private unconfirmed signature status of sender', function (done) {
 			accountMock.merge.withArgs(sinon.match.any, sinon.match.any).yields(null);
-			Multisignature.__set__('__private.unconfirmedSignatures', true);
+			Multisignature.__set__('__private.unconfirmedSignatures', {[sender.address]: true});
 
 			multisignature.undoUnconfirmed(trs, sender, function () {
 				var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
@@ -500,11 +581,31 @@ describe('multisignature', function () {
 			});
 		});
 
+		it('should return error when multisignature keysgroup has an entry which does not start with + character', function (done) {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
+			trs.senderId = node.gAccount.address;
+
+			multisignature.verify(trs, node.gAccount, function (err, trs) {
+				expect(err).to.equal('Invalid math operator in multisignature keysgroup');
+				done();
+			});
+		});
+
+		it('should return error when multisignature keysgroup has an entry which is null', function (done) {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, null], 1, 2);
+			trs.senderId = node.gAccount.address;
+
+			multisignature.verify(trs, node.gAccount, function (err, trs) {
+				expect(err).to.equal('Invalid member in keysgroup');
+				done();
+			});
+		});
+
 		it('should call the account.merge with correct params', function (done) {
 			accountMock.merge.withArgs(sender.address, {
-				u_multisignatures: Diff.reverse(trs.asset.multisignature.keysgroup),
-				u_multimin: -trs.asset.multisignature.min,
-				u_multilifetime: -trs.asset.multisignature.lifetime
+				u_multisignatures: trs.asset.multisignature.keysgroup,
+				u_multimin: trs.asset.multisignature.min,
+				u_multilifetime: trs.asset.multisignature.lifetime
 			}).yields(null);
 
 			multisignature.applyUnconfirmed(trs, sender, function () {
@@ -516,21 +617,153 @@ describe('multisignature', function () {
 
 	describe('objectNormalize', function () {
 
+		describe('min', function () {
+
+			it('should return error when value is not an integer', function () {
+				var min = '2';
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 2);
+				trs.asset.multisignature.min = min;
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Expected type integer but found type string');
+			});
+
+			it('should return error when value is a negative integer', function () {
+				var min = -1;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 2);
+				trs.asset.multisignature.min = min;
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Value -1 is less than minimum 1');
+			});
+
+			it('should return error when value is smaller than minimum acceptable value', function () {
+				var min = constants.multisigConstraints.min.minimum - 1;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, min);
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Value 0 is less than minimum 1');
+			});
+
+			it('should return error when value is greater than maximum acceptable value', function () {
+				var min = constants.multisigConstraints.min.maximum + 1;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, min);
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Value 16 is greater than maximum 15');
+			});
+
+			it('should return error when value is an overflow number', function () {
+				var min = Number.MAX_VALUE + 1;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
+				trs.asset.multisignature.min = min;
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Value 1.7976931348623157e+308 is greater than maximum 15');
+			});
+		});
+
+		describe('lifetime', function () {
+
+			it('should return error when value is not an integer', function () {
+				var lifetime = '2';
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
+				trs.asset.multisignature.lifetime = lifetime;
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Expected type integer but found type string');
+			});
+
+			it('should return error when value is smaller than minimum acceptable value', function () {
+				var lifetime = node.constants.multisigConstraints.lifetime.minimum - 1;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], lifetime, 2);
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Value 0 is less than minimum 1');
+			});
+
+			it('should return error when value is greater than maximum acceptable value', function () {
+				var lifetime = node.constants.multisigConstraints.lifetime.maximum + 1;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], lifetime, 2);
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Value 73 is greater than maximum 72');
+			});
+
+			it('should return error when value is an overflow number', function () {
+				var lifetime = Number.MAX_VALUE;
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
+				trs.asset.multisignature.lifetime = lifetime;
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Value 1.7976931348623157e+308 is greater than maximum 72');
+			});
+		});
+
+		describe('keysgroup', function () {
+
+			it('should return error when it is not an array', function () {
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, [''], 1, 2);
+				trs.asset.multisignature.keysgroup = '';
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Expected type array but found type string');
+			});
+
+			it('should return error when array length is smaller than minimum acceptable value', function () {
+				var keysgroup = [];
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, keysgroup, 1, 2);
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Array is too short (0), minimum 1');
+			});
+
+			it('should return error when array length is greater than maximum acceptable value', function () {
+				var keysgroup = Array.apply(null, Array(constants.multisigConstraints.keysgroup.maxItems + 1)).map(function () {
+					return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+				});
+				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, keysgroup, 1, 2);
+
+				expect(function () {
+					multisignature.objectNormalize(trs);
+				}).to.throw('Failed to validate multisignature schema: Array is too long (16), maximum 15');
+			});
+		});
+
+		it('should return transaction when asset is valid', function () {
+			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, Array.apply(null, Array(10)).map(function () {
+				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			}), 1, 2);
+
+			expect(multisignature.objectNormalize(trs)).to.eql(trs);
+		});
+
 		it('should use the correct format to validate against', function () {
 			var library = Multisignature.__get__('library');
 			var schemaSpy = sinon.spy(library.schema, 'validate');
 			multisignature.objectNormalize(trs);
 			expect(schemaSpy.calledOnce).to.equal(true);
-			expect(schemaSpy.calledWithExactly(trs.asset.delegate, Multisignature.prototype.schema)).to.equal(true);
+			expect(schemaSpy.calledWithExactly(trs.asset.multisignature, Multisignature.prototype.schema)).to.equal(true);
 			schemaSpy.restore();
 		});
 
 		it('should return error asset schema is invalid', function () {
-			trs.asset.multisignature.min = 2;
+			trs.asset.multisignature.min = -1;
 
 			expect(function () {
 				multisignature.objectNormalize(trs);
-			}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: invalid-public-key');
+			}).to.throw('Failed to validate multisignature schema: Value -1 is less than minimum 1');
 		});
 
 		it('should return transaction when asset is valid', function () {
@@ -565,8 +798,8 @@ describe('multisignature', function () {
 					'transactionId'
 				],
 				values: {
-					min: trs.min,
-					lifetime: trs.lifetime,
+					min: trs.asset.multisignature.min,
+					lifetime: trs.asset.multisignature.lifetime,
 					keysgroup: trs.asset.multisignature.keysgroup.join(','),
 					transactionId:trs.id
 				}
@@ -598,60 +831,4 @@ describe('multisignature', function () {
 			expect(multisignature.ready(trs, sender)).to.equal(true);
 		});
 	});
-// describe('verify', function () {
-
-//	describe('from transaction.verify tests', function () {
-
-	//		it('should return error when multisignature keysgroup has an entry which does not start with + character', function (done) {
-	//			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
-	//			trs.senderId = node.gAccount.address;
-
-	//			transaction.verify(trs, node.gAccount, function (err, trs) {
-	//				expect(err).to.equal('Invalid math operator in multisignature keysgroup');
-	//				done();
-	//			});
-	//		});
-
-	//		it('should return error when multisignature keysgroup has an entry which is null', function (done) {
-	//			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, null], 1, 2);
-	//			trs.senderId = node.gAccount.address;
-
-	//			transaction.verify(trs, node.gAccount, function (err, trs) {
-	//				expect(err).to.equal('Invalid member in keysgroup');
-	//				done();
-	//			});
-	//		});
-
-	//		it('should return error when multisignature keysgroup has an entry which is undefined', function (done) {
-	//			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, undefined], 1, 2);
-	//			trs.senderId = node.gAccount.address;
-
-	//			transaction.verify(trs, node.gAccount, function (err, trs) {
-	//				expect(err).to.equal('Invalid member in keysgroup');
-	//				done();
-	//			});
-	//		});
-
-	//		it('should return error when multisignature keysgroup has an entry which is an integer', function (done) {
-	//			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, 12], 1, 2);
-	//			trs.senderId = node.gAccount.address;
-
-	//			transaction.verify(trs, node.gAccount, function (err, trs) {
-	//				expect(err).to.equal('Invalid member in keysgroup');
-	//				done();
-	//			});
-	//		});
-	//		
-	//		it('should be okay for valid transaction', function (done) {
-	//			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 2);
-	//			trs.senderId = node.gAccount.address;
-
-	//			transaction.verify(trs, node.gAccount, function (err, trs) {
-	//				expect(err).to.not.exist;
-	//				done();
-	//			});
-	//		});
-	//	});
-	//});
-
 });

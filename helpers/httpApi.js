@@ -18,7 +18,7 @@ var middleware = {
 	 * Adds CORS header to all requests.
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	cors: function (req, res, next) {
 		res.header('Access-Control-Allow-Origin', '*');
@@ -32,7 +32,7 @@ var middleware = {
 	 * @param {Error} err
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	errorLogger: function (logger, err, req, res, next) {
 		if (!err) { return next(); }
@@ -46,7 +46,7 @@ var middleware = {
 	 * @param {Logger} logger
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	logClientConnections: function (logger, req, res, next) {
 		// Log client connections
@@ -57,10 +57,10 @@ var middleware = {
 
 	/**
 	 * Resends error msg when blockchain is not loaded.
-	 * @param {Function} isLoaded
+	 * @param {function} isLoaded
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	blockchainReady: function (isLoaded, req, res, next) {
 		if (isLoaded()) { return next(); }
@@ -71,7 +71,7 @@ var middleware = {
 	 * Resends error if API endpoint doesn't exists.
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	notFound: function (req, res, next) {
 		return res.status(500).send({success: false, error: 'API endpoint not found'});
@@ -79,10 +79,10 @@ var middleware = {
 
 	/**
 	 * Uses req.sanitize for particular endpoint.
-	 * @param {String} property
+	 * @param {string} property
 	 * @param {Object} schema
-	 * @param {Function} cb
-	 * @return {Function} Sanitize middleware.
+	 * @param {function} cb
+	 * @return {function} Sanitize middleware.
 	 */
 	sanitize: function (property, schema, cb) {
 		return function (req, res, next) {
@@ -101,7 +101,7 @@ var middleware = {
 	 * @param {string} headerValue
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	attachResponseHeader: function (headerKey, headerValue, req, res, next) {
 		res.setHeader(headerKey, headerValue);
@@ -113,7 +113,7 @@ var middleware = {
 	 * @param {Object} config
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	applyAPIAccessRules: function (config, req, res, next) {
 		if (req.url.match(/^\/peer[\/]?.*/)) {
@@ -133,10 +133,10 @@ var middleware = {
 
 	/**
 	 * Passes getter for headers and assign then to response.
-	 * @param {Function} getHeaders
+	 * @param {function} getHeaders
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	attachResponseHeaders: function (getHeaders, req, res, next) {
 		res.set(getHeaders());
@@ -148,7 +148,7 @@ var middleware = {
 	 * If it's a miss, forward the request but cache the response if it's a success.
 	 * @param {Object} req
 	 * @param {Object} res
-	 * @param {Function} next
+	 * @param {function} next
 	 */
 	useCache: function (logger, cache, req, res, next) {
 		if (!cache.isReady()) {
@@ -180,7 +180,7 @@ var middleware = {
 /**
  * Adds 'success' field to every response and attach error message if needed.
  * @param {Object} res
- * @param {String} err
+ * @param {string} err
  * @param {Object} response
  */
 function respond (res, err, response) {
@@ -193,10 +193,10 @@ function respond (res, err, response) {
 
 /**
  * Register router in express app using default middleware.
- * @param {String} route
+ * @param {string} route
  * @param {Object} app
  * @param {Object} router
- * @param {Function} isLoaded
+ * @param {function} isLoaded
  */
 function registerEndpoint (route, app, router, isLoaded) {
 	router.use(middleware.notFound);

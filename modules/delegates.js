@@ -21,7 +21,6 @@ var modules, library, self, __private = {}, shared = {};
 
 __private.assetTypes = {};
 __private.loaded = false;
-__private.blockReward = new BlockReward();
 __private.keypairs = {};
 __private.tmpKeypairs = {};
 __private.delegatesList = [];
@@ -61,7 +60,7 @@ function Delegates (cb, scope) {
 		},
 	};
 	self = this;
-
+	__private.blockReward = new BlockReward();
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
 		transactionTypes.DELEGATE,
 		new Delegate(
@@ -196,23 +195,18 @@ __private.decryptSecret = function (encryptedSecret, key) {
 /**
  * Updates the forging status of an account, valid actions are enable and disable.
  * @private
- * @param {publicKey} publicKey - PublicKey.
+ * @param {publicKey} publicKey - PublicKey
  * @param {string} secretKey - key used to decrypt encrypted passphrase
- * @param {string} action - enable or disable forging
+ * @param {function} cb
  * @returns {setImmediateCallback}
  */
-__private.updateForgingStatus = function (publicKey, secretKey, action, cb) {
-	var actionEnable = action === 'enable';
-	var actionDisable = action === 'disable';
-
-	if (!(actionEnable || actionDisable)) {
-		return setImmediate(cb, 'Invalid action');
-	}
+__private.toggleForgingStatus = function (publicKey, secretKey, cb) {
+	var actionEnable = false;
+	var actionDisable = false;
 
 	var keypair;
 	var encryptedList, decryptedSecret, encryptedItem;
 	encryptedList = library.config.forging.secret;
-
 	encryptedItem = _.find(encryptedList, function (item) {
 		return item.publicKey === publicKey;
 	});
@@ -233,30 +227,38 @@ __private.updateForgingStatus = function (publicKey, secretKey, action, cb) {
 		return setImmediate(cb, 'Invalid key and public key combination');
 	}
 
-	if (actionEnable && __private.keypairs[keypair.publicKey.toString('hex')]) {
-		return setImmediate(cb, 'Forging is already enabled');
+	if (__private.keypairs[keypair.publicKey.toString('hex')]) {
+		actionDisable = true;
 	}
 
-	if (actionDisable && !__private.keypairs[keypair.publicKey.toString('hex')]) {
-		return setImmediate(cb, 'Delegate not found');
+	if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
+		actionEnable = true;
 	}
 
 	modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
+
 		if (account && account.isDelegate) {
+			var forgingStatus;
+
 			if (actionEnable) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+				forgingStatus = true;
 				library.logger.info('Forging enabled on account: ' + account.address);
 			}
 
 			if (actionDisable) {
 				delete __private.keypairs[keypair.publicKey.toString('hex')];
+				forgingStatus = false;
 				library.logger.info('Forging disabled on account: ' + account.address);
 			}
 
-			return setImmediate(cb, null, {address: account.address});
+			return setImmediate(cb, null, {
+				publicKey: publicKey,
+				forging: forgingStatus
+			});
 		} else {
 			return setImmediate(cb, 'Delegate not found');
 		}
@@ -363,33 +365,32 @@ __private.loadDelegates = function (cb) {
 	if (!secretsList || !secretsList.length || !library.config.forging.force || !library.config.forging.defaultKey) {
 		return setImmediate(cb);
 	} else {
-		library.logger.info(['Loading', secretsList.length, 'delegates from config'].join(' '));
+		library.logger.info(['Loading', secretsList.length, 'delegates using encrypted secrets from config'].join(' '));
 	}
 
-	async.eachSeries(secretsList, function (encryptedItem, cb) {
+	async.eachSeries(secretsList, function (encryptedItem, seriesCb) {
 		var secret;
-
 		try {
 			secret = __private.decryptSecret(encryptedItem.encryptedSecret, library.config.forging.defaultKey);
 		} catch (e) {
-			return setImmediate(cb, ['Invalid key for encrypted secret:', encryptedItem.encryptedSecret].join(' '));
+			return setImmediate(seriesCb, ['Invalid encryptedSecret for publicKey:', encryptedItem.publicKey].join(' '));
 		}
 
 		var keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 
 		if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
-			return setImmediate(cb, 'Public keys do not match');
+			return setImmediate(seriesCb, 'Public keys do not match');
 		}
 
 		modules.accounts.getAccount({
 			publicKey: keypair.publicKey.toString('hex')
 		}, function (err, account) {
 			if (err) {
-				return setImmediate(cb, err);
+				return setImmediate(seriesCb, err);
 			}
 
 			if (!account) {
-				return setImmediate(cb, ['Account with public key:', keypair.publicKey.toString('hex'), 'not found'].join(' '));
+				return setImmediate(seriesCb, ['Account with public key:', keypair.publicKey.toString('hex'), 'not found'].join(' '));
 			}
 
 			if (account.isDelegate) {
@@ -399,7 +400,7 @@ __private.loadDelegates = function (cb) {
 				library.logger.warn(['Account with public key:', keypair.publicKey.toString('hex'), 'is not a delegate'].join(' '));
 			}
 
-			return setImmediate(cb);
+			return setImmediate(seriesCb);
 		});
 	}, cb);
 };
@@ -578,9 +579,9 @@ Delegates.prototype.onBind = function (scope) {
  * @public
  * @method onRoundChanged
  * @listens module:pg-notify~event:roundChanged
- * @param {object} data Data received from postgres
- * @param {object} data.round Current round
- * @param {object} data.list Delegates list used for slot calculations
+ * @param {Object} data Data received from postgres
+ * @param {Object} data.round Current round
+ * @param {Object} data.list Delegates list used for slot calculations
  */
 Delegates.prototype.onRoundChanged = function (data) {
 	__private.delegatesList = data.list;
@@ -640,25 +641,6 @@ Delegates.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.internal = {
-	forgingEnable: function (req, cb) {
-		library.schema.validate(req.body, schema.enableForging, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			__private.updateForgingStatus(req.body.publicKey, req.body.key, 'enable', cb);
-		});
-	},
-	forgingDisable: function (req, cb) {
-		library.schema.validate(req.body, schema.disableForging, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			__private.updateForgingStatus(req.body.publicKey, req.body.key, 'disable', cb);
-		});
-	},
-
 	forgingStatus: function (req, cb) {
 		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
 			return setImmediate(cb, 'Access denied');
@@ -677,7 +659,19 @@ Delegates.prototype.internal = {
 			}
 		});
 	},
+	forgingToggle: function (req, cb) {
+		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
+			return setImmediate(cb, 'Access denied');
+		}
 
+		library.schema.validate(req.body, schema.toggleForging, function (err) {
+			if (err) {
+				return setImmediate(cb, err[0].message);
+			}
+
+			__private.toggleForgingStatus(req.body.publicKey, req.body.key, cb);
+		});
+	},
 	forgingEnableAll: function (req, cb) {
 		if (Object.keys(__private.tmpKeypairs).length === 0) {
 			return setImmediate(cb, 'No delegate keypairs defined');

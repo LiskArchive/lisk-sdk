@@ -11,7 +11,7 @@ var childProcess = require('child_process');
  * Return hash of last git commit if available
  * @memberof module:helpers
  * @function
- * @return {String} Hash of last git commit
+ * @return {string} Hash of last git commit
  * @throws {Error} Throws error if cannot get last git commit
  */
 function getLastCommit () {

@@ -3,10 +3,11 @@
 var chai = require('chai');
 var expect = require('chai').expect;
 
+var node = require('../../node');
 var sql = require('../../sql/blockRewards.js');
 var constants = require('../../../helpers/constants.js');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var modulesLoader = require('../../common/initModule').modulesLoader;
-var db;
 
 function calcBlockReward (height, reward, done) {
 	return db.query(sql.calcBlockReward, {height: height}).then(function (rows) {
@@ -34,7 +35,7 @@ function calcSupply (height, supply, done) {
 		}
 		done();
 	}).catch(done);
-};
+}
 
 function calcSupply_test (height_start, height_end, expected_reward, done) {
 	return db.query(sql.calcSupply_test, {height_start: height_start, height_end: height_end, expected_reward: expected_reward}).then(function (rows) {
@@ -44,7 +45,7 @@ function calcSupply_test (height_start, height_end, expected_reward, done) {
 		expect(rows[0].result).to.equal(true);
 		done();
 	}).catch(done);
-};
+}
 
 function calcSupply_test_fail (height_start, height_end, expected_reward, done) {
 	return db.query(sql.calcSupply_test, {height_start: height_start, height_end: height_end, expected_reward: expected_reward}).then(function (rows) {
@@ -54,7 +55,7 @@ function calcSupply_test_fail (height_start, height_end, expected_reward, done) 
 		expect(rows[0].result).to.equal(false);
 		done();
 	}).catch(done);
-};
+}
 
 function calcBlockReward_test (height_start, height_end, expected_reward, done) {
 	return db.query(sql.calcBlockReward_test, {height_start: height_start, height_end: height_end, expected_reward: expected_reward}).then(function (rows) {
@@ -64,21 +65,37 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 		expect(Number(rows[0].result)).to.equal(0);
 		done();
 	}).catch(done);
-};
+}
+
+var db;
+var dbSandbox;
+var originalBlockRewardsOffset;
 
 describe('BlockRewardsSQL', function () {
+
 	before(function (done) {
-		modulesLoader.getDbConnection(function (err, db_handle) {
-			if (err) {
-				return done(err);
-			}
-			db = db_handle;
-			done();
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_sql_block_rewards');
+		dbSandbox.create(function (err, __db) {
+			db = __db;
+
+			// Force rewards start at 150-th block
+			originalBlockRewardsOffset = constants.rewards.offset;
+			constants.rewards.distance = 3000000;
+			constants.rewards.offset = 1451520;
+			// wait for mem_accounts to be populated
+			node.initApplication(function (err) {
+				setTimeout(function () {
+					done(err);
+				}, 5000);
+			}, {db: db});
 		});
 	});
 
-	constants.rewards.distance = 3000000;
-	constants.rewards.offset = 1451520;
+	after(function (done) {
+		constants.rewards.offset = originalBlockRewardsOffset;
+		dbSandbox.destroy();
+		node.appCleanup(done);
+	});
 
 	describe('checking SQL function getBlockRewards()', function () {
 
