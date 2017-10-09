@@ -23,19 +23,20 @@ import { prepareTransaction } from './utils';
 
 /**
  * @method createTransaction
- * @param recipientId
- * @param amount
- * @param secret
- * @param secondSecret
- * @param data
- * @param timeOffset
+ * @param {Object} Object - Object
+ * @param {String} Object.recipientId
+ * @param {String} Object.amoun
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {String} Object.data
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function send(
+export default function send({
 	recipientId, amount, secret, secondSecret, data, timeOffset,
-) {
+}) {
 	const keys = cryptoModule.getKeys(secret);
 	const fee = data ? (SEND_FEE + DATA_FEE) : SEND_FEE;
 	const transaction = {
