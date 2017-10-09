@@ -14,11 +14,11 @@
  */
 describe('Browser tests', () => {
 	it('should pass without minification', () => {
-		cy.visit('http://localhost:8000/browsertest.html');
+		cy.visit('/browsertest.html');
 		cy.get('#result').should('contain', 0);
 	});
 	it('should pass with minification', () => {
-		cy.visit('http://localhost:8000/browsertest.min.html');
+		cy.visit('/browsertest.min.html');
 		cy.get('#result').should('contain', 0);
 	});
 });
