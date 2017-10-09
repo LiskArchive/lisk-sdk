@@ -109,39 +109,33 @@ describe('multisignature', function () {
 	// logic is singular, modules are plural
 	var accountMock;
 	var accountsMock;
+
+	var dummyBlock;
 	var multisignature;
 	var trs;
 	var rawTrs;
 	var sender;
 
-	before(function () {
+	beforeEach(function () {
 		transactionMock = {
-			verifySignature: sinon.stub()
+			verifySignature: sinon.stub().returns(1)
 		};
 		accountMock = {
 			merge: sinon.mock()
 		};
 		accountsMock = {
-			setAccountAndGet: sinon.mock(),
-			generateAddressByPublicKey: sinon.mock()
+			generateAddressByPublicKey: sinon.mock().returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey),
+			setAccountAndGet: sinon.mock()
 		};
-		multisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transactionMock, accountMock, modulesLoader.logger);
-
-		multisignature.bind(accountsMock);
-	});
-
-	beforeEach(function () {
 		trs = _.cloneDeep(validTransaction);
 		rawTrs = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
-		transactionMock.verifySignature.returns(1);
-	});
-
-	afterEach(function () {
-		transactionMock.verifySignature.reset();
-		accountMock.merge.reset();
-		accountsMock.setAccountAndGet.reset();
-		accountsMock.generateAddressByPublicKey.reset();
+		dummyBlock = {
+			id: '9314232245035524467',
+			height: 1
+		};
+		multisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transactionMock, accountMock, modulesLoader.logger);
+		multisignature.bind(accountsMock);
 	});
 
 	describe('constructor', function () {
@@ -434,20 +428,55 @@ describe('multisignature', function () {
 		});
 	});
 
+	describe('process', function () {
+
+		it('should call callback with error = null', function (done) {
+			multisignature.process(trs, sender, function (err) {
+				expect(err).to.be.null;
+				done();
+			});
+		});
+
+		it('should call callback with result = transaction', function (done) {
+			multisignature.process(trs, sender, function (err, result) {
+				expect(result).to.eql(trs);
+				done();
+			});
+		});
+	});
+
 	describe('getBytes', function () {
 
-		it('should return the bytes of the multisignature asset', function () {
-			var bytes = multisignature.getBytes(trs);
-			expect(bytes.length).to.eql(132);
+		describe('when trs.asset.multisignature.keysgroup is undefined', function () {
+
+			beforeEach(function () {
+				trs.asset.multisignature.keysgroup = undefined;
+			});
+
+			it('should throw', function () {
+				expect(multisignature.getBytes.bind(null, trs)).to.throw;
+			});
+		});
+
+		describe('when trs.asset.multisignature.keysgroup is a valid keysgroup', function () {
+
+			it('should not throw', function () {
+				expect(multisignature.getBytes.bind(null, trs)).not.to.throw;
+			});
+
+			it('should get bytes of valid transaction', function () {
+				var bytes = multisignature.getBytes(trs);
+				expect(bytes.toString('utf8')).to.equal('\u0002\u0002+bd6d0388dcc0b07ab2035689c60a78d3ebb27901c5a5ed9a07262eab1a2e9bd2+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9');
+				expect(bytes.length).to.equal(132);
+			});
+
+			it('should return result as a Buffer type', function () {
+				expect(multisignature.getBytes(trs)).to.be.instanceOf(Buffer);
+			});
 		});
 	});
 
 	describe('apply', function () {
-
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
 
 		it('should update private unconfirmed signature of sender', function (done) {
 			accountMock.merge.withArgs(sinon.match.any, sinon.match.any).yields(null);
@@ -487,11 +516,6 @@ describe('multisignature', function () {
 	});
 
 	it('undo', function () {
-
-		var dummyBlock = {
-			id: '9314232245035524467',
-			height: 1
-		};
 
 		it('should update private unconfirmed signature of sender', function (done) {
 			accountMock.merge.withArgs(sinon.match.any, sinon.match.any).yields(null);
