@@ -11,6 +11,7 @@ var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var slots = require('../../../helpers/slots.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
+var slots = require('../../../helpers/slots');
 var typesRepresentatives = require('../../common/typesRepresentatives');
 
 var InTransfer = rewire('../../../logic/inTransfer.js');
@@ -75,6 +76,10 @@ var rawValidTransaction = {
 	in_dappId: '7400202127695414450'
 };
 
+var validGetGensisResult = {
+	authorId: 'validAuthorId'
+};
+
 describe('inTransfer', function () {
 
 	var inTransfer;
@@ -93,10 +98,10 @@ describe('inTransfer', function () {
 			one: sinon.stub().resolves()
 		};
 		sharedStub = {
-			getGenesis: sinon.stub()
+			getGenesis: sinon.stub().callsArgWith(1, null, validGetGensisResult)
 		};
 		accountsStub = {
-			mergeAccountAndGet: sinon.stub(),
+			mergeAccountAndGet: sinon.stub().callsArg(1),
 			getAccount: sinon.stub()
 		};
 		inTransfer = new InTransfer(dbStub, modulesLoader.scope.schema);
@@ -354,152 +359,174 @@ describe('inTransfer', function () {
 
 	describe('apply', function () {
 
-		it('should call shared.getGenesis');
+		beforeEach(function (done) {
+			inTransfer.apply(trs, dummyBlock, sender, done);
+		});
 
-		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}');
+		it('should call shared.getGenesis', function () {
+			expect(sharedStub.getGenesis.calledOnce).to.be.true;
+		});
+
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', function () {
+			expect(sharedStub.getGenesis.calledWith({dappid: trs.asset.inTransfer.dappId})).to.be.true;
+		});
 
 		describe('when shared.getGenesis fails', function () {
 
-			it('should call callback with error');
+			beforeEach(function () {
+				sharedStub.getGenesis = sinon.stub.callsArgWith(1, 'getGenesis error');
+			});
+
+			it('should call callback with error', function () {
+				inTransfer.apply(trs, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
+				});
+			});
 		});
 
 		describe('when shared.getGenesis succeeds', function () {
 
-			it('should call modules.accounts.mergeAccountAndGet');
+			beforeEach(function () {
+				sharedStub.getGenesis = sinon.stub.callsArg(1);
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId');
+			it('should call modules.accounts.mergeAccountAndGet', function () {
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount');
+			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: validGetGensisResult.authorId}))).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount');
+			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: trs.amount}))).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id');
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: trs.amount}))).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result');
+			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({blockId: dummyBlock.id}))).to.be.true;
+			});
+
+			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+			});
 
 			describe('when modules.accounts.mergeAccountAndGet fails', function () {
 
-				it('should call callback with error');
+				beforeEach(function () {
+					accountsStub.mergeAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+				});
+				
+				it('should call callback with error', function () {
+					inTransfer.apply(trs, dummyBlock, sender, function (err) {
+						expect(err).not.to.be.empty;
+					});
+				});
 			});
 
 			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
 
-				it('should call callback with error = undefined');
+				it('should call callback with error = undefined', function () {
+					inTransfer.apply(trs, dummyBlock, sender, function (err) {
+						expect(err).to.be.undefined;
+					});
+				});
 
-				it('should call callback with result = undefined');
-			});
-		});
-
-		it('should return error if dapp does not exist', function (done) {
-
-			var error = 'Application genesis block not found';
-
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
-			}, sinon.match.any).yields(error);
-
-			inTransfer.apply(trs, dummyBlock, sender, function (err) {
-				expect(err).to.equal(error);
-				done();
-			});
-		});
-
-		it('should update account with correct params', function (done) {
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
-			}, sinon.match.any).yields(null, {
-				authorId: validSender.address
-			});
-
-			accountsStub.mergeAccountAndGet.withArgs({
-				address: validSender.address,
-				balance: trs.amount,
-				u_balance: trs.amount,
-				blockId: dummyBlock.id,
-				round: slots.calcRound(dummyBlock.height)
-			}).yields(null);
-
-			inTransfer.apply(trs, dummyBlock, sender, function (err) {
-				expect(err).to.not.exist;
-				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
-				done();
+				it('should call callback with result = undefined', function () {
+					inTransfer.apply(trs, dummyBlock, sender, function (err, res) {
+						expect(res).to.be.undefined;
+					});
+				});
 			});
 		});
 	});
 
 	describe('undo', function () {
 
-		it('should call shared.getGenesis');
+		beforeEach(function (done) {
+			inTransfer.undo(trs, dummyBlock, sender, done);
+		});
 
-		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}');
+		it('should call shared.getGenesis', function () {
+			expect(sharedStub.getGenesis.calledOnce).to.be.true;
+		});
+
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', function () {
+			expect(sharedStub.getGenesis.calledWith({dappid: trs.asset.inTransfer.dappId})).to.be.true;
+		});
 
 		describe('when shared.getGenesis fails', function () {
 
-			it('should call callback with error');
+			beforeEach(function () {
+				sharedStub.getGenesis = sinon.stub.callsArgWith(1, 'getGenesis error');
+			});
+
+			it('should call callback with error', function () {
+				inTransfer.undo(trs, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
+				});
+			});
 		});
 
 		describe('when shared.getGenesis succeeds', function () {
 
-			it('should call modules.accounts.mergeAccountAndGet');
+			beforeEach(function () {
+				sharedStub.getGenesis = sinon.stub.callsArg(1);
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId');
+			it('should call modules.accounts.mergeAccountAndGet', function () {
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount');
+			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: validGetGensisResult.authorId}))).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount');
+			it('should call modules.accounts.mergeAccountAndGet with balance = -trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: -trs.amount}))).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id');
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: -trs.amount}))).to.be.true;
+			});
 
-			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result');
+			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({blockId: dummyBlock.id}))).to.be.true;
+			});
+
+			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+			});
 
 			describe('when modules.accounts.mergeAccountAndGet fails', function () {
 
-				it('should call callback with error');
+				beforeEach(function () {
+					accountsStub.mergeAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+				});
+
+				it('should call callback with error', function () {
+					inTransfer.undo(trs, dummyBlock, sender, function (err) {
+						expect(err).not.to.be.empty;
+					});
+				});
 			});
 
 			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
 
-				it('should call callback with error = undefined');
+				it('should call callback with error = undefined', function () {
+					inTransfer.undo(trs, dummyBlock, sender, function (err) {
+						expect(err).to.be.undefined;
+					});
+				});
 
-				it('should call callback with result = undefined');
-			});
-		});
-
-		it('should return error if dapp does not exist', function (done) {
-			var error = 'Application genesis block not found';
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
-			}, sinon.match.any).yields(error);
-
-			inTransfer.undo(trs, dummyBlock, sender, function (err) {
-				expect(err).to.equal(error);
-				done();
-			});
-		});
-
-		it('should update account with correct params', function (done) {
-			sharedStub.getGenesis.withArgs({
-				dappid: trs.asset.inTransfer.dappId
-			}, sinon.match.any).yields(null, {
-				authorId: validSender.address
-			});
-
-			accountsStub.getAccount.withArgs({
-				address: sender.address 
-			}, sinon.match.any).yields();
-
-			accountsStub.mergeAccountAndGet.withArgs({
-				address: validSender.address,
-				balance: trs.amount,
-				u_balance: trs.amount,
-				blockId: dummyBlock.id,
-				round: slots.calcRound(dummyBlock.height)
-			}).yields(null);
-
-			inTransfer.apply(trs, dummyBlock, sender, function (err) {
-				expect(err).to.not.exist;
-				expect(accountsStub.mergeAccountAndGet.calledOnce).to.equal(true);
-				done();
+				it('should call callback with result = undefined', function () {
+					inTransfer.undo(trs, dummyBlock, sender, function (err, res) {
+						expect(res).to.be.undefined;
+					});
+				});
 			});
 		});
 	});
@@ -564,7 +591,7 @@ describe('inTransfer', function () {
 
 		it('should call library.schema.validate InTransfer.prototype.schema', function () {
 			inTransfer.objectNormalize(trs);
-			expect(schemaSpy.calledWith(InTransfer.prototype.schema)).to.be.true;
+			expect(schemaSpy.args[0][1]).to.eql(InTransfer.prototype.schema);
 		});
 
 		describe('when transaction.asset.inTransfer is invalid object argument', function () {
