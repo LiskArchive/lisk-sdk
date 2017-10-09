@@ -11,6 +11,125 @@ var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var node = require('../../node');
 
 describe('blocks', function () {
+	
+	describe('Blocks constructor', function () {
+		
+		describe('library', function () {
+			
+			it('should assign logger');
+		});
+		
+		describe('this.submodules', function () {
+			
+			it('should assign api');
+			
+			it('should assign verify');
+			
+			it('should assign process');
+			
+			it('should assign utils');
+			
+			it('should assign chain');
+		});
+		
+		it('should set this.shared = this.submodules.api');
+		
+		it('should set this.verify = this.submodules.verify');
+		
+		it('should set this.process = this.submodules.process');
+		
+		it('should set this.utils = this.submodules.utils');
+		
+		it('should set this.chain = this.submodules.chain');
+		
+		it('should set self = this');
+		
+		it('should call this.submodules.chain.saveGenesisBlock');
+		
+		it('should call callback with result = self');
+		
+		describe('when this.submodules.chain.saveGenesisBlock fails', function () {
+			
+			it('should call callback with error');
+		});
+		
+		describe('when this.submodules.chain.saveGenesisBlock succeeds', function () {
+			
+			it('should call callback with error = undefined');
+		});
+		
+		describe('callback for this.submodules.chain.saveGenesisBlock', function () {
+			
+			
+		});
+	});
+	
+	describe('lastBlock', function () {
+		
+		it('should assign get');
+		
+		it('should assign set');
+		
+		it('should assign isFresh');
+	});
+	
+	describe('lastReciept', function () {
+		
+		it('should assign get');
+		
+		it('should assign update');
+		
+		it('should assign isStale');		
+	});
+	
+	describe('isActive', function () {
+		
+		it('should assign get');
+		
+		it('should assign set');			
+	});
+	
+	describe('isCleaning', function () {
+		
+		it('should assign get');			
+	});
+	
+	describe('onBind', function () {
+		
+		it('should set __private.loaded = true');
+	});
+	
+	describe('cleanup', function () {
+		
+		it('should set __private.loaded = false');
+		
+		it('should set __private.cleanup = true');
+		
+		describe('when __private.isActive = false', function () {
+			
+			it('should call callback');
+		});
+		
+		describe('when __private.isActive = true', function () {
+			
+			describe('after 10 seconds', function () {
+				
+				it('should call library.logger.info with "Waiting for block processing to finish..."');
+			});
+			
+			describe('after 100 seconds', function () {
+				
+				it('should call library.logger.info with "Waiting for block processing to finish..." 10 times');
+			});
+		});
+	});
+	
+	describe('isLoaded', function () {
+		
+		it('should return __private.loaded');
+	});
+	
+	//============ old code begins ============================
 
 	var blocks;
 	var dbSandbox;
