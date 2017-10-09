@@ -22,16 +22,17 @@ import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
 /**
- * @method createVote
- * @param secret
- * @param delegates
- * @param secondSecret
- * @param timeOffset
+ * @method createVotes
+ * @param {Object} Object - Object
+ * @param {String} Object.secret
+ * @param {Array<Object>} Object.delegates
+ * @param {String} Object.secondSecret
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function castVotes(secret, delegates, secondSecret, timeOffset) {
+export default function castVotes({ secret, delegates, secondSecret, timeOffset }) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
