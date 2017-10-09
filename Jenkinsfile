@@ -13,36 +13,36 @@
  *
  */
 pipeline {
-  agent { node { label 'lisk-js' } }
-  stages {
-    stage('Prepare workspace') {
-      steps {
-        deleteDir()
-        checkout scm
-      }
-    }
-    stage('Install dependencies') {
-      steps {
-        sh '''
-        npm install --verbose
-        cp ~/.coveralls.yml .
-        '''
-      }
-    }
-    stage('Run lint') {
-      steps{
-        sh 'grunt eslint-ci'
-      }
-    }
-    stage('Run tests') {
-      steps {
-        sh 'npm run jenkins'
-      }
-    }
-    stage('Cleanup') {
-      steps {
-        deleteDir()
-      }
-    }
-  }
+	agent { node { label 'lisk-js' } }
+	stages {
+		stage('Prepare workspace') {
+			steps {
+				deleteDir()
+				checkout scm
+			}
+		}
+		stage('Install dependencies') {
+			steps {
+				sh '''
+				npm install --verbose
+				cp ~/.coveralls.yml .
+				'''
+			}
+		}
+		stage('Run lint') {
+			steps{
+				sh 'grunt eslint-ci'
+			}
+		}
+		stage('Run tests') {
+			steps {
+				sh 'npm run jenkins'
+			}
+		}
+		stage('Cleanup') {
+			steps {
+				deleteDir()
+			}
+		}
+	}
 }
