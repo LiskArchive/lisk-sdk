@@ -6,11 +6,13 @@
 	"scripts": {
 		"test": "nyc mocha test --recursive",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test --recursive\" --initial",
+		"test:browser": "cypress run",
 		"cover": "istanbul cover --dir ./coverage _mocha",
-		"eslint": "./node_modules/.bin/grunt eslint --verbose",
-		"jenkins": "./node_modules/.bin/grunt jenkins --verbose",
+		"eslint": "grunt eslint --verbose",
+		"serve:browsertest": "http-server browsertest",
+		"jenkins": "grunt jenkins --verbose",
 		"build": "grunt",
-		"buildBrowsertest": "grunt build-browsertest",
+		"build:browsertest": "grunt build-browsertest",
 		"precommit": "npm run eslint",
 		"prepush": "grunt eslint && npm test",
 		"prepublishOnly": "npm run build"
