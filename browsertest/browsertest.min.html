@@ -10,6 +10,7 @@
 <div id="mocha"></div>
 <div id="messages"></div>
 <div id="fixtures"></div>
+<div id="result" style="display: none"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.min.js"></script>
 
 <script>
@@ -24,7 +25,9 @@ mocha.setup({
 
 <script>
 mocha.checkLeaks();
-mocha.run();
+mocha.run(function(failures) {
+	document.getElementById('result').innerText = failures;
+});
 </script>
 
 </body>
