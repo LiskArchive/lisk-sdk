@@ -1,61 +1,62 @@
 {
-  "name": "lisky",
-  "version": "0.2.0",
-  "description": "A command line interface for Lisk",
-  "main": "./dist/index.js",
-  "directories": {
-    "bin": "./bin"
-  },
-  "scripts": {
-    "start": "babel-node src/index.js",
-    "test": "NODE_ENV=test nyc mocha",
-    "test:watch": "npm test -- --watch --reporter=min",
-    "cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
-    "lint": "eslint .",
-    "prebuild": "if test -d dist; then rm -r dist; fi",
-    "build": "babel src -d dist",
-    "prepush": "npm run lint && npm test",
-    "prepublishOnly": "npm run build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LiskHQ/lisky.git"
-  },
-  "keywords": [
-    "lisk",
-    "blockchain",
-    "command-line",
-    "nodejs",
-    "javascript"
-  ],
-  "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/LiskHQ/lisky/issues"
-  },
-  "homepage": "https://github.com/LiskHQ/lisky#readme",
-  "devDependencies": {
-    "babel-cli": "=6.24.1",
-    "babel-plugin-istanbul": "=4.1.4",
-    "babel-preset-env": "=1.6.0",
-    "babel-register": "=6.24.1",
-    "coveralls": "=2.13.1",
-    "eslint": "=4.7.2",
-    "eslint-config-airbnb-base": "=11.2.0",
-    "eslint-config-lisk-base": "=0.1.0",
-    "eslint-plugin-import": "=2.7.0",
-    "husky": "=0.14.3",
-    "mocha": "=3.3.0",
-    "nyc": "=11.0.3",
-    "should": "=11.2.1",
-    "should-sinon": "=0.0.6",
-    "sinon": "=2.3.1"
-  },
-  "dependencies": {
-    "babel-polyfill": "=6.26.0",
-    "bitcore-mnemonic": "=1.2.5",
-    "cli-table2": "=0.2.0",
-    "lisk-js": "=0.5.0",
-    "vorpal": "LiskHQ/vorpal#master"
-  }
+	"name": "lisky",
+	"version": "0.2.0",
+	"description": "A command line interface for Lisk",
+	"main": "./dist/index.js",
+	"directories": {
+		"bin": "./bin"
+	},
+	"scripts": {
+		"start": "babel-node src/index.js",
+		"test": "NODE_ENV=test nyc mocha",
+		"test:watch": "npm test -- --watch --reporter=min",
+		"cover": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
+		"lint": "eslint .",
+		"prebuild": "if test -d dist; then rm -r dist; fi",
+		"build": "babel src -d dist",
+		"precommit": "npm run lint",
+		"prepush": "npm run lint && npm test",
+		"prepublishOnly": "npm run build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisky.git"
+	},
+	"keywords": [
+		"lisk",
+		"blockchain",
+		"command-line",
+		"nodejs",
+		"javascript"
+	],
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "GPL-3.0",
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisky/issues"
+	},
+	"homepage": "https://github.com/LiskHQ/lisky#readme",
+	"devDependencies": {
+		"babel-cli": "=6.24.1",
+		"babel-plugin-istanbul": "=4.1.4",
+		"babel-preset-env": "=1.6.0",
+		"babel-register": "=6.24.1",
+		"coveralls": "=2.13.1",
+		"eslint": "=4.7.2",
+		"eslint-config-airbnb-base": "=11.2.0",
+		"eslint-config-lisk-base": "=0.1.0",
+		"eslint-plugin-import": "=2.7.0",
+		"husky": "=0.14.3",
+		"mocha": "=3.3.0",
+		"nyc": "=11.0.3",
+		"should": "=11.2.1",
+		"should-sinon": "=0.0.6",
+		"sinon": "=2.3.1"
+	},
+	"dependencies": {
+		"babel-polyfill": "=6.26.0",
+		"bitcore-mnemonic": "=1.2.5",
+		"cli-table2": "=0.2.0",
+		"lisk-js": "=0.5.0",
+		"vorpal": "LiskHQ/vorpal#master"
+	}
 }
