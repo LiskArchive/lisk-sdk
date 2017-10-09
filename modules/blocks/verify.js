@@ -11,7 +11,6 @@ var bson = require('../../helpers/bson.js');
 
 var modules, library, self, __private = {};
 
-__private.blockReward = new BlockReward();
 
 function Verify (logger, block, transaction, db) {
 	library = {
@@ -23,7 +22,7 @@ function Verify (logger, block, transaction, db) {
 		},
 	};
 	self = this;
-
+	__private.blockReward = new BlockReward();
 	library.logger.trace('Blocks->Verify: Submodule initialized.');
 	return self;
 }
@@ -37,8 +36,8 @@ function Verify (logger, block, transaction, db) {
  * @method checkTransaction
  * @param  {Object}   block Block object
  * @param  {Object}   transaction Transaction object
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 __private.checkTransaction = function (block, transaction, cb) {
@@ -467,9 +466,9 @@ Verify.prototype.deleteBlockProperties = function (block) {
  * @method processBlock
  * @param  {Object}   block Full block
  * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
- * @param  {Function} cb Callback function
+ * @param  {function} cb Callback function
  * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {

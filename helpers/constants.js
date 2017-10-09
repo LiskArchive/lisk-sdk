@@ -4,12 +4,13 @@
  * @namespace constants
  * @memberof module:helpers
  * @property {number} activeDelegates - The default number of delegates.
+ * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
  * @property {number} addressLength - The default address length.
  * @property {number} blockHeaderLength - The default block header length.
  * @property {number} blockReceiptTimeOut
  * @property {number} confirmationLength
  * @property {Date} epochTime
- * @property {object} fees - The default values for fees.
+ * @property {Object} fees - The default values for fees.
  * @property {number} fees.send
  * @property {number} fees.vote
  * @property {number} fees.secondsignature
@@ -32,7 +33,7 @@
  * @property {string[]} nethashes - Mainnet and Testnet.
  * @property {number} numberLength
  * @property {number} requestLength
- * @property {object} rewards
+ * @property {Object} rewards
  * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
  * @property {number} rewards.offset - Start rewards at block (n).
  * @property {number} rewards.distance - Distance between each milestone
@@ -42,6 +43,7 @@
  */
 var constants = {
 	activeDelegates: 101,
+	maxVotesPerTransaction: 33,
 	addressLength: 208,
 	blockHeaderLength: 248,
 	blockReceiptTimeOut: 20, // 2 blocks
@@ -92,7 +94,21 @@ var constants = {
 	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+	multisigConstraints: {
+		min: {
+			minimum: 1,
+			maximum: 15
+		},
+		lifetime: {
+			minimum: 1,
+			maximum: 72
+		},
+		keysgroup: {
+			minItems: 1,
+			maxItems: 15
+		}
+	}
 };
 
 module.exports = constants;

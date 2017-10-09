@@ -3,38 +3,6 @@
 var constants = require('../helpers/constants.js');
 
 module.exports = {
-	enableForging: {
-		id: 'delegates.enableForging',
-		type: 'object',
-		properties: {
-			key: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['key', 'publicKey']
-	},
-	disableForging: {
-		id: 'delegates.disableForging',
-		type: 'object',
-		properties: {
-			key: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['key', 'publicKey']
-	},
 	forgingStatus: {
 		id: 'delegates.forgingStatus',
 		type: 'object',
@@ -44,6 +12,22 @@ module.exports = {
 				format: 'publicKey'
 			}
 		}
+	},
+	toggleForging: {
+		id: 'delegates.toggleForging',
+		type: 'object',
+		properties: {
+			key: {
+				type: 'string',
+				minLength: 1,
+				maxLength: 100
+			},
+			publicKey: {
+				type: 'string',
+				format: 'publicKey'
+			},
+		},
+		required: ['key', 'publicKey']
 	},
 	getDelegate: {
 		id: 'delegates.getDelegate',
