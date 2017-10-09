@@ -1,52 +1,50 @@
 'use strict';
 
-var async = require('async');
 var expect = require('chai').expect;
 var sinon = require('sinon');
 
 var node = require('../../node');
 
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var jobsQueue = require('../../../helpers/jobsQueue');
 var TransactionPool = require('../../../logic/transactionPool');
-var TransactionLogic = require('../../../logic/transaction');
-var TransferLogic = require('../../../logic/transfer');
 var modulesLoader = require('../../common/modulesLoader');
-var transactionTypes = require('../../../helpers/transactionTypes');
 
 describe('txPool', function () {
 
+	var dbSandbox;
 	var txPool;
 	var jobsQueueRegisterStub;
 
 	before(function (done) {
-		// Init transaction logic
-		modulesLoader.initLogic(TransactionLogic, modulesLoader.scope, function (err, __trsLogic) {
-			expect(err).to.not.exist;
-			txPool = new TransactionPool(
-				modulesLoader.scope.config.broadcasts.broadcastInterval,
-				modulesLoader.scope.config.broadcasts.releaseLimit,
-				__trsLogic,
-				modulesLoader.scope.bus,
-				modulesLoader.scope.logger
-			);
-
-			modulesLoader.initModules([
-				{accounts: require('../../../modules/accounts')},
-			], [
-				{'transaction': require('../../../logic/transaction')},
-				{'account': require('../../../logic/account')}
-			], {}, function (err, __modules) {
-				expect(err).to.not.exist;
-
-				txPool.bind(
-					__modules.accounts,
-					null,
-					__modules.loader
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transactionPool');
+		dbSandbox.create(function (err, __db) {
+			if (err) {
+				return done(err);
+			}
+			// Wait for genesisBlock transaction being applied
+			node.initApplication(function (err, scope) {
+				// Init transaction logic
+				txPool = new TransactionPool(
+					modulesLoader.scope.config.broadcasts.broadcastInterval,
+					modulesLoader.scope.config.broadcasts.releaseLimit,
+					scope.logic.transaction,
+					modulesLoader.scope.bus,
+					modulesLoader.scope.logger
 				);
-				__trsLogic.attachAssetType(transactionTypes.SEND, new TransferLogic(modulesLoader.scope.logger, modulesLoader.scope.schema));
+				txPool.bind(
+					scope.modules.accounts,
+					null,
+					scope.modules.loader
+				);
 				done();
-			});
+			}, {db: __db});
 		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	beforeEach(function () {
@@ -68,24 +66,24 @@ describe('txPool', function () {
 		});
 
 		it('should return error when using empty object', function (done) {
-			txPool.receiveTransactions([{}], false, function (err, data) {
+			txPool.receiveTransactions([{}], false, function (err) {
 				expect(err).to.be.equal('Invalid public key');
 				done();
 			});
 		});
 
 		it('should return error when using invalid tx', function (done) {
-			txPool.receiveTransactions([{ id: '123' }], false, function (err, data) {
+			txPool.receiveTransactions([{ id: '123' }], false, function (err) {
 				expect(err).to.exist;
 				done();
 			});
 		});
 
-		it.skip('should process tx if valid and insert tx into queue', function (done) {
+		it('should process tx if valid and insert tx into queue', function (done) {
 			var account = node.randomAccount();
 			const tx = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
 
-			txPool.receiveTransactions([tx], false, function (err, data) {
+			txPool.receiveTransactions([tx], false, function (err) {
 				expect(err).to.not.exist;
 				expect(txPool.transactionInPool(tx.id)).to.be.true;
 				done();
