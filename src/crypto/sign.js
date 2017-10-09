@@ -13,7 +13,7 @@
  *
  */
 import crypto from 'crypto';
-import getTransactionBytes from '../transactions/transactionBytes';
+import { getTransactionBytes } from '../transactions/utils';
 import {
 	hexToBuffer,
 	bufferToHex,

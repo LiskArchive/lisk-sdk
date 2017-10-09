@@ -1,4 +1,4 @@
-import { prepareTransaction, isValidValue } from '../../src/transactions/utils';
+import prepareTransaction from '../../../src/transactions/utils/prepareTransaction';
 
 describe('transactions utils module', () => {
 	describe('#prepareTransaction', () => {
@@ -67,23 +67,6 @@ describe('transactions utils module', () => {
 				});
 				preparedTransaction = prepareTransaction(inputTransaction, secret, secondSecret);
 				(preparedTransaction).should.not.have.property('signSignature');
-			});
-		});
-	});
-
-	describe('isInvalidValue', () => {
-		it('should return false on invalid values', () => {
-			const allInvalidValues = [NaN, false, undefined];
-			allInvalidValues.forEach((value) => {
-				const invalid = isValidValue(value);
-				(invalid).should.be.false();
-			});
-		});
-		it('should return true on valid values', () => {
-			const exampleValidValues = ['123', 123, { 1: 2, 3: 4 }, [1, 2, 3]];
-			exampleValidValues.forEach((value) => {
-				const valid = isValidValue(value);
-				(valid).should.be.true();
 			});
 		});
 	});

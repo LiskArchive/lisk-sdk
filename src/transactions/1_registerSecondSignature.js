@@ -12,41 +12,49 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/**
+ * Signature module provides functions for creating second signature registration transactions.
+ * @class signature
+ */
 import cryptoModule from '../crypto';
-import { MULTISIGNATURE_FEE } from '../constants';
+import { SIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+
 /**
- * @method createMultisignature
- * @param secret string
- * @param secondSecret string
- * @param keysgroup array
- * @param lifetime number
- * @param min number
- * @param timeOffset number
+ * @method newSignature
+ * @param secondSecret
  *
  * @return {Object}
  */
 
-export default function createMultisignature(
-	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
-) {
-	const keys = cryptoModule.getKeys(secret);
-	const keygroupFees = keysgroup.length + 1;
+function newSignature(secondSecret) {
+	const { publicKey } = cryptoModule.getKeys(secondSecret);
+	return { publicKey };
+}
 
+/**
+ * @method createSignature
+ * @param secret
+ * @param secondSecret
+ * @param timeOffset
+ *
+ * @return {Object}
+ */
+
+export default function registerSecondSignature(secret, secondSecret, timeOffset) {
+	const keys = cryptoModule.getKeys(secret);
+
+	const signature = newSignature(secondSecret);
 	const transaction = {
-		type: 4,
+		type: 1,
 		amount: 0,
-		fee: (MULTISIGNATURE_FEE * keygroupFees),
+		fee: SIGNATURE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			multisignature: {
-				min,
-				lifetime,
-				keysgroup,
-			},
+			signature,
 		},
 	};
 
