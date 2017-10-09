@@ -54,7 +54,8 @@ In case you've never submitted a pull request (PR) via GitHub before, please rea
 
 *Before* submitting a pull request, please make sure the following is done:
 
-1. Fork the repo and create your branch from `master`.
+1. Fork the repo.
+1. If you are creating a pull request that addresses a specific issue, take a look at the projects that issue is a part of (in the right-hand sidebar). Most issues will be a part of a project for a specific version, such as "Version 0.3.0". If this is the case, create your branch from the relevant version branch, e.g. `0.3.0`, and submit your pull request against that branch as a base. Otherwise, create your branch from `master`.
 1. Add tests to the code you have contributed!
 All new code must come with complete test coverage.
 End all files with a newline. In general, your code should conform to the rules listed in the `.editorconfig` file. There are plugins for most editors/IDEs to do this for you automatically.
