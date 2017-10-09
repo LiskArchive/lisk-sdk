@@ -17,7 +17,62 @@ import fs from 'fs';
 import lisk from 'lisk-js';
 import * as fsUtils from '../../src/utils/fs';
 import tablify from '../../src/utils/tablify';
-import { getFirstQuotedString } from './utils';
+import {
+	getFirstQuotedString,
+	getQuotedStrings,
+} from './utils';
+
+export function itShouldCreateANewAccount() {
+	(this.test.ctx.MnemonicStub).should.be.calledOnce();
+}
+
+export function itShouldJSONPrintTheCreatedAccount() {
+	const [passphrase, publicKey, accountId] = getQuotedStrings(this.test.title);
+
+	const expectedOutput = {
+		passphrase,
+		publicKey,
+		accountId,
+	};
+
+	(this.test.ctx.vorpal.capturedOutput[0]).should.be.eql(JSON.stringify(expectedOutput));
+}
+
+export function itShouldTablePrintTheCreatedAccount() {
+	const [passphrase, publicKey, accountId] = getQuotedStrings(this.test.title);
+
+	const expectedOutput = {
+		passphrase,
+		publicKey,
+		accountId,
+	};
+	(this.test.ctx.vorpal.capturedOutput[0]).should.be.eql(tablify(expectedOutput).toString());
+}
+
+export function itShouldHaveRequiredArguments() {
+	const requiredArguments = getFirstQuotedString(this.test.title);
+	(this.test.ctx.requiredArgs.length).should.be.equal(Number(requiredArguments));
+}
+
+export function theMnemonicPassphraseShouldBeValid() {
+	const isValid = this.test.ctx.validation;
+	(isValid).should.be.equal(true);
+}
+
+export function theMnemonicPassphraseShouldBeInvalid() {
+	const isValid = this.test.ctx.validation;
+	(isValid).should.be.equal(false);
+}
+
+export function theMnemonicPassphraseShouldBe12WordString() {
+	const mnemonicPassphrase = this.test.ctx.mnemonicPassphrase;
+	(mnemonicPassphrase.split(' ').length).should.be.equal(12);
+}
+
+export function theAddressShouldBeReturned() {
+	const { returnValue, address } = this.test.ctx;
+	return (returnValue).should.eql({ address });
+}
 
 export function theLiskInstanceShouldBeALiskJSApiInstance() {
 	const { liskInstance } = this.test.ctx;

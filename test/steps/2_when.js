@@ -36,7 +36,50 @@ import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 import {
 	DEFAULT_ERROR_MESSAGE,
+	getFirstQuotedString,
 } from './utils';
+import {
+	createMnemonicPassphrase,
+	isValidMnemonicPassphrase,
+} from '../../src/utils/mnemonic';
+
+export function aMnemonicPassphraseIsValidated() {
+	const passphrase = this.test.ctx.mnemonicPassphrase;
+	this.test.ctx.validation = isValidMnemonicPassphrase(passphrase);
+}
+
+export function aNewMnemonicPassphraseIsCreated() {
+	this.test.ctx.mnemonicPassphrase = createMnemonicPassphrase();
+}
+
+export function theUserEntersTheCommand() {
+	this.test.ctx.commandToExecute = getFirstQuotedString(this.test.parent.title);
+	return this.test.ctx.vorpal.exec(this.test.ctx.commandToExecute);
+}
+
+export function theSaveAccountOptionIsUsed() {
+	this.test.ctx.option = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.commandWithOption = `${this.test.ctx.command} ${this.test.ctx.option}`;
+}
+
+export function anErrorOccursAttemptingToGetAccountIdFromPublicKey() {
+	const { cryptoInstance, publicKey } = this.test.ctx;
+
+	lisk.crypto.getAddressFromPublicKey.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
+}
+
+export function noErrorOccursAttemptingToGetAddressFromPublicKey() {
+	const { cryptoInstance, publicKey, address } = this.test.ctx;
+	lisk.crypto.getAddressFromPublicKey.returns({ address });
+	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
+}
+
+export function theAccountsDirectoryDoesNotExist() {
+
+}
 
 export function theResultIsPrinted() {
 	const { vorpal, result } = this.test.ctx;

@@ -16,6 +16,8 @@
 import fs from 'fs';
 import readline from 'readline';
 import lisk from 'lisk-js';
+import Mnemonic from 'bitcore-mnemonic';
+import Vorpal from 'vorpal';
 import defaultConfig from '../../defaultConfig.json';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
@@ -27,6 +29,52 @@ import {
 	createFakeInterface,
 	createStreamStub,
 } from './utils';
+import createAccountCommand from '../../src/commands/createAccount';
+import {
+	getRequiredArgs,
+} from '../specs/commands/utils';
+
+export function aValidMnemonicPassphrase() {
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+}
+
+export function anInvalidMnemonicPassphrase() {
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+}
+
+export function theCommandHasRequiredInputs() {
+	this.test.ctx.amountOfRequiredInputs = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.requiredArgs = getRequiredArgs(this.test.ctx.vorpal, this.test.ctx.command);
+}
+
+export function aMnemonicInstance() {
+	this.test.ctx.passphrase = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.MnemonicStub = sandbox.stub(Mnemonic.prototype, 'toString').returns(this.test.ctx.passphrase);
+}
+
+export function aMnemonicInstanceThatNeedsToBeRestored() {
+	this.test.ctx.MnemonicStub.restore();
+}
+
+export function thereIsAVorpalInstance() {
+	this.test.ctx.vorpal = new Vorpal();
+	this.test.ctx.vorpal.capturedOutput = [];
+}
+
+export function theVorpalInstanceHasTheCommand() {
+	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
+	const handleOutput = output => this.test.ctx.vorpal.capturedOutput.push(output);
+	const commands = {
+		'create account': createAccountCommand,
+	};
+	this.test.ctx.vorpal.use(commands[this.test.ctx.command]);
+	this.test.ctx.vorpal.pipe((outputs) => {
+		if (this.test.ctx.vorpal.capturedOutput) {
+			outputs.forEach(handleOutput);
+		}
+		return '';
+	});
+}
 
 export function thereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
 	this.test.ctx.vorpal = {
@@ -166,6 +214,7 @@ export function aCryptoInstance() {
 		'decryptPassphraseWithPassword',
 		'encryptMessageWithSecret',
 		'decryptMessageWithSecret',
+		'getAddressFromPublicKey',
 	].forEach(methodName => sandbox.stub(lisk.crypto, methodName));
 
 	this.test.ctx.cryptoInstance = cryptoInstance;
@@ -175,8 +224,8 @@ export function aPassphrase() {
 	this.test.ctx.passphrase = getFirstQuotedString(this.test.parent.title);
 }
 
-export function aPassphraseWithPrivateKeyAndPublicKey() {
-	const [passphrase, privateKey, publicKey] = getQuotedStrings(this.test.parent.title);
+export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
+	const [passphrase, privateKey, publicKey, address] = getQuotedStrings(this.test.parent.title);
 	const keys = {
 		privateKey,
 		publicKey,
@@ -187,6 +236,7 @@ export function aPassphraseWithPrivateKeyAndPublicKey() {
 
 	this.test.ctx.passphrase = passphrase;
 	this.test.ctx.keys = keys;
+	this.test.ctx.address = address;
 }
 
 export function aPassword() {
