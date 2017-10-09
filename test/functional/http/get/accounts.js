@@ -48,6 +48,7 @@ describe('GET /api/accounts', function () {
 			return getAccountsPromise('address=' + node.gAccount.address.toLowerCase()).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('account').that.is.an('object');
+				// Address should still in uppercase
 				node.expect(res.account).to.have.property('address').to.equal(node.gAccount.address);
 				node.expect(res.account).to.have.property('unconfirmedBalance').that.is.a('string');
 				node.expect(res.account).to.have.property('balance').that.is.a('string');
@@ -68,10 +69,10 @@ describe('GET /api/accounts', function () {
 		});
 
 		it('using invalid address should fail', function () {
-			return getAccountsPromise('address=' + 'thisIsNOTALiskAddress').then(function (res) {
+			return getAccountsPromise('address=' + 'invalidAddress').then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
-				node.expect(res.error).to.contain('Object didn\'t pass validation for format address: thisIsNOTALiskAddress');
+				node.expect(res.error).to.contain('Object didn\'t pass validation for format address: invalidAddress');
 			});
 		});
 
@@ -114,10 +115,10 @@ describe('GET /api/accounts', function () {
 		});
 
 		it('using invalid publicKey should fail', function () {
-			return getAccountsPromise('publicKey=' + 'thisIsNOTALiskAccountPublicKey').then(function (res) {
+			return getAccountsPromise('publicKey=' + 'invalidPublicKey').then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
-				node.expect(res.error).to.contain('Object didn\'t pass validation for format publicKey: thisIsNOTALiskAccountPublicKey');
+				node.expect(res.error).to.contain('Object didn\'t pass validation for format publicKey: invalidPublicKey');
 			});
 		});
 
@@ -190,9 +191,9 @@ describe('GET /api/accounts', function () {
 		});
 
 		it('using invalid address should fail', function () {
-			return getBalancePromise('thisIsNOTALiskAddress').then(function (res) {
+			return getBalancePromise('invalidAddress').then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Object didn\'t pass validation for format address: thisIsNOTALiskAddress');
+				node.expect(res).to.have.property('error').to.eql('Object didn\'t pass validation for format address: invalidAddress');
 			});
 		});
 
@@ -222,9 +223,9 @@ describe('GET /api/accounts', function () {
 		});
 
 		it('using invalid address should fail', function () {
-			return getPublicKeyPromise('thisIsNOTALiskAddress').then(function (res) {
+			return getPublicKeyPromise('invalidAddress').then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.contain('Object didn\'t pass validation for format address: thisIsNOTALiskAddress');
+				node.expect(res).to.have.property('error').to.contain('Object didn\'t pass validation for format address: invalidAddress');
 			});
 		});
 

@@ -62,7 +62,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 
-		it('with exact funds should be ok', function () {
+		it('with scarce funds should be ok', function () {
 			transaction = node.lisk.signature.createSignature(accountScarceFunds.password, accountScarceFunds.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -82,7 +82,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 
-		it('with valid params should be ok but not confirmed if sendind twice in a row', function () {
+		it('with valid params should be ok but not confirmed if sending twice in a row', function () {
 			transaction = node.lisk.signature.createSignature(account.password, 'secondpassword');
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -103,7 +103,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 	});
 
-	describe('enforcement before confirmation', function () {
+	describe('unconfirmed state', function () {
 
 		describe('type 0 - sending funds', function () {
 
@@ -171,12 +171,12 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 	});	
 
-	describe('transactions confirmation', function () {
+	describe('confirmation', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
 	});
 
-	describe('enforcement', function () {
+	describe('validation', function () {
 
 		it('using second passphrase on a fresh account should fail', function () {
 			transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
@@ -384,24 +384,6 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 						node.expect(res).to.have.property('success').to.be.ok;
 					});
 				});
-
-				// FIXME: affect severily when registering dapp with the same account
-				it.skip('with all the signatures should be ok and confirmed (even with accounts without funds)', function () {
-					signature = node.lisk.multisignature.signTransaction(pendingMultisignatures[1], accountNoFunds.password);
-
-					return sendSignaturePromise(signature, pendingMultisignatures[1]).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-
-						signature = node.lisk.multisignature.signTransaction(pendingMultisignatures[1], node.eAccount.password);
-
-						return sendSignaturePromise(signature, pendingMultisignatures[1]).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
-
-							goodTransactionsEnforcement.push(pendingMultisignatures[1]);
-							pendingMultisignatures.pop();
-						});
-					});
-				});
 			});
 		});
 
@@ -449,7 +431,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 	});
 
-	describe('enforcement confirmation', function () {
+	describe('confirm validation', function () {
 
 		shared.confirmationPhase(goodTransactionsEnforcement, badTransactionsEnforcement, pendingMultisignatures);
 	});

@@ -119,12 +119,12 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 	});
 
-	describe('transaction confirmations', function () {
+	describe('confirmation', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
 	});
 
-	describe('enforcement', function () {
+	describe('validation', function () {
 
 		it('sending already confirmed transaction should fail', function () {
 			return sendTransactionPromise(goodTransaction).then(function (res) {
