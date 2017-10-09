@@ -547,3 +547,44 @@ export function dataIsProvidedViaAFileSource() {
 	const { filePath } = this.test.ctx;
 	this.test.ctx.sourceData = `file:${filePath}`;
 }
+
+export function aTypeWithAlias() {
+	const [type, alias] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.type = type;
+	this.test.ctx.alias = alias;
+}
+
+export function aTypeWithNoAlias() {
+	const type = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.type = type;
+}
+
+export function aConfigWithJsonSetTo() {
+	const stringBoolean = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.config = {
+		json: stringBoolean === 'true',
+	};
+}
+
+export function anOptionsObjectWithJsonSetTo() {
+	const stringBoolean = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.options = {
+		json: stringBoolean === 'true',
+	};
+}
+
+export function anEmptyOptionsObject() {
+	this.test.ctx.options = {};
+}
+
+export function aPrefix() {
+	const prefix = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.prefix = prefix;
+}
+
+export function anObjectWithMessage() {
+	const message = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.testObject = {
+		message,
+	};
+}

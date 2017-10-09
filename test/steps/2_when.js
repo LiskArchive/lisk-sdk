@@ -20,6 +20,11 @@ import {
 	writeJsonSync,
 } from '../../src/utils/fs';
 import {
+	createErrorHandler,
+	deAlias,
+	shouldUseJsonOutput,
+} from '../../src/utils/helpers';
+import {
 	splitSource,
 	createPromptOptions,
 	getFirstLineFromString,
@@ -321,4 +326,27 @@ export function getDataIsCalled() {
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
+}
+
+export function deAliasIsCalledOnTheType() {
+	const { type } = this.test.ctx;
+	const returnValue = deAlias(type);
+	this.test.ctx.returnValue = returnValue;
+}
+
+export function shouldUseJsonOutputIsCalledWithTheConfigAndOptions() {
+	const { config, options } = this.test.ctx;
+	const returnValue = shouldUseJsonOutput(config, options);
+	this.test.ctx.returnValue = returnValue;
+}
+
+export function createErrorHandlerIsCalledWithThePrefix() {
+	const { prefix } = this.test.ctx;
+	const returnValue = createErrorHandler(prefix);
+	this.test.ctx.returnValue = returnValue;
+}
+
+export function theReturnedFunctionIsCalledWithTheObject() {
+	const { returnValue, testObject } = this.test.ctx;
+	this.test.ctx.returnValue = returnValue(testObject);
 }

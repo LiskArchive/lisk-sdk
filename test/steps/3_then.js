@@ -418,6 +418,16 @@ export function itShouldResolveToTheFirstLineOfTheFile() {
 	return (returnValue).should.be.fulfilledWith(passphrase);
 }
 
+export function itShouldReturnTrue() {
+	const { returnValue } = this.test.ctx;
+	return (returnValue).should.be.true();
+}
+
+export function itShouldReturnFalse() {
+	const { returnValue } = this.test.ctx;
+	return (returnValue).should.be.false();
+}
+
 export function itShouldReturnNull() {
 	const { returnValue } = this.test.ctx;
 	return should(returnValue).be.null();
@@ -433,4 +443,22 @@ export function itShouldReturnString() {
 export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith(data);
+}
+
+export function itShouldReturnTheAlias() {
+	const { returnValue, alias } = this.test.ctx;
+	return (returnValue).should.be.equal(alias);
+}
+
+export function itShouldReturnTheType() {
+	const { returnValue, type } = this.test.ctx;
+	return (returnValue).should.be.equal(type);
+}
+
+export function itShouldReturnAnObjectWithError() {
+	const { returnValue } = this.test.ctx;
+	const error = getFirstQuotedString(this.test.title);
+	return (returnValue).should.eql({
+		error,
+	});
 }
