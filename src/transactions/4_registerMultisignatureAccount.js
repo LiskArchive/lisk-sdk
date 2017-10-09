@@ -17,20 +17,21 @@ import { MULTISIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 /**
- * @method createMultisignature
- * @param secret string
- * @param secondSecret string
- * @param keysgroup array
- * @param lifetime number
- * @param min number
- * @param timeOffset number
+ * @method registerMultisignatureAccount
+ * @param {Object} Object - Object
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {Array<String>} Object.keysgroup
+ * @param {Number} Object.lifetime
+ * @param {Number} Object.min
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function registerMultisignatureAccount(
+export default function registerMultisignatureAccount({
 	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
-) {
+}) {
 	const keys = cryptoModule.getKeys(secret);
 	const keygroupFees = keysgroup.length + 1;
 
