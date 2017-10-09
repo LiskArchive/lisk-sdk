@@ -14,6 +14,7 @@
 		"lint": "eslint .",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "babel src -d dist",
+		"precommit": "npm run lint",
 		"prepush": "npm run lint && npm test",
 		"prepublishOnly": "npm run build"
 	},
