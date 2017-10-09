@@ -23,6 +23,10 @@ test/.coverage-unit
 # nyc test coverage
 .nyc_output
 
+# cypress media
+cypress/screenshots
+cypress/videos
+
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
