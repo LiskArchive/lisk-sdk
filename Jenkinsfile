@@ -34,9 +34,19 @@ pipeline {
 				sh 'grunt eslint-ci'
 			}
 		}
-		stage('Run tests') {
+		stage('Run node tests') {
 			steps {
 				sh 'npm run jenkins'
+			}
+		}
+		stage('Run browser tests') {
+			steps {
+				sh '''
+				npm run build
+				npm run build:browsertest
+				npm run serve:browsertest &
+				npm run test:browser
+				'''
 			}
 		}
 		stage('Cleanup') {
