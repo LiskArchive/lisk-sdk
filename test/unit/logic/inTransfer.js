@@ -9,7 +9,6 @@ var sinon   = require('sinon');
 
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
-var slots = require('../../../helpers/slots.js');
 var modulesLoader = require('../../common/initModule').modulesLoader;
 var slots = require('../../../helpers/slots');
 var typesRepresentatives = require('../../common/typesRepresentatives');
@@ -607,7 +606,8 @@ describe('inTransfer', function () {
 
 			typesRepresentatives.nonStrings.forEach(function (nonString) {
 				it('should throw for transaction.asset.inTransfer.dappId = ' + nonString.description, function () {
-					expect(inTransfer.objectNormalize.bind(null, nonString.input)).to.throw();
+					trs.asset.inTransfer.dappId = nonString.input;
+					expect(inTransfer.objectNormalize.bind(null, trs)).to.throw();
 				});
 			});
 		});
