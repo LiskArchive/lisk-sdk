@@ -773,37 +773,89 @@ describe('multisignature', function () {
 
 	describe('dbRead', function () {
 
-		it('should return null keysgroup is null', function () {
-			delete rawTrs.m_keysgroup;
+		describe('when raw.m_keysgroup does not exist', function () {
 
-			expect(multisignature.dbRead(rawTrs)).to.eql(null);
+			beforeEach(function () {
+				delete rawTrs.m_keysgroup;
+			});
+
+			it('should return null', function () {
+				expect(multisignature.dbRead(rawTrs)).to.eql(null);
+			});
 		});
 
-		it('should be okay for valid input', function () {
-			var expectedAsset = trs.asset.multisignature;
+		describe('when raw.m_keysgroup exists', function () {
 
-			expect(multisignature.dbRead(rawTrs).multisignature).to.eql(expectedAsset);
+			it('should return result containing multisignature', function () {
+				expect(multisignature.dbRead(rawTrs)).to.have.property('multisignature');
+			});
+
+			it('should return result containing multisignature.min = raw.m_min', function () {
+				expect(multisignature.dbRead(rawTrs)).to.have.nested.property('multisignature.min').equal(rawTrs.m_min);
+			});
+
+			it('should return result containing multisignature.lifetime = raw.lifetime', function () {
+				expect(multisignature.dbRead(rawTrs)).to.have.nested.property('multisignature.lifetime').equal(rawTrs.m_lifetime);
+			});
+
+			describe('when raw.m_keysgroup is not a string', function () {
+
+				beforeEach(function () {
+					rawTrs.m_keysgroup = {};
+				});
+
+				it('should return result containing multisignature.keysgroup = []', function () {
+					expect(multisignature.dbRead(rawTrs)).to.have.nested.property('multisignature.keysgroup').eql([]);
+				});
+			});
+
+			describe('when raw.m_keysgroup = "a,b,c"', function () {
+
+				beforeEach(function () {
+					rawTrs.m_keysgroup = 'a,b,c';
+				});
+
+				it('should return result containing multisignature.keysgroup = ["a", "b", "c"]', function () {
+					expect(multisignature.dbRead(rawTrs)).to.have.nested.property('multisignature.keysgroup').eql(['a', 'b', 'c']);
+				});
+			});
 		});
 	});
 
 	describe('dbSave', function () {
 
-		it('should be okay for valid input', function () {
-			expect(multisignature.dbSave(trs)).to.eql({
-				table: 'multisignatures',
-				fields: [
-					'min',
-					'lifetime',
-					'keysgroup',
-					'transactionId'
-				],
-				values: {
-					min: trs.asset.multisignature.min,
-					lifetime: trs.asset.multisignature.lifetime,
-					keysgroup: trs.asset.multisignature.keysgroup.join(','),
-					transactionId:trs.id
-				}
-			});
+		var dbSaveResult;
+
+		beforeEach(function () {
+			dbSaveResult = multisignature.dbSave(trs);
+		});
+
+		it('should return result containing table = "multisignatures"', function () {
+			expect(dbSaveResult).to.have.property('table').equal('multisignatures');
+		});
+
+		it('should return result containing fields = ["min", "lifetime", "keysgroup", "transactionId"]', function () {
+			expect(dbSaveResult).to.have.property('fields').eql(['min', 'lifetime', 'keysgroup', 'transactionId']);
+		});
+
+		it('should return result containing values', function () {
+			expect(dbSaveResult).to.have.property('values');
+		});
+
+		it('should return result containing values.min = trs.asset.multisignature.min', function () {
+			expect(dbSaveResult).to.have.nested.property('values.min').equal(trs.asset.multisignature.min);
+		});
+
+		it('should return result containing values.lifetime = trs.asset.multisignature.lifetime', function () {
+			expect(dbSaveResult).to.have.nested.property('values.lifetime').equal(trs.asset.multisignature.lifetime);
+		});
+
+		it('should return result containing values.keysgroup equal joined keysgroup as string', function () {
+			expect(dbSaveResult).to.have.nested.property('values.keysgroup').equal(trs.asset.multisignature.keysgroup.join(','));
+		});
+
+		it('should return result containing values.transactionId = trs.id', function () {
+			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(trs.id);
 		});
 	});
 
