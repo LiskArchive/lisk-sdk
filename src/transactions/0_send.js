@@ -25,7 +25,7 @@ import { prepareTransaction } from './utils';
  * @method createTransaction
  * @param {Object} Object - Object
  * @param {String} Object.recipientId
- * @param {Number} Object.amount
+ * @param {String} Object.amount
  * @param {String} Object.secret
  * @param {String} Object.secondSecret
  * @param {String} Object.data

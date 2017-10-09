@@ -127,7 +127,7 @@ describe('#registerSecondSignature transaction', () => {
 			});
 
 			it('should have the correct publicKey if the provided second secret is an empty string', () => {
-				registerSecondSignatureTransaction = registerSecondSignature({ secret: 'secret', secondSecret: '' });
+				registerSecondSignatureTransaction = registerSecondSignature({ secret, secondSecret: '' });
 				(registerSecondSignatureTransaction.asset.signature.publicKey).should.be.equal(
 					emptyStringPublicKey,
 				);

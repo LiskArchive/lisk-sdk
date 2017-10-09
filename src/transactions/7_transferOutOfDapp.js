@@ -23,21 +23,22 @@ import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
 /**
- * @method createOutTransfer
- * @param dappId
- * @param transactionId
- * @param recipientId
- * @param amount
- * @param secret
- * @param secondSecret
- * @param timeOffset
+ * @method transferOutOfDapp
+ * @param {Object} Object - Object
+ * @param {String} Object.dappId
+ * @param {String} Object.transactionId
+ * @param {String} Object.recipientId
+ * @param {Number} Object.amount
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function transferOutOfDapp(
+export default function transferOutOfDapp({
 	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
-) {
+}) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {

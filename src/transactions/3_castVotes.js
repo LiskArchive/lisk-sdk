@@ -22,10 +22,10 @@ import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
 /**
- * @method createVotes
+ * @method castVotes
  * @param {Object} Object - Object
  * @param {String} Object.secret
- * @param {Array<Object>} Object.delegates
+ * @param {Array<String>} Object.delegates
  * @param {String} Object.secondSecret
  * @param {Number} Object.timeOffset
  *
