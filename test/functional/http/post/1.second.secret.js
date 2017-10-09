@@ -22,7 +22,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	var accountEmptySecondPassword = node.randomAccount();
 	accountEmptySecondPassword.secondPassword = '';
 	var accountNoFunds = node.randomAccount();
-	var accountScarceFunds = node.randomAccount();
+	var accountMinimalFunds = node.randomAccount();
 	var accountNoSecondPassword = node.randomAccount();
 
 	var transaction, signature;
@@ -32,7 +32,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		var promises = [];
 		promises.push(creditAccountPromise(account.address, 100000000000));
 		promises.push(creditAccountPromise(accountEmptySecondPassword.address, 100000000000));
-		promises.push(creditAccountPromise(accountScarceFunds.address, constants.fees.secondsignature));
+		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.secondsignature));
 		promises.push(creditAccountPromise(accountNoSecondPassword.address, constants.fees.secondsignature));
 
 		return node.Promise.all(promises).then(function (results) {
@@ -62,8 +62,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 
-		it('with scarce funds should be ok', function () {
-			transaction = node.lisk.signature.createSignature(accountScarceFunds.password, accountScarceFunds.secondPassword);
+		it('with minimal required amount of funds should be ok', function () {
+			transaction = node.lisk.signature.createSignature(accountMinimalFunds.password, accountMinimalFunds.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
@@ -336,7 +336,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 4 - registering multisignature account', function () {
 
 			it('using no second passphrase should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountScarceFunds.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
@@ -346,7 +346,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using invalid second passphrase should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountScarceFunds.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
