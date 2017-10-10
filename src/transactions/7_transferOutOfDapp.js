@@ -19,8 +19,8 @@
  */
 import cryptoModule from '../crypto';
 import { OUT_TRANSFER_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method createOutTransfer
@@ -46,7 +46,7 @@ export default function transferOutOfDapp(
 		fee: OUT_TRANSFER_FEE,
 		recipientId,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			outTransfer: {
 				dappId,

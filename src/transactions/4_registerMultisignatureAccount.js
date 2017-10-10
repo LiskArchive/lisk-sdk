@@ -14,8 +14,8 @@
  */
 import cryptoModule from '../crypto';
 import { MULTISIGNATURE_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 /**
  * @method createMultisignature
  * @param secret string
@@ -40,7 +40,7 @@ export default function registerMultisignatureAccount(
 		fee: (MULTISIGNATURE_FEE * keygroupFees),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			multisignature: {
 				min,

@@ -19,8 +19,8 @@
  */
 import cryptoModule from '../crypto';
 import { IN_TRANSFER_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method createInTransfer
@@ -42,7 +42,7 @@ export default function transferIntoDapp(dappId, amount, secret, secondSecret, t
 		fee: IN_TRANSFER_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			inTransfer: {
 				dappId,

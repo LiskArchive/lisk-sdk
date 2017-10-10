@@ -14,7 +14,8 @@
  */
 import registerSecondSignature from '../../src/transactions/1_registerSecondSignature';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
@@ -31,7 +32,7 @@ describe('#registerSecondSignature transaction', () => {
 	let registerSecondSignatureTransaction;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 		registerSecondSignatureTransaction = registerSecondSignature(secret, secondSecret);
 	});
 
@@ -39,11 +40,11 @@ describe('#registerSecondSignature transaction', () => {
 		(registerSecondSignatureTransaction).should.be.ok();
 	});
 
-	it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+	it('should use time.getTimeWithOffset to calculate the timestamp', () => {
 		(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 	});
 
-	it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+	it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 		const offset = -10;
 		registerSecondSignature(secret, secondSecret, offset);
 
@@ -79,7 +80,7 @@ describe('#registerSecondSignature transaction', () => {
 			(registerSecondSignatureTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 		});
 
-		it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+		it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 			(registerSecondSignatureTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 		});
 

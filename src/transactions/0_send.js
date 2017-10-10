@@ -18,8 +18,8 @@
  */
 import cryptoModule from '../crypto';
 import { SEND_FEE, DATA_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method createTransaction
@@ -44,7 +44,7 @@ export default function send(
 		fee,
 		recipientId,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {},
 	};
 

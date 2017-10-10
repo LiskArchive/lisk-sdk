@@ -14,7 +14,8 @@
  */
 import transferIntoDapp from '../../src/transactions/6_transferIntoDapp';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
@@ -33,7 +34,7 @@ describe('#transferIntoDapp transaction', () => {
 	let transferIntoDappTransaction;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('with one secret', () => {
@@ -45,11 +46,11 @@ describe('#transferIntoDapp transaction', () => {
 			(transferIntoDappTransaction).should.be.ok();
 		});
 
-		it('should use time slots to get the time for the timestamp', () => {
+		it('should use time time to get the time for the timestamp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 		});
 
-		it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
+		it('should use time time with an offset of -10 seconds to get the time for the timestamp', () => {
 			transferIntoDapp(dappId, amount, secret, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
@@ -84,7 +85,7 @@ describe('#transferIntoDapp transaction', () => {
 				(transferIntoDappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
-			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				(transferIntoDappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 

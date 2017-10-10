@@ -14,7 +14,8 @@
  */
 import createDapp from '../../src/transactions/5_createDapp';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
@@ -45,7 +46,7 @@ describe('#createDapp transaction', () => {
 	let createDappTransaction;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 		options = Object.assign({}, defaultOptions);
 	});
 
@@ -107,11 +108,11 @@ describe('#createDapp transaction', () => {
 			(createDapp.bind(null, secret, null, options)).should.not.throw();
 		});
 
-		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 		});
 
-		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			createDapp(secret, null, options, offset);
 
@@ -147,7 +148,7 @@ describe('#createDapp transaction', () => {
 				(createDappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
-			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				(createDappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 

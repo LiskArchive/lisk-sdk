@@ -19,8 +19,8 @@
  */
 import cryptoModule from '../crypto';
 import { SEND_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method createTransaction
@@ -46,7 +46,7 @@ export default function sendFromMultisignatureAccount(
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		requesterPublicKey: requesterPublicKey || keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {},
 		signatures: [],
 	};

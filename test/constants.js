@@ -23,6 +23,9 @@ import {
 	SEND_FEE,
 	VOTE_FEE,
 	DATA_FEE,
+	EPOCH_TIME_SECONDS,
+	EPOCH_TIME,
+	EPOCH_TIME_MILISECONDS,
 } from '../src/constants';
 
 describe('constants', () => {
@@ -64,5 +67,17 @@ describe('constants', () => {
 
 	it('DATA_FEE should be an integer', () => {
 		(DATA_FEE).should.be.an.integer();
+	});
+
+	it('EPOCH_TIME_SECONDS should be an integer', () => {
+		(EPOCH_TIME_SECONDS).should.be.an.integer();
+	});
+
+	it('EPOCH_TIME_MILISECONDS should be an integer', () => {
+		(EPOCH_TIME_MILISECONDS).should.be.an.integer();
+	});
+
+	it('EPOCH_TIME should be an integer', () => {
+		(EPOCH_TIME).should.be.type('object');
 	});
 });

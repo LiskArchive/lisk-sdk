@@ -18,8 +18,8 @@
  */
 import cryptoModule from '../crypto';
 import { VOTE_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method createVote
@@ -40,7 +40,7 @@ export default function castVotes(secret, delegates, secondSecret, timeOffset) {
 		fee: VOTE_FEE,
 		recipientId: cryptoModule.getAddress(keys.publicKey),
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			votes: delegates,
 		},
