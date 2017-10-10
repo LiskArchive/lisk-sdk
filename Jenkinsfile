@@ -321,11 +321,18 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			}, // End Node-02 Tests
 			"Unit Tests" : {
 				node('node-03'){
-					sh '''
-					export TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run test-unit
-					'''
+					try {
+						sh '''
+						export TEST_TYPE='UNIT' NODE_ENV='TEST'
+						cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+						npm run test-unit
+						'''
+					} catch (err) {
+						echo "Error: ${err}"
+						currentBuild.result = 'FAILURE'
+						report()
+						error('Stopping build: unit tests failed')
+					}
 				}
 			},
 			"Unit Tests - sql blockRewards" : {
