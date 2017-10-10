@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../crypto/index';
+import cryptoModule from '../../crypto';
 
 const secondSignTransaction = (transactionObject, secondSecret) => Object.assign(
 	{}, transactionObject, {
 		signSignature: cryptoModule.signTransaction(transactionObject, secondSecret),
 	});
 
-export const prepareTransaction = (transaction, secret, secondSecret) => {
+const prepareTransaction = (transaction, secret, secondSecret) => {
 	const singleSignedTransaction = Object.assign({}, transaction, {
 		signature: cryptoModule.signTransaction(transaction, secret),
 	});
@@ -35,4 +35,4 @@ export const prepareTransaction = (transaction, secret, secondSecret) => {
 	return transactionWithId;
 };
 
-export const isValidValue = value => ![undefined, false, NaN].includes(value);
+export default prepareTransaction;

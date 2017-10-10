@@ -21,17 +21,9 @@ import 'babel-polyfill';
 import Mnemonic from 'bitcore-mnemonic';
 import naclFactory from 'js-nacl';
 import crypto from './crypto';
-import dapp from './transactions/dapp';
-import delegate from './transactions/delegate';
-import multisignature from './transactions/multisignature';
-import multisignatureTransaction from './transactions/multisignatureTransaction';
-import signature from './transactions/signature';
-import transaction from './transactions/transaction';
-import inTransfer from './transactions/inTransfer';
-import outTransfer from './transactions/outTransfer';
-import vote from './transactions/vote';
 import api from './api/liskApi';
 import slots from './time/slots';
+import transaction from './transactions';
 
 global.naclFactory = naclFactory;
 
@@ -40,20 +32,10 @@ naclFactory.instantiate((nacl) => {
 	naclInstance = nacl;
 });
 
-const lisk = {
+export {
 	crypto,
-	dapp,
-	delegate,
-	multisignature,
-	multisignatureTransaction,
-	signature,
 	transaction,
-	inTransfer,
-	outTransfer,
-	vote,
 	api,
 	slots,
 	Mnemonic,
 };
-
-module.exports = lisk;

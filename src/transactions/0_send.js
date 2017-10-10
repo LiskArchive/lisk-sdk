@@ -13,43 +13,45 @@
  *
  */
 /**
- * Multisignature module provides functions for creating multisignature group registration
- * transactions, and signing transactions requiring multisignatures.
- * @class multisignature
+ * Transaction module provides functions for creating balance transfer transactions.
+ * @class transaction
  */
 import cryptoModule from '../crypto';
-import { SEND_FEE } from '../constants';
+import { SEND_FEE, DATA_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
 /**
  * @method createTransaction
- * @param recipientId string
- * @param amount number
- * @param secret secret
- * @param secondSecret secret
- * @param requesterPublicKey string
- * @param timeOffset number
+ * @param recipientId
+ * @param amount
+ * @param secret
+ * @param secondSecret
+ * @param data
+ * @param timeOffset
  *
- * @return {string}
+ * @return {Object}
  */
 
-export default function createTransaction(
-	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
+export default function send(
+	recipientId, amount, secret, secondSecret, data, timeOffset,
 ) {
 	const keys = cryptoModule.getKeys(secret);
-
+	const fee = data ? (SEND_FEE + DATA_FEE) : SEND_FEE;
 	const transaction = {
 		type: 0,
 		amount,
-		fee: SEND_FEE,
+		fee,
 		recipientId,
 		senderPublicKey: keys.publicKey,
-		requesterPublicKey: requesterPublicKey || keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {},
-		signatures: [],
 	};
+
+	if (data && data.length > 0) {
+		if (data !== data.toString('utf8')) throw new Error('Invalid encoding in transaction data. Data must be utf-8 encoded.');
+		transaction.asset.data = data;
+	}
 
 	return prepareTransaction(transaction, secret, secondSecret);
 }

@@ -18,55 +18,74 @@ import {
 	getKeys,
 	getAddressAndPublicKeyFromSecret,
 } from '../../src/crypto/keys';
-import {
-	bufferToHex,
-} from '../../src/crypto/convert';
+
+const convert = require('../../src/crypto/convert');
+const hash = require('../../src/crypto/hash');
 
 describe('keys', () => {
 	const defaultSecret = 'secret';
-	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultSecretHash = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
 	const defaultPrivateKey = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultAddressAndPublicKey = {
 		publicKey: defaultPublicKey,
-		address: '18160565574430594874L',
+		address: '16402986683325069355L',
 	};
-	describe('#getPrivateAndPublicKeyFromSecret', () => {
-		const keypair = getPrivateAndPublicKeyFromSecret(defaultSecret);
 
-		it('should generate the correct publicKey from a secret', () => {
-			(keypair.publicKey).should.be.equal(defaultPublicKey);
-		});
+	let bufferToHexStub;
 
-		it('should generate the correct privateKey from a secret', () => {
-			(keypair.privateKey).should.be.equal(defaultPrivateKey);
-		});
+	beforeEach(() => {
+		bufferToHexStub = sandbox.stub(convert, 'bufferToHex');
+		bufferToHexStub.withArgs(Buffer.from(defaultPrivateKey, 'hex')).returns(defaultPrivateKey);
+		bufferToHexStub.withArgs(Buffer.from(defaultPublicKey, 'hex')).returns(defaultPublicKey);
+		sandbox.stub(hash, 'getSha256Hash').returns(Buffer.from(defaultSecretHash, 'hex'));
 	});
 
 	describe('#getRawPrivateAndPublicKeyFromSecret', () => {
-		const keypair = getRawPrivateAndPublicKeyFromSecret(defaultSecret);
+		let keyPair;
+
+		beforeEach(() => {
+			keyPair = getRawPrivateAndPublicKeyFromSecret(defaultSecret);
+		});
 
 		it('should create buffer publicKey', () => {
-			(bufferToHex(
-				Buffer.from(keypair.publicKey))
-			).should.be.equal(defaultPublicKey);
+			(Buffer.from(keyPair.publicKey).toString('hex')).should.be.equal(defaultPublicKey);
 		});
 
 		it('should create buffer privateKey', () => {
-			(bufferToHex(Buffer.from(keypair.privateKey)))
-				.should.be.equal(defaultPrivateKey);
+			(Buffer.from(keyPair.privateKey).toString('hex')).should.be.equal(defaultPrivateKey);
+		});
+	});
+
+	describe('#getPrivateAndPublicKeyFromSecret', () => {
+		let keyPair;
+
+		beforeEach(() => {
+			keyPair = getPrivateAndPublicKeyFromSecret(defaultSecret);
+		});
+
+		it('should generate the correct publicKey from a secret', () => {
+			(keyPair).should.have.property('publicKey').and.be.equal(defaultPublicKey);
+		});
+
+		it('should generate the correct privateKey from a secret', () => {
+			(keyPair).should.have.property('privateKey').and.be.equal(defaultPrivateKey);
 		});
 	});
 
 	describe('#getKeys', () => {
-		it('should return two keys in hex', () => {
-			const keys = getKeys('secret');
+		let keyPair;
 
-			(keys).should.have.property('publicKey').and.be.type('string').and.be.hexString();
-			(keys).should.have.property('privateKey').and.be.type('string').and.be.hexString();
-			(keys).should.be.eql({
-				publicKey: defaultPublicKey,
-				privateKey: defaultPrivateKey,
-			});
+		beforeEach(() => {
+			keyPair = getKeys(defaultSecret);
+		});
+
+		it('should generate the correct publicKey from a secret', () => {
+			(keyPair).should.have.property('publicKey').and.be.equal(defaultPublicKey);
+		});
+
+		it('should generate the correct privateKey from a secret', () => {
+			(keyPair).should.have.property('privateKey').and.be.equal(defaultPrivateKey);
 		});
 	});
 

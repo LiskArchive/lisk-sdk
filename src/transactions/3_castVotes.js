@@ -13,45 +13,36 @@
  *
  */
 /**
- * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
- * an individual dapp account).
- * @class transfer
+ * Vote module provides functions for creating vote transactions.
+ * @class vote
  */
 import cryptoModule from '../crypto';
-import { OUT_TRANSFER_FEE } from '../constants';
+import { VOTE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
 
 /**
- * @method createOutTransfer
- * @param dappId
- * @param transactionId
- * @param recipientId
- * @param amount
+ * @method createVote
  * @param secret
+ * @param delegates
  * @param secondSecret
  * @param timeOffset
  *
  * @return {Object}
  */
 
-export default function createOutTransfer(
-	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
-) {
+export default function castVotes(secret, delegates, secondSecret, timeOffset) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
-		type: 7,
-		amount,
-		fee: OUT_TRANSFER_FEE,
-		recipientId,
+		type: 3,
+		amount: 0,
+		fee: VOTE_FEE,
+		recipientId: cryptoModule.getAddress(keys.publicKey),
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			outTransfer: {
-				dappId,
-				transactionId,
-			},
+			votes: delegates,
 		},
 	};
 

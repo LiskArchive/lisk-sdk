@@ -4,8 +4,8 @@
 	"description": "JavaScript library for sending Lisk transactions from the client or server",
 	"main": "./dist-node/index.js",
 	"scripts": {
-		"test": "nyc mocha test/constants.js test/**/*.js",
-		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test/constants.js test/**/*.js\" --initial",
+		"test": "nyc mocha test --recursive",
+		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test --recursive\" --initial",
 		"cover": "istanbul cover --dir ./coverage _mocha",
 		"eslint": "./node_modules/.bin/grunt eslint --verbose",
 		"jenkins": "./node_modules/.bin/grunt jenkins --verbose",
@@ -50,6 +50,7 @@
 		"mocha": "=3.4.2",
 		"mocha-lcov-reporter": "=1.3.0",
 		"nyc": "=10.3.2",
+		"rewireify": "=0.2.5",
 		"should": "=11.2.1",
 		"sinon": "=2.2.0"
 	}

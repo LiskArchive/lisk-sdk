@@ -12,10 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../src/crypto/index';
-
-describe('crypto index.js', () => {
-	it('should export an object', () => {
-		(cryptoModule).should.be.type('object');
-	});
-});
+export { default as getTransactionBytes } from './getTransactionBytes';
+export { default as prepareTransaction } from './prepareTransaction';

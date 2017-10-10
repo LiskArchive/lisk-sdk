@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createDapp from '../../src/transactions/dapp';
+import createDapp from '../../src/transactions/5_createDapp';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createDapp', () => {
+describe('#createDapp transaction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -42,7 +42,7 @@ describe('#createDapp', () => {
 
 	let getTimeWithOffsetStub;
 	let options;
-	let dappTransaction;
+	let createDappTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
@@ -51,11 +51,11 @@ describe('#createDapp', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			dappTransaction = createDapp(secret, null, options);
+			createDappTransaction = createDapp(secret, null, options);
 		});
 
-		it('should create a dapp transaction', () => {
-			(dappTransaction).should.be.ok();
+		it('should create a create dapp transaction', () => {
+			(createDappTransaction).should.be.ok();
 		});
 
 		it('should throw an error if no options are provided', () => {
@@ -118,89 +118,89 @@ describe('#createDapp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
-		describe('returned dapp transaction', () => {
+		describe('returned create dapp transaction', () => {
 			it('should be an object', () => {
-				(dappTransaction).should.be.type('object');
+				(createDappTransaction).should.be.type('object');
 			});
 
 			it('should have an id string', () => {
-				(dappTransaction).should.have.property('id').and.be.type('string');
+				(createDappTransaction).should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type number equal to 5', () => {
-				(dappTransaction).should.have.property('type').and.be.type('number').and.equal(5);
+				(createDappTransaction).should.have.property('type').and.be.type('number').and.equal(5);
 			});
 
 			it('should have amount number equal to 0', () => {
-				(dappTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
+				(createDappTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 			});
 
 			it('should have fee number equal to 25 LSK', () => {
-				(dappTransaction).should.have.property('fee').and.be.type('number').and.equal(fee);
+				(createDappTransaction).should.have.property('fee').and.be.type('number').and.equal(fee);
 			});
 
 			it('should have recipientId equal to null', () => {
-				(dappTransaction).should.have.property('recipientId').and.be.null();
+				(createDappTransaction).should.have.property('recipientId').and.be.null();
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				(dappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+				(createDappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
-				(dappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				(createDappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				(dappTransaction).should.have.property('signature').and.be.hexString();
+				(createDappTransaction).should.have.property('signature').and.be.hexString();
 			});
 
 			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(dappTransaction);
+				const result = cryptoModule.verifyTransaction(createDappTransaction);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly if modified', () => {
-				dappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(dappTransaction);
+				createDappTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(createDappTransaction);
 				(result).should.be.not.ok();
 			});
 
 			it('should have asset', () => {
-				(dappTransaction).should.have.property('asset').and.not.be.empty();
+				(createDappTransaction).should.have.property('asset').and.not.be.empty();
 			});
 
 			describe('dapps asset', () => {
 				it('should be object', () => {
-					(dappTransaction.asset).should.have.property('dapp').and.be.type('object');
+					(createDappTransaction.asset).should.have.property('dapp').and.be.type('object');
 				});
 
 				it('should have a category number equal to provided category', () => {
-					(dappTransaction.asset.dapp).should.have.property('category').and.be.type('number').and.equal(options.category);
+					(createDappTransaction.asset.dapp).should.have.property('category').and.be.type('number').and.equal(options.category);
 				});
 
 				it('should have a name string equal to provided name', () => {
-					(dappTransaction.asset.dapp).should.have.property('name').and.be.type('string').and.equal(options.name);
+					(createDappTransaction.asset.dapp).should.have.property('name').and.be.type('string').and.equal(options.name);
 				});
 
 				it('should have a description string equal to provided description', () => {
-					(dappTransaction.asset.dapp).should.have.property('description').and.be.type('string').and.equal(options.description);
+					(createDappTransaction.asset.dapp).should.have.property('description').and.be.type('string').and.equal(options.description);
 				});
 
 				it('should have a tags string equal to provided tags', () => {
-					(dappTransaction.asset.dapp).should.have.property('tags').and.be.type('string').and.equal(options.tags);
+					(createDappTransaction.asset.dapp).should.have.property('tags').and.be.type('string').and.equal(options.tags);
 				});
 
 				it('should have a type number equal to provided type', () => {
-					(dappTransaction.asset.dapp).should.have.property('type').and.be.type('number').and.equal(options.type);
+					(createDappTransaction.asset.dapp).should.have.property('type').and.be.type('number').and.equal(options.type);
 				});
 
 				it('should have a link string equal to provided link', () => {
-					(dappTransaction.asset.dapp).should.have.property('link').and.be.type('string').and.equal(options.link);
+					(createDappTransaction.asset.dapp).should.have.property('link').and.be.type('string').and.equal(options.link);
 				});
 
 				it('should have an icon string equal to provided icon', () => {
-					(dappTransaction.asset.dapp).should.have.property('icon').and.be.type('string').and.equal(options.icon);
+					(createDappTransaction.asset.dapp).should.have.property('icon').and.be.type('string').and.equal(options.icon);
 				});
 			});
 		});
@@ -208,28 +208,28 @@ describe('#createDapp', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			dappTransaction = createDapp(secret, secondSecret, options);
+			createDappTransaction = createDapp(secret, secondSecret, options);
 		});
 
-		it('should create a dapp transaction with a second secret', () => {
-			const dappTransactionWithoutSecondSecret = createDapp(secret, null, options);
-			(dappTransaction).should.be.ok();
-			(dappTransaction).should.not.be.equal(dappTransactionWithoutSecondSecret);
+		it('should create a create dapp transaction with a second secret', () => {
+			const createDappTransactionWithoutSecondSecret = createDapp(secret, null, options);
+			(createDappTransaction).should.be.ok();
+			(createDappTransaction).should.not.be.equal(createDappTransactionWithoutSecondSecret);
 		});
 
-		describe('returned dapp transaction', () => {
+		describe('returned create dapp transaction', () => {
 			it('should have second signature hex string', () => {
-				(dappTransaction).should.have.property('signSignature').and.be.hexString();
+				(createDappTransaction).should.have.property('signSignature').and.be.hexString();
 			});
 
 			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(dappTransaction, secondPublicKey);
+				const result = cryptoModule.verifyTransaction(createDappTransaction, secondPublicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be second signed correctly if modified', () => {
-				dappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(dappTransaction, secondPublicKey);
+				createDappTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(createDappTransaction, secondPublicKey);
 				(result).should.not.be.ok();
 			});
 		});

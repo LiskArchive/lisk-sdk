@@ -14,16 +14,17 @@
  */
 import getTransactionBytes, {
 	getAssetDataForSendTransaction,
-	getAssetDataForSignatureTransaction,
-	getAssetDataForDelegateTransaction,
-	getAssetDataForVotesTransaction,
-	getAssetDataForMultisignatureTransaction,
-	getAssetDataForDappTransaction,
-	getAssetDataForDappInTransaction,
-	getAssetDataForDappOutTransaction,
+	getAssetDataForRegisterSecondSignatureTransaction,
+	getAssetDataForRegisterDelegateTransaction,
+	getAssetDataForCastVotesTransaction,
+	getAssetDataForRegisterMultisignatureAccountTransaction,
+	getAssetDataForCreateDappTransaction,
+	getAssetDataForTransferIntoDappTransaction,
+	getAssetDataForTransferOutOfDappTransaction,
 	checkTransaction,
 	checkRequiredFields,
-} from '../../src/transactions/transactionBytes';
+	isValidValue,
+} from '../../../src/transactions/utils/getTransactionBytes';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';
@@ -349,10 +350,10 @@ describe('getTransactionBytes functions', () => {
 		});
 	});
 
-	describe('#getAssetDataForSignatureTransaction', () => {
+	describe('#getAssetDataForRegisterSecondSignatureTransaction', () => {
 		it('should return Buffer for signature asset', () => {
 			const expectedBuffer = Buffer.from(defaultSenderPublicKey, 'hex');
-			const assetSignaturesPublicKeyBuffer = getAssetDataForSignatureTransaction({
+			const assetSignaturesPublicKeyBuffer = getAssetDataForRegisterSecondSignatureTransaction({
 				signature: {
 					publicKey: defaultSenderPublicKey,
 				},
@@ -362,16 +363,19 @@ describe('getTransactionBytes functions', () => {
 		});
 
 		it('should throw on missing publicKey in the signature asset', () => {
-			(getAssetDataForSignatureTransaction.bind(null, { signature: {} })).should.throw(
+			(getAssetDataForRegisterSecondSignatureTransaction.bind(
+				null,
+				{ signature: {} },
+			)).should.throw(
 				'publicKey is a required parameter.',
 			);
 		});
 	});
 
-	describe('#getAssetDataForDelegateTransaction', () => {
+	describe('#getAssetDataForRegisterDelegateTransaction', () => {
 		it('should return Buffer for delegate asset', () => {
 			const expectedBuffer = Buffer.from(defaultDelegateUsername, 'utf8');
-			const assetDelegateUsernameBuffer = getAssetDataForDelegateTransaction({
+			const assetDelegateUsernameBuffer = getAssetDataForRegisterDelegateTransaction({
 				delegate: {
 					username: defaultDelegateUsername,
 				},
@@ -380,13 +384,13 @@ describe('getTransactionBytes functions', () => {
 			(assetDelegateUsernameBuffer).should.be.eql(expectedBuffer);
 		});
 		it('should throw on missing username in the delegate asset', () => {
-			(getAssetDataForDelegateTransaction.bind(null, { delegate: {} })).should.throw(
+			(getAssetDataForRegisterDelegateTransaction.bind(null, { delegate: {} })).should.throw(
 				'username is a required parameter.',
 			);
 		});
 	});
 
-	describe('#getAssetDataForVotesTransaction', () => {
+	describe('#getAssetDataForCastVotesTransaction', () => {
 		it('should return Buffer for votes asset', () => {
 			const votesAsset = {
 				votes: [
@@ -395,19 +399,19 @@ describe('getTransactionBytes functions', () => {
 				],
 			};
 			const expectedBuffer = Buffer.from(`+${defaultSenderPublicKey}+${defaultSenderSecondPublicKey}`, 'utf8');
-			const assetVoteBuffer = getAssetDataForVotesTransaction(votesAsset);
+			const assetVoteBuffer = getAssetDataForCastVotesTransaction(votesAsset);
 
 			(assetVoteBuffer).should.be.eql(expectedBuffer);
 		});
 
 		it('should throw on missing votes in the vote asset', () => {
-			(getAssetDataForVotesTransaction.bind(null, { votes: {} })).should.throw(
+			(getAssetDataForCastVotesTransaction.bind(null, { votes: {} })).should.throw(
 				'votes parameter must be an Array.',
 			);
 		});
 	});
 
-	describe('#getAssetDataForMultisignatureTransaction', () => {
+	describe('#getAssetDataForRegisterMultisignatureAccountTransaction', () => {
 		const min = 2;
 		const lifetime = 5;
 		const keysgroup = ['+123456789', '-987654321'];
@@ -427,7 +431,9 @@ describe('getTransactionBytes functions', () => {
 			const keysgroupBuffer = Buffer.from('+123456789-987654321', 'utf8');
 
 			const expectedBuffer = Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
-			const multisignatureBuffer = getAssetDataForMultisignatureTransaction(multisignatureAsset);
+			const multisignatureBuffer = getAssetDataForRegisterMultisignatureAccountTransaction(
+				multisignatureAsset,
+			);
 
 			(multisignatureBuffer).should.be.eql(expectedBuffer);
 		});
@@ -438,12 +444,12 @@ describe('getTransactionBytes functions', () => {
 			requiredProperties.forEach((parameter) => {
 				const multisigAsset = Object.assign({}, multisignatureAsset.multisignature);
 				delete multisigAsset[parameter];
-				(getAssetDataForMultisignatureTransaction.bind(null, { multisignature: multisigAsset })).should.throw(`${parameter} is a required parameter.`);
+				(getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, { multisignature: multisigAsset })).should.throw(`${parameter} is a required parameter.`);
 			});
 		});
 	});
 
-	describe('#getAssetDataForDappTransaction', () => {
+	describe('#getAssetDataForCreateDappTransaction', () => {
 		const defaultCategory = 0;
 		const defaultDappName = 'Lisk Guestbook';
 		const defaultDescription = 'The official Lisk guestbook';
@@ -480,7 +486,7 @@ describe('getTransactionBytes functions', () => {
 				dappTypeBuffer,
 				dappCategoryBuffer,
 			]);
-			const dappBuffer = getAssetDataForDappTransaction(dappAsset);
+			const dappBuffer = getAssetDataForCreateDappTransaction(dappAsset);
 
 			(dappBuffer).should.be.eql(expectedBuffer);
 		});
@@ -500,12 +506,12 @@ describe('getTransactionBytes functions', () => {
 			requiredProperties.forEach((parameter) => {
 				const dappClone = Object.assign({}, dapp);
 				delete dappClone[parameter];
-				(getAssetDataForDappTransaction.bind(null, { dapp: dappClone })).should.throw(`${parameter} is a required parameter.`);
+				(getAssetDataForCreateDappTransaction.bind(null, { dapp: dappClone })).should.throw(`${parameter} is a required parameter.`);
 			});
 		});
 	});
 
-	describe('#getAssetDataForDappInTransaction', () => {
+	describe('#getAssetDataForTransferIntoDappTransaction', () => {
 		it('should return Buffer for dappIn asset', () => {
 			const dappInAsset = {
 				inTransfer: {
@@ -513,19 +519,19 @@ describe('getTransactionBytes functions', () => {
 				},
 			};
 			const expectedBuffer = Buffer.from(defaultAppId, 'utf8');
-			const dappInTransferBuffer = getAssetDataForDappInTransaction(dappInAsset);
+			const dappInTransferBuffer = getAssetDataForTransferIntoDappTransaction(dappInAsset);
 
 			(dappInTransferBuffer).should.be.eql(expectedBuffer);
 		});
 
 		it('should throw on missing votes in the vote asset', () => {
-			(getAssetDataForDappInTransaction.bind(null, { inTransfer: {} })).should.throw(
+			(getAssetDataForTransferIntoDappTransaction.bind(null, { inTransfer: {} })).should.throw(
 				'dappId is a required parameter.',
 			);
 		});
 	});
 
-	describe('#getAssetDataForDappOutTransaction', () => {
+	describe('#getAssetDataForTransferOutOfDappTransaction', () => {
 		it('should return Buffer for dappOut asset', () => {
 			const dappOutAsset = {
 				outTransfer: {
@@ -536,13 +542,13 @@ describe('getTransactionBytes functions', () => {
 			const dappIdBuffer = Buffer.from(defaultAppId, 'utf8');
 			const transactionIdBuffer = Buffer.from(defaultTransactionId);
 			const expectedBuffer = Buffer.concat([dappIdBuffer, transactionIdBuffer]);
-			const dappOutTransferBuffer = getAssetDataForDappOutTransaction(dappOutAsset);
+			const dappOutTransferBuffer = getAssetDataForTransferOutOfDappTransaction(dappOutAsset);
 
 			(dappOutTransferBuffer).should.be.eql(expectedBuffer);
 		});
 
 		it('should throw on missing votes in the vote asset', () => {
-			(getAssetDataForDappOutTransaction.bind(null, { outTransfer: {} })).should.throw(
+			(getAssetDataForTransferOutOfDappTransaction.bind(null, { outTransfer: {} })).should.throw(
 				'dappId is a required parameter.',
 			);
 		});
@@ -573,6 +579,23 @@ describe('getTransactionBytes functions', () => {
 		it('should return true on asset data exactly at max data length', () => {
 			defaultTransaction.asset.data = new Array(maxDataLength).fill('1').join('');
 			(checkTransaction(defaultTransaction)).should.be.true();
+		});
+	});
+
+	describe('#isInvalidValue', () => {
+		it('should return false on invalid values', () => {
+			const allInvalidValues = [NaN, false, undefined];
+			allInvalidValues.forEach((value) => {
+				const invalid = isValidValue(value);
+				(invalid).should.be.false();
+			});
+		});
+		it('should return true on valid values', () => {
+			const exampleValidValues = ['123', 123, { 1: 2, 3: 4 }, [1, 2, 3]];
+			exampleValidValues.forEach((value) => {
+				const valid = isValidValue(value);
+				(valid).should.be.true();
+			});
 		});
 	});
 });

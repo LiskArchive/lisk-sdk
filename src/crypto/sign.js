@@ -13,7 +13,6 @@
  *
  */
 import crypto from 'crypto';
-import getTransactionBytes from '../transactions/transactionBytes';
 import {
 	hexToBuffer,
 	bufferToHex,
@@ -21,9 +20,21 @@ import {
 	convertPublicKeyEd2Curve,
 } from './convert';
 import {
+	getTransactionHash,
+	getSha256Hash,
+} from './hash';
+import {
 	getRawPrivateAndPublicKeyFromSecret,
 } from './keys';
-import { getTransactionHash, getSha256Hash } from './hash';
+
+const createHeader = text => `-----${text}-----`;
+const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
+const messageHeader = createHeader('MESSAGE');
+const publicKeyHeader = createHeader('PUBLIC KEY');
+const secondPublicKeyHeader = createHeader('SECOND PUBLIC KEY');
+const signatureHeader = createHeader('SIGNATURE');
+const secondSignatureHeader = createHeader('SECOND SIGNATURE');
+const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 
 /**
  * @method signMessageWithSecret
@@ -43,6 +54,32 @@ export function signMessageWithSecret(message, secret) {
 		publicKey: bufferToHex(publicKey),
 		signature: Buffer.from(signature).toString('base64'),
 	};
+}
+
+/**
+ * @method verifyMessageWithPublicKey
+ * @param {Object} Object - Object
+ * @param {String} Object.message - message in utf8
+ * @param {String} Object.signature - signature in base64
+ * @param {String} Object.publicKey - publicKey in hex
+ *
+ * @return {string}
+ */
+
+export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
+	const msgBytes = Buffer.from(message);
+	const signatureBytes = Buffer.from(signature, 'base64');
+	const publicKeyBytes = hexToBuffer(publicKey);
+
+	if (publicKeyBytes.length !== 32) {
+		throw new Error('Invalid publicKey, expected 32-byte publicKey');
+	}
+
+	if (signatureBytes.length !== naclInstance.crypto_sign_BYTES) {
+		throw new Error('Invalid signature length, expected 64-byte signature');
+	}
+
+	return naclInstance.crypto_sign_verify_detached(signatureBytes, msgBytes, publicKeyBytes);
 }
 
 /**
@@ -74,32 +111,6 @@ export function signMessageWithTwoSecrets(message, secret, secondSecret) {
 }
 
 /**
- * @method verifyMessageWithPublicKey
- * @param {Object} Object - Object
- * @param {String} Object.message - message in utf8
- * @param {String} Object.signature - signature in base64
- * @param {String} Object.publicKey - publicKey in hex
- *
- * @return {string}
- */
-
-export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
-	const msgBytes = Buffer.from(message);
-	const signatureBytes = Buffer.from(signature, 'base64');
-	const publicKeyBytes = hexToBuffer(publicKey);
-
-	if (publicKeyBytes.length !== 32) {
-		throw new Error('Invalid publicKey, expected 32-byte publicKey');
-	}
-
-	if (signatureBytes.length !== naclInstance.crypto_sign_BYTES) {
-		throw new Error('Invalid signature length, expected 64-byte signature');
-	}
-
-	return naclInstance.crypto_sign_verify_detached(signatureBytes, msgBytes, publicKeyBytes);
-}
-
-/**
  * @method verifyMessageWithTwoPublicKeys
  * @param signedMessage
  * @param publicKey
@@ -108,9 +119,13 @@ export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
  * @return {string}
  */
 
-export function verifyMessageWithTwoPublicKeys(
-	{ message, signature, secondSignature, publicKey, secondPublicKey },
-) {
+export function verifyMessageWithTwoPublicKeys({
+	message,
+	signature,
+	secondSignature,
+	publicKey,
+	secondPublicKey,
+}) {
 	const messageBytes = Buffer.from(message);
 	const signatureBytes = Buffer.from(signature, 'base64');
 	const secondSignatureBytes = Buffer.from(secondSignature, 'base64');
@@ -145,30 +160,31 @@ export function verifyMessageWithTwoPublicKeys(
 
 /**
  * @method printSignedMessage
- * @param message
- * @param signedMessage
- * @param publicKey
- *
+ * @param {object}
  * @return {string}
  */
 
-export function printSignedMessage({ message, signature, publicKey }) {
-	const signedMessageHeader = '-----BEGIN LISK SIGNED MESSAGE-----';
-	const messageHeader = '-----MESSAGE-----';
-	const publicKeyHeader = '-----PUBLIC KEY-----';
-	const signatureHeader = '-----SIGNATURE-----';
-	const signatureFooter = '-----END LISK SIGNED MESSAGE-----';
-
+export function printSignedMessage({
+	message,
+	signature,
+	publicKey,
+	secondSignature,
+	secondPublicKey,
+}) {
 	const outputArray = [
 		signedMessageHeader,
 		messageHeader,
 		message,
 		publicKeyHeader,
 		publicKey,
+		secondPublicKey ? secondPublicKeyHeader : null,
+		secondPublicKey,
 		signatureHeader,
 		signature,
+		secondSignature ? secondSignatureHeader : null,
+		secondSignature,
 		signatureFooter,
-	];
+	].filter(Boolean);
 
 	return outputArray.join('\n');
 }
@@ -177,13 +193,90 @@ export function printSignedMessage({ message, signature, publicKey }) {
  * @method signAndPrintMessage
  * @param message
  * @param secret
+ * @param secondSecret
  *
  * @return {string}
  */
 
-export function signAndPrintMessage(message, secret) {
-	const signedMessage = signMessageWithSecret(message, secret);
+export function signAndPrintMessage(message, secret, secondSecret) {
+	const signedMessage = secondSecret ?
+		signMessageWithTwoSecrets(message, secret, secondSecret) :
+		signMessageWithSecret(message, secret);
+
 	return printSignedMessage(signedMessage);
+}
+
+/**
+ * @method signTransaction
+ * @param transaction Object
+ * @param secret string
+ *
+ * @return {string}
+ */
+
+export function signTransaction(transaction, secret) {
+	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
+	const transactionHash = getTransactionHash(transaction);
+	const signature = naclInstance.crypto_sign_detached(transactionHash, privateKey);
+	return bufferToHex(signature);
+}
+
+/**
+ * @method multiSignTransaction
+ * @param transaction Object
+ * @param secret string
+ *
+ * @return {string}
+ */
+
+export function multiSignTransaction(transaction, secret) {
+	const transactionToSign = Object.assign({}, transaction);
+	delete transactionToSign.signature;
+	delete transactionToSign.signSignature;
+
+	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
+	const transactionHash = getTransactionHash(transactionToSign);
+	const signature = naclInstance.crypto_sign_detached(
+		transactionHash, privateKey,
+	);
+
+	return bufferToHex(signature);
+}
+
+/**
+ * @method verifyTransaction
+ * @param transaction Object
+ * @param secondPublicKey
+ *
+ * @return {boolean}
+ */
+
+export function verifyTransaction(transaction, secondPublicKey) {
+	const secondSignaturePresent = !!transaction.signSignature;
+	if (secondSignaturePresent && !secondPublicKey) {
+		throw new Error('Cannot verify signSignature without secondPublicKey.');
+	}
+
+	const transactionWithoutSignature = Object.assign({}, transaction);
+
+	if (secondSignaturePresent) {
+		delete transactionWithoutSignature.signSignature;
+	} else {
+		delete transactionWithoutSignature.signature;
+	}
+
+	const transactionHash = getTransactionHash(transactionWithoutSignature);
+
+	const publicKey = secondSignaturePresent ? secondPublicKey : transaction.senderPublicKey;
+	const signature = secondSignaturePresent ? transaction.signSignature : transaction.signature;
+
+	const verified = naclInstance.crypto_sign_verify_detached(
+		hexToBuffer(signature), transactionHash, hexToBuffer(publicKey),
+	);
+
+	return secondSignaturePresent
+		? verified && verifyTransaction(transactionWithoutSignature)
+		: verified;
 }
 
 /**
@@ -242,77 +335,6 @@ export function decryptMessageWithSecret(cipherHex, nonce, secret, senderPublicK
 }
 
 /**
- * @method signTransaction
- * @param transaction Object
- * @param secret Object
- *
- * @return {string}
- */
-
-export function signTransaction(transaction, secret) {
-	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
-	const transactionHash = getTransactionHash(transaction);
-	const signature = naclInstance.crypto_sign_detached(transactionHash, privateKey);
-	return bufferToHex(signature);
-}
-
-/**
- * @method multiSignTransaction
- * @param transaction Object
- * @param secret Object
- *
- * @return {string}
- */
-
-export function multiSignTransaction(transaction, secret) {
-	const transactionToSign = Object.assign({}, transaction);
-	delete transactionToSign.signature;
-	delete transactionToSign.signSignature;
-	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
-	const bytes = getTransactionBytes(transactionToSign);
-	const transactionHash = getSha256Hash(bytes);
-	const signature = naclInstance.crypto_sign_detached(
-		transactionHash, privateKey,
-	);
-
-	return bufferToHex(signature);
-}
-
-/**
- * @method verifyTransaction
- * @param transaction Object
- * @param secondPublicKey
- *
- * @return {boolean}
- */
-
-export function verifyTransaction(transaction, secondPublicKey) {
-	const secondSignaturePresent = !!transaction.signSignature;
-	if (secondSignaturePresent && !secondPublicKey) {
-		throw new Error('Cannot verify signSignature without secondPublicKey.');
-	}
-
-	const transactionWithoutSignature = Object.assign({}, transaction);
-
-	if (secondSignaturePresent) {
-		delete transactionWithoutSignature.signSignature;
-	} else {
-		delete transactionWithoutSignature.signature;
-	}
-
-	const transactionBytes = getTransactionBytes(transactionWithoutSignature);
-
-	const publicKey = secondSignaturePresent ? secondPublicKey : transaction.senderPublicKey;
-	const signature = secondSignaturePresent ? transaction.signSignature : transaction.signature;
-
-	const verified = naclInstance.crypto_sign_verify_detached(
-		hexToBuffer(signature), getSha256Hash(transactionBytes), hexToBuffer(publicKey),
-	);
-
-	return secondSignaturePresent ? verifyTransaction(transactionWithoutSignature) : verified;
-}
-
-/**
  * @method encryptAES256CBCWithPassword
  * @param {String} plainText utf8 - any utf8 string
  * @param {String} password utf8 - the password used to encrypt the passphrase
@@ -338,8 +360,6 @@ function encryptAES256CBCWithPassword(plainText, password) {
  * @param {Object} Object - Object with cipher and iv as hex strings
  * @param {String} Object.cipher - hex string AES-256-CBC cipher
  * @param {String} Object.iv - hex string for the initialisation vector
- * The cipher text resulting from the AES-256-CBC encryption,
- * including the nonce { cipher: ..., nonce: ..., }
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {String} utf8
@@ -369,8 +389,6 @@ export function encryptPassphraseWithPassword(passphrase, password) {
 /**
  * @method decryptPassphraseWithPassword
  * @param {Object} cipherAndIv - Object containing the encryption cipher and the iv
- * The cipher text resulting from the AES-256-CBC encryption,
- * including the nonce { cipher: ..., nonce: ..., }
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {String}

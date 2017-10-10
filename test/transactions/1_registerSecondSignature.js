@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createSignature from '../../src/transactions/signature';
+import registerSecondSignature from '../../src/transactions/1_registerSecondSignature';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createSignature', () => {
+describe('#registerSecondSignature transaction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -28,15 +28,15 @@ describe('#createSignature', () => {
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
-	let signatureTransaction;
+	let registerSecondSignatureTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
-		signatureTransaction = createSignature(secret, secondSecret);
+		registerSecondSignatureTransaction = registerSecondSignature(secret, secondSecret);
 	});
 
-	it('should create a signature transaction', () => {
-		(signatureTransaction).should.be.ok();
+	it('should create a register second signature transaction', () => {
+		(registerSecondSignatureTransaction).should.be.ok();
 	});
 
 	it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
@@ -45,90 +45,92 @@ describe('#createSignature', () => {
 
 	it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 		const offset = -10;
-		createSignature(secret, secondSecret, offset);
+		registerSecondSignature(secret, secondSecret, offset);
 
 		(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 	});
 
-	describe('returned signature transaction', () => {
+	describe('returned register second signature transaction', () => {
 		it('should be an object', () => {
-			(signatureTransaction).should.be.type('object');
+			(registerSecondSignatureTransaction).should.be.type('object');
 		});
 
 		it('should have an id string', () => {
-			(signatureTransaction).should.have.property('id').and.be.type('string');
+			(registerSecondSignatureTransaction).should.have.property('id').and.be.type('string');
 		});
 
 		it('should have type number equal to 1', () => {
-			(signatureTransaction).should.have.property('type').and.be.type('number').and.equal(1);
+			(registerSecondSignatureTransaction).should.have.property('type').and.be.type('number').and.equal(1);
 		});
 
 		it('should have amount number equal to 0', () => {
-			(signatureTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
+			(registerSecondSignatureTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 		});
 
 		it('should have fee number equal to signature fee', () => {
-			(signatureTransaction).should.have.property('fee').and.be.type('number').and.equal(signatureFee);
+			(registerSecondSignatureTransaction).should.have.property('fee').and.be.type('number').and.equal(signatureFee);
 		});
 
 		it('should have recipientId equal to null', () => {
-			(signatureTransaction).should.have.property('recipientId').and.be.null();
+			(registerSecondSignatureTransaction).should.have.property('recipientId').and.be.null();
 		});
 
 		it('should have senderPublicKey hex string equal to sender public key', () => {
-			(signatureTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+			(registerSecondSignatureTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 		});
 
 		it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
-			(signatureTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+			(registerSecondSignatureTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 		});
 
 		it('should have signature hex string', () => {
-			(signatureTransaction).should.have.property('signature').and.be.hexString();
+			(registerSecondSignatureTransaction).should.have.property('signature').and.be.hexString();
 		});
 
 		it('should be signed correctly', () => {
-			const result = cryptoModule.verifyTransaction(signatureTransaction);
+			const result = cryptoModule.verifyTransaction(registerSecondSignatureTransaction);
 			(result).should.be.ok();
 		});
 
 		it('should not be signed correctly if modified', () => {
-			signatureTransaction.amount = 100;
-			const result = cryptoModule.verifyTransaction(signatureTransaction);
+			registerSecondSignatureTransaction.amount = 100;
+			const result = cryptoModule.verifyTransaction(registerSecondSignatureTransaction);
 			(result).should.be.not.ok();
 		});
 
 		it('should have asset object', () => {
-			(signatureTransaction).should.have.property('asset').and.not.be.empty();
+			(registerSecondSignatureTransaction).should.have.property('asset').and.not.be.empty();
 		});
 
 		it('should not have a signSignature property', () => {
-			(signatureTransaction).should.not.have.property('signSignature');
+			(registerSecondSignatureTransaction).should.not.have.property('signSignature');
 		});
 
 		describe('signature asset', () => {
 			it('should be an object', () => {
-				(signatureTransaction.asset).should.have.property('signature')
+				(registerSecondSignatureTransaction.asset).should.have.property('signature')
 					.and.be.type('object')
 					.and.not.be.empty();
 			});
 
 			it('should have a 32-byte publicKey hex string', () => {
-				(signatureTransaction.asset).should.have.property('signature')
+				(registerSecondSignatureTransaction.asset).should.have.property('signature')
 					.with.property('publicKey')
 					.and.be.hexString();
-				(Buffer.from(signatureTransaction.asset.signature.publicKey, 'hex')).should.have.length(32);
+				(Buffer.from(registerSecondSignatureTransaction.asset.signature.publicKey, 'hex')).should.have.length(32);
 			});
 
 			it('should have a publicKey equal to the public key for the provided second secret', () => {
-				(signatureTransaction.asset).should.have.property('signature')
+				(registerSecondSignatureTransaction.asset).should.have.property('signature')
 					.with.property('publicKey')
 					.and.equal(secondPublicKey);
 			});
 
 			it('should have the correct publicKey if the provided second secret is an empty string', () => {
-				signatureTransaction = createSignature('secret', '');
-				(signatureTransaction.asset.signature.publicKey).should.be.equal(emptyStringPublicKey);
+				registerSecondSignatureTransaction = registerSecondSignature('secret', '');
+				(registerSecondSignatureTransaction.asset.signature.publicKey).should.be.equal(
+					emptyStringPublicKey,
+				);
 			});
 		});
 	});

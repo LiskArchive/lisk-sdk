@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createVote from '../../src/transactions/vote';
+import castVotes from '../../src/transactions/3_castVotes';
 import cryptoModule from '../../src/crypto';
 import slots from '../../src/time/slots';
 
 afterEach(() => sandbox.restore());
 
-describe('#createVote', () => {
+describe('#castVotes transaction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -28,7 +28,7 @@ describe('#createVote', () => {
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
-	let voteTransaction;
+	let castVotesTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
@@ -36,11 +36,11 @@ describe('#createVote', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			voteTransaction = createVote(secret, publicKeys);
+			castVotesTransaction = castVotes(secret, publicKeys);
 		});
 
-		it('should create a vote transaction', () => {
-			(voteTransaction).should.be.ok();
+		it('should create a cast votes transaction', () => {
+			(castVotesTransaction).should.be.ok();
 		});
 
 		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
@@ -49,85 +49,85 @@ describe('#createVote', () => {
 
 		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			createVote(secret, publicKeys, null, offset);
+			castVotes(secret, publicKeys, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
 
-		describe('returned vote', () => {
+		describe('returned cast votes transaction', () => {
 			it('should be an object', () => {
-				(voteTransaction).should.be.type('object');
+				(castVotesTransaction).should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				(voteTransaction).should.have.property('id').and.be.type('string');
+				(castVotesTransaction).should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type number equal to 3', () => {
-				(voteTransaction).should.have.property('type').and.be.type('number').and.equal(3);
+				(castVotesTransaction).should.have.property('type').and.be.type('number').and.equal(3);
 			});
 
 			it('should have amount number equal to 0', () => {
-				(voteTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
+				(castVotesTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 			});
 
 			it('should have fee number equal to 0', () => {
-				(voteTransaction).should.have.property('fee').and.be.type('number').and.equal(1e8);
+				(castVotesTransaction).should.have.property('fee').and.be.type('number').and.equal(1e8);
 			});
 
 			it('should have recipientId string equal to address', () => {
-				(voteTransaction).should.have.property('recipientId').and.be.type('string').and.equal(address);
+				(castVotesTransaction).should.have.property('recipientId').and.be.type('string').and.equal(address);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				(voteTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
+				(castVotesTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
-				(voteTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
+				(castVotesTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				(voteTransaction).should.have.property('signature').and.be.hexString();
+				(castVotesTransaction).should.have.property('signature').and.be.hexString();
 			});
 
 			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(voteTransaction);
+				const result = cryptoModule.verifyTransaction(castVotesTransaction);
 				(result).should.be.ok();
 			});
 
 			it('should not be signed correctly if modified', () => {
-				voteTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(voteTransaction);
+				castVotesTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(castVotesTransaction);
 				(result).should.be.not.ok();
 			});
 
 			it('should have asset', () => {
-				(voteTransaction).should.have.property('asset').and.not.be.empty();
+				(castVotesTransaction).should.have.property('asset').and.not.be.empty();
 			});
 
 			describe('votes asset', () => {
 				it('should be object', () => {
-					(voteTransaction.asset).should.have.property('votes').and.be.type('object');
+					(castVotesTransaction.asset).should.have.property('votes').and.be.type('object');
 				});
 
 				it('should not be empty', () => {
-					(voteTransaction.asset.votes).should.not.be.empty();
+					(castVotesTransaction.asset.votes).should.not.be.empty();
 				});
 
 				it('should contain one element', () => {
-					(voteTransaction.asset.votes).should.have.length(1);
+					(castVotesTransaction.asset.votes).should.have.length(1);
 				});
 
 				it('should have public keys in hex', () => {
-					voteTransaction.asset.votes.forEach((v) => {
+					castVotesTransaction.asset.votes.forEach((v) => {
 						(v).should.be.type('string').and.startWith('+');
 						(v.slice(1)).should.be.hexString();
 					});
 				});
 
 				it('should have a vote for the delegate public key', () => {
-					const v = voteTransaction.asset.votes[0];
+					const v = castVotesTransaction.asset.votes[0];
 					(v.substring(1, v.length)).should.be.equal(publicKey);
 				});
 			});
@@ -136,28 +136,28 @@ describe('#createVote', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			voteTransaction = createVote(secret, publicKeys, secondSecret);
+			castVotesTransaction = castVotes(secret, publicKeys, secondSecret);
 		});
 
 		it('should create a vote transaction with a second secret', () => {
-			const voteTransactionWithoutSecondSecret = createVote(secret, publicKeys);
-			(voteTransaction).should.be.ok();
-			(voteTransaction).should.not.be.equal(voteTransactionWithoutSecondSecret);
+			const castVotesTransactionWithoutSecondSecret = castVotes(secret, publicKeys);
+			(castVotesTransaction).should.be.ok();
+			(castVotesTransaction).should.not.be.equal(castVotesTransactionWithoutSecondSecret);
 		});
 
-		describe('returned vote', () => {
+		describe('returned cast votes transaction', () => {
 			it('should have second signature hex string', () => {
-				(voteTransaction).should.have.property('signSignature').and.be.hexString();
+				(castVotesTransaction).should.have.property('signSignature').and.be.hexString();
 			});
 
 			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
+				const result = cryptoModule.verifyTransaction(castVotesTransaction, secondPublicKey);
 				(result).should.be.ok();
 			});
 
 			it('should not be second signed correctly if modified', () => {
-				voteTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(voteTransaction, secondPublicKey);
+				castVotesTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(castVotesTransaction, secondPublicKey);
 				(result).should.not.be.ok();
 			});
 		});

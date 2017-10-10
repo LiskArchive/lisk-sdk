@@ -12,38 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Delegate module provides functions to create delegate registration transactions.
- * @class delegate
- */
 import cryptoModule from '../crypto';
-import { DELEGATE_FEE } from '../constants';
+import { MULTISIGNATURE_FEE } from '../constants';
 import slots from '../time/slots';
 import { prepareTransaction } from './utils';
-
 /**
- * @method createDapp
- * @param secret
- * @param username
- * @param secondSecret
- * @param timeOffset
+ * @method createMultisignature
+ * @param secret string
+ * @param secondSecret string
+ * @param keysgroup array
+ * @param lifetime number
+ * @param min number
+ * @param timeOffset number
  *
  * @return {Object}
  */
 
-export default function createDelegate(secret, username, secondSecret, timeOffset) {
+export default function registerMultisignatureAccount(
+	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
+) {
 	const keys = cryptoModule.getKeys(secret);
+	const keygroupFees = keysgroup.length + 1;
 
 	const transaction = {
-		type: 2,
+		type: 4,
 		amount: 0,
-		fee: DELEGATE_FEE,
+		fee: (MULTISIGNATURE_FEE * keygroupFees),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: slots.getTimeWithOffset(timeOffset),
 		asset: {
-			delegate: {
-				username,
+			multisignature: {
+				min,
+				lifetime,
+				keysgroup,
 			},
 		},
 	};
