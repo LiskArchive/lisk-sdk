@@ -52,7 +52,7 @@ describe('#createDapp transaction', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			createDappTransaction = createDapp(secret, null, options);
+			createDappTransaction = createDapp({ secret, options });
 		});
 
 		it('should create a create dapp transaction', () => {
@@ -60,52 +60,52 @@ describe('#createDapp transaction', () => {
 		});
 
 		it('should throw an error if no options are provided', () => {
-			(createDapp.bind(null, secret)).should.throw(noOptionsError);
+			(createDapp.bind(null, { secret })).should.throw(noOptionsError);
 		});
 
 		it('should throw an error if no category is provided', () => {
 			delete options.category;
-			(createDapp.bind(null, secret, null, options)).should.throw(categoryIntegerError);
+			(createDapp.bind(null, { secret, options })).should.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if provided category is not an integer', () => {
 			options.category = 'not an integer';
-			(createDapp.bind(null, secret, null, options)).should.throw(categoryIntegerError);
+			(createDapp.bind(null, { secret, options })).should.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if no name is provided', () => {
 			delete options.name;
-			(createDapp.bind(null, secret, null, options)).should.throw(nameStringError);
+			(createDapp.bind(null, { secret, options })).should.throw(nameStringError);
 		});
 
 		it('should throw an error if provided name is not a string', () => {
 			options.name = 123;
-			(createDapp.bind(null, secret, null, options)).should.throw(nameStringError);
+			(createDapp.bind(null, { secret, options })).should.throw(nameStringError);
 		});
 
 		it('should throw an error if no type is provided', () => {
 			delete options.type;
-			(createDapp.bind(null, secret, null, options)).should.throw(typeIntegerError);
+			(createDapp.bind(null, { secret, options })).should.throw(typeIntegerError);
 		});
 
 		it('should throw an error if provided type is not an integer', () => {
 			options.type = 'not an integer';
-			(createDapp.bind(null, secret, null, options)).should.throw(typeIntegerError);
+			(createDapp.bind(null, { secret, options })).should.throw(typeIntegerError);
 		});
 
 		it('should throw an error if no link is provided', () => {
 			delete options.link;
-			(createDapp.bind(null, secret, null, options)).should.throw(linkStringError);
+			(createDapp.bind(null, { secret, options })).should.throw(linkStringError);
 		});
 
 		it('should throw an error if provided link is not a string', () => {
 			options.link = 123;
-			(createDapp.bind(null, secret, null, options)).should.throw(linkStringError);
+			(createDapp.bind(null, { secret, options })).should.throw(linkStringError);
 		});
 
 		it('should not require description, tags, or icon', () => {
 			['description', 'tags', 'icon'].forEach(key => delete options[key]);
-			(createDapp.bind(null, secret, null, options)).should.not.throw();
+			(createDapp.bind(null, { secret, options })).should.not.throw();
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -114,7 +114,7 @@ describe('#createDapp transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			createDapp(secret, null, options, offset);
+			createDapp({ secret, options, timeOffset: offset });
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -209,11 +209,11 @@ describe('#createDapp transaction', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			createDappTransaction = createDapp(secret, secondSecret, options);
+			createDappTransaction = createDapp({ secret, secondSecret, options });
 		});
 
 		it('should create a create dapp transaction with a second secret', () => {
-			const createDappTransactionWithoutSecondSecret = createDapp(secret, null, options);
+			const createDappTransactionWithoutSecondSecret = createDapp({ secret, options });
 			(createDappTransaction).should.be.ok();
 			(createDappTransaction).should.not.be.equal(createDappTransactionWithoutSecondSecret);
 		});

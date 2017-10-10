@@ -23,17 +23,18 @@ import { prepareTransaction } from './utils';
 import { getTimeWithOffset } from './utils/time';
 
 /**
- * @method createInTransfer
- * @param dappId
- * @param amount
- * @param secret
- * @param secondSecret
- * @param timeOffset
+ * @method transferIntoDapp
+ * @param {Object} Object - Object
+ * @param {String} Object.dappId
+ * @param {String} Object.amount
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function transferIntoDapp(dappId, amount, secret, secondSecret, timeOffset) {
+export default function transferIntoDapp({ dappId, amount, secret, secondSecret, timeOffset }) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {

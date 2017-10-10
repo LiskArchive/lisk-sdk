@@ -41,9 +41,9 @@ describe('#transferOutOfDapp', () => {
 
 	describe('with one secret', () => {
 		beforeEach(() => {
-			transferOutOfDappTransaction = transferOutOfDapp(
+			transferOutOfDappTransaction = transferOutOfDapp({
 				dappId, transactionId, recipientId, amount, secret,
-			);
+			});
 		});
 
 		it('should create an out transfer dapp transaction', () => {
@@ -55,7 +55,7 @@ describe('#transferOutOfDapp', () => {
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to get the time for the timestamp', () => {
-			transferOutOfDapp(dappId, transactionId, recipientId, amount, secret, null, offset);
+			transferOutOfDapp({ dappId, transactionId, recipientId, amount, secret, timeOffset: offset });
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -131,15 +131,15 @@ describe('#transferOutOfDapp', () => {
 
 		describe('with second secret', () => {
 			beforeEach(() => {
-				transferOutOfDappTransaction = transferOutOfDapp(
+				transferOutOfDappTransaction = transferOutOfDapp({
 					dappId, transactionId, recipientId, amount, secret, secondSecret,
-				);
+				});
 			});
 
 			it('should create a transfer out of dapp transaction with a second secret', () => {
-				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp(
+				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp({
 					dappId, transactionId, recipientId, amount, secret,
-				);
+				});
 				(transferOutOfDappTransaction).should.be.ok();
 				(transferOutOfDappTransaction).should.not.be.equal(
 					transferOutOfDappTransactionWithoutSecondSecret,

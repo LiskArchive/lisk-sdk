@@ -45,13 +45,12 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			registerMultisignatureTransaction = registerMultisignatureAccount(
+			registerMultisignatureTransaction = registerMultisignatureAccount({
 				secret,
-				null,
 				keysgroup,
 				lifetime,
 				min,
-			);
+			});
 		});
 
 		it('should create a register multisignature transaction', () => {
@@ -64,7 +63,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			registerMultisignatureAccount(secret, null, keysgroup, lifetime, min, offset);
+			registerMultisignatureAccount({ secret, keysgroup, lifetime, min, timeOffset: offset });
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -147,15 +146,15 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			registerMultisignatureTransaction = registerMultisignatureAccount(
+			registerMultisignatureTransaction = registerMultisignatureAccount({
 				secret, secondSecret, keysgroup, lifetime, min,
-			);
+			});
 		});
 
 		it('should create a multisignature transaction with a second secret', () => {
-			const registerMultisignatureTransactionWithoutSecondSecret = registerMultisignatureAccount(
+			const registerMultisignatureTransactionWithoutSecondSecret = registerMultisignatureAccount({
 				secret, secondSecret, keysgroup, lifetime, min,
-			);
+			});
 			(registerMultisignatureTransaction).should.be.ok();
 			(registerMultisignatureTransaction)
 				.should.not.be.equal(registerMultisignatureTransactionWithoutSecondSecret);

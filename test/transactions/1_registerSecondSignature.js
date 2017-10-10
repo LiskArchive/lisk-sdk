@@ -33,7 +33,7 @@ describe('#registerSecondSignature transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
-		registerSecondSignatureTransaction = registerSecondSignature(secret, secondSecret);
+		registerSecondSignatureTransaction = registerSecondSignature({secret, secondSecret});
 	});
 
 	it('should create a register second signature transaction', () => {
@@ -46,7 +46,7 @@ describe('#registerSecondSignature transaction', () => {
 
 	it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 		const offset = -10;
-		registerSecondSignature(secret, secondSecret, offset);
+		registerSecondSignature({ secret, secondSecret, timeOffset: offset });
 
 		(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 	});
@@ -128,7 +128,7 @@ describe('#registerSecondSignature transaction', () => {
 			});
 
 			it('should have the correct publicKey if the provided second secret is an empty string', () => {
-				registerSecondSignatureTransaction = registerSecondSignature('secret', '');
+				registerSecondSignatureTransaction = registerSecondSignature({ secret, secondSecret: '' });
 				(registerSecondSignatureTransaction.asset.signature.publicKey).should.be.equal(
 					emptyStringPublicKey,
 				);

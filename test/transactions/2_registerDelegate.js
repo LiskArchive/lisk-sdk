@@ -37,7 +37,7 @@ describe('#registerDelegate tranasction', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			registerDelegateTransaction = registerDelegate(secret, username);
+			registerDelegateTransaction = registerDelegate({ secret, username });
 		});
 
 		it('should create a register delegate transaction', () => {
@@ -50,7 +50,7 @@ describe('#registerDelegate tranasction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			registerDelegate(secret, username, null, offset);
+			registerDelegate({ secret, username, timeOffset: offset });
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -121,11 +121,11 @@ describe('#registerDelegate tranasction', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			registerDelegateTransaction = registerDelegate(secret, username, secondSecret);
+			registerDelegateTransaction = registerDelegate({ secret, username, secondSecret });
 		});
 
 		it('should create a delegate transaction with a second secret', () => {
-			const registerDelegateTransactionWithoutSecondSecret = registerDelegate(secret, username);
+			const registerDelegateTransactionWithoutSecondSecret = registerDelegate({ secret, username });
 			(registerDelegateTransaction).should.be.ok();
 			(registerDelegateTransaction).should.not.be.equal(
 				registerDelegateTransactionWithoutSecondSecret,
