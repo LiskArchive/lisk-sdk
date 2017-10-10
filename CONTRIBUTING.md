@@ -133,12 +133,15 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 	* :books: `:books:` when adding or updating documentation
 	* :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
 	* :recycle: `:recycle:` when refactoring code
-	* :fire: `:fire:` when removing code or files
+	* :fire: `:fire:` when removing code or files (including dependencies)
 	* :racehorse: `:racehorse:` when improving performance
 	* :white_check_mark: `:white_check_mark:` when adding or updating tests
 	* :construction_worker: `:construction_worker:` when updating the build process
 	* :bowtie: `:bowtie` when updating CI
-	* :house: `:house:` when performing chores (e.g. updating dependencies)
+	* :house: `:house:` when performing chores
+	* :new: `:new:` when adding a new dependency
+	* :arrow_up: `:arrow_up:` when upgrading a dependency
+	* :arrow_down: `:arrow_down:` when downgrading a dependency
 	* :back: `:back:` when reverting changes
 
 ### JavaScript Styleguide
