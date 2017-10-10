@@ -32,7 +32,7 @@ describe('privateApi module', () => {
 	const defaultEndpoint = 'transactions';
 	const defaultData = 'testData';
 	const defaultNodes = [localNode, externalNode];
-	const defaultsslNodes = [localNode, externalNode, sslNode];
+	const defaultSSLNodes = [localNode, externalNode, sslNode];
 	const defaultTestnetNodes = [localNode, externalTestnetNode];
 
 	let LSK;
@@ -42,9 +42,9 @@ describe('privateApi module', () => {
 	beforeEach(() => {
 		LSK = {
 			randomNode: false,
-			currentNode: localNode,
+			node: localNode,
 			defaultNodes: [].concat(defaultNodes),
-			defaultSSLNodes: [].concat(defaultsslNodes),
+			defaultSSLNodes: [].concat(defaultSSLNodes),
 			defaultTestnetNodes: [].concat(defaultTestnetNodes),
 			bannedNodes: [],
 			port,
@@ -136,13 +136,13 @@ describe('privateApi module', () => {
 		});
 
 		it('should add the prefix to the node URL and the port', () => {
-			(result).should.equal(`${URLPrefix}://${LSK.currentNode}:${port}`);
+			(result).should.equal(`${URLPrefix}://${LSK.node}:${port}`);
 		});
 
 		it('should not include a port if not set', () => {
 			delete LSK.port;
 			result = getFullURL.call(LSK);
-			(result).should.equal(`${URLPrefix}://${LSK.currentNode}`);
+			(result).should.equal(`${URLPrefix}://${LSK.node}`);
 		});
 	});
 
@@ -163,7 +163,7 @@ describe('privateApi module', () => {
 			it('should return default SSL nodes if testnet is not set to true', () => {
 				LSK.testnet = false;
 				const nodes = getNodes.call(LSK);
-				(nodes).should.be.eql(defaultsslNodes);
+				(nodes).should.be.eql(defaultSSLNodes);
 			});
 		});
 
@@ -186,62 +186,62 @@ describe('privateApi module', () => {
 		});
 	});
 
-	describe('#getrandomNode', () => {
-		const { getrandomNode } = privateApi;
+	describe('#getRandomNode', () => {
+		const { getRandomNode } = privateApi;
 		let getNodesStub;
-		let restoregetNodesStub;
+		let restoreGetNodesStub;
 
 		beforeEach(() => {
 			getNodesStub = sandbox.stub().returns([].concat(defaultNodes));
 			// eslint-disable-next-line no-underscore-dangle
-			restoregetNodesStub = privateApi.__set__('getNodes', getNodesStub);
+			restoreGetNodesStub = privateApi.__set__('getNodes', getNodesStub);
 		});
 
 		afterEach(() => {
-			restoregetNodesStub();
+			restoreGetNodesStub();
 		});
 
 		it('should throw an error if all relevant nodes are banned', () => {
 			LSK.bannedNodes = [].concat(defaultNodes);
-			(getrandomNode.bind(LSK)).should.throw('Cannot get random node: all relevant nodes have been banned.');
+			(getRandomNode.bind(LSK)).should.throw('Cannot get random node: all relevant nodes have been banned.');
 		});
 
 		it('should get nodes', () => {
-			getrandomNode.call(LSK);
+			getRandomNode.call(LSK);
 			(getNodesStub.calledOn(LSK)).should.be.true();
 		});
 
 		it('should return a node', () => {
-			const result = getrandomNode.call(LSK);
+			const result = getRandomNode.call(LSK);
 			(LSK.defaultNodes).should.containEql(result);
 		});
 
 		it('should randomly select the node', () => {
-			const firstResult = getrandomNode.call(LSK);
-			let nextResult = getrandomNode.call(LSK);
+			const firstResult = getRandomNode.call(LSK);
+			let nextResult = getRandomNode.call(LSK);
 			// Test will almost certainly time out if not random
 			while (nextResult === firstResult) {
-				nextResult = getrandomNode.call(LSK);
+				nextResult = getRandomNode.call(LSK);
 			}
 		});
 	});
 
 	describe('#selectNode', () => {
 		const { selectNode } = privateApi;
-		const customNode = 'customnode';
-		const getrandomNodeResult = externalNode;
+		const customNode = 'customNode';
+		const getRandomNodeResult = externalNode;
 
-		let getrandomNodeStub;
-		let restoreGetrandomNode;
+		let getRandomNodeStub;
+		let restoreGetRandomNode;
 
 		beforeEach(() => {
-			getrandomNodeStub = sandbox.stub().returns(getrandomNodeResult);
+			getRandomNodeStub = sandbox.stub().returns(getRandomNodeResult);
 			// eslint-disable-next-line no-underscore-dangle
-			restoreGetrandomNode = privateApi.__set__('getrandomNode', getrandomNodeStub);
+			restoreGetRandomNode = privateApi.__set__('getRandomNode', getRandomNodeStub);
 		});
 
 		afterEach(() => {
-			restoreGetrandomNode();
+			restoreGetRandomNode();
 		});
 
 		describe('if a node was provided in the options', () => {
@@ -269,14 +269,14 @@ describe('privateApi module', () => {
 					LSK.randomNode = true;
 				});
 
-				it('should call getrandomNode', () => {
+				it('should call getRandomNode', () => {
 					selectNode.call(LSK);
-					(getrandomNodeStub.calledOn(LSK)).should.be.true();
+					(getRandomNodeStub.calledOn(LSK)).should.be.true();
 				});
 
 				it('should return a random node', () => {
 					const result = selectNode.call(LSK);
-					(result).should.be.equal(getrandomNodeResult);
+					(result).should.be.equal(getRandomNodeResult);
 				});
 			});
 		});
@@ -301,14 +301,14 @@ describe('privateApi module', () => {
 					LSK.randomNode = true;
 				});
 
-				it('should call getrandomNode', () => {
+				it('should call getRandomNode', () => {
 					selectNode.call(LSK);
-					(getrandomNodeStub.calledOn(LSK)).should.be.true();
+					(getRandomNodeStub.calledOn(LSK)).should.be.true();
 				});
 
 				it('should return a random node', () => {
 					const result = selectNode.call(LSK);
-					(result).should.be.equal(getrandomNodeResult);
+					(result).should.be.equal(getRandomNodeResult);
 				});
 			});
 		});
@@ -316,20 +316,20 @@ describe('privateApi module', () => {
 
 	describe('#banNode', () => {
 		const { banNode } = privateApi;
-		let currentNode;
+		let node;
 
 		beforeEach(() => {
-			currentNode = LSK.currentNode;
+			node = LSK.node;
 		});
 
 		it('should add current node to banned nodes', () => {
 			banNode.call(LSK);
 
-			(LSK.bannedNodes).should.containEql(currentNode);
+			(LSK.bannedNodes).should.containEql(node);
 		});
 
 		it('should not duplicate a banned node', () => {
-			const bannedNodes = [currentNode];
+			const bannedNodes = [node];
 			LSK.bannedNodes = bannedNodes;
 			banNode.call(LSK);
 
@@ -340,19 +340,19 @@ describe('privateApi module', () => {
 	describe('#checkReDial', () => {
 		const { checkReDial } = privateApi;
 		let getNodesStub;
-		let restoregetNodesStub;
+		let restoreGetNodesStub;
 		let setTestnetStub;
 
 		beforeEach(() => {
 			getNodesStub = sandbox.stub().returns([].concat(defaultNodes));
 			// eslint-disable-next-line no-underscore-dangle
-			restoregetNodesStub = privateApi.__set__('getNodes', getNodesStub);
+			restoreGetNodesStub = privateApi.__set__('getNodes', getNodesStub);
 			sandbox.stub(privateApi, 'netHashOptions');
 			setTestnetStub = sandbox.stub(LSK, 'setTestnet');
 		});
 
 		afterEach(() => {
-			restoregetNodesStub();
+			restoreGetNodesStub();
 		});
 
 		describe('with random node', () => {

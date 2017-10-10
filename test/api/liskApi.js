@@ -222,7 +222,7 @@ describe('Lisk API module', () => {
 		});
 	});
 
-	describe('#gets', () => {
+	describe('#getNodes', () => {
 		it('should get a set of nodes', () => {
 			(LSK.getNodes()).should.be.type('object');
 		});
