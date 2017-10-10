@@ -367,7 +367,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						npm run coverageReport
 						npm run fetchCoverage
 						# Submit coverage reports to Master
-						scp test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
+						scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
 						scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-03.zip
 						'''
 					} catch (err) {
