@@ -13,19 +13,19 @@
  *
  */
 
-import { EPOCH_TIME_MILISECONDS } from '../../constants';
+import { EPOCH_TIME_MILLISECONDS } from '../../constants';
 
 /**
- * @method getTime
+ * @method getTimeFromBlockchainEpoch
  * @param {Number} givenTimestamp
  * @return {Number}
  */
 
-export function getTimeFromBlockchainEpoch(givenTimestamp) {
+export const getTimeFromBlockchainEpoch = (givenTimestamp) => {
 	const startingPoint = givenTimestamp || new Date().getTime();
-	const blockchainInitialTime = EPOCH_TIME_MILISECONDS;
+	const blockchainInitialTime = EPOCH_TIME_MILLISECONDS;
 	return Math.floor((startingPoint - blockchainInitialTime) / 1000);
-}
+};
 
 /**
 * @method getTimeWithOffset
@@ -33,10 +33,10 @@ export function getTimeFromBlockchainEpoch(givenTimestamp) {
 * @return {Number}
 */
 
-export function getTimeWithOffset(offset) {
+export const getTimeWithOffset = (offset) => {
 	const now = new Date().getTime();
 	const timeWithOffset = offset
 		? now + (offset * 1000)
 		: now;
 	return getTimeFromBlockchainEpoch(timeWithOffset);
-}
+};

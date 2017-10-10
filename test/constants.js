@@ -25,7 +25,7 @@ import {
 	DATA_FEE,
 	EPOCH_TIME_SECONDS,
 	EPOCH_TIME,
-	EPOCH_TIME_MILISECONDS,
+	EPOCH_TIME_MILLISECONDS,
 } from '../src/constants';
 
 describe('constants', () => {
@@ -73,11 +73,12 @@ describe('constants', () => {
 		(EPOCH_TIME_SECONDS).should.be.an.integer();
 	});
 
-	it('EPOCH_TIME_MILISECONDS should be an integer', () => {
-		(EPOCH_TIME_MILISECONDS).should.be.an.integer();
+	it('EPOCH_TIME_MILLISECONDS should be an integer', () => {
+		(EPOCH_TIME_MILLISECONDS).should.be.an.integer();
 	});
 
-	it('EPOCH_TIME should be an integer', () => {
+	it('EPOCH_TIME should be an object', () => {
 		(EPOCH_TIME).should.be.type('object');
+		(EPOCH_TIME).should.be.instanceOf(Date);
 	});
 });

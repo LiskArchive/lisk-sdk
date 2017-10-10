@@ -46,11 +46,11 @@ describe('#transferIntoDapp transaction', () => {
 			(transferIntoDappTransaction).should.be.ok();
 		});
 
-		it('should use time time to get the time for the timestamp', () => {
+		it('should use time.getTimeWithOffset to get the time for the timestamp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 		});
 
-		it('should use time time with an offset of -10 seconds to get the time for the timestamp', () => {
+		it('should use time.getTimeWithOffset with an offset of -10 seconds to get the time for the timestamp', () => {
 			transferIntoDapp(dappId, amount, secret, null, offset);
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
