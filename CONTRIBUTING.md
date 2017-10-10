@@ -11,13 +11,13 @@ The following is a set of guidelines for contributing to Lisky, which are hosted
 1. [Help! I don't want to read this whole thing, I just have one question. :mag_right:](#help!-i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
 
 1. [How Can I Contribute?](#how-can-i-contribute)
-    1. [Reporting Bugs](#reporting-bugs)
-    1. [Suggesting Enhancements](#suggesting-enhancements)
-    1. [Pull Requests](#pull-requests)
+	1. [Reporting Bugs](#reporting-bugs)
+	1. [Suggesting Enhancements](#suggesting-enhancements)
+	1. [Pull Requests](#pull-requests)
 
 1. [Styleguides](#styleguides)
-    1. [Git Commit Messages](#git-commit-messages)
-    1. [JavaScript Styleguide](#javascript-styleguide)
+	1. [Git Commit Messages](#git-commit-messages)
+	1. [JavaScript Styleguide](#javascript-styleguide)
 
 ## Code of Conduct
 
@@ -128,18 +128,18 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * Consider starting the commit message with an applicable emoji:
-    * :seedling: `:seedling:` when adding a new feature
-    * :bug: `:bug:` when fixing a bug
-    * :books: `:books:` when adding or updating documentation
-    * :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
-    * :recycle: `:recycle:` when refactoring code
-    * :fire: `:fire:` when removing code or files
-    * :racehorse: `:racehorse:` when improving performance
-    * :white_check_mark: `:white_check_mark:` when adding or updating tests
-    * :construction_worker: `:construction_worker:` when updating the build process
-    * :bowtie: `:bowtie` when updating CI
-    * :house: `:house:` when performing chores (e.g. updating dependencies)
-    * :back: `:back:` when reverting changes
+	* :seedling: `:seedling:` when adding a new feature
+	* :bug: `:bug:` when fixing a bug
+	* :books: `:books:` when adding or updating documentation
+	* :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
+	* :recycle: `:recycle:` when refactoring code
+	* :fire: `:fire:` when removing code or files
+	* :racehorse: `:racehorse:` when improving performance
+	* :white_check_mark: `:white_check_mark:` when adding or updating tests
+	* :construction_worker: `:construction_worker:` when updating the build process
+	* :bowtie: `:bowtie` when updating CI
+	* :house: `:house:` when performing chores (e.g. updating dependencies)
+	* :back: `:back:` when reverting changes
 
 ### JavaScript Styleguide
 
