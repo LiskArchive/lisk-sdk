@@ -22,7 +22,11 @@ import {
 	shouldUseJsonOutput,
 } from '../utils/helpers';
 
-const description = 'Create account returns a passphrase, publicKey and accountId.';
+const description = `Create account returns a new created passphrase with associate publicKey and accountId.
+
+Examples:
+	- create account
+`;
 
 const createAccount = vorpal => ({ options }) => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
