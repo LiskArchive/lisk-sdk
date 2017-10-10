@@ -45,15 +45,16 @@ const validateOptions = (options) => {
 
 /**
  * @method createDapp
- * @param secret
- * @param secondSecret
- * @param options
- * @param timeOffset
+ * @param {Object} Object - Object
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {Object} Object.options
+ * @param {Number} Objec.timeOffset
  *
  * @return {Object}
  */
 
-export default function createDapp(secret, secondSecret, options, timeOffset) {
+export default function createDapp({ secret, secondSecret, options, timeOffset }) {
 	validateOptions(options);
 
 	const keys = cryptoModule.getKeys(secret);
