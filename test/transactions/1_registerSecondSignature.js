@@ -33,7 +33,7 @@ describe('#registerSecondSignature transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
-		registerSecondSignatureTransaction = registerSecondSignature({secret, secondSecret});
+		registerSecondSignatureTransaction = registerSecondSignature({ secret, secondSecret });
 	});
 
 	it('should create a register second signature transaction', () => {
