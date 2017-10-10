@@ -24,102 +24,45 @@ import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
-	decryptPassphraseWithPassword,
 	encryptPassphraseWithPassword,
+	decryptPassphraseWithPassword,
 } from '../../src/crypto/sign';
-import {
-	getKeys,
-} from '../../src/crypto/keys';
+
+const convert = require('../../src/crypto/convert');
+const keys = require('../../src/crypto/keys');
+const hash = require('../../src/crypto/hash');
+
+const makeInvalid = (str) => {
+	const char = str[0] === '0' ? '1' : '0';
+	return `${char}${str.slice(1)}`;
+};
+
+const changeLength = str => `00${str}`;
 
 describe('sign', () => {
-	const secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
-	const secretMessage = 'secret message';
-	const notSecretMessage = 'not secret message';
-	const defaultSignature = 'X9aY0zwAn8NY8ghfZkZa5QrDd00aXDbVFn+9f5usa2SLJrspdtNgtihv6hw2fdEo2tfwzCQaAwH7z/9Mp3ueCw==';
-	const defaultSecondSignature = 'nGWmc3+0RXyLFGX51ony9hfDn44Q4mhtA/vTiwkl7rnl13eYX6KEzKardnflUjnWG0Kbj9wfshKGsZuQRW5/Ag==';
-	const defaultWrongSignature = 'E2gerxJlGhgaPcY+Az90YL272HanGOE+za/DdEy011UvReN5V1UBBJXzuHhX3QoX2IhunJ2DRf+wvXBuZrz7Cw==';
-	const defaultSecret = 'secret';
+	const defaultSecret = 'minute omit local rare sword knee banner pair rib museum shadow juice';
+	const defaultPrivateKey = '314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
+	const defaultPublicKey = '7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultSecondSecret = 'second secret';
-	const defaultPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultSecondPrivateKey = '9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultSecondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
-	const defaultSignatureFirstSecret = '123';
-	const defaultPassword = 'myTotal53cr3t%&';
-
-	describe('#signMessageWithSecret', () => {
-		const signedMessage = signMessageWithSecret(notSecretMessage, defaultSecret);
-		it('should signTransaction the message correctly', () => {
-			const expectedSignedMessage = {
-				message: notSecretMessage,
-				publicKey: defaultPublicKey,
-				signature: defaultSignature,
-			};
-			(signedMessage).should.be.eql(expectedSignedMessage);
-		});
-	});
-
-	describe('#verifyMessageWithPublicKey', () => {
-		let signedMessage;
-		beforeEach(() => {
-			signedMessage = {
-				message: notSecretMessage,
-				publicKey: defaultPublicKey,
-				signature: defaultSignature,
-			};
-		});
-		it('should return true on valid signature verification', () => {
-			(verifyMessageWithPublicKey(signedMessage)).should.be.true();
-		});
-
-		it('should throw on invalid publicKey length', () => {
-			signedMessage.publicKey = `${defaultPublicKey}AA`;
-			(verifyMessageWithPublicKey.bind(null, signedMessage)).should.throw('Invalid publicKey, expected 32-byte publicKey');
-		});
-
-		it('should throw on invalid signature length', () => {
-			signedMessage.signature = `WM${defaultSignature}`;
-			(verifyMessageWithPublicKey.bind(null, signedMessage)).should.throw('Invalid signature length, expected 64-byte signature');
-		});
-
-		it('should return false on wrong signature', () => {
-			signedMessage.signature = defaultWrongSignature;
-			(verifyMessageWithPublicKey(signedMessage)).should.be.false();
-		});
-	});
-
-	describe('signTransaction and print messages', () => {
-		const signedMessageExample = `
+	const defaultMessage = 'Some default text.';
+	const defaultSignature = 'l07qwsfn2dpCqic8jKro5ut2b6KaMbN3MvIubS5h6EAhBoSeYeNVH/cNfTWRcKYZhmnhBhtrSqYZl+Jrh+OnBA==';
+	const defaultSecondSignature = '/ZOPadM9cMlAu5lFeeEfTl7hjnFWNJl6uXUzBdXsDQMa7gP22owcJZwf3sNLTvVG5inAe7PHekvO6dsBfayIDQ==';
+	const defaultPrintedMessage = `
 -----BEGIN LISK SIGNED MESSAGE-----
 -----MESSAGE-----
-${notSecretMessage}
+${defaultMessage}
 -----PUBLIC KEY-----
 ${defaultPublicKey}
 -----SIGNATURE-----
 ${defaultSignature}
 -----END LISK SIGNED MESSAGE-----
 `.trim();
-
-		it('#printSignedMessage should wrap the signed message into a printed Lisk template', () => {
-			const signedMessage = {
-				message: notSecretMessage,
-				publicKey: defaultPublicKey,
-				signature: defaultSignature,
-			};
-			const printedMessage = printSignedMessage(signedMessage);
-
-			(printedMessage).should.be.equal(signedMessageExample);
-		});
-
-		it('#signAndPrintMessage should wrap the signed message into a printed Lisk template', () => {
-			const signedAndPrintedMessage = signAndPrintMessage(notSecretMessage, defaultSecret);
-			(signedAndPrintedMessage).should.be.equal(signedMessageExample);
-		});
-	});
-
-	describe('signTransaction and print messages with two secrets', () => {
-		const signedMessageWithTwoSecretsExample = `
+	const defaultSecondSignedPrintedMessage = `
 -----BEGIN LISK SIGNED MESSAGE-----
 -----MESSAGE-----
-${notSecretMessage}
+${defaultMessage}
 -----PUBLIC KEY-----
 ${defaultPublicKey}
 -----SECOND PUBLIC KEY-----
@@ -130,205 +73,231 @@ ${defaultSignature}
 ${defaultSecondSignature}
 -----END LISK SIGNED MESSAGE-----
 `.trim();
-		it('#signMessageWithTwoSecrets should signTransaction using two secrets', () => {
-			const signedMessage = signMessageWithTwoSecrets(
-				notSecretMessage, defaultSecret, defaultSecondSecret,
+	const defaultTransactionSignature = 'bb3f2d12d098c59a0af03bb1157eeb7bc7141b21cea57861c4eac72a7c55f122b5befb1391c3f8509b562fa748fdc7359f6e6051526d979915157c5bcba34e01';
+	const defaultPassword = 'myTotal53cr3t%&';
+
+	let defaultSignedMessage;
+	let defaultDoubleSignedMessage;
+	let defaultEncryptedMessageWithNonce;
+	let defaultTransaction;
+
+	let getRawPrivateAndPublicKeyFromSecretStub;
+	let getTransactionHashStub;
+	let getSha256HashStub;
+
+	beforeEach(() => {
+		defaultSignedMessage = {
+			message: defaultMessage,
+			publicKey: defaultPublicKey,
+			signature: defaultSignature,
+		};
+		defaultDoubleSignedMessage = {
+			message: defaultMessage,
+			publicKey: defaultPublicKey,
+			secondPublicKey: defaultSecondPublicKey,
+			signature: defaultSignature,
+			secondSignature: defaultSecondSignature,
+		};
+		defaultEncryptedMessageWithNonce = {
+			encryptedMessage: '299390b9cbb92fe6a43daece2ceaecbacd01c7c03cfdba51d693b5c0e2b65c634115',
+			nonce: 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66',
+		};
+		defaultTransaction = {
+			type: 0,
+			amount: 1000,
+			recipientId: '58191285901858109L',
+			timestamp: 141738,
+			asset: {},
+			id: '13987348420913138422',
+			senderPublicKey: defaultPublicKey,
+		};
+		sandbox
+			.stub(convert, 'convertPrivateKeyEd2Curve')
+			.returns(Buffer.from('d8be8cacb03fb02f34e85030f902b635f364d6c23f090c7640e9dc9c568e7d5e', 'hex'));
+		sandbox
+			.stub(convert, 'convertPublicKeyEd2Curve')
+			.returns(Buffer.from('f245e78c83196d73452e55581ef924a1b792d352c142257aa3af13cded2e7905', 'hex'));
+
+		getRawPrivateAndPublicKeyFromSecretStub = sandbox.stub(keys, 'getRawPrivateAndPublicKeyFromSecret');
+		getRawPrivateAndPublicKeyFromSecretStub
+			.withArgs(defaultSecret)
+			.returns({
+				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
+			});
+		getRawPrivateAndPublicKeyFromSecretStub
+			.withArgs(defaultSecondSecret)
+			.returns({
+				privateKey: Buffer.from(defaultSecondPrivateKey, 'hex'),
+				publicKey: Buffer.from(defaultSecondPublicKey, 'hex'),
+			});
+
+		getTransactionHashStub = sandbox.stub(hash, 'getTransactionHash')
+			.returns(Buffer.from('c62214460d66eeb1d9db3fb708e31040d2629fbdb6c93887c5eb0f3243912f91', 'hex'));
+		getSha256HashStub = sandbox.stub(hash, 'getSha256Hash')
+			.returns(Buffer.from('d43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760', 'hex'));
+	});
+
+	describe('#signMessageWithSecret', () => {
+		it('should create a signed message using a secret passphrase', () => {
+			const signedMessage = signMessageWithSecret(defaultMessage, defaultSecret);
+			(signedMessage).should.be.eql(defaultSignedMessage);
+		});
+	});
+
+	describe('#verifyMessageWithPublicKey', () => {
+		it('should detect invalid publicKeys', () => {
+			(verifyMessageWithPublicKey.bind(null, {
+				message: defaultMessage,
+				signature: defaultSignature,
+				publicKey: changeLength(defaultPublicKey),
+			}))
+				.should.throw('Invalid publicKey, expected 32-byte publicKey');
+		});
+
+		it('should detect invalid signatures', () => {
+			(verifyMessageWithPublicKey.bind(null, {
+				message: defaultMessage,
+				signature: changeLength(defaultSignature),
+				publicKey: defaultPublicKey,
+			}))
+				.should.throw('Invalid signature length, expected 64-byte signature');
+		});
+
+		it('should return false if the signature is invalid', () => {
+			const verification = verifyMessageWithPublicKey({
+				message: defaultMessage,
+				signature: makeInvalid(defaultSignature),
+				publicKey: defaultPublicKey,
+			});
+			(verification).should.be.false();
+		});
+
+		it('should return true if the signature is valid', () => {
+			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
+			(verification).should.be.true();
+		});
+	});
+
+	describe('#signMessageWithTwoSecrets', () => {
+		it('should create a message signed by two secret passphrases', () => {
+			const signature = signMessageWithTwoSecrets(
+				defaultMessage, defaultSecret, defaultSecondSecret,
 			);
-			const expectedSignedMessage = {
-				message: notSecretMessage,
-				publicKey: defaultPublicKey,
-				secondPublicKey: defaultSecondPublicKey,
-				signature: defaultSignature,
-				secondSignature: defaultSecondSignature,
-			};
 
-			(signedMessage).should.be.eql(expectedSignedMessage);
-		});
-
-		it('#printSignedMessage should wrap the signed message into a printed Lisk template', () => {
-			const signedMessage = {
-				message: notSecretMessage,
-				publicKey: defaultPublicKey,
-				secondPublicKey: defaultSecondPublicKey,
-				signature: defaultSignature,
-				secondSignature: defaultSecondSignature,
-			};
-			const printedMessage = printSignedMessage(signedMessage);
-
-			(printedMessage).should.be.equal(signedMessageWithTwoSecretsExample);
-		});
-
-		it('#signAndPrintMessage should wrap the signed message into a printed Lisk template', () => {
-			const signedAndPrintedMessage =
-				signAndPrintMessage(notSecretMessage, defaultSecret, defaultSecondSecret);
-			(signedAndPrintedMessage).should.be.equal(signedMessageWithTwoSecretsExample);
+			(signature).should.be.eql(defaultDoubleSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithTwoPublicKeys', () => {
-		let signedMessage;
-		beforeEach(() => {
-			signedMessage = {
-				message: notSecretMessage,
-				publicKey: defaultPublicKey,
-				secondPublicKey: defaultSecondPublicKey,
-				signature: defaultSignature,
-				secondSignature: defaultSecondSignature,
-			};
-		});
-
-		it('should verify both signatures when given two publicKeys', () => {
-			(verifyMessageWithTwoPublicKeys(signedMessage)).should.be.true();
-		});
-
 		it('should throw on invalid first publicKey length', () => {
-			signedMessage.publicKey = `${defaultPublicKey}AA`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid first publicKey, expected 32-byte publicKey');
+			(verifyMessageWithTwoPublicKeys.bind(null, Object.assign({}, defaultDoubleSignedMessage, {
+				publicKey: changeLength(defaultPublicKey),
+			})))
+				.should.throw('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid second publicKey length', () => {
-			signedMessage.secondPublicKey = `${defaultSecondPublicKey}AA`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid second publicKey, expected 32-byte publicKey');
+			(verifyMessageWithTwoPublicKeys.bind(null, Object.assign({}, defaultDoubleSignedMessage, {
+				secondPublicKey: changeLength(defaultSecondPublicKey),
+			})))
+				.should.throw('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid primary signature length', () => {
-			signedMessage.signature = `WM${defaultSignature}`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid first signature length, expected 64-byte signature');
+			(verifyMessageWithTwoPublicKeys.bind(null, Object.assign({}, defaultDoubleSignedMessage, {
+				signature: changeLength(defaultSignature),
+			})))
+				.should.throw('Invalid first signature length, expected 64-byte signature');
 		});
 
 		it('should throw on invalid secondary signature length', () => {
-			signedMessage.secondSignature = `WM${defaultSecondSignature}`;
-			(verifyMessageWithTwoPublicKeys.bind(null, signedMessage)).should.throw('Invalid second signature length, expected 64-byte signature');
+			(verifyMessageWithTwoPublicKeys.bind(null, Object.assign({}, defaultDoubleSignedMessage, {
+				secondSignature: changeLength(defaultSecondSignature),
+			})))
+				.should.throw('Invalid second signature length, expected 64-byte signature');
 		});
 
-		it('should return false on wrong signature', () => {
-			signedMessage.signature = defaultWrongSignature;
-			(verifyMessageWithTwoPublicKeys(signedMessage)).should.be.false();
+		it('should return false for incorrect first signature', () => {
+			const verified = verifyMessageWithTwoPublicKeys(Object.assign({},
+				defaultDoubleSignedMessage, {
+					signature: makeInvalid(defaultSignature),
+				}),
+			);
+			(verified).should.be.false();
 		});
 
-		it('should return false on wrong second signature', () => {
-			signedMessage.secondSignature = defaultWrongSignature;
-			(verifyMessageWithTwoPublicKeys(signedMessage)).should.be.false();
+		it('should return false for incorrect second signature', () => {
+			const verified = verifyMessageWithTwoPublicKeys(Object.assign({},
+				defaultDoubleSignedMessage, {
+					secondSignature: makeInvalid(defaultSecondSignature),
+				}),
+			);
+			(verified).should.be.false();
+		});
+
+		it('should return true for two valid signatures', () => {
+			const verified = verifyMessageWithTwoPublicKeys(defaultDoubleSignedMessage);
+			(verified).should.be.true();
 		});
 	});
 
-	describe('#encryptMessageWithSecret', () => {
-		const encryptedMessage = encryptMessageWithSecret(
-			secretMessage, defaultSecret, defaultPublicKey,
-		);
-
-		it('should encrypt a message and not throw with expected parameters', () => {
-			(encryptedMessage).should.be.ok().and.type('object');
+	describe('#printSignedMessage', () => {
+		it('should wrap a single signed message into a printed Lisk template', () => {
+			const printedMessage = printSignedMessage({
+				message: defaultMessage,
+				signature: defaultSignature,
+				publicKey: defaultPublicKey,
+			});
+			(printedMessage).should.be.equal(defaultPrintedMessage);
 		});
 
-		it('encrypted message should have nonce and encrypted message hex', () => {
-			(encryptedMessage).should.have.property('nonce');
-			(encryptedMessage).should.have.property('encryptedMessage');
-		});
-	});
-
-	describe('#decryptMessageWithSecret', () => {
-		const encryptedMessage = encryptMessageWithSecret(
-			secretMessage, defaultSecret, defaultPublicKey,
-		);
-
-		it('should be able to decrypt the message correctly with given receiver secret', () => {
-			const decryptedMessage = decryptMessageWithSecret(
-				encryptedMessage.encryptedMessage, encryptedMessage.nonce, defaultSecret, defaultPublicKey,
-			);
-
-			(decryptedMessage).should.be.ok();
-			(decryptedMessage).should.be.equal(secretMessage);
+		it('should wrap a second signed message into a printed Lisk template', () => {
+			const printedMessage = printSignedMessage({
+				message: defaultMessage,
+				signature: defaultSignature,
+				publicKey: defaultPublicKey,
+				secondSignature: defaultSecondSignature,
+				secondPublicKey: defaultSecondPublicKey,
+			});
+			(printedMessage).should.be.equal(defaultSecondSignedPrintedMessage);
 		});
 	});
 
-	describe('signTransaction and verify', () => {
-		describe('#signTransaction', () => {
-			const keys = getKeys(defaultSignatureFirstSecret);
-			const expectedSignature = '05383e756598172785843f5f165a8bef3632d6a0f6b7a3429201f83e5d60a5b57faa1fa383c4f33bb85d5804848e5313aa7b0cf1058873bc8576d206bdb9c804';
-			const transaction = {
-				type: 0,
-				amount: 1000,
-				recipientId: '58191285901858109L',
-				timestamp: 141738,
-				asset: {},
-				id: '13987348420913138422',
-				senderPublicKey: keys.publicKey,
-			};
-			const alteredTransaction = Object.assign({}, transaction, { amount: '100' });
-			const signature = signTransaction(
-				transaction, defaultSignatureFirstSecret,
-			);
-			const alteredTransactionSignature = signTransaction(
-				alteredTransaction, defaultSignatureFirstSecret,
-			);
-			it('should sign a transaction', () => {
-				(signature).should.be.equal(expectedSignature);
-			});
-
-			it('should not be equal signing a different transaction', () => {
-				(alteredTransactionSignature).should.not.be.eql(signature);
-			});
+	describe('#signAndPrintMessage', () => {
+		it('should sign the message once and wrap it into a printed Lisk template', () => {
+			const signedAndPrintedMessage = signAndPrintMessage(defaultMessage, defaultSecret);
+			(signedAndPrintedMessage).should.be.equal(defaultPrintedMessage);
 		});
 
-		describe('#verify', () => {
-			const recipientId = '13356260975429434553L';
-			const type = 0;
-			const amount = '10';
-			const fee = '10000000';
-			const senderPublicKey = '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca';
-			const senderSecondPublicKey = '922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa';
-			const signature = 'e7027dbe9bb8ebcc1738c560fe0a09161d781d9bfc5df4e9b4ccba2d7a1febcd25ba663938c8d22d4902d37435be149cfb0fd69e7a59daf53469abe8f6509e0c';
-			const signSignature = 'e88b4bd56a80de3b15220bdf0d1df0aa024a7a127ef07b8dc36a4e12d50e8eb338bc61ebe510ab15839e23f073cffda2a8c8b3d1fc1f0db5eed114230ecffe0a';
-			const id = '6950565552966532158';
-			const timestamp = 39541109;
-			const asset = {};
-			let transactionForVerifyOneSignature;
-			let transactionForVerifyTwoSignatures;
+		it('should sign the message twice and wrap it into a printed Lisk template', () => {
+			const signedAndPrintedMessage = signAndPrintMessage(
+				defaultMessage, defaultSecret, defaultSecondSecret,
+			);
+			(signedAndPrintedMessage).should.be.equal(defaultSecondSignedPrintedMessage);
+		});
+	});
 
-			beforeEach(() => {
-				transactionForVerifyOneSignature = {
-					type, amount, fee, recipientId, senderPublicKey, timestamp, asset, signature, id,
-				};
-				transactionForVerifyTwoSignatures = Object.assign(
-					{}, transactionForVerifyOneSignature, { signSignature, senderSecondPublicKey },
-				);
-			});
+	describe('#signTransaction', () => {
+		let transaction;
+		let signature;
 
-			it('should verify a single signed transaction', () => {
-				const verification = verifyTransaction(transactionForVerifyOneSignature);
-				(verification).should.be.true();
-			});
-			it('should verify a second signed transaction', () => {
-				const verification = verifyTransaction(
-					transactionForVerifyTwoSignatures,
-					senderSecondPublicKey,
-				);
-				(verification).should.be.true();
-			});
-			it('should not verify a single signed tampered transaction', () => {
-				transactionForVerifyOneSignature.amount = 20;
-				const verification = verifyTransaction(transactionForVerifyOneSignature);
-				(verification).should.be.false();
-			});
-			it('should not verify a second signed tampered transaction', () => {
-				transactionForVerifyTwoSignatures.asset.data = '123';
-				const verification = verifyTransaction(
-					transactionForVerifyTwoSignatures,
-					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-				);
-				(verification).should.be.false();
-			});
-			it('should throw if try to verify a second sign transaction without secondPublicKey', () => {
-				(verifyTransaction.bind(null, transactionForVerifyTwoSignatures)).should.throw('Cannot verify signSignature without secondPublicKey.');
-			});
+		beforeEach(() => {
+			transaction = Object.assign({}, defaultTransaction);
+			signature = signTransaction(transaction, defaultSecret);
+		});
+
+		it('should sign a transaction', () => {
+			(signature).should.be.equal(defaultTransactionSignature);
 		});
 	});
 
 	describe('#multiSignTransaction', () => {
-		it('should signTransaction a multisignature transaction', () => {
-			const expectedMultiSignature = '9eb6ea53f0fd5079b956625a4f1c09e3638ab3378b0e7847cfcae9dde5a67121dfc49b5e51333296002d70166d0a93d2f4b5eef9eae4e040b83251644bb49409';
-			const multiSigtransaction = {
+		let multiSignatureTransaction;
+		let multiSignature;
+
+		beforeEach(() => {
+			multiSignatureTransaction = {
 				type: 0,
 				amount: 1000,
 				recipientId: '58191285901858109L',
@@ -336,38 +305,173 @@ ${defaultSecondSignature}
 				asset: {},
 				senderPublicKey: '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				signature: '618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				signSignature: '508a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 				id: '13987348420913138422',
 			};
+			getTransactionHashStub.returns(Buffer.from('d43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760', 'hex'));
+			multiSignature = multiSignTransaction(multiSignatureTransaction, defaultSecret);
+		});
 
-			const multiSignature = multiSignTransaction(multiSigtransaction, defaultSignatureFirstSecret);
+		it('should remove the signature and second signature before getting transaction bytes', () => {
+			(getTransactionHashStub.args[0]).should.not.have.property('signature');
+			(getTransactionHashStub.args[0]).should.not.have.property('signSignature');
+		});
+
+		it('should signTransaction a multisignature transaction', () => {
+			const expectedMultiSignature = '4b3b6041de1aa1727861f319fcd427561953268cf6f90d577ef38b872ad3dafb3215e734c2c957eff96de58c20b14ae00708487f229ceb2776cc7e85a1623e05';
 			(multiSignature).should.be.eql(expectedMultiSignature);
 		});
 	});
 
-	describe('#encryptPassphraseWithPassword', () => {
-		it('should encrypt a text with a password', () => {
-			const cipher = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
-			(cipher).should.be.type('object').and.have.property('cipher').and.be.hexString();
-			(cipher).should.be.type('object').and.have.property('iv').and.be.hexString().and.have.length(32);
+	describe('#verifyTransaction', () => {
+		let transaction;
+
+		describe('with a single signed transaction', () => {
+			beforeEach(() => {
+				transaction = Object.assign({}, defaultTransaction, {
+					signature: 'bb3f2d12d098c59a0af03bb1157eeb7bc7141b21cea57861c4eac72a7c55f122b5befb1391c3f8509b562fa748fdc7359f6e6051526d979915157c5bcba34e01',
+				});
+			});
+
+			it('should remove the signature before getting transaction hash', () => {
+				verifyTransaction(transaction);
+				(getTransactionHashStub.args[0]).should.not.have.property('signature');
+			});
+
+			it('should return false for an invalid signature', () => {
+				transaction.amount = 20;
+				getTransactionHashStub.returns(Buffer.from('9027723fef54358948e47094002f1e9890fb3455dd85724c147a5065d5fd8f59', 'hex'));
+				const verification = verifyTransaction(transaction);
+				(verification).should.be.false();
+			});
+
+			it('should return true for a valid signature', () => {
+				const verification = verifyTransaction(transaction);
+				(verification).should.be.true();
+			});
+		});
+
+		describe('with a second signed transaction', () => {
+			beforeEach(() => {
+				transaction = Object.assign({}, defaultTransaction, {
+					signature: 'bb3f2d12d098c59a0af03bb1157eeb7bc7141b21cea57861c4eac72a7c55f122b5befb1391c3f8509b562fa748fdc7359f6e6051526d979915157c5bcba34e01',
+					signSignature: '897090248c0ecdad749d869ddeae59e5029bdbe4806da92d82d6eb7142b624011f4302941db184a2e70bd29a6adac5ce0b4cf780af893db2f504375bdef6850b',
+				});
+				getTransactionHashStub.onFirstCall().returns(Buffer.from('951bb4580dcb6a412de28844e0e06439c5c51dfea2a16730fd94ff20e355f1bd', 'hex'));
+			});
+
+			it('should throw if attempting to verify without a secondPublicKey', () => {
+				(verifyTransaction.bind(null, transaction)).should.throw('Cannot verify signSignature without secondPublicKey.');
+			});
+
+			it('should remove the second signature before getting the first transaction hash', () => {
+				verifyTransaction(transaction, defaultSecondPublicKey);
+				(getTransactionHashStub.args[0]).should.not.have.property('signSignature');
+			});
+
+			it('should remove the first signature before getting the second transaction hash', () => {
+				verifyTransaction(transaction, defaultSecondPublicKey);
+				(getTransactionHashStub.args[1]).should.not.have.property('signature');
+			});
+
+			it('should return false for an invalid second signature', () => {
+				transaction.signSignature = makeInvalid(transaction.signSignature);
+				const verification = verifyTransaction(
+					transaction,
+					defaultSecondPublicKey,
+				);
+				(verification).should.be.false();
+			});
+
+			it('should return false for an invalid first signature', () => {
+				transaction.signature = makeInvalid(transaction.signature);
+				getTransactionHashStub.onFirstCall().returns(Buffer.from('aef147521619556572f204585332aac247dc2b024cb975518d847e4587bab756', 'hex'));
+				const verification = verifyTransaction(
+					transaction,
+					defaultSecondPublicKey,
+				);
+				(verification).should.be.false();
+			});
+
+			it('should return true for a valid signature', () => {
+				const verification = verifyTransaction(
+					transaction,
+					defaultSecondPublicKey,
+				);
+				(verification).should.be.true();
+			});
 		});
 	});
 
-	describe('#decryptPassphraseWithPassword', () => {
-		it('should decrypt a text with a password', () => {
-			const cipherAndNonce = {
-				cipher: '1c527b9408e77ae79e2ceb1ad5907ec523cd957d30c6a08dc922686e62ed98271910ca5b605f95aec98c438b6214fa7e83e3689f3fba89bfcaee937b35a3d931640afe79c353499a500f14c35bd3fd08',
-				iv: '89d0fa0b955219a0e6239339fbb8239f',
-			};
-			const decrypted = decryptPassphraseWithPassword(cipherAndNonce, defaultPassword);
-			(decrypted).should.be.eql(secretPassphrase);
+	describe('#encryptMessageWithSecret', () => {
+		let encryptedMessage;
+
+		beforeEach(() => {
+			encryptedMessage = encryptMessageWithSecret(
+				defaultMessage, defaultSecret, defaultPublicKey,
+			);
+		});
+
+		it('should encrypt a message', () => {
+			(encryptedMessage).should.have.property('encryptedMessage').be.hexString().with.length(68);
+		});
+
+		it('should output the nonce', () => {
+			(encryptedMessage).should.have.property('nonce').be.hexString().with.length(48);
 		});
 	});
 
-	describe('encrypting passphrase integration test', () => {
-		it('should encrypt a given secret with a password and decrypt it back to the original passphrase', () => {
-			const encryptedString = encryptPassphraseWithPassword(secretPassphrase, defaultPassword);
-			const decryptedString = decryptPassphraseWithPassword(encryptedString, defaultPassword);
-			(decryptedString).should.be.eql(secretPassphrase);
+	describe('#decryptMessageWithSecret', () => {
+		it('should be able to decrypt the message correctly using the receiver’s secret passphrase', () => {
+			const decryptedMessage = decryptMessageWithSecret(
+				defaultEncryptedMessageWithNonce.encryptedMessage,
+				defaultEncryptedMessageWithNonce.nonce,
+				defaultSecret,
+				defaultPublicKey,
+			);
+
+			(decryptedMessage).should.be.equal(defaultMessage);
+		});
+	});
+
+	describe('encrypt and decrypt passphrase with password', () => {
+		beforeEach(() => {
+			getSha256HashStub.returns(Buffer.from('e09dfc943d65d63f4f31e444c81afc6d5cf442c988fb87180165dd7119d3ae61', 'hex'));
+		});
+
+		describe('#encryptPassphraseWithPassword', () => {
+			let cipher;
+
+			beforeEach(() => {
+				cipher = encryptPassphraseWithPassword(defaultSecret, defaultPassword);
+			});
+
+			it('should encrypt a passphrase', () => {
+				(cipher).should.be.type('object').and.have.property('cipher').and.be.hexString();
+			});
+
+			it('should output the IV', () => {
+				(cipher).should.be.type('object').and.have.property('iv').and.be.hexString().and.have.length(32);
+			});
+		});
+
+		describe('#decryptPassphraseWithPassword', () => {
+			it('should decrypt a text with a password', () => {
+				const cipherAndNonce = {
+					cipher: '1c527b9408e77ae79e2ceb1ad5907ec523cd957d30c6a08dc922686e62ed98271910ca5b605f95aec98c438b6214fa7e83e3689f3fba89bfcaee937b35a3d931640afe79c353499a500f14c35bd3fd08',
+					iv: '89d0fa0b955219a0e6239339fbb8239f',
+				};
+				const decrypted = decryptPassphraseWithPassword(cipherAndNonce, defaultPassword);
+				(decrypted).should.be.eql(defaultSecret);
+			});
+		});
+
+		describe('integration test', () => {
+			it('should encrypt a given secret with a password and decrypt it back to the original passphrase', () => {
+				const encryptedString = encryptPassphraseWithPassword(defaultSecret, defaultPassword);
+				const decryptedString = decryptPassphraseWithPassword(encryptedString, defaultPassword);
+				(decryptedString).should.be.eql(defaultSecret);
+			});
 		});
 	});
 });

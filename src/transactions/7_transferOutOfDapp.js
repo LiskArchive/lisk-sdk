@@ -28,7 +28,7 @@ import { prepareTransaction } from './utils';
  * @param {String} Object.dappId
  * @param {String} Object.transactionId
  * @param {String} Object.recipientId
- * @param {Number} Object.amount
+ * @param {String} Object.amount
  * @param {String} Object.secret
  * @param {String} Object.secondSecret
  * @param {Number} Object.timeOffset
