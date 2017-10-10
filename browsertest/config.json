@@ -17,10 +17,10 @@
     "options": {
         "testnet": false,
         "ssl": false,
-        "randomPeer": true,
+        "randomNode": true,
         "node": null,
         "port": null,
         "nethash": null,
-        "bannedPeers": []
+        "bannedNodes": []
     }
 }

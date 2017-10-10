@@ -19,25 +19,27 @@
  *
  * - Retrieval of blockchain data: accounts, blocks, transactions.
  * - Enhancing Lisk security by local signing of transactions and immediate network transmission.
- * - Connecting to Lisk peers or to localhost instance of Lisk core.
+ * - Connecting to Lisk nodes or to localhost instance of Lisk core.
  * - Configurable network settings to work in different Lisk environments.
+ *
+ *     var lisk = require('lisk-js');
  *
  *     var options = {
  *         ssl: false,
  *         node: '',
- *         randomPeer: true,
+ *         randomNode: true,
  *         testnet: true,
  *         port: '7000',
- *         bannedPeers: [],
- *         peers: [],
+ *         bannedNodes: [],
+ *         nodes: [],
  *         nethash: ''
  *     };
  *
- *     var lisk = require('lisk-js');
+ *
  *     var LSK = lisk.api(options);
  *
- * @class lisk.api()
- * @main lisk
+ * @class LiskAPI
+ * @param {Object} options - Initialization Object for the LiskAPI instance.
  */
 import * as privateApi from './privateApi';
 import * as utils from './utils';
@@ -60,18 +62,18 @@ export default class LiskAPI {
 	constructor(providedOptions) {
 		const options = Object.assign({}, config.options, providedOptions);
 
-		this.defaultPeers = options.peers || config.peers.mainnet;
+		this.defaultNodes = options.nodes || config.nodes.mainnet;
 
-		this.defaultSSLPeers = this.defaultPeers;
+		this.defaultSSLNodes = this.defaultNodes;
 
-		this.defaultTestnetPeers = options.peers || config.peers.testnet;
+		this.defaultTestnetNodes = options.nodes || config.nodes.testnet;
 
 		this.options = options;
 		this.ssl = options.ssl;
-		this.randomPeer = (typeof options.randomPeer === 'boolean') ? options.randomPeer : !(options.node);
+		this.randomNode = Boolean(options.randomNode);
 		this.testnet = options.testnet;
-		this.bannedPeers = options.bannedPeers;
-		this.currentPeer = options.node || privateApi.selectNode.call(this);
+		this.bannedNodes = options.bannedNodes;
+		this.node = options.node || privateApi.selectNode.call(this);
 		this.port = (options.port === '' || options.port)
 			? options.port
 			: getDefaultPort(options);
@@ -98,15 +100,15 @@ export default class LiskAPI {
 	}
 
 	/**
-	 * @method getPeers
+	 * @method getNodes
 	 * @return {object}
 	 */
 
-	getPeers() {
+	getNodes() {
 		return {
-			official: this.defaultPeers.map(node => ({ node })),
-			ssl: this.defaultSSLPeers.map(node => ({ node, ssl: true })),
-			testnet: this.defaultTestnetPeers.map(node => ({ node, testnet: true })),
+			official: this.defaultNodes.map(node => ({ node })),
+			ssl: this.defaultSSLNodes.map(node => ({ node, ssl: true })),
+			testnet: this.defaultTestnetNodes.map(node => ({ node, testnet: true })),
 		};
 	}
 
@@ -117,8 +119,8 @@ export default class LiskAPI {
 	 */
 
 	setNode(node) {
-		this.currentPeer = node || privateApi.selectNode.call(this);
-		return this.currentPeer;
+		this.node = node || privateApi.selectNode.call(this);
+		return this.node;
 	}
 
 	/**
@@ -128,7 +130,7 @@ export default class LiskAPI {
 
 	setTestnet(testnet) {
 		if (this.testnet !== testnet) {
-			this.bannedPeers = [];
+			this.bannedNodes = [];
 		}
 		this.testnet = testnet;
 		this.port = testnet ? testPort : livePort;
@@ -144,7 +146,7 @@ export default class LiskAPI {
 	setSSL(ssl) {
 		if (this.ssl !== ssl) {
 			this.ssl = ssl;
-			this.bannedPeers = [];
+			this.bannedNodes = [];
 			privateApi.selectNode.call(this);
 		}
 	}
