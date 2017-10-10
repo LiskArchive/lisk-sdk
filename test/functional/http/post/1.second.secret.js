@@ -19,11 +19,10 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	var pendingMultisignatures = [];
 
 	var account = node.randomAccount();
-	var accountEmptySecondPassword = node.randomAccount();
-	accountEmptySecondPassword.secondPassword = '';
 	var accountNoFunds = node.randomAccount();
 	var accountMinimalFunds = node.randomAccount();
 	var accountNoSecondPassword = node.randomAccount();
+	var accountDuplicate = node.randomAccount();
 
 	var transaction, signature;
 
@@ -31,9 +30,9 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	before(function () {
 		var promises = [];
 		promises.push(creditAccountPromise(account.address, 100000000000));
-		promises.push(creditAccountPromise(accountEmptySecondPassword.address, 100000000000));
 		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.secondsignature));
 		promises.push(creditAccountPromise(accountNoSecondPassword.address, constants.fees.secondsignature));
+		promises.push(creditAccountPromise(accountDuplicate.address, constants.fees.secondsignature));
 
 		return node.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
@@ -51,6 +50,16 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	});
 
 	describe('transactions processing', function () {
+
+		it('using second passphrase on a fresh account should fail', function () {
+			transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
+				badTransactionsEnforcement.push(transaction);
+			});
+		});
 
 		it('with no funds should fail', function () {
 			transaction = node.lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
@@ -72,26 +81,6 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 
-		it('with empty second passphrase transaction should be ok', function () {
-			transaction = node.lisk.signature.createSignature(accountEmptySecondPassword.password, accountEmptySecondPassword.secondPassword);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				goodTransactions.push(transaction);
-			});
-		});
-
-		it('with valid params should be ok but not confirmed if sending twice in a row', function () {
-			transaction = node.lisk.signature.createSignature(account.password, 'secondpassword');
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				badTransactions.push(transaction);
-			});
-		});
-
 		it('with valid params should be ok', function () {
 			transaction = node.lisk.signature.createSignature(account.password, account.secondPassword, 1);
 
@@ -107,7 +96,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 0 - sending funds', function () {
 
-			it('using correct second passphrase should fail', function () {
+			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
 				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -118,9 +107,30 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 
+		describe('type 1 - second secret', function () {
+
+			it('with valid params and duplicate submission should be ok but just last transaction will be confirmed', function () {
+				transaction = node.lisk.signature.createSignature(accountDuplicate.password, 'secondpassword');
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					badTransactions.push(transaction);
+
+					transaction = node.lisk.signature.createSignature(accountDuplicate.password, accountDuplicate.secondPassword);
+
+					return sendTransactionPromise(transaction).then(function (res) {
+						node.expect(res).to.have.property('success').to.be.ok;
+						node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+						goodTransactions.push(transaction);
+					});
+				});
+			});
+		});
+
 		describe('type 2 - registering delegate', function () {
 
-			it('using correct second passphrase should fail', function () {
+			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
 				transaction = node.lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -133,7 +143,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 3 - voting delegate', function () {
 
-			it('using correct second passphrase should fail', function () {
+			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
 				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -146,7 +156,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 4 - registering multisignature account', function () {
 
-			it('using correct second passphrase should fail', function () {
+			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
 				transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -159,8 +169,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 5 - registering dapp', function () {
 
-			it('using correct empty second passphrase should fail', function () {
-				transaction = node.lisk.dapp.createDapp(accountEmptySecondPassword.password, accountEmptySecondPassword.secondPassword, node.randomApplication());
+			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
@@ -178,19 +188,9 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 	describe('validation', function () {
 
-		it('using second passphrase on a fresh account should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
-				badTransactionsEnforcement.push(transaction);
-			});
-		});
-
 		describe('type 0 - sending funds', function () {
 
-			it('using no second passphrase should fail', function () {
+			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -200,7 +200,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				});
 			});
 
-			it('using invalid second passphrase should fail', function () {
+			it('using second passphrase not matching registered secondPublicKey should fail', function () {
 				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -219,21 +219,11 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 					goodTransactionsEnforcement.push(transaction);
 				});
 			});
-
-			it('using correct empty second passphrase should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, accountEmptySecondPassword.password, accountEmptySecondPassword.secondPassword);
-
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					goodTransactionsEnforcement.push(transaction);
-				});
-			});
 		});
 
 		describe('type 1 - second secret', function () {
 
-			it('setting second signature twice on the same account should be not ok', function () {
+			it('registering a second passphrase on an account with a second passphrase already enabled should fail', function () {
 				transaction = node.lisk.signature.createSignature(account.password, node.randomPassword());
 				var secondKeys = node.lisk.crypto.getKeys(account.secondPassword);
 				node.lisk.crypto.secondSign(transaction, secondKeys);
@@ -249,7 +239,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 2 - registering delegate', function () {
 
-			it('using no second passphrase should fail', function () {
+			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 				transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -259,7 +249,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				});
 			});
 
-			it('using invalid second passphrase should fail', function () {
+			it('using second passphrase not matching registered secondPublicKey should fail', function () {
 				transaction = node.lisk.delegate.createDelegate(account.password, account.username, 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -278,21 +268,11 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 					goodTransactionsEnforcement.push(transaction);
 				});
 			});
-
-			it('using correct empty second passphrase should be ok', function () {
-				transaction = node.lisk.delegate.createDelegate(accountEmptySecondPassword.password, accountEmptySecondPassword.username, accountEmptySecondPassword.secondPassword);
-
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					goodTransactionsEnforcement.push(transaction);
-				});
-			});
 		});
 
 		describe('type 3 - voting delegate', function () {
 
-			it('using no second passphrase should fail', function () {
+			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey]);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -302,7 +282,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				});
 			});
 
-			it('using invalid second passphrase should fail', function () {
+			it('using second passphrase not matching registered secondPublicKey should fail', function () {
 				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -321,21 +301,11 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 					goodTransactionsEnforcement.push(transaction);
 				});
 			});
-
-			it('using correct empty second passphrase should be ok', function () {
-				transaction = node.lisk.vote.createVote(accountEmptySecondPassword.password, ['+' + node.eAccount.publicKey], accountEmptySecondPassword.secondPassword);
-
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					goodTransactionsEnforcement.push(transaction);
-				});
-			});
 		});
 
 		describe('type 4 - registering multisignature account', function () {
 
-			it('using no second passphrase should fail', function () {
+			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -345,23 +315,13 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				});
 			});
 
-			it('using invalid second passphrase should fail', function () {
+			it('using second passphrase not matching registered secondPublicKey should fail', function () {
 				transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
 					badTransactionsEnforcement.push(transaction);
-				});
-			});
-
-			it('using correct empty second passphrase should be ok', function () {
-				transaction = node.lisk.multisignature.createMultisignature(accountEmptySecondPassword.password, accountEmptySecondPassword.secondPassword, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
-
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					pendingMultisignatures.push(transaction);
 				});
 			});
 
@@ -389,7 +349,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 5 - registering dapp', function () {
 
-			it('using no second passphrase should fail', function () {
+			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -399,23 +359,13 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				});
 			});
 
-			it('using invalid second passphrase should fail', function () {
+			it('using second passphrase not matching registered secondPublicKey should fail', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, 'wrong second password', node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
 					badTransactionsEnforcement.push(transaction);
-				});
-			});
-
-			it('using correct empty second passphrase should be ok', function () {
-				transaction = node.lisk.dapp.createDapp(accountEmptySecondPassword.password, accountEmptySecondPassword.secondPassword, node.randomApplication());
-
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					goodTransactionsEnforcement.push(transaction);
 				});
 			});
 
