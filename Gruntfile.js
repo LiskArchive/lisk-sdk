@@ -27,7 +27,7 @@ module.exports = function configureGrunt(grunt) {
 			prepareDistBrowser: 'rm -r dist-browser/* || mkdir dist-browser | echo',
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
 			babelTest: './node_modules/.bin/babel src --out-dir ./browsertest/src && BABEL_ENV=browsertest ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
-			tidyTest: 'rm -r browsertest/{src,test}',
+			tidyTest: 'rm -r browsertest/src browsertest/test',
 		},
 
 		eslint: {
