@@ -42,7 +42,7 @@ describe('multisignature', function () {
 
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
-			library.modules.delegates.generateDelegateList(last_block.height, function (err, delegateList) {
+			library.modules.delegates.generateDelegateList(last_block.height, null, function (err, delegateList) {
 				var nextForger = delegateList[(slot + offset) % slots.delegates];
 				return cb(nextForger);
 			});
