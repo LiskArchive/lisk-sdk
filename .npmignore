@@ -3,7 +3,9 @@
 .eslintignore
 .eslintrc.json
 .gitignore
-Gruntfile.js
+.nvmrc
+.nycrc
+.snyk
 Jenkinsfile
 
 .idea/
