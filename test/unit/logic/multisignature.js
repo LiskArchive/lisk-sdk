@@ -121,11 +121,11 @@ describe('multisignature', function () {
 			verifySignature: sinon.stub().returns(1)
 		};
 		accountMock = {
-			merge: sinon.mock()
+			merge: sinon.mock().callsArg(2)
 		};
 		accountsMock = {
-			generateAddressByPublicKey: sinon.mock().returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey),
-			setAccountAndGet: sinon.mock()
+			generateAddressByPublicKey: sinon.stub().returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey),
+			setAccountAndGet: sinon.stub().callsArg(1)
 		};
 		trs = _.cloneDeep(validTransaction);
 		rawTrs = _.cloneDeep(rawValidTransaction);
@@ -478,39 +478,113 @@ describe('multisignature', function () {
 
 	describe('apply', function () {
 
-		it('should update private unconfirmed signature of sender', function (done) {
-			accountMock.merge.withArgs(sinon.match.any, sinon.match.any).yields(null);
-
-			accountsMock.generateAddressByPublicKey.exactly(trs.asset.multisignature.keysgroup.length).returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
-
-			accountsMock.setAccountAndGet.exactly(trs.asset.multisignature.keysgroup.length).yields(null);
-			multisignature.apply(trs, dummyBlock, sender, function () {
-				var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
-				expect(unconfirmedSignatures[sender.address]).to.equal(false);
-				accountMock.merge.verify();
-				accountsMock.generateAddressByPublicKey.verify();
-				accountsMock.setAccountAndGet.verify();
-				done();
-			});
+		beforeEach(function (done) {
+			accountMock.merge = sinon.stub().callsArg(2);
+			multisignature.apply(trs, dummyBlock, sender, done);
 		});
 
-		it('should call accounts changes with correct parameters', function (done) {
-			accountMock.merge.once().withArgs(sender.address, {
+		it('should set __private.unconfirmedSignatures[sender.address] = false', function () {
+			var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
+			expect(unconfirmedSignatures).to.contain.property(sender.address).equal(false);
+		});
+
+		it('should call library.logic.account.merge', function () {
+			expect(accountMock.merge.calledOnce).to.be.true;
+		});
+
+		it('should call library.logic.account.merge with sender.address', function () {
+			expect(accountMock.merge.calledWith(sender.address)).to.be.true;
+		});
+
+		it('should call library.logic.account.merge with valid params', function () {
+			var expectedParams = {
 				multisignatures: trs.asset.multisignature.keysgroup,
 				multimin: trs.asset.multisignature.min,
 				multilifetime: trs.asset.multisignature.lifetime,
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height)
-			}).yields(null);
+			};
+			expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
+		});
 
-			accountsMock.generateAddressByPublicKey.exactly(trs.asset.multisignature.keysgroup.length).returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
+		describe('when library.logic.account.merge fails', function () {
 
-			accountsMock.setAccountAndGet.exactly(trs.asset.multisignature.keysgroup.length).yields(null);
-			multisignature.apply(trs, dummyBlock, sender, function () {
-				accountMock.merge.verify();
-				accountsMock.generateAddressByPublicKey.verify();
-				accountsMock.setAccountAndGet.verify();
-				done();
+			beforeEach(function () {
+				accountMock.merge = sinon.stub().callsArgWith(2, 'merge error');
+			});
+
+			it('should call callback with error', function () {
+				multisignature.apply(trs, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
+				});
+			});
+		});
+
+		describe('when library.logic.account.merge succeeds', function () {
+
+			describe('for every keysgroup member', function () {
+
+				validTransaction.asset.multisignature.keysgroup.forEach(function (member) {
+
+					it('should call modules.accounts.generateAddressByPublicKey', function () {
+						expect(accountsMock.generateAddressByPublicKey.callCount).to.equal(validTransaction.asset.multisignature.keysgroup.length);
+					});
+
+					it('should call modules.accounts.generateAddressByPublicKey with member.substring(1)', function () {
+						expect(accountsMock.generateAddressByPublicKey.calledWith(member.substring(1))).to.be.true;
+					});
+
+					describe('when key and the address', function () {
+
+						var key;
+						var address;
+
+						beforeEach(function () {
+							key = member.substring(1);
+							address = accountsMock.generateAddressByPublicKey(key);
+						});
+
+						it('should call library.logic.account.setAccountAndGet', function () {
+							expect(accountsMock.setAccountAndGet.callCount).to.equal(validTransaction.asset.multisignature.keysgroup.length);
+						});
+
+						it('should call library.logic.account.setAccountAndGet with {address: address}', function () {
+							expect(accountsMock.setAccountAndGet.calledWith(sinon.match({address: address}))).to.be.true;
+						});
+
+						it('should call library.logic.account.setAccountAndGet with sender.address', function () {
+							expect(accountsMock.setAccountAndGet.calledWith(sinon.match({publicKey: key}))).to.be.true;
+						});
+
+						describe('when modules.accounts.setAccountAndGet fails', function () {
+
+							beforeEach(function () {
+								accountsMock.setAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+							});
+
+							it('should call callback with error', function () {
+								multisignature.apply(trs, dummyBlock, sender, function (err) {
+									expect(err).not.to.be.empty;
+								});
+							});
+						});
+
+						describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
+
+							it('should call callback with error = null', function () {
+								multisignature.apply(trs, dummyBlock, sender, function (err) {
+									expect(err).to.be.null;
+								});
+							});
+
+							it('should call callback with result = undefined', function () {
+								multisignature.apply(trs, dummyBlock, sender, function (err, res) {
+									expect(res).to.be.undefined;
+								});
+							});
+						});
+					});
+				});
 			});
 		});
 	});
