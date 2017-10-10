@@ -17,7 +17,11 @@ function getTransaction (transaction, cb) {
 }
 
 function getTransactions (params, cb) {
-	http.get('/api/transactions?' +  params.join('&'), httpCallbackHelper.bind(null, cb));
+	var url = '/api/transactions';
+	if (params) {
+		url += '?' + params;
+	}
+	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getUnconfirmedTransaction (transaction, cb) {
@@ -66,8 +70,63 @@ function creditAccount (address, amount, cb) {
 	sendTransaction(transaction, cb);
 }
 
-function getCount (cb) {
-	http.get('/api/transactions/count', httpCallbackHelper.bind(null, cb));
+function getCount (param, cb) {
+	http.get('/api/' + param + '/count', httpCallbackHelper.bind(null, cb));
+}
+
+function registerDelegate (account, cb) {
+	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+	sendTransaction(transaction, cb);
+}
+
+function getForgingStatus (params, cb) {
+	var url = '/api/delegates/forging/status';
+	if (params) {
+		url += '?' + params;
+	}
+	http.get(url, function (err, res) {
+		cb(err, res.body);
+	});
+}
+
+function getDelegates (params, cb) {
+	var url = '/api/delegates';
+	if(params){
+		url += '?' + params;
+	}
+	http.get(url, httpCallbackHelper.bind(null, cb));
+}
+
+function getVoters (params, cb) {
+	http.get('/api/delegates/voters?' + params, httpCallbackHelper.bind(null, cb));
+}
+
+function searchDelegates (params, cb) {
+	var url = '/api/delegates/search';
+	if (params) {
+		url += '?' + params;
+	}
+	http.get(url, httpCallbackHelper.bind(null, cb));
+}
+
+function putForgingDelegate (params, cb) {
+	http.put('/api/delegates/forging', params, httpCallbackHelper.bind(null, cb));
+}
+
+function getForgedByAccount (params, cb) {
+	var url = '/api/delegates/forging/getForgedByAccount';
+	if (params) {
+		url += '?' + params;
+	}
+	http.get(url, httpCallbackHelper.bind(null, cb));
+}
+
+function getNextForgers (params, cb) {
+	var url = '/api/delegates/getNextForgers';
+	if (params) {
+		url += '?' + params;
+	}
+	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getAccounts (params, cb) {
@@ -77,6 +136,7 @@ function getAccounts (params, cb) {
 function getPublicKey (address, cb) {
 	http.get('/api/accounts/getPublicKey?address=' + address, httpCallbackHelper.bind(null, cb));
 }
+
 function getBalance (address, cb) {
 	http.get('/api/accounts/getBalance?address=' + address, httpCallbackHelper.bind(null, cb));
 }
@@ -94,6 +154,14 @@ var getPendingMultisignaturePromise = node.Promise.promisify(getPendingMultisign
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
+var registerDelegatePromise = node.Promise.promisify(registerDelegate);
+var getForgingStatusPromise = node.Promise.promisify(getForgingStatus);
+var getDelegatesPromise = node.Promise.promisify(getDelegates);
+var getVotersPromise = node.Promise.promisify(getVoters);
+var searchDelegatesPromise = node.Promise.promisify(searchDelegates);
+var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
+var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
+var getNextForgersPromise = node.Promise.promisify(getNextForgers);
 var getAccountsPromise = node.Promise.promisify(getAccounts);
 var getPublicKeyPromise = node.Promise.promisify(getPublicKey);
 var getBalancePromise = node.Promise.promisify(getBalance);
@@ -126,6 +194,18 @@ module.exports = {
 	creditAccountPromise: creditAccountPromise,
 	getCount: getCount,
 	getCountPromise: getCountPromise,
+	registerDelegate: registerDelegate,
+	registerDelegatePromise: registerDelegatePromise,
+	getForgingStatus: getForgingStatus,
+	getForgingStatusPromise: getForgingStatusPromise,
+	getDelegates: getDelegates,
+	getDelegatesPromise: getDelegatesPromise,
+	getVoters: getVoters,
+	getVotersPromise: getVotersPromise,
+	searchDelegatesPromise: searchDelegatesPromise,
+	putForgingDelegatePromise: putForgingDelegatePromise,
+	getForgedByAccountPromise: getForgedByAccountPromise,
+	getNextForgersPromise: getNextForgersPromise,
 	getAccounts: getAccounts,
 	getAccountsPromise: getAccountsPromise,
 	getPublicKey: getPublicKey,

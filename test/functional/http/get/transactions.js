@@ -32,8 +32,8 @@ describe('GET /api/transactions', function () {
 	before(function () {
 
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 100*100000000));
-		promises.push(creditAccountPromise(account2.address, 20*100000000));
+		promises.push(creditAccountPromise(account.address, 100 * 100000000));
+		promises.push(creditAccountPromise(account2.address, 20 * 100000000));
 
 		return node.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
@@ -50,6 +50,7 @@ describe('GET /api/transactions', function () {
 
 		var cache;
 		var getJsonForKeyPromise;
+		var url = '/api/transactions?';
 
 		before(function (done) {
 			node.config.cacheEnabled = true;
@@ -75,15 +76,13 @@ describe('GET /api/transactions', function () {
 		});
 
 		it('cache transactions by the url and parameters when response is a success', function () {
-			var url, params;
-			url = '/api/transactions?';
-			params = [
+			var params = [
 				'blockId=' + '1',
 				'senderId=' + node.gAccount.address,
 				'recipientId=' + account.address,
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
@@ -93,13 +92,11 @@ describe('GET /api/transactions', function () {
 		});
 
 		it('should not cache if response is not a success', function () {
-			var url, params;
-			url = '/api/transactions?';
-			params = [
+			var params = [
 				'whatever:senderId=' + node.gAccount.address
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
@@ -125,7 +122,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=' + orderBy
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
@@ -151,7 +148,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=' + orderBy
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
@@ -167,8 +164,8 @@ describe('GET /api/transactions', function () {
 			var limit = 10;
 			var offset = 0;
 			var orderBy = 'amount:asc';
-			var minAmount = 20*100000000; // 20 LSK
-			var maxAmount = 100*100000000; // 100 LSK
+			var minAmount = 20 * 100000000; // 20 LSK
+			var maxAmount = 100 * 100000000; // 100 LSK
 
 			var params = [
 				'minAmount=' + minAmount,
@@ -178,12 +175,12 @@ describe('GET /api/transactions', function () {
 				'orderBy=' + orderBy
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res.transactions).to.have.length.within(2, limit);
 				node.expect(res.transactions[0].amount).to.be.equal(minAmount);
-				node.expect(res.transactions[res.transactions.length-1].amount).to.be.equal(maxAmount);
+				node.expect(res.transactions[res.transactions.length - 1].amount).to.be.equal(maxAmount);
 				for (var i = 0; i < res.transactions.length; i++) {
 					if (res.transactions[i + 1]) {
 						node.expect(res.transactions[i].amount).to.be.at.most(res.transactions[i + 1].amount);
@@ -210,7 +207,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=' + orderBy
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
@@ -238,7 +235,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=' + orderBy
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
@@ -264,7 +261,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=' + orderBy
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -275,7 +272,7 @@ describe('GET /api/transactions', function () {
 				'whatever:senderId=' + node.gAccount.address
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -286,7 +283,7 @@ describe('GET /api/transactions', function () {
 				'or:whatever:senderId=' + node.gAccount.address
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -297,7 +294,7 @@ describe('GET /api/transactions', function () {
 				'and:publicKey='
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -309,7 +306,7 @@ describe('GET /api/transactions', function () {
 				'type=' + type
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				for (var i = 0; i < res.transactions.length; i++) {
@@ -321,7 +318,7 @@ describe('GET /api/transactions', function () {
 		});
 
 		it('using no params should be ok', function () {
-			return getTransactionsPromise([]).then(function (res) {
+			return getTransactionsPromise(null).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				for (var i = 0; i < res.transactions.length; i++) {
@@ -337,7 +334,7 @@ describe('GET /api/transactions', function () {
 				'fromUnixTime=1464109199'
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -348,7 +345,7 @@ describe('GET /api/transactions', function () {
 				'toUnixTime=1464109200'
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -360,7 +357,7 @@ describe('GET /api/transactions', function () {
 				'limit=' + limit
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -372,7 +369,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=' + orderBy
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 
@@ -395,7 +392,7 @@ describe('GET /api/transactions', function () {
 				'offset=' + offset
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				if (res.transactions.length > 0) {
@@ -410,7 +407,7 @@ describe('GET /api/transactions', function () {
 				'offset=' + offset
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -426,7 +423,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=invalid'
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -442,7 +439,7 @@ describe('GET /api/transactions', function () {
 				'orderBy=blockId:asc'
 			];
 
-			return getTransactionsPromise(params).then(function (res) {
+			return getTransactionsPromise(params.join('&')).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -455,14 +452,14 @@ describe('GET /api/transactions', function () {
 				params = [
 					'orderBy=' + sortField
 				];
-				return getTransactionsPromise(params).then(function (res) {
+				return getTransactionsPromise(params.join('&')).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactions').that.is.an('array');
 
 					var dividedIndices = res.transactions.reduce(function (memo, peer, index) {
 						memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
 						return memo;
-					}, {notNullIndices: [], nullIndices: []});
+					}, { notNullIndices: [], nullIndices: [] });
 
 					if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
 						var ascOrder = function (a, b) { return a - b; };
@@ -519,7 +516,7 @@ describe('GET /api/transactions', function () {
 	describe('/count', function () {
 
 		it('should be ok', function () {
-			return getCountPromise().then(function (res) {
+			return getCountPromise('transactions').then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('confirmed').that.is.an('number');
 				node.expect(res).to.have.property('queued').that.is.an('number');
