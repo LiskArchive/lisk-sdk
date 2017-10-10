@@ -24,6 +24,7 @@ pipeline {
 		stage('Install dependencies') {
 			steps {
 				sh '''
+				cp -r ~/cache/node_modules ./ || true
 				npm install --verbose
 				cp ~/.coveralls.yml .
 				'''
