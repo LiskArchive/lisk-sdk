@@ -121,6 +121,10 @@ describe('Lisk API module', () => {
 
 	describe('on initialize', () => {
 		describe('SSL', () => {
+			it('should set SSL to false on initialization when no SSL options is passed', () => {
+				(LSK).should.have.property('ssl').be.false();
+			});
+
 			it('should set SSL to true on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: true });
 				(LSK).should.have.property('ssl').be.true();
@@ -130,15 +134,10 @@ describe('Lisk API module', () => {
 				LSK = new LiskAPI({ ssl: false });
 				(LSK).should.have.property('ssl').be.false();
 			});
-
-			it('should set SSL to false on initialization when no SSL options is passed', () => {
-				LSK = new LiskAPI({});
-				(LSK).should.have.property('ssl').be.false();
-			});
 		});
 
 		describe('randomNode', () => {
-			it('should set randomNode to true when no node is given and randomNode not explicitly set', () => {
+			it('should set randomNode to true when randomNode not explicitly set', () => {
 				(LSK).should.have.property('randomNode').be.true();
 			});
 
