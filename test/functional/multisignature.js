@@ -1,233 +1,309 @@
-'use strict';/*eslint*/
-
-var node = require('./../node.js');
-
-
-var ed = require('../../helpers/ed');
-var bignum = require('../../helpers/bignum.js');
-var crypto = require('crypto');
+var node = require('../node.js');
 var async = require('async');
+var slots = require('../../helpers/slots.js');
 var sinon = require('sinon');
-
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
-var transactionTypes = require('../../helpers/transactionTypes');
-var slots = require('../../helpers/slots');
 
-var modulesLoader = require('../common/initModule').modulesLoader;
-var Transaction = require('../../logic/transaction.js');
-var Rounds = require('../../modules/rounds.js');
-var AccountLogic = require('../../logic/account.js');
-var AccountModule = require('../../modules/accounts.js');
-
-var Vote = require('../../logic/vote.js');
-var Transfer = require('../../logic/transfer.js');
-var Delegate = require('../../logic/delegate.js');
-var Signature = require('../../logic/signature.js');
-var Multisignature = require('../../logic/multisignature.js');
-
-var genesisBlock = require('../../genesisBlock.json');
-
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
-
-var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
-var senderKeypair = ed.makeKeypair(senderHash);
-
-var gAccount = _.cloneDeep(node.gAccount);
-gAccount.u_balance = '1000000000000';
-gAccount.balance = '1000000000000';
-
+var modulesLoader = require('../common/initModule.js').modulesLoader;
+var DBSandbox = require('../common/globalBefore').DBSandbox;
 
 describe('multisignature', function () {
 
-	var rounds;
-	var transaction;
-	var multisignature;
-	var accounts;
-	var account;
+	var library;
+	var db;
+	var dbSandbox;
+	var SandBox;
 
 	before(function (done) {
-		async.auto({
-			rounds: function (cb) {
-				modulesLoader.initModule(Rounds, modulesLoader.scope,cb);
-			},
-			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, function (err, __account) {
-					account = __account;
-					cb(err, account);
-				});
-			},
-			transaction: ['accountLogic', function (result, cb) {
-				var ed = require('../../helpers/ed');
-				// Not all properties are set correctly, only setting the required properties
-				new Transaction(modulesLoader.db, ed, modulesLoader.schema, {block: genesisBlock},
-					account, modulesLoader.logger, cb);
-			}]
-		}, function (err, result) {
-			transaction = result.transaction;
-			transaction.bindModules(result);
-			rounds = result.rounds;
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_accounts');
+		dbSandbox.create(function (err, __db) {
+			modulesLoader.db = __db;
 
-			done();
-		});
+			node.initApplication(function (err, scope) {
+				library = scope;
+				// Set delegates module as loaded to allow manual forging
+				library.rewiredModules.delegates.__set__('__private.loaded', true);
+
+				setTimeout(function () {
+					var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
+					loadDelegates(function (err) {
+						done(err);
+					});
+				}, 3000);
+			}, {db: __db});
+		});	
 	});
 
-	describe('with bounded dependencies', function () {
+	function forge (cb) {
+		function getNextForger (offset, cb) {
+			offset = !offset ? 1 : offset;
 
-		function getAccountsModule (account, transaction, done) {
-			modulesLoader.initModuleWithDb(AccountModule, function (err, __accountModule) {
-				accounts = __accountModule;
-				done(err, accounts);
-			},{
-				logic: {
-					account: account,
-					transaction: transaction
-				}
+			var last_block = library.modules.blocks.lastBlock.get();
+			var slot = slots.getSlotNumber(last_block.timestamp);
+			library.modules.delegates.generateDelegateList(last_block.height, function (err, delegateList) {
+				return cb(delegateList[(slot + offset) % slots.delegates]);
 			});
 		}
 
-		function attachMultisignatureAsset (transaction, account, accounts, rounds, done) {
-			multisignature  = new Multisignature(
-				modulesLoader.scope.schema, 
-				modulesLoader.scope.network,
-				transaction,
-				modulesLoader.logger
-			);
+		var transactionPool = library.rewiredModules.transactions.__get__('__private.transactionPool');
+		var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
 
-			multisignature.bind(accounts, rounds);
-			transaction.attachAssetType(transactionTypes.MULTI, multisignature);
-			done();
-		}
+		node.async.auto({ 
+			transactionPool: transactionPool.fillPool,
+			getNextForger: function (cb) {
+				getNextForger(1, function (delegatePublicKey) {
+					cb(null, delegatePublicKey);
+				});
+			},
+			processBlock: ['getNextForger', function (scope, seriesCb) {
+				var last_block = library.modules.blocks.lastBlock.get();
+				var delegate = scope.getNextForger;
+				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
+				var keypair = keypairs[delegate];
+				//node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
+					if (err) { return seriesCb(err); }
+					last_block = library.modules.blocks.lastBlock.get();
+					//node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+					return seriesCb(err);
+				});
+			}]
+		}, function (err) {
+			cb(err);
+		});
+	}
 
-		function attachTransferAsset (transaction, account, accounts, rounds, done) {
-			var transfer = new Transfer();
-			transfer.bind(accounts, rounds);
-			transaction.attachAssetType(transactionTypes.SEND, transfer);
-			done();
+	function addTransaction (transaction, cb) {
+		//node.debug('	Add transaction ID: ' + transaction.id);
+		// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
+		// See: modules.transport.__private.receiveTransaction
+		// Add transaction to processed_txs
+		library.balancesSequence.add(function (sequenceCb) {
+			debugger;
+			library.modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
+				if (err) {
+					return setImmediate(sequenceCb, err.toString());
+				} else {
+					return setImmediate(sequenceCb, null, transaction.id);
+				}
+			});
+		}, cb);
+	}
+
+	function addTransactionsAndForge (transactions, cb) {
+		node.async.waterfall([
+			function addTransactions (waterCb) {
+				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+					addTransaction(transaction, eachSeriesCb);
+				}, waterCb);
+			},
+			function (waterCb) {
+				setTimeout(function () {
+					forge(waterCb);
+				}, 200);
+			}
+		], function (err) {
+			cb(err);
+		});
+	}
+
+	describe('with LISK sent to multisig account', function () {
+
+		var multisigAccount;
+		var dummyBlock = {
+			height: 10,
 		};
 
 		beforeEach(function (done) {
-			async.series([function (cb) {
-				getAccountsModule(account, transaction, cb);
-			}, function (cb) {
-				attachMultisignatureAsset(transaction, account, accounts, rounds, cb); 
-			}, function (cb) {
-				attachTransferAsset(transaction, account, accounts, rounds, cb);
-			}], function (err, res) {
-				done(err);
-			});
+			multisigAccount = node.randomAccount();
+
+			var sendTrs = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
+
+			addTransactionsAndForge([sendTrs], done);
 		});
 
-		describe('with LISK sent to multisig account', function () {
+		describe('from multisig account', function () {
 
-			var multisigAccount;
-			var dummyBlock = {
-				height: 10,
-			};
+			var multisigSender;
 
 			beforeEach(function (done) {
-				multisigAccount = node.randomAccount();
-
-				var sendTrs = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, gAccount.password);
-
-				async.series([
-					function (cb) {
-						transaction.process(sendTrs, gAccount, cb);
-					},
-					function (cb) {
-						transaction.verify(sendTrs, gAccount, cb);
-					},
-					function (cb) {
-						transaction.applyUnconfirmed(sendTrs, gAccount, cb);
-					},
-					function (cb) {
-						transaction.apply(sendTrs, dummyBlock, gAccount, cb);
-					}
-				], function (err) {
-					expect(err).to.not.exist;
+				library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+					multisigSender = res;
 					done();
 				});
 			});
 
-			describe('from multisig account', function () {
+			describe('with multisig transaction', function () {
 
-				var multisigSender;
+				var multisigTrs;
+				var signer1 = node.randomAccount();
+				var signer2 = node.randomAccount();
 
-				beforeEach(function (done) {
-					account.get({
-						address: multisigAccount.address
-					}, function (err, acc) {
-						multisigSender = acc;
-						done();
-					});
+				beforeEach(function () {
+					var keysgroup = [
+						'+' + signer1.publicKey,
+						'+' + signer2.publicKey
+					];
+
+					multisigTrs = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
+					var sign1 = node.lisk.multisignature.signTransaction(multisigTrs, signer1.password);
+					var sign2 = node.lisk.multisignature.signTransaction(multisigTrs, signer2.password);
+
+					multisigTrs.signatures = [sign1, sign2];
+					multisigTrs.ready = true;
 				});
 
-				describe('applyUnconfirm multisig transaction', function () {
-
-					var multisigTrs;
-					var signer1 = node.randomAccount();
-					var signer2 = node.randomAccount();
+				describe('applyUnconfirm transaction', function () {
 
 					beforeEach(function (done) {
-						var keysgroup = [
-							'+' + signer1.publicKey,
-							'+' + signer2.publicKey
-						];
+						library.logic.transaction.applyUnconfirmed(multisigTrs, multisigSender, done);
+					});
 
-						multisigTrs = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
-						var sign1 = node.lisk.multisignature.signTransaction(multisigTrs, signer1.password);
-						var sign2 = node.lisk.multisignature.signTransaction(multisigTrs, signer2.password);
-
-						multisigTrs.signatures = [sign1, sign2];
-
-						async.series([
-							function (cb) {
-								transaction.process(multisigTrs, multisigSender, cb);
-							}, function (cb) {
-								transaction.verify(multisigTrs, multisigSender, cb);
-							}, function (cb) {
-								transaction.applyUnconfirmed(multisigTrs, multisigSender, cb);
-							}
-						], function (err) {
-							expect(err).to.not.exist;
+					it('should have u_multisignatures field set on account', function (done) {
+						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+							expect(err).to.be.null;
+							expect(res.u_multisignatures).to.include(signer1.publicKey, signer2.publicKey);
 							done();
 						});
 					});
 
-					describe('from the same account', function () {
+					it('should have u_multimin field set on account', function (done) {
+						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+							expect(err).to.be.null;
+							expect(res.u_multimin).to.eql(multisigTrs.asset.multisignature.min);
+							done();
+						});
+					});
+
+					it('should have u_multilifetime field set on account', function (done) {
+						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+							expect(err).to.be.null;
+							expect(res.u_multilifetime).to.eql(multisigTrs.asset.multisignature.lifetime);
+							done();
+						});
+					});
+
+					describe('with another multisig transaction', function () {
 
 						var multisigTrs2;
 						var signer3 = node.randomAccount();
 						var signer4 = node.randomAccount();
 
 						beforeEach(function (done) {
-							account.get({
-								address: multisigAccount.address
-							}, function (err, acc) {
-								multisigSender = acc;
+							var keysgroup = [
+								'+' + signer3.publicKey,
+								'+' + signer4.publicKey
+							];
+
+							multisigTrs2 = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
+							var sign3 = node.lisk.multisignature.signTransaction(multisigTrs2, signer3.password);
+							var sign4 = node.lisk.multisignature.signTransaction(multisigTrs2, signer4.password);
+							multisigTrs2.signatures = [sign3, sign4];
+							library.logic.transaction.process(multisigTrs2, multisigSender, done);
+						});
+
+						describe('from the same account', function () {
+
+							beforeEach(function (done) {
+								library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+									multisigSender = res;
+									done();
+								});
+							});
+
+							it('should verify transaction', function (done) {
+								library.logic.transaction.verify(multisigTrs2, multisigSender, done);
+							});
+						});
+					});
+				});
+
+				describe('after forging Block with multisig transaction', function () {
+
+					beforeEach(function (done) {
+						addTransactionsAndForge([multisigTrs], done);
+					});
+
+					it('should have multisignatures field set on account', function (done) {
+						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+							expect(err).to.not.exist;
+							expect(res.multisignatures).to.include(signer1.publicKey, signer2.publicKey);
+							done();
+						});
+					});
+
+
+					it('should have multimin field set on account', function (done) {
+						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+							expect(err).to.be.null;
+							expect(res.multimin).to.eql(multisigTrs.asset.multisignature.min);
+							done();
+						});
+					});
+
+					it('should have multilifetime field set on account', function (done) {
+						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+							expect(err).to.be.null;
+							expect(res.multilifetime).to.eql(multisigTrs.asset.multisignature.lifetime);
+							done();
+						});
+					});
+
+					describe('after deleting block', function () {
+
+						beforeEach(function (done) {
+							var last_block = library.modules.blocks.lastBlock.get();
+							library.modules.blocks.chain.deleteLastBlock(done);
+						});
+
+						it('should set multisignatures field to null on account', function (done) {
+							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+								expect(err).to.not.exist;
+								expect(res.multisignatures).to.eql(null);
 								done();
 							});
 						});
 
-						describe('should verify another multisiganture transaction', function () {
-
-							beforeEach(function (done) {
-								var keysgroup = [
-									'+' + signer3.publicKey,
-									'+' + signer4.publicKey
-								];
-
-								multisigTrs2 = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
-								var sign3 = node.lisk.multisignature.signTransaction(multisigTrs2, signer3.password);
-								var sign4 = node.lisk.multisignature.signTransaction(multisigTrs2, signer4.password);
-								multisigTrs2.signatures = [sign3, sign4];
-								transaction.process(multisigTrs2, multisigSender, done);
+						it('should set multimin field to 0 on account', function (done) {
+							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+								expect(err).to.eql(null);
+								// Should be undefined ?
+								expect(res.multimin).to.eql(0);
+								done();
 							});
+						});
 
-							it('should verify transaction', function (done) {
-								transaction.verify(multisigTrs2, multisigSender, done);
+						it('should set multilifetime field to 0 on account', function (done) {
+							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+								expect(err).to.be.null;
+								expect(res.multilifetime).to.eql(0);
+								done();
+							});
+						});
+
+						it('should set u_multisignatures field to null on account', function (done) {
+							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+								expect(err).to.be.null;
+								expect(res.u_multisignatures).to.eql(null);
+								done();
+							});
+						});
+
+						it('should set u_multimin field to null on account', function (done) {
+							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+								expect(err).to.be.null;
+								expect(res.u_multimin).to.eql(0);
+								done();
+							});
+						});
+
+						it('should set u_multilifetime field to null on account', function (done) {
+							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+								expect(err).to.be.null;
+								expect(res.u_multilifetime).to.eql(0);
+								done();
 							});
 						});
 					});
