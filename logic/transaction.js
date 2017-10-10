@@ -1050,14 +1050,14 @@ Transaction.prototype.objectNormalize = function (transaction) {
  * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
  * @see privateTypes
  * @param {Object} raw
- * @return {null|tx}
+ * @return {null|transaction}
  * @throws {string} Unknown transaction type
  */
 Transaction.prototype.dbRead = function (raw) {
 	if (!raw.t_id) {
 		return null;
 	} else {
-		var tx = {
+		var transaction = {
 			id: raw.t_id,
 			height: raw.b_height,
 			blockId: raw.b_id || raw.t_blockId,
@@ -1077,17 +1077,17 @@ Transaction.prototype.dbRead = function (raw) {
 			asset: {}
 		};
 
-		if (!__private.types[tx.type]) {
-			throw 'Unknown transaction type ' + tx.type;
+		if (!__private.types[transaction.type]) {
+			throw 'Unknown transaction type ' + transaction.type;
 		}
 
-		var asset = __private.types[tx.type].dbRead.call(this, raw);
+		var asset = __private.types[transaction.type].dbRead.call(this, raw);
 
 		if (asset) {
-			tx.asset = extend(tx.asset, asset);
+			transaction.asset = extend(transaction.asset, asset);
 		}
 
-		return tx;
+		return transaction;
 	}
 };
 
