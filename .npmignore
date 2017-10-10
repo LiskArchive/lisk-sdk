@@ -6,7 +6,6 @@
 .nvmrc
 .nycrc
 .snyk
-Gruntfile.js
 Jenkinsfile
 
 .idea/
