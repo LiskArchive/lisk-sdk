@@ -18,8 +18,8 @@
  */
 import cryptoModule from '../crypto';
 import { DELEGATE_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method registerDelegate
@@ -41,7 +41,7 @@ export default function registerDelegate({ secret, username, secondSecret, timeO
 		fee: DELEGATE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			delegate: {
 				username,

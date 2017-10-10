@@ -30,3 +30,6 @@ export const DELEGATE_FEE = 25 * FIXED_POINT;
 export const VOTE_FEE = 1 * FIXED_POINT;
 export const MULTISIGNATURE_FEE = 5 * FIXED_POINT;
 export const DAPP_FEE = 25 * FIXED_POINT;
+export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
+export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
+export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / 1000);
