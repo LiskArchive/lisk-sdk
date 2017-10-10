@@ -36,7 +36,7 @@ describe('#castVotes transaction', () => {
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes(secret, publicKeys);
+			castVotesTransaction = castVotes({ secret, delegates: publicKeys });
 		});
 
 		it('should create a cast votes transaction', () => {
@@ -49,7 +49,7 @@ describe('#castVotes transaction', () => {
 
 		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			castVotes(secret, publicKeys, null, offset);
+			castVotes({ secret, delegates: publicKeys, timeOffset: offset });
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -136,11 +136,11 @@ describe('#castVotes transaction', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes(secret, publicKeys, secondSecret);
+			castVotesTransaction = castVotes({ secret, delegates: publicKeys, secondSecret });
 		});
 
 		it('should create a vote transaction with a second secret', () => {
-			const castVotesTransactionWithoutSecondSecret = castVotes(secret, publicKeys);
+			const castVotesTransactionWithoutSecondSecret = castVotes({ secret, delegates: publicKeys });
 			(castVotesTransaction).should.be.ok();
 			(castVotesTransaction).should.not.be.equal(castVotesTransactionWithoutSecondSecret);
 		});
