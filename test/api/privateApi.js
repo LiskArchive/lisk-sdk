@@ -232,16 +232,16 @@ describe('privateApi module', () => {
 		const getRandomNodeResult = externalNode;
 
 		let getRandomNodeStub;
-		let restoreGetRandomNode;
+		let restoregetRandomNode;
 
 		beforeEach(() => {
 			getRandomNodeStub = sandbox.stub().returns(getRandomNodeResult);
 			// eslint-disable-next-line no-underscore-dangle
-			restoreGetRandomNode = privateApi.__set__('getRandomNode', getRandomNodeStub);
+			restoregetRandomNode = privateApi.__set__('getRandomNode', getRandomNodeStub);
 		});
 
 		afterEach(() => {
-			restoreGetRandomNode();
+			restoregetRandomNode();
 		});
 
 		describe('if a node was provided in the options', () => {

@@ -67,8 +67,8 @@ export function getURLPrefix() {
 
 export function getFullURL() {
 	const nodeUrl = this.port
-		? `${this.currentNode}:${this.port}`
-		: this.currentNode;
+		? `${this.node}:${this.port}`
+		: this.node;
 
 	return `${getURLPrefix.call(this)}://${nodeUrl}`;
 }
@@ -86,12 +86,12 @@ export function getNodes() {
 }
 
 /**
- * @method getrandomNode
+ * @method getRandomNode
  * @return  string
  * @private
  */
 
-export function getrandomNode() {
+export function getRandomNode() {
 	const nodes = getNodes.call(this)
 		.filter(node => !this.bannedNodes.includes(node));
 
@@ -113,7 +113,7 @@ export function selectNode() {
 	const providedNode = this.options.node;
 
 	if (this.randomNode) {
-		return getrandomNode.call(this);
+		return getRandomNode.call(this);
 	} else if (providedNode) {
 		if (this.bannedNodes.includes(providedNode)) {
 			throw new Error('Cannot select node: provided node has been banned and randomNode is not set to true.');
@@ -130,8 +130,8 @@ export function selectNode() {
  */
 
 export function banNode() {
-	if (!this.bannedNodes.includes(this.currentNode)) {
-		this.bannedNodes.push(this.currentNode);
+	if (!this.bannedNodes.includes(this.node)) {
+		this.bannedNodes.push(this.node);
 	}
 }
 
