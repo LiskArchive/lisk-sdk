@@ -152,7 +152,7 @@ describe('Rounds-related SQL triggers', function () {
 			node.initApplication(function (err, scope) {
 				library = scope;
 				done(err);
-			}, {db: __db, waitForGenesisBlock: true});
+			}, {db: __db, waitForGenesisBlock: false});
 		});
 	});
 
@@ -230,8 +230,8 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		it('should apply genesis block transactions to mem_accounts (native)', function () {
-			// Wait 10 seconds for proper initialisation
-			return Promise.delay(10000).then(function () {
+			// Wait 20 seconds for proper initialisation
+			return Promise.delay(20000).then(function () {
 				return getMemAccounts();
 			}).then(function (accounts) {
 				// Number of returned accounts should be equal to number of unique accounts in genesis block

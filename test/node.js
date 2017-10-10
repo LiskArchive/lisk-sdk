@@ -379,6 +379,9 @@ var currentAppScope;
 
 // Init whole application inside tests
 node.initApplication = function (cb, initScope) {
+
+	initScope.waitForGenesisBlock = !!initScope.waitForGenesisBlock;
+
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
@@ -420,7 +423,7 @@ node.initApplication = function (cb, initScope) {
 			peers: '../modules/peers.js',
 			delegates: '../modules/delegates.js',
 			multisignatures: '../modules/multisignatures.js',
-			dapps: '../modules/dapps.js',
+			dapps: '../modules/dapps.js'
 			// cache: '../modules/cache.js'
 		};
 
@@ -605,15 +608,16 @@ node.initApplication = function (cb, initScope) {
 			}]
 		}, function (err, scope) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
+			scope.rewiredModules = rewiredModules;
+
 			scope.modules.delegates.onBlockchainReady = function () {
 				// Wait for genesis block's transactions to be applied into mem_accounts
-				if (!initScope.waitForGenesisBlock) {
+				if (initScope.waitForGenesisBlock) {
 					return cb(err, scope);
 				}
 			};
-			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			if (initScope.waitForGenesisBlock || initScope.bus) {
+			if (!initScope.waitForGenesisBlock || initScope.bus) {
 				return cb(err, scope);
 			}
 		});
