@@ -71,7 +71,6 @@ function DBSandbox (dbConfig, testDatabaseName) {
 	});
 }
 
-
 DBSandbox.prototype.create = function (cb) {
 	child_process.exec('dropdb ' + this.dbConfig.database, function () {
 		child_process.exec('createdb ' + this.dbConfig.database, function () {

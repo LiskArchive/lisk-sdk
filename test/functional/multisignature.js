@@ -17,7 +17,7 @@ describe('multisignature', function () {
 	var SandBox;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_accounts');
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_multisignatures');
 		dbSandbox.create(function (err, __db) {
 			modulesLoader.db = __db;
 
@@ -31,7 +31,7 @@ describe('multisignature', function () {
 					loadDelegates(function (err) {
 						done(err);
 					});
-				}, 3000);
+				}, 4000);
 			}, {db: __db});
 		});	
 	});
@@ -43,7 +43,8 @@ describe('multisignature', function () {
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
 			library.modules.delegates.generateDelegateList(last_block.height, function (err, delegateList) {
-				return cb(delegateList[(slot + offset) % slots.delegates]);
+				var nextForger = delegateList[(slot + offset) % slots.delegates];
+				return cb(nextForger);
 			});
 		}
 
@@ -53,7 +54,7 @@ describe('multisignature', function () {
 		node.async.auto({ 
 			transactionPool: transactionPool.fillPool,
 			getNextForger: function (cb) {
-				getNextForger(1, function (delegatePublicKey) {
+				getNextForger(null, function (delegatePublicKey) {
 					cb(null, delegatePublicKey);
 				});
 			},
@@ -77,7 +78,6 @@ describe('multisignature', function () {
 		// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 		// See: modules.transport.__private.receiveTransaction
 		library.balancesSequence.add(function (sequenceCb) {
-			debugger;
 			library.modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
 				if (err) {
 					return setImmediate(sequenceCb, err.toString());
@@ -98,7 +98,7 @@ describe('multisignature', function () {
 			function (waterCb) {
 				setTimeout(function () {
 					forge(waterCb);
-				}, 200);
+				}, 800);
 			}
 		], function (err) {
 			cb(err);
@@ -108,15 +108,10 @@ describe('multisignature', function () {
 	describe('with LISK sent to multisig account', function () {
 
 		var multisigAccount;
-		var dummyBlock = {
-			height: 10,
-		};
 
 		beforeEach(function (done) {
 			multisigAccount = node.randomAccount();
-
 			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
-
 			addTransactionsAndForge([sendTransaction], done);
 		});
 

@@ -415,14 +415,11 @@ node.initApplication = function (done, initScope) {
 	// Clear tables
 	db.task(function (t) {
 		return t.batch([
-			t.none('DELETE FROM trs'),
-			t.none('DELETE FROM votes'),
 			t.none('DELETE FROM blocks WHERE height > 1'),
 			t.none('DELETE FROM blocks'),
 			t.none('DELETE FROM mem_accounts')
 		]);
 	}).then(function () {
-		debugger;
 		var logger = initScope.logger || {
 			trace: sinon.spy(),
 			debug: sinon.spy(),
@@ -591,9 +588,10 @@ node.initApplication = function (done, initScope) {
 				cb();
 			}]
 		}, function (err, scope) {
-			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.logic.transaction.bindModules(scope.modules);
+			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {};
+			// Overwrite onPeersReady function to prevent multiple jobsQueue registeration
 			scope.modules.peers.onPeersReady = function () {};
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
@@ -620,8 +618,7 @@ node.appCleanup = function (done) {
 };
 
 before(function (done) {
-	done();
-//	require('./common/globalBefore').waitUntilBlockchainReady(done);
+	require('./common/globalBefore').waitUntilBlockchainReady(done);
 });
 
 // Exports
