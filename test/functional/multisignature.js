@@ -27,7 +27,7 @@ describe('multisignature', function () {
 					loadDelegates(function (err) {
 						done(err);
 					});
-				}, 10000);
+				}, 15000);
 			}, {db: __db});
 		});	
 	});
