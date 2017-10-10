@@ -5,7 +5,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
 var sinon = require('sinon');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var Cache = require('../../../modules/cache.js');
 
 describe('cache', function () {

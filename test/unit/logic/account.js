@@ -3,6 +3,8 @@
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
+
 var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
@@ -11,8 +13,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var AccountLogic = require('../../../logic/account.js');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 
 var validAccount = {
 	username: 'genesis_100',
@@ -53,13 +54,21 @@ var validAccount = {
 describe('account', function () {
 
 	var account;
+	var dbSandbox;
 
 	before(function (done) {
-		modulesLoader.initLogicWithDb(AccountLogic, function (err, __account) {
-			expect(err).to.not.exist;
-			account = __account;
-			done();
-		}, {});
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_accounts');
+		dbSandbox.create(function (err, __db) {
+			node.initApplication(function (err, scope) {
+				account = scope.logic.account;
+				done();
+			}, {db: __db});
+		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	describe('Account', function () {

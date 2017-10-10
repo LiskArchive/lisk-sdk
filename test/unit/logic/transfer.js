@@ -10,14 +10,11 @@ var expect = require('chai').expect;
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var transactionTypes = require('../../../helpers/transactionTypes');
 
-var modulesLoader = require('../../common/initModule').modulesLoader;
-var TransactionLogic = require('../../../logic/transaction.js');
+var modulesLoader = require('../../common/modulesLoader');
 var Transfer = require('../../../logic/transfer.js');
-var AccountLogic = require('../../../logic/account.js');
-var AccountModule = require('../../../modules/accounts.js');
-var DelegateModule = require('../../../modules/delegates.js');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -99,40 +96,28 @@ describe('transfer', function () {
 	var transferBindings;
 	var accountModule;
 
-	before(function (done) {
-		async.auto({
-			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb, {});
-			},
-			transactionLogic: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(TransactionLogic, function (err, __transaction) {
-					cb(err, __transaction);
-				}, {
-					ed: require('../../../helpers/ed'),
-					account: result.account
-				});
-			}],
-			accountModule: ['accountLogic', 'transactionLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(AccountModule, cb, {
-					logic: {
-						account: result.accountLogic,
-						transaction: result.transactionLogic
-					}
-				});
-			}]
-		}, function (err, result) {
-			expect(err).to.not.exist;
-			transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
-			transferBindings = {
-				account: result.accountModule
-			};
-			transfer.bind(result.accountModule);
-			transaction = result.transactionLogic;
-			transaction.attachAssetType(transactionTypes.SEND, transfer);
-			accountModule = result.accountModule;
+	var dbSandbox;
 
-			done();
+	before(function (done) {
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transfer');
+		dbSandbox.create(function (err, __db) {
+			node.initApplication(function (err, scope) {
+				accountModule = scope.modules.accounts;
+				transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
+				transferBindings = {
+					account: accountModule
+				};
+				transfer.bind(accountModule);
+				transaction = scope.logic.transaction;
+				transaction.attachAssetType(transactionTypes.SEND, transfer);
+				done();
+			}, {db: __db});
 		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	describe('bind', function () {
