@@ -12,7 +12,6 @@ describe('multisignature', function () {
 
 	var library;
 	var dbSandbox;
-	var SandBox;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_multisignatures');
