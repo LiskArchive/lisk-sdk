@@ -398,8 +398,13 @@ node.put = function (path, params, done) {
 var currentAppScope;
 
 // Init whole application inside tests
-node.initApplication = function (done, initScope) {
+node.initApplication = function (cb, initScope) {
+	// Set waitForGenesisBlock to true as default
+	initScope.waitForGenesisBlock = initScope.waitForGenesisBlock !== false;
+
+	// Reset jobsQueue
 	jobsQueue.jobs = {};
+
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
@@ -584,18 +589,25 @@ node.initApplication = function (done, initScope) {
 			ready: ['modules', 'bus', 'logic', function (scope, cb) {
 				// Fire onBind event in every module
 				scope.bus.message('bind', scope.modules);
+				scope.logic.transaction.bindModules(scope.modules);
 				scope.logic.peers.bindModules(scope.modules);
 				cb();
 			}]
 		}, function (err, scope) {
-			scope.logic.transaction.bindModules(scope.modules);
-			// Overwrite onBlockchainReady function to prevent automatic forging
-			scope.modules.delegates.onBlockchainReady = function () {};
-			// Overwrite onPeersReady function to prevent multiple jobsQueue registeration
-			scope.modules.peers.onPeersReady = function () {};
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			done(err, scope);
+
+			// Overwrite onBlockchainReady function to prevent automatic forging
+			scope.modules.delegates.onBlockchainReady = function () {
+				// Wait for genesis block's transactions to be applied into mem_accounts
+				if (initScope.waitForGenesisBlock) {
+					return cb(err, scope);
+				}
+			};
+
+			if (!initScope.waitForGenesisBlock || initScope.bus) {
+				return cb(err, scope);
+			}
 		});
 	});
 };
