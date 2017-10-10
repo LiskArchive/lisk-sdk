@@ -251,6 +251,7 @@ describe('transport', function () {
 			it('should call modules.transactions.processUnconfirmedTransaction with true');
 			
 			describe('when modules.transactions.processUnconfirmedTransaction fails', function () {
+				
 				it('should call library.logger.debug');
 				
 				it('should call library.logger.debug with ["Transaction", id].join(" ")');
@@ -609,6 +610,7 @@ describe('transport', function () {
 						it('should call bson.deserialize with Buffer.from(query.block)');
 						
 						describe('block', function () {
+							
 							it('should call modules.blocks.verify.addBlockProperties');
 						
 							it('should call modules.blocks.verify.addBlockProperties with query.block');
@@ -877,12 +879,12 @@ describe('transport', function () {
 					});
 				});
 				
-				describe('when upDateResult = false', function () {
+				describe('when updateResult = false', function () {
 					
 					it('should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])');
 				});
 				
-				describe('when upDateResult = true', function () {
+				describe('when updateResult = true', function () {
 					
 					it('should call callback with error = null');
 				});
