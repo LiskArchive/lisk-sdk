@@ -12,13 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionBytes, prepareTransaction } from '../../../src/transactions/utils';
+import {
+	getTransactionBytes,
+	prepareTransaction,
+	getTimeFromBlockchainEpoch,
+	getTimeWithOffset,
+} from '../../../src/transactions/utils';
 
 describe('transaction utils', () => {
 	describe('exports', () => {
-		it('should have getTransactionBytes and prepareTransaction functions', () => {
+		it('should have getTransactionBytes, prepareTransaction, getTimeFromBlockchainEpoch, getTimeWithOffset', () => {
 			(getTransactionBytes).should.be.type('function');
 			(prepareTransaction).should.be.type('function');
+			(getTimeFromBlockchainEpoch).should.be.type('object');
+			(getTimeWithOffset).should.be.type('object');
 		});
 	});
 });
