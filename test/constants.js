@@ -69,7 +69,7 @@ describe('constants', () => {
 		(DATA_FEE).should.be.an.integer();
 	});
 
-	it('EPOCH_TIME should be an object', () => {
+	it('EPOCH_TIME should be a Date instance', () => {
 		(EPOCH_TIME).should.be.instanceOf(Date);
 	});
 
