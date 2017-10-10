@@ -44,8 +44,9 @@ pipeline {
 				sh '''
 				npm run build
 				npm run build:browsertest
-				npm run serve:browsertest &
-				npm run test:browser
+				HTTP_PORT=808${EXECUTOR_NUMBER:-0}
+				npm run serve:browsertest -- -p $HTTP_PORT &
+				npm run test:browser -- --config baseUrl=http://localhost:$HTTP_PORT --browser chrome
 				'''
 			}
 		}
