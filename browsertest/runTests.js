@@ -14,5 +14,5 @@
  */
 mocha.checkLeaks();
 mocha.run(function(failures) {
-	document.getElementById('result').innerText = failures;
+	document.getElementById('result').innerText = 'DONE';
 });

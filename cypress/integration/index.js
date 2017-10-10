@@ -12,13 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+const throwFailuresInWindow = (win) => {
+	const failures = win
+		.parent
+		.document
+		.getElementById('Your App: \'lisk-js\'')
+		.contentDocument
+		.getElementsByClassName('fail');
+
+	if (failures.length) {
+		const failuresHTML = Array.from(failures).map(el => el.outerHTML);
+		throw new Error(failuresHTML.join('\n'));
+	}
+};
+
 describe('Browser tests', () => {
 	it('should pass without minification', () => {
 		cy.visit('/browsertest.html');
-		cy.get('#result').should('contain', 0);
+		cy.get('#result').should('contain', 'DONE');
+		cy.window().then(throwFailuresInWindow);
 	});
 	it('should pass with minification', () => {
 		cy.visit('/browsertest.min.html');
-		cy.get('#result').should('contain', 0);
+		cy.get('#result').should('contain', 'DONE');
+		cy.window().then(throwFailuresInWindow);
 	});
 });
