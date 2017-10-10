@@ -6,20 +6,17 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var modulesLoader = require('../common/initModule.js').modulesLoader;
 var DBSandbox = require('../common/globalBefore').DBSandbox;
 
 describe('multisignature', function () {
 
 	var library;
-	var db;
 	var dbSandbox;
 	var SandBox;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_multisignatures');
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_multisignatures');
 		dbSandbox.create(function (err, __db) {
-			modulesLoader.db = __db;
 
 			node.initApplication(function (err, scope) {
 				library = scope;
@@ -31,7 +28,7 @@ describe('multisignature', function () {
 					loadDelegates(function (err) {
 						done(err);
 					});
-				}, 4000);
+				}, 10000);
 			}, {db: __db});
 		});	
 	});
