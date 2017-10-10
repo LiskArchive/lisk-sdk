@@ -380,7 +380,7 @@ var currentAppScope;
 // Init whole application inside tests
 node.initApplication = function (cb, initScope) {
 
-	initScope.waitForGenesisBlock = !!initScope.waitForGenesisBlock;
+	initScope.waitForGenesisBlock = initScope.waitForGenesisBlock !== false;
 
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
