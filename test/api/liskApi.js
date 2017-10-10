@@ -65,7 +65,7 @@ describe('Lisk API module', () => {
 		key2: 2,
 	};
 
-	let selectNodeStub;
+	let selectNewNodeStub;
 	let sendRequestPromiseStub;
 	let checkOptionsStub;
 	let handleTimestampIsInFutureFailuresStub;
@@ -74,8 +74,8 @@ describe('Lisk API module', () => {
 	let LSK;
 
 	beforeEach(() => {
-		selectNodeStub = sandbox
-			.stub(privateApi, 'selectNode')
+		selectNewNodeStub = sandbox
+			.stub(privateApi, 'selectNewNode')
 			.returns(defaultSelectedNode);
 		sendRequestPromiseStub = sandbox
 			.stub(privateApi, 'sendRequestPromise')
@@ -92,7 +92,7 @@ describe('Lisk API module', () => {
 			.stub(privateApi, 'getFullURL')
 			.returns(defaultUrl);
 
-		LSK = new LiskAPI();
+		LSK = new LiskAPI({});
 	});
 
 	describe('LiskAPI()', () => {
@@ -131,8 +131,8 @@ describe('Lisk API module', () => {
 				(LSK).should.have.property('ssl').be.false();
 			});
 
-			it('should set SSL to false on initialization when no options is passed', () => {
-				LSK = new LiskAPI({ });
+			it('should set SSL to false on initialization when no SSL options is passed', () => {
+				LSK = new LiskAPI({});
 				(LSK).should.have.property('ssl').be.false();
 			});
 		});
@@ -171,7 +171,7 @@ describe('Lisk API module', () => {
 		});
 
 		describe('nodes', () => {
-			it('should set all nodes list to provided nodes on initialization when passed as an option', () => {
+			it('should set all nodes lists to provided nodes on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ nodes: defaultNodes });
 				(LSK).should.have.property('defaultNodes').be.equal(defaultNodes);
 				(LSK).should.have.property('defaultTestnetNodes').be.equal(defaultNodes);
@@ -263,10 +263,10 @@ describe('Lisk API module', () => {
 		});
 
 		it('should select a node when called with undefined', () => {
-			const callCount = selectNodeStub.callCount;
+			const callCount = selectNewNodeStub.callCount;
 			LSK.setNode();
 
-			(selectNodeStub.callCount).should.be.equal(callCount + 1);
+			(selectNewNodeStub.callCount).should.be.equal(callCount + 1);
 			(LSK).should.have.property('node').and.be.equal(defaultSelectedNode);
 		});
 	});
@@ -286,9 +286,9 @@ describe('Lisk API module', () => {
 			});
 
 			it('should select a node', () => {
-				const callCount = selectNodeStub.callCount;
+				const callCount = selectNewNodeStub.callCount;
 				LSK.setTestnet(true);
-				(selectNodeStub.callCount).should.be.equal(callCount + 1);
+				(selectNewNodeStub.callCount).should.be.equal(callCount + 1);
 			});
 		});
 
@@ -306,9 +306,9 @@ describe('Lisk API module', () => {
 			});
 
 			it('should select a node', () => {
-				const callCount = selectNodeStub.callCount;
+				const callCount = selectNewNodeStub.callCount;
 				LSK.setTestnet(true);
-				(selectNodeStub.callCount).should.be.equal(callCount + 1);
+				(selectNewNodeStub.callCount).should.be.equal(callCount + 1);
 			});
 		});
 
@@ -366,9 +366,9 @@ describe('Lisk API module', () => {
 				});
 
 				it('should not select a node', () => {
-					const callCount = selectNodeStub.callCount;
+					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(true);
-					(selectNodeStub.callCount).should.equal(callCount);
+					(selectNewNodeStub.callCount).should.equal(callCount);
 				});
 			});
 
@@ -385,9 +385,9 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNodeStub.callCount;
+					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(false);
-					(selectNodeStub.callCount).should.equal(callCount + 1);
+					(selectNewNodeStub.callCount).should.equal(callCount + 1);
 				});
 			});
 		});
@@ -410,9 +410,9 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNodeStub.callCount;
+					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(true);
-					(selectNodeStub.callCount).should.equal(callCount + 1);
+					(selectNewNodeStub.callCount).should.equal(callCount + 1);
 				});
 			});
 
@@ -429,9 +429,9 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNodeStub.callCount;
+					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(false);
-					(selectNodeStub.callCount).should.equal(callCount);
+					(selectNewNodeStub.callCount).should.equal(callCount);
 				});
 			});
 		});

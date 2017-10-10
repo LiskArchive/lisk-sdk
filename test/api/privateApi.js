@@ -226,22 +226,22 @@ describe('privateApi module', () => {
 		});
 	});
 
-	describe('#selectNode', () => {
-		const { selectNode } = privateApi;
+	describe('#selectNewNode', () => {
+		const { selectNewNode } = privateApi;
 		const customNode = 'customNode';
 		const getRandomNodeResult = externalNode;
 
 		let getRandomNodeStub;
-		let restoregetRandomNode;
+		let restoreGetRandomNode;
 
 		beforeEach(() => {
 			getRandomNodeStub = sandbox.stub().returns(getRandomNodeResult);
 			// eslint-disable-next-line no-underscore-dangle
-			restoregetRandomNode = privateApi.__set__('getRandomNode', getRandomNodeStub);
+			restoreGetRandomNode = privateApi.__set__('getRandomNode', getRandomNodeStub);
 		});
 
 		afterEach(() => {
-			restoregetRandomNode();
+			restoreGetRandomNode();
 		});
 
 		describe('if a node was provided in the options', () => {
@@ -255,11 +255,11 @@ describe('privateApi module', () => {
 
 				it('should throw an error if the provided node is banned', () => {
 					LSK.bannedNodes = [customNode];
-					(selectNode.bind(LSK)).should.throw('Cannot select node: provided node has been banned and randomNode is not set to true.');
+					(selectNewNode.bind(LSK)).should.throw('Cannot select node: provided node has been banned and randomNode is not set to true.');
 				});
 
 				it('should return the provided node if it is not banned', () => {
-					const result = selectNode.call(LSK);
+					const result = selectNewNode.call(LSK);
 					(result).should.be.equal(customNode);
 				});
 			});
@@ -270,12 +270,12 @@ describe('privateApi module', () => {
 				});
 
 				it('should call getRandomNode', () => {
-					selectNode.call(LSK);
+					selectNewNode.call(LSK);
 					(getRandomNodeStub.calledOn(LSK)).should.be.true();
 				});
 
 				it('should return a random node', () => {
-					const result = selectNode.call(LSK);
+					const result = selectNewNode.call(LSK);
 					(result).should.be.equal(getRandomNodeResult);
 				});
 			});
@@ -292,7 +292,7 @@ describe('privateApi module', () => {
 				});
 
 				it('should throw an error', () => {
-					(selectNode.bind(LSK)).should.throw('Cannot select node: no node provided and randomNode is not set to true.');
+					(selectNewNode.bind(LSK)).should.throw('Cannot select node: no node provided and randomNode is not set to true.');
 				});
 			});
 
@@ -302,20 +302,20 @@ describe('privateApi module', () => {
 				});
 
 				it('should call getRandomNode', () => {
-					selectNode.call(LSK);
+					selectNewNode.call(LSK);
 					(getRandomNodeStub.calledOn(LSK)).should.be.true();
 				});
 
 				it('should return a random node', () => {
-					const result = selectNode.call(LSK);
+					const result = selectNewNode.call(LSK);
 					(result).should.be.equal(getRandomNodeResult);
 				});
 			});
 		});
 	});
 
-	describe('#banNode', () => {
-		const { banNode } = privateApi;
+	describe('#banActiveNode', () => {
+		const { banActiveNode } = privateApi;
 		let node;
 
 		beforeEach(() => {
@@ -323,7 +323,7 @@ describe('privateApi module', () => {
 		});
 
 		it('should add current node to banned nodes', () => {
-			banNode.call(LSK);
+			banActiveNode.call(LSK);
 
 			(LSK.bannedNodes).should.containEql(node);
 		});
@@ -331,14 +331,14 @@ describe('privateApi module', () => {
 		it('should not duplicate a banned node', () => {
 			const bannedNodes = [node];
 			LSK.bannedNodes = bannedNodes;
-			banNode.call(LSK);
+			banActiveNode.call(LSK);
 
 			(LSK.bannedNodes).should.be.eql(bannedNodes);
 		});
 	});
 
-	describe('#checkReDial', () => {
-		const { checkReDial } = privateApi;
+	describe('#anotherNodeIsAvailable', () => {
+		const { anotherNodeIsAvailable } = privateApi;
 		let getNodesStub;
 		let restoreGetNodesStub;
 		let setTestnetStub;
@@ -363,7 +363,7 @@ describe('privateApi module', () => {
 			});
 
 			it('should get nodes', () => {
-				checkReDial.call(LSK);
+				anotherNodeIsAvailable.call(LSK);
 				(getNodesStub.calledOn(LSK)).should.be.true();
 			});
 
@@ -371,7 +371,7 @@ describe('privateApi module', () => {
 				describe('when the nethash matches the testnet', () => {
 					beforeEach(() => {
 						LSK.options.nethash = testnetNethash;
-						result = checkReDial.call(LSK);
+						result = anotherNodeIsAvailable.call(LSK);
 					});
 
 					it('should set testnet to true', () => {
@@ -387,7 +387,7 @@ describe('privateApi module', () => {
 				describe('when the nethash matches the mainnet', () => {
 					beforeEach(() => {
 						LSK.options.nethash = mainnetNethash;
-						result = checkReDial.call(LSK);
+						result = anotherNodeIsAvailable.call(LSK);
 					});
 
 					it('should set testnet to false', () => {
@@ -403,7 +403,7 @@ describe('privateApi module', () => {
 				describe('when the nethash matches neither the mainnet nor the testnet', () => {
 					beforeEach(() => {
 						LSK.options.nethash = 'abc123';
-						result = checkReDial.call(LSK);
+						result = anotherNodeIsAvailable.call(LSK);
 					});
 
 					it('should return false', () => {
@@ -419,14 +419,14 @@ describe('privateApi module', () => {
 
 				it('should return true if there are nodes which are not banned', () => {
 					LSK.bannedNodes = ['bannednode'].concat(LSK.defaultNodes.slice(1));
-					result = checkReDial.call(LSK);
+					result = anotherNodeIsAvailable.call(LSK);
 
 					(result).should.be.true();
 				});
 
 				it('should return false if there are no nodes which are not banned', () => {
 					LSK.bannedNodes = [].concat(LSK.defaultNodes);
-					result = checkReDial.call(LSK);
+					result = anotherNodeIsAvailable.call(LSK);
 
 					(result).should.be.false();
 				});
@@ -439,7 +439,7 @@ describe('privateApi module', () => {
 			});
 
 			it('should return false', () => {
-				const result = checkReDial.call(LSK);
+				const result = anotherNodeIsAvailable.call(LSK);
 				(result).should.be.false();
 			});
 		});
@@ -626,10 +626,10 @@ describe('privateApi module', () => {
 		let options;
 		let error;
 		let setNodeSpy;
-		let banNodeSpy;
-		let restoreBanNodeSpy;
-		let checkReDialStub;
-		let restoreCheckReDialStub;
+		let banActiveNodeSpy;
+		let restorebanActiveNodeSpy;
+		let anotherNodeIsAvailableStub;
+		let restoreanotherNodeIsAvailableStub;
 
 		beforeEach(() => {
 			options = {
@@ -638,31 +638,31 @@ describe('privateApi module', () => {
 			};
 			error = new Error('Test error.');
 			setNodeSpy = sandbox.spy(LSK, 'setNode');
-			banNodeSpy = sandbox.spy();
+			banActiveNodeSpy = sandbox.spy();
 			// eslint-disable-next-line no-underscore-dangle
-			restoreBanNodeSpy = privateApi.__set__('banNode', banNodeSpy);
+			restorebanActiveNodeSpy = privateApi.__set__('banActiveNode', banActiveNodeSpy);
 		});
 
 		afterEach(() => {
-			restoreBanNodeSpy();
+			restorebanActiveNodeSpy();
 		});
 
 		describe('if a redial is possible', () => {
 			beforeEach(() => {
-				checkReDialStub = sandbox.stub().returns(true);
+				anotherNodeIsAvailableStub = sandbox.stub().returns(true);
 				// eslint-disable-next-line no-underscore-dangle
-				restoreCheckReDialStub = privateApi.__set__('checkReDial', checkReDialStub);
+				restoreanotherNodeIsAvailableStub = privateApi.__set__('anotherNodeIsAvailable', anotherNodeIsAvailableStub);
 			});
 
 			afterEach(() => {
-				restoreCheckReDialStub();
+				restoreanotherNodeIsAvailableStub();
 			});
 
 			it('should ban the node with options randomNode true', () => {
 				LSK.randomNode = true;
 				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						(banNodeSpy.calledOn(LSK)).should.be.true();
+						(banActiveNodeSpy.calledOn(LSK)).should.be.true();
 					});
 			});
 
@@ -670,7 +670,7 @@ describe('privateApi module', () => {
 				LSK.randomNode = false;
 				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						(banNodeSpy.calledOn(LSK)).should.be.false();
+						(banActiveNodeSpy.calledOn(LSK)).should.be.false();
 					});
 			});
 
@@ -699,7 +699,7 @@ describe('privateApi module', () => {
 
 		describe('if no redial is possible', () => {
 			beforeEach(() => {
-				checkReDialStub = sandbox.stub(privateApi, 'checkReDial').returns(false);
+				anotherNodeIsAvailableStub = sandbox.stub(privateApi, 'anotherNodeIsAvailable').returns(false);
 			});
 
 			it('should resolve to an object with success set to false', () => {

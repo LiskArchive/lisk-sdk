@@ -1,5 +1,5 @@
 {
-    "peers": {
+    "nodes": {
         "mainnet": [
             "node01.lisk.io",
             "node02.lisk.io",

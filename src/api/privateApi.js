@@ -19,7 +19,7 @@ const GET = 'GET';
 
 /**
  * @method netHashOptions
- * @return {object}
+ * @return {Object}
  * @private
  */
 
@@ -49,7 +49,7 @@ export function netHashOptions() {
 
 /**
  * @method getURLPrefix
- * @return prefix string
+ * @return {String}
  * @private
  */
 
@@ -61,7 +61,7 @@ export function getURLPrefix() {
 
 /**
  * @method getFullURL
- * @return url string
+ * @return {String}
  * @private
  */
 
@@ -75,7 +75,7 @@ export function getFullURL() {
 
 /**
  * @method getNodes
- * @return nodes Array
+ * @return {Array}
  * @private
  */
 
@@ -87,7 +87,7 @@ export function getNodes() {
 
 /**
  * @method getRandomNode
- * @return  string
+ * @return  {String}
  * @private
  */
 
@@ -104,12 +104,12 @@ export function getRandomNode() {
 }
 
 /**
- * @method selectNode
- * @return node string
+ * @method selectNewNode
+ * @return {String}
  * @private
  */
 
-export function selectNode() {
+export function selectNewNode() {
 	const providedNode = this.options.node;
 
 	if (this.randomNode) {
@@ -125,46 +125,38 @@ export function selectNode() {
 }
 
 /**
- * @method banNode
+ * @method banActiveNode
  * @private
  */
 
-export function banNode() {
+export function banActiveNode() {
 	if (!this.bannedNodes.includes(this.node)) {
 		this.bannedNodes.push(this.node);
 	}
 }
 
 /**
- * @method checkReDial
- * @return reDial boolean
+ * @method anotherNodeIsAvailable
+ * @return {Boolean}
  * @private
  */
 
-export function checkReDial() {
+export function anotherNodeIsAvailable() {
 	const nodes = getNodes.call(this);
 
-	// randomNode discovery explicitly set
 	if (this.randomNode === true) {
-		// A nethash has been set by the user. This influences internal redirection
 		if (this.options.nethash) {
-			// Nethash is equal to testnet nethash, we can proceed to get testnet nodes
 			if (this.options.nethash === netHashOptions.call(this).testnet.nethash) {
 				this.setTestnet(true);
 				return true;
-			// Nethash is equal to mainnet nethash, we can proceed to get mainnet nodes
 			} else if (this.options.nethash === netHashOptions.call(this).mainnet.nethash) {
 				this.setTestnet(false);
 				return true;
 			}
-			// Nethash is neither mainnet nor testnet, do not proceed to get nodes
 			return false;
 		}
-		// No nethash set, we can take the usual approach:
-		// take a random nodes if there is any that is not banned
 		return nodes.some(node => !this.bannedNodes.includes(node));
 	}
-	// randomNode is not explicitly set, no  discovery
 	return false;
 }
 
@@ -175,7 +167,7 @@ export function checkReDial() {
  * @param providedOptions
  * @private
  *
- * @return request Object
+ * @return {Object}
  */
 
 export function createRequestObject(method, requestType, providedOptions) {
@@ -199,7 +191,7 @@ export function createRequestObject(method, requestType, providedOptions) {
  * @param options
  * @private
  *
- * @return APIcall Promise
+ * @return {Promise}
  */
 
 export function sendRequestPromise(requestMethod, requestType, options) {
@@ -218,7 +210,7 @@ export function sendRequestPromise(requestMethod, requestType, options) {
  * @param result
  * @private
  *
- * @return Promise
+ * @return {Promise}
  */
 
 export function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
@@ -240,16 +232,16 @@ export function handleTimestampIsInFutureFailures(requestMethod, requestType, op
  * @param result
  * @private
  *
- * @return Promise
+ * @return {Promise}
  */
 
 export function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	const that = this;
-	if (checkReDial.call(that)) {
+	if (anotherNodeIsAvailable.call(that)) {
 		return new Promise(((resolve, reject) => {
 			setTimeout(() => {
 				if (that.randomNode) {
-					banNode.call(that);
+					banActiveNode.call(that);
 				}
 				that.setNode();
 				that.sendRequest(requestMethod, requestType, options)
