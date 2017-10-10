@@ -12,7 +12,7 @@ var config = require('../../config.json');
 var Peer = require('../../../logic/peer');
 var PeersLogic = require('../../../logic/peers');
 var PeersModule = require('../../../modules/peers');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 

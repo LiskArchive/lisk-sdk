@@ -7,7 +7,7 @@ var _  = require('lodash');
 var sinon = require('sinon');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var Peers = require('../../../logic/peers.js');
 var Peer = require('../../../logic/peer.js');
