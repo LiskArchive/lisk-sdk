@@ -13,19 +13,28 @@
  *
  */
 import {
-	getTransactionBytes,
-	prepareTransaction,
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
+	getTransactionBytes,
+	prepareTransaction,
 } from '../../../src/transactions/utils';
 
 describe('transaction utils', () => {
 	describe('exports', () => {
-		it('should have getTransactionBytes, prepareTransaction, getTimeFromBlockchainEpoch, getTimeWithOffset', () => {
+		it('should have getTimeFromBlockchainEpoch', () => {
+			(getTimeFromBlockchainEpoch).should.be.type('function');
+		});
+
+		it('should have getTimeWithOffset', () => {
+			(getTimeWithOffset).should.be.type('function');
+		});
+
+		it('should have getTransactionBytes', () => {
 			(getTransactionBytes).should.be.type('function');
+		});
+
+		it('should have prepareTransaction', () => {
 			(prepareTransaction).should.be.type('function');
-			(getTimeFromBlockchainEpoch).should.be.type('object');
-			(getTimeWithOffset).should.be.type('object');
 		});
 	});
 });
