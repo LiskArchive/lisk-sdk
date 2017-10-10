@@ -52,6 +52,7 @@ pipeline {
 		}
 		stage('Cleanup') {
 			steps {
+				archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/screenshots/'
 				deleteDir()
 			}
 		}
