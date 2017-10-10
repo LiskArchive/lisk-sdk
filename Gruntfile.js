@@ -96,8 +96,6 @@ module.exports = function configureGrunt(grunt) {
 		'exec:tidyTest',
 	]);
 	grunt.registerTask('default', [
-		'eslint',
-		'exec:coverageSingle',
 		'build',
 	]);
 };
