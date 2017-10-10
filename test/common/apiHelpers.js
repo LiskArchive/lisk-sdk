@@ -70,6 +70,17 @@ function getCount (cb) {
 	http.get('/api/transactions/count', httpCallbackHelper.bind(null, cb));
 }
 
+function getAccounts (params, cb) {
+	http.get('/api/accounts?' + params, httpCallbackHelper.bind(null, cb));
+}
+
+function getPublicKey (address, cb) {
+	http.get('/api/accounts/getPublicKey?address=' + address, httpCallbackHelper.bind(null, cb));
+}
+function getBalance (address, cb) {
+	http.get('/api/accounts/getBalance?address=' + address, httpCallbackHelper.bind(null, cb));
+}
+
 var getTransactionPromise = node.Promise.promisify(getTransaction);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
@@ -83,6 +94,9 @@ var getPendingMultisignaturePromise = node.Promise.promisify(getPendingMultisign
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
+var getAccountsPromise = node.Promise.promisify(getAccounts);
+var getPublicKeyPromise = node.Promise.promisify(getPublicKey);
+var getBalancePromise = node.Promise.promisify(getBalance);
 
 module.exports = {
 	getTransaction: getTransaction,
@@ -111,5 +125,11 @@ module.exports = {
 	creditAccount: creditAccount,
 	creditAccountPromise: creditAccountPromise,
 	getCount: getCount,
-	getCountPromise: getCountPromise
+	getCountPromise: getCountPromise,
+	getAccounts: getAccounts,
+	getAccountsPromise: getAccountsPromise,
+	getPublicKey: getPublicKey,
+	getBalancePromise: getBalancePromise,
+	getBalance: getBalance,
+	getPublicKeyPromise: getPublicKeyPromise
 };
