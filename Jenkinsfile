@@ -13,15 +13,17 @@ def buildDependency() {
   try {
     sh '''#!/bin/bash
 
+    # Build submodules
+    git submodule init
+    git submodule update
+
     # Install Deps
     npm install
 
     # Install Nodejs
     tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
 
-    # Build submodules
-    git submodule init
-    git submodule update
+    # Build Lisk-UI
     cd public/
     npm install
     bower install
