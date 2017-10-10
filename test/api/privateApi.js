@@ -146,7 +146,7 @@ describe('privateApi module', () => {
 		});
 	});
 
-	describe.only('#getNodes', () => {
+	describe('#getNodes', () => {
 		const { getNodes } = privateApi;
 
 		describe('with SSL set to true', () => {
