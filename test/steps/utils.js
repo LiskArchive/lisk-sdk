@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import * as fsUtils from '../../src/utils/fs';
+import * as helpers from '../../src/utils/helpers';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
 
@@ -58,6 +59,14 @@ export const setUpConsoleStubs = () => {
 
 export const setUpProcessStubs = () => {
 	sandbox.stub(process, 'exit');
+};
+
+export const setUpHelperStubs = () => {
+	[
+		'deAlias',
+		'shouldUseJsonOutput',
+		'createErrorHandler',
+	].forEach(methodName => sandbox.stub(helpers, methodName));
 };
 
 export const setUpEnvVariable = variable => function setUpEnv() {

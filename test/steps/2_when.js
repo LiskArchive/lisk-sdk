@@ -78,13 +78,8 @@ export function theUserExecutesTheCommandWithOptions() {
 }
 
 export function theResultIsPrinted() {
-	const { vorpal, result } = this.test.ctx;
-	this.test.ctx.returnValue = printResult(vorpal)(result);
-}
-
-export function theResultIsPrintedWithTheJSONOptionSetToTrue() {
-	const { vorpal, result } = this.test.ctx;
-	this.test.ctx.returnValue = printResult(vorpal, { json: true })(result);
+	const { vorpal, result, options } = this.test.ctx;
+	this.test.ctx.returnValue = printResult(vorpal, options)(result);
 }
 
 export function theQueryInstanceGetsABlockUsingTheID() {

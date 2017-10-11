@@ -19,7 +19,9 @@ import lisk from 'lisk-js';
 import Vorpal from 'vorpal';
 import defaultConfig from '../../defaultConfig.json';
 import cryptoInstance from '../../src/utils/cryptoModule';
+import * as env from '../../src/utils/env';
 import * as fsUtils from '../../src/utils/fs';
+import { shouldUseJsonOutput } from '../../src/utils/helpers';
 import liskInstance from '../../src/utils/liskInstance';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import queryInstance from '../../src/utils/query';
@@ -552,9 +554,12 @@ export function aTypeWithNoAlias() {
 
 export function aConfigWithJsonSetTo() {
 	const stringBoolean = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.config = {
+	const config = {
 		json: stringBoolean === 'true',
 	};
+
+	env.default = config;
+	this.test.ctx.config = config;
 }
 
 export function anOptionsObjectWithJsonSetTo() {
@@ -578,4 +583,12 @@ export function anObjectWithMessage() {
 	this.test.ctx.testObject = {
 		message,
 	};
+}
+
+export function jsonShouldBePrinted() {
+	shouldUseJsonOutput.returns(true);
+}
+
+export function jsonShouldNotBePrinted() {
+	shouldUseJsonOutput.returns(false);
 }

@@ -16,6 +16,7 @@
 import fs from 'fs';
 import lisk from 'lisk-js';
 import * as fsUtils from '../../src/utils/fs';
+import { shouldUseJsonOutput } from '../../src/utils/helpers';
 import tablify from '../../src/utils/tablify';
 import {
 	getFirstQuotedString,
@@ -149,6 +150,16 @@ export function jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
 export function fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
 	const { filePath, stringifiedObject } = this.test.ctx;
 	return (fs.writeFileSync).should.be.calledWithExactly(filePath, stringifiedObject);
+}
+
+export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
+	const { config } = this.test.ctx;
+	return (shouldUseJsonOutput).should.be.calledWithExactly(config, {});
+}
+
+export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions() {
+	const { config, options } = this.test.ctx;
+	return (shouldUseJsonOutput).should.be.calledWithExactly(config, options);
 }
 
 export function theReturnedTableShouldHaveNoHead() {
