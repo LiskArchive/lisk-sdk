@@ -59,7 +59,7 @@ describe('GET /api/transactions', function () {
 				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
 				node.expect(err).to.not.exist;
 				node.expect(__cache).to.be.an('object');
-				return done(err, __cache);
+				return done(err);
 			});
 		});
 
@@ -67,7 +67,7 @@ describe('GET /api/transactions', function () {
 			cache.flushDb(function (err, status) {
 				node.expect(err).to.not.exist;
 				node.expect(status).to.equal('OK');
-				done(err, status);
+				done(err);
 			});
 		});
 
@@ -386,7 +386,7 @@ describe('GET /api/transactions', function () {
 			});
 		});
 
-		it('using offset == 1 should be ok', function () {
+		it('using offset=1 should be ok', function () {
 			var offset = 1;
 			var params = [
 				'offset=' + offset
@@ -401,7 +401,7 @@ describe('GET /api/transactions', function () {
 			});
 		});
 
-		it('using offset == "one" should fail', function () {
+		it('using offset="one" should fail', function () {
 			var offset = 'one';
 			var params = [
 				'offset=' + offset

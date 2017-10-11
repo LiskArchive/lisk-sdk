@@ -54,7 +54,7 @@ describe('GET /api/delegates', function () {
 				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
 				node.expect(err).to.not.exist;
 				node.expect(__cache).to.be.an('object');
-				return done(err, __cache);
+				return done(err);
 			});
 		});
 
@@ -62,7 +62,7 @@ describe('GET /api/delegates', function () {
 			cache.flushDb(function (err, status) {
 				node.expect(err).to.not.exist;
 				node.expect(status).to.equal('OK');
-				done(err, status);
+				done(err);
 			});
 		});
 
@@ -134,7 +134,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "unknown:asc" should fail', function () {
+		it('using orderBy="unknown:asc" should fail', function () {
 			var params = [
 				'orderBy=' + 'unknown:asc'
 			];
@@ -145,7 +145,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "approval:asc" should be ok', function () {
+		it('using orderBy="approval:asc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'approval:asc'
 			];
@@ -157,7 +157,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "productivity:asc" should be ok', function () {
+		it('using orderBy="productivity:asc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'productivity:asc'
 			];
@@ -168,7 +168,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "rank:asc" should be ok', function () {
+		it('using orderBy="rank:asc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'rank:asc'
 			];
@@ -185,7 +185,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "rank:desc" should be ok', function () {
+		it('using orderBy="rank:desc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'rank:desc'
 			];
@@ -202,7 +202,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "vote:asc" should be ok', function () {
+		it('using orderBy="vote:asc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'vote:asc'
 			];
@@ -219,7 +219,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "vote:desc" should be ok', function () {
+		it('using orderBy="vote:desc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'vote:desc'
 			];
@@ -236,7 +236,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "username:asc" should be ok', function () {
+		it('using orderBy="username:asc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'username:asc'
 			];
@@ -248,7 +248,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "address:asc" should be ok', function () {
+		it('using orderBy="address:asc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'address:asc'
 			];
@@ -260,7 +260,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "publicKey:asc" should be ok', function () {
+		it('using orderBy="publicKey:asc" should be ok', function () {
 			var params = [
 				'orderBy=' + 'publicKey:asc'
 			];
@@ -283,7 +283,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == -1 should fail', function () {
+		it('using limit=-1 should fail', function () {
 			var params = [
 				'limit=' + -1
 			];
@@ -294,7 +294,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == 0 should fail', function () {
+		it('using limit=0 should fail', function () {
 			var params = [
 				'limit=' + 0
 			];
@@ -305,7 +305,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == 1 should be ok', function () {
+		it('using limit=1 should be ok', function () {
 			var params = [
 				'limit=' + 1
 			];
@@ -317,7 +317,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == 101 should be ok', function () {
+		it('using limit=101 should be ok', function () {
 			var params = [
 				'limit=' + 101
 			];
@@ -351,7 +351,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using offset == 1 should be ok', function () {
+		it('using offset=1 should be ok', function () {
 			var params = [
 				'offset=' + 1
 			];
@@ -363,7 +363,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using offset == -1 should fail', function () {
+		it('using offset=-1 should fail', function () {
 			var params = [
 				'offset=' + -1
 			];
@@ -506,7 +506,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using criteria with length == 1 should be ok', function () {
+		it('using criteria with length=1 should be ok', function () {
 			var q = 'g'; // 1 character
 
 			return searchDelegatesPromise('q=' + q).then(function (res) {
@@ -515,7 +515,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using criteria with length == 20 should be ok', function () {
+		it('using criteria with length=20 should be ok', function () {
 			var q = 'genesis_123456789012'; // 20 characters
 
 			return searchDelegatesPromise('q=' + q).then(function (res) {
@@ -533,7 +533,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using critera == "genesis_1" should return 13 delegates', function () {
+		it('using critera="genesis_1" should return 13 delegates', function () {
 			var q = 'genesis_1';
 
 			return searchDelegatesPromise('q=' + q).then(function (res) {
@@ -543,7 +543,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using critera == "genesis_10" should return 3 delegates', function () {
+		it('using critera="genesis_10" should return 3 delegates', function () {
 			var q = 'genesis_10';
 
 			return searchDelegatesPromise('q=' + q).then(function (res) {
@@ -553,7 +553,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using critera == "genesis_101" should return 1 delegate', function () {
+		it('using critera="genesis_101" should return 1 delegate', function () {
 			var q = 'genesis_101';
 
 			return searchDelegatesPromise('q=' + q).then(function (res) {
@@ -563,7 +563,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using critera == "genesis_101" should have all properties', function () {
+		it('using critera="genesis_101" should have all properties', function () {
 			var q = 'genesis_101';
 
 			return searchDelegatesPromise('q=' + q).then(function (res) {
@@ -606,7 +606,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == -100 should fail', function () {
+		it('using limit=-100 should fail', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'limit=' + -100
@@ -618,7 +618,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == -1 should fail', function () {
+		it('using limit=-1 should fail', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'limit=' + -1
@@ -630,7 +630,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == 0 should fail', function () {
+		it('using limit=0 should fail', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'limit=' + 0
@@ -642,7 +642,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == 1 should be ok', function () {
+		it('using limit=1 should be ok', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'limit=' + 1
@@ -655,7 +655,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit == 1000 should be ok', function () {
+		it('using limit=1000 should be ok', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'limit=' + 1000
@@ -680,7 +680,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "unknown:asc" should fail', function () {
+		it('using orderBy="unknown:asc" should fail', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'orderBy=' + 'unknown:asc'
@@ -708,7 +708,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "username:asc" should be ordered by ascending username', function () {
+		it('using orderBy="username:asc" should be ordered by ascending username', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'orderBy=' + 'username:asc'
@@ -725,7 +725,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy == "username:desc" should be ordered by descending username', function () {
+		it('using orderBy="username:desc" should be ordered by descending username', function () {
 			var params = [
 				'q=' + 'genesis_',
 				'orderBy=' + 'username:desc'
@@ -777,7 +777,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using publicKey should be ok', function () {
+		it('using existing publicKey should be ok', function () {
 			var params = [
 				'publicKey=' + testDelegate.publicKey
 			];
@@ -1023,7 +1023,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit === 1 should be ok', function () {
+		it('using limit=1 should be ok', function () {
 			var params = [
 				'limit=1'
 			];
@@ -1038,7 +1038,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using limit === 101 should be ok', function () {
+		it('using limit=101 should be ok', function () {
 			var params = [
 				'limit=101'
 			];
