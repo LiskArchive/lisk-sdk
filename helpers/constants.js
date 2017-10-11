@@ -13,7 +13,7 @@
  * @property {Object} fees - The default values for fees.
  * @property {number} fees.send
  * @property {number} fees.vote
- * @property {number} fees.secondsignature
+ * @property {number} fees.secondSignature
  * @property {number} fees.delegate
  * @property {number} fees.multisignature
  * @property {number} fees.dapp
@@ -52,7 +52,7 @@ var constants = {
 	fees: {
 		send: 10000000,
 		vote: 100000000,
-		secondsignature: 500000000,
+		secondSignature: 500000000,
 		delegate: 2500000000,
 		multisignature: 500000000,
 		dapp: 2500000000,

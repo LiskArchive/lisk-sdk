@@ -150,8 +150,8 @@ describe('signature', function () {
 				fee = signature.calculateFee.call(transactionMock, trs);
 			});
 
-			it('should return constants.fees.secondsignature', function () {
-				expect(fee).to.equal(node.constants.fees.secondsignature);
+			it('should return constants.fees.secondSignature', function () {
+				expect(fee).to.equal(node.constants.fees.secondSignature);
 			});
 		});
 
