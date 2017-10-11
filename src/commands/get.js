@@ -13,15 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../utils/env';
 import commonOptions from '../utils/options';
 import query from '../utils/query';
 import { COMMAND_TYPES } from '../utils/constants';
 import { printResult } from '../utils/print';
-import {
-	deAlias,
-	shouldUseJsonOutput,
-} from '../utils/helpers';
+import { deAlias } from '../utils/helpers';
 
 const description = `Get information from <type> with parameter <input>. Types available: account, address, block, delegate, transaction.
 
@@ -38,18 +34,17 @@ const handlers = {
 	transaction: transaction => query.isTransactionQuery(transaction),
 };
 
-const processResult = (useJsonOutput, vorpal, type, result) => {
+const processResult = (vorpal, options, type, result) => {
 	const resultToPrint = result.error ? result : result[type];
-	return printResult(vorpal, { json: useJsonOutput })(resultToPrint);
+	return printResult(vorpal, options)(resultToPrint);
 };
 
-const get = vorpal => ({ options, type, input }) => {
-	const useJsonOutput = shouldUseJsonOutput(config, options);
-	return COMMAND_TYPES.includes(type)
+const get = vorpal => ({ options, type, input }) => (
+	COMMAND_TYPES.includes(type)
 		? handlers[type](input)
-			.then(processResult.bind(null, useJsonOutput, vorpal, deAlias(type)))
-		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'));
-};
+			.then(processResult.bind(null, vorpal, options, deAlias(type)))
+		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'))
+);
 
 export default function getCommand(vorpal) {
 	vorpal

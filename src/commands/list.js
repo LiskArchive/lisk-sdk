@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../utils/env';
 import commonOptions from '../utils/options';
 import query from '../utils/query';
 import { printResult } from '../utils/print';
@@ -21,10 +20,7 @@ import {
 	COMMAND_TYPES,
 	SINGULARS,
 } from '../utils/constants';
-import {
-	deAlias,
-	shouldUseJsonOutput,
-} from '../utils/helpers';
+import { deAlias } from '../utils/helpers';
 
 const description = `Get information from <type> with parameters <input, input, ...>. Types available: accounts, addresses, blocks, delegates, transactions.
 
@@ -41,24 +37,23 @@ const handlers = {
 	transactions: transactions => query.isTransactionQuery(transactions),
 };
 
-const processResults = (useJsonOutput, vorpal, type, results) => {
+const processResults = (vorpal, options, type, results) => {
 	const resultsToPrint = results.map(result => (
 		result.error
 			? result
 			: result[type]
 	));
-	return printResult(vorpal, { json: useJsonOutput })(resultsToPrint);
+	return printResult(vorpal, options)(resultsToPrint);
 };
 
 const list = vorpal => ({ type, variadic, options }) => {
 	const singularType = SINGULARS[type];
-	const useJsonOutput = shouldUseJsonOutput(config, options);
 
 	const makeCalls = () => variadic.map(input => handlers[type](input));
 
 	return COMMAND_TYPES.includes(singularType)
 		? Promise.all(makeCalls())
-			.then(processResults.bind(null, useJsonOutput, vorpal, deAlias(singularType)))
+			.then(processResults.bind(null, vorpal, options, deAlias(singularType)))
 			.catch(e => e)
 		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'));
 };
