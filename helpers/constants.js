@@ -1,5 +1,6 @@
 'use strict';
 
+var bignum = require('../helpers/bignum.js');
 /**
  * @namespace constants
  * @memberof module:helpers
@@ -93,7 +94,7 @@ var constants = {
 	},
 	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
-	totalAmount: 10000000000000000,
+	totalAmount: new bignum(10000000000000000),
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
 	multisigConstraints: {
 		min: {

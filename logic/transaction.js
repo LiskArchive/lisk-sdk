@@ -524,9 +524,17 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check amount
-	if (trs.amount < 0 || trs.amount > constants.totalAmount || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
+	/*if (trs.amount < 0 || trs.amount > constants.totalAmount || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
 		return setImmediate(cb, 'Invalid transaction amount');
-	}
+	}*/
+	var trsAmount = new bignum(trs.amount.toString());
+	console.log('rs amount to string: ', trs.amount.toString());
+	var totalAmount = constants.totalAmount.toString();
+    console.log('total amount to string: ', totalAmount.toString(), trsAmount.greaterThan(totalAmount));
+
+    if (trsAmount.lessThan(0) || trsAmount.greaterThan(totalAmount) || !trsAmount.isInteger() || trsAmount.toString().indexOf('e') >= 0) {
+        return setImmediate(cb, 'Invalid transaction amount');
+    }
 
 	// Check confirmed sender balance
 	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
