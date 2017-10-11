@@ -14,20 +14,21 @@
  */
 import send from '../../src/transactions/0_send';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
 describe('#send transaction', () => {
 	const fixedPoint = 10 ** 8;
-	const recipientAddress = '58191285901858109L';
+	const recipientId = '58191285901858109L';
 	const testData = 'data';
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const emptyPublicKey = 'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
-	const testAmount = 1000;
+	const amount = 1000;
 	const sendFee = 0.1 * fixedPoint;
 	const sendWithDataFee = 0.2 * fixedPoint;
 	const timeWithOffset = 38350076;
@@ -36,30 +37,30 @@ describe('#send transaction', () => {
 	let sendTransaction;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('without second secret', () => {
 		describe('without data', () => {
 			beforeEach(() => {
-				sendTransaction = send(
-					recipientAddress, testAmount, secret,
-				);
+				sendTransaction = send({
+					recipientId, amount, secret,
+				});
 			});
 
 			it('should create a send transaction', () => {
 				(sendTransaction).should.be.ok();
 			});
 
-			it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+			it('should use time.getTimeWithOffset to calculate the timestamp', () => {
 				(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 			});
 
-			it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 				const offset = -10;
-				send(
-					recipientAddress, testAmount, secret, null, null, offset,
-				);
+				send({
+					recipientId, amount, secret, timeOffset: offset,
+				});
 
 				(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 			});
@@ -78,7 +79,7 @@ describe('#send transaction', () => {
 				});
 
 				it('should have amount number equal to provided amount', () => {
-					(sendTransaction).should.have.property('amount').and.be.type('number').and.equal(testAmount);
+					(sendTransaction).should.have.property('amount').and.be.type('number').and.equal(amount);
 				});
 
 				it('should have fee number equal to send fee', () => {
@@ -86,7 +87,7 @@ describe('#send transaction', () => {
 				});
 
 				it('should have recipientId string equal to provided recipient id', () => {
-					(sendTransaction).should.have.property('recipientId').and.be.type('string').and.equal(recipientAddress);
+					(sendTransaction).should.have.property('recipientId').and.be.type('string').and.equal(recipientId);
 				});
 
 				it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -95,7 +96,7 @@ describe('#send transaction', () => {
 						.and.equal(publicKey);
 				});
 
-				it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+				it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 					(sendTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 				});
 
@@ -122,13 +123,13 @@ describe('#send transaction', () => {
 
 		describe('with data', () => {
 			beforeEach(() => {
-				sendTransaction = send(
-					recipientAddress, testAmount, secret, null, testData,
-				);
+				sendTransaction = send({
+					recipientId, amount, secret, data: testData,
+				});
 			});
 
 			it('should handle invalid (non-utf8 string) data', () => {
-				(send.bind(null, recipientAddress, testAmount, secret, null, Buffer.from('hello')))
+				(send.bind(null, { recipientId, amount, secret, data: Buffer.from('hello') }))
 					.should.throw('Invalid encoding in transaction data. Data must be utf-8 encoded.');
 			});
 
@@ -148,27 +149,27 @@ describe('#send transaction', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			sendTransaction = send(
-				recipientAddress, testAmount, secret, secondSecret,
-			);
+			sendTransaction = send({
+				recipientId, amount, secret, secondSecret,
+			});
 		});
 
 		it('should create a send transaction', () => {
-			const sendTransactionWithoutSecondSecret = send(
-				recipientAddress, testAmount, secret,
-			);
+			const sendTransactionWithoutSecondSecret = send({
+				recipientId, amount, secret,
+			});
 			(sendTransaction).should.be.ok();
 			(sendTransaction).should.not.be.equal(sendTransactionWithoutSecondSecret);
 		});
 
 		it('should create send transaction with second signature and data', () => {
-			sendTransaction = send(
-				recipientAddress,
-				testAmount,
+			sendTransaction = send({
+				recipientId,
+				amount,
 				secret,
 				secondSecret,
-				testData,
-			);
+				data: testData,
+			});
 			(sendTransaction).should.be.ok();
 		});
 
@@ -184,13 +185,13 @@ describe('#send transaction', () => {
 			});
 
 			it('should be second signed correctly if second signature is an empty string', () => {
-				sendTransaction = send(
-					recipientAddress,
-					testAmount,
+				sendTransaction = send({
+					recipientId,
+					amount,
 					secret,
-					'',
+					secondSecret: '',
 					testData,
-				);
+				});
 				const result = cryptoModule
 					.verifyTransaction(sendTransaction, emptyPublicKey);
 				(result).should.be.ok();

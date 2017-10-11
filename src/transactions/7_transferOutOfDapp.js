@@ -19,25 +19,26 @@
  */
 import cryptoModule from '../crypto';
 import { OUT_TRANSFER_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
- * @method createOutTransfer
- * @param dappId
- * @param transactionId
- * @param recipientId
- * @param amount
- * @param secret
- * @param secondSecret
- * @param timeOffset
+ * @method transferOutOfDapp
+ * @param {Object} Object - Object
+ * @param {String} Object.dappId
+ * @param {String} Object.transactionId
+ * @param {String} Object.recipientId
+ * @param {String} Object.amount
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function transferOutOfDapp(
+export default function transferOutOfDapp({
 	dappId, transactionId, recipientId, amount, secret, secondSecret, timeOffset,
-) {
+}) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -46,7 +47,7 @@ export default function transferOutOfDapp(
 		fee: OUT_TRANSFER_FEE,
 		recipientId,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			outTransfer: {
 				dappId,

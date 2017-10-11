@@ -18,8 +18,8 @@
  */
 import cryptoModule from '../crypto';
 import { DAPP_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 const isInt = n => parseInt(n, 10) === n;
 
@@ -45,15 +45,16 @@ const validateOptions = (options) => {
 
 /**
  * @method createDapp
- * @param secret
- * @param secondSecret
- * @param options
- * @param timeOffset
+ * @param {Object} Object - Object
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {Object} Object.options
+ * @param {Number} Objec.timeOffset
  *
  * @return {Object}
  */
 
-export default function createDapp(secret, secondSecret, options, timeOffset) {
+export default function createDapp({ secret, secondSecret, options, timeOffset }) {
 	validateOptions(options);
 
 	const keys = cryptoModule.getKeys(secret);
@@ -64,7 +65,7 @@ export default function createDapp(secret, secondSecret, options, timeOffset) {
 		fee: DAPP_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			dapp: {
 				category: options.category,

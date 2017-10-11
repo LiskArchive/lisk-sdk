@@ -14,7 +14,8 @@
  */
 import castVotes from '../../src/transactions/3_castVotes';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
@@ -31,25 +32,25 @@ describe('#castVotes transaction', () => {
 	let castVotesTransaction;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('without second secret', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes(secret, publicKeys);
+			castVotesTransaction = castVotes({ secret, delegates: publicKeys });
 		});
 
 		it('should create a cast votes transaction', () => {
 			(castVotesTransaction).should.be.ok();
 		});
 
-		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 		});
 
-		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			castVotes(secret, publicKeys, null, offset);
+			castVotes({ secret, delegates: publicKeys, timeOffset: offset });
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -83,7 +84,7 @@ describe('#castVotes transaction', () => {
 				(castVotesTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
-			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				(castVotesTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
@@ -136,11 +137,11 @@ describe('#castVotes transaction', () => {
 
 	describe('with second secret', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes(secret, publicKeys, secondSecret);
+			castVotesTransaction = castVotes({ secret, delegates: publicKeys, secondSecret });
 		});
 
 		it('should create a vote transaction with a second secret', () => {
-			const castVotesTransactionWithoutSecondSecret = castVotes(secret, publicKeys);
+			const castVotesTransactionWithoutSecondSecret = castVotes({ secret, delegates: publicKeys });
 			(castVotesTransaction).should.be.ok();
 			(castVotesTransaction).should.not.be.equal(castVotesTransactionWithoutSecondSecret);
 		});

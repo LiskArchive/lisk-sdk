@@ -18,20 +18,21 @@
  */
 import cryptoModule from '../crypto';
 import { DELEGATE_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
- * @method createDapp
- * @param secret
- * @param username
- * @param secondSecret
- * @param timeOffset
+ * @method registerDelegate
+ * @param {Object} Object - Object
+ * @param {String} Object.secret
+ * @param {String} Object.username
+ * @param {String} Object.secondSecret
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function registerDelegate(secret, username, secondSecret, timeOffset) {
+export default function registerDelegate({ secret, username, secondSecret, timeOffset }) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -40,7 +41,7 @@ export default function registerDelegate(secret, username, secondSecret, timeOff
 		fee: DELEGATE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			delegate: {
 				username,

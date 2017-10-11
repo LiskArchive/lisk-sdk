@@ -19,24 +19,25 @@
  */
 import cryptoModule from '../crypto';
 import { SEND_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
- * @method createTransaction
- * @param recipientId string
- * @param amount number
- * @param secret secret
- * @param secondSecret secret
- * @param requesterPublicKey string
- * @param timeOffset number
+ * @method sendFromMultisignatureAccount
+ * @param {Object} Object - Object
+ * @param {String} Object.recipientId
+ * @param {String} Object.amount
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {String} Object.requesterPublicKey
+ * @param {Number} Object.timeOffset
  *
- * @return {string}
+ * @return {Object}
  */
 
-export default function sendFromMultisignatureAccount(
+export default function sendFromMultisignatureAccount({
 	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
-) {
+}) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -46,7 +47,7 @@ export default function sendFromMultisignatureAccount(
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		requesterPublicKey: requesterPublicKey || keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {},
 		signatures: [],
 	};

@@ -14,7 +14,8 @@
  */
 import transferOutOfDapp from '../../src/transactions/7_transferOutOfDapp';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
@@ -35,26 +36,26 @@ describe('#transferOutOfDapp', () => {
 	let transferOutOfDappTransaction;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('with one secret', () => {
 		beforeEach(() => {
-			transferOutOfDappTransaction = transferOutOfDapp(
+			transferOutOfDappTransaction = transferOutOfDapp({
 				dappId, transactionId, recipientId, amount, secret,
-			);
+			});
 		});
 
 		it('should create an out transfer dapp transaction', () => {
 			(transferOutOfDappTransaction).should.be.ok();
 		});
 
-		it('should use time slots to get the time for the timestamp', () => {
+		it('should use time.getTimeWithOffset to get the time for the timestamp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 		});
 
-		it('should use time slots with an offset of -10 seconds to get the time for the timestamp', () => {
-			transferOutOfDapp(dappId, transactionId, recipientId, amount, secret, null, offset);
+		it('should use time.getTimeWithOffset with an offset of -10 seconds to get the time for the timestamp', () => {
+			transferOutOfDapp({ dappId, transactionId, recipientId, amount, secret, timeOffset: offset });
 
 			(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 		});
@@ -88,7 +89,7 @@ describe('#transferOutOfDapp', () => {
 				(transferOutOfDappTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(publicKey);
 			});
 
-			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				(transferOutOfDappTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
@@ -130,15 +131,15 @@ describe('#transferOutOfDapp', () => {
 
 		describe('with second secret', () => {
 			beforeEach(() => {
-				transferOutOfDappTransaction = transferOutOfDapp(
+				transferOutOfDappTransaction = transferOutOfDapp({
 					dappId, transactionId, recipientId, amount, secret, secondSecret,
-				);
+				});
 			});
 
 			it('should create a transfer out of dapp transaction with a second secret', () => {
-				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp(
+				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp({
 					dappId, transactionId, recipientId, amount, secret,
-				);
+				});
 				(transferOutOfDappTransaction).should.be.ok();
 				(transferOutOfDappTransaction).should.not.be.equal(
 					transferOutOfDappTransactionWithoutSecondSecret,

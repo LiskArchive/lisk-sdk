@@ -18,8 +18,8 @@
  */
 import cryptoModule from '../crypto';
 import { SIGNATURE_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method newSignature
@@ -34,15 +34,16 @@ function newSignature(secondSecret) {
 }
 
 /**
- * @method createSignature
- * @param secret
- * @param secondSecret
- * @param timeOffset
+ * @method registerSecondSignature
+ * @param {Object} Object - Object
+ * @param {String} Object.secret
+ * @param {String} Object.secondSecret
+ * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-export default function registerSecondSignature(secret, secondSecret, timeOffset) {
+export default function registerSecondSignature({ secret, secondSecret, timeOffset }) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const signature = newSignature(secondSecret);
@@ -52,7 +53,7 @@ export default function registerSecondSignature(secret, secondSecret, timeOffset
 		fee: SIGNATURE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			signature,
 		},
