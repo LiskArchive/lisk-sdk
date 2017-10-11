@@ -13,7 +13,7 @@ describe('multisignature', function () {
 	var library;
 	var dbSandbox;
 
-	before(function (done) {
+	before('init sandboxed application', function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_multisignatures');
 		dbSandbox.create(function (err, __db) {
 			node.initApplication(function (scope) {
@@ -99,7 +99,7 @@ describe('multisignature', function () {
 
 		var multisigAccount;
 
-		beforeEach(function (done) {
+		beforeEach('send funds to random account', function (done) {
 			multisigAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
 			addTransactionsAndForge([sendTransaction], done);
@@ -109,7 +109,7 @@ describe('multisignature', function () {
 
 			var multisigSender;
 
-			beforeEach(function (done) {
+			beforeEach('get multisignature account', function (done) {
 				library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 					multisigSender = res;
 					done();
@@ -122,7 +122,7 @@ describe('multisignature', function () {
 				var signer1 = node.randomAccount();
 				var signer2 = node.randomAccount();
 
-				beforeEach(function () {
+				beforeEach('create multisignature transaction', function () {
 					var keysgroup = [
 						'+' + signer1.publicKey,
 						'+' + signer2.publicKey
@@ -138,7 +138,7 @@ describe('multisignature', function () {
 
 				describe('applyUnconfirm transaction', function () {
 
-					beforeEach(function (done) {
+					beforeEach('apply unconfirmed transaction', function (done) {
 						library.logic.transaction.applyUnconfirmed(multisigTransaction, multisigSender, done);
 					});
 
@@ -172,7 +172,7 @@ describe('multisignature', function () {
 						var signer3 = node.randomAccount();
 						var signer4 = node.randomAccount();
 
-						beforeEach(function (done) {
+						beforeEach('create another multisignature transaction', function (done) {
 							var keysgroup = [
 								'+' + signer3.publicKey,
 								'+' + signer4.publicKey
@@ -187,7 +187,7 @@ describe('multisignature', function () {
 
 						describe('from the same account', function () {
 
-							beforeEach(function (done) {
+							beforeEach('get multisignature account', function (done) {
 								library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 									multisigSender = res;
 									done();
@@ -203,7 +203,7 @@ describe('multisignature', function () {
 
 				describe('after forging Block with multisig transaction', function () {
 
-					beforeEach(function (done) {
+					beforeEach('forge block with multisignature transaction', function (done) {
 						addTransactionsAndForge([multisigTransaction], done);
 					});
 
@@ -234,7 +234,7 @@ describe('multisignature', function () {
 
 					describe('after deleting block', function () {
 
-						beforeEach(function (done) {
+						beforeEach('delete last block', function (done) {
 							var last_block = library.modules.blocks.lastBlock.get();
 							library.modules.blocks.chain.deleteLastBlock(done);
 						});

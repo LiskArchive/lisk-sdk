@@ -642,7 +642,7 @@ node.appCleanup = function (done) {
 	});
 };
 
-before(function (done) {
+before('wait for node to be ready', function (done) {
 	require('./common/globalBefore').waitUntilBlockchainReady(done);
 });
 
