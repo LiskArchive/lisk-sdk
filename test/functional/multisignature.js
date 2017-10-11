@@ -39,7 +39,6 @@ describe('multisignature', function () {
 	function forge (cb) {
 		function getNextForger (offset, cb) {
 			offset = !offset ? 1 : offset;
-
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
 			library.modules.delegates.generateDelegateList(last_block.height, null, function (err, delegateList) {
@@ -51,16 +50,15 @@ describe('multisignature', function () {
 		var transactionPool = library.rewiredModules.transactions.__get__('__private.transactionPool');
 		var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
 
-		node.async.auto({ 
-			transactionPool: transactionPool.fillPool,
-			getNextForger: function (cb) {
+		node.async.waterfall([ 
+			transactionPool.fillPool,
+			function (cb) {
 				getNextForger(null, function (delegatePublicKey) {
 					cb(null, delegatePublicKey);
 				});
 			},
-			processBlock: ['getNextForger', function (scope, seriesCb) {
+			function (delegate, seriesCb) {
 				var last_block = library.modules.blocks.lastBlock.get();
-				var delegate = scope.getNextForger;
 				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				var keypair = keypairs[delegate];
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
@@ -68,8 +66,8 @@ describe('multisignature', function () {
 					last_block = library.modules.blocks.lastBlock.get();
 					return seriesCb(err);
 				});
-			}]
-		}, function (err) {
+			}
+		], function (err) {
 			cb(err);
 		});
 	}
@@ -105,11 +103,13 @@ describe('multisignature', function () {
 		});
 	}
 
+
+
 	describe('with LISK sent to multisig account', function () {
 
 		var multisigAccount;
 
-		beforeEach(function (done) {
+		before(function (done) {
 			multisigAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
 			addTransactionsAndForge([sendTransaction], done);
@@ -119,20 +119,19 @@ describe('multisignature', function () {
 
 			var multisigSender;
 
-			beforeEach(function (done) {
+			before(function (done) {
 				library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 					multisigSender = res;
 					done();
 				});
 			});
 
-			describe('with multisig transaction', function () {
-
+			describe('applyUnconfirm transaction', function () {
 				var multisigTransaction;
 				var signer1 = node.randomAccount();
 				var signer2 = node.randomAccount();
 
-				beforeEach(function () {
+				before(function (done) {
 					var keysgroup = [
 						'+' + signer1.publicKey,
 						'+' + signer2.publicKey
@@ -144,158 +143,179 @@ describe('multisignature', function () {
 
 					multisigTransaction.signatures = [sign1, sign2];
 					multisigTransaction.ready = true;
+					library.logic.transaction.applyUnconfirmed(multisigTransaction, multisigSender, done);
 				});
 
-				describe('applyUnconfirm transaction', function () {
+				describe('sender account', function () {
 
-					beforeEach(function (done) {
-						library.logic.transaction.applyUnconfirmed(multisigTransaction, multisigSender, done);
-					});
+					var account;
 
-					it('should have u_multisignatures field set on account', function (done) {
-						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-							expect(err).to.be.null;
-							expect(res.u_multisignatures).to.include(signer1.publicKey, signer2.publicKey);
-							done();
-						});
-					});
-
-					it('should have u_multimin field set on account', function (done) {
-						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-							expect(err).to.be.null;
-							expect(res.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
-							done();
-						});
-					});
-
-					it('should have u_multilifetime field set on account', function (done) {
-						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-							expect(err).to.be.null;
-							expect(res.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
-							done();
-						});
-					});
-
-					describe('with another multisig transaction', function () {
-
-						var multisigTransaction2;
-						var signer3 = node.randomAccount();
-						var signer4 = node.randomAccount();
-
-						beforeEach(function (done) {
-							var keysgroup = [
-								'+' + signer3.publicKey,
-								'+' + signer4.publicKey
-							];
-
-							multisigTransaction2 = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
-							var sign3 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer3.password);
-							var sign4 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer4.password);
-							multisigTransaction2.signatures = [sign3, sign4];
-							library.logic.transaction.process(multisigTransaction2, multisigSender, done);
-						});
-
-						describe('from the same account', function () {
-
-							beforeEach(function (done) {
-								library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-									multisigSender = res;
-									done();
-								});
-							});
-
-							it('should verify transaction', function (done) {
-								library.logic.transaction.verify(multisigTransaction2, multisigSender, done);
-							});
-						});
-					});
-				});
-
-				describe('after forging Block with multisig transaction', function () {
-
-					beforeEach(function (done) {
-						addTransactionsAndForge([multisigTransaction], done);
-					});
-
-					it('should have multisignatures field set on account', function (done) {
+					before(function (done) {
 						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 							expect(err).to.not.exist;
-							expect(res.multisignatures).to.include(signer1.publicKey, signer2.publicKey);
+							account = res;
 							done();
 						});
 					});
 
+					it('should have u_multisignatures field set on account', function () {
+						expect(account.u_multisignatures).to.include(signer1.publicKey, signer2.publicKey);
+					});
 
-					it('should have multimin field set on account', function (done) {
+					it('should have multimin field set on account', function () {
+						expect(account.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
+					});
+
+					it('should have multilifetime field set on account', function () {
+						expect(account.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
+					});
+				});
+
+				describe('with another multisig transaction', function () {
+
+					var multisigTransaction2;
+					var signer3 = node.randomAccount();
+					var signer4 = node.randomAccount();
+
+					before(function (done) {
+						var keysgroup = [
+							'+' + signer3.publicKey,
+							'+' + signer4.publicKey
+						];
+
+						multisigTransaction2 = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
+						var sign3 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer3.password);
+						var sign4 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer4.password);
+						multisigTransaction2.signatures = [sign3, sign4];
+						library.logic.transaction.process(multisigTransaction2, multisigSender, done);
+					});
+
+					describe('from the same account', function () {
+
+						before(function (done) {
+							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+								multisigSender = res;
+								done();
+							});
+						});
+
+						it('should verify transaction', function (done) {
+							library.logic.transaction.verify(multisigTransaction2, multisigSender, done);
+						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('with LISK sent to multisig account', function () {
+
+		var multisigAccount;
+
+		before(function (done) {
+			multisigAccount = node.randomAccount();
+			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
+			addTransactionsAndForge([sendTransaction], done);
+		});
+
+		describe('from multisig account', function () {
+
+			var multisigSender;
+
+			before(function (done) {
+				library.logic.account.get({address: multisigAccount.address}, function (err, res) {
+					multisigSender = res;
+					done();
+				});
+			});
+
+			describe('after forging Block with multisig transaction', function () {
+
+				var multisigTransaction;
+				var signer1 = node.randomAccount();
+				var signer2 = node.randomAccount();
+
+				before(function (done) {
+					var keysgroup = [
+						'+' + signer1.publicKey,
+						'+' + signer2.publicKey
+					];
+
+					multisigTransaction = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
+					var sign1 = node.lisk.multisignature.signTransaction(multisigTransaction, signer1.password);
+					var sign2 = node.lisk.multisignature.signTransaction(multisigTransaction, signer2.password);
+
+					multisigTransaction.signatures = [sign1, sign2];
+					multisigTransaction.ready = true;
+					addTransactionsAndForge([multisigTransaction], done);
+				});
+
+				describe('sender account', function () {
+
+					var account;
+
+					before(function (done) {
 						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-							expect(err).to.be.null;
-							expect(res.multimin).to.eql(multisigTransaction.asset.multisignature.min);
+							expect(err).to.not.exist;
+							account = res;
 							done();
 						});
 					});
 
-					it('should have multilifetime field set on account', function (done) {
-						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-							expect(err).to.be.null;
-							expect(res.multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
-							done();
-						});
+					it('should have multisignatures field set on account', function () {
+						expect(account.multisignatures).to.include(signer1.publicKey, signer2.publicKey);
 					});
 
-					describe('after deleting block', function () {
+					it('should have multimin field set on account', function () {
+						expect(account.multimin).to.eql(multisigTransaction.asset.multisignature.min);
+					});
 
-						beforeEach(function (done) {
-							var last_block = library.modules.blocks.lastBlock.get();
-							library.modules.blocks.chain.deleteLastBlock(done);
-						});
+					it('should have multilifetime field set on account', function () {
+						expect(account.multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
+					});
+				});
 
-						it('should set multisignatures field to null on account', function (done) {
+				describe('after deleting block', function () {
+
+					before(function (done) {
+						var last_block = library.modules.blocks.lastBlock.get();
+						library.modules.blocks.chain.deleteLastBlock(done);
+					});
+
+					describe('sender account', function () {
+
+						var account;
+
+						before(function (done) {
 							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 								expect(err).to.not.exist;
-								expect(res.multisignatures).to.eql(null);
+								account = res;
 								done();
 							});
 						});
 
-						it('should set multimin field to 0 on account', function (done) {
-							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-								expect(err).to.eql(null);
-								// Should be undefined ?
-								expect(res.multimin).to.eql(0);
-								done();
-							});
+						it('should set multisignatures field to null on account', function () {
+							expect(account.multisignatures).to.eql(null);
 						});
 
-						it('should set multilifetime field to 0 on account', function (done) {
-							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-								expect(err).to.be.null;
-								expect(res.multilifetime).to.eql(0);
-								done();
-							});
+						it('should set multimin field to 0 on account', function () {
+							expect(account.multimin).to.eql(0);
 						});
 
-						it('should set u_multisignatures field to null on account', function (done) {
-							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-								expect(err).to.be.null;
-								expect(res.u_multisignatures).to.eql(null);
-								done();
-							});
+						it('should set multilifetime field to 0 on account', function () {
+							expect(account.multilifetime).to.eql(0);
 						});
 
-						it('should set u_multimin field to null on account', function (done) {
-							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-								expect(err).to.be.null;
-								expect(res.u_multimin).to.eql(0);
-								done();
-							});
+						it('should set u_multisignatures field to null on account', function () {
+							expect(account.u_multisignatures).to.eql(null);
 						});
 
-						it('should set u_multilifetime field to null on account', function (done) {
-							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
-								expect(err).to.be.null;
-								expect(res.u_multilifetime).to.eql(0);
-								done();
-							});
+						it('should set u_multimin field to null on account', function () {
+							expect(account.u_multimin).to.eql(0);
+						});
+
+						it('should set u_multilifetime field to null on account', function () {
+							expect(account.u_multilifetime).to.eql(0);
 						});
 					});
 				});
