@@ -1,6 +1,7 @@
 import sendFromMultisignatureAccount from '../../src/transactions/0_sendFromMultisignatureAccount';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
@@ -25,7 +26,7 @@ describe('#sendFromMultisignatureAccount transaction', () => {
 	let getTimeWithOffsetStub;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 	});
 
 	describe('without second secret', () => {
@@ -42,11 +43,11 @@ describe('#sendFromMultisignatureAccount transaction', () => {
 			(sendFromMultisignatureAccountTransaction).should.be.ok();
 		});
 
-		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 		});
 
-		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			sendFromMultisignatureAccount({
 				recipientId, amount, secret, requesterPublicKey, timeOffset: offset,
@@ -101,7 +102,7 @@ describe('#sendFromMultisignatureAccount transaction', () => {
 				);
 			});
 
-			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				(sendFromMultisignatureAccountTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 

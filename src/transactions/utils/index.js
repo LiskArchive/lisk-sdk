@@ -14,3 +14,4 @@
  */
 export { default as getTransactionBytes } from './getTransactionBytes';
 export { default as prepareTransaction } from './prepareTransaction';
+export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';

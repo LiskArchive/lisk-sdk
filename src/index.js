@@ -20,9 +20,9 @@
 import 'babel-polyfill';
 import Mnemonic from 'bitcore-mnemonic';
 import naclFactory from 'js-nacl';
-import crypto from './crypto';
 import api from './api/liskApi';
-import slots from './time/slots';
+import crypto from './crypto';
+import * as time from './transactions/utils/time';
 import transaction from './transactions';
 
 global.naclFactory = naclFactory;
@@ -36,6 +36,6 @@ export {
 	crypto,
 	transaction,
 	api,
-	slots,
+	time,
 	Mnemonic,
 };

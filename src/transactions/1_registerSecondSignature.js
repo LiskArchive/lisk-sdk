@@ -18,8 +18,8 @@
  */
 import cryptoModule from '../crypto';
 import { SIGNATURE_FEE } from '../constants';
-import slots from '../time/slots';
 import { prepareTransaction } from './utils';
+import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method newSignature
@@ -53,7 +53,7 @@ export default function registerSecondSignature({ secret, secondSecret, timeOffs
 		fee: SIGNATURE_FEE,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
-		timestamp: slots.getTimeWithOffset(timeOffset),
+		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			signature,
 		},

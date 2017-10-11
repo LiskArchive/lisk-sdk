@@ -14,7 +14,8 @@
  */
 import registerMultisignatureAccount from '../../src/transactions/4_registerMultisignatureAccount';
 import cryptoModule from '../../src/crypto';
-import slots from '../../src/time/slots';
+
+const time = require('../../src/transactions/utils/time');
 
 afterEach(() => sandbox.restore());
 
@@ -38,7 +39,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	let registerMultisignatureTransaction;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox.stub(slots, 'getTimeWithOffset').returns(timeWithOffset);
+		getTimeWithOffsetStub = sandbox.stub(time, 'getTimeWithOffset').returns(timeWithOffset);
 		keysgroup = ['+123456789', '-987654321'];
 	});
 
@@ -56,11 +57,11 @@ describe('#registerMultisignatureAccount transaction', () => {
 			(registerMultisignatureTransaction).should.be.ok();
 		});
 
-		it('should use slots.getTimeWithOffset to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
 			(getTimeWithOffsetStub.calledWithExactly(undefined)).should.be.true();
 		});
 
-		it('should use slots.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
+		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			registerMultisignatureAccount({ secret, keysgroup, lifetime, min, timeOffset: offset });
 
@@ -96,7 +97,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				(registerMultisignatureTransaction).should.have.property('senderPublicKey').and.be.hexString().and.equal(keys.publicKey);
 			});
 
-			it('should have timestamp number equal to result of slots.getTimeWithOffset', () => {
+			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				(registerMultisignatureTransaction).should.have.property('timestamp').and.be.type('number').and.equal(timeWithOffset);
 			});
 
