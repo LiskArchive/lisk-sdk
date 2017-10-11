@@ -614,7 +614,7 @@ describe('transaction', function () {
 			var trsData = _.cloneDeep(transactionData);
 			trsData.secret = senderPassword;
 			trsData.secondSecret = validPassword;
-
+			//only checks trs.amount > constants.totalAmount
 			createAndProcess(trsData, vs, function (err, trs) {
 				trs.signSignature = '7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
 				transactionLogic.verify(trs, vs, function (err) {
@@ -670,10 +670,58 @@ describe('transaction', function () {
 				done();
 			});
 		});
-
-		it('should return error when transaction amount is invalid', function (done) {
+		
+		it('should return error when transaction amount is greater than total amount', function (done) {
 			var trsData = _.cloneDeep(transactionData);
-			trsData.amount = node.constants.totalAmount + 10;
+			trsData.amount = node.constants.totalAmount + 1;
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is negative', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = -1;
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is not an integer', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = 1.2;
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is negative exponential number', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = 1.3e-2;
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is exponential number', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = 1e+22;
 
 			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
