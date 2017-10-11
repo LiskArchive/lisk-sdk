@@ -614,7 +614,7 @@ describe('transaction', function () {
 			var trsData = _.cloneDeep(transactionData);
 			trsData.secret = senderPassword;
 			trsData.secondSecret = validPassword;
-			//only checks trs.amount > constants.totalAmount
+
 			createAndProcess(trsData, vs, function (err, trs) {
 				trs.signSignature = '7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
 				transactionLogic.verify(trs, vs, function (err) {
@@ -673,7 +673,7 @@ describe('transaction', function () {
 		
 		it('should return error when transaction amount is greater than total amount', function (done) {
 			var trsData = _.cloneDeep(transactionData);
-			trsData.amount = node.constants.totalAmount + 1;
+			trsData.amount = node.constants.totalAmount + 2;
 
 			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
