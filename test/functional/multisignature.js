@@ -6,34 +6,21 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var modulesLoader = require('../common/initModule.js').modulesLoader;
-var DBSandbox = require('../common/globalBefore').DBSandbox;
+var application = require('./../common/application');
 
 describe('multisignature', function () {
 
 	var library;
-	var db;
-	var dbSandbox;
-	var SandBox;
 
-	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_multisignatures');
-		dbSandbox.create(function (err, __db) {
-			modulesLoader.db = __db;
+	before('init sandboxed application', function (done) {
+		application.init({sandbox: {name: 'lisk_test_multisignatures'}}, function (scope) {
+			library = scope;
+			done();
+		});
+	});
 
-			node.initApplication(function (err, scope) {
-				library = scope;
-				// Set delegates module as loaded to allow manual forging
-				library.rewiredModules.delegates.__set__('__private.loaded', true);
-
-				setTimeout(function () {
-					var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
-					loadDelegates(function (err) {
-						done(err);
-					});
-				}, 4000);
-			}, {db: __db});
-		});	
+	after('cleanup sandboxed application', function (done) {
+		application.cleanup(done);
 	});
 
 	function forge (cb) {
@@ -42,6 +29,7 @@ describe('multisignature', function () {
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
 			library.modules.delegates.generateDelegateList(last_block.height, null, function (err, delegateList) {
+				if (err) { return cb (err); }
 				var nextForger = delegateList[(slot + offset) % slots.delegates];
 				return cb(nextForger);
 			});
@@ -61,9 +49,11 @@ describe('multisignature', function () {
 				var last_block = library.modules.blocks.lastBlock.get();
 				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				var keypair = keypairs[delegate];
+				node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 					if (err) { return seriesCb(err); }
 					last_block = library.modules.blocks.lastBlock.get();
+					node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 					return seriesCb(err);
 				});
 			}
@@ -103,13 +93,11 @@ describe('multisignature', function () {
 		});
 	}
 
-
-
 	describe('with LISK sent to multisig account', function () {
 
 		var multisigAccount;
 
-		before(function (done) {
+		before('send funds to multisig account', function (done) {
 			multisigAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
 			addTransactionsAndForge([sendTransaction], done);
@@ -119,7 +107,7 @@ describe('multisignature', function () {
 
 			var multisigSender;
 
-			before(function (done) {
+			before('get multisignature account', function (done) {
 				library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 					multisigSender = res;
 					done();
@@ -131,7 +119,7 @@ describe('multisignature', function () {
 				var signer1 = node.randomAccount();
 				var signer2 = node.randomAccount();
 
-				before(function (done) {
+				before('applyUnconfirm multisignature transaction', function (done) {
 					var keysgroup = [
 						'+' + signer1.publicKey,
 						'+' + signer2.publicKey
@@ -150,7 +138,7 @@ describe('multisignature', function () {
 
 					var account;
 
-					before(function (done) {
+					before('get multisignature account', function (done) {
 						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 							expect(err).to.not.exist;
 							account = res;
@@ -177,12 +165,11 @@ describe('multisignature', function () {
 					var signer3 = node.randomAccount();
 					var signer4 = node.randomAccount();
 
-					before(function (done) {
+					before('process multisignature transaction', function (done) {
 						var keysgroup = [
 							'+' + signer3.publicKey,
 							'+' + signer4.publicKey
 						];
-
 						multisigTransaction2 = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
 						var sign3 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer3.password);
 						var sign4 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer4.password);
@@ -192,7 +179,7 @@ describe('multisignature', function () {
 
 					describe('from the same account', function () {
 
-						before(function (done) {
+						before('get multisignature account', function (done) {
 							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 								multisigSender = res;
 								done();
@@ -212,7 +199,7 @@ describe('multisignature', function () {
 
 		var multisigAccount;
 
-		before(function (done) {
+		before('send funds to multisig account', function (done) {
 			multisigAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
 			addTransactionsAndForge([sendTransaction], done);
@@ -222,7 +209,7 @@ describe('multisignature', function () {
 
 			var multisigSender;
 
-			before(function (done) {
+			before('get multisignature account', function (done) {
 				library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 					multisigSender = res;
 					done();
@@ -235,7 +222,7 @@ describe('multisignature', function () {
 				var signer1 = node.randomAccount();
 				var signer2 = node.randomAccount();
 
-				before(function (done) {
+				before('forge block with multisignature transaction', function (done) {
 					var keysgroup = [
 						'+' + signer1.publicKey,
 						'+' + signer2.publicKey
@@ -254,7 +241,7 @@ describe('multisignature', function () {
 
 					var account;
 
-					before(function (done) {
+					before('get multisignature account', function (done) {
 						library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 							expect(err).to.not.exist;
 							account = res;
@@ -277,7 +264,7 @@ describe('multisignature', function () {
 
 				describe('after deleting block', function () {
 
-					before(function (done) {
+					before('delete last block', function (done) {
 						var last_block = library.modules.blocks.lastBlock.get();
 						library.modules.blocks.chain.deleteLastBlock(done);
 					});
@@ -286,7 +273,7 @@ describe('multisignature', function () {
 
 						var account;
 
-						before(function (done) {
+						before('get multisignature account', function (done) {
 							library.logic.account.get({address: multisigAccount.address}, function (err, res) {
 								expect(err).to.not.exist;
 								account = res;

@@ -11,6 +11,7 @@ var Sequence  = require('../helpers/sequence.js');
 var slots = require('../helpers/slots.js');
 var async = require('async');
 var jobsQueue = require('../helpers/jobsQueue.js');
+var strftime = require('strftime').utc();
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -77,7 +78,7 @@ node.gAccount = {
 if (process.env.SILENT === 'true') {
 	node.debug = function () {};
 } else {
-	node.debug = console.log;
+	node.debug = console.log.bind(console, '[' + strftime('%F %T', new Date()) + ']');
 }
 
 // Random LSK amount
@@ -398,8 +399,12 @@ node.put = function (path, params, done) {
 var currentAppScope;
 
 // Init whole application inside tests
-node.initApplication = function (done, initScope) {
+node.initApplication = function (cb, initScope) {
+	node.debug('initApplication: Application initialization inside test environment started...');
+
+	// Reset jobsQueue
 	jobsQueue.jobs = {};
+
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
@@ -411,6 +416,8 @@ node.initApplication = function (done, initScope) {
 		node.config.db.user = node.config.db.user || process.env.USER;
 		db = pgp(node.config.db);
 	}
+
+	node.debug('initApplication: Target database - ' + node.config.db.database);
 
 	// Clear tables
 	db.task(function (t) {
@@ -568,12 +575,12 @@ node.initApplication = function (done, initScope) {
 
 				Object.keys(modulesInit).forEach(function (name) {
 					tasks[name] = function (cb) {
-						name+ '';
 						var Instance = rewire(modulesInit[name]);
 
 						rewiredModules[name] = Instance;
 						var obj = new rewiredModules[name](cb, scope);
 						modules.push(obj);
+						node.debug('initApplication: Module ' + name + ' loaded');
 					};
 				});
 
@@ -584,18 +591,36 @@ node.initApplication = function (done, initScope) {
 			ready: ['modules', 'bus', 'logic', function (scope, cb) {
 				// Fire onBind event in every module
 				scope.bus.message('bind', scope.modules);
+				scope.logic.transaction.bindModules(scope.modules);
 				scope.logic.peers.bindModules(scope.modules);
+				node.debug('initApplication: Modules binding done');
 				cb();
 			}]
 		}, function (err, scope) {
-			scope.logic.transaction.bindModules(scope.modules);
-			// Overwrite onBlockchainReady function to prevent automatic forging
-			scope.modules.delegates.onBlockchainReady = function () {};
-			// Overwrite onPeersReady function to prevent multiple jobsQueue registeration
-			scope.modules.peers.onPeersReady = function () {};
+			node.expect(err).to.be.null;
+
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			done(err, scope);
+			node.debug('initApplication: Rewired modules available');
+
+			// Overwrite onBlockchainReady function to prevent automatic forging
+			scope.modules.delegates.onBlockchainReady = function () {
+				node.debug('initApplication: Fake onBlockchainReady event called');
+				node.debug('initApplication: Loading delegates...');
+
+				var loadDelegates = scope.rewiredModules.delegates.__get__('__private.loadDelegates');
+				loadDelegates(function (err) {
+					node.expect(err).to.be.null;
+
+					var keypairs = scope.rewiredModules.delegates.__get__('__private.keypairs');
+					var delegates_cnt = Object.keys(keypairs).length;
+					node.expect(delegates_cnt).to.equal(node.config.forging.secret.length);
+
+					node.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
+					node.debug('initApplication: Done');
+					return cb(scope);
+				});
+			};
 		});
 	});
 };
@@ -617,7 +642,7 @@ node.appCleanup = function (done) {
 	});
 };
 
-before(function (done) {
+before('wait for node to be ready', function (done) {
 	require('./common/globalBefore').waitUntilBlockchainReady(done);
 });
 

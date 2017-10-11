@@ -38,6 +38,7 @@ def buildDependency() {
 def startLisk() {
   try {
     sh '''#!/bin/bash
+    cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
     cd test/lisk-js/; npm install; cd ../..
     cp test/config.json test/genesisBlock.json .
     export NODE_ENV=test
