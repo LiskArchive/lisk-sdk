@@ -201,7 +201,7 @@ Signature.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.signature, Signature.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate signature schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate signature schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

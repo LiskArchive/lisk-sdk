@@ -261,7 +261,7 @@ OutTransfer.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.outTransfer, OutTransfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate outTransfer schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate outTransfer schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

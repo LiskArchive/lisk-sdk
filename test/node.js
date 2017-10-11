@@ -379,6 +379,9 @@ var currentAppScope;
 
 // Init whole application inside tests
 node.initApplication = function (cb, initScope) {
+
+	initScope.waitForGenesisBlock = initScope.waitForGenesisBlock !== false;
+
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
@@ -420,7 +423,7 @@ node.initApplication = function (cb, initScope) {
 			peers: '../modules/peers.js',
 			delegates: '../modules/delegates.js',
 			multisignatures: '../modules/multisignatures.js',
-			dapps: '../modules/dapps.js',
+			dapps: '../modules/dapps.js'
 			// cache: '../modules/cache.js'
 		};
 
@@ -535,9 +538,10 @@ node.initApplication = function (cb, initScope) {
 				transport(transportModuleMock);
 				cb();
 			}],
-			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
+			logic: ['db', 'bus', 'schema', 'network', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
 				var Block = require('../logic/block.js');
+				var Multisignature = require('../logic/multisignature.js');
 				var Account = require('../logic/account.js');
 				var Peers = require('../logic/peers.js');
 
@@ -573,6 +577,9 @@ node.initApplication = function (cb, initScope) {
 					}],
 					peers: ['logger', function (scope, cb) {
 						new Peers(scope.logger, cb);
+					}],
+					multisignature: ['schema', 'transaction', 'logger', function (scope, cb) {
+						cb(null, new Multisignature(scope.schema, scope.network, scope.transaction, scope.logger));
 					}]
 				}, cb);
 			}],
@@ -601,10 +608,18 @@ node.initApplication = function (cb, initScope) {
 			}]
 		}, function (err, scope) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
-			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
+
+			scope.modules.delegates.onBlockchainReady = function () {
+				// Wait for genesis block's transactions to be applied into mem_accounts
+				if (initScope.waitForGenesisBlock) {
+					return cb(err, scope);
+				}
+			};
 			currentAppScope = scope;
-			cb(err, scope);
+			if (!initScope.waitForGenesisBlock || initScope.bus) {
+				return cb(err, scope);
+			}
 		});
 	});
 };

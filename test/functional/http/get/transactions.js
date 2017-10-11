@@ -1,9 +1,9 @@
 'use strict';
 
-var node = require('../../../node.js');
+var node = require('../../../node');
 var transactionSortFields = require('../../../../sql/transactions').sortFields;
-var modulesLoader = require('../../../common/initModule').modulesLoader;
-var transactionTypes = require('../../../../helpers/transactionTypes.js');
+var modulesLoader = require('../../../common/modulesLoader');
+var transactionTypes = require('../../../../helpers/transactionTypes');
 var genesisblock = require('../../../genesisBlock.json');
 
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;

@@ -8,7 +8,8 @@ var chai = require('chai');
 var expect = require('chai').expect;
 
 var node = require('./../../node.js');
-var initModule = require('./../../common/initModule.js');
+var modulesLoader = require('./../../common/modulesLoader');
+var DBSandbox = require('./../../common/globalBefore.js').DBSandbox;
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var constants = require('../../../helpers/constants.js');
@@ -22,15 +23,31 @@ describe('delegates', function () {
 	var library;
 	var __private;
 
+	var db;
+	var dbSandbox;
+
+	before(function (done) {
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_modules_delegates');
+		dbSandbox.create(function (err, __db) {
+			modulesLoader.db = __db;
+			db = __db;
+			done(err);
+		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
+	});
+
 	before(function (done) {
 		node.initApplication(function (err, scope) {
 			library = scope;
 
 			// Set delegates module as loaded to allow manual forging
 			library.rewiredModules.delegates.__set__('__private.loaded', true);
-
 			setTimeout(done, 5000);
-		}, {db: initModule.modulesLoader.db});
+		}, {db: modulesLoader.db});
 	});
 
 	before(function (done) {

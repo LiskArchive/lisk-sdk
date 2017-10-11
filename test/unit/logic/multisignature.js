@@ -13,8 +13,9 @@ var expect = require('chai').expect;
 var _  = require('lodash');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var Transaction = require('../../../logic/transaction.js');
 var AccountLogic = require('../../../logic/account.js');
 var AccountModule = require('../../../modules/accounts.js');
@@ -383,7 +384,7 @@ describe('multisignature', function () {
 			});
 		});
 
-		describe('when multisignature keysgroup has an entry which is an integer', function () { 
+		describe('when multisignature keysgroup has an entry which is an integer', function () {
 
 			it('should return error = "Invalid member in keysgroup"', function (done) {
 				trs.asset.multisignature.keysgroup.push(1);

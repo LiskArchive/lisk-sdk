@@ -8,7 +8,7 @@ var rewire  = require('rewire');
 var sinon = require('sinon');
 
 var jobsQueue = require('../../../helpers/jobsQueue');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 
 describe('loader', function () {
 

@@ -10,6 +10,7 @@ var rewire = require('rewire');
 var jobsQueue = require('../../../helpers/jobsQueue.js');
 var peers = rewire('../../../modules/peers');
 
+// These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
 describe('helpers/jobsQueue', function () {
 	// Test global variables
 	var recallInterval = 1000;
@@ -48,8 +49,7 @@ describe('helpers/jobsQueue', function () {
 			});
 		});
 
-		//ToDo: These tests should not stub a time as it breaks others (relying on setTimeout) tests execution
-		describe.skip('should register', function () {
+		describe('should register', function () {
 
 			function dummyFunction (cb) {
 				setTimeout(cb, execTimeInterval);

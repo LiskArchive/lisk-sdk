@@ -9,9 +9,7 @@ var sinon = require('sinon');
 
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 var constants = require('../../../helpers/constants.js');
-var ws = require('../../common/wsCommunication');
-var modulesLoader = require('../../common/initModule').modulesLoader;
-var _ = require('lodash');
+var modulesLoader = require('../../common/modulesLoader');
 var rewire = require('rewire');
 var sql = require('../../../sql/transactions.js');
 
@@ -77,40 +75,49 @@ describe('transactions', function () {
 
 		async.auto({
 			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb);
+				modulesLoader.initLogic(AccountLogic, {db: dbStub}, cb);
 			},
 			transactionLogic: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(TransactionLogic, cb, {
-					account: result.accountLogic
-				});
+				modulesLoader.initLogic(TransactionLogic, {
+					account: result.accountLogic,
+					db: dbStub
+				}, cb);
 			}],
 			loaderModule: ['transactionLogic', 'accountLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(LoaderModule, cb, {
+				modulesLoader.initModule(LoaderModule, {
 					logic: {
-						transaction: result.transaction,
-						account: result.account,
-						//peers
+						transaction: result.transactionLogic,
+						account: result.accountLogic
+					},
+					db: dbStub,
+					config: {
+						loading: {
+							verifyOnLoading: false,
+							snapshot: false
+						}
 					}
-				});
+				}, cb);
 			}],
 			delegateModule: ['transactionLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(DelegateModule, cb, {
+				modulesLoader.initModule(DelegateModule, {
 					logic: {
 						transaction: result.transactionLogic
-					}
-				});
+					},
+					db: dbStub
+				}, cb);
 			}],
 			accountsModule: ['accountLogic', 'transactionLogic', function (result, cb) {
 				modulesLoader.initModule(AccountModule, {
 					logic: {
 						account: result.accountLogic,
 						transaction: result.transactionLogic
-					}
+					},
+					db: dbStub
 				}, cb);
 			}]
 		}, function (err, result){
 			expect(err).to.not.exist;
-			modulesLoader.initModule(TransactionModule, Object.assign({}, modulesLoader.scope,{db: dbStub}), function (err, __transactionModule) {
+			modulesLoader.initModule(TransactionModule, {db: dbStub, logic: {transaction: result.transactionLogic}}, function (err, __transactionModule) {
 				expect(err).to.not.exist;
 
 				transactionsModule = __transactionModule;
@@ -118,17 +125,16 @@ describe('transactions', function () {
 				result.accountsModule.onBind({
 					delegates: result.delegateModule,
 					accounts: result.accountsModule,
-					transactions: transactionsModule,
+					transactions: transactionsModule
 				});
 
 				result.delegateModule.onBind({
 					accounts: result.accountsModule,
-					transactions: transactionsModule,
+					transactions: transactionsModule
 				});
 
 				__transactionModule.onBind({
 					accounts: result.accountsModule,
-					transactions: transactionsModule,
 					loader: result.loaderModule
 				});
 
@@ -144,7 +150,7 @@ describe('transactions', function () {
 
 	describe('Transaction#shared', function () {
 
-		describe('getTransaction', function (done) {
+		describe('getTransaction', function () {
 
 			function getTransactionById (id, done) {
 				transactionsModule.shared.getTransaction({
