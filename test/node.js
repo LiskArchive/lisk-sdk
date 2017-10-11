@@ -11,6 +11,7 @@ var Sequence  = require('../helpers/sequence.js');
 var slots = require('../helpers/slots.js');
 var async = require('async');
 var jobsQueue = require('../helpers/jobsQueue.js');
+var strftime = require('strftime').utc();
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -77,7 +78,7 @@ node.gAccount = {
 if (process.env.SILENT === 'true') {
 	node.debug = function () {};
 } else {
-	node.debug = console.log;
+	node.debug = console.log.bind(console, '[' + strftime('%F %T', new Date()) + ']');
 }
 
 // Random LSK amount
@@ -399,8 +400,7 @@ var currentAppScope;
 
 // Init whole application inside tests
 node.initApplication = function (cb, initScope) {
-	// Set waitForGenesisBlock to true as default
-	initScope.waitForGenesisBlock = initScope.waitForGenesisBlock !== false;
+	node.debug('initApplication: Application initialization inside test environment started...');
 
 	// Reset jobsQueue
 	jobsQueue.jobs = {};
@@ -416,6 +416,8 @@ node.initApplication = function (cb, initScope) {
 		node.config.db.user = node.config.db.user || process.env.USER;
 		db = pgp(node.config.db);
 	}
+
+	node.debug('initApplication: Target database - ' + node.config.db.database);
 
 	// Clear tables
 	db.task(function (t) {
@@ -573,12 +575,12 @@ node.initApplication = function (cb, initScope) {
 
 				Object.keys(modulesInit).forEach(function (name) {
 					tasks[name] = function (cb) {
-						name+ '';
 						var Instance = rewire(modulesInit[name]);
 
 						rewiredModules[name] = Instance;
 						var obj = new rewiredModules[name](cb, scope);
 						modules.push(obj);
+						node.debug('initApplication: Module ' + name + ' loaded');
 					};
 				});
 
@@ -591,23 +593,34 @@ node.initApplication = function (cb, initScope) {
 				scope.bus.message('bind', scope.modules);
 				scope.logic.transaction.bindModules(scope.modules);
 				scope.logic.peers.bindModules(scope.modules);
+				node.debug('initApplication: Modules binding done');
 				cb();
 			}]
 		}, function (err, scope) {
+			node.expect(err).to.be.null;
+
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
+			node.debug('initApplication: Rewired modules available');
 
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {
-				// Wait for genesis block's transactions to be applied into mem_accounts
-				if (initScope.waitForGenesisBlock) {
-					return cb(err, scope);
-				}
-			};
+				node.debug('initApplication: Fake onBlockchainReady event called');
+				node.debug('initApplication: Loading delegates...');
 
-			if (!initScope.waitForGenesisBlock || initScope.bus) {
-				return cb(err, scope);
-			}
+				var loadDelegates = scope.rewiredModules.delegates.__get__('__private.loadDelegates');
+				loadDelegates(function (err) {
+					node.expect(err).to.be.null;
+
+					var keypairs = scope.rewiredModules.delegates.__get__('__private.keypairs');
+					var delegates_cnt = Object.keys(keypairs).length;
+					node.expect(delegates_cnt).to.equal(node.config.forging.secret.length);
+
+					node.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
+					node.debug('initApplication: Done');
+					return cb(scope);
+				});
+			};
 		});
 	});
 };
