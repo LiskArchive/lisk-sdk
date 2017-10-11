@@ -288,11 +288,11 @@ node.randomUsername = function () {
 
 // Returns a random capitialized username
 node.randomCapitalUsername = function () {
-	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
+	var size = node.randomNumber(1, 15); // Min. username size is 1, Max. username size is 16
 	var username = 'A';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
-	for (var i = 0; i < size - 1; i++) {
+	for (var i = 0; i < size; i++) {
 		username += possible.charAt(Math.floor(Math.random() * possible.length));
 	}
 
@@ -301,11 +301,11 @@ node.randomCapitalUsername = function () {
 
 // Returns a random application name
 node.randomApplicationName = function () {
-	var size = node.randomNumber(1, 32); // Min. username size is 1, Max. username size is 32
+	var size = node.randomNumber(1, 31); // Min. length of Application name length is 1, Max. Application name length is 32
 	var name = 'A';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	for (var i = 0; i < size - 1; i++) {
+	for (var i = 0; i < size; i++) {
 		name += possible.charAt(Math.floor(Math.random() * possible.length));
 	}
 
