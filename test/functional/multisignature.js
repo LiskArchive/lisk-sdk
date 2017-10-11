@@ -4,6 +4,7 @@ var slots = require('../../helpers/slots.js');
 var sinon = require('sinon');
 var chai = require('chai');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 var _  = require('lodash');
 
 var application = require('./../common/application');
@@ -93,6 +94,21 @@ describe('multisignature', function () {
 		});
 	}
 
+	function getAccountFromDb (address) {
+		return Promise.all([
+			library.db.query('SELECT * FROM mem_accounts where address = \'' + address + '\''),
+			library.db.query('SELECT * FROM mem_accounts2multisignatures where "accountId" = \'' + address + '\''),
+			library.db.query('SELECT * FROM mem_accounts2u_multisignatures where "accountId" = \'' + address + '\'')
+		]).then(function (res) {
+			// Get the first row if resultant array is not empty
+			return {
+				mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
+				mem_accounts2multisignatures: res[1],
+				mem_accounts2u_multisignatures: res[2]
+			};
+		});
+	}
+
 	describe('with LISK sent to multisig account', function () {
 
 		var multisigAccount;
@@ -132,6 +148,43 @@ describe('multisignature', function () {
 					multisigTransaction.signatures = [sign1, sign2];
 					multisigTransaction.ready = true;
 					library.logic.transaction.applyUnconfirmed(multisigTransaction, multisigSender, done);
+				});
+
+				describe('sender db rows', function () {
+					var accountRow;
+
+					before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', function () {
+						return getAccountFromDb(multisigAccount.address).then(function (res) {
+							accountRow = res;
+						});
+					});
+
+					it('should have no rows in mem_accounts2multisignatures', function () {
+						expect(accountRow.mem_accounts2multisignatures).to.eql([]);
+					});
+
+					it('should have multimin field set to 0 on mem_accounts', function () {
+						expect(accountRow.mem_accounts.multimin).to.eql(0);
+					});
+
+					it('should have multilifetime field set to 0 on mem_accounts', function () {
+						expect(accountRow.mem_accounts.multilifetime).to.eql(0);
+					});
+
+					it('should include rows in mem_accounts2u_multisignatures', function () {
+						var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, function (row) {
+							return row.dependentId;
+						});
+						expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
+					});
+
+					it('should set u_multimin field set on mem_accounts', function () {
+						expect(accountRow.mem_accounts.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
+					});
+
+					it('should set u_multilifetime field set on mem_accounts', function () {
+						expect(accountRow.mem_accounts.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
+					});
 				});
 
 				describe('sender account', function () {
@@ -237,6 +290,46 @@ describe('multisignature', function () {
 					addTransactionsAndForge([multisigTransaction], done);
 				});
 
+				describe('sender db rows', function () {
+					var accountRow;
+
+					before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', function () {
+						return getAccountFromDb(multisigAccount.address).then(function (res) {
+							accountRow = res;
+						});
+					});
+
+					it('should include rows in mem_accounts2multisignatures', function () {
+						var signKeysInDb = _.map(accountRow.mem_accounts2multisignatures, function (row) {
+							return row.dependentId;
+						});
+						expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
+					});
+
+					it('should set multimin field set on mem_accounts', function () {
+						expect(accountRow.mem_accounts.multimin).to.eql(multisigTransaction.asset.multisignature.min);
+					});
+
+					it('should set multilifetime field set on mem_accounts', function () {
+						expect(accountRow.mem_accounts.multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
+					});
+
+					it('should include rows in mem_accounts2u_multisignatures', function () {
+						var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, function (row) {
+							return row.dependentId;
+						});
+						expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
+					});
+
+					it('should set u_multimin field set on mem_accounts', function () {
+						expect(accountRow.mem_accounts.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
+					});
+
+					it('should set u_multilifetime field set on mem_accounts', function () {
+						expect(accountRow.mem_accounts.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
+					});
+				});
+
 				describe('sender account', function () {
 
 					var account;
@@ -260,6 +353,18 @@ describe('multisignature', function () {
 					it('should have multilifetime field set on account', function () {
 						expect(account.multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
 					});
+
+					it('should have u_multisignatures field set on account', function () {
+						expect(account.u_multisignatures).to.include(signer1.publicKey, signer2.publicKey);
+					});
+
+					it('should have u_multimin field set on account', function () {
+						expect(account.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
+					});
+
+					it('should have u_multilifetime field set on account', function () {
+						expect(account.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
+					});
 				});
 
 				describe('after deleting block', function () {
@@ -267,6 +372,40 @@ describe('multisignature', function () {
 					before('delete last block', function (done) {
 						var last_block = library.modules.blocks.lastBlock.get();
 						library.modules.blocks.chain.deleteLastBlock(done);
+					});
+
+					describe('sender db rows', function () {
+						var accountRow;
+
+						before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', function () {
+							return getAccountFromDb(multisigAccount.address).then(function (res) {
+								accountRow = res;
+							});
+						});
+
+						it('should have no rows in mem_accounts2multisignatures', function () {
+							expect(accountRow.mem_accounts2multisignatures).to.eql([]);
+						});
+
+						it('should have multimin field set to 0 on mem_accounts', function () {
+							expect(accountRow.mem_accounts.multimin).to.eql(0);
+						});
+
+						it('should have multilifetime field set to 0 on mem_accounts', function () {
+							expect(accountRow.mem_accounts.multilifetime).to.eql(0);
+						});
+
+						it('should have no rows in mem_accounts2u_multisignatures', function () {
+							expect(accountRow.mem_accounts2u_multisignatures).to.eql([]);
+						});
+
+						it('should have u_multimin field set to 0 on mem_accounts', function () {
+							expect(accountRow.mem_accounts.u_multimin).to.eql(0);
+						});
+
+						it('should have multilifetime field to 0 on mem_accounts', function () {
+							expect(accountRow.mem_accounts.u_multilifetime).to.eql(0);
+						});
 					});
 
 					describe('sender account', function () {
