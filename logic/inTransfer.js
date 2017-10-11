@@ -217,7 +217,7 @@ InTransfer.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.inTransfer, InTransfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate inTransfer schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate inTransfer schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

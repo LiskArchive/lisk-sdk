@@ -25,7 +25,7 @@ function Vote (logger, schema) {
 	self = this;
 	library = {
 		logger: logger,
-		schema: schema,
+		schema: schema
 	};
 
 }
@@ -329,7 +329,7 @@ Vote.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset, Vote.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate vote schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate vote schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
