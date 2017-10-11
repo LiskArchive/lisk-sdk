@@ -287,6 +287,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Functional POST tx type 0" : {
 				node('node-01'){
 					run_test('test/functional/http/post/0.transfer.js')
+        }
+			},
+			"Functional POST tx type 1" : {
+				node('node-01'){
+          run_test('test/functional/http/post/0.transfer.js')
 				}
 			},
 			"Functional Peers" : {

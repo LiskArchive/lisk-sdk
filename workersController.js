@@ -101,7 +101,7 @@ module.exports.run = function (worker) {
 						', message: ' + failureCodes.errorMessages[onUpdateError.code] +
 						', description: ' + onUpdateError.description);
 				} else {
-					scope.logger.info(actionName + ' peer: ' + peer.string + ' success');
+					scope.logger.info(actionName + ' peer - ' + peer.ip + ':' + peer.port + ' success');
 				}
 				return setImmediate(cb, onUpdateError);
 			});

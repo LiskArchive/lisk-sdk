@@ -167,6 +167,16 @@ function invalidAssets (account, option, badTransactions) {
 				});
 			});
 		});
+
+		it('deleting object should fail', function () {
+			delete transaction.asset;
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').that.is.not.empty;
+				badTransactions.push(transaction);
+			});
+		});
 	});
 
 	describe('using invalid asset.' + option + ' values', function () {
@@ -180,6 +190,16 @@ function invalidAssets (account, option, badTransactions) {
 					node.expect(res).to.have.property('message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
+			});
+		});
+
+		it('deleting object should fail', function () {
+			delete transaction.asset[option];
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('message').that.is.not.empty;
+				badTransactions.push(transaction);
 			});
 		});
 	});

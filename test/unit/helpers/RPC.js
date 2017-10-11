@@ -22,6 +22,10 @@ var socketClusterMock = {
 
 describe('wsRPC', function () {
 
+	beforeEach(function () {
+		wsRPC.clientsConnectionsMap = {};
+	});
+
 	it('should have empty clientsConnectionsMap field', function () {
 		expect(wsRPC).to.have.property('clientsConnectionsMap').to.be.a('object').and.to.be.empty;
 	});
@@ -162,7 +166,6 @@ describe('wsRPC', function () {
 
 			beforeEach(function () {
 				masterWAMPServerConfig = {};
-				wsRPC.clientsConnectionsMap = {};
 				masterWAMPServer = new MasterWAMPServer(socketClusterMock, masterWAMPServerConfig);
 				wsRPC.setServer(masterWAMPServer);
 			});
