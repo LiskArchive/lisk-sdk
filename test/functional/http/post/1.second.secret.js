@@ -29,7 +29,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	// Crediting accounts
 	before(function () {
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 100000000000));
+		promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
 		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.secondsignature));
 		promises.push(creditAccountPromise(accountNoSecondPassword.address, constants.fees.secondsignature));
 		promises.push(creditAccountPromise(accountDuplicate.address, constants.fees.secondsignature));

@@ -32,8 +32,8 @@ describe('GET /api/transactions', function () {
 	before(function () {
 
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 100 * 100000000));
-		promises.push(creditAccountPromise(account2.address, 20 * 100000000));
+		promises.push(creditAccountPromise(account.address, 100 * node.normalizer ));
+		promises.push(creditAccountPromise(account2.address, 20 * node.normalizer ));
 
 		return node.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
@@ -164,8 +164,8 @@ describe('GET /api/transactions', function () {
 			var limit = 10;
 			var offset = 0;
 			var orderBy = 'amount:asc';
-			var minAmount = 20 * 100000000; // 20 LSK
-			var maxAmount = 100 * 100000000; // 100 LSK
+			var minAmount = 20 * node.normalizer ; // 20 LSK
+			var maxAmount = 100 * node.normalizer ; // 100 LSK
 
 			var params = [
 				'minAmount=' + minAmount,

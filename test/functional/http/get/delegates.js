@@ -26,7 +26,7 @@ describe('GET /api/delegates', function () {
 	// Crediting account and registering as delegate
 	before(function () {
 		var promises = [];
-		promises.push(creditAccountPromise(delegate.address, 100000000000));
+		promises.push(creditAccountPromise(delegate.address, 1000 * node.normalizer));
 
 		return node.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
@@ -420,7 +420,7 @@ describe('GET /api/delegates', function () {
 		// Crediting account and vote delegate
 		before(function () {
 			var promises = [];
-			promises.push(creditAccountPromise(account.address, 100000000000));
+			promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
 
 			return node.Promise.all(promises).then(function (results) {
 				results.forEach(function (res) {

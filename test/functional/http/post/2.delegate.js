@@ -27,7 +27,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	before(function () {
 
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 100000000000));
+		promises.push(creditAccountPromise(account.address, 1000 * node.normalizer ));
 		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.delegate));
 		promises.push(creditAccountPromise(accountUpperCase.address, constants.fees.delegate));
 		promises.push(creditAccountPromise(accountFormerDelegate.address, constants.fees.delegate));
