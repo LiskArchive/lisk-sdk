@@ -137,7 +137,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 	* :racehorse: `:racehorse:` when improving performance
 	* :white_check_mark: `:white_check_mark:` when adding or updating tests
 	* :construction_worker: `:construction_worker:` when updating the build process
-	* :bowtie: `:bowtie` when updating CI
+	* :bowtie: `:bowtie:` when updating CI
 	* :house: `:house:` when performing chores
 	* :new: `:new:` when adding a new dependency
 	* :arrow_up: `:arrow_up:` when upgrading a dependency
