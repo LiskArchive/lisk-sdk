@@ -6,21 +6,21 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var DBSandbox = require('../common/globalBefore').DBSandbox;
+var application = require('./../common/application');
 
 describe('multisignature', function () {
 
 	var library;
-	var dbSandbox;
 
 	before('init sandboxed application', function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_multisignatures');
-		dbSandbox.create(function (err, __db) {
-			node.initApplication(function (scope) {
-				library = scope;
-				done();
-			}, {db: __db});
-		});	
+		application.init({sandbox: {name: 'lisk_test_multisignatures'}}, function (scope) {
+			library = scope;
+			done();
+		});
+	});
+
+	after('cleanup sandboxed application', function (done) {
+		application.cleanup(done);
 	});
 
 	function forge (cb) {
