@@ -16,18 +16,9 @@ describe('multisignature', function () {
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_multisignatures');
 		dbSandbox.create(function (err, __db) {
-
-			node.initApplication(function (err, scope) {
+			node.initApplication(function (scope) {
 				library = scope;
-				// Set delegates module as loaded to allow manual forging
-				library.rewiredModules.delegates.__set__('__private.loaded', true);
-
-				setTimeout(function () {
-					var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
-					loadDelegates(function (err) {
-						done(err);
-					});
-				}, 15000);
+				done();
 			}, {db: __db});
 		});	
 	});
@@ -60,9 +51,11 @@ describe('multisignature', function () {
 				var delegate = scope.getNextForger;
 				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				var keypair = keypairs[delegate];
+				node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 					if (err) { return seriesCb(err); }
 					last_block = library.modules.blocks.lastBlock.get();
+					node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 					return seriesCb(err);
 				});
 			}]
