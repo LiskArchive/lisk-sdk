@@ -360,7 +360,7 @@ Multisignature.prototype.objectNormalize = function (trs) {
 	var report = library.schema.validate(trs.asset.multisignature, Multisignature.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate multisignature schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate multisignature schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}

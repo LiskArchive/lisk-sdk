@@ -1,10 +1,10 @@
 'use strict';
 
-var node = require('../../../node.js');
-var http = require('../../../common/httpCommunication.js');
-var sendLISK = require('../../../common/apiHelpers.js').sendLISK;
-var sendTransaction = require('../../../common/apiHelpers.js').sendTransaction;
-var modulesLoader = require('../../../common/initModule.js').modulesLoader;
+var node = require('../../../node');
+var http = require('../../../common/httpCommunication');
+var sendLISK = require('../../../common/apiHelpers').sendLISK;
+var sendTransaction = require('../../../common/apiHelpers').sendTransaction;
+var modulesLoader = require('../../../common/modulesLoader');
 var genesisDelegates = require('../../../genesisDelegates.json');
 var testDelegate = genesisDelegates.delegates[0];
 

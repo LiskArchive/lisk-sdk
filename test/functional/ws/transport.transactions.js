@@ -44,7 +44,7 @@ describe('Posting transaction (type 0)', function () {
 		});
 	});
 
-	describe('transaction confirmations', function () {
+	describe('confirmation', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
 	});

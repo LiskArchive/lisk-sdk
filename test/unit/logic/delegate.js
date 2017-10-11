@@ -7,7 +7,7 @@ var rewire = require('rewire');
 var sinon   = require('sinon');
 
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
 var node = require('../../node.js');
 var expect = node.expect;
