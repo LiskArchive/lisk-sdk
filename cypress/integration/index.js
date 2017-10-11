@@ -12,12 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+const ROOT_DIR = Cypress.env('ROOT_DIR');
 
 const throwFailuresInWindow = (win) => {
 	const failures = win
 		.parent
 		.document
-		.getElementById('Your App: \'lisk-js\'')
+		.getElementById(`Your App: '${ROOT_DIR}'`)
 		.contentDocument
 		.getElementsByClassName('fail');
 

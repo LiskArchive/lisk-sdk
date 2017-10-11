@@ -6,7 +6,7 @@
 	"scripts": {
 		"test": "nyc mocha test --recursive",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test --recursive\" --initial",
-		"test:browser": "cypress run",
+		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
 		"cover": "istanbul cover --dir ./coverage _mocha",
 		"eslint": "grunt eslint --verbose",
 		"serve:browsertest": "http-server browsertest",
