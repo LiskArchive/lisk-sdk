@@ -674,7 +674,6 @@ describe('transaction', function () {
 		it('should return error when transaction amount is greater than total amount', function (done) {
 			var trsData = _.cloneDeep(transactionData);
 			trsData.amount = node.constants.totalAmount.add(10).toNumber();
-			console.log('totalAmount bignum: ', node.constants.totalAmount.add(1).toNumber().toString());
 
 			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
@@ -734,7 +733,7 @@ describe('transaction', function () {
 
 		it('should return error when account balance is less than transaction amount', function (done) {
 			var trsData = _.cloneDeep(transactionData);
-			trsData.amount = node.constants.totalAmount.toInteger();
+			trsData.amount = node.constants.totalAmount.toNumber();
 			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
 					expect(err).to.include('Account does not have enough LSK:');
