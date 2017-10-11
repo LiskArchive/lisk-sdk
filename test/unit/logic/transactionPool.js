@@ -72,20 +72,20 @@ describe('txPool', function () {
 			});
 		});
 
-		it('should return error when using invalid tx', function (done) {
+		it('should return error when using invalid transaction', function (done) {
 			txPool.receiveTransactions([{ id: '123' }], false, function (err) {
 				expect(err).to.exist;
 				done();
 			});
 		});
 
-		it('should process tx if valid and insert tx into queue', function (done) {
+		it('should process transaction if valid and insert transaction into queue', function (done) {
 			var account = node.randomAccount();
-			const tx = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
+			const transaction = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
 
-			txPool.receiveTransactions([tx], false, function (err) {
+			txPool.receiveTransactions([transaction], false, function (err) {
 				expect(err).to.not.exist;
-				expect(txPool.transactionInPool(tx.id)).to.be.true;
+				expect(txPool.transactionInPool(transaction.id)).to.be.true;
 				done();
 			});
 		});

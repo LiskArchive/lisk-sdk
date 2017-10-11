@@ -242,7 +242,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	try {
 		transaction = library.logic.transaction.objectNormalize(transaction);
 	} catch (e) {
-		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', tx: transaction});
+		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', transaction: transaction});
 
 		__private.removePeer({peer: peer, code: 'ETRANSACTION'}, extraLogMessage);
 

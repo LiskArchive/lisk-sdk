@@ -24,7 +24,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 	describe('transaction processing', function () {
 
-		it('mutating data used to build the tx id should fail', function () {
+		it('mutating data used to build the transaction id should fail', function () {
 			transaction = node.randomTx();
 			transaction.timestamp += 1;
 
