@@ -288,7 +288,8 @@ node.randomUsername = function () {
 
 // Returns a random capitialized username
 node.randomCapitalUsername = function () {
-	var size = node.randomNumber(1, 15); // Min. username size is 1, Max. username size is 16
+	// Min. username size is 1, Max. username size is 16 (we use 15 as max because of hardcoded first letter)
+	var size = node.randomNumber(1, 15);
 	var username = 'A';
 	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 
