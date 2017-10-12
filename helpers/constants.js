@@ -28,7 +28,7 @@
  * @property {number} maxRequests
  * @property {number} maxSharedTxs
  * @property {number} maxSignaturesLength
- * @property {number} maxTxsPerBlock
+ * @property {number} maxTransactionsPerBlock
  * @property {number} minBroadhashConsensus
  * @property {string[]} nethashes - Mainnet and Testnet.
  * @property {number} numberLength
@@ -69,7 +69,7 @@ var constants = {
 	maxRequests: 10000 * 12,
 	maxSharedTxs: 100,
 	maxSignaturesLength: 196 * 256,
-	maxTxsPerBlock: 25,
+	maxTransactionsPerBlock: 25,
 	minBroadhashConsensus: 51,
 	nethashes: [
 		// Mainnet

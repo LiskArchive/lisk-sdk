@@ -454,7 +454,7 @@ describe('blocks/verify', function () {
 			validBlock.numberOfTransactions = validBlock.transactions.length;
 		});
 
-		it('should fail when transactions length greater than maxTxsPerBlock constant value', function () {
+		it('should fail when transactions length greater than maxTransactionsPerBlock constant value', function () {
 			var transactions = validBlock.transactions;
 			validBlock.transactions = new Array(26);
 			validBlock.numberOfTransactions = validBlock.transactions.length;

@@ -57,38 +57,38 @@ function Multisignatures (cb, scope) {
 // Public methods
 /**
  * Gets transaction from transaction id and add it to sequence and bus.
- * @param {Object} tx - Contains transaction and signature.
+ * @param {Object} transaction - Contains transaction and signature.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} err messages| cb
  * @todo test function!.
  */
-Multisignatures.prototype.processSignature = function (tx, cb) {
-	if (!tx) {
+Multisignatures.prototype.processSignature = function (transaction, cb) {
+	if (!transaction) {
 		return setImmediate(cb, 'Unable to process signature. Signature is undefined.');
 	}
-	var transaction = modules.transactions.getMultisignatureTransaction(tx.transaction);
+	var transaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
 
 	function done (cb) {
 		library.balancesSequence.add(function (cb) {
-			var transaction = modules.transactions.getMultisignatureTransaction(tx.transaction);
+			var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
 
-			if (!transaction) {
+			if (!multisignatureTransaction) {
 				return setImmediate(cb, 'Transaction not found');
 			}
 
 			modules.accounts.getAccount({
-				address: transaction.senderId
+				address: multisignatureTransaction.senderId
 			}, function (err, sender) {
 				if (err) {
 					return setImmediate(cb, err);
 				} else if (!sender) {
 					return setImmediate(cb, 'Sender not found');
 				} else {
-					transaction.signatures = transaction.signatures || [];
-					transaction.signatures.push(tx.signature);
-					transaction.ready = Multisignature.prototype.ready(transaction, sender);
+					multisignatureTransaction.signatures = multisignatureTransaction.signatures || [];
+					multisignatureTransaction.signatures.push(transaction.signature);
+					multisignatureTransaction.ready = Multisignature.prototype.ready(multisignatureTransaction, sender);
 
-					library.bus.message('signature', {transaction: tx.transaction, signature: tx.signature}, true);
+					library.bus.message('signature', {transaction: transaction.transaction, signature: transaction.signature}, true);
 					return setImmediate(cb);
 				}
 			});
@@ -102,7 +102,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 	if (transaction.type === transactionTypes.MULTI) {
 		transaction.signatures = transaction.signatures || [];
 
-		if (transaction.asset.multisignature.signatures || transaction.signatures.indexOf(tx.signature) !== -1) {
+		if (transaction.asset.multisignature.signatures || transaction.signatures.indexOf(transaction.signature) !== -1) {
 			return setImmediate(cb, 'Permission to sign transaction denied');
 		}
 
@@ -112,7 +112,7 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 		try {
 			for (var i = 0; i < transaction.asset.multisignature.keysgroup.length && !verify; i++) {
 				var key = transaction.asset.multisignature.keysgroup[i].substring(1);
-				verify = library.logic.transaction.verifySignature(transaction, key, tx.signature);
+				verify = library.logic.transaction.verifySignature(transaction, key, transaction.signature);
 			}
 		} catch (e) {
 			library.logger.error(e.stack);
@@ -145,13 +145,13 @@ Multisignatures.prototype.processSignature = function (tx, cb) {
 
 			transaction.signatures = transaction.signatures || [];
 
-			if (transaction.signatures.indexOf(tx.signature) >= 0) {
+			if (transaction.signatures.indexOf(transaction.signature) >= 0) {
 				return setImmediate(cb, 'Signature already exists');
 			}
 
 			try {
 				for (var i = 0; i < multisignatures.length && !verify; i++) {
-					verify = library.logic.transaction.verifySignature(transaction, multisignatures[i], tx.signature);
+					verify = library.logic.transaction.verifySignature(transaction, multisignatures[i], transaction.signature);
 				}
 			} catch (e) {
 				library.logger.error(e.stack);

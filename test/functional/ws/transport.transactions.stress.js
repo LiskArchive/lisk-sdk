@@ -52,7 +52,7 @@ describe('postTransactions @slow', function () {
 		});
 
 		it('should confirm all transactions', function (done) {
-			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
+			var blocksToWait = Math.ceil(maximum / node.constants.maxTransactionsPerBlock);
 			node.waitForBlocks(blocksToWait, function (err) {
 				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
@@ -94,7 +94,7 @@ describe('postTransactions @slow', function () {
 		});
 
 		it('should confirm all transactions', function (done) {
-			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
+			var blocksToWait = Math.ceil(maximum / node.constants.maxTransactionsPerBlock);
 			node.waitForBlocks(blocksToWait, function (err) {
 				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {

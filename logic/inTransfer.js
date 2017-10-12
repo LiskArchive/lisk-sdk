@@ -38,11 +38,11 @@ InTransfer.prototype.bind = function (accounts, sharedApi) {
 
 /**
  * Returns send fee from constants.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @return {number} fee
  */
-InTransfer.prototype.calculateFee = function (trs, sender) {
+InTransfer.prototype.calculateFee = function (transaction, sender) {
 	return constants.fees.send;
 };
 
@@ -50,29 +50,29 @@ InTransfer.prototype.calculateFee = function (trs, sender) {
  * Verifies recipientId, amount and InTransfer object content.
  * Finds application into `dapps` table.
  * @implements {library.db.one}
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} errors message | trs
+ * @return {setImmediateCallback} errors message | transaction
  */
-InTransfer.prototype.verify = function (trs, sender, cb) {
-	if (trs.recipientId) {
+InTransfer.prototype.verify = function (transaction, sender, cb) {
+	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (!trs.amount) {
+	if (!transaction.amount) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	if (!trs.asset || !trs.asset.inTransfer) {
+	if (!transaction.asset || !transaction.asset.inTransfer) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
 	library.db.one(sql.countByTransactionId, {
-		id: trs.asset.inTransfer.dappId
+		id: transaction.asset.inTransfer.dappId
 	}).then(function (row) {
 		if (row.count === 0) {
-			return setImmediate(cb, 'Application not found: ' + trs.asset.inTransfer.dappId);
+			return setImmediate(cb, 'Application not found: ' + transaction.asset.inTransfer.dappId);
 		} else {
 			return setImmediate(cb);
 		}
@@ -82,28 +82,28 @@ InTransfer.prototype.verify = function (trs, sender, cb) {
 };
 
 /**
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb, null, trs
+ * @return {setImmediateCallback} cb, null, transaction
  */
-InTransfer.prototype.process = function (trs, sender, cb) {
-	return setImmediate(cb, null, trs);
+InTransfer.prototype.process = function (transaction, sender, cb) {
+	return setImmediate(cb, null, transaction);
 };
 
 /**
  * Creates buffer with inTransfer content:
  * - dappId
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @return {Array} Buffer
  * @throws {e} Error
  */
-InTransfer.prototype.getBytes = function (trs) {
+InTransfer.prototype.getBytes = function (transaction) {
 	var buf;
 
 	try {
 		buf = Buffer.from([]);
-		var nameBuf = Buffer.from(trs.asset.inTransfer.dappId, 'utf8');
+		var nameBuf = Buffer.from(transaction.asset.inTransfer.dappId, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 	} catch (e) {
 		throw e;
@@ -114,26 +114,26 @@ InTransfer.prototype.getBytes = function (trs) {
 
 /**
  * Calls getGenesis with dappid to obtain authorId.
- * Calls mergeAccountAndGet with unconfirmed trs amount and authorId as 
+ * Calls mergeAccountAndGet with unconfirmed transaction amount and authorId as
  * address.
  * @implements {shared.getGenesis}
  * @implements {modules.accounts.mergeAccountAndGet}
  * @implements {slots.calcRound}
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error, cb
  */
-InTransfer.prototype.apply = function (trs, block, sender, cb) {
-	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
+InTransfer.prototype.apply = function (transaction, block, sender, cb) {
+	shared.getGenesis({dappid: transaction.asset.inTransfer.dappId}, function (err, res) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: res.authorId,
-			balance: trs.amount,
-			u_balance: trs.amount,
+			balance: transaction.amount,
+			u_balance: transaction.amount,
 			blockId: block.id,
 			round: slots.calcRound(block.height)
 		}, function (err) {
@@ -145,25 +145,25 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
 /**
  * Calls getGenesis with dappid to obtain authorId.
  * Calls mergeAccountAndGet with authorId as address and unconfirmed 
- * trs amount and balance both negatives.
+ * transaction amount and balance both negatives.
  * @implements {shared.getGenesis}
  * @implements {modules.accounts.mergeAccountAndGet}
  * @implements {slots.calcRound}
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error, cb
  */
-InTransfer.prototype.undo = function (trs, block, sender, cb) {
-	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
+InTransfer.prototype.undo = function (transaction, block, sender, cb) {
+	shared.getGenesis({dappid: transaction.asset.inTransfer.dappId}, function (err, res) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: res.authorId,
-			balance: -trs.amount,
-			u_balance: -trs.amount,
+			balance: -transaction.amount,
+			u_balance: -transaction.amount,
 			blockId: block.id,
 			round: slots.calcRound(block.height)
 		}, function (err) {
@@ -173,22 +173,22 @@ InTransfer.prototype.undo = function (trs, block, sender, cb) {
 };
 
 /**
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-InTransfer.prototype.applyUnconfirmed = function (trs, sender, cb) {
+InTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	return setImmediate(cb);
 };
 
 /**
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-InTransfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
+InTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	return setImmediate(cb);
 };
 
@@ -209,12 +209,12 @@ InTransfer.prototype.schema = {
 /**
  * Calls `objectNormalize` with asset inTransfer.
  * @implements {library.schema.validate}
- * @param {transaction} trs
- * @return {error|transaction} error string | trs normalized
+ * @param {transaction} transaction
+ * @return {error|transaction} error string | transaction normalized
  * @throws {string} error message
  */
-InTransfer.prototype.objectNormalize = function (trs) {
-	var report = library.schema.validate(trs.asset.inTransfer, InTransfer.prototype.schema);
+InTransfer.prototype.objectNormalize = function (transaction) {
+	var report = library.schema.validate(transaction.asset.inTransfer, InTransfer.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to validate inTransfer schema: ' + library.schema.getLastErrors().map(function (err) {
@@ -222,7 +222,7 @@ InTransfer.prototype.objectNormalize = function (trs) {
 		}).join(', ');
 	}
 
-	return trs;
+	return transaction;
 };
 
 /**
@@ -252,42 +252,42 @@ InTransfer.prototype.dbFields = [
 /**
  * Creates db operation object to 'intransfer' table based on 
  * inTransfer data.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @return {Object[]} table, fields, values.
  */
-InTransfer.prototype.dbSave = function (trs) {
+InTransfer.prototype.dbSave = function (transaction) {
 	return {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			dappId: trs.asset.inTransfer.dappId,
-			transactionId: trs.id
+			dappId: transaction.asset.inTransfer.dappId,
+			transactionId: transaction.id
 		}
 	};
 };
 
 /**
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-InTransfer.prototype.afterSave = function (trs, cb) {
+InTransfer.prototype.afterSave = function (transaction, cb) {
 	return setImmediate(cb);
 };
 
 /**
  * Checks sender multisignatures and transaction signatures.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @return {boolean} True if transaction signatures greather than 
  * sender multimin or there are not sender multisignatures.
  */
-InTransfer.prototype.ready = function (trs, sender) {
+InTransfer.prototype.ready = function (transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
-		if (!Array.isArray(trs.signatures)) {
+		if (!Array.isArray(transaction.signatures)) {
 			return false;
 		}
-		return trs.signatures.length >= sender.multimin;
+		return transaction.signatures.length >= sender.multimin;
 	} else {
 		return true;
 	}

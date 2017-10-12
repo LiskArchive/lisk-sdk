@@ -43,14 +43,14 @@ describe('multisignatures', function () {
 
 			it('should call modules.transactions.getMultisignatureTransaction');
 
-			it('should call modules.transactions.getMultisignatureTransaction with tx.transaction');
+			it('should call modules.transactions.getMultisignatureTransaction with transaction.transaction');
 
-			describe('when multisignature tx.transaction does not exist', function () {
+			describe('when multisignature transaction.transaction does not exist', function () {
 
 				it('should call callback with error = "Transaction not found"');
 			});
 
-			describe('when multisignature tx.transaction exists', function () {
+			describe('when multisignature transaction.transaction exists', function () {
 
 				it('should call modules.accounts.getAccount');
 
@@ -72,7 +72,7 @@ describe('multisignatures', function () {
 
 						it('should call Multisignature.prototype.ready');
 
-						it('should call Multisignature.prototype.ready with multisignature with signatures containing tx.signature');
+						it('should call Multisignature.prototype.ready with multisignature with signatures containing transaction.signature');
 
 						it('should call Multisignature.prototype.ready with sender');
 
@@ -80,7 +80,7 @@ describe('multisignatures', function () {
 
 						it('should call library.bus.message with "signature"');
 
-						it('should call library.bus.message with {transaction: tx.transaction, signature: tx.signature}');
+						it('should call library.bus.message with {transaction: transaction.transaction, signature: transaction.signature}');
 
 						it('should call library.bus.message with true');
 
@@ -101,14 +101,14 @@ describe('multisignatures', function () {
 
 			it('should call modules.transactions.getMultisignatureTransaction');
 
-			it('should call modules.transactions.getMultisignatureTransaction with tx.transaction');
+			it('should call modules.transactions.getMultisignatureTransaction with transaction.transaction');
 
-			describe('when multisignature tx.transaction does not exist', function () {
+			describe('when multisignature transaction.transaction does not exist', function () {
 
 				it('should call callback with error = "Transaction not found"');
 			});
 
-			describe('when multisignature tx.transaction exists', function () {
+			describe('when multisignature transaction.transaction exists', function () {
 
 				describe('when transaction type != transactionTypes.MULTI', function () {
 
@@ -130,7 +130,7 @@ describe('multisignatures', function () {
 
 						describe('when account exists', function () {
 
-							describe('when multisignature already contains tx.signature', function () {
+							describe('when multisignature already contains transaction.signature', function () {
 
 								it('should call callback with error = "Signature already exists"');
 							});
@@ -143,7 +143,7 @@ describe('multisignatures', function () {
 
 								it('should call library.logic.transaction.verifySignature with account.multisignatures');
 
-								it('should call library.logic.transaction.verifySignature with tx.signature');
+								it('should call library.logic.transaction.verifySignature with transaction.signature');
 
 								describe('when library.logic.transaction.verifySignature throws', function () {
 
@@ -175,7 +175,7 @@ describe('multisignatures', function () {
 						it('should call callback with error = "Permission to sign transaction denied"');
 					});
 
-					describe('when multisignature already contains tx.signature', function () {
+					describe('when multisignature already contains transaction.signature', function () {
 
 						it('should call callback with error = "Permission to sign transaction denied"');
 					});
@@ -188,7 +188,7 @@ describe('multisignatures', function () {
 
 						it('should call library.logic.transaction.verifySignature with keysgroup member');
 
-						it('should call library.logic.transaction.verifySignature with tx.signature');
+						it('should call library.logic.transaction.verifySignature with transaction.signature');
 
 						describe('when library.logic.transaction.verifySignature throws', function () {
 

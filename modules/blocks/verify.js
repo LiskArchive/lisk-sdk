@@ -238,7 +238,7 @@ __private.verifyPayload = function (block, result) {
 		result.errors.push('Included transactions do not match block transactions count');
 	}
 
-	if (block.transactions.length > constants.maxTxsPerBlock) {
+	if (block.transactions.length > constants.maxTransactionsPerBlock) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 

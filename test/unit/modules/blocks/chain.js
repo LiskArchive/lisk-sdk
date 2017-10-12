@@ -72,13 +72,13 @@ describe('blocks/chain', function () {
 
 	describe('saveBlock', function () {
 
-		it('should call library.db.tx');
+		it('should call library.db.transaction');
 
 		it('should call library.logic.block.dbSave');
 
 		it('should call library.logic.block.dbSave with block');
 
-		describe('when library.db.tx callback throws', function () {
+		describe('when library.db.transaction callback throws', function () {
 
 			it('should call logger.error');
 
@@ -87,7 +87,7 @@ describe('blocks/chain', function () {
 			it('should call callback with "Blocks#saveBlock error"');
 		});
 
-		describe('when library.db.tx callback does not throw', function () {
+		describe('when library.db.transaction callback does not throw', function () {
 
 			it('should call __private.afterSave');
 
