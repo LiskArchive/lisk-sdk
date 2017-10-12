@@ -5,6 +5,15 @@ var lisk = require('lisk-js');
 var node = require('../node');
 var http = require('./httpCommunication');
 
+function paramsHelper (url, params) {
+	if (typeof params != 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
+		// It is an defined array with at least one element
+		var queryString = params.join('&');
+		url += '?' + queryString;
+	}
+	return url;
+}
+
 function httpCallbackHelper (cb, err, res) {
 	if (err) {
 		return cb(err);
@@ -18,9 +27,8 @@ function getTransaction (transaction, cb) {
 
 function getTransactions (params, cb) {
 	var url = '/api/transactions';
-	if (params) {
-		url += '?' + params;
-	}
+	url = paramsHelper(url, params);
+	
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
@@ -81,31 +89,29 @@ function registerDelegate (account, cb) {
 
 function getForgingStatus (params, cb) {
 	var url = '/api/delegates/forging/status';
-	if (params) {
-		url += '?' + params;
-	}
-	http.get(url, function (err, res) {
-		cb(err, res.body);
-	});
+	url = paramsHelper(url, params);
+
+	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getDelegates (params, cb) {
 	var url = '/api/delegates';
-	if(params){
-		url += '?' + params;
-	}
+	url = paramsHelper(url, params);
+
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getVoters (params, cb) {
-	http.get('/api/delegates/voters?' + params, httpCallbackHelper.bind(null, cb));
+	var url = '/api/delegates/voters';
+	url = paramsHelper(url, params);
+
+	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function searchDelegates (params, cb) {
 	var url = '/api/delegates/search';
-	if (params) {
-		url += '?' + params;
-	}
+	url = paramsHelper(url, params);
+
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
@@ -115,17 +121,15 @@ function putForgingDelegate (params, cb) {
 
 function getForgedByAccount (params, cb) {
 	var url = '/api/delegates/forging/getForgedByAccount';
-	if (params) {
-		url += '?' + params;
-	}
+	url = paramsHelper(url, params);
+
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getNextForgers (params, cb) {
 	var url = '/api/delegates/getNextForgers';
-	if (params) {
-		url += '?' + params;
-	}
+	url = paramsHelper(url, params);
+
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 

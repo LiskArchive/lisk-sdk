@@ -21,28 +21,7 @@ var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
 describe('GET /api/delegates', function () {
 
 	var testDelegate = genesisDelegates.delegates[0];
-	var delegate = node.randomAccount();
-
-	// Crediting account and registering as delegate
-	before(function () {
-		var promises = [];
-		promises.push(creditAccountPromise(delegate.address, 1000 * node.normalizer));
-
-		return node.Promise.all(promises).then(function (results) {
-			results.forEach(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-			});
-			return onNewBlockPromise();
-		}).then(function (res) {
-			return registerDelegatePromise(delegate).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-				return onNewBlockPromise();
-			});
-		});
-	});
-
+	
 	describe('from (cache)', function () {
 		var cache;
 		var getJsonForKeyPromise;
@@ -73,24 +52,25 @@ describe('GET /api/delegates', function () {
 		it('cache delegates when response is a success', function () {
 			var url;
 			url = '/api/delegates';
+			var params = [];
 
-			return getDelegatesPromise(null).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
-				return getJsonForKeyPromise(url).then(function (response) {
+				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
 					node.expect(response).to.eql(res);
 				});
 			});
 		});
 
 		it('should not cache if response is not a success', function () {
-			var url, orderBy, params;
+			var url, params;
 			url = '/api/delegates?';
 			params = [
 				'orderBy=' + 'unknown:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Invalid sort field');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
@@ -102,8 +82,9 @@ describe('GET /api/delegates', function () {
 		it('should flush cache on the next round @slow', function () {
 			var url;
 			url = '/api/delegates';
+			var params = [];
 
-			return getDelegatesPromise(null).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				return getJsonForKeyPromise(url).then(function (response) {
@@ -121,7 +102,9 @@ describe('GET /api/delegates', function () {
 	describe('/', function () {
 
 		it('using no params should be ok', function () {
-			return getDelegatesPromise(null).then(function (res) {
+			var params = [];
+
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -139,7 +122,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'unknown:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Invalid sort field');
 			});
@@ -150,7 +133,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'approval:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -161,7 +144,7 @@ describe('GET /api/delegates', function () {
 			var params = [
 				'orderBy=' + 'productivity:asc'
 			];
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -173,7 +156,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'rank:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -190,7 +173,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'rank:desc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -207,7 +190,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'vote:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -224,7 +207,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'vote:desc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -241,7 +224,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'username:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -253,7 +236,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'address:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -265,7 +248,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'publicKey:asc'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -277,7 +260,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 'one'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Expected type integer but found type string');
 			});
@@ -288,7 +271,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + -1
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Value -1 is less than minimum 1');
 			});
@@ -299,7 +282,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 0
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Value 0 is less than minimum 1');
 			});
@@ -310,7 +293,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 1
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(1);
@@ -322,7 +305,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 101
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.lengthOf(101);
@@ -334,7 +317,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 102
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Value 102 is greater than maximum 101');
 			});
@@ -345,7 +328,7 @@ describe('GET /api/delegates', function () {
 				'offset=' + 'one'
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Expected type integer but found type string');
 			});
@@ -356,10 +339,10 @@ describe('GET /api/delegates', function () {
 				'offset=' + 1
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
+				node.expect(res.delegates).to.have.lengthOf.at.least(100);
 			});
 		});
 
@@ -368,7 +351,7 @@ describe('GET /api/delegates', function () {
 				'offset=' + -1
 			];
 
-			return getDelegatesPromise(params.join('&')).then(function (res) {
+			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.equal('Value -1 is less than minimum 0');
 			});
@@ -380,7 +363,7 @@ describe('GET /api/delegates', function () {
 				var params = [
 					'orderBy=' + sortField
 				];
-				return getDelegatesPromise(params.join('&')).then(function (res) {
+				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('delegates').that.is.an('array');
 
@@ -443,7 +426,7 @@ describe('GET /api/delegates', function () {
 				'publicKey='
 			];
 
-			return getVotersPromise(params.join('&')).then(function (res) {
+			return getVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('accounts').that.is.an('array').that.is.empty;
 			});
@@ -454,7 +437,7 @@ describe('GET /api/delegates', function () {
 				'publicKey=' + 'notAPublicKey'
 			];
 
-			return getVotersPromise(params.join('&')).then(function (res) {
+			return getVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -466,7 +449,7 @@ describe('GET /api/delegates', function () {
 			];
 
 			return onNewBlockPromise().then(function (res) {
-				return getVotersPromise(params.join('&')).then(function (res) {
+				return getVotersPromise(params).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('accounts').that.is.an('array');
 					var flag = 0;
@@ -484,59 +467,75 @@ describe('GET /api/delegates', function () {
 	describe('/search', function () {
 
 		it('using no criteria should fail', function () {
-			return searchDelegatesPromise(null).then(function (res) {
+			var params = [];
+
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
 		});
 
 		it('using blank criteria should fail', function () {
-			return searchDelegatesPromise('q=').then(function (res) {
+			var params = [
+				'q='
+			];
+
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
 		});
 
 		it('using wildcard criteria should be ok', function () {
-			var q = '%'; // 1 character
+			var params = [
+				'q=' + '%' // 1 character
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 			});
 		});
 
 		it('using criteria with length=1 should be ok', function () {
-			var q = 'g'; // 1 character
+			var params = [
+				'q=' + 'g' // 1 character
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 			});
 		});
 
 		it('using criteria with length=20 should be ok', function () {
-			var q = 'genesis_123456789012'; // 20 characters
+			var params = [
+				'q=' + 'genesis_123456789012' // 20 characters
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 			});
 		});
 
 		it('using criteria with length > 20 should fail', function () {
-			var q = 'genesis_1234567890123'; // 21 characters
+			var params = [
+				'q=' + 'genesis_1234567890123' // 21 characters
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
 		});
 
 		it('using critera="genesis_1" should return 13 delegates', function () {
-			var q = 'genesis_1';
+			var params = [
+				'q=' + 'genesis_1'
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(13);
@@ -544,9 +543,11 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using critera="genesis_10" should return 3 delegates', function () {
-			var q = 'genesis_10';
+			var params = [
+				'q=' + 'genesis_10'
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(3);
@@ -554,9 +555,11 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using critera="genesis_101" should return 1 delegate', function () {
-			var q = 'genesis_101';
+			var params = [
+				'q=' + 'genesis_101'
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(1);
@@ -564,9 +567,11 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using critera="genesis_101" should have all properties', function () {
-			var q = 'genesis_101';
+			var params = [
+				'q=' + 'genesis_101'
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(1);
@@ -585,9 +590,11 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using no limit should be ok', function () {
-			var q = 'genesis_';
+			var params = [
+				'q=' + 'genesis_'
+			];
 
-			return searchDelegatesPromise('q=' + q).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(101);
@@ -600,7 +607,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 'one'
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -612,7 +619,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + -100
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -624,7 +631,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + -1
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -636,7 +643,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 0
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -648,7 +655,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 1
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(1);
@@ -661,7 +668,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 1000
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(101);
@@ -674,7 +681,7 @@ describe('GET /api/delegates', function () {
 				'limit=' + 1001
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -686,7 +693,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'unknown:asc'
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -697,7 +704,7 @@ describe('GET /api/delegates', function () {
 				'q=' + 'genesis_'
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(101);
@@ -714,7 +721,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'username:asc'
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(101);
@@ -731,7 +738,7 @@ describe('GET /api/delegates', function () {
 				'orderBy=' + 'username:desc'
 			];
 
-			return searchDelegatesPromise(params.join('&')).then(function (res) {
+			return searchDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
 				node.expect(res.delegates).to.have.length(101);
@@ -746,7 +753,9 @@ describe('GET /api/delegates', function () {
 	describe('/forging/status', function () {
 
 		it('using no params should be ok', function () {
-			return getForgingStatusPromise(null).then(function (res) {
+			var params = [];
+
+			return getForgingStatusPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('enabled').to.be.true;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
@@ -827,7 +836,8 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using no params should fail', function () {
-			return putForgingDelegatePromise({}).then(function (res) {
+			var params = {};
+			return putForgingDelegatePromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').not.to.be.ok;
 				node.expect(res).to.have.property('error').to.be.a('string').and.to.contain('Missing required property: ');
 			});
@@ -891,36 +901,21 @@ describe('GET /api/delegates', function () {
 
 	describe('/forging/getForgedByAccount', function () {
 
-		var validParams;
-
-		beforeEach(function () {
-			validParams = {
-				generatorPublicKey: '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-				start: 0,
-				end: 0
-			};
-		});
-
-		function buildParams () {
-			return [
-				'generatorPublicKey=' + validParams.generatorPublicKey,
-				validParams.start !== undefined ? 'start=' + validParams.start : '',
-				validParams.end !== undefined ? 'end=' + validParams.end : '',
-			].filter(Boolean).join('&');
-		}
-
 		it('using no params should fail', function () {
-			return getForgedByAccountPromise(null).then(function (res) {
+			var params = [];
+
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.eql('Missing required property: generatorPublicKey');
 			});
 		});
 
 		it('using valid params should be ok', function () {
-			delete validParams.start;
-			delete validParams.end;
+			var params = [
+				'generatorPublicKey=' + testDelegate.publicKey
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('fees').that.is.a('string');
 				node.expect(res).to.have.property('rewards').that.is.a('string');
@@ -929,7 +924,12 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using valid params with borders should be ok', function () {
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			var params = [
+				'generatorPublicKey=' + testDelegate.publicKey,
+				'start=' + 0,
+				'end=' + 0
+			];
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('fees').that.is.a('string').and.eql('0');
 				node.expect(res).to.have.property('rewards').that.is.a('string').and.eql('0');
@@ -939,38 +939,49 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using unknown generatorPublicKey should fail', function () {
-			validParams.generatorPublicKey = node.randomAccount().publicKey;
-			delete validParams.start;
-			delete validParams.end;
+			var params = [
+				'generatorPublicKey=' + node.randomAccount().publicKey
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.eql('Account not found');
 			});
 		});
 
 		it('using unknown generatorPublicKey with borders should fail', function () {
-			validParams.generatorPublicKey = node.randomAccount().publicKey;
+			var params = [
+				'generatorPublicKey=' + node.randomAccount().publicKey,
+				'start=' + 0,
+				'end=' + 0
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.eql('Account not found or is not a delegate');
 			});
 		});
 
 		it('using invalid generatorPublicKey should fail', function () {
-			validParams.generatorPublicKey = 'invalidPublicKey';
+			var params = [
+				'generatorPublicKey=' + 'invalidPublicKey',
+				'start=' + 0,
+				'end=' + 0
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.eql('Object didn\'t pass validation for format publicKey: invalidPublicKey');
 			});
 		});
 
 		it('using no start should be ok', function () {
-			delete validParams.start;
+			var params = [
+				'generatorPublicKey=' + testDelegate.publicKey,
+				'end=' + 0
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('fees').that.is.a('string').and.eql('0');
 				node.expect(res).to.have.property('rewards').that.is.a('string').and.eql('0');
@@ -980,9 +991,12 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using no end should be ok', function () {
-			delete validParams.end;
+			var params = [
+				'generatorPublicKey=' + testDelegate.publicKey,
+				'end=' + 0
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('fees').that.is.a('string');
 				node.expect(res).to.have.property('rewards').that.is.a('string');
@@ -992,18 +1006,26 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using string start should fail', function () {
-			validParams.start = 'one';
+			var params = [
+				'generatorPublicKey=' + testDelegate.publicKey,
+				'start=' + 'one',
+				'end=' + 0
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.eql('Expected type integer but found type string');
 			});
 		});
 
 		it('using string end should fail', function () {
-			validParams.end = 'two';
+			var params = [
+				'generatorPublicKey=' + testDelegate.publicKey,
+				'start=' + 0,
+				'end=' + 'two'
+			];
 
-			return getForgedByAccountPromise(buildParams()).then(function (res) {
+			return getForgedByAccountPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error').to.eql('Expected type integer but found type string');
 			});
@@ -1013,7 +1035,9 @@ describe('GET /api/delegates', function () {
 	describe('/getNextForgers', function () {
 
 		it('using no params should be ok', function () {
-			return getNextForgersPromise(null).then(function (res) {
+			var params = [];
+
+			return getNextForgersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('currentBlock').that.is.a('number');
 				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
@@ -1028,7 +1052,7 @@ describe('GET /api/delegates', function () {
 				'limit=1'
 			];
 
-			return getNextForgersPromise(params.join('&')).then(function (res) {
+			return getNextForgersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('currentBlock').that.is.a('number');
 				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
@@ -1043,7 +1067,7 @@ describe('GET /api/delegates', function () {
 				'limit=101'
 			];
 
-			return getNextForgersPromise(params.join('&')).then(function (res) {
+			return getNextForgersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('currentBlock').that.is.a('number');
 				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
