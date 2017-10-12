@@ -24,8 +24,6 @@ describe('privateApi module', () => {
 	const externalNode = 'external';
 	const sslNode = 'sslNode';
 	const externalTestnetNode = 'testnet';
-	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const GET = 'GET';
 	const POST = 'POST';
 	const defaultMethod = POST;
@@ -337,18 +335,15 @@ describe('privateApi module', () => {
 		});
 	});
 
-	describe('#anotherNodeIsAvailable', () => {
-		const { anotherNodeIsAvailable } = privateApi;
+	describe('#hasAvailableNodes', () => {
+		const { hasAvailableNodes } = privateApi;
 		let getNodesStub;
 		let restoreGetNodesStub;
-		let setTestnetStub;
 
 		beforeEach(() => {
 			getNodesStub = sandbox.stub().returns([].concat(defaultNodes));
 			// eslint-disable-next-line no-underscore-dangle
 			restoreGetNodesStub = privateApi.__set__('getNodes', getNodesStub);
-			sandbox.stub(privateApi, 'netHashOptions');
-			setTestnetStub = sandbox.stub(LSK, 'setTestnet');
 		});
 
 		afterEach(() => {
@@ -356,80 +351,20 @@ describe('privateApi module', () => {
 		});
 
 		describe('with random node', () => {
-			let result;
-
 			beforeEach(() => {
 				LSK.randomNode = true;
 			});
 
 			it('should get nodes', () => {
-				anotherNodeIsAvailable.call(LSK);
+				hasAvailableNodes.call(LSK);
 				(getNodesStub.calledOn(LSK)).should.be.true();
 			});
 
-			describe('when nethash is set', () => {
-				describe('when the nethash matches the testnet', () => {
-					beforeEach(() => {
-						LSK.options.nethash = testnetNethash;
-						result = anotherNodeIsAvailable.call(LSK);
-					});
-
-					it('should set testnet to true', () => {
-						(setTestnetStub.calledOn(LSK)).should.be.true();
-						(setTestnetStub.calledWithExactly(true)).should.be.true();
-					});
-
-					it('should return true', () => {
-						(result).should.be.true();
-					});
-				});
-
-				describe('when the nethash matches the mainnet', () => {
-					beforeEach(() => {
-						LSK.options.nethash = mainnetNethash;
-						result = anotherNodeIsAvailable.call(LSK);
-					});
-
-					it('should set testnet to false', () => {
-						(setTestnetStub.calledOn(LSK)).should.be.true();
-						(setTestnetStub.calledWithExactly(false)).should.be.true();
-					});
-
-					it('should return true', () => {
-						(result).should.be.true();
-					});
-				});
-
-				describe('when the nethash matches neither the mainnet nor the testnet', () => {
-					beforeEach(() => {
-						LSK.options.nethash = 'abc123';
-						result = anotherNodeIsAvailable.call(LSK);
-					});
-
-					it('should return false', () => {
-						(result).should.be.false();
-					});
-				});
-			});
-
-			describe('when nethash is not set', () => {
-				beforeEach(() => {
-					LSK.options.nethash = undefined;
-				});
-
-				it('should return true if there are nodes which are not banned', () => {
-					LSK.bannedNodes = ['bannednode'].concat(LSK.defaultNodes.slice(1));
-					result = anotherNodeIsAvailable.call(LSK);
-
-					(result).should.be.true();
-				});
-
-				it('should return false if there are no nodes which are not banned', () => {
-					LSK.bannedNodes = [].concat(LSK.defaultNodes);
-					result = anotherNodeIsAvailable.call(LSK);
-
-					(result).should.be.false();
-				});
+			it('should return false without nodes left', () => {
+				LSK.defaultNodes = [];
+				restoreGetNodesStub();
+				const result = hasAvailableNodes.call(LSK);
+				(result).should.be.false();
 			});
 		});
 
@@ -439,7 +374,7 @@ describe('privateApi module', () => {
 			});
 
 			it('should return false', () => {
-				const result = anotherNodeIsAvailable.call(LSK);
+				const result = hasAvailableNodes.call(LSK);
 				(result).should.be.false();
 			});
 		});
@@ -628,8 +563,8 @@ describe('privateApi module', () => {
 		let setNodeSpy;
 		let banActiveNodeSpy;
 		let restorebanActiveNodeSpy;
-		let anotherNodeIsAvailableStub;
-		let restoreanotherNodeIsAvailableStub;
+		let hasAvailableNodesStub;
+		let restorehasAvailableNodesStub;
 
 		beforeEach(() => {
 			options = {
@@ -649,13 +584,13 @@ describe('privateApi module', () => {
 
 		describe('if a redial is possible', () => {
 			beforeEach(() => {
-				anotherNodeIsAvailableStub = sandbox.stub().returns(true);
+				hasAvailableNodesStub = sandbox.stub().returns(true);
 				// eslint-disable-next-line no-underscore-dangle
-				restoreanotherNodeIsAvailableStub = privateApi.__set__('anotherNodeIsAvailable', anotherNodeIsAvailableStub);
+				restorehasAvailableNodesStub = privateApi.__set__('hasAvailableNodes', hasAvailableNodesStub);
 			});
 
 			afterEach(() => {
-				restoreanotherNodeIsAvailableStub();
+				restorehasAvailableNodesStub();
 			});
 
 			it('should ban the node with options randomNode true', () => {
@@ -699,7 +634,7 @@ describe('privateApi module', () => {
 
 		describe('if no redial is possible', () => {
 			beforeEach(() => {
-				anotherNodeIsAvailableStub = sandbox.stub(privateApi, 'anotherNodeIsAvailable').returns(false);
+				hasAvailableNodesStub = sandbox.stub(privateApi, 'hasAvailableNodes').returns(false);
 			});
 
 			it('should resolve to an object with success set to false', () => {

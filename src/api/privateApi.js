@@ -136,25 +136,15 @@ export function banActiveNode() {
 }
 
 /**
- * @method anotherNodeIsAvailable
+ * @method hasAvailableNodes
  * @return {Boolean}
  * @private
  */
 
-export function anotherNodeIsAvailable() {
+export function hasAvailableNodes() {
 	const nodes = getNodes.call(this);
 
-	if (this.randomNode === true) {
-		if (this.options.nethash) {
-			if (this.options.nethash === netHashOptions.call(this).testnet.nethash) {
-				this.setTestnet(true);
-				return true;
-			} else if (this.options.nethash === netHashOptions.call(this).mainnet.nethash) {
-				this.setTestnet(false);
-				return true;
-			}
-			return false;
-		}
+	if (this.randomNode) {
 		return nodes.some(node => !this.bannedNodes.includes(node));
 	}
 	return false;
@@ -237,7 +227,7 @@ export function handleTimestampIsInFutureFailures(requestMethod, requestType, op
 
 export function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	const that = this;
-	if (anotherNodeIsAvailable.call(that)) {
+	if (hasAvailableNodes.call(that)) {
 		return new Promise(((resolve, reject) => {
 			setTimeout(() => {
 				if (that.randomNode) {

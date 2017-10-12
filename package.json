@@ -11,6 +11,7 @@
 		"jenkins": "./node_modules/.bin/grunt jenkins --verbose",
 		"build": "grunt",
 		"buildBrowsertest": "grunt build-browsertest",
+		"precommit": "npm run eslint",
 		"prepush": "grunt eslint && npm test",
 		"prepublishOnly": "npm run build"
 	},
