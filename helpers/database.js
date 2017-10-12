@@ -187,6 +187,10 @@ module.exports.connect = function (config, logger, cb) {
 
 	var pgp = require('pg-promise')(pgOptions);
 
+	try {
+		monitor.detach();
+	} catch (ex) {}
+
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
 
