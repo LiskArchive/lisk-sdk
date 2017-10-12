@@ -4,6 +4,7 @@ var async = require('async');
 var bignum = require('./bignum');
 var fs = require('fs');
 var path = require('path');
+var monitor = require('pg-monitor');
 
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
@@ -185,7 +186,10 @@ module.exports.connect = function (config, logger, cb) {
 	};
 
 	var pgp = require('pg-promise')(pgOptions);
-	var monitor = require('pg-monitor');
+
+	try {
+		monitor.detach();
+	} catch (ex) {}
 
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
@@ -210,4 +214,17 @@ module.exports.connect = function (config, logger, cb) {
 	], function (err) {
 		return cb(err, db);
 	});
+};
+
+/**
+ * Detaches pg-monitor. Should be invoked after connect.
+ * @param {Object} logger
+ */
+module.exports.disconnect = function (logger) {
+	logger = logger || console;
+	try {
+		monitor.detach();
+	} catch (ex) {
+		logger.log('database disconnect exception - ', ex);
+	}
 };

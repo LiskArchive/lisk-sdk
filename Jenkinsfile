@@ -297,6 +297,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         '''
       }
       },
+      "Functional - Multisignature 3": {
+         node('node-03'){
+         sh '''
+         export TEST=test/functional/multisignature.js TEST_TYPE='FUNC'
+         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+         npm run jenkins
+         '''
+      }
+      },
       "Functional Peer - Votes" : {
         node('node-02'){
         sh '''
