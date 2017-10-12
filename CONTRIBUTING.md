@@ -11,13 +11,13 @@ The following is a set of guidelines for contributing to Lisky, which are hosted
 1. [Help! I don't want to read this whole thing, I just have one question. :mag_right:](#help!-i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
 
 1. [How Can I Contribute?](#how-can-i-contribute)
-    1. [Reporting Bugs](#reporting-bugs)
-    1. [Suggesting Enhancements](#suggesting-enhancements)
-    1. [Pull Requests](#pull-requests)
+	1. [Reporting Bugs](#reporting-bugs)
+	1. [Suggesting Enhancements](#suggesting-enhancements)
+	1. [Pull Requests](#pull-requests)
 
 1. [Styleguides](#styleguides)
-    1. [Git Commit Messages](#git-commit-messages)
-    1. [JavaScript Styleguide](#javascript-styleguide)
+	1. [Git Commit Messages](#git-commit-messages)
+	1. [JavaScript Styleguide](#javascript-styleguide)
 
 ## Code of Conduct
 
@@ -128,21 +128,21 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * Consider starting the commit message with an applicable emoji:
-    * :art: `:art:` when improving the format/structure of the code
-    * :racehorse: `:racehorse:` when improving performance
-    * :non-potable_water: `:non-potable_water:` when plugging memory leaks
-    * :memo: `:memo:` when writing docs
-    * :penguin: `:penguin:` when fixing something on Linux
-    * :apple: `:apple:` when fixing something on macOS
-    * :checkered_flag: `:checkered_flag:` when fixing something on Windows
-    * :bug: `:bug:` when fixing a bug
-    * :fire: `:fire:` when removing code or files
-    * :green_heart: `:green_heart:` when fixing the CI build
-    * :white_check_mark: `:white_check_mark:` when adding tests
-    * :lock: `:lock:` when dealing with security
-    * :arrow_up: `:arrow_up:` when upgrading dependencies
-    * :arrow_down: `:arrow_down:` when downgrading dependencies
-    * :shirt: `:shirt:` when removing linter warnings
+	* :seedling: `:seedling:` when adding a new feature
+	* :bug: `:bug:` when fixing a bug
+	* :books: `:books:` when adding or updating documentation
+	* :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
+	* :recycle: `:recycle:` when refactoring code
+	* :fire: `:fire:` when removing code or files (including dependencies)
+	* :racehorse: `:racehorse:` when improving performance
+	* :white_check_mark: `:white_check_mark:` when adding or updating tests
+	* :construction_worker: `:construction_worker:` when updating the build process
+	* :bowtie: `:bowtie` when updating CI
+	* :house: `:house:` when performing chores
+	* :new: `:new:` when adding a new dependency
+	* :arrow_up: `:arrow_up:` when upgrading a dependency
+	* :arrow_down: `:arrow_down:` when downgrading a dependency
+	* :back: `:back:` when reverting changes
 
 ### JavaScript Styleguide
 
