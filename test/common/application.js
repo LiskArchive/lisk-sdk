@@ -290,10 +290,6 @@ function __init (initScope, done) {
 };
 
 function cleanup (cb) {
-	// Disconnect from database instance if sandbox was used
-	if (dbSandbox) {
-		dbSandbox.destroy();
-	}
 	node.async.eachSeries(currentAppScope.modules, function (module, seriesCb) {
 		if (typeof(module.cleanup) === 'function') {
 			module.cleanup(seriesCb);
@@ -305,6 +301,10 @@ function cleanup (cb) {
 			currentAppScope.logger.error(err);
 		} else {
 			currentAppScope.logger.info('Cleaned up successfully');
+		}
+		// Disconnect from database instance if sandbox was used
+		if (dbSandbox) {
+			dbSandbox.destroy();
 		}
 		cb();
 	});
