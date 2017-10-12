@@ -31,12 +31,12 @@ const throwFailuresInWindow = (win) => {
 describe('Browser tests', () => {
 	it('should pass without minification', () => {
 		cy.visit('/browsertest.html');
-		cy.get('#result').should('contain', 'DONE');
+		cy.get('#done').should('contain', 'DONE');
 		cy.window().then(throwFailuresInWindow);
 	});
 	it('should pass with minification', () => {
 		cy.visit('/browsertest.min.html');
-		cy.get('#result').should('contain', 'DONE');
+		cy.get('#done').should('contain', 'DONE');
 		cy.window().then(throwFailuresInWindow);
 	});
 });
