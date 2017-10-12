@@ -114,35 +114,32 @@ describe('outTransfer', function () {
 		outTransfer = new OutTransfer(dbStub, modulesLoader.scope.schema, modulesLoader.logger);
 		outTransfer.bind(accountsStub);
 
-		trs = _.cloneDeep(validTransaction);
-		rawTrs = _.cloneDeep(rawValidTransaction);
+		transaction = _.cloneDeep(validTransaction);
+		rawTransaction = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
 	});
 
 	describe('constructor', function () {
 
-		describe('constructor', function () {
+		describe('library', function () {
 
-			describe('library', function () {
+			var library;
 
-				var library;
+			beforeEach(function () {
+				new OutTransfer(dbStub, modulesLoader.scope.schema, modulesLoader.logger);
+				library = OutTransfer.__get__('library');
+			});
 
-				beforeEach(function () {
-					new OutTransfer(dbStub, modulesLoader.scope.schema, modulesLoader.logger);
-					library = OutTransfer.__get__('library');
-				});
+			it('should assign db', function () {
+				expect(library).to.have.property('db').eql(dbStub);
+			});
 
-				it('should assign db', function () {
-					expect(library).to.have.property('db').eql(dbStub);
-				});
+			it('should assign schema', function () {
+				expect(library).to.have.property('schema').eql(modulesLoader.scope.schema);
+			});
 
-				it('should assign schema', function () {
-					expect(library).to.have.property('schema').eql(modulesLoader.scope.schema);
-				});
-
-				it('should assign logger', function () {
-					expect(library).to.have.property('logger').eql(modulesLoader.logger);
-				});
+			it('should assign logger', function () {
+				expect(library).to.have.property('logger').eql(modulesLoader.logger);
 			});
 		});
 	});
