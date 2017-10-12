@@ -22,21 +22,20 @@ import {
 	shouldUseJsonOutput,
 } from '../utils/helpers';
 
-const description = `Create account returns a new created passphrase with associate publicKey and accountId.
+const description = `Create account returns a randomly-generated mnemonic passphrase with its corresponding public key and address
 
-Examples:
-	- create account
+	Example: create account
 `;
 
 const createAccount = vorpal => ({ options }) => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
 	const passphrase = createMnemonicPassphrase();
 	const { publicKey } = cryptoModule.getKeys(passphrase);
-	const accountId = cryptoModule.getAddressFromPublicKey(publicKey);
+	const { address } = cryptoModule.getAddressFromPublicKey(publicKey);
 	const account = {
 		passphrase,
 		publicKey,
-		accountId,
+		address,
 	};
 
 	return Promise.resolve(printResult(vorpal, { json: useJsonOutput })(account));

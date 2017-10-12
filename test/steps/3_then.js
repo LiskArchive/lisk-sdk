@@ -19,54 +19,53 @@ import * as fsUtils from '../../src/utils/fs';
 import tablify from '../../src/utils/tablify';
 import {
 	getFirstQuotedString,
-	getQuotedStrings,
+	getNumbersFromTitle,
 } from './utils';
+import {
+	getRequiredArgs,
+} from '../specs/commands/utils';
 
-export function itShouldCreateANewAccount() {
-	(this.test.ctx.MnemonicStub).should.be.calledOnce();
-}
-
-export function itShouldJSONPrintTheCreatedAccount() {
-	const [passphrase, publicKey, accountId] = getQuotedStrings(this.test.title);
-
-	const expectedOutput = {
+export function itShouldReturnAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
+	const { returnValue, passphrase, keys: { publicKey }, address } = this.test.ctx;
+	const expectedObject = {
 		passphrase,
 		publicKey,
-		accountId,
+		address,
 	};
-
-	(this.test.ctx.vorpal.capturedOutput[0]).should.be.eql(JSON.stringify(expectedOutput));
+	return (returnValue).should.be.fulfilledWith(expectedObject);
 }
 
-export function itShouldTablePrintTheCreatedAccount() {
-	const [passphrase, publicKey, accountId] = getQuotedStrings(this.test.title);
-
-	const expectedOutput = {
-		passphrase,
-		publicKey,
-		accountId,
-	};
-	(this.test.ctx.vorpal.capturedOutput[0]).should.be.eql(tablify(expectedOutput).toString());
+export function itShouldPrintTheResultAsJSON() {
+	const { returnValue } = this.test.ctx;
+	return returnValue.then((log) => {
+		return (JSON.stringify).should.be.calledWithExactly(log);
+	});
 }
 
-export function itShouldHaveRequiredArguments() {
-	const requiredArguments = getFirstQuotedString(this.test.title);
-	(this.test.ctx.requiredArgs.length).should.be.equal(Number(requiredArguments));
+export function itShouldPrintTheResultInATable() {
+	const { returnValue, capturedOutput } = this.test.ctx;
+	return returnValue.then((log) => {
+		return (capturedOutput[0]).should.be.eql(tablify(log).toString());
+	});
 }
 
-export function theMnemonicPassphraseShouldBeValid() {
-	const isValid = this.test.ctx.validation;
-	(isValid).should.be.equal(true);
+export function theCommandShouldHaveRequiredArguments() {
+	const requiredArguments = getNumbersFromTitle(this.test.title)[0];
+	const vorpalRequiredArgs = getRequiredArgs(this.test.ctx.vorpal, this.test.ctx.command);
+	return (vorpalRequiredArgs).should.have.length(Number(requiredArguments));
 }
 
-export function theMnemonicPassphraseShouldBeInvalid() {
-	const isValid = this.test.ctx.validation;
-	(isValid).should.be.equal(false);
+export function theMnemonicPassphraseShouldBeA12WordString() {
+	const { mnemonicPassphrase } = this.test.ctx;
+	const mnemonicWords = mnemonicPassphrase.split(' ');
+	(mnemonicWords).should.have.length(12);
+	mnemonicWords.forEach((element) => {
+		(element).should.not.have.length(0);
+	});
 }
 
-export function theMnemonicPassphraseShouldBe12WordString() {
-	const mnemonicPassphrase = this.test.ctx.mnemonicPassphrase;
-	(mnemonicPassphrase.split(' ').length).should.be.equal(12);
+export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
+	return (lisk.crypto.getAddressFromPublicKey).should.be.calledOnce();
 }
 
 export function theAddressShouldBeReturned() {

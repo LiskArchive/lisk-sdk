@@ -41,45 +41,41 @@ import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 import {
 	DEFAULT_ERROR_MESSAGE,
-	getFirstQuotedString,
+	getQuotedStrings,
 } from './utils';
 import {
 	createMnemonicPassphrase,
 	isValidMnemonicPassphrase,
 } from '../../src/utils/mnemonic';
 
-export function aMnemonicPassphraseIsValidated() {
-	const passphrase = this.test.ctx.mnemonicPassphrase;
-	this.test.ctx.validation = isValidMnemonicPassphrase(passphrase);
+const tablifyToSpy = require('../../src/utils/tablify');
+
+export function theMnemonicPassphraseIsValidated() {
+	const { mnemonicPassphrase } = this.test.ctx;
+	this.test.ctx.returnValue = isValidMnemonicPassphrase(mnemonicPassphrase);
 }
 
 export function aNewMnemonicPassphraseIsCreated() {
 	this.test.ctx.mnemonicPassphrase = createMnemonicPassphrase();
 }
 
-export function theUserEntersTheCommand() {
-	this.test.ctx.commandToExecute = getFirstQuotedString(this.test.parent.title);
-	return this.test.ctx.vorpal.exec(this.test.ctx.commandToExecute);
+export function theUserExecutesTheCommand() {
+	const { vorpal, command } = this.test.ctx;
+	sandbox.spy(tablifyToSpy, 'default');
+	const returnValue = vorpal.exec(command);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
 }
 
-export function theSaveAccountOptionIsUsed() {
-	this.test.ctx.option = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.commandWithOption = `${this.test.ctx.command} ${this.test.ctx.option}`;
-}
-
-export function anErrorOccursAttemptingToGetAccountIdFromPublicKey() {
-	const { cryptoInstance, publicKey } = this.test.ctx;
-
-	lisk.crypto.getAddressFromPublicKey.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
-
-	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
-}
-
-export function noErrorOccursAttemptingToGetAddressFromPublicKey() {
-	const { cryptoInstance, publicKey, address } = this.test.ctx;
-	lisk.crypto.getAddressFromPublicKey.returns({ address });
-	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
+export function theUserExecutesTheCommandWithOptions() {
+	const { vorpal, command } = this.test.ctx;
+	this.test.ctx.JSONStringifyStub = sandbox.spy(JSON, 'stringify');
+	this.test.ctx.commandOptions = getQuotedStrings(this.test.parent.title);
+	const commandWithOptions = `${command} ${this.test.ctx.commandOptions.join(' ')}`;
+	const returnValue = vorpal.exec(commandWithOptions);
+	this.test.ctx.returnValue = returnValue;
+	this.test.ctx.commandWithOptions = commandWithOptions;
+	return returnValue;
 }
 
 export function theAccountsDirectoryDoesNotExist() {
@@ -134,6 +130,21 @@ export function theObjectIsTablified() {
 export function theArrayIsTablified() {
 	const { testArray } = this.test.ctx;
 	this.test.ctx.returnValue = tablify(testArray);
+}
+
+export function anErrorOccursAttemptingToGetTheAccountIdFromThePublicKey() {
+	const { cryptoInstance, publicKey } = this.test.ctx;
+
+	lisk.crypto.getAddressFromPublicKey.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
+}
+
+export function noErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
+	const { cryptoInstance, publicKey, address } = this.test.ctx;
+	lisk.crypto.getAddressFromPublicKey.returns(address);
+	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
 }
 
 export function noErrorOccursAttemptingToGetTheKeysForThePassphrase() {

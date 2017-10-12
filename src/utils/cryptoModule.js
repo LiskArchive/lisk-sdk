@@ -65,7 +65,9 @@ class Crypto {
 	}
 
 	getAddressFromPublicKey(publicKey) {
-		return this.liskCrypto.getAddressFromPublicKey(publicKey);
+		return {
+			address: this.liskCrypto.getAddressFromPublicKey(publicKey),
+		};
 	}
 }
 

@@ -16,12 +16,12 @@
 import fs from 'fs';
 import readline from 'readline';
 import lisk from 'lisk-js';
-import Mnemonic from 'bitcore-mnemonic';
 import Vorpal from 'vorpal';
 import defaultConfig from '../../defaultConfig.json';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
 import liskInstance from '../../src/utils/liskInstance';
+import * as mnemonicInstance from '../../src/utils/mnemonic';
 import queryInstance from '../../src/utils/query';
 import {
 	getFirstQuotedString,
@@ -30,9 +30,6 @@ import {
 	createStreamStub,
 } from './utils';
 import createAccountCommand from '../../src/commands/createAccount';
-import {
-	getRequiredArgs,
-} from '../specs/commands/utils';
 
 export function aValidMnemonicPassphrase() {
 	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
@@ -42,38 +39,35 @@ export function anInvalidMnemonicPassphrase() {
 	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
 }
 
-export function theCommandHasRequiredInputs() {
-	this.test.ctx.amountOfRequiredInputs = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.requiredArgs = getRequiredArgs(this.test.ctx.vorpal, this.test.ctx.command);
+export function aMnemonicInstanceStub() {
+	this.test.ctx.MnemonicStub = sandbox.stub(mnemonicInstance, 'createMnemonicPassphrase').returns(this.test.ctx.passphrase);
 }
 
-export function aMnemonicInstance() {
-	this.test.ctx.passphrase = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.MnemonicStub = sandbox.stub(Mnemonic.prototype, 'toString').returns(this.test.ctx.passphrase);
-}
-
-export function aMnemonicInstanceThatNeedsToBeRestored() {
+export function aMnemonicInstanceStubThatNeedsToBeRestored() {
 	this.test.ctx.MnemonicStub.restore();
 }
 
-export function thereIsAVorpalInstance() {
-	this.test.ctx.vorpal = new Vorpal();
-	this.test.ctx.vorpal.capturedOutput = [];
-}
-
-export function theVorpalInstanceHasTheCommand() {
-	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
-	const handleOutput = output => this.test.ctx.vorpal.capturedOutput.push(output);
-	const commands = {
-		'create account': createAccountCommand,
-	};
-	this.test.ctx.vorpal.use(commands[this.test.ctx.command]);
-	this.test.ctx.vorpal.pipe((outputs) => {
-		if (this.test.ctx.vorpal.capturedOutput) {
+export function aVorpalInstance() {
+	const vorpal = new Vorpal();
+	const capturedOutput = [];
+	const handleOutput = output => capturedOutput.push(output);
+	vorpal.pipe((outputs) => {
+		if (capturedOutput) {
 			outputs.forEach(handleOutput);
 		}
 		return '';
 	});
+	this.test.ctx.capturedOutput = capturedOutput;
+	this.test.ctx.vorpal = vorpal;
+}
+
+export function theVorpalInstanceHasTheCommand() {
+	const { vorpal } = this.test.ctx;
+	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
+	const commands = {
+		'create account': createAccountCommand,
+	};
+	vorpal.use(commands[this.test.ctx.command]);
 }
 
 export function thereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
@@ -154,7 +148,7 @@ export function thereIsAnObjectThatShouldBeWrittenToPath() {
 	};
 	const stringifiedObject = '{\n\t"lisk": "js",\n\t"version": 1\n}';
 
-	sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
+	this.test.ctx.JSONStringifyStub = sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
 	sandbox.stub(fs, 'writeFileSync');
 
 	this.test.ctx.filePath = getFirstQuotedString(this.test.parent.title);
@@ -233,6 +227,7 @@ export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
 
 	lisk.crypto.getKeys.returns(keys);
 	lisk.crypto.decryptPassphraseWithPassword.returns(passphrase);
+	lisk.crypto.getAddressFromPublicKey.returns(address);
 
 	this.test.ctx.passphrase = passphrase;
 	this.test.ctx.keys = keys;

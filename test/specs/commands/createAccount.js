@@ -18,25 +18,29 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('createAccount command', () => {
-	describe('Given there is a Vorpal instance', () => {
-		beforeEach(given.thereIsAVorpalInstance);
-		describe('Given a a Mnemonic instance that returns a valid passphrase "outdoor client move tissue say march smoke before leg patient ride fade"', () => {
-			beforeEach(given.aMnemonicInstance);
-			afterEach(given.aMnemonicInstanceThatNeedsToBeRestored);
-			describe('Given the vorpal instance has the command "create account"', () => {
-				beforeEach(given.theVorpalInstanceHasTheCommand);
-				describe('Given the command has "0" required inputs', () => {
-					beforeEach(given.theCommandHasRequiredInputs);
-					describe('When the user enters the "create account" command', () => {
-						beforeEach(when.theUserEntersTheCommand);
-						it('Then it should have "0" required arguments', then.itShouldHaveRequiredArguments);
-						it('Then it should create a new account', then.itShouldCreateANewAccount);
-						it('Then it should print the result in a table with passphrase "outdoor client move tissue say march smoke before leg patient ride fade" and publicKey "6853253130c9650dbabf9db0f325fa98619a85ac16615eb916624d49892211c5" and accountId "8271669804080666186L" ', then.itShouldTablePrintTheCreatedAccount);
-					});
+	describe('Given a cryptoInstance', () => {
+		beforeEach(given.aCryptoInstance);
+		describe('Given there is a Vorpal instance', () => {
+			beforeEach(given.aVorpalInstance);
+			describe('Given a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice" with private key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and public key "7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and address "2167422481642255385L"', () => {
+				beforeEach(given.aPassphraseWithPrivateKeyAndPublicKeyAndAddress);
+				describe('Given a Mnemonic instance', () => {
+					beforeEach(given.aMnemonicInstanceStub);
+					describe('Given the vorpal instance has the command "create account"', () => {
+						beforeEach(given.theVorpalInstanceHasTheCommand);
+						it('Then the command should have 0 required arguments', then.theCommandShouldHaveRequiredArguments);
 
-					describe('When the user enters the "create account --json" command', () => {
-						beforeEach(when.theUserEntersTheCommand);
-						it('Then it should print the result as json with passphrase "outdoor client move tissue say march smoke before leg patient ride fade" and publicKey "6853253130c9650dbabf9db0f325fa98619a85ac16615eb916624d49892211c5" and accountId "8271669804080666186L" ', then.itShouldJSONPrintTheCreatedAccount);
+						describe('When the user enters the command', () => {
+							beforeEach(when.theUserExecutesTheCommand);
+							it('Then it should return an object with the the passphrase, publicKey and address', then.itShouldReturnAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
+							it('Then it should print the result in a table', then.itShouldPrintTheResultInATable);
+						});
+
+						describe('When the users enters the command with the "--json" option', () => {
+							beforeEach(when.theUserExecutesTheCommandWithOptions);
+							it('Then it should return an object with the passphrase, publicKey and address', then.itShouldReturnAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
+							it('Then it should print the result as json', then.itShouldPrintTheResultAsJSON);
+						});
 					});
 				});
 			});
