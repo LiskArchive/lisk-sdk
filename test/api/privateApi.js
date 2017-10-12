@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { PopsicleError } from 'popsicle';
-
+const popsicle = require('popsicle');
 const privateApi = require('../../src/api/privateApi');
 
 afterEach(() => sandbox.restore());
@@ -452,6 +451,9 @@ describe('privateApi module', () => {
 		let sendRequestPromiseResult;
 
 		beforeEach(() => {
+			sandbox.stub(popsicle, 'request').returns({
+				use: () => Promise.reject(new popsicle.PopsicleError('oh no')),
+			});
 			options = {
 				key1: 'value 2',
 				key3: 4,
@@ -486,7 +488,7 @@ describe('privateApi module', () => {
 		it('should return the result of a popsicle request', () => {
 			return sendRequestPromiseResult
 				.then((result) => {
-					(result).should.be.instanceof(PopsicleError);
+					(result).should.be.instanceof(popsicle.PopsicleError);
 				});
 		});
 	});
