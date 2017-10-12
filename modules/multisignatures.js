@@ -66,27 +66,27 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 	if (!transaction) {
 		return setImmediate(cb, 'Unable to process signature. Signature is undefined.');
 	}
-	var transaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
+	var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
 
 	function done (cb) {
 		library.balancesSequence.add(function (cb) {
-			var transaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
+			var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
 
-			if (!transaction) {
+			if (!multisignatureTransaction) {
 				return setImmediate(cb, 'Transaction not found');
 			}
 
 			modules.accounts.getAccount({
-				address: transaction.senderId
+				address: multisignatureTransaction.senderId
 			}, function (err, sender) {
 				if (err) {
 					return setImmediate(cb, err);
 				} else if (!sender) {
 					return setImmediate(cb, 'Sender not found');
 				} else {
-					transaction.signatures = transaction.signatures || [];
-					transaction.signatures.push(transaction.signature);
-					transaction.ready = Multisignature.prototype.ready(transaction, sender);
+					multisignatureTransaction.signatures = multisignatureTransaction.signatures || [];
+					multisignatureTransaction.signatures.push(transaction.signature);
+					multisignatureTransaction.ready = Multisignature.prototype.ready(multisignatureTransaction, sender);
 
 					library.bus.message('signature', {transaction: transaction.transaction, signature: transaction.signature}, true);
 					return setImmediate(cb);
@@ -95,14 +95,14 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 		}, cb);
 	}
 
-	if (!transaction) {
+	if (!multisignatureTransaction) {
 		return setImmediate(cb, 'Transaction not found');
 	}
 
-	if (transaction.type === transactionTypes.MULTI) {
-		transaction.signatures = transaction.signatures || [];
+	if (multisignatureTransaction.type === transactionTypes.MULTI) {
+		multisignatureTransaction.signatures = multisignatureTransaction.signatures || [];
 
-		if (transaction.asset.multisignature.signatures || transaction.signatures.indexOf(transaction.signature) !== -1) {
+		if (multisignatureTransaction.asset.multisignature.signatures || multisignatureTransaction.signatures.indexOf(transaction.signature) !== -1) {
 			return setImmediate(cb, 'Permission to sign transaction denied');
 		}
 
@@ -110,9 +110,9 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 		var verify = false;
 
 		try {
-			for (var i = 0; i < transaction.asset.multisignature.keysgroup.length && !verify; i++) {
-				var key = transaction.asset.multisignature.keysgroup[i].substring(1);
-				verify = library.logic.transaction.verifySignature(transaction, key, transaction.signature);
+			for (var i = 0; i < multisignatureTransaction.asset.multisignature.keysgroup.length && !verify; i++) {
+				var key = multisignatureTransaction.asset.multisignature.keysgroup[i].substring(1);
+				verify = library.logic.transaction.verifySignature(multisignatureTransaction, key, transaction.signature);
 			}
 		} catch (e) {
 			library.logger.error(e.stack);
@@ -126,7 +126,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 		return done(cb);
 	} else {
 		modules.accounts.getAccount({
-			address: transaction.senderId
+			address: multisignatureTransaction.senderId
 		}, function (err, account) {
 			if (err) {
 				return setImmediate(cb, 'Multisignature account not found');
@@ -135,23 +135,23 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 			var verify = false;
 			var multisignatures = account.multisignatures;
 
-			if (transaction.requesterPublicKey) {
-				multisignatures.push(transaction.senderPublicKey);
+			if (multisignatureTransaction.requesterPublicKey) {
+				multisignatures.push(multisignatureTransaction.senderPublicKey);
 			}
 
 			if (!account) {
 				return setImmediate(cb, 'Account not found');
 			}
 
-			transaction.signatures = transaction.signatures || [];
+			multisignatureTransaction.signatures = multisignatureTransaction.signatures || [];
 
-			if (transaction.signatures.indexOf(transaction.signature) >= 0) {
+			if (multisignatureTransaction.signatures.indexOf(transaction.signature) >= 0) {
 				return setImmediate(cb, 'Signature already exists');
 			}
 
 			try {
 				for (var i = 0; i < multisignatures.length && !verify; i++) {
-					verify = library.logic.transaction.verifySignature(transaction, multisignatures[i], transaction.signature);
+					verify = library.logic.transaction.verifySignature(multisignatureTransaction, multisignatures[i], transaction.signature);
 				}
 			} catch (e) {
 				library.logger.error(e.stack);
@@ -162,7 +162,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 				return setImmediate(cb, 'Failed to verify signature');
 			}
 
-			library.network.io.sockets.emit('multisignatures/signature/change', transaction);
+			library.network.io.sockets.emit('multisignatures/signature/change', multisignatureTransaction);
 			return done(cb);
 		});
 	}
