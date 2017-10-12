@@ -15,16 +15,10 @@
 pipeline {
 	agent { node { label 'lisk-js' } }
 	stages {
-		stage('Prepare workspace') {
-			steps {
-				deleteDir()
-				checkout scm
-			}
-		}
 		stage('Install dependencies') {
 			steps {
 				sh '''
-				cp -r ~/cache/node_modules ./ || true
+				cp -r ~/cache/${CHANGE_TARGET:-${BRANCH_NAME:-development}}/node_modules ./ || true
 				npm install --verbose
 				cp ~/.coveralls.yml .
 				'''
@@ -53,9 +47,11 @@ pipeline {
 		}
 	}
 	post {
-		always {
-			archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/screenshots/'
+		success {
 			deleteDir()
+		}
+		failure {
+			archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/screenshots/'
 		}
 	}
 }
