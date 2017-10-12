@@ -70,23 +70,23 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 
 	function done (cb) {
 		library.balancesSequence.add(function (cb) {
-			var transaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
+			var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
 
-			if (!transaction) {
+			if (!multisignatureTransaction) {
 				return setImmediate(cb, 'Transaction not found');
 			}
 
 			modules.accounts.getAccount({
-				address: transaction.senderId
+				address: multisignatureTransaction.senderId
 			}, function (err, sender) {
 				if (err) {
 					return setImmediate(cb, err);
 				} else if (!sender) {
 					return setImmediate(cb, 'Sender not found');
 				} else {
-					transaction.signatures = transaction.signatures || [];
-					transaction.signatures.push(transaction.signature);
-					transaction.ready = Multisignature.prototype.ready(transaction, sender);
+					multisignatureTransaction.signatures = multisignatureTransaction.signatures || [];
+					multisignatureTransaction.signatures.push(transaction.signature);
+					multisignatureTransaction.ready = Multisignature.prototype.ready(multisignatureTransaction, sender);
 
 					library.bus.message('signature', {transaction: transaction.transaction, signature: transaction.signature}, true);
 					return setImmediate(cb);
