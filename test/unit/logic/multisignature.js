@@ -497,7 +497,7 @@ describe('multisignature', function () {
 			expect(accountMock.merge.calledWith(sender.address)).to.be.true;
 		});
 
-		it('should call library.logic.account.merge with valid params', function () {
+		it('should call library.logic.account.merge with expected params', function () {
 			var expectedParams = {
 				multisignatures: trs.asset.multisignature.keysgroup,
 				multimin: trs.asset.multisignature.min,
@@ -592,124 +592,198 @@ describe('multisignature', function () {
 
 	it('undo', function () {
 
-		it('should update private unconfirmed signature of sender', function (done) {
-			accountMock.merge.withArgs(sinon.match.any, sinon.match.any).yields(null);
-
-			accountsMock.generateAddressByPublicKey.exactly(trs.asset.multisignature.keysgroup.length).returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
-
-			accountsMock.setAccountAndGet.exactly(trs.asset.multisignature.keysgroup.length).yields(null);
-			multisignature.undo(trs, dummyBlock, sender, function () {
-				var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
-				expect(unconfirmedSignatures[sender.address]).to.equal(true);
-				accountMock.merge.verify();
-				accountsMock.generateAddressByPublicKey.verify();
-				accountsMock.setAccountAndGet.verify();
-				done();
-			});
+		beforeEach(function (done) {
+			trs = _.cloneDeep(validTransaction);
+			accountMock.merge = sinon.stub().callsArg(2);
+			multisignature.undo(trs, dummyBlock, sender, done);
 		});
 
-		it('should call accounts changes with correct parameters', function (done) {
-			accountMock.merge.once().withArgs(sender.address, {
+		it('should set __private.unconfirmedSignatures[sender.address] = true', function () {
+			var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
+			expect(unconfirmedSignatures).to.contain.property(sender.address).equal(true);
+		});
+
+		it('should call library.logic.account.merge', function () {
+			expect(accountMock.merge.calledOnce).to.be.true;
+		});
+
+		it('should call library.logic.account.merge with sender.address', function () {
+			expect(accountMock.merge.calledWith(sender.address)).to.be.true;
+		});
+
+		it('should call library.logic.account.merge with expected params', function () {
+			var expectedParams = {
 				multisignatures: Diff.reverse(trs.asset.multisignature.keysgroup),
 				multimin: trs.asset.multisignature.min,
 				multilifetime: trs.asset.multisignature.lifetime,
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height)
-			}).yields(null);
+			};
+			expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
+		});
 
-			accountsMock.generateAddressByPublicKey.exactly(trs.asset.multisignature.keysgroup.length).returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
+		describe('when library.logic.account.merge fails', function () {
 
-			accountsMock.setAccountAndGet.exactly(trs.asset.multisignature.keysgroup.length).yields(null);
-			multisignature.undo(trs, dummyBlock, sender, function () {
-				accountMock.merge.verify();
-				accountsMock.generateAddressByPublicKey.verify();
-				accountsMock.setAccountAndGet.verify();
-				done();
+			beforeEach(function () {
+				accountMock.merge = sinon.stub().callsArgWith(2, 'merge error');
+			});
+
+			it('should call callback with error', function () {
+				multisignature.undo(trs, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
+				});
+			});
+		});
+
+		describe('when library.logic.account.merge succeeds', function () {
+
+			it('should call callback with error = null', function () {
+				multisignature.apply(trs, dummyBlock, sender, function (err) {
+					expect(err).to.be.null;
+				});
+			});
+
+			it('should call callback with result = undefined', function () {
+				multisignature.apply(trs, dummyBlock, sender, function (err, res) {
+					expect(res).to.be.undefined;
+				});
 			});
 		});
 	});
 
 	it('applyUnconfirmed', function () {
 
-		it('should return error when transaction is already pending confirmation', function (done) {
-			Multisignature.__set__('__private.unconfirmedSignatures', true);
+		describe('when transaction is pending for confirmation', function () {
 
-			multisignature.applyUnconfirmed(trs, sender, function (err) {
-				expect(err).to.equal('Signature on this account is pending confirmation');
-				done();
-			});
-		});
-
-		it('should update private unconfirmed signature status of sender', function (done) {
-			accountMock.merge.withArgs(sinon.match.any, sinon.match.any).yields(null);
-			Multisignature.__set__('__private.unconfirmedSignatures', false);
-
-			multisignature.applyUnconfirmed(trs, sender, function () {
+			beforeEach(function () {
 				var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
-				expect(unconfirmedSignatures[sender.address]).to.equal(true);
-				accountMock.merge.verify();
-				done();
+				unconfirmedSignatures[sender.address] = true;
 			});
+
+			it('should call callback with error = "Signature on this account is pending confirmation"', function (done) {
+
+				multisignature.applyUnconfirmed(trs, sender, function (err) {
+					expect(err).to.equal('Signature on this account is pending confirmation');
+					done();
+				});
+			});
+
 		});
 
-		it('should call the account.merge with correct params', function (done) {
-			accountMock.merge.withArgs(sender.address, {
-				u_multisignatures: trs.asset.multisignature.keysgroup,
-				u_multimin: trs.asset.multisignature.min,
-				u_multilifetime: trs.asset.multisignature.lifetime
-			}).yields(null);
+		describe('when transaction does not pend for confirmation', function () {
 
-			multisignature.applyUnconfirmed(trs, sender, function () {
-				accountMock.merge.verify();
-				done();
+			beforeEach(function (done) {
+				var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
+				unconfirmedSignatures[sender.address] = false;
+				multisignature.applyUnconfirmed(trs, sender, done);
+			});
+
+			it('should set __private.unconfirmedSignatures[sender.address] = true', function () {
+				var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
+				expect(unconfirmedSignatures).to.contain.property(sender.address).equal(true);
+			});
+
+			it('should call library.logic.account.merge', function () {
+				expect(accountMock.merge.calledOnce).to.be.true;
+			});
+
+			it('should call library.logic.account.merge with sender.address', function () {
+				expect(accountMock.merge.calledWith(sender.address)).to.be.true;
+			});
+
+			it('should call library.logic.account.merge with expected params', function () {
+				var expectedParams = {
+					u_multisignatures: trs.asset.multisignature.keysgroup,
+					u_multimin: trs.asset.multisignature.min,
+					u_multilifetime: trs.asset.multisignature.lifetime
+				};
+				expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
+			});
+
+			describe('when library.logic.account.merge fails', function () {
+
+				beforeEach(function () {
+					accountMock.merge = sinon.stub().callsArgWith(2, 'merge error');
+				});
+
+				it('should call callback with error', function () {
+					multisignature.undo(trs, dummyBlock, sender, function (err) {
+						expect(err).not.to.be.empty;
+					});
+				});
+			});
+
+			describe('when library.logic.account.merge succeeds', function () {
+
+				it('should call callback with error = null', function () {
+					multisignature.apply(trs, dummyBlock, sender, function (err) {
+						expect(err).to.be.null;
+					});
+				});
+
+				it('should call callback with result = undefined', function () {
+					multisignature.apply(trs, dummyBlock, sender, function (err, res) {
+						expect(res).to.be.undefined;
+					});
+				});
 			});
 		});
 	});
 
 	describe('undoUnconfirmed', function () {
 
-		it('should update private unconfirmed signature status of sender', function (done) {
-			accountMock.merge.withArgs(sinon.match.any, sinon.match.any).yields(null);
-			Multisignature.__set__('__private.unconfirmedSignatures', {[sender.address]: true});
+		beforeEach(function (done) {
+			accountMock.merge = sinon.stub().callsArg(2);
+			multisignature.undoUnconfirmed(trs, sender, done);
+		});
 
-			multisignature.undoUnconfirmed(trs, sender, function () {
-				var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
-				expect(unconfirmedSignatures[sender.address]).to.equal(false);
-				accountMock.merge.verify();
-				done();
+		it('should set __private.unconfirmedSignatures[sender.address] = false', function () {
+			var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
+			expect(unconfirmedSignatures).to.contain.property(sender.address).equal(false);
+		});
+
+		it('should call library.logic.account.merge', function () {
+			expect(accountMock.merge.calledOnce).to.be.true;
+		});
+
+		it('should call library.logic.account.merge with sender.address', function () {
+			expect(accountMock.merge.calledWith(sender.address)).to.be.true;
+		});
+
+		it('should call library.logic.account.merge with expected params', function () {
+			var expectedParams = {
+				u_multisignatures: Diff.reverse(trs.asset.multisignature.keysgroup),
+				u_multimin: -trs.asset.multisignature.min,
+				u_multilifetime: -trs.asset.multisignature.lifetime,
+			};
+			expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
+		});
+
+		describe('when library.logic.account.merge fails', function () {
+
+			beforeEach(function () {
+				accountMock.merge = sinon.stub().callsArgWith(2, 'merge error');
+			});
+
+			it('should call callback with error', function () {
+				multisignature.undo(trs, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
+				});
 			});
 		});
 
-		it('should return error when multisignature keysgroup has an entry which does not start with + character', function (done) {
-			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
-			trs.senderId = node.gAccount.address;
+		describe('when library.logic.account.merge succeeds', function () {
 
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Invalid math operator in multisignature keysgroup');
-				done();
+			it('should call callback with error = null', function () {
+				multisignature.apply(trs, dummyBlock, sender, function (err) {
+					expect(err).to.be.null;
+				});
 			});
-		});
 
-		it('should return error when multisignature keysgroup has an entry which is null', function (done) {
-			var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, null], 1, 2);
-			trs.senderId = node.gAccount.address;
-
-			multisignature.verify(trs, node.gAccount, function (err, trs) {
-				expect(err).to.equal('Invalid member in keysgroup');
-				done();
-			});
-		});
-
-		it('should call the account.merge with correct params', function (done) {
-			accountMock.merge.withArgs(sender.address, {
-				u_multisignatures: trs.asset.multisignature.keysgroup,
-				u_multimin: trs.asset.multisignature.min,
-				u_multilifetime: trs.asset.multisignature.lifetime
-			}).yields(null);
-
-			multisignature.applyUnconfirmed(trs, sender, function () {
-				accountMock.merge.verify();
-				done();
+			it('should call callback with result = undefined', function () {
+				multisignature.apply(trs, dummyBlock, sender, function (err, res) {
+					expect(res).to.be.undefined;
+				});
 			});
 		});
 	});
