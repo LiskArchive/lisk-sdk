@@ -103,11 +103,6 @@ var others = [
 		input: null,
 		description: 'null',
 		expectation: 'null'
-	},
-	{
-		input: undefined,
-		description: 'undefined',
-		expectation: 'undefined'
 	}
 ];
 
