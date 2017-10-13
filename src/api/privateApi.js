@@ -86,6 +86,17 @@ export function getNodes() {
 }
 
 /**
+ * @method isBanned
+ * @return {Boolean}
+ * @private
+ */
+
+
+export function isBanned(node) {
+	return this.bannedNodes.includes(node);
+}
+
+/**
  * @method getRandomNode
  * @return  {String}
  * @private
@@ -93,7 +104,7 @@ export function getNodes() {
 
 export function getRandomNode() {
 	const nodes = getNodes.call(this)
-		.filter(node => !this.bannedNodes.includes(node));
+		.filter(node => !isBanned.call(this, node));
 
 	if (!nodes.length) {
 		throw new Error('Cannot get random node: all relevant nodes have been banned.');
@@ -115,7 +126,7 @@ export function selectNewNode() {
 	if (this.randomNode) {
 		return getRandomNode.call(this);
 	} else if (providedNode) {
-		if (this.bannedNodes.includes(providedNode)) {
+		if (isBanned.call(this, providedNode)) {
 			throw new Error('Cannot select node: provided node has been banned and randomNode is not set to true.');
 		}
 		return providedNode;
@@ -130,7 +141,7 @@ export function selectNewNode() {
  */
 
 export function banActiveNode() {
-	if (!this.bannedNodes.includes(this.node)) {
+	if (!isBanned.call(this, this.node)) {
 		this.bannedNodes.push(this.node);
 	}
 }
@@ -145,7 +156,7 @@ export function hasAvailableNodes() {
 	const nodes = getNodes.call(this);
 
 	return this.randomNode
-		? nodes.some(node => !this.bannedNodes.includes(node))
+		? nodes.some(node => !isBanned.call(this, node))
 		: false;
 }
 

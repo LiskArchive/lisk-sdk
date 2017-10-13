@@ -184,6 +184,19 @@ describe('privateApi module', () => {
 		});
 	});
 
+	describe('#isBanned', () => {
+		const { isBanned } = privateApi;
+		it('should return true when provided node is banned', () => {
+			LSK.bannedNodes = [].concat(defaultNodes);
+			(isBanned.call(LSK, localNode)).should.be.true();
+		});
+
+		it('should return false when provided node is not banned', () => {
+			LSK.bannedNodes = [];
+			(isBanned.call(LSK, localNode)).should.be.false();
+		});
+	});
+
 	describe('#getRandomNode', () => {
 		const { getRandomNode } = privateApi;
 		let getNodesStub;
