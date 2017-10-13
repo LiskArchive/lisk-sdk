@@ -23,6 +23,7 @@ require('./logic/transactionPool');
 require('./logic/transfer');
 require('./logic/signature.js');
 require('./logic/vote');
+require('./logic/multisignature.js');
 
 require('./modules/blocks/process');
 require('./modules/blocks/verify');
