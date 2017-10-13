@@ -32,7 +32,7 @@ describe('createAccount command', () => {
 
 						describe('When the user executes the command', () => {
 							beforeEach(when.theUserExecutesTheCommand);
-							it('Then it should resolve to an object with the the passphrase and the publicKey and the address', then.itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
+							it('Then it should resolve to an object with the passphrase and the publicKey and the address', then.itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
 							it('Then it should print the result in a table', then.itShouldPrintTheResultInATable);
 						});
 
