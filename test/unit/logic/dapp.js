@@ -393,19 +393,62 @@ describe('dapp', function () {
 
 		describe('process', function () {
 
-			it('should call the callback', function (done) {
-				dapp.process(transaction, sender, done);
+			describe('with valid transaction', function () {
+
+				it('should call the callback with error = null', function (done) {
+					dapp.process(transaction, sender, done);
+				});
 			});
 		});
 
 		describe('getBytes', function () {
 
-			it('should get bytes of valid transaction', function () {
-				expect(dapp.getBytes(transaction).toString('hex')).to.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
+			describe('when transaction.asset.dapp = undefined', function () {
+
+				beforeEach(function () {
+					transaction.asset.dapp = undefined;
+				});
+
+				it('should throw', function () {
+					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+				});
 			});
 
-			it('should get bytes of valid transaction', function () {
-				expect(dapp.getBytes(transaction).length).to.equal(93);
+			describe('when transaction.asset.dapp.category = undefined', function () {
+
+				beforeEach(function () {
+					transaction.asset.dapp.category = undefined;
+				});
+
+				it('should throw', function () {
+					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+				});
+			});
+
+			describe('when transaction.asset.dapp.type = undefined', function () {
+
+				beforeEach(function () {
+					transaction.asset.dapp.type = undefined;
+				});
+
+				it('should throw', function () {
+					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+				});
+			});
+
+			describe('when transaction.asset.dapp is a valid asset', function () {
+
+				it('should not throw', function () {
+					expect(dapp.getBytes.bind(null, transaction)).not.to.throw();
+				});
+
+				it('should get bytes of valid transaction', function () {
+					expect(dapp.getBytes(transaction).toString('hex')).to.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
+				});
+
+				it('should return result as a Buffer type', function () {
+					expect(dapp.getBytes(transaction)).to.be.instanceOf(Buffer);
+				});
 			});
 		});
 
@@ -441,14 +484,14 @@ describe('dapp', function () {
 
 		describe('undo', function () {
 
-			var dummyBlock = {
-				id: '9314232245035524467',
-				height: 1
-			};
+			describe('with vaid parameters', function () {
+				var dummyBlock = {
+					id: '9314232245035524467',
+					height: 1
+				};
 
-			it('should call the callback function', function (done) {
-				dapp.undo(transaction, dummyBlock, sender, function () {
-					done();
+				it('should call the callback function', function (done) {
+					dapp.undo(transaction, dummyBlock, sender, done);
 				});
 			});
 		});
