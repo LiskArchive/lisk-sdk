@@ -84,7 +84,7 @@ describe('transport', function () {
 
 			describe('when library.schema.validate fails', function () {
 				
-				it('should call series callback with "Invalid signatures body"');
+				it('should call series callback with error = "Invalid signatures body"');
 			});
 			
 			describe('when library.schema.validate succeeds', function () {
@@ -128,7 +128,7 @@ describe('transport', function () {
 			
 			describe('when library.schema.validate fails', function () {
 				
-				it('should call callback with "Invalid signature body"');
+				it('should call callback with error = "Invalid signature body"');
 			});
 			
 			describe('when library.schema.validate succeeds', function () {
@@ -139,7 +139,7 @@ describe('transport', function () {
 				
 				describe('when modules.multisignatures.processSignature fails', function (){
 					
-					it('should call callback with "Error processing signature:" + err');
+					it('should call callback with error');
 				});
 				
 				describe('when modules.multisignatures.processSignature succeeds', function (){
@@ -254,7 +254,7 @@ describe('transport', function () {
 				
 				it('should call library.logger.debug');
 				
-				it('should call library.logger.debug with ["Transaction", id].join(" ")');
+				it('should call library.logger.debug with "Transaction ${transaction.id}"');
 				
 				it('should call library.logger.debug with err.toString()');
 				
@@ -281,8 +281,8 @@ describe('transport', function () {
 	
 	describe('Transport', function () {
 		
-		describe('prototype.headers', function () {
-			
+		describe('headers', function () {
+
 			describe('when headers is defined', function () {
 				
 				it('should set headers');
@@ -291,7 +291,7 @@ describe('transport', function () {
 			it('should return headers');
 		});
 		
-		describe('prototype.poorConsensus', function () {
+		describe('poorConsensus', function () {
 			
 			describe('when consensus is undefined', function () {
 				
@@ -309,7 +309,7 @@ describe('transport', function () {
 			});
 		});
 		
-		describe('prototype.getPeers', function () {
+		describe('getPeers', function () {
 			
 			it('should call __private.broadcaster.getPeers ');
 			
@@ -318,7 +318,7 @@ describe('transport', function () {
 			it('should call __private.broadcaster.getPeers  with callback');
 		});
 		
-		describe('prototype.onBind', function () {
+		describe('onBind', function () {
 			
 			describe('modules', function () {
 				
@@ -348,7 +348,7 @@ describe('transport', function () {
 			it('should call __private.broadcaster.bind with scope.transactions');
 		});
 		
-		describe('prototype.onSignature', function () {
+		describe('onSignature', function () {
 			
 			describe('when broadcast is defined', function () {
 				
@@ -373,7 +373,7 @@ describe('transport', function () {
 			});
 		});
 		
-		describe('prototype.onUnconfirmedTransaction', function () {
+		describe('onUnconfirmedTransaction', function () {
 			
 			describe('when broadcast is defined', function () {
 				
@@ -398,7 +398,7 @@ describe('transport', function () {
 			});
 		});
 		
-		describe('prototype.onNewBlock', function () {
+		describe('onNewBlock', function () {
 			
 			describe('when broadcast is defined', function () {
 				
@@ -477,7 +477,7 @@ describe('transport', function () {
 			it('should call library.network.io.sockets.emit with block');
 		});
 		
-		describe('prototype.shared', function () {
+		describe('shared', function () {
 			
 			describe('blocksCommon', function () {
 				
@@ -864,14 +864,14 @@ describe('transport', function () {
 				
 				describe('updateResult', function () {
 					
-					describe('when query.updateType = 0', function () {
+					describe('when query.updateType = 0 (insert)', function () {
 					
 						it('should call modules.peers.update');
 
 						it('should call modules.peers.update with query.peer');
 					});
 
-					describe('when query.updateType = 1', function () {
+					describe('when query.updateType = 1 (remove)', function () {
 
 						it('should call modules.peers.remove');
 
