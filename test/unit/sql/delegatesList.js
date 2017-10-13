@@ -4,7 +4,7 @@ var chai   = require('chai');
 var crypto = require('crypto');
 var expect = require('chai').expect;
 
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var slots         = require('../../../helpers/slots.js');
 var sql           = require('../../sql/delegatesList.js');
 
@@ -31,7 +31,7 @@ function generateDelegatesList (round, delegates) {
 	}
 
 	return list;
-};
+}
 
 describe('Delegate list SQL functions', function () {
 	var db;
