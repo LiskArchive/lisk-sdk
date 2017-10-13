@@ -48,7 +48,7 @@ node.nonce = node.randomString.generate(16);
 node.fees = {
 	voteFee: node.constants.fees.vote,
 	transactionFee: node.constants.fees.send,
-	secondPasswordFee: node.constants.fees.secondsignature,
+	secondPasswordFee: node.constants.fees.secondSignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
 	dappRegistrationFee: node.constants.fees.dapp,

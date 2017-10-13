@@ -47,6 +47,7 @@ function Multisignatures (cb, scope) {
 			scope.schema,
 			scope.network,
 			scope.logic.transaction,
+			scope.logic.account,
 			scope.logger
 		)
 	);

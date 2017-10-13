@@ -30,9 +30,10 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	before(function () {
 		var promises = [];
 		promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.secondsignature));
-		promises.push(creditAccountPromise(accountNoSecondPassword.address, constants.fees.secondsignature));
-		promises.push(creditAccountPromise(accountDuplicate.address, constants.fees.secondsignature));
+		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.secondSignature));
+		promises.push(creditAccountPromise(accountNoSecondPassword.address, constants.fees.secondSignature));
+		promises.push(creditAccountPromise(accountDuplicate.address, constants.fees.secondSignature));
+
 
 		return node.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {

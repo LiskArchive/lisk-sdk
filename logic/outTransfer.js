@@ -31,12 +31,10 @@ function OutTransfer (db, schema, logger) {
 /**
  * Binds input modules to private variable module.
  * @param {Accounts} accounts
- * @param {Dapps} dapps
  */
-OutTransfer.prototype.bind = function (accounts, dapps) {
+OutTransfer.prototype.bind = function (accounts) {
 	modules = {
 		accounts: accounts,
-		dapps: dapps,
 	};
 };
 

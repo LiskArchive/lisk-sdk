@@ -33,14 +33,14 @@ Signature.prototype.bind = function (accounts) {
 };
 
 /**
- * Obtains constant fee secondsignature.
+ * Obtains constant fee secondSignature.
  * @see {@link module:helpers~constants}
  * @param {transaction} trs - Unnecessary parameter.
  * @param {account} sender - Unnecessary parameter.
  * @returns {number} Secondsignature fee.
  */
 Signature.prototype.calculateFee = function (trs, sender) {
-	return constants.fees.secondsignature;
+	return constants.fees.secondSignature;
 };
 
 /**
