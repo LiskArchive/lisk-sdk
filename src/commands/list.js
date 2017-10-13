@@ -13,14 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import commonOptions from '../utils/options';
-import query from '../utils/query';
-import { printResult } from '../utils/print';
 import {
 	COMMAND_TYPES,
 	SINGULARS,
 } from '../utils/constants';
-import { deAlias } from '../utils/helpers';
+import { createCommand } from '../utils/helpers';
+import { handlers, processResult } from './get';
 
 const description = `Get information from <type> with parameters <input, input, ...>. Types available: accounts, addresses, blocks, delegates, transactions.
 
@@ -29,41 +27,27 @@ const description = `Get information from <type> with parameters <input, input, 
 		- list blocks 5510510593472232540 16450842638530591789
 `;
 
-const handlers = {
-	addresses: address => query.isAccountQuery(address),
-	accounts: accounts => query.isAccountQuery(accounts),
-	blocks: blocks => query.isBlockQuery(blocks),
-	delegates: delegates => query.isDelegateQuery(delegates),
-	transactions: transactions => query.isTransactionQuery(transactions),
+const actionCreator = () => async ({ type, variadic }) => {
+	const singularType = Object.keys(SINGULARS).includes(type)
+		? SINGULARS[type]
+		: type;
+
+	if (!COMMAND_TYPES.includes(singularType)) {
+		throw new Error('Unsupported type.');
+	}
+
+	const queries = variadic.map(handlers[singularType]);
+
+	return Promise.all(queries)
+		.then(results => results.map(processResult(singularType)));
 };
 
-const processResults = (vorpal, options, type, results) => {
-	const resultsToPrint = results.map(result => (
-		result.error
-			? result
-			: result[type]
-	));
-	return printResult(vorpal, options)(resultsToPrint);
-};
+const list = createCommand({
+	command: 'list <type> <variadic...>',
+	autocomplete: COMMAND_TYPES,
+	description,
+	actionCreator,
+	errorPrefix: 'Could not list',
+});
 
-const list = vorpal => ({ type, variadic, options }) => {
-	const singularType = SINGULARS[type];
-
-	const makeCalls = () => variadic.map(input => handlers[type](input));
-
-	return COMMAND_TYPES.includes(singularType)
-		? Promise.all(makeCalls())
-			.then(processResults.bind(null, vorpal, options, deAlias(singularType)))
-			.catch(e => e)
-		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'));
-};
-
-export default function listCommand(vorpal) {
-	vorpal
-		.command('list <type> <variadic...>')
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.autocomplete(COMMAND_TYPES)
-		.action(list(vorpal));
-}
+export default list;
