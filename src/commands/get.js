@@ -13,11 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import commonOptions from '../utils/options';
-import query from '../utils/query';
 import { COMMAND_TYPES } from '../utils/constants';
-import { printResult } from '../utils/print';
-import { deAlias } from '../utils/helpers';
+import { createCommand, deAlias } from '../utils/helpers';
+import query from '../utils/query';
 
 const description = `Get information from <type> with parameter <input>. Types available: account, address, block, delegate, transaction.
 
@@ -26,7 +24,7 @@ const description = `Get information from <type> with parameter <input>. Types a
 		- get block 5510510593472232540
 `;
 
-const handlers = {
+export const handlers = {
 	account: account => query.isAccountQuery(account),
 	address: address => query.isAccountQuery(address),
 	block: block => query.isBlockQuery(block),
@@ -34,24 +32,27 @@ const handlers = {
 	transaction: transaction => query.isTransactionQuery(transaction),
 };
 
-const processResult = (vorpal, options, type, result) => {
-	const resultToPrint = result.error ? result : result[type];
-	return printResult(vorpal, options)(resultToPrint);
-};
-
-const get = vorpal => ({ options, type, input }) => (
-	COMMAND_TYPES.includes(type)
-		? handlers[type](input)
-			.then(processResult.bind(null, vorpal, options, deAlias(type)))
-		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'))
+export const processResult = type => result => (
+	result.error
+		? result
+		: result[deAlias(type)]
 );
 
-export default function getCommand(vorpal) {
-	vorpal
-		.command('get <type> <input>')
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.autocomplete(COMMAND_TYPES)
-		.action(get(vorpal));
-}
+const actionCreator = () => async ({ type, input }) => {
+	if (!COMMAND_TYPES.includes(type)) {
+		throw new Error('Unsupported type.');
+	}
+
+	return handlers[type](input)
+		.then(processResult(type));
+};
+
+const get = createCommand({
+	command: 'get <type> <input>',
+	autocomplete: COMMAND_TYPES,
+	description,
+	actionCreator,
+	errorPrefix: 'Could not get',
+});
+
+export default get;
