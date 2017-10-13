@@ -3,6 +3,8 @@
 var expect = require('chai').expect;
 var sinon  = require('sinon');
 var _ = require('lodash');
+var node = require('../../../node');
+
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var TxPool = require('../../../../logic/transactions/pool.js');
 var Transaction = require('../../../../logic/transaction.js');
@@ -16,223 +18,6 @@ var Delegate = require('../../../../logic/delegate.js');
 var Signature = require('../../../../logic/signature.js');
 var Multisignature = require('../../../../logic/multisignature.js');
 
-
-var transactions = [
-	/* type: 0 - Transmit funds */
-	{
-		'type': 0,
-		'amount': 300000000,
-		'fee': 10000000,
-		'recipientId': '2896019180726908125L',
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'timestamp': 41721274,
-		'asset': {},
-		'signature': '07c2c8622000bdfb97e1321d889cef40d7ca7faee4493f220edafd3e56fd15c425a1549b50faa91affbccaf54de406fbe047c70407d1e9f7ef637941539fb30e',
-		'id': '14274723388740956065'
-	},
-	/* type: 1 - Register a second signature */
-	{
-		'type': 1,
-		'amount': 0,
-		'fee': 500000000,
-		'recipientId': null,
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'timestamp': 41808966,
-		'asset': {
-			'signature': {
-				'publicKey': '8ccfeb0e05a84124fb8e9932ea5d1744617907ef5b51ffde12e24a805ae992fa'
-			}
-		},
-		'signature': '82dc975a49b5fcb19d05b736f7c53978c9973619ef2822e0dfaf0160e1d21a7c5ceb81abb62ebcacfa1c8c3a501035103e252d65fbd5518e38db71f7acc3c20d',
-		'id': '16927110199431968159'
-	},
-	/* type: 2 - Register a delegate */
-	{
-		'type': 2,
-		'amount': 0,
-		'fee': 2500000000,
-		'recipientId': null,
-		'senderPublicKey': '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8',
-		'timestamp': 43776413,
-		'asset': {
-			'delegate': {
-				'username': 'txp_new_delegate',
-				'publicKey': '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8'
-			}
-		},
-		'signature': '6db720cd875035de6d6e91cd6f48303c1f7baab3f85074e03029af857e71e8af96cf7be33fd2b7bf650c4bf01383dbccfaaba23a4020974fcb9d1912b84a4f0a',
-		'id': '4169182049562816689'
-	},
-	/* type: 3 - Submit votes */
-	{
-		'type': 3,
-		'amount': 0,
-		'timestamp': 37943883,
-		'fee': 100000000,
-		'asset': {
-			'votes': [
-				'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-				'-141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
-			]
-		},
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'senderId': '2737453412992791987L',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '4'
-	},
-	/* type: 4 - Multisignature registration */
-	{
-		'type': 4,
-		'amount': 0,
-		'fee': 1500000000,
-		'recipientId': null,
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'timestamp': 41724474,
-		'asset': {
-			'multisignature': {
-				'min': 2,
-				'lifetime': 1,
-				'keysgroup': [
-					'+684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-					'+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5'
-				]
-			}
-		},
-		'signature': 'ee0eff648d2f48d72bdbc3f0b4dc57910cf5415a7dd70e8d4c1bfa3ab3cbbe7dd7bac730b0484be744edd6aa136569a37929d749ffe987f872dffa0bd7083d04',
-		'id': '16356401289337657230'
-	},
-	/* type: 0 - Transmit funds */
-	{
-		'type': 0,
-		'amount': 300000000,
-		'fee': 10000000,
-		'timestamp': 37943886,
-		'recipientId': '2896019180726908125L',
-		'senderId': '2737453412992791987L',
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '6'
-	},
-];
-
-var extraTransaction = 	{
-	'type': 0,
-	'amount': 400000000,
-	'fee': 10000000,
-	'timestamp': 37943890,
-	'recipientId': '2896019180726908125L',
-	'senderId': '13898484363564790288L',
-	'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-	'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-	'id': '8'
-};
-
-var invalidsTxs = [
-	/* type: 0 - Transmit funds account without enough credit*/
-	{
-		'type': 0,
-		'amount': 4400000000,
-		'fee': 10000000,
-		'recipientId': '2737453412992791987L',
-		'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		'timestamp': 42412477,
-		'asset': {},
-		'signature': '90e303cb9d547acb680852c8fd583b3c798011e9e01739cd4755f8b4a34607157a9629441e3a2093f46f441de3ed6609080be1e5a2bf13c46b8cfea68d4ada09',
-		'id': '5123711709529859173'
-	},
-	/* type: 1 - Register a second signature account without enough credit*/
-	{
-		'type': 1,
-		'amount': 0,
-		'fee': 500000000,
-		'recipientId': null,
-		'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		'timestamp': 42999044,
-		'asset': {
-			'signature': {
-				'publicKey': '8ccfeb0e05a84124fb8e9932ea5d1744617907ef5b51ffde12e24a805ae992fa'
-			}
-		},
-		'signature': '30fb1a449dc132a30fa18ad0e905f4702b19dd5199767b8c3a1673173e8905c75a9163980d2c2a06d48faec6a778139cb1fa784a1cbbaa929395675a64231100',
-		'id': '7078486003124131749'
-	},
-	[
-		/* type: 2 - Register a delegate account without enough credit*/
-		{
-			'type': 2,
-			'amount': 0,
-			'fee': 2500000000,
-			'recipientId': null,
-			'senderPublicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9',
-			'timestamp': 43775831,
-			'asset': {
-				'delegate': {
-					'username': 'txp_new_delegate',
-					'publicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9'
-				}
-			},
-			'signature': 'c67bb4f37a2aba0c3e67292ca61fd50064ef3fb32858cbe4b34fa1469ed3978db6b682df609117c1e227156d427bc24f0a3af8bd1ae6ec9194177ad417dd1500',
-			'id': '7121061506817701772'
-		},
-		/* type: 2 - Register a delegate that already is delegate*/
-		{
-			'type': 2,
-			'amount': 0,
-			'fee': 2500000000,
-			'recipientId': null,
-			'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-			'timestamp': 43697153,
-			'asset': {
-				'delegate': {
-					'username': 'txp_test_1',
-					'publicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5'
-				}
-			},
-			'signature': 'c9441e49228006e9ab9f5f676c49a56f8ec0eb23c539115912cd5b0d48f51c897d01ad2f5abd6bfac92cadbc3704bce076d1c104c63de1a28b247271c5d72601',
-			'id': '358375690571860615'
-		},
-		/* type: 2 - Register a delegate account with existing username*/
-		{
-			'type': 2,
-			'amount': 0,
-			'fee': 2500000000,
-			'recipientId': null,
-			'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-			'timestamp': 43697153,
-			'asset': {
-				'delegate': {
-					'username': 'txp_test_2',
-					'publicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb'
-				}
-			},
-			'signature': '3522664cfbe9a5ca3ade309a0c96add1861e29c7f0b3b9aa77177492c69a47f9f7c718dbd415ad49682215826a01579f74d728c6e1bc1c8e808d9ca3a06b8b0c',
-			'id': '11660632744648534794'
-		}
-	],
-	{},
-	{
-		'type': 4,
-		'amount': 0,
-		'fee': 1500000000,
-		'recipientId': null,
-		'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		'timestamp': 41725704,
-		'asset': {
-			'multisignature': {
-				'min': 2,
-				'lifetime': 1,
-				'keysgroup': [
-					'+684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-					'+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5'
-				]
-			}
-		},
-		'signature': '6f3e29e8e4d16f3e808133f6bf73858a3e2a932e19173260a4aaf78041399de67ef505186360a8f11a4b6b471f4f146bb9cbb388e3deb12e19540b8524a8760d',
-		'id': '2761953166306398206'
-	}
-	/* type: 0 - Transmit funds invalid senderId and recipientId*/
-];
-
 var testAccounts = [
 	{
 		account: {
@@ -244,6 +29,7 @@ var testAccounts = [
 			u_balance: 5300000000000000
 		},
 		secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
+		secret2: 'monitor connect vague chuckle advice message crash glance horror pear opera hedgehog'
 	},{
 		account: {
 			username: 'txp_test_2',
@@ -274,6 +60,53 @@ var testAccounts = [
 			u_balance: 3500000000000000
 		},
 		secret: 'island pizza tilt scrap spend guilt one guitar range narrow rough hotel',
+	}
+];
+
+var transactions = [
+	/* type: 0 - Transmit funds */
+	node.lisk.transaction.createTransaction(testAccounts[1].account.address, 300000000, testAccounts[0].secret),
+	/* type: 1 - Register a second signature */
+	node.lisk.signature.createSignature(testAccounts[0].secret, testAccounts[0].secret2),
+	/* type: 2 - Register a delegate */
+	node.lisk.delegate.createDelegate(testAccounts[3].secret, 'txp_new_delegate'),
+	/* type: 3 - Submit votes */
+	/* type: 4 - Multisignature registration */
+];
+
+var invalidsTxs = [
+	/* Type: 0 - Transmit funds account without enough credit.*/
+	node.lisk.transaction.createTransaction(testAccounts[0].account.address, 4400000000, testAccounts[1].secret),
+	/* Type: 1 - Register a second signature account without enough credit.*/
+	node.lisk.signature.createSignature(testAccounts[1].secret, testAccounts[0].secret2),
+	/* Type: 2.*/
+	[
+		/* - Register a delegate account without enough credit.*/
+		node.lisk.delegate.createDelegate('genre spare shed home aim achieve second garbage army erode rubber baby', 'txp_new_delegate'),
+		/* - Register a delegate that already is delegate*/
+		node.lisk.delegate.createDelegate(testAccounts[0].secret, testAccounts[0].account.username),
+		/* - Register a delegate account with existing username*/
+		node.lisk.delegate.createDelegate(testAccounts[1].secret, testAccounts[1].account.username)
+	]
+];
+
+var hackedTransactions = [
+	/* Invalid signature */
+	{
+		'type': 2,
+		'amount': 0,
+		'fee': 2500000000,
+		'recipientId': null,
+		'senderPublicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9',
+		'timestamp': 43775831,
+		'asset': {
+			'delegate': {
+				'username': 'txp_new_delegate',
+				'publicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9'
+			}
+		},
+		'signature': '6db720cd875035de6d6e91cd6f48303c1f7baab3f85074e03029af857e71e8af96cf7be33fd2b7bf650c4bf01383dbccfaaba23a4020974fcb9d1912b84a4f0a',
+		'id': '16349767733713562311'
 	}
 ];
 
@@ -620,7 +453,6 @@ describe('txPool', function () {
 			});
 
 			describe('Tx type: 2 - Register a delegate', function () {
-				var tmpTxInvalidSignature;
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[2], function (err, cbtx) {
@@ -663,11 +495,8 @@ describe('txPool', function () {
 				});
 	
 				it('should be ok when add transaction to unverified with invalid signature', function (done) {
-					tmpTxInvalidSignature = _.cloneDeep(invalidsTxs[2][0]);
-					tmpTxInvalidSignature.signature = '6db720cd875035de6d6e91cd6f48303c1f7baab3f85074e03029af857e71e8af96cf7be33fd2b7bf650c4bf01383dbccfaaba23a4020974fcb9d1912b84a4f0a';
-					tmpTxInvalidSignature.id = '16349767733713562311';
 
-					txPool.add(tmpTxInvalidSignature, function (err, cbtx) {
+					txPool.add(hackedTransactions[0], function (err, cbtx) {
 						if (err) {
 							done(err);
 						}
@@ -687,7 +516,7 @@ describe('txPool', function () {
 						expect(error.args[1][1]).to.equal('Account is already a delegate');
 						expect(error.args[2][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[2][2].id);
 						expect(error.args[2][1]).to.equal('Username already exists');
-						expect(error.args[3][0]).to.equal('Failed to process unverified transaction: ' + tmpTxInvalidSignature.id);
+						expect(error.args[3][0]).to.equal('Failed to process unverified transaction: ' + hackedTransactions[0].id);
 						expect(error.args[3][1]).to.equal('Failed to verify signature');
 						poolTotals.invalid += 3;
 						poolTotals.ready += 1;
@@ -724,8 +553,8 @@ describe('txPool', function () {
 				});
 
 				it('should fail when add same transaction with invalid signature to unverified', function (done) {
-					txPool.add(tmpTxInvalidSignature, function (err, cbtx) {
-						expect(err).to.equal('Transaction is already processed as invalid: ' + tmpTxInvalidSignature.id);
+					txPool.add(hackedTransactions[0], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + hackedTransactions[0].id);
 						done();
 					});
 				});
@@ -789,6 +618,7 @@ describe('txPool', function () {
 			});
 
 			it('should fail when add transaction and pool storage is full', function (done) {
+				var extraTransaction = node.lisk.transaction.createTransaction(testAccounts[1].account.address, 300000000, testAccounts[0].secret);
 				txPool.add(extraTransaction, function (err, cbtx) {
 					expect(err).to.equal('Transaction pool is full');
 					done();
