@@ -14,10 +14,11 @@
  *
  */
 import os from 'os';
+import { CONFIG_VARIABLES } from '../utils/constants';
 import config from '../utils/env';
 import { writeJsonSync } from '../utils/fs';
+import { createCommand } from '../utils/helpers';
 import liskInstance from '../utils/liskInstance';
-import { CONFIG_VARIABLES } from '../utils/constants';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 
@@ -31,7 +32,7 @@ const writeConfigToFile = (vorpal, newConfig) => {
 		writeJsonSync(configFilePath, newConfig);
 		return true;
 	} catch (e) {
-		vorpal.log(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
+		vorpal.activeCommand.log(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
 		return false;
 	}
 };
@@ -82,18 +83,22 @@ const handlers = {
 	testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 };
 
-const set = vorpal => ({ variable, value }) => {
-	const returnValue = CONFIG_VARIABLES.includes(variable)
-		? handlers[variable](vorpal, value)
-		: 'Unsupported variable name.';
+const actionCreator = vorpal => async ({ variable, value }) => {
+	if (!CONFIG_VARIABLES.includes(variable)) {
+		throw new Error('Unsupported variable name.');
+	}
 
-	return Promise.resolve(vorpal.activeCommand.log(returnValue));
+	return {
+		message: handlers[variable](vorpal, value),
+	};
 };
 
-export default function setCommand(vorpal) {
-	vorpal
-		.command('set <variable> <value>')
-		.description(description)
-		.autocomplete(CONFIG_VARIABLES)
-		.action(set(vorpal));
-}
+const set = createCommand({
+	command: 'set <variable> <value>',
+	autocomplete: CONFIG_VARIABLES,
+	description,
+	actionCreator,
+	errorPrefix: 'Could not set variable',
+});
+
+export default set;

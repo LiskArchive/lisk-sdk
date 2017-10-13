@@ -22,6 +22,7 @@ import {
 	writeJsonSync,
 } from '../../../src/utils/fs';
 import liskInstance from '../../../src/utils/liskInstance';
+import tablify from '../../../src/utils/tablify';
 import {
 	getCommands,
 	getRequiredArgs,
@@ -107,7 +108,7 @@ describe('lisky set command palette', () => {
 				it('should inform the user that the option was successfully updated.', () => {
 					return vorpal.exec(command)
 						.then(() => {
-							(capturedOutput[1]).should.be.equal('Successfully set json output to true.');
+							(capturedOutput[1]).should.be.equal(JSON.stringify({ message: 'Successfully set json output to true.' }));
 						});
 				});
 			});
@@ -124,7 +125,7 @@ describe('lisky set command palette', () => {
 				it('should inform the user that the option was not successfully updated.', () => {
 					return vorpal.exec(command)
 						.then(() => {
-							(capturedOutput[1]).should.be.equal('Could not set json output to true.');
+							(capturedOutput[1]).should.be.equal(JSON.stringify({ message: 'Could not set json output to true.' }));
 						});
 				});
 			});
@@ -135,10 +136,11 @@ describe('lisky set command palette', () => {
 		const nameProperty = 'name';
 		const customName = 'my-custom-name';
 		const setNameCommand = `set ${nameProperty} ${customName}`;
-		const setNameResult = `Successfully set ${nameProperty} to ${customName}.`;
+		let setNameResult;
 
 		describe('name option', () => {
 			beforeEach(() => {
+				setNameResult = { message: `Successfully set ${nameProperty} to ${customName}.` };
 				return vorpal.exec(setNameCommand);
 			});
 
@@ -157,7 +159,7 @@ describe('lisky set command palette', () => {
 			});
 
 			it('should inform the user that the config name has been updated to my-custom-name', () => {
-				(capturedOutput[0]).should.be.equal(setNameResult);
+				(capturedOutput[0]).should.be.equal(JSON.stringify(setNameResult));
 			});
 		});
 
@@ -165,13 +167,16 @@ describe('lisky set command palette', () => {
 			const setJsonTrueCommand = 'set json true';
 			const setJsonFalseCommand = 'set json false';
 			const invalidValueCommand = 'set json tru';
-			const setJsonTrueResult = 'Successfully set json output to true.';
-			const setJsonFalseResult = 'Successfully set json output to false.';
-			const invalidValueResult = 'Cannot set json output to tru.';
+			let setJsonTrueResult;
+			let setJsonFalseResult;
+			let invalidValueResult;
 			const jsonProperty = 'json';
 
 			describe('to a non-boolean value', () => {
 				beforeEach(() => {
+					setJsonTrueResult = { message: 'Successfully set json output to true.' };
+					setJsonFalseResult = { message: 'Successfully set json output to false.' };
+					invalidValueResult = { message: 'Cannot set json output to tru.' };
 					return vorpal.exec(setJsonTrueCommand)
 						.then(vorpal.exec.bind(vorpal, invalidValueCommand));
 				});
@@ -191,7 +196,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should inform the user that the config has not been updated', () => {
-					(capturedOutput[1]).should.be.equal(invalidValueResult);
+					(capturedOutput[1]).should.be.equal(JSON.stringify(invalidValueResult));
 				});
 			});
 
@@ -215,7 +220,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should inform the user that the config has been updated to true', () => {
-					(capturedOutput[0]).should.be.equal(setJsonTrueResult);
+					(capturedOutput[0]).should.be.equal(JSON.stringify(setJsonTrueResult));
 				});
 			});
 
@@ -239,7 +244,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should inform the user that the config has been updated to false', () => {
-					(capturedOutput[0]).should.be.equal(setJsonFalseResult);
+					(capturedOutput[0]).should.be.equal(tablify(setJsonFalseResult).toString());
 				});
 			});
 		});
@@ -248,14 +253,17 @@ describe('lisky set command palette', () => {
 			const setTestnetTrueCommand = 'set testnet true';
 			const setTestnetFalseCommand = 'set testnet false';
 			const invalidValueCommand = 'set testnet tru';
-			const setTestnetTrueResult = 'Successfully set testnet to true.';
-			const setTestnetFalseResult = 'Successfully set testnet to false.';
-			const invalidValueResult = 'Cannot set testnet to tru.';
+			let setTestnetTrueResult;
+			let setTestnetFalseResult;
+			let invalidValueResult;
 			const testnetProperties = ['liskJS', 'testnet'];
 
 			let setTestnetStub;
 
 			beforeEach(() => {
+				setTestnetTrueResult = { message: 'Successfully set testnet to true.' };
+				setTestnetFalseResult = { message: 'Successfully set testnet to false.' };
+				invalidValueResult = { message: 'Cannot set testnet to tru.' };
 				setTestnetStub = sandbox.stub(liskInstance, 'setTestnet');
 			});
 
@@ -286,7 +294,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should inform the user that the config has not been updated', () => {
-					(capturedOutput[1]).should.be.equal(invalidValueResult);
+					(capturedOutput[1]).should.be.equal(tablify(invalidValueResult).toString());
 				});
 			});
 
@@ -316,7 +324,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should inform the user that the config has been updated to true', () => {
-					(capturedOutput[0]).should.be.equal(setTestnetTrueResult);
+					(capturedOutput[0]).should.be.equal(tablify(setTestnetTrueResult).toString());
 				});
 			});
 
@@ -346,7 +354,7 @@ describe('lisky set command palette', () => {
 				});
 
 				it('should inform the user that the config has been updated to false', () => {
-					(capturedOutput[0]).should.be.equal(setTestnetFalseResult);
+					(capturedOutput[0]).should.be.equal(tablify(setTestnetFalseResult).toString());
 				});
 			});
 		});
