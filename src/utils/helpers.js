@@ -13,6 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import commonOptions from '../utils/options';
+import { printResult } from '../utils/print';
+
 export const deAlias = type => (
 	type === 'address'
 		? 'account'
@@ -26,3 +29,30 @@ export const shouldUseJsonOutput = (config, options) =>
 export const createErrorHandler = prefix => ({ message }) => ({
 	error: `${prefix}: ${message}`,
 });
+
+export const wrapActionCreator = (vorpal, actionCreator, errorPrefix) => parameters =>
+	actionCreator(vorpal)(parameters)
+		.catch(createErrorHandler(errorPrefix))
+		.then(printResult(vorpal, parameters.options));
+
+export const createCommand = ({
+	command,
+	autocomplete,
+	description,
+	actionCreator,
+	options = [],
+	errorPrefix,
+}) => function createdCommand(vorpal) {
+	const action = wrapActionCreator(vorpal, actionCreator, errorPrefix);
+	const commandInstance = vorpal
+		.command(command)
+		.autocomplete(autocomplete)
+		.description(description)
+		.action(action);
+
+	[
+		...options,
+		commonOptions.json,
+		commonOptions.noJson,
+	].forEach(option => commandInstance.option(...option));
+};
