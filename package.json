@@ -54,6 +54,7 @@
 	},
 	"dependencies": {
 		"babel-polyfill": "=6.26.0",
+		"bitcore-mnemonic": "=1.2.5",
 		"cli-table2": "=0.2.0",
 		"lisk-js": "=0.5.0",
 		"vorpal": "LiskHQ/vorpal#master"

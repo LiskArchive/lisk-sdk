@@ -18,15 +18,20 @@ import * as fsUtils from '../../src/utils/fs';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
 
-const regExp = /"((.|\s\S)+?)"/;
+const regExpQuotes = /"((.|\s\S)+?)"/;
+const regExpNumbers = /\d+/g;
 
-export const getFirstQuotedString = title => title.match(regExp)[1];
+export const getFirstQuotedString = title => title.match(regExpQuotes)[1];
 
 export const getQuotedStrings = (title) => {
-	const globalRegExp = new RegExp(regExp, 'g');
+	const globalRegExp = new RegExp(regExpQuotes, 'g');
 	return title
 		.match(globalRegExp)
-		.map(match => match.match(regExp)[1]);
+		.map(match => match.match(regExpQuotes)[1]);
+};
+
+export const getNumbersFromTitle = (title) => {
+	return title.match(regExpNumbers).map(Number);
 };
 
 export const setUpFsStubs = () => {

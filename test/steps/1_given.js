@@ -16,10 +16,12 @@
 import fs from 'fs';
 import readline from 'readline';
 import lisk from 'lisk-js';
+import Vorpal from 'vorpal';
 import defaultConfig from '../../defaultConfig.json';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
 import liskInstance from '../../src/utils/liskInstance';
+import * as mnemonicInstance from '../../src/utils/mnemonic';
 import queryInstance from '../../src/utils/query';
 import {
 	getFirstQuotedString,
@@ -27,6 +29,42 @@ import {
 	createFakeInterface,
 	createStreamStub,
 } from './utils';
+import createAccountCommand from '../../src/commands/createAccount';
+
+export function aValidMnemonicPassphrase() {
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+}
+
+export function anInvalidMnemonicPassphrase() {
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+}
+
+export function thePassphraseIsGeneratedByTheCreateMnemonicPassphraseFunction() {
+	sandbox.stub(mnemonicInstance, 'createMnemonicPassphrase').returns(this.test.ctx.passphrase);
+}
+
+export function aVorpalInstance() {
+	const vorpal = new Vorpal();
+	const capturedOutput = [];
+	const handleOutput = output => capturedOutput.push(output);
+	vorpal.pipe((outputs) => {
+		if (capturedOutput) {
+			outputs.forEach(handleOutput);
+		}
+		return '';
+	});
+	this.test.ctx.capturedOutput = capturedOutput;
+	this.test.ctx.vorpal = vorpal;
+}
+
+export function theVorpalInstanceHasTheCommand() {
+	const { vorpal } = this.test.ctx;
+	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
+	const commands = {
+		'create account': createAccountCommand,
+	};
+	vorpal.use(commands[this.test.ctx.command]);
+}
 
 export function thereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
 	this.test.ctx.vorpal = {
@@ -166,6 +204,7 @@ export function aCryptoInstance() {
 		'decryptPassphraseWithPassword',
 		'encryptMessageWithSecret',
 		'decryptMessageWithSecret',
+		'getAddressFromPublicKey',
 	].forEach(methodName => sandbox.stub(lisk.crypto, methodName));
 
 	this.test.ctx.cryptoInstance = cryptoInstance;
@@ -175,8 +214,8 @@ export function aPassphrase() {
 	this.test.ctx.passphrase = getFirstQuotedString(this.test.parent.title);
 }
 
-export function aPassphraseWithPrivateKeyAndPublicKey() {
-	const [passphrase, privateKey, publicKey] = getQuotedStrings(this.test.parent.title);
+export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
+	const [passphrase, privateKey, publicKey, address] = getQuotedStrings(this.test.parent.title);
 	const keys = {
 		privateKey,
 		publicKey,
@@ -184,9 +223,11 @@ export function aPassphraseWithPrivateKeyAndPublicKey() {
 
 	lisk.crypto.getKeys.returns(keys);
 	lisk.crypto.decryptPassphraseWithPassword.returns(passphrase);
+	lisk.crypto.getAddressFromPublicKey.returns(address);
 
 	this.test.ctx.passphrase = passphrase;
 	this.test.ctx.keys = keys;
+	this.test.ctx.address = address;
 }
 
 export function aPassword() {

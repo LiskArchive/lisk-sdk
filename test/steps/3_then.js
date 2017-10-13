@@ -17,7 +17,58 @@ import fs from 'fs';
 import lisk from 'lisk-js';
 import * as fsUtils from '../../src/utils/fs';
 import tablify from '../../src/utils/tablify';
-import { getFirstQuotedString } from './utils';
+import {
+	getFirstQuotedString,
+	getNumbersFromTitle,
+} from './utils';
+import {
+	getRequiredArgs,
+} from '../specs/commands/utils';
+
+export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
+	const { returnValue, passphrase, keys: { publicKey }, address } = this.test.ctx;
+	const expectedObject = {
+		passphrase,
+		publicKey,
+		address,
+	};
+	return (returnValue).should.be.fulfilledWith(expectedObject);
+}
+
+export async function itShouldPrintTheResultAsJSON() {
+	const { returnValue } = this.test.ctx;
+	const result = await returnValue;
+	return (JSON.stringify).should.be.calledWithExactly(result);
+}
+
+export async function itShouldPrintTheResultInATable() {
+	const { returnValue } = this.test.ctx;
+	const result = await returnValue;
+	return (tablify).should.be.calledWithExactly(result);
+}
+
+export function theCommandShouldHaveRequiredArguments() {
+	const { vorpal, command } = this.test.ctx;
+	const requiredArguments = getNumbersFromTitle(this.test.title)[0];
+	const vorpalRequiredArgs = getRequiredArgs(vorpal, command);
+	return (vorpalRequiredArgs).should.have.length(requiredArguments);
+}
+
+export function theMnemonicPassphraseShouldBeA12WordString() {
+	const { mnemonicPassphrase } = this.test.ctx;
+	const mnemonicWords = mnemonicPassphrase.split(' ').filter(Boolean);
+	(mnemonicWords).should.have.length(12);
+}
+
+export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
+	const { keys: { publicKey } } = this.test.ctx;
+	return (lisk.crypto.getAddressFromPublicKey).should.be.calledWithExactly(publicKey);
+}
+
+export function itShouldReturnAnObjectWithTheAddress() {
+	const { returnValue, address } = this.test.ctx;
+	return (returnValue).should.eql({ address });
+}
 
 export function theLiskInstanceShouldBeALiskJSApiInstance() {
 	const { liskInstance } = this.test.ctx;

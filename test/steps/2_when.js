@@ -41,7 +41,41 @@ import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 import {
 	DEFAULT_ERROR_MESSAGE,
+	getQuotedStrings,
 } from './utils';
+import {
+	createMnemonicPassphrase,
+	isValidMnemonicPassphrase,
+} from '../../src/utils/mnemonic';
+
+const tablifyToSpy = require('../../src/utils/tablify');
+
+export function theMnemonicPassphraseIsValidated() {
+	const { mnemonicPassphrase } = this.test.ctx;
+	this.test.ctx.returnValue = isValidMnemonicPassphrase(mnemonicPassphrase);
+}
+
+export function aNewMnemonicPassphraseIsCreated() {
+	this.test.ctx.mnemonicPassphrase = createMnemonicPassphrase();
+}
+
+export function theUserExecutesTheCommand() {
+	const { vorpal, command } = this.test.ctx;
+	sandbox.spy(tablifyToSpy, 'default');
+	const returnValue = vorpal.exec(command);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
+export function theUserExecutesTheCommandWithOptions() {
+	const { vorpal, command } = this.test.ctx;
+	sandbox.spy(JSON, 'stringify');
+	this.test.ctx.commandOptions = getQuotedStrings(this.test.parent.title);
+	const commandWithOptions = `${command} ${this.test.ctx.commandOptions.join(' ')}`;
+	const returnValue = vorpal.exec(commandWithOptions);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
 
 export function theResultIsPrinted() {
 	const { vorpal, result } = this.test.ctx;
@@ -91,6 +125,21 @@ export function theObjectIsTablified() {
 export function theArrayIsTablified() {
 	const { testArray } = this.test.ctx;
 	this.test.ctx.returnValue = tablify(testArray);
+}
+
+export function anErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
+	const { cryptoInstance, keys: { publicKey } } = this.test.ctx;
+
+	lisk.crypto.getAddressFromPublicKey.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
+}
+
+export function noErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
+	const { cryptoInstance, keys: { publicKey }, address } = this.test.ctx;
+	lisk.crypto.getAddressFromPublicKey.returns(address);
+	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
 }
 
 export function noErrorOccursAttemptingToGetTheKeysForThePassphrase() {
