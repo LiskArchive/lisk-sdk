@@ -25,21 +25,19 @@ const throwFailuresInWindow = (win) => {
 
 	if (failures.length) {
 		const failuresHTML = Array.from(failures).map(el => el.outerHTML);
-		throw new Error(failuresHTML.join('\n'));
+		const errorString = failuresHTML.map(decodeURIComponent).join('\n');
+		throw new Error(errorString);
 	}
 };
 
+const testPage = page => () => {
+	cy.visit(page);
+	cy.reload(FORCE_RELOAD);
+	cy.get('#done').should('contain', 'DONE');
+	cy.window().then(throwFailuresInWindow);
+};
+
 describe('Browser tests', () => {
-	it('should pass without minification', () => {
-		cy.visit('/browsertest.html');
-		cy.reload(FORCE_RELOAD);
-		cy.get('#done').should('contain', 'DONE');
-		cy.window().then(throwFailuresInWindow);
-	});
-	it('should pass with minification', () => {
-		cy.visit('/browsertest.min.html');
-		cy.reload(FORCE_RELOAD);
-		cy.get('#done').should('contain', 'DONE');
-		cy.window().then(throwFailuresInWindow);
-	});
+	it('should pass without minification', testPage('/browsertest.html'));
+	it('should pass without minification', testPage('/browsertest.min.html'));
 });
