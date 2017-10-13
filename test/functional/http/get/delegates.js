@@ -993,7 +993,7 @@ describe('GET /api/delegates', function () {
 		it('using no end should be ok', function () {
 			var params = [
 				'generatorPublicKey=' + testDelegate.publicKey,
-				'end=' + 0
+				'start=' + 0
 			];
 
 			return getForgedByAccountPromise(params).then(function (res) {
