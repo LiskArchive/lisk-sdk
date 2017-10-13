@@ -87,9 +87,9 @@ Multisignature.prototype.verify = function (transaction, sender, cb) {
 	if (transaction.asset.multisignature.min > transaction.asset.multisignature.keysgroup.length) {
 		var err = 'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
-		if (exceptions.multisignatures.indexOf(trs.id) > -1) {
+		if (exceptions.multisignatures.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
-			library.logger.debug(JSON.stringify(trs));
+			library.logger.debug(JSON.stringify(transaction));
 		} else {
 			return setImmediate(cb, err);
 		}
