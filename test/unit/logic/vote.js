@@ -157,7 +157,7 @@ describe('vote', function () {
 		transfer.bind(voteBindings.account);
 		transaction.attachAssetType(transactionTypes.SEND, transfer);
 
-		var sendTrs = {
+		var sendTransaction = {
 			type: 0,
 			amount: 8067474861277,
 			senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -182,7 +182,7 @@ describe('vote', function () {
 			blockId: '8505659485551877884',
 		};
 
-		transaction.apply(sendTrs, dummyBlock, sender, done);
+		transaction.apply(sendTransaction, dummyBlock, sender, done);
 	});
 
 	before(function (done) {

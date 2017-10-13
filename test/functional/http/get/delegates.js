@@ -25,8 +25,8 @@ before(function (done) {
 		node.expect(res).to.have.property('success').to.be.ok;
 		node.expect(res).to.have.property('transactionId').that.is.not.empty;
 		node.onNewBlock(function () {
-			var insertDelegateTrs = node.lisk.delegate.createDelegate(delegate.password, delegate.username);
-			sendTransaction(insertDelegateTrs, function (err, res) {
+			var insertDelegateTransaction = node.lisk.delegate.createDelegate(delegate.password, delegate.username);
+			sendTransaction(insertDelegateTransaction, function (err, res) {
 				node.expect(err).to.be.null;
 				node.onNewBlock(done);
 			});
@@ -432,8 +432,8 @@ describe('GET /api/delegates/voters', function () {
 	before(function (done) {
 
 		//vote
-		var voteTrs = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], null);
-		sendTransaction(voteTrs, function (err, res) {
+		var voteTransaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], null);
+		sendTransaction(voteTransaction, function (err, res) {
 			if (err) {
 				return done(err);
 			}

@@ -101,12 +101,12 @@ describe('signature', function () {
 	describe('with transaction and sender objects', function () {
 
 		var trs;
-		var rawTrs; 
+		var rawTransaction;
 		var sender;
 
 		beforeEach(function () {
 			trs = _.cloneDeep(validTransaction);
-			rawTrs = _.cloneDeep(rawValidTransaction);
+			rawTransaction = _.cloneDeep(rawValidTransaction);
 			sender = _.cloneDeep(validSender);
 		});
 
@@ -483,11 +483,11 @@ describe('signature', function () {
 			describe('when publicKey is undefined', function () {
 
 				beforeEach(function () {
-					delete rawTrs.s_publicKey;
+					delete rawTransaction.s_publicKey;
 				});
 
 				it('should return null', function () {
-					expect(signature.dbRead(rawTrs)).to.eql(null);
+					expect(signature.dbRead(rawTransaction)).to.eql(null);
 				});
 			});
 
@@ -497,11 +497,11 @@ describe('signature', function () {
 				var transactionId = '5197781214824378819';
 
 				it('should return publicKey property', function () {
-					expect(signature.dbRead(rawTrs).signature.publicKey).to.equal(publicKey);
+					expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(publicKey);
 				});
 
 				it('should return transactionId', function () {
-					expect(signature.dbRead(rawTrs).signature.transactionId).to.eql(transactionId);
+					expect(signature.dbRead(rawTransaction).signature.transactionId).to.eql(transactionId);
 				});
 			});
 		});

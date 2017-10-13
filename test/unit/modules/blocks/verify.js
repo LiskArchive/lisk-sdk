@@ -485,7 +485,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should fail when a transaction is duplicated', function () {
-			var secondTrs = validBlock.transactions[1];
+			var secondTransaction = validBlock.transactions[1];
 			validBlock.transactions[1] = validBlock.transactions[0];
 
 			var result = blocksVerify[functionName](validBlock);
@@ -495,7 +495,7 @@ describe('blocks/verify', function () {
 			expect(result.errors[1]).to.equal('Invalid payload hash');
 			expect(result.errors[2]).to.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
 
-			validBlock.transactions[1] = secondTrs;
+			validBlock.transactions[1] = secondTransaction;
 		});
 
 		it('should fail when payload hash is invalid', function () {

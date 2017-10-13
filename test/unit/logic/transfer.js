@@ -370,11 +370,11 @@ describe('transfer', function () {
 		});
 
 		it('should be okay when data field is set', function () {
-			var rawTrs = _.cloneDeep(rawValidTransaction);
+			var rawTransaction = _.cloneDeep(rawValidTransaction);
 			var data = '123';
-			rawTrs.tf_data = data;
+			rawTransaction.tf_data = data;
 
-			expect(transfer.dbRead(rawTrs)).to.eql({
+			expect(transfer.dbRead(rawTransaction)).to.eql({
 				data: data
 			});
 		});

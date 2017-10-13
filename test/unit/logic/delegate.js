@@ -74,7 +74,7 @@ describe('delegate', function () {
 	var delegate;
 
 	var trs;
-	var rawTrs;
+	var rawTransaction;
 	var sender;
 
 	function dummyCb () {};
@@ -85,7 +85,7 @@ describe('delegate', function () {
 
 	beforeEach(function () {
 		trs = _.cloneDeep(validTransaction);
-		rawTrs = _.cloneDeep(rawValidTransaction);
+		rawTransaction = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
 
 		accountsMock = {
@@ -281,9 +281,9 @@ describe('delegate', function () {
 				trs.asset.delegate.username = node.randomUsername() + '!@.';
 				accountsMock.getAccount.withArgs({username: trs.asset.delegate.username}, sinon.match.any).yields(null, null);
 
-				delegate.verify(trs, sender, function (err, returnedTrs) {
+				delegate.verify(trs, sender, function (err, returnedTransaction) {
 					expect(err).to.not.exist;
-					expect(returnedTrs).to.equal(returnedTrs);
+					expect(returnedTransaction).to.equal(returnedTransaction);
 					done();
 				});
 			});
@@ -291,9 +291,9 @@ describe('delegate', function () {
 			it('should call callback with error = null and valid transaction', function (done) {
 				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
 
-				delegate.verify(trs, sender, function (err, returnedTrs) {
+				delegate.verify(trs, sender, function (err, returnedTransaction) {
 					expect(err).to.not.exist;
-					expect(returnedTrs).to.equal(trs);
+					expect(returnedTransaction).to.equal(trs);
 					accountsMock.getAccount.verify();
 					done();
 				});
@@ -480,9 +480,9 @@ describe('delegate', function () {
 	describe('dbRead', function () {
 
 		it('should return null when d_username is not set', function () {
-			delete rawTrs.d_username;
+			delete rawTransaction.d_username;
 
-			expect(delegate.dbRead(rawTrs)).to.eql(null);
+			expect(delegate.dbRead(rawTransaction)).to.eql(null);
 		});
 
 		it('should return delegate asset for raw transaction passed', function () {
@@ -492,7 +492,7 @@ describe('delegate', function () {
 				username: rawValidTransaction.d_username
 			};
 
-			expect(delegate.dbRead(rawTrs).delegate).to.eql(expectedAsset);
+			expect(delegate.dbRead(rawTransaction).delegate).to.eql(expectedAsset);
 		});
 	});
 
