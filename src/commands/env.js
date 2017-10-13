@@ -21,7 +21,7 @@ const description = `Print environmental configuration.
 	Example: env
 `;
 
-const actionCreator = () => () => Promise.resolve(config);
+const actionCreator = () => async () => Promise.resolve(config);
 
 const env = createCommand({
 	command: 'env',

@@ -30,7 +30,7 @@ const description = `Encrypt a message for a given recipient public key using yo
 const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
 	cryptoModule.encryptMessage(message, passphrase, recipient);
 
-const actionCreator = vorpal => ({ recipient, message, options }) => {
+const actionCreator = vorpal => async ({ recipient, message, options }) => {
 	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
 

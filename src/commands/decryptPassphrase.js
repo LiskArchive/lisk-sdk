@@ -42,7 +42,7 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 const handleInput = iv => ([cipher, password]) =>
 	cryptoModule.decryptPassphrase({ cipher, iv }, password);
 
-const actionCreator = vorpal => ({ iv, passphrase, options }) => {
+const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
 
