@@ -1,5 +1,5 @@
 {
-    "peers": {
+    "nodes": {
         "mainnet": [
             "node01.lisk.io",
             "node02.lisk.io",
@@ -17,10 +17,10 @@
     "options": {
         "testnet": false,
         "ssl": false,
-        "randomPeer": true,
+        "randomNode": true,
         "node": null,
         "port": null,
         "nethash": null,
-        "bannedPeers": []
+        "bannedNodes": []
     }
 }

@@ -19,7 +19,7 @@ const GET = 'GET';
 
 /**
  * @method netHashOptions
- * @return {object}
+ * @return {Object}
  * @private
  */
 
@@ -49,7 +49,7 @@ export function netHashOptions() {
 
 /**
  * @method getURLPrefix
- * @return prefix string
+ * @return {String}
  * @private
  */
 
@@ -61,111 +61,103 @@ export function getURLPrefix() {
 
 /**
  * @method getFullURL
- * @return url string
+ * @return {String}
  * @private
  */
 
 export function getFullURL() {
 	const nodeUrl = this.port
-		? `${this.currentPeer}:${this.port}`
-		: this.currentPeer;
+		? `${this.node}:${this.port}`
+		: this.node;
 
 	return `${getURLPrefix.call(this)}://${nodeUrl}`;
 }
 
 /**
- * @method getPeers
- * @return peers Array
+ * @method getNodes
+ * @return {Array}
  * @private
  */
 
-export function getPeers() {
-	if (this.testnet) return this.defaultTestnetPeers;
-	if (this.ssl) return this.defaultSSLPeers;
-	return this.defaultPeers;
+export function getNodes() {
+	if (this.testnet) return this.defaultTestnetNodes;
+	if (this.ssl) return this.defaultSSLNodes;
+	return this.defaultNodes;
 }
 
 /**
- * @method getRandomPeer
- * @return peer string
+ * @method isBanned
+ * @return {Boolean}
  * @private
  */
 
-export function getRandomPeer() {
-	const peers = getPeers.call(this)
-		.filter(peer => !this.bannedPeers.includes(peer));
 
-	if (!peers.length) {
-		throw new Error('Cannot get random peer: all relevant peers have been banned.');
+export function isBanned(node) {
+	return this.bannedNodes.includes(node);
+}
+
+/**
+ * @method getRandomNode
+ * @return  {String}
+ * @private
+ */
+
+export function getRandomNode() {
+	const nodes = getNodes.call(this)
+		.filter(node => !isBanned.call(this, node));
+
+	if (!nodes.length) {
+		throw new Error('Cannot get random node: all relevant nodes have been banned.');
 	}
 
-	const randomIndex = Math.floor((Math.random() * peers.length));
-	return peers[randomIndex];
+	const randomIndex = Math.floor((Math.random() * nodes.length));
+	return nodes[randomIndex];
 }
 
 /**
- * @method selectNode
- * @return peer string
+ * @method selectNewNode
+ * @return {String}
  * @private
  */
 
-export function selectNode() {
+export function selectNewNode() {
 	const providedNode = this.options.node;
 
-	if (this.randomPeer) {
-		return getRandomPeer.call(this);
+	if (this.randomNode) {
+		return getRandomNode.call(this);
 	} else if (providedNode) {
-		if (this.bannedPeers.includes(providedNode)) {
-			throw new Error('Cannot select node: provided node has been banned and randomPeer is not set to true.');
+		if (isBanned.call(this, providedNode)) {
+			throw new Error('Cannot select node: provided node has been banned and randomNode is not set to true.');
 		}
 		return providedNode;
 	}
 
-	throw new Error('Cannot select node: no node provided and randomPeer is not set to true.');
+	throw new Error('Cannot select node: no node provided and randomNode is not set to true.');
 }
 
 /**
- * @method banNode
+ * @method banActiveNode
  * @private
  */
 
-export function banNode() {
-	if (!this.bannedPeers.includes(this.currentPeer)) {
-		this.bannedPeers.push(this.currentPeer);
+export function banActiveNode() {
+	if (!isBanned.call(this, this.node)) {
+		this.bannedNodes.push(this.node);
 	}
 }
 
 /**
- * @method checkReDial
- * @return reDial boolean
+ * @method hasAvailableNodes
+ * @return {Boolean}
  * @private
  */
 
-export function checkReDial() {
-	const peers = getPeers.call(this);
+export function hasAvailableNodes() {
+	const nodes = getNodes.call(this);
 
-	// RandomPeer discovery explicitly set
-	if (this.randomPeer === true) {
-		// A nethash has been set by the user. This influences internal redirection
-		if (this.options.nethash) {
-			// Nethash is equal to testnet nethash, we can proceed to get testnet peers
-			if (this.options.nethash === netHashOptions.call(this).testnet.nethash) {
-				this.setTestnet(true);
-				return true;
-			// Nethash is equal to mainnet nethash, we can proceed to get mainnet peers
-			} else if (this.options.nethash === netHashOptions.call(this).mainnet.nethash) {
-				this.setTestnet(false);
-				return true;
-			}
-			// Nethash is neither mainnet nor testnet, do not proceed to get peers
-			return false;
-		}
-		// No nethash set, we can take the usual approach:
-		// take a random peer if there is any that is not banned
-		return peers.some(peer => !this.bannedPeers.includes(peer));
-	}
-	// RandomPeer is not explicitly set, no peer discovery
-	return false;
+	return this.randomNode
+		? nodes.some(node => !isBanned.call(this, node))
+		: false;
 }
 
 /**
@@ -175,7 +167,7 @@ export function checkReDial() {
  * @param providedOptions
  * @private
  *
- * @return request Object
+ * @return {Object}
  */
 
 export function createRequestObject(method, requestType, providedOptions) {
@@ -199,7 +191,7 @@ export function createRequestObject(method, requestType, providedOptions) {
  * @param options
  * @private
  *
- * @return APIcall Promise
+ * @return {Promise}
  */
 
 export function sendRequestPromise(requestMethod, requestType, options) {
@@ -218,7 +210,7 @@ export function sendRequestPromise(requestMethod, requestType, options) {
  * @param result
  * @private
  *
- * @return Promise
+ * @return {Promise}
  */
 
 export function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
@@ -240,16 +232,16 @@ export function handleTimestampIsInFutureFailures(requestMethod, requestType, op
  * @param result
  * @private
  *
- * @return Promise
+ * @return {Promise}
  */
 
 export function handleSendRequestFailures(requestMethod, requestType, options, error) {
 	const that = this;
-	if (checkReDial.call(that)) {
+	if (hasAvailableNodes.call(that)) {
 		return new Promise(((resolve, reject) => {
 			setTimeout(() => {
-				if (that.randomPeer) {
-					banNode.call(that);
+				if (that.randomNode) {
+					banActiveNode.call(that);
 				}
 				that.setNode();
 				that.sendRequest(requestMethod, requestType, options)
@@ -260,6 +252,6 @@ export function handleSendRequestFailures(requestMethod, requestType, options, e
 	return Promise.resolve({
 		success: false,
 		error,
-		message: 'Could not create an HTTP request to any known peers.',
+		message: 'Could not create an HTTP request to any known nodes.',
 	});
 }
