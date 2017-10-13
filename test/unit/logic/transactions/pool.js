@@ -50,18 +50,18 @@ var transactions = [
 	{
 		'type': 2,
 		'amount': 0,
-		'timestamp': 37943882,
 		'fee': 2500000000,
+		'recipientId': null,
+		'senderPublicKey': '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8',
+		'timestamp': 43776413,
 		'asset': {
 			'delegate': {
-				'username': 'test_delegate_1',
-				'publicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb'
+				'username': 'txp_new_delegate',
+				'publicKey': '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8'
 			}
 		},
-		'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		'senderId': '2737453412992791987L',
-		'signature': '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		'id': '3'
+		'signature': '6db720cd875035de6d6e91cd6f48303c1f7baab3f85074e03029af857e71e8af96cf7be33fd2b7bf650c4bf01383dbccfaaba23a4020974fcb9d1912b84a4f0a',
+		'id': '4169182049562816689'
 	},
 	/* type: 3 - Submit votes */
 	{
@@ -156,23 +156,59 @@ var invalidsTxs = [
 		'signature': '30fb1a449dc132a30fa18ad0e905f4702b19dd5199767b8c3a1673173e8905c75a9163980d2c2a06d48faec6a778139cb1fa784a1cbbaa929395675a64231100',
 		'id': '7078486003124131749'
 	},
-	/* type: 2 - Register a delegate account without enough credit*/
-	{
-		'type': 2,
-		'amount': 0,
-		'fee': 2500000000,
-		'recipientId': null,
-		'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		'timestamp': 43019957,
-		'asset': {
-			'delegate': {
-				'username': 'test_2',
-				'publicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb'
-			}
+	[
+		/* type: 2 - Register a delegate account without enough credit*/
+		{
+			'type': 2,
+			'amount': 0,
+			'fee': 2500000000,
+			'recipientId': null,
+			'senderPublicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9',
+			'timestamp': 43775831,
+			'asset': {
+				'delegate': {
+					'username': 'txp_new_delegate',
+					'publicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9'
+				}
+			},
+			'signature': 'c67bb4f37a2aba0c3e67292ca61fd50064ef3fb32858cbe4b34fa1469ed3978db6b682df609117c1e227156d427bc24f0a3af8bd1ae6ec9194177ad417dd1500',
+			'id': '7121061506817701772'
 		},
-		'signature': 'd11bb8ff05dd8ae36fd7b93175d330b6f38ff96c113501667b04b02c2c225efa6920dffea0d93e5dd6ed770273685f01df1cb4090e121b3724c1ae86b6fabf02',
-		'id': '13166754169713489797'
-	},
+		/* type: 2 - Register a delegate that already is delegate*/
+		{
+			'type': 2,
+			'amount': 0,
+			'fee': 2500000000,
+			'recipientId': null,
+			'senderPublicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
+			'timestamp': 43697153,
+			'asset': {
+				'delegate': {
+					'username': 'txp_test_1',
+					'publicKey': 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5'
+				}
+			},
+			'signature': 'c9441e49228006e9ab9f5f676c49a56f8ec0eb23c539115912cd5b0d48f51c897d01ad2f5abd6bfac92cadbc3704bce076d1c104c63de1a28b247271c5d72601',
+			'id': '358375690571860615'
+		},
+		/* type: 2 - Register a delegate account with existing username*/
+		{
+			'type': 2,
+			'amount': 0,
+			'fee': 2500000000,
+			'recipientId': null,
+			'senderPublicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
+			'timestamp': 43697153,
+			'asset': {
+				'delegate': {
+					'username': 'txp_test_2',
+					'publicKey': '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb'
+				}
+			},
+			'signature': '3522664cfbe9a5ca3ade309a0c96add1861e29c7f0b3b9aa77177492c69a47f9f7c718dbd415ad49682215826a01579f74d728c6e1bc1c8e808d9ca3a06b8b0c',
+			'id': '11660632744648534794'
+		}
+	],
 	{},
 	{
 		'type': 4,
@@ -200,38 +236,42 @@ var invalidsTxs = [
 var testAccounts = [
 	{
 		account: {
-			username: 'test_1',
+			username: 'txp_test_1',
 			isDelegate: 1,
 			address: '2737453412992791987L',
 			publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
 			balance: 5300000000000000,
+			u_balance: 5300000000000000
 		},
 		secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
 	},{
 		account: {
-			username: 'test_2',
+			username: 'txp_test_2',
 			isDelegate: 0,
 			address: '2896019180726908125L',
 			publicKey: '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
 			balance: 0,
+			u_balance: 0
 		},
 		secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
 	},{
 		account: {
-			username: 'test_3',
+			username: 'txp_test_3',
 			isDelegate: 0,
 			address: '15240249857307028085L',
 			publicKey: '181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c',
 			balance: 3500000000000000,
+			u_balance: 3500000000000000
 		},
 		secret: 'song gather until exercise explain utility walk choice garbage cross route develop',
 	},{
 		account: {
-			username: 'test_4',
+			username: 'txp_test_4',
 			isDelegate: 0,
 			address: '13898484363564790288L',
 			publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8',
 			balance: 3500000000000000,
+			u_balance: 3500000000000000
 		},
 		secret: 'island pizza tilt scrap spend guilt one guitar range narrow rough hotel',
 	}
@@ -303,18 +343,20 @@ describe('txPool', function () {
 					if (err) {
 						return done(err);
 					}
-					txPool.bind(
-						__modules.accounts,
-						null,
-						__modules.loader
-					);
+					var logicDelegates = new Delegate(modulesLoader.scope.schema);
+					logicDelegates.bind(__modules.accounts);
+
 					__modules.accounts.onBind(__modules);
 					accounts = __modules.accounts;
+					
+					txPool.bind(__modules.accounts);
+
 					__trsLogic.attachAssetType(transactionTypes.VOTE, new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema));
 					__trsLogic.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
-					__trsLogic.attachAssetType(transactionTypes.DELEGATE, new Delegate());
+					__trsLogic.attachAssetType(transactionTypes.DELEGATE, logicDelegates);
 					__trsLogic.attachAssetType(transactionTypes.SIGNATURE, new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger));
 					__trsLogic.attachAssetType(transactionTypes.MULTI, new Multisignature());
+
 					done();
 				});
 			});
@@ -411,7 +453,7 @@ describe('txPool', function () {
 					});
 				});
 
-				it('should be ok when add transaction to unverified with Unknown transaction type ', function (done) {
+				it('should be ok when add transaction to unverified with invalid transaction id', function (done) {
 					tmpTxInvalidId = _.cloneDeep(invalidsTxs[0]);
 					tmpTxInvalidId.id = '01234567890123456789';
 
@@ -432,7 +474,7 @@ describe('txPool', function () {
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[0].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 3'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + tmpTxInvalidId.id);
-						expect(error.args[1][1]).to.equal('Unknown transaction type ');
+						expect(error.args[1][1]).to.equal('Invalid transaction id');
 						poolTotals.invalid += 1;
 						poolTotals.ready += 1;
 						done();
@@ -483,7 +525,7 @@ describe('txPool', function () {
 			});
 			
 			describe('Tx type: 1 - Register a second signature', function () {
-				var tmpTxInvalidSenderPk;
+				var invalidTransactionType;
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[1], function (err, cbtx) {
@@ -505,12 +547,12 @@ describe('txPool', function () {
 					});
 				});
 	
-				it('should be ok when add transaction to unverified with invalid senderPublicKey', function (done) {
-					tmpTxInvalidSenderPk = _.cloneDeep(invalidsTxs[1]);
-					tmpTxInvalidSenderPk.senderPublicKey = '1234567890abcde1234567890abcde1234567890abcde1234567890abcde1234';
-					tmpTxInvalidSenderPk.id = '12345678901234567890';
+				it('should be ok when add transaction to unverified with invalid transaction type', function (done) {
+					invalidTransactionType = _.cloneDeep(invalidsTxs[0]);
+					invalidTransactionType.id = '12345678901234567890';
+					invalidTransactionType.type = 99;
 
-					txPool.add(tmpTxInvalidSenderPk, function (err, cbtx) {
+					txPool.add(invalidTransactionType, function (err, cbtx) {
 						if (err) {
 							done(err);
 						}
@@ -526,8 +568,8 @@ describe('txPool', function () {
 						}
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[1].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 0'].join(' '));
-						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + tmpTxInvalidSenderPk.id);
-						expect(error.args[1][1]).to.equal('Invalid transaction id');
+						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidTransactionType.id);
+						expect(error.args[1][1]).to.equal(['Unknown transaction type', invalidTransactionType.type].join(' '));
 						poolTotals.invalid += 1;
 						poolTotals.ready += 1;
 						done();
@@ -541,9 +583,9 @@ describe('txPool', function () {
 					});
 				});
 
-				it('should fail when add same transaction with invalid id to unverified', function (done) {
-					txPool.add(tmpTxInvalidSenderPk, function (err, cbtx) {
-						expect(err).to.equal('Transaction is already processed as invalid: ' + tmpTxInvalidSenderPk.id);
+				it('should fail when add same transaction with invalid transaction type to unverified', function (done) {
+					txPool.add(invalidTransactionType, function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidTransactionType.id);
 						done();
 					});
 				});
@@ -560,8 +602,8 @@ describe('txPool', function () {
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
 					
-					expect(invalidTxs).to.equal(1);
-					poolTotals.invalid -= 1;
+					expect(invalidTxs).to.equal(poolTotals.invalid);
+					poolTotals.invalid -= invalidTxs;
 					done();
 				});
 
@@ -591,7 +633,27 @@ describe('txPool', function () {
 				});
 	
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
-					txPool.add(invalidsTxs[2], function (err, cbtx) {
+					txPool.add(invalidsTxs[2][0], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should be ok when add transaction to unverified that already is a delegate', function (done) {
+					txPool.add(invalidsTxs[2][1], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should be ok when add transaction to unverified with same username', function (done) {
+					txPool.add(invalidsTxs[2][2], function (err, cbtx) {
 						if (err) {
 							done(err);
 						}
@@ -601,9 +663,9 @@ describe('txPool', function () {
 				});
 	
 				it('should be ok when add transaction to unverified with invalid signature', function (done) {
-					tmpTxInvalidSignature = _.cloneDeep(invalidsTxs[2]);
-					tmpTxInvalidSignature.signature = '1234567890abcde1234567890abcde1234567890abcde1234567890abcde1234';
-					tmpTxInvalidSignature.id = '23456789012345678901';
+					tmpTxInvalidSignature = _.cloneDeep(invalidsTxs[2][0]);
+					tmpTxInvalidSignature.signature = '6db720cd875035de6d6e91cd6f48303c1f7baab3f85074e03029af857e71e8af96cf7be33fd2b7bf650c4bf01383dbccfaaba23a4020974fcb9d1912b84a4f0a';
+					tmpTxInvalidSignature.id = '16349767733713562311';
 
 					txPool.add(tmpTxInvalidSignature, function (err, cbtx) {
 						if (err) {
@@ -619,24 +681,49 @@ describe('txPool', function () {
 						if (err) {
 							done(err);
 						}
-						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[2].id);
-						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[2].account.address, 'balance: 0'].join(' '));
-						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + tmpTxInvalidSignature.id);
-						expect(error.args[1][1]).to.equal('Invalid transaction id');
-						poolTotals.invalid += 1;
+						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[2][0].id);
+						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[2][0].senderId, 'balance: 0'].join(' '));
+						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[2][1].id);
+						expect(error.args[1][1]).to.equal('Account is already a delegate');
+						expect(error.args[2][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[2][2].id);
+						expect(error.args[2][1]).to.equal('Username already exists');
+						expect(error.args[3][0]).to.equal('Failed to process unverified transaction: ' + tmpTxInvalidSignature.id);
+						expect(error.args[3][1]).to.equal('Failed to verify signature');
+						poolTotals.invalid += 3;
 						poolTotals.ready += 1;
 						done();
 					});
 				});
 
 				it('should fail when add same normal transaction to unverified', function (done) {
-					txPool.add(transactions[1], function (err, cbtx) {
+					txPool.add(transactions[2], function (err, cbtx) {
 						expect(err).to.equal('Transaction is already in pool: ' + transactions[2].id);
 						done();
 					});
 				});
 
-				it('should fail when add same transaction with invalid id to unverified', function (done) {
+				it('should fail when add same transaction with registered delegate to unverified', function (done) {
+					txPool.add(invalidsTxs[2][1], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidsTxs[2][1].id);
+						done();
+					});
+				});
+
+				it('should fail when add same transaction with registered delegate to unverified', function (done) {
+					txPool.add(invalidsTxs[2][1], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidsTxs[2][1].id);
+						done();
+					});
+				});
+
+				it('should fail when add same transaction with same username to unverified', function (done) {
+					txPool.add(invalidsTxs[2][2], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidsTxs[2][2].id);
+						done();
+					});
+				});
+
+				it('should fail when add same transaction with invalid signature to unverified', function (done) {
 					txPool.add(tmpTxInvalidSignature, function (err, cbtx) {
 						expect(err).to.equal('Transaction is already processed as invalid: ' + tmpTxInvalidSignature.id);
 						done();
@@ -655,8 +742,8 @@ describe('txPool', function () {
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
 					
-					expect(invalidTxs).to.equal(1);
-					poolTotals.invalid -= 1;
+					expect(invalidTxs).to.equal(poolTotals.invalid);
+					poolTotals.invalid -= invalidTxs;
 					done();
 				});
 

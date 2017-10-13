@@ -342,12 +342,10 @@ __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
 /**
  * Bounds input parameters to private variable modules.
  * @param {Accounts} accounts
- * @param {Transactions} transactions
  */
-TxPool.prototype.bind = function (accounts, transactions) {
+TxPool.prototype.bind = function (accounts) {
 	modules = {
 		accounts: accounts,
-		transactions: transactions,
 	};
 };
 
