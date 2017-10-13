@@ -13,36 +13,45 @@
  *
  */
 pipeline {
-  agent { node { label 'lisk-js' } }
-  stages {
-    stage('Prepare workspace') {
-      steps {
-        deleteDir()
-        checkout scm
-      }
-    }
-    stage('Install dependencies') {
-      steps {
-        sh '''
-        npm install --verbose
-        cp ~/.coveralls.yml .
-        '''
-      }
-    }
-    stage('Run lint') {
-      steps{
-        sh 'grunt eslint-ci'
-      }
-    }
-    stage('Run tests') {
-      steps {
-        sh 'npm run jenkins'
-      }
-    }
-    stage('Cleanup') {
-      steps {
-        deleteDir()
-      }
-    }
-  }
+	agent { node { label 'lisk-js' } }
+	stages {
+		stage('Install dependencies') {
+			steps {
+				sh '''
+				cp -r ~/cache/${CHANGE_TARGET:-${BRANCH_NAME:-development}}/node_modules ./ || true
+				npm install --verbose
+				cp ~/.coveralls.yml .
+				'''
+			}
+		}
+		stage('Run lint') {
+			steps{
+				sh 'grunt eslint-ci'
+			}
+		}
+		stage('Run node tests') {
+			steps {
+				sh 'npm run jenkins'
+			}
+		}
+		stage('Run browser tests') {
+			steps {
+				sh '''
+				npm run build
+				npm run build:browsertest
+				HTTP_PORT=808${EXECUTOR_NUMBER:-0}
+				npm run serve:browsertest -- -p $HTTP_PORT >access.log 2>&1 &
+				npm run test:browser -- --config baseUrl=http://localhost:$HTTP_PORT
+				'''
+			}
+		}
+	}
+	post {
+		success {
+			deleteDir()
+		}
+		failure {
+			archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/screenshots/'
+		}
+	}
 }

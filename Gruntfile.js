@@ -22,12 +22,12 @@ module.exports = function configureGrunt(grunt) {
 		pkg: grunt.file.readJSON('package.json'),
 
 		exec: {
-			coverageSingle: './node_modules/.bin/nyc --report-dir=coverage --reporter=lcov ./node_modules/.bin/_mocha ./test/**/*.js',
+			coverageSingle: './node_modules/.bin/nyc --report-dir=coverage --reporter=lcov ./node_modules/.bin/_mocha test --recursive',
 			prepareDistNode: 'rm -r dist-node/* || mkdir dist-node | echo',
 			prepareDistBrowser: 'rm -r dist-browser/* || mkdir dist-browser | echo',
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
 			babelTest: './node_modules/.bin/babel src --out-dir ./browsertest/src && BABEL_ENV=browsertest ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
-			tidyTest: 'rm -r browsertest/{src,test}',
+			tidyTest: 'rm -r browsertest/src browsertest/test',
 		},
 
 		eslint: {
@@ -96,8 +96,6 @@ module.exports = function configureGrunt(grunt) {
 		'exec:tidyTest',
 	]);
 	grunt.registerTask('default', [
-		'eslint',
-		'exec:coverageSingle',
 		'build',
 	]);
 };

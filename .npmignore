@@ -3,6 +3,7 @@
 .eslintignore
 .eslintrc.json
 .gitignore
+cypress.json
 Gruntfile.js
 Jenkinsfile
 index.html
@@ -11,5 +12,6 @@ yuidoc.json
 .nyc_output/
 browsertest/
 coverage/
+cypress/
 src/
 test/
