@@ -9,7 +9,7 @@ var sinon   = require('sinon');
 
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var slots = require('../../../helpers/slots');
 var typesRepresentatives = require('../../common/typesRepresentatives');
 
