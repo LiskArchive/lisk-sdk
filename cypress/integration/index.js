@@ -13,6 +13,7 @@
  *
  */
 const ROOT_DIR = Cypress.env('ROOT_DIR');
+const FORCE_RELOAD = true;
 
 const throwFailuresInWindow = (win) => {
 	const failures = win
@@ -31,11 +32,13 @@ const throwFailuresInWindow = (win) => {
 describe('Browser tests', () => {
 	it('should pass without minification', () => {
 		cy.visit('/browsertest.html');
+		cy.reload(FORCE_RELOAD);
 		cy.get('#done').should('contain', 'DONE');
 		cy.window().then(throwFailuresInWindow);
 	});
 	it('should pass with minification', () => {
 		cy.visit('/browsertest.min.html');
+		cy.reload(FORCE_RELOAD);
 		cy.get('#done').should('contain', 'DONE');
 		cy.window().then(throwFailuresInWindow);
 	});
