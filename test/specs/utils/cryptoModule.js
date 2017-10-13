@@ -47,10 +47,10 @@ describe('Crypto class', () => {
 					beforeEach(when.noErrorOccursAttemptingToGetTheAddressFromThePublicKey);
 
 					it('Then lisk-js crypto should be used to get the address from the public key', then.liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey);
-					it('Then the address should be returned', then.itShouldReturnAnObjectWithTheAddress);
+					it('Then it should return an object with the address', then.itShouldReturnAnObjectWithTheAddress);
 				});
 
-				describe('When an error occurs attempting to get address from the public key', () => {
+				describe('When an error occurs attempting to get the address from the public key', () => {
 					beforeEach(when.anErrorOccursAttemptingToGetTheAddressFromThePublicKey);
 
 					it('Then lisk-js crypto should be used to get the address from the public key', then.liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey);

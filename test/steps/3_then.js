@@ -44,7 +44,7 @@ export async function itShouldPrintTheResultAsJSON() {
 export async function itShouldPrintTheResultInATable() {
 	const { returnValue } = this.test.ctx;
 	const result = await returnValue;
-	return (tablify).should.be.calledWith(result);
+	return (tablify).should.be.calledWithExactly(result);
 }
 
 export function theCommandShouldHaveRequiredArguments() {

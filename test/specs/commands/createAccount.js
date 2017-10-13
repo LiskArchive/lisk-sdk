@@ -32,13 +32,13 @@ describe('createAccount command', () => {
 
 						describe('When the user executes the command', () => {
 							beforeEach(when.theUserExecutesTheCommand);
-							it('Then it should return an object with the the passphrase and the publicKey and the address', then.itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
+							it('Then it should resolve to an object with the the passphrase and the publicKey and the address', then.itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
 							it('Then it should print the result in a table', then.itShouldPrintTheResultInATable);
 						});
 
 						describe('When the user executes the command with options "--json"', () => {
 							beforeEach(when.theUserExecutesTheCommandWithOptions);
-							it('Then it should return an object with the passphrase, publicKey and address', then.itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
+							it('Then it should resolve to an object with the passphrase and the publicKey and the address', then.itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress);
 							it('Then it should print the result as json', then.itShouldPrintTheResultAsJSON);
 						});
 					});

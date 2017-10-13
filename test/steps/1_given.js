@@ -40,7 +40,7 @@ export function anInvalidMnemonicPassphrase() {
 }
 
 export function thePassphraseIsGeneratedByTheCreateMnemonicPassphraseFunction() {
-	this.test.ctx.MnemonicStub = sandbox.stub(mnemonicInstance, 'createMnemonicPassphrase').returns(this.test.ctx.passphrase);
+	sandbox.stub(mnemonicInstance, 'createMnemonicPassphrase').returns(this.test.ctx.passphrase);
 }
 
 export function aVorpalInstance() {
