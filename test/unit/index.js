@@ -27,6 +27,7 @@ var paths = [
 	'./logic/transactionPool.js',
 	'./logic/transfer.js',
 	'./logic/vote.js',
+	'./logic/multisignature.js',
 
 	'./modules/accounts.js',
 	'./modules/app.js',
