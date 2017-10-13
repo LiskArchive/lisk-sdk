@@ -54,17 +54,12 @@ In case you've never submitted a pull request (PR) via GitHub before, please rea
 
 *Before* submitting a pull request, please make sure the following is done:
 
-1. Fork the repo and create your branch from `master`.
-1. Add tests to the code you have contributed!
-All new code must come with complete test coverage.
-End all files with a newline. In general, your code should conform to the rules listed in the `.editorconfig` file. There are plugins for most editors/IDEs to do this for you automatically.
-Document new code with inline comments based on the [YuiDoc Documentation Styleguide](http://yui.github.io/yuidoc/).
-Update the README for the changes that adhere to your new code.
-1. Ensure the test and linting suite passes (`npm run prepush` runs both).
-Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from Airbnb with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
-1. Submit a pull request via GitHub. Include issue numbers in the PR title, at the end with: ```Description - Closes #IssueNumber```.
-1. Check that Jenkins CI tests pass (pull request turns green).
-First time contributors will need to wait for a trusted team member to start Jenkins CI on a Pull Request.
+1. Fork the repo.
+1. If you are creating a pull request that addresses a specific issue, take a look at the projects that issue is a part of (in the right-hand sidebar). Most issues will be a part of a project for a specific version, such as "Version 1.0.0". If this is the case, create your branch from the relevant version branch, e.g. `1.0.0`, and submit your pull request against that branch as a base. Otherwise, create your branch from master.
+1. Add tests to the code you have contributed! All new code must come with complete test coverage. End all files with a newline. In general, your code should conform to the rules listed in the .editorconfig file. There are plugins for most editors/IDEs to do this for you automatically. Update the README for the changes that adhere to your new code.
+1. Ensure the test and linting suite passes (`npm run prepush` runs both). Follow the JavaScript styleguide from Airbnb with the lisk extension.
+1. Submit a pull request via GitHub. Include issue numbers in the PR title, at the end with: Description - Closes #IssueNumber. Also mention the #IssueNumber in the Comment, to easier browse to the issue.
+1. Check that Jenkins CI tests pass (pull request turns green). First time contributors will need to wait for a trusted team member to start Jenkins CI on a Pull Request.
 
 ### Reporting Bugs
 
