@@ -92,12 +92,12 @@ describe('multisignatures', function () {
 			});
 		}
 
-		describe('when no trs passed', function () {
+		describe('when no transaction passed', function () {
 
 			it('should call callback with error = "Unable to process signature. Signature is undefined."');
 		});
 
-		describe('when trs passed', function () {
+		describe('when transaction passed', function () {
 
 			it('should call modules.transactions.getMultisignatureTransaction');
 

@@ -140,7 +140,7 @@ describe('blocks/process', function () {
 		});
 	});
 
-	describe('loadBlocksOffset({verify: true}) - block/trs errors', function () {
+	describe('loadBlocksOffset({verify: true}) - block/transaction errors', function () {
 
 		it('should load block 4 from db and return blockSignature error', function (done) {
 			blocksProcess.loadBlocksOffset(1, 4, true, function (err, loadedBlock) {
@@ -232,7 +232,7 @@ describe('blocks/process', function () {
 		});
 	});
 
-	describe('loadBlocksOffset({verify: false}) - rerun block/trs errors', function () {
+	describe('loadBlocksOffset({verify: false}) - return block/transaction errors', function () {
 
 		it('should clear fork_stat db table', function (done) {
 			async.every([
