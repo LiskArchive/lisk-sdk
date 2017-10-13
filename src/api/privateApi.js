@@ -144,10 +144,9 @@ export function banActiveNode() {
 export function hasAvailableNodes() {
 	const nodes = getNodes.call(this);
 
-	if (this.randomNode) {
-		return nodes.some(node => !this.bannedNodes.includes(node));
-	}
-	return false;
+	return this.randomNode
+		? nodes.some(node => !this.bannedNodes.includes(node))
+		: false;
 }
 
 /**
