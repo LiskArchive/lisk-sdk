@@ -15,8 +15,7 @@
  */
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
-import { printResult } from '../utils/print';
-import { createErrorHandler } from '../utils/helpers';
+import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
@@ -43,7 +42,7 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 const handleInput = iv => ([cipher, password]) =>
 	cryptoModule.decryptPassphrase({ cipher, iv }, password);
 
-const decryptPassphrase = vorpal => ({ iv, passphrase, options }) => {
+const actionCreator = vorpal => ({ iv, passphrase, options }) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
 
@@ -60,20 +59,18 @@ const decryptPassphrase = vorpal => ({ iv, passphrase, options }) => {
 				displayName: PASSWORD_DISPLAY_NAME,
 			}),
 		]))
-		.then(handleInput(iv))
-		.catch(createErrorHandler('Could not decrypt passphrase'))
-		.then(printResult(vorpal, options));
+		.then(handleInput(iv));
 };
 
-function decryptPassphraseCommand(vorpal) {
-	vorpal
-		.command('decrypt passphrase <iv> [passphrase]')
-		.option(...commonOptions.password)
-		.option(commonOptions.passphrase[0], passphraseOptionDescription)
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.action(decryptPassphrase(vorpal));
-}
+const decryptPassphrase = createCommand({
+	command: 'decrypt passphrase <iv> [passphrase]',
+	description,
+	actionCreator,
+	options: [
+		commonOptions.password,
+		[commonOptions.passphrase[0], passphraseOptionDescription],
+	],
+	errorPrefix: 'Could not decrypt passphrase',
+});
 
-export default decryptPassphraseCommand;
+export default decryptPassphrase;

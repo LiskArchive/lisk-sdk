@@ -15,8 +15,7 @@
  */
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
-import { printResult } from '../utils/print';
-import { createErrorHandler } from '../utils/helpers';
+import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
@@ -31,7 +30,7 @@ const description = `Decrypt an encrypted message from a given sender public key
 const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
 	cryptoModule.decryptMessage(data, nonce, passphrase, senderPublicKey);
 
-const decryptMessage = vorpal => ({ message, nonce, senderPublicKey, options }) => {
+const actionCreator = vorpal => ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;
 	const messageSource = options.message;
 
@@ -46,20 +45,18 @@ const decryptMessage = vorpal => ({ message, nonce, senderPublicKey, options }) 
 			getPassphrase(vorpal, options.passphrase, stdIn.passphrase),
 			getData(message, messageSource, stdIn.data),
 		]))
-		.then(handlePassphrase(vorpal, nonce, senderPublicKey))
-		.catch(createErrorHandler('Could not decrypt message'))
-		.then(printResult(vorpal, options));
+		.then(handlePassphrase(vorpal, nonce, senderPublicKey));
 };
 
-function decryptMessageCommand(vorpal) {
-	vorpal
-		.command('decrypt message <senderPublicKey> <nonce> [message]')
-		.option(...commonOptions.passphrase)
-		.option(...commonOptions.message)
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.action(decryptMessage(vorpal));
-}
+const decryptMessage = createCommand({
+	command: 'decrypt message <senderPublicKey> <nonce> [message]',
+	description,
+	actionCreator,
+	options: [
+		commonOptions.passphrase,
+		commonOptions.message,
+	],
+	errorPrefix: 'Could not decrypt message',
+});
 
-export default decryptMessageCommand;
+export default decryptMessage;

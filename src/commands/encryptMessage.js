@@ -15,8 +15,7 @@
  */
 import cryptoModule from '../utils/cryptoModule';
 import commonOptions from '../utils/options';
-import { printResult } from '../utils/print';
-import { createErrorHandler } from '../utils/helpers';
+import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
@@ -31,7 +30,7 @@ const description = `Encrypt a message for a given recipient public key using yo
 const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
 	cryptoModule.encryptMessage(message, passphrase, recipient);
 
-const encryptMessage = vorpal => ({ recipient, message, options }) => {
+const actionCreator = vorpal => ({ recipient, message, options }) => {
 	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
 
@@ -46,20 +45,18 @@ const encryptMessage = vorpal => ({ recipient, message, options }) => {
 			getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true }),
 			getData(message, messageSource, stdIn.data),
 		]))
-		.then(handlePassphraseAndMessage(recipient))
-		.catch(createErrorHandler('Could not encrypt message'))
-		.then(printResult(vorpal, options));
+		.then(handlePassphraseAndMessage(recipient));
 };
 
-function encryptMessageCommand(vorpal) {
-	vorpal
-		.command('encrypt message <recipient> [message]')
-		.option(...commonOptions.passphrase)
-		.option(...commonOptions.message)
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.action(encryptMessage(vorpal));
-}
+const encryptMessage = createCommand({
+	command: 'encrypt message <recipient> [message]',
+	description,
+	actionCreator,
+	options: [
+		commonOptions.passphrase,
+		commonOptions.message,
+	],
+	errorPrefix: 'Could not encrypt message',
+});
 
-export default encryptMessageCommand;
+export default encryptMessage;
