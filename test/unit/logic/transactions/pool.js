@@ -64,14 +64,16 @@ var testAccounts = [
 ];
 
 var transactions = [
-	/* type: 0 - Transmit funds */
+	/* Type: 0 - Transmit funds.*/
 	node.lisk.transaction.createTransaction(testAccounts[1].account.address, 300000000, testAccounts[0].secret),
-	/* type: 1 - Register a second signature */
+	/* Type: 1 - Register a second signature.*/
 	node.lisk.signature.createSignature(testAccounts[0].secret, testAccounts[0].secret2),
-	/* type: 2 - Register a delegate */
+	/* Type: 2 - Register a delegate.*/
 	node.lisk.delegate.createDelegate(testAccounts[3].secret, 'txp_new_delegate'),
-	/* type: 3 - Submit votes */
-	/* type: 4 - Multisignature registration */
+	/* Type: 3 - Submit votes.*/
+	node.lisk.vote.createVote(testAccounts[0].secret, 
+		['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
+	/* Type: 4 - Multisignature registration.*/
 ];
 
 var invalidsTxs = [
@@ -87,6 +89,15 @@ var invalidsTxs = [
 		node.lisk.delegate.createDelegate(testAccounts[0].secret, testAccounts[0].account.username),
 		/* - Register a delegate account with existing username*/
 		node.lisk.delegate.createDelegate(testAccounts[1].secret, testAccounts[1].account.username)
+	],
+	/* Type: 3.*/
+	[
+		/* - Submit votes from an account without enough credit.*/
+		node.lisk.vote.createVote(testAccounts[1].secret, 
+			['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
+		/* - Submit votes to an account taht is not a delegate.*/
+		node.lisk.vote.createVote(testAccounts[2].secret, 
+			['+181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c'])
 	]
 ];
 
@@ -169,6 +180,7 @@ describe('txPool', function () {
 	
 				modulesLoader.initModules([
 					{accounts: require('../../../../modules/accounts')},
+					{delegates: require('../../../../modules/delegates')},
 				], [
 					{'transaction': require('../../../../logic/transaction')},
 					{'account': require('../../../../logic/account')}
@@ -179,12 +191,17 @@ describe('txPool', function () {
 					var logicDelegates = new Delegate(modulesLoader.scope.schema);
 					logicDelegates.bind(__modules.accounts);
 
+					var logicVote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
+					logicVote.bind(__modules.delegates);
+
 					__modules.accounts.onBind(__modules);
 					accounts = __modules.accounts;
 					
+					__modules.delegates.onBind(__modules);
+
 					txPool.bind(__modules.accounts);
 
-					__trsLogic.attachAssetType(transactionTypes.VOTE, new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema));
+					__trsLogic.attachAssetType(transactionTypes.VOTE, logicVote);
 					__trsLogic.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
 					__trsLogic.attachAssetType(transactionTypes.DELEGATE, logicDelegates);
 					__trsLogic.attachAssetType(transactionTypes.SIGNATURE, new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger));
@@ -587,6 +604,97 @@ describe('txPool', function () {
 					done();
 				});
 			});
+
+			describe('Tx type: 3 - Submit votes', function () {
+
+				it('should be ok when add normal transaction to unverified', function (done) {
+					txPool.add(transactions[3], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
+					txPool.add(invalidsTxs[3][0], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should be ok when add transaction to unverified that votes a non delegate', function (done) {
+					txPool.add(invalidsTxs[3][1], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when process pool txs', function (done) {
+					txPool.processPool(function (err, cbprPool) {
+						if (err) {
+							done(err);
+						}
+						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[3][0].id);
+						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[3][0].senderId, 'balance: 0'].join(' '));
+						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[3][1].id);
+						expect(error.args[1][1]).to.equal('Delegate not found');
+						poolTotals.invalid += 1;
+						poolTotals.ready += 1;
+						done();
+					});
+				});
+
+				it('should fail when add same normal transaction to unverified', function (done) {
+					txPool.add(transactions[3], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already in pool: ' + transactions[3].id);
+						done();
+					});
+				});
+
+				it('should fail when add same transaction that votes a non delegate to unverified', function (done) {
+					txPool.add(invalidsTxs[3][1], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidsTxs[3][1].id);
+						done();
+					});
+				});
+
+
+				it('should be ok when delete normal transaction from ready', function (done) {
+					var deletedTx = txPool.delete(transactions[3]);
+					
+					expect(deletedTx.length).to.equal(1);
+					expect(deletedTx[0]).to.equal('ready');
+					poolTotals.ready -= 1;
+					done();
+				});
+
+				it('should be ok when reset invalid transactions list', function (done) {
+					var invalidTxs = txPool.resetInvalidTransactions();
+					
+					expect(invalidTxs).to.equal(poolTotals.invalid);
+					poolTotals.invalid -= invalidTxs;
+					done();
+				});
+
+				it('should be ok when get pool totals', function (done) {
+					var totals = txPool.getUsage();
+	
+					expect(totals).to.be.an('object');
+					expect(totals.unverified).to.be.equal(poolTotals.unverified);
+					expect(totals.pending).to.be.equal(poolTotals.pending);
+					expect(totals.ready).to.be.equal(poolTotals.ready);
+					expect(totals.invalid).to.be.equal(poolTotals.invalid);
+					done();
+				});
+			});
 		});
 
 		describe('expireTransactions', function () {
@@ -598,7 +706,7 @@ describe('txPool', function () {
 		describe('method add', function () {
 
 			it('should be ok when add transactions to fill pool storage', function (done) {
-				var trx = transactions.slice(1,transactions.length-2);
+				var trx = transactions.concat(invalidsTxs);
 				txPool.add(trx, function (err, cbtx) {
 					if (err) {
 						done(err);
