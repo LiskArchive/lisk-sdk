@@ -22,7 +22,7 @@ module.exports = function configureGrunt(grunt) {
 		pkg: grunt.file.readJSON('package.json'),
 
 		exec: {
-			coverageSingle: './node_modules/.bin/nyc --report-dir=coverage --reporter=lcov ./node_modules/.bin/_mocha ./test/**/*.js',
+			coverageSingle: './node_modules/.bin/nyc --report-dir=coverage --reporter=lcov ./node_modules/.bin/_mocha test --recursive',
 			prepareDistNode: 'rm -r dist-node/* || mkdir dist-node | echo',
 			prepareDistBrowser: 'rm -r dist-browser/* || mkdir dist-browser | echo',
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
