@@ -17,4 +17,4 @@ import Mnemonic from 'bitcore-mnemonic';
 
 export const createMnemonicPassphrase = () => new Mnemonic().toString();
 
-export const isValidMnemonicPassphrase = passphrase => Mnemonic.isValid(passphrase);
+export const isValidMnemonicPassphrase = Mnemonic.isValid;

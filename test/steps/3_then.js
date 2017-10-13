@@ -25,7 +25,7 @@ import {
 	getRequiredArgs,
 } from '../specs/commands/utils';
 
-export function itShouldReturnAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
+export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
 	const { returnValue, passphrase, keys: { publicKey }, address } = this.test.ctx;
 	const expectedObject = {
 		passphrase,
@@ -35,41 +35,37 @@ export function itShouldReturnAnObjectWithThePassphraseAndThePublicKeyAndTheAddr
 	return (returnValue).should.be.fulfilledWith(expectedObject);
 }
 
-export function itShouldPrintTheResultAsJSON() {
+export async function itShouldPrintTheResultAsJSON() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.then((log) => {
-		return (JSON.stringify).should.be.calledWithExactly(log);
-	});
+	const result = await returnValue;
+	return (JSON.stringify).should.be.calledWithExactly(result);
 }
 
-export function itShouldPrintTheResultInATable() {
-	const { returnValue, capturedOutput } = this.test.ctx;
-	return returnValue.then((log) => {
-		return (capturedOutput[0]).should.be.eql(tablify(log).toString());
-	});
+export async function itShouldPrintTheResultInATable() {
+	const { returnValue } = this.test.ctx;
+	const result = await returnValue;
+	return (tablify).should.be.calledWith(result);
 }
 
 export function theCommandShouldHaveRequiredArguments() {
 	const { vorpal, command } = this.test.ctx;
 	const requiredArguments = getNumbersFromTitle(this.test.title)[0];
 	const vorpalRequiredArgs = getRequiredArgs(vorpal, command);
-	return (vorpalRequiredArgs).should.have.length(Number(requiredArguments));
+	return (vorpalRequiredArgs).should.have.length(requiredArguments);
 }
 
 export function theMnemonicPassphraseShouldBeA12WordString() {
 	const { mnemonicPassphrase } = this.test.ctx;
-	const mnemonicWords = mnemonicPassphrase.split(' ');
+	const mnemonicWords = mnemonicPassphrase.split(' ').filter(Boolean);
 	(mnemonicWords).should.have.length(12);
-	mnemonicWords.forEach((element) => {
-		(element).should.not.have.length(0);
-	});
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
-	return (lisk.crypto.getAddressFromPublicKey).should.be.calledOnce();
+	const { keys: { publicKey } } = this.test.ctx;
+	return (lisk.crypto.getAddressFromPublicKey).should.be.calledWithExactly(publicKey);
 }
 
-export function theAddressShouldBeReturned() {
+export function itShouldReturnAnObjectWithTheAddress() {
 	const { returnValue, address } = this.test.ctx;
 	return (returnValue).should.eql({ address });
 }

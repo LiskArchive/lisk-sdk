@@ -39,12 +39,8 @@ export function anInvalidMnemonicPassphrase() {
 	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
 }
 
-export function aMnemonicInstanceStub() {
+export function thePassphraseIsGeneratedByTheCreateMnemonicPassphraseFunction() {
 	this.test.ctx.MnemonicStub = sandbox.stub(mnemonicInstance, 'createMnemonicPassphrase').returns(this.test.ctx.passphrase);
-}
-
-export function aMnemonicInstanceStubThatNeedsToBeRestored() {
-	this.test.ctx.MnemonicStub.restore();
 }
 
 export function aVorpalInstance() {

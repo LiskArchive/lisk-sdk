@@ -74,12 +74,7 @@ export function theUserExecutesTheCommandWithOptions() {
 	const commandWithOptions = `${command} ${this.test.ctx.commandOptions.join(' ')}`;
 	const returnValue = vorpal.exec(commandWithOptions);
 	this.test.ctx.returnValue = returnValue;
-	this.test.ctx.commandWithOptions = commandWithOptions;
 	return returnValue;
-}
-
-export function theAccountsDirectoryDoesNotExist() {
-
 }
 
 export function theResultIsPrinted() {
@@ -132,8 +127,8 @@ export function theArrayIsTablified() {
 	this.test.ctx.returnValue = tablify(testArray);
 }
 
-export function anErrorOccursAttemptingToGetTheAccountIdFromThePublicKey() {
-	const { cryptoInstance, publicKey } = this.test.ctx;
+export function anErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
+	const { cryptoInstance, keys: { publicKey } } = this.test.ctx;
 
 	lisk.crypto.getAddressFromPublicKey.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
@@ -142,7 +137,7 @@ export function anErrorOccursAttemptingToGetTheAccountIdFromThePublicKey() {
 }
 
 export function noErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
-	const { cryptoInstance, publicKey, address } = this.test.ctx;
+	const { cryptoInstance, keys: { publicKey }, address } = this.test.ctx;
 	lisk.crypto.getAddressFromPublicKey.returns(address);
 	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
 }

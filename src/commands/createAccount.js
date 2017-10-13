@@ -22,7 +22,7 @@ import {
 	shouldUseJsonOutput,
 } from '../utils/helpers';
 
-const description = `Create account returns a randomly-generated mnemonic passphrase with its corresponding public key and address
+const description = `Create account returns a randomly-generated mnemonic passphrase with its corresponding public key and address.
 
 	Example: create account
 `;

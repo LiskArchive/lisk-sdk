@@ -31,7 +31,7 @@ export const getQuotedStrings = (title) => {
 };
 
 export const getNumbersFromTitle = (title) => {
-	return title.match(regExpNumbers);
+	return title.match(regExpNumbers).map(Number);
 };
 
 export const setUpFsStubs = () => {
