@@ -76,7 +76,7 @@ Signatures.prototype.onBind = function (scope) {
  */
 Signatures.prototype.shared = {
 	getFee: function (req, cb) {
-		var fee = constants.fees.secondsignature;
+		var fee = constants.fees.secondSignature;
 
 		return setImmediate(cb, null, {fee: fee});
 	},

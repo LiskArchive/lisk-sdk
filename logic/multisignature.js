@@ -23,14 +23,15 @@ __private.unconfirmedSignatures = {};
  * @param {Object} logger
  */
 // Constructor
-function Multisignature (schema, network, transaction, logger) {
+function Multisignature (schema, network, transaction, account, logger) {
 	library = {
 		schema: schema,
 		network: network,
 		logger: logger,
 		logic: {
 			transaction: transaction,
-		},
+			account: account
+		}
 	};
 }
 
@@ -86,9 +87,9 @@ Multisignature.prototype.verify = function (transaction, sender, cb) {
 	if (transaction.asset.multisignature.min > transaction.asset.multisignature.keysgroup.length) {
 		var err = 'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
-		if (exceptions.multisignatures.indexOf(transaction.id) > -1) {
-			this.scope.logger.debug(err);
-			this.scope.logger.debug(JSON.stringify(transaction));
+		if (exceptions.multisignatures.indexOf(trs.id) > -1) {
+			library.logger.debug(err);
+			library.logger.debug(JSON.stringify(trs));
 		} else {
 			return setImmediate(cb, err);
 		}
@@ -221,7 +222,7 @@ Multisignature.prototype.getBytes = function (transaction, skip) {
 Multisignature.prototype.apply = function (transaction, block, sender, cb) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	this.scope.account.merge(sender.address, {
+	library.logic.account.merge(sender.address, {
 		multisignatures: transaction.asset.multisignature.keysgroup,
 		multimin: transaction.asset.multisignature.min,
 		multilifetime: transaction.asset.multisignature.lifetime,
@@ -262,7 +263,7 @@ Multisignature.prototype.undo = function (transaction, block, sender, cb) {
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	this.scope.account.merge(sender.address, {
+	library.logic.account.merge(sender.address, {
 		multisignatures: multiInvert,
 		multimin: -transaction.asset.multisignature.min,
 		multilifetime: -transaction.asset.multisignature.lifetime,
@@ -288,7 +289,7 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	this.scope.account.merge(sender.address, {
+	library.logic.account.merge(sender.address, {
 		u_multisignatures: transaction.asset.multisignature.keysgroup,
 		u_multimin: transaction.asset.multisignature.min,
 		u_multilifetime: transaction.asset.multisignature.lifetime
@@ -312,7 +313,7 @@ Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	this.scope.account.merge(sender.address, {
+	library.logic.account.merge(sender.address, {
 		u_multisignatures: multiInvert,
 		u_multimin: -transaction.asset.multisignature.min,
 		u_multilifetime: -transaction.asset.multisignature.lifetime

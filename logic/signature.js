@@ -33,7 +33,7 @@ Signature.prototype.bind = function (accounts) {
 };
 
 /**
- * Obtains constant fee secondsignature.
+ * Obtains constant fee secondSignature.
  * @see {@link module:helpers~constants}
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {account} sender - Unnecessary parameter.
@@ -49,7 +49,7 @@ Signature.prototype.calculateFee = function (transaction, sender) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|transaction} returns error string if invalid parameter | 
+ * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * transaction validated.
  */
 Signature.prototype.verify = function (transaction, sender, cb) {
@@ -134,7 +134,7 @@ Signature.prototype.apply = function (transaction, block, sender, cb) {
  * Sets account second signature to null.
  * @implements module:accounts#Accounts~setAccountAndGet
  * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter. 
+ * @param {block} block - Unnecessary parameter.
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
@@ -151,7 +151,7 @@ Signature.prototype.undo = function (transaction, block, sender, cb) {
  * Activates unconfirmed second signature for sender account.
  * @implements module:accounts#Accounts~setAccountAndGet
  * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter. 
+ * @param {block} block - Unnecessary parameter.
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Error if second signature is already enabled.
@@ -168,7 +168,7 @@ Signature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * Deactivates unconfirmed second signature for sender account.
  * @implements module:accounts#Accounts~setAccountAndGet
  * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter. 
+ * @param {block} block - Unnecessary parameter.
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
