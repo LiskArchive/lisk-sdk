@@ -148,7 +148,7 @@ export function thereIsAnObjectThatShouldBeWrittenToPath() {
 	};
 	const stringifiedObject = '{\n\t"lisk": "js",\n\t"version": 1\n}';
 
-	this.test.ctx.JSONStringifyStub = sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
+	sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
 	sandbox.stub(fs, 'writeFileSync');
 
 	this.test.ctx.filePath = getFirstQuotedString(this.test.parent.title);

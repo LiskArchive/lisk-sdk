@@ -69,7 +69,7 @@ export function theUserExecutesTheCommand() {
 
 export function theUserExecutesTheCommandWithOptions() {
 	const { vorpal, command } = this.test.ctx;
-	this.test.ctx.JSONStringifyStub = sandbox.spy(JSON, 'stringify');
+	sandbox.spy(JSON, 'stringify');
 	this.test.ctx.commandOptions = getQuotedStrings(this.test.parent.title);
 	const commandWithOptions = `${command} ${this.test.ctx.commandOptions.join(' ')}`;
 	const returnValue = vorpal.exec(commandWithOptions);

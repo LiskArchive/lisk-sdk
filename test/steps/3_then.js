@@ -50,8 +50,9 @@ export function itShouldPrintTheResultInATable() {
 }
 
 export function theCommandShouldHaveRequiredArguments() {
+	const { vorpal, command } = this.test.ctx;
 	const requiredArguments = getNumbersFromTitle(this.test.title)[0];
-	const vorpalRequiredArgs = getRequiredArgs(this.test.ctx.vorpal, this.test.ctx.command);
+	const vorpalRequiredArgs = getRequiredArgs(vorpal, command);
 	return (vorpalRequiredArgs).should.have.length(Number(requiredArguments));
 }
 
