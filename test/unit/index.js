@@ -20,6 +20,7 @@ var paths = [
 
 	'./logic/account.js',
 	'./logic/delegate.js',
+  './logic/inTransfer.js',
 	'./logic/peer.js',
 	'./logic/peers.js',
 	'./logic/multisignature.js',
@@ -27,7 +28,6 @@ var paths = [
 	'./logic/transactionPool.js',
 	'./logic/transfer.js',
 	'./logic/vote.js',
-	'./logic/inTransfer.js',
 
 	'./modules/accounts.js',
 	'./modules/app.js',
