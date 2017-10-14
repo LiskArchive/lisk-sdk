@@ -20,7 +20,7 @@ var paths = [
 
 	'./logic/account.js',
 	'./logic/delegate.js',
-  './logic/inTransfer.js',
+	'./logic/inTransfer.js',
 	'./logic/peer.js',
 	'./logic/peers.js',
 	'./logic/multisignature.js',

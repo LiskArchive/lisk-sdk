@@ -294,11 +294,20 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           run_test('test/functional/http/post/0.transfer.js')
 				}
 			},
+			"Functional POST tx type 2" : {
+				node('node-01'){
+					sh """
+					export TEST=test/functional/http/post/2.delegate.js TEST_TYPE='FUNC' NODE_ENV='TEST'
+					cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+					npm run ${params.JENKINS_PROFILE}
+					"""
+				}
+			}, // End node-01 functional tests
 			"Functional Peers" : {
 				node('node-02'){
 					run_test('test/functional/http/get/peers.js')
 				}
-			},  // End node-01 functional tests
+			},
 			"Functional Transport - Main" : {
 				node('node-02'){
 					run_test('test/functional/ws/transport.js')
