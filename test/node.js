@@ -239,8 +239,10 @@ node.generatePeerHeaders = function (ip, port, nonce) {
 		os: os,
 		ip: ip,
 		port: port,
+		httpPort: node.config.httpPort,
 		version: version,
-		nonce: nonce
+		nonce: nonce,
+		status: 2
 	};
 };
 
