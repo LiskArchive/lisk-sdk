@@ -14,7 +14,7 @@
  */
 import send from './0_send';
 import sendFromMultisignatureAccount from './0_sendFromMultisignatureAccount';
-import registerSecondSignature from './1_registerSecondSignature';
+import registerSecondPassphrase from './1_registerSecondPassphrase';
 import registerDelegate from './2_registerDelegate';
 import castVotes from './3_castVotes';
 import registerMultisignature from './4_registerMultisignatureAccount';
@@ -25,7 +25,7 @@ import transferOutOfDapp from './7_transferOutOfDapp';
 export default {
 	send,
 	sendFromMultisignatureAccount,
-	registerSecondSignature,
+	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
 	registerMultisignature,
