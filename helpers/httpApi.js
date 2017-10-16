@@ -9,6 +9,7 @@
 
 var _ = require('lodash');
 var extend = require('extend');
+var apiCodes = require('./apiCodes');
 var checkIpInList = require('./checkIpInList');
 
 /**
@@ -203,16 +204,13 @@ function respond (res, err, response) {
  */
 function respondWithCode (res, err, response) {
 	if (err) {
-		var DEFAULT_ERROR_CODE = 500;
-		res.code(err.code || DEFAULT_ERROR_CODE).json(err.toJson());
+		res.code(err.code || apiCodes.ERROR_DEFAULT).json(err.toJson());
 	} else {
-		var SUCCESS_CODE = 200;
-		var EMPTY_RESOURCES_SUCCESS_CODE = 204;
 		var isResponseEmpty = function (response) {
 			var firstValue = _(response).values().first();
 			return _.isArray(firstValue) && _.isEmpty(firstValue);
 		};
-		return res.code(isResponseEmpty(response) ? EMPTY_RESOURCES_SUCCESS_CODE : SUCCESS_CODE).json(response);
+		return res.code(isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_SUCCESS : apiCodes.SUCCESS).json(response);
 	}
 }
 /**
