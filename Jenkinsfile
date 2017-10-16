@@ -76,7 +76,21 @@ def cleanup_master() {
 	}
 }
 
-def run_test(test_path, test_type) {
+def run_action(action) {
+	try {
+		sh """
+		cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+		npm run ${action}
+		"""
+	} catch (err) {
+		echo "Error: ${err}"
+		currentBuild.result = 'FAILURE'
+		report()
+		error('Stopping build: ' + action + ' failed')
+	}	
+}
+
+def run_single_test(test_path, test_type) {
 	try {
 		sh """
 		export TEST=${test_path} TEST_TYPE=${test_type}
@@ -87,7 +101,7 @@ def run_test(test_path, test_type) {
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
-		error('Stopping build: master cleanup failed')
+		error('Stopping build: ' + test_path + ' failed')
 	}
 }
 
@@ -238,84 +252,37 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		parallel(
 			"ESLint" : {
 				node('node-01'){
-					sh """
-					cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-					npm run eslint
-					"""
+					run_action('eslint')
 				}
 			},
 			"Functional HTTP GET tests" : {
 				node('node-01'){
-					try {
-						sh """
-						export TEST_TYPE='FUNC'
-						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-						npm run test-functional-http-get
-						"""
-					} catch (err) {
-						echo "Error: ${err}"
-						currentBuild.result = 'FAILURE'
-						report()
-						error('Stopping build: HTTP GET tests failed')
-					}
+					run_action('test-functional-http-get')
 				}
 			}, // End node-01 tests
 			"Functional HTTP POST tests" : {
 				node('node-02'){
-					try {
-						sh """
-						export TEST_TYPE='FUNC'
-						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-						npm run test-functional-http-post
-						"""
-					} catch (err) {
-						echo "Error: ${err}"
-						currentBuild.result = 'FAILURE'
-						report()
-						error('Stopping build: HTTP POST tests failed')
-					}
+					run_action('test-functional-http-post')
 				}
 			}, // End Node-02 tests
 			"Functional WS tests" : {
 				node('node-03'){
-					try {
-						sh """
-						export TEST_TYPE='FUNC'
-						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-						npm run test-functional-ws
-						"""
-					} catch (err) {
-						echo "Error: ${err}"
-						currentBuild.result = 'FAILURE'
-						report()
-						error('Stopping build: WS tests failed')
-					}
+					run_action('test-functional-ws')
 				}
 			}, // End Node-03 tests
 			"Unit Tests" : {
 				node('node-04'){
-					try {
-						sh """
-						export TEST_TYPE='UNIT'
-						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-						npm run test-unit
-						"""
-					} catch (err) {
-						echo "Error: ${err}"
-						currentBuild.result = 'FAILURE'
-						report()
-						error('Stopping build: unit tests failed')
-					}
+					run_action('test-unit')
 				}
 			},
 			"Unit Tests - sql blockRewards" : {
 				node('node-04'){
-					run_test('test/unit/sql/blockRewards.js', 'UNIT')
+					run_single_test('test/unit/sql/blockRewards.js', 'UNIT')
 				}
 			},
 			"Unit Tests - logic blockReward" : {
 				node('node-04'){
-					run_test('test/unit/logic/blockReward.js ', 'UNIT')
+					run_single_test('test/unit/logic/blockReward.js ', 'UNIT')
 				}
 			}// End Node-04 unit tests
 		) // End Parallel

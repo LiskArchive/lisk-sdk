@@ -73,27 +73,27 @@ module.exports = function (grunt) {
 			},
 
 			coverageUnit: {
-				command: 'node test/unit/index.js',
+				command: 'TEST_TYPE=unit && node test/unit/index.js',
 				maxBuffer: maxBufferSize
 			},
 
 			coverageUnitSlow: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
+				command: 'TEST_TYPE=unit && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalWs: {
-				command: 'export NODE_ENV=test && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/ws/index.js -- --grep @slow --invert',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/ws/index.js -- --grep @slow --invert',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalWsExtensive: {
-				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/ws/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=func && ./node_modules/.bin/_mocha test/functional/ws/index.js',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalHttpGet: {
-				command: 'export NODE_ENV=test && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/get/index.js -- --grep @slow --invert',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/get/index.js -- --grep @slow --invert',
 				maxBuffer: maxBufferSize
 			},
 
@@ -103,7 +103,7 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalHttpPost: {
-				command: 'export NODE_ENV=test && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/post/index.js -- --grep @slow --invert',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/post/index.js -- --grep @slow --invert',
 				maxBuffer: maxBufferSize
 			},
 
