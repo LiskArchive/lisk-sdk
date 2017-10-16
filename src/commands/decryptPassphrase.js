@@ -14,7 +14,6 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import commonOptions from '../utils/options';
 import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
@@ -22,6 +21,7 @@ import {
 	getFirstLineFromString,
 	getData,
 } from '../utils/input';
+import commonOptions from '../utils/options';
 
 const PASSWORD_DISPLAY_NAME = 'your password';
 
@@ -35,8 +35,8 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 	Note: if both an encrypted passphrase and the password are passed via stdin, the password must be the first line.
 
 	Examples:
-	- --passphrase file:/path/to/my/encrypted_passphrase.txt (takes the first line only)
-	- --passphrase stdin (takes the first line only)
+		- --passphrase file:/path/to/my/encrypted_passphrase.txt (takes the first line only)
+		- --passphrase stdin (takes the first line only)
 `;
 
 const handleInput = iv => ([cipher, password]) =>

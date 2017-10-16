@@ -20,8 +20,8 @@ import query from '../utils/query';
 const description = `Get information from <type> with parameter <input>. Types available: account, address, block, delegate, transaction.
 
 	Examples:
-		- get delegate lightcurve
-		- get block 5510510593472232540
+	- get delegate lightcurve
+	- get block 5510510593472232540
 `;
 
 export const handlers = {

@@ -14,13 +14,13 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import commonOptions from '../utils/options';
 import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
 	getData,
 } from '../utils/input';
+import commonOptions from '../utils/options';
 
 const description = `Decrypt an encrypted message from a given sender public key for a known nonce using your secret passphrase.
 

@@ -23,8 +23,8 @@ import { handlers, processResult } from './get';
 const description = `Get information from <type> with parameters <input, input, ...>. Types available: accounts, addresses, blocks, delegates, transactions.
 
 	Examples:
-		- list delegates lightcurve tosch
-		- list blocks 5510510593472232540 16450842638530591789
+	- list delegates lightcurve tosch
+	- list blocks 5510510593472232540 16450842638530591789
 `;
 
 const actionCreator = () => async ({ type, variadic }) => {

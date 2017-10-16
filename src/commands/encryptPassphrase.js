@@ -14,13 +14,13 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import commonOptions from '../utils/options';
 import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
 	getFirstLineFromString,
 } from '../utils/input';
+import commonOptions from '../utils/options';
 
 const PASSWORD_DISPLAY_NAME = 'your password';
 
