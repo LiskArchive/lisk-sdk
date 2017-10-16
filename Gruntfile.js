@@ -83,7 +83,7 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalWs: {
-				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/ws/index.js --grep @slow --invert',
+				command: 'export NODE_ENV=test && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/ws/index.js -- --grep @slow --invert',
 				maxBuffer: maxBufferSize
 			},
 
@@ -93,7 +93,7 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalHttpGet: {
-				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/http/get/index.js --grep @slow --invert',
+				command: 'export NODE_ENV=test && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/get/index.js -- --grep @slow --invert',
 				maxBuffer: maxBufferSize
 			},
 
@@ -103,7 +103,7 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalHttpPost: {
-				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/http/post/index.js --grep @slow --invert',
+				command: 'export NODE_ENV=test && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/post/index.js -- --grep @slow --invert',
 				maxBuffer: maxBufferSize
 			},
 
