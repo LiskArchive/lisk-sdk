@@ -76,10 +76,10 @@ def cleanup_master() {
 	}
 }
 
-def run_test(test_path) {
+def run_test(test_path, test_type) {
 	try {
 		sh """
-		export TEST=${test_path} TEST_TYPE='FUNC' NODE_ENV='TEST'
+		export TEST=${test_path} TEST_TYPE=${test_type}
 		cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 		npm run ${params.JENKINS_PROFILE}
 		"""
@@ -238,17 +238,17 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		parallel(
 			"ESLint" : {
 				node('node-01'){
-					sh '''
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					sh """
+					cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 					npm run eslint
-					'''
+					"""
 				}
 			},
 			"Functional HTTP GET tests" : {
 				node('node-01'){
 					try {
 						sh """
-						export NODE_ENV='TEST'
+						export TEST_TYPE='FUNC'
 						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 						npm run test-functional-http-get
 						"""
@@ -264,7 +264,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-02'){
 					try {
 						sh """
-						export NODE_ENV='TEST'
+						export TEST_TYPE='FUNC'
 						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 						npm run test-functional-http-post
 						"""
@@ -280,7 +280,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-03'){
 					try {
 						sh """
-						export NODE_ENV='TEST'
+						export TEST_TYPE='FUNC'
 						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 						npm run test-functional-ws
 						"""
@@ -296,7 +296,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-04'){
 					try {
 						sh """
-						export TEST_TYPE='UNIT' NODE_ENV='TEST'
+						export TEST_TYPE='UNIT'
 						cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 						npm run test-unit
 						"""
@@ -310,12 +310,12 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Unit Tests - sql blockRewards" : {
 				node('node-04'){
-					run_test('test/unit/sql/blockRewards.js')
+					run_test('test/unit/sql/blockRewards.js', 'UNIT')
 				}
 			},
 			"Unit Tests - logic blockReward" : {
 				node('node-04'){
-					run_test('test/unit/logic/blockReward.js ')
+					run_test('test/unit/logic/blockReward.js ', 'UNIT')
 				}
 			}// End Node-04 unit tests
 		) // End Parallel
