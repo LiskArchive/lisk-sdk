@@ -39,5 +39,5 @@ const testPage = page => () => {
 
 describe('Browser tests', () => {
 	it('should pass without minification', testPage('/browsertest.html'));
-	it('should pass without minification', testPage('/browsertest.min.html'));
+	it('should pass with minification', testPage('/browsertest.min.html'));
 });
