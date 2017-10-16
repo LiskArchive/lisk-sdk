@@ -24,6 +24,7 @@ import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
 import liskInstance from '../../src/utils/liskInstance';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
+import commonOptions from '../../src/utils/options';
 import queryInstance from '../../src/utils/query';
 import {
 	DEFAULT_ERROR_MESSAGE,
@@ -33,6 +34,23 @@ import {
 	createStreamStub,
 } from './utils';
 import createAccountCommand from '../../src/commands/createAccount';
+
+export function anOptionsListIncluding() {
+	const options = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.optionsList = options.map(optionName => commonOptions[optionName]);
+}
+
+export function aDescription() {
+	this.test.ctx.description = getFirstQuotedString(this.test.parent.title);
+}
+
+export function anAutocompleteListIncluding() {
+	this.test.ctx.autocompleteList = getQuotedStrings(this.test.parent.title);
+}
+
+export function aCommand() {
+	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
+}
 
 export function anActionCreatorThatCreatesAnActionThatResolvesToAnObject() {
 	const testObject = {

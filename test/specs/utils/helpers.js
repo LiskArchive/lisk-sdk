@@ -164,4 +164,44 @@ describe('utils helpers', () => {
 			});
 		});
 	});
+
+	describe('#createCommand', () => {
+		describe('Given a Vorpal instance', () => {
+			beforeEach(given.aVorpalInstance);
+			describe('Given a command "some command <with> [some] [args...]"', () => {
+				beforeEach(given.aCommand);
+				describe('Given an autocomplete list including "something" and "else"', () => {
+					beforeEach(given.anAutocompleteListIncluding);
+					describe('Given a description "Some description of a command"', () => {
+						beforeEach(given.aDescription);
+						describe('Given an action creator that creates an action that resolves to an object', () => {
+							beforeEach(given.anActionCreatorThatCreatesAnActionThatResolvesToAnObject);
+							describe('Given an options list including "passphrase" and "password"', () => {
+								beforeEach(given.anOptionsListIncluding);
+								describe('Given a prefix "Some error message prefix"', () => {
+									beforeEach(given.aPrefix);
+									describe('When createCommand is called with an object containing the command, the autocomplete list, the description, the action creator, the options list, and the prefix', () => {
+										beforeEach(when.createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix);
+										describe('When the created commmand is called with the Vorpal instance', () => {
+											beforeEach(when.theCreatedCommandIsCalledWithTheVorpalInstance);
+											it('Then the Vorpal instance should have the command', then.theVorpalInstanceShouldHaveTheCommand);
+											it('Then the Vorpal command instance should have the autocomplete list', then.theVorpalCommandInstanceShouldHaveTheAutocompleteList);
+											it('Then the Vorpal command instance should have the description', then.theVorpalCommandInstanceShouldHaveTheDescription);
+											it('Then the Vorpal command instance should have the provided options', then.theVorpalCommandInstanceShouldHaveTheProvidedOptions);
+											it('Then the Vorpal command instance should have the json option', then.theVorpalCommandInstanceShouldHaveTheJsonOption);
+											it('Then the Vorpal command instance should have the noJson option', then.theVorpalCommandInstanceShouldHaveTheNoJsonOption);
+											describe('When the command "some command someArg" is executed', () => {
+												beforeEach(when.theCommandIsExecuted);
+												it('Then it should resolve to the object', then.itShouldResolveToTheObject);
+											});
+										});
+									});
+								});
+							});
+						});
+					});
+				});
+			});
+		});
+	});
 });

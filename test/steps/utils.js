@@ -36,6 +36,11 @@ export const getNumbersFromTitle = (title) => {
 	return title.match(regExpNumbers).map(Number);
 };
 
+export const getCommandInstance = (vorpal, command) => {
+	const commandStem = command.match(/^[^[|<]+/)[0].slice(0, -1);
+	return vorpal.find(commandStem);
+};
+
 export const setUpFsStubs = () => {
 	[
 		'accessSync',

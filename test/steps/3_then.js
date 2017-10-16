@@ -17,14 +17,52 @@ import fs from 'fs';
 import lisk from 'lisk-js';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import commonOptions from '../../src/utils/options';
 import tablify from '../../src/utils/tablify';
 import {
+	getCommandInstance,
 	getFirstQuotedString,
 	getNumbersFromTitle,
 } from './utils';
 import {
 	getRequiredArgs,
 } from '../specs/commands/utils';
+
+export function theVorpalCommandInstanceShouldHaveTheAutocompleteList() {
+	const { vorpal, command, autocompleteList } = this.test.ctx;
+	const { _autocomplete } = getCommandInstance(vorpal, command);
+	(_autocomplete).should.be.equal(autocompleteList);
+}
+
+export function theVorpalCommandInstanceShouldHaveTheDescription() {
+	const { vorpal, command, description } = this.test.ctx;
+	const { _description } = getCommandInstance(vorpal, command);
+	(_description).should.be.equal(description);
+}
+
+export function theVorpalCommandInstanceShouldHaveTheProvidedOptions() {
+	const { vorpal, command, optionsList } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	optionsList.forEach(myOption => (options).should.matchAny(option => option.flags === `${myOption[0]}`));
+}
+
+export function theVorpalCommandInstanceShouldHaveTheJsonOption() {
+	const { vorpal, command } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	(options).should.matchAny(option => option.flags === commonOptions.json[0]);
+}
+
+export function theVorpalCommandInstanceShouldHaveTheNoJsonOption() {
+	const { vorpal, command } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	(options).should.matchAny(option => option.flags === commonOptions.noJson[0]);
+}
+
+export function theVorpalInstanceShouldHaveTheCommand() {
+	const { vorpal, command } = this.test.ctx;
+	const commandInstance = getCommandInstance(vorpal, command);
+	(commandInstance).should.be.ok();
+}
 
 export function theErrorShouldBePrintedWithThePrefix() {
 	const { printFunction, errorMessage, prefix } = this.test.ctx;
@@ -36,6 +74,11 @@ export function theErrorShouldBePrintedWithThePrefix() {
 export function theObjectShouldBePrinted() {
 	const { printFunction, testObject } = this.test.ctx;
 	(printFunction).should.be.calledWithExactly(testObject);
+}
+
+export function itShouldResolveToTheObject() {
+	const { returnValue, testObject } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(testObject);
 }
 
 export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {

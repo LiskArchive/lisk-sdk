@@ -24,6 +24,7 @@ import {
 	deAlias,
 	shouldUseJsonOutput,
 	wrapActionCreator,
+	createCommand,
 } from '../../src/utils/helpers';
 import {
 	splitSource,
@@ -42,6 +43,7 @@ import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 import {
 	DEFAULT_ERROR_MESSAGE,
+	getFirstQuotedString,
 	getQuotedStrings,
 } from './utils';
 import {
@@ -50,6 +52,36 @@ import {
 } from '../../src/utils/mnemonic';
 
 const tablifyToSpy = require('../../src/utils/tablify');
+
+export function theCommandIsExecuted() {
+	const { vorpal } = this.test.ctx;
+	const commandToExecute = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.returnValue = vorpal.exec(commandToExecute);
+}
+
+export function theCreatedCommandIsCalledWithTheVorpalInstance() {
+	const { createdCommand, vorpal } = this.test.ctx;
+	this.test.ctx.returnValue = createdCommand(vorpal);
+}
+
+export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix() {
+	const {
+		command,
+		autocompleteList: autocomplete,
+		description,
+		actionCreator,
+		optionsList: options,
+		prefix: errorPrefix,
+	} = this.test.ctx;
+	this.test.ctx.createdCommand = createCommand({
+		command,
+		autocomplete,
+		description,
+		actionCreator,
+		options,
+		errorPrefix,
+	});
+}
 
 export function theWrappedActionCreatorIsCalledWithTheParameters() {
 	const { returnValue: wrappedActionCreator, parameters } = this.test.ctx;
