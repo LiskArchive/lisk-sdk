@@ -203,6 +203,17 @@ export function aNonEmptyObject() {
 	};
 }
 
+export function aNestedObject() {
+	this.test.ctx.testObject = {
+		root: 'value',
+		nested: {
+			object: 'values',
+			testing: 123,
+			nullValue: null,
+		},
+	};
+}
+
 export function anArrayOfObjectsWithTheSameKeys() {
 	this.test.ctx.testArray = [
 		{

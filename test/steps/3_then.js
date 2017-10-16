@@ -239,6 +239,18 @@ export function theReturnedTableShouldHaveARowWithTheObjectValues() {
 	return (returnValue[0]).should.eql(values);
 }
 
+export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
+	const { returnValue } = this.test.ctx;
+	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue'];
+	return (returnValue.options).should.have.property('head').eql(keys);
+}
+
+export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
+	const { returnValue } = this.test.ctx;
+	const values = ['value', 'values', 123, null];
+	return (returnValue[0]).should.eql(values);
+}
+
 export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
 	const { returnValue, testArray } = this.test.ctx;
 	const keys = Object.keys(testArray[0]);
