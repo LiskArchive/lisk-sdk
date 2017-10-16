@@ -36,7 +36,12 @@ import { getTimeWithOffset } from './utils/time';
  */
 
 export default function sendFromMultisignatureAccount({
-	recipientId, amount, secret, secondSecret, requesterPublicKey, timeOffset,
+	recipientId,
+	amount,
+	secret,
+	secondSecret,
+	requesterPublicKey,
+	timeOffset,
 }) {
 	const keys = cryptoModule.getKeys(secret);
 

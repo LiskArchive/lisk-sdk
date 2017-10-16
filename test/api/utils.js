@@ -30,7 +30,9 @@ describe('api utils module', () => {
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
-		sendRequestStub = sandbox.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
+		sendRequestStub = sandbox
+			.stub(LSK, 'sendRequest')
+			.resolves(Object.assign({}, sendRequestResult));
 	});
 
 	describe('#trimObj', () => {
@@ -39,27 +41,31 @@ describe('api utils module', () => {
 		it('should not trim strings', () => {
 			const str = '  string ';
 			const trimmedString = trimObj(str);
-			(trimmedString).should.be.equal(str);
+			trimmedString.should.be.equal(str);
 		});
 
 		it('should convert integers to strings', () => {
 			const trimmedInteger = trimObj(123);
-			(trimmedInteger).should.be.eql('123');
+			trimmedInteger.should.be.eql('123');
 		});
 
 		it('should convert nested integers to strings', () => {
 			const trimmedObject = trimObj({ myObj: 2 });
-			(trimmedObject).should.be.eql({ myObj: '2' });
+			trimmedObject.should.be.eql({ myObj: '2' });
 		});
 
 		it('should remove whitespace from keys and values', () => {
 			const trimmedObject = trimObj({ '  my_Obj ': '  my val ' });
-			(trimmedObject).should.be.eql({ my_Obj: 'my val' }); // eslint-disable-line camelcase
+			trimmedObject.should.be.eql({ my_Obj: 'my val' }); // eslint-disable-line camelcase
 		});
 
 		it('should trim each member of an array', () => {
-			const trimmedArray = trimObj(['  string ', { ' key  ': ' value   ' }, ['  array item ']]);
-			(trimmedArray).should.be.eql(['string', { key: 'value' }, ['array item']]);
+			const trimmedArray = trimObj([
+				'  string ',
+				{ ' key  ': ' value   ' },
+				['  array item '],
+			]);
+			trimmedArray.should.be.eql(['string', { key: 'value' }, ['array item']]);
 		});
 	});
 
@@ -72,14 +78,14 @@ describe('api utils module', () => {
 				key2: 'value2',
 				key3: 'value3',
 			});
-			(queryString).should.be.equal('key1=value1&key2=value2&key3=value3');
+			queryString.should.be.equal('key1=value1&key2=value2&key3=value3');
 		});
 
 		it('should escape invalid special characters', () => {
 			const queryString = toQueryString({
 				'key:/;?': 'value:/;?',
 			});
-			(queryString).should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
+			queryString.should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
 		});
 	});
 
@@ -91,24 +97,34 @@ describe('api utils module', () => {
 		};
 
 		it('should throw an error if any option is undefined', () => {
-			const optionsWithUndefined = Object.assign({
-				badKey: undefined,
-			}, goodOptions);
+			const optionsWithUndefined = Object.assign(
+				{
+					badKey: undefined,
+				},
+				goodOptions,
+			);
 
-			(checkOptions.bind(null, optionsWithUndefined)).should.throw('"badKey" option should not be undefined');
+			checkOptions
+				.bind(null, optionsWithUndefined)
+				.should.throw('"badKey" option should not be undefined');
 		});
 
 		it('should throw an error if any option is NaN', () => {
-			const optionsWithNaN = Object.assign({
-				badKey: NaN,
-			}, goodOptions);
+			const optionsWithNaN = Object.assign(
+				{
+					badKey: NaN,
+				},
+				goodOptions,
+			);
 
-			(checkOptions.bind(null, optionsWithNaN)).should.throw('"badKey" option should not be NaN');
+			checkOptions
+				.bind(null, optionsWithNaN)
+				.should.throw('"badKey" option should not be NaN');
 		});
 
 		it('should return the options if they are all ok', () => {
 			const result = checkOptions(Object.assign({}, goodOptions));
-			(result).should.be.eql(goodOptions);
+			result.should.be.eql(goodOptions);
 		});
 	});
 
@@ -128,7 +144,7 @@ describe('api utils module', () => {
 		});
 
 		it('should trim, escape, and prepend a question mark to the query string', () => {
-			(serialisedData).should.equal(`?${queryStringData}`);
+			serialisedData.should.equal(`?${queryStringData}`);
 		});
 	});
 
@@ -158,12 +174,22 @@ describe('api utils module', () => {
 				key5: 'value 5',
 				key6: 6,
 			};
-			getDataFnStub = sandbox.stub().returns(Object.assign({}, getDataFnResult));
-			constructRequestDataStub = sandbox.stub()
+			getDataFnStub = sandbox
+				.stub()
+				.returns(Object.assign({}, getDataFnResult));
+			constructRequestDataStub = sandbox
+				.stub()
 				.returns(Object.assign({}, constructRequestDataResult));
 			// eslint-disable-next-line no-underscore-dangle
-			restoreConstructRequestDataStub = utils.__set__('constructRequestData', constructRequestDataStub);
-			returnedFunction = wrapSendRequest(defaultMethod, defaultEndpoint, getDataFnStub);
+			restoreConstructRequestDataStub = utils.__set__(
+				'constructRequestData',
+				constructRequestDataStub,
+			);
+			returnedFunction = wrapSendRequest(
+				defaultMethod,
+				defaultEndpoint,
+				getDataFnStub,
+			);
 			callback = () => {};
 		});
 
@@ -172,47 +198,54 @@ describe('api utils module', () => {
 		});
 
 		it('should return a function', () => {
-			(returnedFunction).should.be.type('function');
+			returnedFunction.should.be.type('function');
 		});
 
 		describe('returned function', () => {
 			it('should call the provided getData function on the provided value and options', () => {
-				return returnedFunction.call(LSK, value, options)
-					.then(() => {
-						(getDataFnStub.calledWithExactly(value, options)).should.be.true();
-					});
+				return returnedFunction.call(LSK, value, options).then(() => {
+					getDataFnStub.calledWithExactly(value, options).should.be.true();
+				});
 			});
 
 			it('should construct request data using the provided data and options', () => {
-				return returnedFunction.call(LSK, value, options)
-					.then(() => {
-						(constructRequestDataStub.calledWithExactly(getDataFnResult, options)).should.be.true();
-					});
+				return returnedFunction.call(LSK, value, options).then(() => {
+					constructRequestDataStub
+						.calledWithExactly(getDataFnResult, options)
+						.should.be.true();
+				});
 			});
 
 			it('should send a request with the constructed data and a callback if options are provided', () => {
-				return returnedFunction.call(LSK, value, options, callback)
-					.then(() => {
-						(sendRequestStub.calledWithExactly(
-							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
-						)).should.be.true();
-					});
+				return returnedFunction.call(LSK, value, options, callback).then(() => {
+					sendRequestStub
+						.calledWithExactly(
+							defaultMethod,
+							defaultEndpoint,
+							constructRequestDataResult,
+							callback,
+						)
+						.should.be.true();
+				});
 			});
 
 			it('should send a request with the constructed data and a callback if options are not provided', () => {
-				return returnedFunction.call(LSK, value, callback)
-					.then(() => {
-						(sendRequestStub.calledWithExactly(
-							defaultMethod, defaultEndpoint, constructRequestDataResult, callback,
-						)).should.be.true();
-					});
+				return returnedFunction.call(LSK, value, callback).then(() => {
+					sendRequestStub
+						.calledWithExactly(
+							defaultMethod,
+							defaultEndpoint,
+							constructRequestDataResult,
+							callback,
+						)
+						.should.be.true();
+				});
 			});
 
 			it('should return the result of the sent request', () => {
-				return returnedFunction.call(LSK, value, callback)
-					.then((result) => {
-						(result).should.be.eql(sendRequestResult);
-					});
+				return returnedFunction.call(LSK, value, callback).then(result => {
+					result.should.be.eql(sendRequestResult);
+				});
 			});
 		});
 	});
@@ -243,21 +276,25 @@ describe('api utils module', () => {
 		};
 
 		it('should merge a data object with an options object', () => {
-			const requestData = utils.constructRequestData({ address }, optionsObject);
-			(requestData).should.be.eql(expectedObject);
+			const requestData = utils.constructRequestData(
+				{ address },
+				optionsObject,
+			);
+			requestData.should.be.eql(expectedObject);
 		});
 
 		it('should recognise when a callback function is passed instead of an options object', () => {
 			const providedObj = { address };
 			const requestData = utils.constructRequestData(providedObj, () => true);
-			(requestData).should.be.eql(providedObj);
+			requestData.should.be.eql(providedObj);
 		});
 
 		it('should prioritise values from the data object when the data object and options object conflict', () => {
 			const requestData = utils.constructRequestData(
-				{ limit: defaultRequestLimit, offset: defaultRequestOffset }, optionsWithConflictObject,
+				{ limit: defaultRequestLimit, offset: defaultRequestOffset },
+				optionsWithConflictObject,
 			);
-			(requestData).should.be.eql(resolvedConflictObject);
+			requestData.should.be.eql(resolvedConflictObject);
 		});
 	});
 
@@ -268,25 +305,27 @@ describe('api utils module', () => {
 
 		it('should return the result with a callback', () => {
 			const returnValue = optionallyCallCallback(spy, result);
-			(returnValue).should.equal(result);
+			returnValue.should.equal(result);
 		});
 
 		it('should return the result without a callback', () => {
 			const returnValue = optionallyCallCallback(undefined, result);
-			(returnValue).should.equal(result);
+			returnValue.should.equal(result);
 		});
 
 		it('should not call the callback if it is not a function', () => {
-			(optionallyCallCallback.bind(null, { foo: 'bar' }, result)).should.not.throw();
+			optionallyCallCallback
+				.bind(null, { foo: 'bar' }, result)
+				.should.not.throw();
 		});
 
 		it('should not call the callback if it is undefined', () => {
-			(optionallyCallCallback.bind(null, undefined, result)).should.not.throw();
+			optionallyCallCallback.bind(null, undefined, result).should.not.throw();
 		});
 
 		it('should call the callback with the result if callback is a function', () => {
 			optionallyCallCallback(spy, result);
-			(spy.calledWithExactly(result)).should.be.true();
+			spy.calledWithExactly(result).should.be.true();
 		});
 	});
 });

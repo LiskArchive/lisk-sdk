@@ -30,7 +30,12 @@ import { getTimeWithOffset } from './utils/time';
  */
 
 export default function registerMultisignatureAccount({
-	secret, secondSecret, keysgroup, lifetime, min, timeOffset,
+	secret,
+	secondSecret,
+	keysgroup,
+	lifetime,
+	min,
+	timeOffset,
 }) {
 	const keys = cryptoModule.getKeys(secret);
 	const keygroupFees = keysgroup.length + 1;
@@ -38,7 +43,7 @@ export default function registerMultisignatureAccount({
 	const transaction = {
 		type: 4,
 		amount: 0,
-		fee: (MULTISIGNATURE_FEE * keygroupFees),
+		fee: MULTISIGNATURE_FEE * keygroupFees,
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

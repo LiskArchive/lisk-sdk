@@ -28,14 +28,8 @@ import transaction from './transactions';
 global.naclFactory = naclFactory;
 
 global.naclInstance = null;
-naclFactory.instantiate((nacl) => {
+naclFactory.instantiate(nacl => {
 	naclInstance = nacl;
 });
 
-export {
-	crypto,
-	transaction,
-	api,
-	time,
-	Mnemonic,
-};
+export { crypto, transaction, api, time, Mnemonic };

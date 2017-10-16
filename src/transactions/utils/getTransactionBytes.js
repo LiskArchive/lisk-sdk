@@ -37,8 +37,11 @@ export const BYTESIZES = {
 
 export function checkRequiredFields(requiredFields, data) {
 	const dataFields = Object.keys(data);
-	requiredFields.forEach((parameter) => {
-		if (!dataFields.includes(parameter.toString()) || !isValidValue(data[parameter])) {
+	requiredFields.forEach(parameter => {
+		if (
+			!dataFields.includes(parameter.toString()) ||
+			!isValidValue(data[parameter])
+		) {
 			throw new Error(`${parameter} is a required parameter.`);
 		}
 	});
@@ -52,9 +55,7 @@ export function checkRequiredFields(requiredFields, data) {
  */
 
 export function getAssetDataForSendTransaction({ data }) {
-	return data
-		? Buffer.from(data, 'utf8')
-		: Buffer.alloc(0);
+	return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 }
 
 /**
@@ -63,7 +64,9 @@ export function getAssetDataForSendTransaction({ data }) {
  * @return {Buffer}
  */
 
-export function getAssetDataForRegisterSecondSignatureTransaction({ signature }) {
+export function getAssetDataForRegisterSecondSignatureTransaction({
+	signature,
+}) {
 	checkRequiredFields(['publicKey'], signature);
 	const { publicKey } = signature;
 	return Buffer.from(publicKey, 'hex');
@@ -100,7 +103,9 @@ export function getAssetDataForCastVotesTransaction({ votes }) {
  * @return {Buffer}
  */
 
-export function getAssetDataForRegisterMultisignatureAccountTransaction({ multisignature }) {
+export function getAssetDataForRegisterMultisignatureAccountTransaction({
+	multisignature,
+}) {
 	checkRequiredFields(['min', 'lifetime', 'keysgroup'], multisignature);
 	const { min, lifetime, keysgroup } = multisignature;
 	const minBuffer = Buffer.alloc(1, min);
@@ -124,7 +129,9 @@ export function getAssetDataForCreateDappTransaction({ dapp }) {
 	const typeBuffer = Buffer.alloc(4, type);
 	const categoryBuffer = Buffer.alloc(4, category);
 
-	const descriptionBuffer = description ? Buffer.from(description, 'utf8') : Buffer.alloc(0);
+	const descriptionBuffer = description
+		? Buffer.from(description, 'utf8')
+		: Buffer.alloc(0);
 	const tagsBuffer = tags ? Buffer.from(tags, 'utf8') : Buffer.alloc(0);
 	const iconBuffer = icon ? Buffer.from(icon, 'utf8') : Buffer.alloc(0);
 
@@ -203,7 +210,9 @@ export function checkTransaction(transaction) {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
 	const { asset: { data } } = transaction;
 	if (data && data.length > BYTESIZES.DATA) {
-		throw new Error(`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`);
+		throw new Error(
+			`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`,
+		);
 	}
 	return true;
 }
@@ -220,19 +229,26 @@ export default function getTransactionBytes(transaction) {
 	checkTransaction(transaction);
 	const transactionType = Buffer.alloc(BYTESIZES.TYPE, transaction.type);
 	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-	transactionTimestamp.writeIntLE(transaction.timestamp, 0, BYTESIZES.TIMESTAMP);
+	transactionTimestamp.writeIntLE(
+		transaction.timestamp,
+		0,
+		BYTESIZES.TIMESTAMP,
+	);
 
-	const transactionSenderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+	const transactionSenderPublicKey = Buffer.from(
+		transaction.senderPublicKey,
+		'hex',
+	);
 	const transactionRequesterPublicKey = transaction.requesterPublicKey
 		? Buffer.from(transaction.requesterPublicKey, 'hex')
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = transaction.recipientId
 		? Buffer.from(
-			bignum(
-				transaction.recipientId.slice(0, -1),
-			).toBuffer({ size: BYTESIZES.RECIPIENT_ID }),
-		)
+				bignum(transaction.recipientId.slice(0, -1)).toBuffer({
+					size: BYTESIZES.RECIPIENT_ID,
+				}),
+			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 	const transactionAmount = Buffer.alloc(BYTESIZES.AMOUNT);

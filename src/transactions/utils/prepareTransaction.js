@@ -14,9 +14,12 @@
  */
 import cryptoModule from '../../crypto';
 
-const secondSignTransaction = (transactionObject, secondSecret) => Object.assign(
-	{}, transactionObject, {
-		signSignature: cryptoModule.signTransaction(transactionObject, secondSecret),
+const secondSignTransaction = (transactionObject, secondSecret) =>
+	Object.assign({}, transactionObject, {
+		signSignature: cryptoModule.signTransaction(
+			transactionObject,
+			secondSecret,
+		),
 	});
 
 const prepareTransaction = (transaction, secret, secondSecret) => {
@@ -24,9 +27,10 @@ const prepareTransaction = (transaction, secret, secondSecret) => {
 		signature: cryptoModule.signTransaction(transaction, secret),
 	});
 
-	const signedTransaction = (typeof secondSecret === 'string' && transaction.type !== 1)
-		? secondSignTransaction(singleSignedTransaction, secondSecret)
-		: singleSignedTransaction;
+	const signedTransaction =
+		typeof secondSecret === 'string' && transaction.type !== 1
+			? secondSignTransaction(singleSignedTransaction, secondSecret)
+			: singleSignedTransaction;
 
 	const transactionWithId = Object.assign({}, signedTransaction, {
 		id: cryptoModule.getId(signedTransaction),

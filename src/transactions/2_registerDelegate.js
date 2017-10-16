@@ -32,7 +32,12 @@ import { getTimeWithOffset } from './utils/time';
  * @return {Object}
  */
 
-export default function registerDelegate({ secret, username, secondSecret, timeOffset }) {
+export default function registerDelegate({
+	secret,
+	username,
+	secondSecret,
+	timeOffset,
+}) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {

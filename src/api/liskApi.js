@@ -49,7 +49,7 @@ const livePort = 8000;
 const testPort = 7000;
 const sslPort = 443;
 
-const getDefaultPort = (options) => {
+const getDefaultPort = options => {
 	if (options.testnet) return testPort;
 	if (options.ssl) return sslPort;
 	return livePort;
@@ -77,9 +77,10 @@ export default class LiskAPI {
 		this.testnet = options.testnet;
 		this.bannedNodes = options.bannedNodes;
 		this.node = options.node || privateApi.selectNewNode.call(this);
-		this.port = (options.port === '' || options.port)
-			? options.port
-			: getDefaultPort(options);
+		this.port =
+			options.port === '' || options.port
+				? options.port
+				: getDefaultPort(options);
 		this.nethash = this.getNethash(options.nethash);
 	}
 
@@ -169,7 +170,9 @@ export default class LiskAPI {
 			requestParams: { transaction },
 		};
 
-		privateApi.sendRequestPromise.call(this, POST, request).then(result => callback(result.body));
+		privateApi.sendRequestPromise
+			.call(this, POST, request)
+			.then(result => callback(result.body));
 	}
 
 	/**
@@ -182,18 +185,38 @@ export default class LiskAPI {
 	 * @return {Object}
 	 */
 
-	sendRequest(requestMethod, requestType, optionsOrCallback, callbackIfOptions) {
+	sendRequest(
+		requestMethod,
+		requestType,
+		optionsOrCallback,
+		callbackIfOptions,
+	) {
 		const callback = callbackIfOptions || optionsOrCallback;
-		const options = (typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined')
-			? utils.checkOptions(optionsOrCallback)
-			: {};
+		const options =
+			typeof optionsOrCallback !== 'function' &&
+			typeof optionsOrCallback !== 'undefined'
+				? utils.checkOptions(optionsOrCallback)
+				: {};
 
-		return privateApi.sendRequestPromise.call(this, requestMethod, requestType, options)
+		return privateApi.sendRequestPromise
+			.call(this, requestMethod, requestType, options)
 			.then(result => result.body)
-			.then(privateApi.handleTimestampIsInFutureFailures.bind(
-				this, requestMethod, requestType, options,
-			))
-			.catch(privateApi.handleSendRequestFailures.bind(this, requestMethod, requestType, options))
+			.then(
+				privateApi.handleTimestampIsInFutureFailures.bind(
+					this,
+					requestMethod,
+					requestType,
+					options,
+				),
+			)
+			.catch(
+				privateApi.handleSendRequestFailures.bind(
+					this,
+					requestMethod,
+					requestType,
+					options,
+				),
+			)
 			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
 
@@ -209,7 +232,12 @@ export default class LiskAPI {
 	 */
 
 	sendLSK(recipientId, amount, secret, secondSecret, callback) {
-		return this.sendRequest(POST, 'transactions', { recipientId, amount, secret, secondSecret }, callback);
+		return this.sendRequest(
+			POST,
+			'transactions',
+			{ recipientId, amount, secret, secondSecret },
+			callback,
+		);
 	}
 }
 
@@ -222,7 +250,11 @@ export default class LiskAPI {
  * @return {Object}
  */
 
-LiskAPI.prototype.getAccount = utils.wrapSendRequest(GET, 'accounts', address => ({ address }));
+LiskAPI.prototype.getAccount = utils.wrapSendRequest(
+	GET,
+	'accounts',
+	address => ({ address }),
+);
 
 /**
  * @method getActiveDelegates
@@ -233,7 +265,11 @@ LiskAPI.prototype.getAccount = utils.wrapSendRequest(GET, 'accounts', address =>
  * @return {Object}
  */
 
-LiskAPI.prototype.getActiveDelegates = utils.wrapSendRequest(GET, 'delegates', limit => ({ limit }));
+LiskAPI.prototype.getActiveDelegates = utils.wrapSendRequest(
+	GET,
+	'delegates',
+	limit => ({ limit }),
+);
 
 /**
  * @method getStandbyDelegates
@@ -244,7 +280,15 @@ LiskAPI.prototype.getActiveDelegates = utils.wrapSendRequest(GET, 'delegates', l
  * @return {Object}
  */
 
-LiskAPI.prototype.getStandbyDelegates = utils.wrapSendRequest(GET, 'delegates', (limit, { orderBy = 'rate:asc', offset = 101 }) => ({ limit, orderBy, offset }));
+LiskAPI.prototype.getStandbyDelegates = utils.wrapSendRequest(
+	GET,
+	'delegates',
+	(limit, { orderBy = 'rate:asc', offset = 101 }) => ({
+		limit,
+		orderBy,
+		offset,
+	}),
+);
 
 /**
  * @method searchDelegatesByUsername
@@ -255,7 +299,11 @@ LiskAPI.prototype.getStandbyDelegates = utils.wrapSendRequest(GET, 'delegates', 
  * @return {Object}
  */
 
-LiskAPI.prototype.searchDelegatesByUsername = utils.wrapSendRequest(GET, 'delegates', search => ({ search }));
+LiskAPI.prototype.searchDelegatesByUsername = utils.wrapSendRequest(
+	GET,
+	'delegates',
+	search => ({ search }),
+);
 
 /**
  * @method getBlocks
@@ -266,7 +314,9 @@ LiskAPI.prototype.searchDelegatesByUsername = utils.wrapSendRequest(GET, 'delega
  * @return {Object}
  */
 
-LiskAPI.prototype.getBlocks = utils.wrapSendRequest(GET, 'blocks', limit => ({ limit }));
+LiskAPI.prototype.getBlocks = utils.wrapSendRequest(GET, 'blocks', limit => ({
+	limit,
+}));
 
 /**
  * @method getForgedBlocks
@@ -277,7 +327,11 @@ LiskAPI.prototype.getBlocks = utils.wrapSendRequest(GET, 'blocks', limit => ({ l
  * @return {Object}
  */
 
-LiskAPI.prototype.getForgedBlocks = utils.wrapSendRequest(GET, 'blocks', generatorPublicKey => ({ generatorPublicKey }));
+LiskAPI.prototype.getForgedBlocks = utils.wrapSendRequest(
+	GET,
+	'blocks',
+	generatorPublicKey => ({ generatorPublicKey }),
+);
 
 /**
  * @method getBlock
@@ -288,7 +342,9 @@ LiskAPI.prototype.getForgedBlocks = utils.wrapSendRequest(GET, 'blocks', generat
  * @return {Object}
  */
 
-LiskAPI.prototype.getBlock = utils.wrapSendRequest(GET, 'blocks', height => ({ height }));
+LiskAPI.prototype.getBlock = utils.wrapSendRequest(GET, 'blocks', height => ({
+	height,
+}));
 
 /**
  * @method getTransactions
@@ -299,7 +355,11 @@ LiskAPI.prototype.getBlock = utils.wrapSendRequest(GET, 'blocks', height => ({ h
  * @return {Object}
  */
 
-LiskAPI.prototype.getTransactions = utils.wrapSendRequest(GET, 'transactions', recipientId => ({ recipientId }));
+LiskAPI.prototype.getTransactions = utils.wrapSendRequest(
+	GET,
+	'transactions',
+	recipientId => ({ recipientId }),
+);
 
 /**
  * @method getTransaction
@@ -310,7 +370,11 @@ LiskAPI.prototype.getTransactions = utils.wrapSendRequest(GET, 'transactions', r
  * @return {Object}
  */
 
-LiskAPI.prototype.getTransaction = utils.wrapSendRequest(GET, 'transactions', transactionId => ({ transactionId }));
+LiskAPI.prototype.getTransaction = utils.wrapSendRequest(
+	GET,
+	'transactions',
+	transactionId => ({ transactionId }),
+);
 
 /**
  * @method getVotes
@@ -321,7 +385,9 @@ LiskAPI.prototype.getTransaction = utils.wrapSendRequest(GET, 'transactions', tr
  * @return {Object}
  */
 
-LiskAPI.prototype.getVotes = utils.wrapSendRequest(GET, 'votes', address => ({ address }));
+LiskAPI.prototype.getVotes = utils.wrapSendRequest(GET, 'votes', address => ({
+	address,
+}));
 
 /**
  * @method getVoters
@@ -332,7 +398,11 @@ LiskAPI.prototype.getVotes = utils.wrapSendRequest(GET, 'votes', address => ({ a
  * @return {Object}
  */
 
-LiskAPI.prototype.getVoters = utils.wrapSendRequest(GET, 'voters', username => ({ username }));
+LiskAPI.prototype.getVoters = utils.wrapSendRequest(
+	GET,
+	'voters',
+	username => ({ username }),
+);
 
 /**
  * @method getUnsignedMultisignatureTransactions
@@ -343,7 +413,11 @@ LiskAPI.prototype.getVoters = utils.wrapSendRequest(GET, 'voters', username => (
  * @return {Object}
  */
 
-LiskAPI.prototype.getUnsignedMultisignatureTransactions = utils.wrapSendRequest(GET, 'transactions/unsigned', data => data);
+LiskAPI.prototype.getUnsignedMultisignatureTransactions = utils.wrapSendRequest(
+	GET,
+	'transactions/unsigned',
+	data => data,
+);
 
 /**
  * @method getDapp
@@ -354,7 +428,11 @@ LiskAPI.prototype.getUnsignedMultisignatureTransactions = utils.wrapSendRequest(
  * @return {Object}
  */
 
-LiskAPI.prototype.getDapp = utils.wrapSendRequest(GET, 'dapps', transactionId => ({ transactionId }));
+LiskAPI.prototype.getDapp = utils.wrapSendRequest(
+	GET,
+	'dapps',
+	transactionId => ({ transactionId }),
+);
 
 /**
  * @method getDapps
@@ -376,4 +454,8 @@ LiskAPI.prototype.getDapps = utils.wrapSendRequest(GET, 'dapps', data => data);
  * @return {Object}
  */
 
-LiskAPI.prototype.getDappsByCategory = utils.wrapSendRequest(GET, 'dapps', category => ({ category }));
+LiskAPI.prototype.getDappsByCategory = utils.wrapSendRequest(
+	GET,
+	'dapps',
+	category => ({ category }),
+);
