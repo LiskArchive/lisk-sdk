@@ -524,7 +524,9 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Check amount
-	if (trs.amount < 0 || trs.amount > constants.totalAmount || String(trs.amount).indexOf('.') >= 0 || trs.amount.toString().indexOf('e') >= 0) {
+	var trsAmount = new bignum(trs.amount.toString());
+	var totalAmount = constants.totalAmount;
+	if (trsAmount.lessThan(0) || trsAmount.greaterThan(totalAmount) || !trsAmount.isInteger() || trsAmount.toString().indexOf('e') >= 0) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
@@ -985,12 +987,12 @@ Transaction.prototype.schema = {
 		amount: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount
+			maximum: constants.totalAmount.toNumber()
 		},
 		fee: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount
+			maximum: constants.totalAmount.toNumber()
 		},
 		signature: {
 			type: 'string',

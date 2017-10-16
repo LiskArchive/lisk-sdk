@@ -670,10 +670,58 @@ describe('transaction', function () {
 				done();
 			});
 		});
-
-		it('should return error when transaction amount is invalid', function (done) {
+		
+		it('should return error when transaction amount is greater than total amount', function (done) {
 			var trsData = _.cloneDeep(transactionData);
-			trsData.amount = node.constants.totalAmount + 10;
+			trsData.amount = node.constants.totalAmount.add(10).toNumber();
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is negative', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = -1;
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is not an integer', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = 1.2;
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is negative exponential number', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = 1.3e-2;
+
+			createAndProcess(trsData, sender, function (err, trs) {
+				transactionLogic.verify(trs, sender, {}, function (err) {
+					expect(err).to.include('Invalid transaction amount');
+					done();
+				});
+			});
+		});
+		
+		it('should return error when transaction amount is exponential number', function (done) {
+			var trsData = _.cloneDeep(transactionData);
+			trsData.amount = 1e+22;
 
 			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
@@ -685,8 +733,7 @@ describe('transaction', function () {
 
 		it('should return error when account balance is less than transaction amount', function (done) {
 			var trsData = _.cloneDeep(transactionData);
-			trsData.amount = node.constants.totalAmount;
-
+			trsData.amount = node.constants.totalAmount.toNumber();
 			createAndProcess(trsData, sender, function (err, trs) {
 				transactionLogic.verify(trs, sender, {}, function (err) {
 					expect(err).to.include('Account does not have enough LSK:');

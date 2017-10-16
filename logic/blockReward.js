@@ -88,7 +88,7 @@ BlockReward.prototype.calcSupply = function (height) {
 
 	if (height < this.rewardOffset) {
 		// Rewards not started yet
-		return constants.totalAmount;
+		return constants.totalAmount.toInteger();
 	}
 
 	var milestone = this.calcMilestone(height);
