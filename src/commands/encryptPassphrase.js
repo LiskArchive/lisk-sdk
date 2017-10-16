@@ -14,14 +14,13 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import commonOptions from '../utils/options';
-import { printResult } from '../utils/print';
-import { createErrorHandler } from '../utils/helpers';
+import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
 	getFirstLineFromString,
 } from '../utils/input';
+import commonOptions from '../utils/options';
 
 const PASSWORD_DISPLAY_NAME = 'your password';
 
@@ -44,7 +43,7 @@ const handleInput = outputPublicKey => ([passphrase, password]) => {
 		: cipherAndIv;
 };
 
-const encryptPassphrase = vorpal => ({ options }) => {
+const actionCreator = vorpal => async ({ options }) => {
 	const {
 		passphrase: passphraseSource,
 		password: passwordSource,
@@ -65,21 +64,19 @@ const encryptPassphrase = vorpal => ({ options }) => {
 				.then(password => [passphrase, password]),
 			),
 		)
-		.then(handleInput(outputPublicKey))
-		.catch(createErrorHandler('Could not encrypt passphrase'))
-		.then(printResult(vorpal, options));
+		.then(handleInput(outputPublicKey));
 };
 
-function encryptPassphraseCommand(vorpal) {
-	vorpal
-		.command('encrypt passphrase')
-		.option(...outputPublicKeyOption)
-		.option(...commonOptions.passphrase)
-		.option(...commonOptions.password)
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.action(encryptPassphrase(vorpal));
-}
+const encryptPassphrase = createCommand({
+	command: 'encrypt passphrase',
+	description,
+	actionCreator,
+	options: [
+		outputPublicKeyOption,
+		commonOptions.passphrase,
+		commonOptions.password,
+	],
+	errorPrefix: 'Could not encrypt passphrase',
+});
 
-export default encryptPassphraseCommand;
+export default encryptPassphrase;

@@ -19,17 +19,57 @@ import lisk from 'lisk-js';
 import Vorpal from 'vorpal';
 import defaultConfig from '../../defaultConfig.json';
 import cryptoInstance from '../../src/utils/cryptoModule';
+import * as env from '../../src/utils/env';
 import * as fsUtils from '../../src/utils/fs';
+import { shouldUseJsonOutput } from '../../src/utils/helpers';
 import liskInstance from '../../src/utils/liskInstance';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
+import commonOptions from '../../src/utils/options';
 import queryInstance from '../../src/utils/query';
 import {
+	DEFAULT_ERROR_MESSAGE,
 	getFirstQuotedString,
 	getQuotedStrings,
 	createFakeInterface,
 	createStreamStub,
 } from './utils';
 import createAccountCommand from '../../src/commands/createAccount';
+
+export function anOptionsListIncluding() {
+	const options = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.optionsList = options.map(optionName => commonOptions[optionName]);
+}
+
+export function aDescription() {
+	this.test.ctx.description = getFirstQuotedString(this.test.parent.title);
+}
+
+export function anAutocompleteListIncluding() {
+	this.test.ctx.autocompleteList = getQuotedStrings(this.test.parent.title);
+}
+
+export function aCommand() {
+	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
+}
+
+export function anActionCreatorThatCreatesAnActionThatResolvesToAnObject() {
+	const testObject = {
+		lisk: 'js',
+		testing: 123,
+	};
+	this.test.ctx.testObject = testObject;
+	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().resolves(testObject));
+}
+
+export function anActionCreatorThatCreatesAnActionThatRejectsWithAnError() {
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().rejects(new Error(DEFAULT_ERROR_MESSAGE)));
+}
+
+export function aParametersObjectWithTheOptions() {
+	const { options } = this.test.ctx;
+	this.test.ctx.parameters = { options };
+}
 
 export function aValidMnemonicPassphrase() {
 	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
@@ -160,6 +200,17 @@ export function aNonEmptyObject() {
 	this.test.ctx.testObject = {
 		lisk: 'js',
 		version: 1,
+	};
+}
+
+export function aNestedObject() {
+	this.test.ctx.testObject = {
+		root: 'value',
+		nested: {
+			object: 'values',
+			testing: 123,
+			nullValue: null,
+		},
 	};
 }
 
@@ -552,9 +603,12 @@ export function aTypeWithNoAlias() {
 
 export function aConfigWithJsonSetTo() {
 	const stringBoolean = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.config = {
+	const config = {
 		json: stringBoolean === 'true',
 	};
+
+	env.default = config;
+	this.test.ctx.config = config;
 }
 
 export function anOptionsObjectWithJsonSetTo() {
@@ -578,4 +632,12 @@ export function anObjectWithMessage() {
 	this.test.ctx.testObject = {
 		message,
 	};
+}
+
+export function jsonShouldBePrinted() {
+	shouldUseJsonOutput.returns(true);
+}
+
+export function jsonShouldNotBePrinted() {
+	shouldUseJsonOutput.returns(false);
 }

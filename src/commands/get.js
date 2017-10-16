@@ -13,24 +13,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../utils/env';
-import commonOptions from '../utils/options';
-import query from '../utils/query';
 import { COMMAND_TYPES } from '../utils/constants';
-import { printResult } from '../utils/print';
-import {
-	deAlias,
-	shouldUseJsonOutput,
-} from '../utils/helpers';
+import { createCommand, deAlias } from '../utils/helpers';
+import query from '../utils/query';
 
 const description = `Get information from <type> with parameter <input>. Types available: account, address, block, delegate, transaction.
 
 	Examples:
-		- get delegate lightcurve
-		- get block 5510510593472232540
+	- get delegate lightcurve
+	- get block 5510510593472232540
 `;
 
-const handlers = {
+export const handlers = {
 	account: account => query.isAccountQuery(account),
 	address: address => query.isAccountQuery(address),
 	block: block => query.isBlockQuery(block),
@@ -38,25 +32,27 @@ const handlers = {
 	transaction: transaction => query.isTransactionQuery(transaction),
 };
 
-const processResult = (useJsonOutput, vorpal, type, result) => {
-	const resultToPrint = result.error ? result : result[type];
-	return printResult(vorpal, { json: useJsonOutput })(resultToPrint);
+export const processResult = type => result => (
+	result.error
+		? result
+		: result[deAlias(type)]
+);
+
+const actionCreator = () => async ({ type, input }) => {
+	if (!COMMAND_TYPES.includes(type)) {
+		throw new Error('Unsupported type.');
+	}
+
+	return handlers[type](input)
+		.then(processResult(type));
 };
 
-const get = vorpal => ({ options, type, input }) => {
-	const useJsonOutput = shouldUseJsonOutput(config, options);
-	return COMMAND_TYPES.includes(type)
-		? handlers[type](input)
-			.then(processResult.bind(null, useJsonOutput, vorpal, deAlias(type)))
-		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'));
-};
+const get = createCommand({
+	command: 'get <type> <input>',
+	autocomplete: COMMAND_TYPES,
+	description,
+	actionCreator,
+	errorPrefix: 'Could not get',
+});
 
-export default function getCommand(vorpal) {
-	vorpal
-		.command('get <type> <input>')
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.autocomplete(COMMAND_TYPES)
-		.action(get(vorpal));
-}
+export default get;

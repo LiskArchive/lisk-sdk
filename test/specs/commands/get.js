@@ -120,7 +120,7 @@ describe('lisky get command palette', () => {
 				const spy = sandbox.spy(JSON, 'stringify');
 				return vorpal.exec(jsonCommand)
 					.then(() => {
-						(spy.calledWithExactly(transaction)).should.be.true();
+						(spy).should.be.calledWithExactly(transaction);
 					});
 			});
 
@@ -138,7 +138,7 @@ describe('lisky get command palette', () => {
 				const spy = sandbox.spy(tablify, 'default');
 				return vorpal.exec(noJsonCommand)
 					.then(() => {
-						(spy.calledWithExactly(transaction)).should.be.true();
+						(spy).should.be.calledWithExactly(transaction);
 					});
 			});
 

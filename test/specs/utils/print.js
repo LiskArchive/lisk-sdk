@@ -13,11 +13,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpHelperStubs } from '../../steps/utils';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('print utils', () => {
+	beforeEach(() => {
+		setUpHelperStubs();
+	});
+
 	describe('#printResult', () => {
 		describe('Given there is a Vorpal instance with an active command that can log', () => {
 			beforeEach(given.thereIsAVorpalInstanceWithAnActiveCommandThatCanLog);
@@ -25,18 +30,42 @@ describe('print utils', () => {
 			describe('Given there is a result to print', () => {
 				beforeEach(given.thereIsAResultToPrint);
 
-				describe('When the result is printed', () => {
-					beforeEach(when.theResultIsPrinted);
+				describe('Given a config with json set to "true"', () => {
+					beforeEach(given.aConfigWithJsonSetTo);
 
-					it('Then the result should be returned', then.theResultShouldBeReturned);
-					it('Then a table should be logged', then.aTableShouldBeLogged);
-				});
+					describe('When the result is printed', () => {
+						beforeEach(when.theResultIsPrinted);
 
-				describe('When the result is printed with the JSON option set to true', () => {
-					beforeEach(when.theResultIsPrintedWithTheJSONOptionSetToTrue);
+						it('Then shouldUseJsonOutput should be called with the config and an empty options object', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject);
+					});
 
-					it('Then the result should be returned', then.theResultShouldBeReturned);
-					it('Then JSON output should be logged', then.jSONOutputShouldBeLogged);
+					describe('Given an options object with json set to "false"', () => {
+						beforeEach(given.anOptionsObjectWithJsonSetTo);
+
+						describe('Given JSON should not be printed', () => {
+							beforeEach(given.jsonShouldNotBePrinted);
+
+							describe('When the result is printed', () => {
+								beforeEach(when.theResultIsPrinted);
+
+								it('Then shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
+								it('Then the result should be returned', then.theResultShouldBeReturned);
+								it('Then a table should be logged', then.aTableShouldBeLogged);
+							});
+						});
+
+						describe('Given JSON should be printed', () => {
+							beforeEach(given.jsonShouldBePrinted);
+
+							describe('When the result is printed', () => {
+								beforeEach(when.theResultIsPrinted);
+
+								it('Then shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
+								it('Then the result should be returned', then.theResultShouldBeReturned);
+								it('Then JSON output should be logged', then.jSONOutputShouldBeLogged);
+							});
+						});
+					});
 				});
 			});
 		});

@@ -13,11 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import config from './env';
+import { shouldUseJsonOutput } from './helpers';
 import tablify from './tablify';
 
 // eslint-disable-next-line import/prefer-default-export
-export const printResult = (vorpal, { json } = {}) => (result) => {
-	const output = json
+export const printResult = (vorpal, options = {}) => (result) => {
+	const useJsonOutput = shouldUseJsonOutput(config, options);
+	const output = useJsonOutput
 		? JSON.stringify(result)
 		: tablify(result).toString();
 

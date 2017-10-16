@@ -14,38 +14,31 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import config from '../utils/env';
+import { createCommand } from '../utils/helpers';
 import { createMnemonicPassphrase } from '../utils/mnemonic';
-import { printResult } from '../utils/print';
-import commonOptions from '../utils/options';
-import {
-	shouldUseJsonOutput,
-} from '../utils/helpers';
 
 const description = `Create account returns a randomly-generated mnemonic passphrase with its corresponding public key and address.
 
 	Example: create account
 `;
 
-const createAccount = vorpal => ({ options }) => {
-	const useJsonOutput = shouldUseJsonOutput(config, options);
+const actionCreator = () => async () => {
 	const passphrase = createMnemonicPassphrase();
 	const { publicKey } = cryptoModule.getKeys(passphrase);
 	const { address } = cryptoModule.getAddressFromPublicKey(publicKey);
-	const account = {
+
+	return {
 		passphrase,
 		publicKey,
 		address,
 	};
-
-	return Promise.resolve(printResult(vorpal, { json: useJsonOutput })(account));
 };
 
-export default function createAccountCommand(vorpal) {
-	vorpal
-		.command('create account')
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.action(createAccount(vorpal));
-}
+const createAccount = createCommand({
+	command: 'create account',
+	description,
+	actionCreator,
+	errorPrefix: 'Could not create account',
+});
+
+export default createAccount;

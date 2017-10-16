@@ -40,6 +40,15 @@ describe('tablify util', () => {
 		});
 	});
 
+	describe('Given a nested object', () => {
+		beforeEach(given.aNestedObject);
+		describe('When the object is tablified', () => {
+			beforeEach(when.theObjectIsTablified);
+			it('Then the returned table should have a head with the object’s nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys);
+			it('Then the returned table should have a row with the object’s nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedValues);
+		});
+	});
+
 	describe('Given an array of objects with the same keys', () => {
 		beforeEach(given.anArrayOfObjectsWithTheSameKeys);
 

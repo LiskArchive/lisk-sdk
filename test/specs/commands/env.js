@@ -14,7 +14,6 @@
  *
  */
 import os from 'os';
-import set from '../../../src/commands/set';
 import env from '../../../src/commands/env';
 import configObj from '../../../src/utils/env';
 import {
@@ -28,7 +27,6 @@ import {
 } from './utils';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
-const stringifyConfig = config => JSON.stringify(config, null, '\t');
 const writeConfig = config => writeJsonSync(configFilePath, config);
 
 const initialConfig = readJsonSync(configFilePath);
@@ -75,8 +73,7 @@ describe('env command', () => {
 	});
 
 	describe('output env', () => {
-		const setJsonTrueCommand = 'set json true';
-		const envCommandString = 'env';
+		const envCommandString = 'env --json';
 
 		beforeEach(() => {
 			const defaultConfigClone = JSON.parse(defaultConfigString);
@@ -86,21 +83,7 @@ describe('env command', () => {
 
 		it('should print config file', () => {
 			return vorpal.exec(envCommandString).then(() => {
-				(capturedOutput).should.be.eql([stringifyConfig(defaultConfig)]);
-			});
-		});
-
-		it('should print updated config file after change', () => {
-			vorpal.use(set);
-
-			const expectedUpdatedConfig = Object.assign({}, JSON.parse(defaultConfigString), {
-				json: true,
-			});
-
-			return vorpal.exec(setJsonTrueCommand).then(() => {
-				return vorpal.exec(envCommandString).then(() => {
-					(capturedOutput[1]).should.be.eql(stringifyConfig(expectedUpdatedConfig));
-				});
+				(capturedOutput).should.be.eql([JSON.stringify(defaultConfig)]);
 			});
 		});
 	});

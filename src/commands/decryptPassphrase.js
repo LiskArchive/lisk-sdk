@@ -14,15 +14,14 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
-import commonOptions from '../utils/options';
-import { printResult } from '../utils/print';
-import { createErrorHandler } from '../utils/helpers';
+import { createCommand } from '../utils/helpers';
 import {
 	getStdIn,
 	getPassphrase,
 	getFirstLineFromString,
 	getData,
 } from '../utils/input';
+import commonOptions from '../utils/options';
 
 const PASSWORD_DISPLAY_NAME = 'your password';
 
@@ -36,14 +35,14 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 	Note: if both an encrypted passphrase and the password are passed via stdin, the password must be the first line.
 
 	Examples:
-	- --passphrase file:/path/to/my/encrypted_passphrase.txt (takes the first line only)
-	- --passphrase stdin (takes the first line only)
+		- --passphrase file:/path/to/my/encrypted_passphrase.txt (takes the first line only)
+		- --passphrase stdin (takes the first line only)
 `;
 
 const handleInput = iv => ([cipher, password]) =>
 	cryptoModule.decryptPassphrase({ cipher, iv }, password);
 
-const decryptPassphrase = vorpal => ({ iv, passphrase, options }) => {
+const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
 
@@ -60,20 +59,18 @@ const decryptPassphrase = vorpal => ({ iv, passphrase, options }) => {
 				displayName: PASSWORD_DISPLAY_NAME,
 			}),
 		]))
-		.then(handleInput(iv))
-		.catch(createErrorHandler('Could not decrypt passphrase'))
-		.then(printResult(vorpal, options));
+		.then(handleInput(iv));
 };
 
-function decryptPassphraseCommand(vorpal) {
-	vorpal
-		.command('decrypt passphrase <iv> [passphrase]')
-		.option(...commonOptions.password)
-		.option(commonOptions.passphrase[0], passphraseOptionDescription)
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description(description)
-		.action(decryptPassphrase(vorpal));
-}
+const decryptPassphrase = createCommand({
+	command: 'decrypt passphrase <iv> [passphrase]',
+	description,
+	actionCreator,
+	options: [
+		commonOptions.password,
+		[commonOptions.passphrase[0], passphraseOptionDescription],
+	],
+	errorPrefix: 'Could not decrypt passphrase',
+});
 
-export default decryptPassphraseCommand;
+export default decryptPassphrase;

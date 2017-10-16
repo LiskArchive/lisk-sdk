@@ -14,17 +14,20 @@
  *
  */
 import config from '../utils/env';
+import { createCommand } from '../utils/helpers';
 
 const description = `Print environmental configuration.
 
 	Example: env
 `;
 
-const env = vorpal => () => Promise.resolve(vorpal.activeCommand.log(JSON.stringify(config, null, '\t')));
+const actionCreator = () => async () => Promise.resolve(config);
 
-export default function envCommand(vorpal) {
-	vorpal
-		.command('env')
-		.description(description)
-		.action(env(vorpal));
-}
+const env = createCommand({
+	command: 'env',
+	description,
+	actionCreator,
+	errorPrefix: 'Could not get env',
+});
+
+export default env;

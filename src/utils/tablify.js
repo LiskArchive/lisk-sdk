@@ -15,8 +15,10 @@
  */
 import Table from 'cli-table2';
 
+const getNestedValue = data => keyString => keyString.split('.').reduce((obj, key) => obj[key], data);
+
 const addValuesToTable = (table, data) => {
-	const valuesToPush = table.options.head.map(key => data[key]);
+	const valuesToPush = table.options.head.map(getNestedValue(data));
 	return valuesToPush.length && table.push(valuesToPush);
 };
 
@@ -30,11 +32,18 @@ const reduceKeys = (keys, row) => {
 	return keys.concat(newKeys);
 };
 
-export default function tablify(data) {
+const getKeys = data => Object.entries(data).map(([parentKey, value]) => (
+	Object(value) === value
+		? getKeys(value).reduce((nestedKeys, childKey) => [...nestedKeys, `${parentKey}.${childKey}`], [])
+		: [parentKey]
+));
+
+const tablify = (data) => {
 	const dataIsArray = Array.isArray(data);
 	const head = dataIsArray
 		? data.reduce(reduceKeys, [])
-		: Object.keys(data);
+		: getKeys(data)
+			.reduce((flattenedKeys, keysToBeFlattened) => [...flattenedKeys, ...keysToBeFlattened], []);
 	const table = new Table({ head });
 
 	if (dataIsArray) {
@@ -44,4 +53,6 @@ export default function tablify(data) {
 	}
 
 	return table;
-}
+};
+
+export default tablify;

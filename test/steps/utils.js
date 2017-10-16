@@ -15,6 +15,8 @@
  */
 import fs from 'fs';
 import * as fsUtils from '../../src/utils/fs';
+import * as helpers from '../../src/utils/helpers';
+import * as print from '../../src/utils/print';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
 
@@ -32,6 +34,11 @@ export const getQuotedStrings = (title) => {
 
 export const getNumbersFromTitle = (title) => {
 	return title.match(regExpNumbers).map(Number);
+};
+
+export const getCommandInstance = (vorpal, command) => {
+	const commandStem = command.match(/^[^[|<]+/)[0].slice(0, -1);
+	return vorpal.find(commandStem);
 };
 
 export const setUpFsStubs = () => {
@@ -59,6 +66,20 @@ export const setUpConsoleStubs = () => {
 export const setUpProcessStubs = () => {
 	sandbox.stub(process, 'exit');
 };
+
+export const setUpHelperStubs = () => {
+	[
+		'deAlias',
+		'shouldUseJsonOutput',
+		'createErrorHandler',
+	].forEach(methodName => sandbox.stub(helpers, methodName));
+};
+
+export function setUpPrintStubs() {
+	const printFunction = sandbox.spy();
+	sandbox.stub(print, 'printResult').returns(printFunction);
+	this.test.ctx.printFunction = printFunction;
+}
 
 export const setUpEnvVariable = variable => function setUpEnv() {
 	this.test.ctx.initialEnvVariableValue = process.env[variable];

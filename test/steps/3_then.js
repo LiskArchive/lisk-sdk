@@ -16,14 +16,70 @@
 import fs from 'fs';
 import lisk from 'lisk-js';
 import * as fsUtils from '../../src/utils/fs';
+import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import commonOptions from '../../src/utils/options';
 import tablify from '../../src/utils/tablify';
 import {
+	getCommandInstance,
 	getFirstQuotedString,
 	getNumbersFromTitle,
 } from './utils';
 import {
 	getRequiredArgs,
 } from '../specs/commands/utils';
+
+export function theVorpalCommandInstanceShouldHaveTheAutocompleteList() {
+	const { vorpal, command, autocompleteList } = this.test.ctx;
+	const { _autocomplete } = getCommandInstance(vorpal, command);
+	return (_autocomplete).should.be.equal(autocompleteList);
+}
+
+export function theVorpalCommandInstanceShouldHaveTheDescription() {
+	const { vorpal, command, description } = this.test.ctx;
+	const { _description } = getCommandInstance(vorpal, command);
+	return (_description).should.be.equal(description);
+}
+
+export function theVorpalCommandInstanceShouldHaveTheProvidedOptions() {
+	const { vorpal, command, optionsList } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	return optionsList.forEach(myOption => (options).should.matchAny(option => option.flags === `${myOption[0]}`));
+}
+
+export function theVorpalCommandInstanceShouldHaveTheJsonOption() {
+	const { vorpal, command } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	return (options).should.matchAny(option => option.flags === commonOptions.json[0]);
+}
+
+export function theVorpalCommandInstanceShouldHaveTheNoJsonOption() {
+	const { vorpal, command } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	return (options).should.matchAny(option => option.flags === commonOptions.noJson[0]);
+}
+
+export function theVorpalInstanceShouldHaveTheCommand() {
+	const { vorpal, command } = this.test.ctx;
+	const commandInstance = getCommandInstance(vorpal, command);
+	return (commandInstance).should.be.ok();
+}
+
+export function theErrorShouldBePrintedWithThePrefix() {
+	const { printFunction, errorMessage, prefix } = this.test.ctx;
+	return (printFunction).should.be.calledWithExactly({
+		error: `${prefix}: ${errorMessage}`,
+	});
+}
+
+export function theObjectShouldBePrinted() {
+	const { printFunction, testObject } = this.test.ctx;
+	return (printFunction).should.be.calledWithExactly(testObject);
+}
+
+export function itShouldResolveToTheObject() {
+	const { returnValue, testObject } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(testObject);
+}
 
 export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
 	const { returnValue, passphrase, keys: { publicKey }, address } = this.test.ctx;
@@ -57,7 +113,7 @@ export function theCommandShouldHaveRequiredArguments() {
 export function theMnemonicPassphraseShouldBeA12WordString() {
 	const { mnemonicPassphrase } = this.test.ctx;
 	const mnemonicWords = mnemonicPassphrase.split(' ').filter(Boolean);
-	(mnemonicWords).should.have.length(12);
+	return (mnemonicWords).should.have.length(12);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
@@ -151,6 +207,16 @@ export function fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() 
 	return (fs.writeFileSync).should.be.calledWithExactly(filePath, stringifiedObject);
 }
 
+export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
+	const { config } = this.test.ctx;
+	return (shouldUseJsonOutput).should.be.calledWithExactly(config, {});
+}
+
+export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions() {
+	const { config, options } = this.test.ctx;
+	return (shouldUseJsonOutput).should.be.calledWithExactly(config, options);
+}
+
 export function theReturnedTableShouldHaveNoHead() {
 	const { returnValue } = this.test.ctx;
 	return (returnValue.options).should.have.property('head').eql([]);
@@ -173,6 +239,18 @@ export function theReturnedTableShouldHaveARowWithTheObjectValues() {
 	return (returnValue[0]).should.eql(values);
 }
 
+export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
+	const { returnValue } = this.test.ctx;
+	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue'];
+	return (returnValue.options).should.have.property('head').eql(keys);
+}
+
+export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
+	const { returnValue } = this.test.ctx;
+	const values = ['value', 'values', 123, null];
+	return (returnValue[0]).should.eql(values);
+}
+
 export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
 	const { returnValue, testArray } = this.test.ctx;
 	const keys = Object.keys(testArray[0]);
@@ -181,9 +259,9 @@ export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
 
 export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
 	const { returnValue, testArray } = this.test.ctx;
-	testArray.forEach((testObject, i) => {
+	return testArray.forEach((testObject, i) => {
 		const values = Object.values(testObject);
-		(returnValue[i]).should.eql(values);
+		return (returnValue[i]).should.eql(values);
 	});
 }
 
@@ -199,12 +277,12 @@ export function theReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
 
 export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues() {
 	const { returnValue, testArray } = this.test.ctx;
-	testArray.forEach((testObject, i) => {
+	return testArray.forEach((testObject, i) => {
 		const row = returnValue[i];
 		const values = Object.values(testObject);
 
 		values.forEach(value => (row).should.containEql(value));
-		row
+		return row
 			.filter(value => !values.includes(value))
 			.forEach(value => should(value).be.undefined());
 	});
