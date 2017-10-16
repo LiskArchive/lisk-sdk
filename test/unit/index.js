@@ -9,6 +9,7 @@ var paths = [
 	'./api/ws/workers/rules.js',
 	'./api/ws/workers/slaveToMasterSender.js',
 
+	'./helpers/apiError.js',
 	'./helpers/ed.js',
 	'./helpers/jobs-queue.js',
 	'./helpers/peersManager.js',
