@@ -25,7 +25,7 @@ describe('#registerSecondPassphrase transaction', () => {
 	const publicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const emptyStringPublicKey = 'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
-	const signatureFee = 5e8;
+	const secondPassphraseFee = 5e8;
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
@@ -36,7 +36,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		registerSecondPassphraseTransaction = registerSecondPassphrase({ secret, secondSecret });
 	});
 
-	it('should create a register second signature transaction', () => {
+	it('should create a register second passphrase transaction', () => {
 		(registerSecondPassphraseTransaction).should.be.ok();
 	});
 
@@ -51,7 +51,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		(getTimeWithOffsetStub.calledWithExactly(offset)).should.be.true();
 	});
 
-	describe('returned register second signature transaction', () => {
+	describe('returned register second passphrase transaction', () => {
 		it('should be an object', () => {
 			(registerSecondPassphraseTransaction).should.be.type('object');
 		});
@@ -68,8 +68,8 @@ describe('#registerSecondPassphrase transaction', () => {
 			(registerSecondPassphraseTransaction).should.have.property('amount').and.be.type('number').and.equal(0);
 		});
 
-		it('should have fee number equal to signature fee', () => {
-			(registerSecondPassphraseTransaction).should.have.property('fee').and.be.type('number').and.equal(signatureFee);
+		it('should have fee number equal to second passphrase fee', () => {
+			(registerSecondPassphraseTransaction).should.have.property('fee').and.be.type('number').and.equal(secondPassphraseFee);
 		});
 
 		it('should have recipientId equal to null', () => {
@@ -121,13 +121,13 @@ describe('#registerSecondPassphrase transaction', () => {
 				(Buffer.from(registerSecondPassphraseTransaction.asset.signature.publicKey, 'hex')).should.have.length(32);
 			});
 
-			it('should have a publicKey equal to the public key for the provided second secret', () => {
+			it('should have a publicKey equal to the public key for the provided second passphrase', () => {
 				(registerSecondPassphraseTransaction.asset).should.have.property('signature')
 					.with.property('publicKey')
 					.and.equal(secondPublicKey);
 			});
 
-			it('should have the correct publicKey if the provided second secret is an empty string', () => {
+			it('should have the correct publicKey if the provided second passphrase is an empty string', () => {
 				registerSecondPassphraseTransaction = registerSecondPassphrase({ secret, secondSecret: '' });
 				(registerSecondPassphraseTransaction.asset.signature.publicKey).should.be.equal(
 					emptyStringPublicKey,
