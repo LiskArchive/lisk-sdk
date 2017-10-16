@@ -474,7 +474,7 @@ Verify.prototype.processBlock = function (block, broadcast, saveBlock, cb) {
 			// * Block and transactions have valid values (signatures, block slots, etc...)
 			// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
 			// We thus update the database with the transactions values, save the block and tick it
-			modules.blocks.chain.applyBlock(block, broadcast, cb, saveBlock);
+			modules.blocks.chain.applyBlock(block, broadcast, saveBlock, cb);
 		}
 	});
 };

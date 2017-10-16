@@ -328,12 +328,12 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
  * @emits  SIGTERM
  * @param  {Object}   block Full normalized block
  * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
- * @param  {Function} cb Callback function
  * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
+ * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-Chain.prototype.applyBlock = function (block, broadcast, cb, saveBlock) {
+Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 	// Prevent shutdown during database writes.
 	modules.blocks.isActive.set(true);
 
