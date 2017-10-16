@@ -17,6 +17,7 @@ var Router = function () {
 
 	router.map = function (root, config, options) {
 		var router = this;
+		options = options || {};
 
 		Object.keys(config).forEach(function (params) {
 			var route = params.split(' ');
