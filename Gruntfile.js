@@ -171,8 +171,10 @@ module.exports = function (grunt) {
 	grunt.registerTask('jenkins-extensive', ['exec:coverageSingleExtensive']);
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
+	grunt.registerTask('test', ['test-unit', 'test-functional', 'test-integration']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
 	grunt.registerTask('test-unit-slow', ['eslint', 'exec:coverageUnitSlow']);
+	grunt.registerTask('test-functional', ['test-functional-ws', 'test-functional-http-get', 'test-functional-http-post']);
 	grunt.registerTask('test-functional-ws', ['eslint', 'exec:testFunctionalWs']);
 	grunt.registerTask('test-functional-ws-extensive', ['eslint', 'exec:testFunctionalWsExtensive']);
 	grunt.registerTask('test-functional-http-get', ['eslint', 'exec:testFunctionalHttpGet']);
