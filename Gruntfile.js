@@ -83,17 +83,27 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalWs: {
-				command: './node_modules/.bin/_mocha test/functional/ws/index.js --grep @slow --invert',
+				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/ws/index.js --grep @slow --invert',
+				maxBuffer: maxBufferSize
+			},
+
+			testFunctionalWsExtensive: {
+				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/ws/index.js',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalHttpGet: {
-				command: './node_modules/.bin/_mocha test/functional/http/get/index.js --grep @slow --invert',
+				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/http/get/index.js --grep @slow --invert',
+				maxBuffer: maxBufferSize
+			},
+
+			testFunctionalHttpGetExtensive: {
+				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/http/get/index.js',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalHttpPost: {
-				command: './node_modules/.bin/_mocha test/functional/http/post/index.js --grep @slow --invert',
+				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/http/post/index.js --grep @slow --invert',
 				maxBuffer: maxBufferSize
 			},
 
