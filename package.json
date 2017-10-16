@@ -9,12 +9,13 @@
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
 		"cover": "istanbul cover --dir ./coverage _mocha",
 		"eslint": "grunt eslint",
+		"prettier": "prettier --single-quote --trailing-comma=all --use-tabs --write \"{browsertest,cypress,src,test}/**/*.js\"",
 		"serve:browsertest": "http-server browsertest",
 		"jenkins": "grunt jenkins --verbose",
 		"build": "grunt build",
 		"build:browsertest": "grunt build-browsertest",
 		"precommit": "npm run eslint",
-		"prepush": "grunt eslint && npm test",
+		"prepush": "npm run prettier && npm test",
 		"prepublishOnly": "npm run prepush && npm run build"
 	},
 	"repository": {
