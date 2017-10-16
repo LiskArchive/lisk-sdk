@@ -24,10 +24,7 @@ function PeersHttpApi (peersModule, app) {
 	var router = new Router();
 
 	router.map(peersModule.shared, {
-		'get /': 'getPeers',
-		'get /version': 'version',
-		'get /get': 'getPeer',
-		'get /count': 'count'
+		'get /': 'getPeers'
 	});
 
 	httpApi.registerEndpoint('/api/peers', app, router, peersModule.isLoaded);

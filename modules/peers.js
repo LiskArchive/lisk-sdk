@@ -625,26 +625,6 @@ Peers.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Peers.prototype.shared = {
-	count: function (req, cb) {
-		async.series({
-			connected: function (cb) {
-				__private.countByFilter({state: Peer.STATE.CONNECTED}, cb);
-			},
-			disconnected: function (cb) {
-				__private.countByFilter({state: Peer.STATE.DISCONNECTED}, cb);
-			},
-			banned: function (cb) {
-				__private.countByFilter({state: Peer.STATE.BANNED}, cb);
-			}
-		}, function (err, res) {
-			if (err) {
-				return setImmediate(cb, 'Failed to get peer count');
-			}
-
-			return setImmediate(cb, null, res);
-		});
-	},
-
 	getPeers: function (req, cb) {
 		library.schema.validate(req.body, schema.getPeers, function (err) {
 			if (err) {
@@ -663,52 +643,6 @@ Peers.prototype.shared = {
 
 				return setImmediate(cb, null, {peers: peers});
 			});
-		});
-	},
-
-	getPeer: function (req, cb) {
-		library.schema.validate(req.body, schema.getPeer, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-			__private.getByFilter({
-				ip: req.body.ip,
-				port: req.body.port,
-				normalized: true
-			}, function (err, peers) {
-				if (err) {
-					return setImmediate(cb, 'Failed to get peer');
-				}
-
-				if (peers.length) {
-					return setImmediate(cb, null, {success: true, peer: peers[0]});
-				} else {
-					return setImmediate(cb, 'Peer not found');
-				}
-			});
-		});
-	},
-
-	/*
-	 * Returns information about version
-	 *
-	 * @public
-	 * @async
-	 * @method version
-	 * @param  {Object}   req HTTP request object
-	 * @param  {function} cb Callback function
-	 * @return {function} cb Callback function from params (through setImmediate)
-	 * @return {Object}   cb.err Always return `null` here
-	 * @return {Object}   cb.obj Anonymous object with version info
-	 * @return {string}   cb.obj.build Build information (if available, otherwise '')
-	 * @return {string}   cb.obj.commit Hash of last git commit (if available, otherwise '')
-	 * @return {string}   cb.obj.version Lisk version from config file
-	 */
-	version: function (req, cb) {
-		return setImmediate(cb, null, {
-			build: library.build,
-			commit: library.lastCommit,
-			version: library.config.version
 		});
 	}
 };
