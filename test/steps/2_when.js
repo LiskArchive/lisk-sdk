@@ -23,6 +23,7 @@ import {
 	createErrorHandler,
 	deAlias,
 	shouldUseJsonOutput,
+	wrapActionCreator,
 } from '../../src/utils/helpers';
 import {
 	splitSource,
@@ -49,6 +50,18 @@ import {
 } from '../../src/utils/mnemonic';
 
 const tablifyToSpy = require('../../src/utils/tablify');
+
+export function theWrappedActionCreatorIsCalledWithTheParameters() {
+	const { returnValue: wrappedActionCreator, parameters } = this.test.ctx;
+	const returnValue = wrappedActionCreator(parameters);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
+export function wrapActionCreatorIsCalledWithTheVorpalInstanceTheActionCreatorAndThePrefix() {
+	const { vorpal, actionCreator, prefix } = this.test.ctx;
+	this.test.ctx.returnValue = wrapActionCreator(vorpal, actionCreator, prefix);
+}
 
 export function theMnemonicPassphraseIsValidated() {
 	const { mnemonicPassphrase } = this.test.ctx;

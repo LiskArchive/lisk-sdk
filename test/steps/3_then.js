@@ -26,6 +26,18 @@ import {
 	getRequiredArgs,
 } from '../specs/commands/utils';
 
+export function theErrorShouldBePrintedWithThePrefix() {
+	const { printFunction, errorMessage, prefix } = this.test.ctx;
+	(printFunction).should.be.calledWithExactly({
+		error: `${prefix}: ${errorMessage}`,
+	});
+}
+
+export function theObjectShouldBePrinted() {
+	const { printFunction, testObject } = this.test.ctx;
+	(printFunction).should.be.calledWithExactly(testObject);
+}
+
 export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
 	const { returnValue, passphrase, keys: { publicKey }, address } = this.test.ctx;
 	const expectedObject = {

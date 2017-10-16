@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpPrintStubs } from '../../steps/utils';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
@@ -122,6 +123,42 @@ describe('utils helpers', () => {
 						beforeEach(when.theReturnedFunctionIsCalledWithTheObject);
 
 						it('Then it should return an object with error "Some error message prefix: Some message."', then.itShouldReturnAnObjectWithError);
+					});
+				});
+			});
+		});
+	});
+
+	describe('#wrapActionCreator', () => {
+		beforeEach(setUpPrintStubs);
+		describe('Given a Vorpal instance', () => {
+			beforeEach(given.aVorpalInstance);
+			describe('Given an options object with JSON set to "true"', () => {
+				beforeEach(given.anOptionsObjectWithJsonSetTo);
+				describe('Given a parameters object with the options', () => {
+					beforeEach(given.aParametersObjectWithTheOptions);
+					describe('Given a prefix "Some error message prefix"', () => {
+						beforeEach(given.aPrefix);
+						describe('Given an action creator that creates an action that rejects with an error', () => {
+							beforeEach(given.anActionCreatorThatCreatesAnActionThatRejectsWithAnError);
+							describe('When wrapActionCreator is called with the Vorpal instance, the action creator and the prefix', () => {
+								beforeEach(when.wrapActionCreatorIsCalledWithTheVorpalInstanceTheActionCreatorAndThePrefix);
+								describe('When the wrapped action creator is called with the parameters', () => {
+									beforeEach(when.theWrappedActionCreatorIsCalledWithTheParameters);
+									it('Then the error should be printed with the prefix', then.theErrorShouldBePrintedWithThePrefix);
+								});
+							});
+						});
+						describe('Given an action creator that creates an action that resolves to an object', () => {
+							beforeEach(given.anActionCreatorThatCreatesAnActionThatResolvesToAnObject);
+							describe('When wrapActionCreator is called with the Vorpal instance, the action creator and the prefix', () => {
+								beforeEach(when.wrapActionCreatorIsCalledWithTheVorpalInstanceTheActionCreatorAndThePrefix);
+								describe('When the wrapped action creator is called with the parameters', () => {
+									beforeEach(when.theWrappedActionCreatorIsCalledWithTheParameters);
+									it('Then the object should be printed', then.theObjectShouldBePrinted);
+								});
+							});
+						});
 					});
 				});
 			});

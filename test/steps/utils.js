@@ -16,6 +16,7 @@
 import fs from 'fs';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
+import * as print from '../../src/utils/print';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
 
@@ -68,6 +69,12 @@ export const setUpHelperStubs = () => {
 		'createErrorHandler',
 	].forEach(methodName => sandbox.stub(helpers, methodName));
 };
+
+export function setUpPrintStubs() {
+	const printFunction = sandbox.spy();
+	sandbox.stub(print, 'printResult').returns(printFunction);
+	this.test.ctx.printFunction = printFunction;
+}
 
 export const setUpEnvVariable = variable => function setUpEnv() {
 	this.test.ctx.initialEnvVariableValue = process.env[variable];

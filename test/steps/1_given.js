@@ -26,12 +26,32 @@ import liskInstance from '../../src/utils/liskInstance';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import queryInstance from '../../src/utils/query';
 import {
+	DEFAULT_ERROR_MESSAGE,
 	getFirstQuotedString,
 	getQuotedStrings,
 	createFakeInterface,
 	createStreamStub,
 } from './utils';
 import createAccountCommand from '../../src/commands/createAccount';
+
+export function anActionCreatorThatCreatesAnActionThatResolvesToAnObject() {
+	const testObject = {
+		lisk: 'js',
+		testing: 123,
+	};
+	this.test.ctx.testObject = testObject;
+	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().resolves(testObject));
+}
+
+export function anActionCreatorThatCreatesAnActionThatRejectsWithAnError() {
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().rejects(new Error(DEFAULT_ERROR_MESSAGE)));
+}
+
+export function aParametersObjectWithTheOptions() {
+	const { options } = this.test.ctx;
+	this.test.ctx.parameters = { options };
+}
 
 export function aValidMnemonicPassphrase() {
 	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
