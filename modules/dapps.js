@@ -39,11 +39,11 @@ function DApps (cb, scope) {
 		ed: scope.ed,
 		balancesSequence: scope.balancesSequence,
 		logic: {
-			transaction: scope.logic.transaction,
+			transaction: scope.logic.transaction
 		},
 		config: {
-			dapp: scope.config.dapp,
-		},
+			dapp: scope.config.dapp
+		}
 	};
 	self = this;
 
@@ -116,6 +116,11 @@ __private.get = function (id, cb) {
  */
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
+
+	if (filter.transactionId) {
+		where.push('"transactionId" = ${transactionId}');
+		params.transactionId = filter.transactionId;
+	}
 
 	if (filter.type >= 0) {
 		where.push('"type" = ${type}');
@@ -193,7 +198,7 @@ DApps.prototype.onBind = function (scope) {
 		transactions: scope.transactions,
 		accounts: scope.accounts,
 		peers: scope.peers,
-		sql: scope.sql,
+		sql: scope.sql
 	};
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
@@ -222,17 +227,7 @@ DApps.prototype.isLoaded = function () {
  * @todo implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
-DApps.prototype.internal = {
-
-	get: function (param, cb) {
-		__private.get(param.id, function (err, dapp) {
-			if (err) {
-				return setImmediate(cb, null, {success: false, error: err});
-			} else {
-				return setImmediate(cb, null, {success: true, dapp: dapp});
-			}
-		});
-	},
+DApps.prototype.shared = {
 
 	list: function (query, cb) {
 		__private.list(query, function (err, dapps) {
@@ -242,11 +237,7 @@ DApps.prototype.internal = {
 				return setImmediate(cb, null, {success: true, dapps: dapps});
 			}
 		});
-	},
-
-	categories: function (req, cb) {
-		return setImmediate(cb, null, {success: true, categories: dappCategories});
-	},
+	}
 };
 
 // Shared API

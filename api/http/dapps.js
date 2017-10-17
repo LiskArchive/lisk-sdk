@@ -25,11 +25,10 @@ function DappsHttpApi (dappsModule, app) {
 	var router = new Router();
 
 	router.map(dappsModule.internal, {
-		'get /categories': 'categories',
+		'get /categories': 'categories'
 	});
 
 	router.get('/', httpApi.middleware.sanitize('query', schema.list, dappsModule.internal.list));
-	router.get('/get', httpApi.middleware.sanitize('query', schema.get, dappsModule.internal.get));
 
 	httpApi.registerEndpoint('/api/dapps', app, router, dappsModule.isLoaded);
 }
