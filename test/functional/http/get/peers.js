@@ -450,7 +450,8 @@ describe('GET /api/peers codes', function () {
 
 		it('should return http code = 429', function (done) {
 			var count = 0;
-			var requestsLimit = node.config.api.options.limits.max;
+			var requestsLimit = node.config.api.options.limits.max + 100;
+			var statuses = [];
 			// Wait for new request window frame
 			setTimeout(function () {
 				node.async.whilst(
@@ -459,14 +460,14 @@ describe('GET /api/peers codes', function () {
 					},
 					function (cb) {
 						http.get('/api/peers', function (err, res) {
-							node.expect(res).to.have.property('status').equal(200);
+							statuses.push(res.status);
 							count += 1;
 							cb();
 						});
 					},
 					function () {
-						http.get('/api/peers', function (err, res) {
-							node.expect(res).to.have.property('status').equal(429);
+						http.get('/api/peers', function () {
+							node.expect(statuses).to.include.all.members([200, 429]);
 							// Wait for new request window frame before starting next tests
 							setTimeout(done, node.config.api.options.limits.windowMs + 1);
 						});
