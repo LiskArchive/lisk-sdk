@@ -50,7 +50,6 @@ describe.skip('GET /blocks (cache)', function () {
 		url = '/api/blocks?';
 		params = 'height=' + block.blockHeight;
 		http.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('blocks').that.is.an('array');
 			node.expect(res.body).to.have.property('count').to.equal(1);
 			var response = res.body;
@@ -67,7 +66,6 @@ describe.skip('GET /blocks (cache)', function () {
 		url = '/api/blocks?';
 		params = 'height=' + -1000;
 		http.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.not.be.ok;
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
 				node.expect(res).to.eql(null);
@@ -81,7 +79,6 @@ describe.skip('GET /blocks (cache)', function () {
 		url = '/api/blocks?';
 		params = 'height=' + block.blockHeight;
 		http.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('blocks').that.is.an('array');
 			node.expect(res.body).to.have.property('count').to.equal(1);
 			var response = res.body;
@@ -128,7 +125,6 @@ describe('GET /blocks', function () {
 
 		it('using height should be ok', function (done) {
 			getBlocks('height=' + block.blockHeight, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				node.expect(res.body).to.have.property('count').to.equal(1);
 				node.expect(res.body.blocks.length).to.equal(1);
@@ -155,7 +151,6 @@ describe('GET /blocks', function () {
 			}
 
 			getBlocks('height=' + 10, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('count');
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				node.expect(res.body.blocks.length).to.equal(1);
@@ -180,7 +175,6 @@ describe('GET /blocks', function () {
 
 		it('using generatorPublicKey should be ok', function (done) {
 			getBlocks('generatorPublicKey=' + block.generatorPublicKey, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					node.expect(res.body.blocks[i].generatorPublicKey).to.equal(block.generatorPublicKey);
@@ -191,7 +185,6 @@ describe('GET /blocks', function () {
 
 		it('using totalFee should be ok', function (done) {
 			getBlocks('totalFee=' + block.totalFee, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					node.expect(res.body.blocks[i].totalFee).to.equal(block.totalFee);
@@ -205,7 +198,6 @@ describe('GET /blocks', function () {
 
 		it('using orderBy == "height:asc" should be ok', function (done) {
 			getBlocks('orderBy=' + 'height:asc', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					if (res.body.blocks[i + 1] != null) {
@@ -218,7 +210,6 @@ describe('GET /blocks', function () {
 
 		it('using orderBy == "height:desc" should be ok', function (done) {
 			getBlocks('orderBy=' + 'height:desc', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					if (res.body.blocks[i + 1] != null) {
@@ -231,7 +222,6 @@ describe('GET /blocks', function () {
 
 		it('should be ordered by "height:desc" by default', function (done) {
 			getBlocks('', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				for (var i = 0; i < res.body.blocks.length; i++) {
 					if (res.body.blocks[i + 1] != null) {
@@ -250,7 +240,7 @@ describe('GET /blocks', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/blocks?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
+				node.expect(res.body).to.have.property('message').to.equal('Expected type integer but found type string');
 				done();
 			});
 		});
@@ -260,7 +250,7 @@ describe('GET /blocks', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/blocks?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
+				node.expect(res.body).to.have.property('message').to.equal('Value -1 is less than minimum 1');
 				done();
 			});
 		});
@@ -270,7 +260,7 @@ describe('GET /blocks', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/blocks?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
+				node.expect(res.body).to.have.property('message').to.equal('Value 0 is less than minimum 1');
 				done();
 			});
 		});
@@ -300,7 +290,7 @@ describe('GET /blocks', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/blocks?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('error').to.equal('Value 101 is greater than maximum 100');
+				node.expect(res.body).to.have.property('message').to.equal('Value 101 is greater than maximum 100');
 				done();
 			});
 		});
@@ -313,7 +303,7 @@ describe('GET /blocks', function () {
 			var params = 'offset=' + offset;
 
 			http.get('/api/blocks?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
+				node.expect(res.body).to.have.property('message').to.equal('Expected type integer but found type string');
 				done();
 			});
 		});
@@ -323,7 +313,7 @@ describe('GET /blocks', function () {
 			var params = 'offset=' + offset;
 
 			http.get('/api/blocks?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 0');
+				node.expect(res.body).to.have.property('message').to.equal('Value -1 is less than minimum 0');
 				done();
 			});
 		});
@@ -337,6 +327,44 @@ describe('GET /blocks', function () {
 					node.expect(res.body).to.have.property('blocks').to.be.an('array').that.have.nested.property('0.height').to.be.above(1);
 					done();
 				});
+			});
+		});
+	});
+});
+
+describe('GET /api/blocks codes', function () {
+
+	describe('when query is malformed', function () {
+
+		var invalidParams = 'height="invalidValue"';
+
+		it('should return http code = 400', function (done) {
+			http.get('/api/blocks?' + invalidParams, function (err, res) {
+				node.expect(res).to.have.property('status').equal(400);
+				done();
+			});
+		});
+	});
+
+	describe('when query does not return results', function () {
+
+		var notExistingId = '01234567890123456789';
+		var emptyResultParams = 'id=' + notExistingId;
+
+		it('should return http code = 200', function (done) {
+			http.get('/api/blocks?' + emptyResultParams, function (err, res) {
+				node.expect(res).to.have.property('status').equal(200);
+				done();
+			});
+		});
+	});
+
+	describe('when query returns results', function () {
+
+		it('should return http code = 200', function (done) {
+			http.get('/api/blocks', function (err, res) {
+				node.expect(res).to.have.property('status').equal(200);
+				done();
 			});
 		});
 	});

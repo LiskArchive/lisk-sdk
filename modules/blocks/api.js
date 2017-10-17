@@ -1,5 +1,7 @@
 'use strict';
 
+var apiCodes = require('../../helpers/apiCodes.js');
+var ApiError = require('../../helpers/apiError.js');
 var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var OrderBy = require('../../helpers/orderBy.js');
@@ -174,13 +176,13 @@ API.prototype.getBlocks = function (req, cb) {
 
 	library.schema.validate(req.body, schema.getBlocks, function (err) {
 		if (err) {
-			return setImmediate(cb, err[0].message);
+			return setImmediate(cb, new ApiError(err[0].message, apiCodes.QUERY_MALFORMED));
 		}
 
 		library.dbSequence.add(function (cb) {
 			__private.list(req.body, function (err, data) {
 				if (err) {
-					return setImmediate(cb, err);
+					return setImmediate(cb, new ApiError(err[0].message, apiCodes.ERROR_DEFAULT));
 				}
 				return setImmediate(cb, null, {blocks: data.blocks, count: data.count});
 			});

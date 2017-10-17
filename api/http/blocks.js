@@ -38,7 +38,7 @@ function BlocksHttpApi (blocksModule, app, logger, cache) {
 
 	router.map(blocksModule.shared, {
 		'get /': 'getBlocks'
-	});
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/blocks', app, router, blocksModule.isLoaded);
 }
