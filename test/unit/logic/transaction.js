@@ -611,11 +611,11 @@ describe('transaction', function () {
 			vs.secondPublicKey = validKeypair.publicKey.toString('hex');
 			vs.secondSignature = 1;
 
-			var __transactionData = _.cloneDeep(transactionData);
-			__transactionData.secret = senderPassword;
-			__transactionData.secondSecret = validPassword;
+			var transactionDataClone = _.cloneDeep(transactionData);
+			transactionDataClone.secret = senderPassword;
+			transactionDataClone.secondSecret = validPassword;
 
-			createAndProcess(__transactionData, vs, function (err, transaction) {
+			createAndProcess(transactionDataClone, vs, function (err, transaction) {
 				transaction.signSignature = '7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
 				transactionLogic.verify(transaction, vs, function (err) {
 					expect(err).to.equal('Failed to verify second signature');
@@ -629,11 +629,11 @@ describe('transaction', function () {
 			vs.secondPublicKey = validKeypair.publicKey.toString('hex');
 			vs.secondSignature = 1;
 
-			var __transactionData = _.cloneDeep(transactionData);
-			__transactionData.secret = senderPassword;
-			__transactionData.secondSecret = validPassword;
+			var transactionDataClone = _.cloneDeep(transactionData);
+			transactionDataClone.secret = senderPassword;
+			transactionDataClone.secondSecret = validPassword;
 
-			createAndProcess(__transactionData, vs, function (err, transaction) {
+			createAndProcess(transactionDataClone, vs, function (err, transaction) {
 				transactionLogic.verify(transaction, vs, {}, function (err) {
 					expect(err).to.not.exist;
 					done();
@@ -672,10 +672,10 @@ describe('transaction', function () {
 		});
 
 		it('should return error when transaction amount is invalid', function (done) {
-			var __transactionData = _.cloneDeep(transactionData);
-			__transactionData.amount = node.constants.totalAmount + 10;
+			var transactionDataClone = _.cloneDeep(transactionData);
+			transactionDataClone.amount = node.constants.totalAmount + 10;
 
-			createAndProcess(__transactionData, sender, function (err, transaction) {
+			createAndProcess(transactionDataClone, sender, function (err, transaction) {
 				transactionLogic.verify(transaction, sender, {}, function (err) {
 					expect(err).to.include('Invalid transaction amount');
 					done();
@@ -684,10 +684,10 @@ describe('transaction', function () {
 		});
 
 		it('should return error when account balance is less than transaction amount', function (done) {
-			var __transactionData = _.cloneDeep(transactionData);
-			__transactionData.amount = node.constants.totalAmount;
+			var transactionDataClone = _.cloneDeep(transactionData);
+			transactionDataClone.amount = node.constants.totalAmount;
 
-			createAndProcess(__transactionData, sender, function (err, transaction) {
+			createAndProcess(transactionDataClone, sender, function (err, transaction) {
 				transactionLogic.verify(transaction, sender, {}, function (err) {
 					expect(err).to.include('Account does not have enough LSK:');
 					done();
@@ -1078,18 +1078,18 @@ describe('transaction', function () {
 		});
 
 		it('should return transaction object with data field', function () {
-			var __rawTransaction = _.cloneDeep(rawTransaction);
-			var __transaction = transactionLogic.dbRead(__rawTransaction);
+			var rawTransactionClone = _.cloneDeep(rawTransaction);
+			var transactionFromDb = transactionLogic.dbRead(rawTransactionClone);
 
-			expect(__transaction).to.be.an('object');
-			expect(__transaction.asset).to.have.property('data');
+			expect(transactionFromDb).to.be.an('object');
+			expect(transactionFromDb.asset).to.have.property('data');
 		});
 
 		it('should return null if id field is not present', function () {
-			var __rawTransaction = _.cloneDeep(rawTransaction);
-			delete __rawTransaction.t_id;
+			var rawTransactionClone = _.cloneDeep(rawTransaction);
+			delete rawTransactionClone.t_id;
 
-			var transaction = transactionLogic.dbRead(__rawTransaction);
+			var transaction = transactionLogic.dbRead(rawTransactionClone);
 
 			expect(transaction).to.be.a('null');
 		});
