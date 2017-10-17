@@ -3,24 +3,11 @@
 var constants = require('../helpers/constants.js');
 
 module.exports = {
-	get: {
-		id: 'dapps.get',
-		type: 'object',
-		properties: {
-			id: {
-				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20
-			}
-		},
-		required: ['id']
-	},
 	list: {
 		id: 'dapps.list',
 		type: 'object',
 		properties: {
-			id: {
+			transactionId: {
 				type: 'string',
 				format: 'id',
 				minLength: 1,
@@ -39,16 +26,6 @@ module.exports = {
 				type: 'integer',
 				minimum: 0
 			},
-			link: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 2000
-			},
-			icon: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 2000
-			},
 			orderBy: {
 				type: 'string',
 				minLength: 1
@@ -63,5 +40,5 @@ module.exports = {
 				minimum: 0
 			}
 		}
-	},
+	}
 };
