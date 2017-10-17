@@ -666,9 +666,98 @@ describe('txPool', function () {
 					});
 				});
 
-
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTx = txPool.delete(transactions[3]);
+					
+					expect(deletedTx.length).to.equal(1);
+					expect(deletedTx[0]).to.equal('ready');
+					poolTotals.ready -= 1;
+					done();
+				});
+
+				it('should be ok when reset invalid transactions list', function (done) {
+					var invalidTxs = txPool.resetInvalidTransactions();
+					
+					expect(invalidTxs).to.equal(poolTotals.invalid);
+					poolTotals.invalid -= invalidTxs;
+					done();
+				});
+
+				it('should be ok when get pool totals', function (done) {
+					var totals = txPool.getUsage();
+	
+					expect(totals).to.be.an('object');
+					expect(totals.unverified).to.be.equal(poolTotals.unverified);
+					expect(totals.pending).to.be.equal(poolTotals.pending);
+					expect(totals.ready).to.be.equal(poolTotals.ready);
+					expect(totals.invalid).to.be.equal(poolTotals.invalid);
+					done();
+				});
+			});
+
+			describe('Tx type: 4 - Multisignature registration', function () {
+
+				it('should be ok when add normal transaction to unverified', function (done) {
+					txPool.add(transactions[4], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
+					txPool.add(invalidsTxs[4][0], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should be ok when add transaction to unverified that votes a non delegate', function (done) {
+					txPool.add(invalidsTxs[4][1], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+	
+				it('should be ok when process pool txs', function (done) {
+					txPool.processPool(function (err, cbprPool) {
+						if (err) {
+							done(err);
+						}
+						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[4][0].id);
+						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[4][0].senderId, 'balance: 0'].join(' '));
+						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[4][1].id);
+						expect(error.args[1][1]).to.equal('Delegate not found');
+						poolTotals.invalid += 1;
+						poolTotals.ready += 1;
+						done();
+					});
+				});
+
+				it('should fail when add same normal transaction to unverified', function (done) {
+					txPool.add(transactions[3], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already in pool: ' + transactions[3].id);
+						done();
+					});
+				});
+
+				it('should fail when add same transaction that votes a non delegate to unverified', function (done) {
+					txPool.add(invalidsTxs[4][1], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidsTxs[4][1].id);
+						done();
+					});
+				});
+
+				it('should be ok when delete normal transaction from ready', function (done) {
+					var deletedTx = txPool.delete(transactions[4]);
 					
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
