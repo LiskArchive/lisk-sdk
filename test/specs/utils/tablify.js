@@ -20,26 +20,20 @@ import * as then from '../../steps/3_then';
 describe('tablify util', () => {
 	describe('Given an empty object', () => {
 		beforeEach(given.anEmptyObject);
-
 		describe('When the object is tablified', () => {
 			beforeEach(when.theObjectIsTablified);
-
 			it('Then the returned table should have no head', then.theReturnedTableShouldHaveNoHead);
 			it('Then the returned table should have no rows', then.theReturnedTableShouldHaveNoRows);
 		});
 	});
-
 	describe('Given a non-empty object', () => {
 		beforeEach(given.aNonEmptyObject);
-
 		describe('When the object is tablified', () => {
 			beforeEach(when.theObjectIsTablified);
-
 			it('Then the returned table should have a head with the object’s keys', then.theReturnedTableShouldHaveAHeadWithTheObjectKeys);
 			it('Then the returned table should have a row with the object’s values', then.theReturnedTableShouldHaveARowWithTheObjectValues);
 		});
 	});
-
 	describe('Given a nested object', () => {
 		beforeEach(given.aNestedObject);
 		describe('When the object is tablified', () => {
@@ -48,24 +42,18 @@ describe('tablify util', () => {
 			it('Then the returned table should have a row with the object’s nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedValues);
 		});
 	});
-
 	describe('Given an array of objects with the same keys', () => {
 		beforeEach(given.anArrayOfObjectsWithTheSameKeys);
-
 		describe('When the array is tablified', () => {
 			beforeEach(when.theArrayIsTablified);
-
 			it('Then the returned table should have a head with the objects’ keys', then.theReturnedTableShouldHaveAHeadWithTheObjectsKeys);
 			it('Then the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues);
 		});
 	});
-
 	describe('Given an array of objects with divergent keys', () => {
 		beforeEach(given.anArrayOfObjectsWithDivergentKeys);
-
 		describe('When the array is tablified', () => {
 			beforeEach(when.theArrayIsTablified);
-
 			it('Then the returned table should have a head with every unique key', then.theReturnedTableShouldHaveAHeadWithEveryUniqueKey);
 			it('Then the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues);
 		});
