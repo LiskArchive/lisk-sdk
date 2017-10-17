@@ -40,7 +40,7 @@ Signature.prototype.bind = function (accounts) {
  * @returns {number} Secondsignature fee.
  */
 Signature.prototype.calculateFee = function (transaction, sender) {
-	return constants.fees.secondsignature;
+	return constants.fees.secondSignature;
 };
 
 /**
