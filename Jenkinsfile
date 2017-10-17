@@ -284,12 +284,12 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					run_test('test/functional/http/get/transactions.js')
 				}
 			},
-			"Functional POST tx type 0" : {
+			"Functional POST transaction type 0" : {
 				node('node-01'){
 					run_test('test/functional/http/post/0.transfer.js')
         }
 			},
-			"Functional POST tx type 1" : {
+			"Functional POST transaction type 1" : {
 				node('node-01'){
           run_test('test/functional/http/post/0.transfer.js')
 				}
