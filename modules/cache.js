@@ -198,16 +198,16 @@ Cache.prototype.onTransactionsSaved = function (transactions, cb) {
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 
-	var delegateTransaction = transactions.find(function (trs) {
-		return !!trs && trs.type === transactionTypes.DELEGATE;
+	var delegateTransaction = transactions.find(function (transaction) {
+		return !!transaction && transaction.type === transactionTypes.DELEGATE;
 	});
 
 	if (!!delegateTransaction) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
-				logger.error(['Error clearing keys with pattern:', pattern, ' on delegate trs'].join(' '));
+				logger.error(['Error clearing keys with pattern:', pattern, ' on delegate transaction'].join(' '));
 			} else {
-				logger.debug(['keys with pattern:', pattern, 'cleared from cache on delegate trs'].join(' '));
+				logger.debug(['keys with pattern:', pattern, 'cleared from cache on delegate transaction'].join(' '));
 			}
 			return cb(err);
 		});

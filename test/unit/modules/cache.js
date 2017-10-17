@@ -312,7 +312,7 @@ describe('cache', function () {
 
 	describe('onTransactionsSaved', function (done) {
 
-		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 trs', function (done) {
+		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 
@@ -331,7 +331,7 @@ describe('cache', function () {
 			});
 		});
 
-		it('should remove keys that match pattern /api/delegate on type 2 trs', function (done) {
+		it('should remove keys that match pattern /api/delegate on type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 

@@ -535,7 +535,7 @@ describe('GET /api/transactions', function () {
 
 		it('using valid transaction with data field should be ok', function () {
 			var amountToSend = 123456789;
-			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
+			var expectedFee = node.expectedFeeForTransactionWithData(amountToSend);
 			var data = 'extra information';
 			var transaction = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 

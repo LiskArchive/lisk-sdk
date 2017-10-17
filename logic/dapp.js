@@ -41,11 +41,11 @@ DApp.prototype.bind = function () {};
 
 /**
  * Returns dapp fee from constants.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @return {number} fee
  */
-DApp.prototype.calculateFee = function (trs, sender) {
+DApp.prototype.calculateFee = function (transaction, sender) {
 	return constants.fees.dapp;
 };
 
@@ -53,33 +53,33 @@ DApp.prototype.calculateFee = function (trs, sender) {
  * Verifies transaction and dapp fields. Checks dapp name and link in 
  * `dapps` table.
  * @implements {library.db.query}
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} errors | trs
+ * @return {setImmediateCallback} errors | transaction
  */
-DApp.prototype.verify = function (trs, sender, cb) {
+DApp.prototype.verify = function (transaction, sender, cb) {
 	var i;
 
-	if (trs.recipientId) {
+	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (trs.amount !== 0) {
+	if (transaction.amount !== 0) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	if (!trs.asset || !trs.asset.dapp) {
+	if (!transaction.asset || !transaction.asset.dapp) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	if (trs.asset.dapp.category !== 0 && !trs.asset.dapp.category) {
+	if (transaction.asset.dapp.category !== 0 && !transaction.asset.dapp.category) {
 		return setImmediate(cb, 'Invalid application category');
 	}
 
 	var foundCategory = false;
 	for (i in dappCategories) {
-		if (dappCategories[i] === trs.asset.dapp.category) {
+		if (dappCategories[i] === transaction.asset.dapp.category) {
 			foundCategory = true;
 			break;
 		}
@@ -89,52 +89,52 @@ DApp.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Application category not found');
 	}
 
-	if (trs.asset.dapp.icon) {
-		if (!valid_url.isUri(trs.asset.dapp.icon)) {
+	if (transaction.asset.dapp.icon) {
+		if (!valid_url.isUri(transaction.asset.dapp.icon)) {
 			return setImmediate(cb, 'Invalid application icon link');
 		}
 
-		var length = trs.asset.dapp.icon.length;
+		var length = transaction.asset.dapp.icon.length;
 
 		if (
-			trs.asset.dapp.icon.indexOf('.png') !== length - 4 &&
-			trs.asset.dapp.icon.indexOf('.jpg') !== length - 4 &&
-			trs.asset.dapp.icon.indexOf('.jpeg') !== length - 5
+			transaction.asset.dapp.icon.indexOf('.png') !== length - 4 &&
+			transaction.asset.dapp.icon.indexOf('.jpg') !== length - 4 &&
+			transaction.asset.dapp.icon.indexOf('.jpeg') !== length - 5
 		) {
 			return setImmediate(cb, 'Invalid application icon file type');
 		}
 	}
 
-	if (trs.asset.dapp.type > 1 || trs.asset.dapp.type < 0) {
+	if (transaction.asset.dapp.type > 1 || transaction.asset.dapp.type < 0) {
 		return setImmediate(cb, 'Invalid application type');
 	}
 
-	if (!valid_url.isUri(trs.asset.dapp.link)) {
+	if (!valid_url.isUri(transaction.asset.dapp.link)) {
 		return setImmediate(cb, 'Invalid application link');
 	}
 
-	if (trs.asset.dapp.link.indexOf('.zip') !== trs.asset.dapp.link.length - 4) {
+	if (transaction.asset.dapp.link.indexOf('.zip') !== transaction.asset.dapp.link.length - 4) {
 		return setImmediate(cb, 'Invalid application file type');
 	}
 
-	if (!trs.asset.dapp.name || trs.asset.dapp.name.trim().length === 0 || trs.asset.dapp.name.trim() !== trs.asset.dapp.name) {
+	if (!transaction.asset.dapp.name || transaction.asset.dapp.name.trim().length === 0 || transaction.asset.dapp.name.trim() !== transaction.asset.dapp.name) {
 		return setImmediate(cb, 'Application name must not be blank');
 	}
 
-	if (trs.asset.dapp.name.length > 32) {
+	if (transaction.asset.dapp.name.length > 32) {
 		return setImmediate(cb, 'Application name is too long. Maximum is 32 characters');
 	}
 
-	if (trs.asset.dapp.description && trs.asset.dapp.description.length > 160) {
+	if (transaction.asset.dapp.description && transaction.asset.dapp.description.length > 160) {
 		return setImmediate(cb, 'Application description is too long. Maximum is 160 characters');
 	}
 
-	if (trs.asset.dapp.tags && trs.asset.dapp.tags.length > 160) {
+	if (transaction.asset.dapp.tags && transaction.asset.dapp.tags.length > 160) {
 		return setImmediate(cb, 'Application tags is too long. Maximum is 160 characters');
 	}
 
-	if (trs.asset.dapp.tags) {
-		var tags = trs.asset.dapp.tags.split(',');
+	if (transaction.asset.dapp.tags) {
+		var tags = transaction.asset.dapp.tags.split(',');
 
 		tags = tags.map(function (tag) {
 			return tag.trim();
@@ -148,22 +148,22 @@ DApp.prototype.verify = function (trs, sender, cb) {
 	}
 
 	library.db.query(sql.getExisting, {
-		name: trs.asset.dapp.name,
-		link: trs.asset.dapp.link || null,
-		transactionId: trs.id
+		name: transaction.asset.dapp.name,
+		link: transaction.asset.dapp.link || null,
+		transactionId: transaction.id
 	}).then(function (rows) {
 		var dapp = rows[0];
 
 		if (dapp) {
-			if (dapp.name === trs.asset.dapp.name) {
+			if (dapp.name === transaction.asset.dapp.name) {
 				return setImmediate(cb, 'Application name already exists: ' + dapp.name);
-			} else if (dapp.link === trs.asset.dapp.link) {
+			} else if (dapp.link === transaction.asset.dapp.link) {
 				return setImmediate(cb, 'Application link already exists: ' + dapp.link);
 			} else {
 				return setImmediate(cb, 'Application already exists');
 			}
 		} else {
-			return setImmediate(cb, null, trs);
+			return setImmediate(cb, null, transaction);
 		}
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -172,13 +172,13 @@ DApp.prototype.verify = function (trs, sender, cb) {
 };
 
 /**
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb, null, trs
+ * @return {setImmediateCallback} cb, null, transaction
  */
-DApp.prototype.process = function (trs, sender, cb) {
-	return setImmediate(cb, null, trs);
+DApp.prototype.process = function (transaction, sender, cb) {
+	return setImmediate(cb, null, transaction);
 };
 
 /**
@@ -190,39 +190,39 @@ DApp.prototype.process = function (trs, sender, cb) {
  * - icon
  * - type
  * - category
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @return {Array} Buffer
  * @throws {e} error
  */
-DApp.prototype.getBytes = function (trs) {
+DApp.prototype.getBytes = function (transaction) {
 	var buf;
 
 	try {
 		buf = Buffer.from([]);
-		var nameBuf = Buffer.from(trs.asset.dapp.name, 'utf8');
+		var nameBuf = Buffer.from(transaction.asset.dapp.name, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 
-		if (trs.asset.dapp.description) {
-			var descriptionBuf = Buffer.from(trs.asset.dapp.description, 'utf8');
+		if (transaction.asset.dapp.description) {
+			var descriptionBuf = Buffer.from(transaction.asset.dapp.description, 'utf8');
 			buf = Buffer.concat([buf, descriptionBuf]);
 		}
 
-		if (trs.asset.dapp.tags) {
-			var tagsBuf = Buffer.from(trs.asset.dapp.tags, 'utf8');
+		if (transaction.asset.dapp.tags) {
+			var tagsBuf = Buffer.from(transaction.asset.dapp.tags, 'utf8');
 			buf = Buffer.concat([buf, tagsBuf]);
 		}
 
-		if (trs.asset.dapp.link) {
-			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.link, 'utf8')]);
+		if (transaction.asset.dapp.link) {
+			buf = Buffer.concat([buf, Buffer.from(transaction.asset.dapp.link, 'utf8')]);
 		}
 
-		if (trs.asset.dapp.icon) {
-			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.icon, 'utf8')]);
+		if (transaction.asset.dapp.icon) {
+			buf = Buffer.concat([buf, Buffer.from(transaction.asset.dapp.icon, 'utf8')]);
 		}
 
 		var bb = new ByteBuffer(4 + 4, true);
-		bb.writeInt(trs.asset.dapp.type);
-		bb.writeInt(trs.asset.dapp.category);
+		bb.writeInt(transaction.asset.dapp.type);
+		bb.writeInt(transaction.asset.dapp.category);
 		bb.flip();
 
 		buf = Buffer.concat([buf, bb.toBuffer()]);
@@ -234,63 +234,63 @@ DApp.prototype.getBytes = function (trs) {
 };
 
 /**
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.apply = function (trs, block, sender, cb) {
-	delete __private.unconfirmedNames[trs.asset.dapp.name];
-	delete __private.unconfirmedLinks[trs.asset.dapp.link];
+DApp.prototype.apply = function (transaction, block, sender, cb) {
+	delete __private.unconfirmedNames[transaction.asset.dapp.name];
+	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 	
 	return setImmediate(cb);
 };
 
 /**
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.undo = function (trs, block, sender, cb) {
+DApp.prototype.undo = function (transaction, block, sender, cb) {
 	return setImmediate(cb);
 };
 
 /**
  * Checks if dapp name and link exists, if not adds them to private 
  * unconfirmed variables.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} cb|errors
  */
-DApp.prototype.applyUnconfirmed = function (trs, sender, cb) {
-	if (__private.unconfirmedNames[trs.asset.dapp.name]) {
+DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
 
-	if (trs.asset.dapp.link && __private.unconfirmedLinks[trs.asset.dapp.link]) {
+	if (transaction.asset.dapp.link && __private.unconfirmedLinks[transaction.asset.dapp.link]) {
 		return setImmediate(cb, 'Application link already exists');
 	}
 
-	__private.unconfirmedNames[trs.asset.dapp.name] = true;
-	__private.unconfirmedLinks[trs.asset.dapp.link] = true;
+	__private.unconfirmedNames[transaction.asset.dapp.name] = true;
+	__private.unconfirmedLinks[transaction.asset.dapp.link] = true;
 
 	return setImmediate(cb);
 };
 
 /**
  * Deletes dapp name and link from private unconfirmed variables.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	delete __private.unconfirmedNames[trs.asset.dapp.name];
-	delete __private.unconfirmedLinks[trs.asset.dapp.link];
+DApp.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+	delete __private.unconfirmedNames[transaction.asset.dapp.name];
+	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
 	return setImmediate(cb);
 };
@@ -351,18 +351,18 @@ DApp.prototype.schema = {
 /**
  * Deletes null or undefined dapp from transaction and validate dapp schema.
  * @implements {library.schema.validate}
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @return {transaction}
  * @throws {string} Failed to validate dapp schema.
  */
-DApp.prototype.objectNormalize = function (trs) {
-	for (var i in trs.asset.dapp) {
-		if (trs.asset.dapp[i] === null || typeof trs.asset.dapp[i] === 'undefined') {
-			delete trs.asset.dapp[i];
+DApp.prototype.objectNormalize = function (transaction) {
+	for (var i in transaction.asset.dapp) {
+		if (transaction.asset.dapp[i] === null || typeof transaction.asset.dapp[i] === 'undefined') {
+			delete transaction.asset.dapp[i];
 		}
 	}
 
-	var report = library.schema.validate(trs.asset.dapp, DApp.prototype.schema);
+	var report = library.schema.validate(transaction.asset.dapp, DApp.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to validate dapp schema: ' + library.schema.getLastErrors().map(function (err) {
@@ -370,7 +370,7 @@ DApp.prototype.objectNormalize = function (trs) {
 		}).join(', ');
 	}
 
-	return trs;
+	return transaction;
 };
 
 /**
@@ -412,22 +412,22 @@ DApp.prototype.dbFields = [
 /**
  * Creates db operation object based on dapp data.
  * @see privateTypes
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @return {Object[]} table, fields, values.
  */
-DApp.prototype.dbSave = function (trs) {
+DApp.prototype.dbSave = function (transaction) {
 	return {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			type: trs.asset.dapp.type,
-			name: trs.asset.dapp.name,
-			description: trs.asset.dapp.description || null,
-			tags: trs.asset.dapp.tags || null,
-			link: trs.asset.dapp.link || null,
-			icon: trs.asset.dapp.icon || null,
-			category: trs.asset.dapp.category,
-			transactionId: trs.id
+			type: transaction.asset.dapp.type,
+			name: transaction.asset.dapp.name,
+			description: transaction.asset.dapp.description || null,
+			tags: transaction.asset.dapp.tags || null,
+			link: transaction.asset.dapp.link || null,
+			icon: transaction.asset.dapp.icon || null,
+			category: transaction.asset.dapp.category,
+			transactionId: transaction.id
 		}
 	};
 };
@@ -435,11 +435,11 @@ DApp.prototype.dbSave = function (trs) {
 /**
  * Emits 'dapps/change' signal.
  * @implements {library.network.io.sockets}
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.afterSave = function (trs, cb) {
+DApp.prototype.afterSave = function (transaction, cb) {
 	if (library) {
 		library.network.io.sockets.emit('dapps/change', {});
 	}
@@ -448,17 +448,17 @@ DApp.prototype.afterSave = function (trs, cb) {
 
 /**
  * Checks sender multisignatures and transaction signatures.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @return {boolean} True if transaction signatures greather than 
  * sender multimin or there are not sender multisignatures.
  */
-DApp.prototype.ready = function (trs, sender) {
+DApp.prototype.ready = function (transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
-		if (!Array.isArray(trs.signatures)) {
+		if (!Array.isArray(transaction.signatures)) {
 			return false;
 		}
-		return trs.signatures.length >= sender.multimin;
+		return transaction.signatures.length >= sender.multimin;
 	} else {
 		return true;
 	}

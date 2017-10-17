@@ -31,7 +31,7 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
-var WAIT_BEFORE_CONNECT_MS = 40000;
+var WAIT_BEFORE_CONNECT_MS = 60000;
 
 SYNC_MODE_DEFAULT_ARGS.ALL_TO_GROUP.INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_GROUP, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
