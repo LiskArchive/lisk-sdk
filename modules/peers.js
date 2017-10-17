@@ -79,7 +79,7 @@ __private.countByFilter = function (filter, cb) {
  * @returns {setImmediateCallback|[Peer]} peers
  */
 __private.getByFilter = function (filter, cb) {
-	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
+	var allowedFields = ['ip', 'port', 'httpPort', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
 	var limit  = filter.limit ? Math.abs(filter.limit) : null;
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
 
@@ -631,7 +631,7 @@ Peers.prototype.shared = {
 	getPeers: function (req, cb) {
 		library.schema.validate(req.body, schema.getPeers, function (err) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.QUERY_MALFORMED));
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
 			req.body.normalized = true;
 			return setImmediate(cb, null, {peers: __private.getByFilter(req.body)});
