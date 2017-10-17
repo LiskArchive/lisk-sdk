@@ -5,7 +5,6 @@ var scClient = require('socketcluster-client');
 
 var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
-var Peer = require('../../../../logic/peer.js');
 var peersSortFields = require('../../../../sql/peers').sortFields;
 var wsServer = require('../../../common/wsServer');
 var testConfig = require('../../../config.json');
@@ -118,7 +117,7 @@ describe('GET /api/peers', function () {
 			var params = 'httpPort=' + validHeaders.httpPort;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('peers').to.be.an('array').that.have.nested.property('0.httpPort').equal(node.config.httpPort.toString());
+				node.expect(res.body).to.have.property('peers').to.be.an('array').that.have.nested.property('0.httpPort').equal(node.config.httpPort);
 				done();
 			});
 		});
@@ -451,12 +450,12 @@ describe('GET /api/peers codes', function () {
 
 		it('should return http code = 429', function (done) {
 			var count = 0;
-			var requestsLimit = node.config.api.options.limits.max - 1;
+			var requestsLimit = node.config.api.options.limits.max;
 			// Wait for new request window frame
 			setTimeout(function () {
 				node.async.whilst(
 					function () {
-						return count <= requestsLimit;
+						return count < requestsLimit;
 					},
 					function (cb) {
 						http.get('/api/peers', function (err, res) {
