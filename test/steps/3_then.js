@@ -22,11 +22,7 @@ import tablify from '../../src/utils/tablify';
 import {
 	getCommandInstance,
 	getFirstQuotedString,
-	getNumbersFromTitle,
 } from './utils';
-import {
-	getRequiredArgs,
-} from '../specs/commands/utils';
 
 export function theVorpalCommandInstanceShouldHaveTheAutocompleteList() {
 	const { vorpal, command, autocompleteList } = this.test.ctx;
@@ -89,25 +85,6 @@ export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheA
 		address,
 	};
 	return (returnValue).should.be.fulfilledWith(expectedObject);
-}
-
-export async function itShouldPrintTheResultAsJSON() {
-	const { returnValue } = this.test.ctx;
-	const result = await returnValue;
-	return (JSON.stringify).should.be.calledWithExactly(result);
-}
-
-export async function itShouldPrintTheResultInATable() {
-	const { returnValue } = this.test.ctx;
-	const result = await returnValue;
-	return (tablify).should.be.calledWithExactly(result);
-}
-
-export function theCommandShouldHaveRequiredArguments() {
-	const { vorpal, command } = this.test.ctx;
-	const requiredArguments = getNumbersFromTitle(this.test.title)[0];
-	const vorpalRequiredArgs = getRequiredArgs(vorpal, command);
-	return (vorpalRequiredArgs).should.have.length(requiredArguments);
 }
 
 export function theMnemonicPassphraseShouldBeA12WordString() {

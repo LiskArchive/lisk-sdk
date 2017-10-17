@@ -22,7 +22,7 @@ const description = `Create account returns a randomly-generated mnemonic passph
 	Example: create account
 `;
 
-const actionCreator = () => async () => {
+export const actionCreator = () => async () => {
 	const passphrase = createMnemonicPassphrase();
 	const { publicKey } = cryptoModule.getKeys(passphrase);
 	const { address } = cryptoModule.getAddressFromPublicKey(publicKey);

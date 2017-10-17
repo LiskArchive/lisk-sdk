@@ -53,6 +53,13 @@ import {
 
 const tablifyToSpy = require('../../src/utils/tablify');
 
+export function theActionIsCalled() {
+	const { action } = this.test.ctx;
+	const returnValue = action();
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
 export function theCommandIsExecuted() {
 	const { vorpal } = this.test.ctx;
 	const commandToExecute = getFirstQuotedString(this.test.parent.title);
