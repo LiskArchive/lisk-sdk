@@ -33,7 +33,16 @@ import {
 	createFakeInterface,
 	createStreamStub,
 } from './utils';
-import createAccountCommand from '../../src/commands/createAccount';
+import * as createAccount from '../../src/commands/createAccount';
+
+const actionCreators = {
+	'create account': createAccount.actionCreator,
+};
+
+export function anAction() {
+	const actionName = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.action = actionCreators[actionName]();
+}
 
 export function anOptionsListIncluding() {
 	const options = getQuotedStrings(this.test.parent.title);
@@ -95,15 +104,6 @@ export function aVorpalInstance() {
 	});
 	this.test.ctx.capturedOutput = capturedOutput;
 	this.test.ctx.vorpal = vorpal;
-}
-
-export function theVorpalInstanceHasTheCommand() {
-	const { vorpal } = this.test.ctx;
-	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
-	const commands = {
-		'create account': createAccountCommand,
-	};
-	vorpal.use(commands[this.test.ctx.command]);
 }
 
 export function thereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
