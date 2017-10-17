@@ -38,10 +38,10 @@
         },
         "options": {
 			"limits": {
-				"max": 50,
+				"max": 2000,
 				"delayMs": 0,
 				"delayAfter": 0,
-				"windowMs": 1000
+				"windowMs": 20000
 			}
         }
     },

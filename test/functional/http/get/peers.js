@@ -469,11 +469,11 @@ describe('GET /api/peers codes', function () {
 						http.get('/api/peers', function (err, res) {
 							node.expect(res).to.have.property('status').equal(429);
 							// Wait for new request window frame before starting next tests
-							setTimeout(done, 1001);
+							setTimeout(done, node.config.api.options.limits.windowMs + 1);
 						});
 					}
 				);
-			}, 1001);
+			}, node.config.api.options.limits.windowMs + 1);
 		});
 	});
 
