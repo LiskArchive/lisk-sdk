@@ -8,9 +8,6 @@ var httpApi = require('../../helpers/httpApi');
  * - End point: `/api/peers`
  * - Public API:
  * 	- get	/
- * 	- get	/version
- * 	- get	/get
- * 	- get	/count
  * @memberof module:peers
  * @requires helpers/Router
  * @requires helpers/httpApi
