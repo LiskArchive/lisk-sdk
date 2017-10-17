@@ -38,7 +38,7 @@ export const processResult = type => result => (
 		: result[deAlias(type)]
 );
 
-const actionCreator = () => async ({ type, input }) => {
+export const actionCreator = () => async ({ type, input }) => {
 	if (!COMMAND_TYPES.includes(type)) {
 		throw new Error('Unsupported type.');
 	}

@@ -37,6 +37,18 @@ import {
 
 const envToStub = require('../../src/utils/env');
 
+export function anInput() {
+	const input = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.input = input;
+}
+
+export function aType() {
+	const type = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.type = type;
+}
+
+export const anUnknownType = aType;
+
 export function anAction() {
 	const actionName = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.action = getActionCreator(actionName)();
@@ -128,6 +140,20 @@ export function thereIsAResultToPrint() {
 
 export function aLiskInstance() {
 	this.test.ctx.liskInstance = liskInstance;
+}
+
+export function aQueryInstanceHasBeenInitialised() {
+	const queryResult = {
+		some: 'result',
+		testing: 123,
+	};
+	sandbox.stub(queryInstance, 'isAccountQuery').resolves({ account: queryResult });
+	sandbox.stub(queryInstance, 'isBlockQuery').resolves({ block: queryResult });
+	sandbox.stub(queryInstance, 'isDelegateQuery').resolves({ delegate: queryResult });
+	sandbox.stub(queryInstance, 'isTransactionQuery').resolves({ transaction: queryResult });
+
+	this.test.ctx.queryResult = queryResult;
+	this.test.ctx.queryInstance = queryInstance;
 }
 
 export function aQueryInstance() {
