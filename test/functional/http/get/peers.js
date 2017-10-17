@@ -426,6 +426,7 @@ describe('GET /api/peers', function () {
 			var params = 'offset=' + offset;
 
 			http.get('/api/peers?' + params, function (err, res) {
+				node.expect(res.body).to.have.property('peers').that.is.an('array');
 				done();
 			});
 		});
@@ -443,37 +444,6 @@ describe('GET /api/peers codes', function () {
 				node.expect(res).to.have.property('status').equal(400);
 				done();
 			});
-		});
-	});
-
-	describe('when limit is exceeded', function () {
-
-		it('should return http code = 429', function (done) {
-			var count = 0;
-			var requestsLimit = node.config.api.options.limits.max + 100;
-			var statuses = [];
-			// Wait for new request window frame
-			setTimeout(function () {
-				node.async.whilst(
-					function () {
-						return count < requestsLimit;
-					},
-					function (cb) {
-						http.get('/api/peers', function (err, res) {
-							statuses.push(res.status);
-							count += 1;
-							cb();
-						});
-					},
-					function () {
-						http.get('/api/peers', function () {
-							node.expect(statuses).to.include.all.members([200, 429]);
-							// Wait for new request window frame before starting next tests
-							setTimeout(done, node.config.api.options.limits.windowMs + 1);
-						});
-					}
-				);
-			}, node.config.api.options.limits.windowMs + 1);
 		});
 	});
 
