@@ -43,6 +43,7 @@ function API (logger, db, block, schema, dbSequence) {
  * @async
  * @method list
  * @param  {Object}   filter Conditions to filter with
+ * @param  {string}   filter.id Block id
  * @param  {string}   filter.generatorPublicKey Public key of delegate who generates the block
  * @param  {number}   filter.numberOfTransactions Number of transactions
  * @param  {string}   filter.previousBlock Previous block ID
@@ -60,6 +61,11 @@ function API (logger, db, block, schema, dbSequence) {
  */
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
+
+	if (filter.id) {
+		where.push('"b_id" = ${id}');
+		params.id = filter.id;
+	}
 
 	if (filter.generatorPublicKey) {
 		where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
