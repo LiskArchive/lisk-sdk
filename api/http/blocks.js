@@ -37,18 +37,7 @@ function BlocksHttpApi (blocksModule, app, logger, cache) {
 	]);
 
 	router.map(blocksModule.shared, {
-		'get /': 'getBlocks',
-		'get /get': 'getBlock',
-		'get /getBroadhash': 'getBroadhash',
-		'get /getEpoch': 'getEpoch',
-		'get /getHeight': 'getHeight',
-		'get /getNethash': 'getNethash',
-		'get /getFee': 'getFee',
-		'get /getFees': 'getFees',
-		'get /getMilestone': 'getMilestone',
-		'get /getReward': 'getReward',
-		'get /getSupply': 'getSupply',
-		'get /getStatus': 'getStatus'
+		'get /': 'getBlocks'
 	});
 
 	httpApi.registerEndpoint('/api/blocks', app, router, blocksModule.isLoaded);

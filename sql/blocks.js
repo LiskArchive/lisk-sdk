@@ -47,8 +47,6 @@ var BlocksSql = {
     ].filter(Boolean).join(' ');
   },
 
-  getById: 'SELECT * FROM blocks_list WHERE "b_id" = ${id}',
-
   getIdSequence: function () {
     return [
       'WITH',

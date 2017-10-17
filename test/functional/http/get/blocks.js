@@ -5,7 +5,7 @@ var http = require('../../../common/httpCommunication.js');
 var modulesLoader = require('../../../common/modulesLoader');
 
 var block = {
-	blockHeight: 0,
+	blockHeight: 1,
 	id: 0,
 	generatorPublicKey: '',
 	totalAmount: 0,
@@ -13,133 +13,6 @@ var block = {
 };
 
 var testBlocksUnder101 = false;
-
-describe('GET /api/blocks/getBroadhash', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getBroadhash', function (err, res) {
-			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getEpoch', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getEpoch', function (err, res) {
-			node.expect(res.body).to.have.property('epoch').to.be.a('string');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getHeight', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getHeight', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.height != null) {
-				node.expect(res.body).to.have.property('height').to.be.above(0);
-				block.blockHeight = res.body.height;
-
-				if (res.body.height > 100) {
-					testBlocksUnder101 = true;
-				}
-			}
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getFee', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getFee', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('fee');
-			node.expect(res.body.fee).to.equal(node.fees.transactionFee);
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getfees', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getFees', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('fees');
-			node.expect(res.body.fees.send).to.equal(node.fees.transactionFee);
-			node.expect(res.body.fees.vote).to.equal(node.fees.voteFee);
-			node.expect(res.body.fees.dapp).to.equal(node.fees.dappRegistrationFee);
-			node.expect(res.body.fees.secondSignature).to.equal(node.fees.secondPasswordFee);
-			node.expect(res.body.fees.delegate).to.equal(node.fees.delegateRegistrationFee);
-			node.expect(res.body.fees.multisignature).to.equal(node.fees.multisignatureRegistrationFee);
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getNethash', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getNethash', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('nethash').to.be.a('string');
-			node.expect(res.body.nethash).to.equal(node.config.nethash);
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getMilestone', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getMilestone', function (err, res) {
-			node.expect(res.body).to.have.property('milestone').to.be.a('number');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getReward', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getReward', function (err, res) {
-			node.expect(res.body).to.have.property('reward').to.be.a('number');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getSupply', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getSupply', function (err, res) {
-			node.expect(res.body).to.have.property('supply').to.be.a('number');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getStatus', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getStatus', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
-			node.expect(res.body).to.have.property('epoch').to.be.a('string');
-			node.expect(res.body).to.have.property('height').to.be.a('number');
-			node.expect(res.body).to.have.property('fee').to.be.a('number');
-			node.expect(res.body).to.have.property('milestone').to.be.a('number');
-			node.expect(res.body).to.have.property('nethash').to.be.a('string');
-			node.expect(res.body).to.have.property('reward').to.be.a('number');
-			node.expect(res.body).to.have.property('supply').to.be.a('number');
-			done();
-		});
-	});
-});
 
 describe('GET /blocks (cache)', function () {
 
@@ -367,38 +240,6 @@ describe('GET /blocks', function () {
 					node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
 				}
 			}
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/get?id=', function () {
-
-	function getBlocks (id, done) {
-		http.get('/api/blocks/get?id=' + id, done);
-	}
-
-	it('using genesisblock id should be ok', function (done) {
-		getBlocks('6524861224470851795', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('block').to.be.a('object');
-			node.expect(res.body.block).to.have.property('id').to.be.a('string');
-			done();
-		});
-	});
-
-	it('using unknown id should fail', function (done) {
-		getBlocks('9928719876370886655', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string');
-			done();
-		});
-	});
-
-	it('using no id should fail', function (done) {
-		getBlocks('', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string');
 			done();
 		});
 	});

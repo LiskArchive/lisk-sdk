@@ -1,6 +1,5 @@
 'use strict';
 
-var _ = require('lodash');
 var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var OrderBy = require('../../helpers/orderBy.js');
@@ -28,42 +27,14 @@ function API (logger, db, block, schema, dbSequence) {
 		schema: schema,
 		dbSequence: dbSequence,
 		logic: {
-			block: block,
-		},
+			block: block
+		}
 	};
 	self = this;
 	__private.blockReward = new BlockReward();
 	library.logger.trace('Blocks->API: Submodule initialized.');
 	return self;
 }
-
-/**
- * Get block by ID
- *
- * @private
- * @async
- * @method getById
- * @param  {string}   id Block ID
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.block Block object
- */
-__private.getById = function (id, cb) {
-	library.db.query(sql.getById, {id: id}).then(function (rows) {
-		if (!rows.length) {
-			return setImmediate(cb, 'Block not found');
-		}
-
-		// Normalize block
-		var block = library.logic.block.dbRead(rows[0]);
-
-		return setImmediate(cb, null, block);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#getById error');
-	});
-};
 
 /**
  * Get filtered list of blocks (without transactions)
@@ -190,28 +161,6 @@ __private.list = function (filter, cb) {
 	});
 };
 
-
-API.prototype.getBlock = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	library.schema.validate(req.body, schema.getBlock, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		library.dbSequence.add(function (cb) {
-			__private.getById(req.body.id, function (err, block) {
-				if (!block || err) {
-					return setImmediate(cb, 'Block not found');
-				}
-				return setImmediate(cb, null, {block: block});
-			});
-		}, cb);
-	});
-};
-
 API.prototype.getBlocks = function (req, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
@@ -233,97 +182,6 @@ API.prototype.getBlocks = function (req, cb) {
 	});
 };
 
-API.prototype.getBroadhash = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {broadhash: modules.system.getBroadhash()});
-};
-
-API.prototype.getEpoch = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {epoch: constants.epochTime});
-};
-
-API.prototype.getHeight = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {height: modules.blocks.lastBlock.get().height});
-};
-
-API.prototype.getFee = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {fee: library.logic.block.calculateFee()});
-};
-
-API.prototype.getFees = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {fees: constants.fees});
-};
-
-API.prototype.getNethash = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {nethash: modules.system.getNethash()});
-};
-
-API.prototype.getMilestone = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {milestone: __private.blockReward.calcMilestone(modules.blocks.lastBlock.get().height)});
-};
-
-API.prototype.getReward = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {reward: __private.blockReward.calcReward(modules.blocks.lastBlock.get().height)});
-};
-
-API.prototype.getSupply = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {supply: __private.blockReward.calcSupply(modules.blocks.lastBlock.get().height)});
-};
-
-API.prototype.getStatus = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	var lastBlock = modules.blocks.lastBlock.get();
-
-	return setImmediate(cb, null, {
-		broadhash: modules.system.getBroadhash(),
-		epoch: constants.epochTime,
-		height: lastBlock.height,
-		fee: library.logic.block.calculateFee(),
-		milestone: __private.blockReward.calcMilestone(lastBlock.height),
-		nethash: modules.system.getNethash(),
-		reward: __private.blockReward.calcReward(lastBlock.height),
-		supply: __private.blockReward.calcSupply(lastBlock.height)
-	});
-};
-
 /**
  * Handle modules initialization:
  * - blocks
@@ -334,7 +192,7 @@ API.prototype.onBind = function (scope) {
 	library.logger.trace('Blocks->API: Shared modules bind.');
 	modules = {
 		blocks: scope.blocks,
-		system: scope.system,
+		system: scope.system
 	};
 
 	// Set module as loaded
