@@ -14,6 +14,8 @@
  *
  */
 import fs from 'fs';
+import * as createAccount from '../../src/commands/createAccount';
+import * as env from '../../src/commands/env';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
 import * as print from '../../src/utils/print';
@@ -40,6 +42,11 @@ export const getCommandInstance = (vorpal, command) => {
 	const commandStem = command.match(/^[^[|<]+/)[0].slice(0, -1);
 	return vorpal.find(commandStem);
 };
+
+export const getActionCreator = actionName => ({
+	'create account': createAccount.actionCreator,
+	env: env.actionCreator,
+})[actionName];
 
 export const setUpFsStubs = () => {
 	[

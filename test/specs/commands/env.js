@@ -13,77 +13,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import os from 'os';
-import env from '../../../src/commands/env';
-import configObj from '../../../src/utils/env';
-import {
-	readJsonSync,
-	writeJsonSync,
-} from '../../../src/utils/fs';
-import {
-	getCommands,
-	getRequiredArgs,
-	setUpVorpalWithCommand,
-} from './utils';
-
-const configFilePath = `${os.homedir()}/.lisky/config.json`;
-const writeConfig = config => writeJsonSync(configFilePath, config);
-
-const initialConfig = readJsonSync(configFilePath);
-
-const defaultConfig = {
-	name: 'lisky',
-	json: false,
-	liskJS: {
-		testnet: false,
-		node: '',
-		port: '',
-		ssl: false,
-	},
-};
-const defaultConfigString = JSON.stringify(defaultConfig);
+import * as given from '../../steps/1_given';
+import * as when from '../../steps/2_when';
+import * as then from '../../steps/3_then';
 
 describe('env command', () => {
-	const commandName = 'env';
-	let capturedOutput = [];
-	let vorpal;
-
-	beforeEach(() => {
-		vorpal = setUpVorpalWithCommand(env, capturedOutput);
-	});
-
-	afterEach(() => {
-		// See https://github.com/dthree/vorpal/issues/230
-		vorpal.ui.removeAllListeners();
-		capturedOutput = [];
-	});
-
-	after(() => {
-		writeConfig(initialConfig);
-	});
-
-	it('should be available', () => {
-		const envCommands = getCommands(vorpal, commandName);
-		(envCommands).should.have.length(1);
-	});
-
-	it('should require 0 inputs', () => {
-		const requiredArgs = getRequiredArgs(vorpal, commandName);
-		(requiredArgs).should.have.length(0);
-	});
-
-	describe('output env', () => {
-		const envCommandString = 'env --json';
-
-		beforeEach(() => {
-			const defaultConfigClone = JSON.parse(defaultConfigString);
-			Object.assign(configObj, defaultConfigClone);
-			writeConfig(defaultConfig);
-		});
-
-		it('should print config file', () => {
-			return vorpal.exec(envCommandString).then(() => {
-				(capturedOutput).should.be.eql([JSON.stringify(defaultConfig)]);
+	describe('Given a config', () => {
+		beforeEach(given.aConfig);
+		describe('Given an action "env"', () => {
+			beforeEach(given.anAction);
+			describe('When the action is called', () => {
+				beforeEach(when.theActionIsCalled);
+				it('Then it should resolve to the config', then.itShouldResolveToTheConfig);
 			});
 		});
 	});
