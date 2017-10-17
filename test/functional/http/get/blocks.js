@@ -51,7 +51,6 @@ describe.skip('GET /blocks (cache)', function () {
 		params = 'height=' + block.blockHeight;
 		http.get(url + params, function (err, res) {
 			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body).to.have.property('count').to.equal(1);
 			var response = res.body;
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
@@ -80,7 +79,6 @@ describe.skip('GET /blocks (cache)', function () {
 		params = 'height=' + block.blockHeight;
 		http.get(url + params, function (err, res) {
 			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body).to.have.property('count').to.equal(1);
 			var response = res.body;
 			cache.getJsonForKey(url + params, function (err, res) {
 				node.expect(err).to.not.exist;
@@ -126,7 +124,6 @@ describe('GET /blocks', function () {
 		it('using height should be ok', function (done) {
 			getBlocks('height=' + block.blockHeight, function (err, res) {
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				node.expect(res.body).to.have.property('count').to.equal(1);
 				node.expect(res.body.blocks.length).to.equal(1);
 				node.expect(res.body.blocks[0]).to.have.property('id');
 				node.expect(res.body.blocks[0]).to.have.property('previousBlock');
@@ -151,7 +148,6 @@ describe('GET /blocks', function () {
 			}
 
 			getBlocks('height=' + 10, function (err, res) {
-				node.expect(res.body).to.have.property('count');
 				node.expect(res.body).to.have.property('blocks').that.is.an('array');
 				node.expect(res.body.blocks.length).to.equal(1);
 				node.expect(res.body.blocks[0]).to.have.property('previousBlock');

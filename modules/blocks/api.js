@@ -135,34 +135,18 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, orderBy.error);
 	}
 
-	library.db.query(sql.countList({
-		where: where
+	library.db.query(sql.list({
+		where: where,
+		sortField: orderBy.sortField,
+		sortMethod: orderBy.sortMethod
 	}), params).then(function (rows) {
-		var count = rows[0].count;
-
-		library.db.query(sql.list({
-			where: where,
-			sortField: orderBy.sortField,
-			sortMethod: orderBy.sortMethod
-		}), params).then(function (rows) {
-			var blocks = [];
-
-			// Normalize blocks
-			for (var i = 0; i < rows.length; i++) {
-				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-				blocks.push(library.logic.block.dbRead(rows[i]));
-			}
-
-			var data = {
-				blocks: blocks,
-				count: count
-			};
-
-			return setImmediate(cb, null, data);
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#list error');
-		});
+		var blocks = [];
+		// Normalize blocks
+		for (var i = 0; i < rows.length; i++) {
+			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
+			blocks.push(library.logic.block.dbRead(rows[i]));
+		}
+		return setImmediate(cb, null, {blocks: blocks});
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Blocks#list error');
