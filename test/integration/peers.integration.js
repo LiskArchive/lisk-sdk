@@ -446,7 +446,7 @@ describe('integration', function () {
 
 			it('should have all peers at the same height', function () {
 				var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
-				expect(uniquePeersHeights).to.have.lengthOf(1);
+				expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 			});
 
 			it('should have all blocks the same at all peers', function () {
@@ -482,7 +482,7 @@ describe('integration', function () {
 
 			it('should have all peers having same amount of confirmed transactions', function () {
 				var uniquePeersTransactionsNumber = _(nodesTransactions).map('length').uniq().value();
-				expect(uniquePeersTransactionsNumber).to.have.lengthOf(1);
+				expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
 			});
 
 			it('should have all transactions the same at all peers', function () {
