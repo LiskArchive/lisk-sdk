@@ -4,7 +4,6 @@ var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
 var modulesLoader = require('../../../common/modulesLoader');
 
-
 describe('GET /api/blocks', function () {
 
 	var block = {
