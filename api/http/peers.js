@@ -25,7 +25,7 @@ function PeersHttpApi (peersModule, app) {
 
 	router.map(peersModule.shared, {
 		'get /': 'getPeers'
-	});
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/peers', app, router, peersModule.isLoaded);
 }

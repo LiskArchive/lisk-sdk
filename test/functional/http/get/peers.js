@@ -46,8 +46,7 @@ describe('GET /api/peers', function () {
 			var params = 'ip=' + ip;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format ip: invalid');
+				node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format ip: invalid');
 				done();
 			});
 		});
@@ -56,7 +55,7 @@ describe('GET /api/peers', function () {
 			var params = 'ip=' + validHeaders.ip;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('peers');
 				done();
 			});
 		});
@@ -69,7 +68,7 @@ describe('GET /api/peers', function () {
 			var params = 'port=' + port;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('peers');
 				done();
 			});
 		});
@@ -88,8 +87,7 @@ describe('GET /api/peers', function () {
 			var params = 'port=' + port;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
+				node.expect(res.body).to.have.property('message').to.equal('Value 0 is less than minimum 1');
 				done();
 			});
 		});
@@ -99,8 +97,7 @@ describe('GET /api/peers', function () {
 			var params = 'port=' + port;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value 65536 is greater than maximum 65535');
+				node.expect(res.body).to.have.property('message').to.equal('Value 65536 is greater than maximum 65535');
 				done();
 			});
 		});
@@ -113,7 +110,6 @@ describe('GET /api/peers', function () {
 			var params = 'httpPort=' + port;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -132,8 +128,7 @@ describe('GET /api/peers', function () {
 			var params = 'httpPort=' + port;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
+				node.expect(res.body).to.have.property('message').to.equal('Value 0 is less than minimum 1');
 				done();
 			});
 		});
@@ -143,8 +138,7 @@ describe('GET /api/peers', function () {
 			var params = 'httpPort=' + port;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value 65536 is greater than maximum 65535');
+				node.expect(res.body).to.have.property('message').to.equal('Value 65536 is greater than maximum 65535');
 				done();
 			});
 		});
@@ -157,7 +151,6 @@ describe('GET /api/peers', function () {
 			var params = 'state=' + state;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
 				done();
 			});
@@ -168,7 +161,6 @@ describe('GET /api/peers', function () {
 			var params = 'state=' + state;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
 				done();
 			});
@@ -179,7 +171,6 @@ describe('GET /api/peers', function () {
 			var params = 'state=' + state;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
 				done();
 			});
@@ -189,7 +180,6 @@ describe('GET /api/peers', function () {
 			var params = 'state=' + validHeaders.status;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').to.be.an('array').that.have.nested.property('0.state').equal(2);
 				done();
 			});
@@ -200,8 +190,7 @@ describe('GET /api/peers', function () {
 			var params = 'state=' + state;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value 3 is greater than maximum 2');
+				node.expect(res.body).to.have.property('message').to.equal('Value 3 is greater than maximum 2');
 				done();
 			});
 		});
@@ -214,7 +203,6 @@ describe('GET /api/peers', function () {
 			var params = 'version=' + version;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -233,8 +221,7 @@ describe('GET /api/peers', function () {
 			var params = 'version=' + version;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 9999.999.999');
+				node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 9999.999.999');
 				done();
 			});
 		});
@@ -244,8 +231,7 @@ describe('GET /api/peers', function () {
 			var params = 'version=' + version;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.9999.999');
+				node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 999.9999.999');
 				done();
 			});
 		});
@@ -255,8 +241,7 @@ describe('GET /api/peers', function () {
 			var params = 'version=' + version;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.9999');
+				node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 999.999.9999');
 				done();
 			});
 		});
@@ -266,8 +251,7 @@ describe('GET /api/peers', function () {
 			var params = 'version=' + version;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format version: 999.999.999ab');
+				node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 999.999.999ab');
 				done();
 			});
 		});
@@ -280,7 +264,6 @@ describe('GET /api/peers', function () {
 			var params = 'broadhash=' + broadhash;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				done();
 			});
 		});
@@ -299,8 +282,7 @@ describe('GET /api/peers', function () {
 			var params = 'broadhash=' + broadhash;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Object didn\'t pass validation for format hex: invalid');
+				node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format hex: invalid');
 				done();
 			});
 		});
@@ -313,7 +295,6 @@ describe('GET /api/peers', function () {
 			var params = 'orderBy=' + orderBy;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
 
 				if (res.body.peers.length > 0) {
@@ -331,7 +312,6 @@ describe('GET /api/peers', function () {
 		it('using sort with any of sort fields should not place NULLs first', function (done) {
 			node.async.each(peersSortFields, function (sortField, cb) {
 				http.get('/api/peers?orderBy=' + sortField, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('peers').that.is.an('array');
 
 					var dividedIndices = res.body.peers.reduce(function (memo, peer, index) {
@@ -355,7 +335,6 @@ describe('GET /api/peers', function () {
 		});
 	});
 
-
 	describe('limit', function () {
 
 		it('using string limit should fail', function (done) {
@@ -363,8 +342,7 @@ describe('GET /api/peers', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
+				node.expect(res.body).to.have.property('message').to.equal('Expected type integer but found type string');
 				done();
 			});
 		});
@@ -374,8 +352,7 @@ describe('GET /api/peers', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 1');
+				node.expect(res.body).to.have.property('message').to.equal('Value -1 is less than minimum 1');
 				done();
 			});
 		});
@@ -385,8 +362,7 @@ describe('GET /api/peers', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value 0 is less than minimum 1');
+				node.expect(res.body).to.have.property('message').to.equal('Value 0 is less than minimum 1');
 				done();
 			});
 		});
@@ -396,7 +372,6 @@ describe('GET /api/peers', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
 				node.expect(res.body.peers.length).to.be.at.most(limit);
 				done();
@@ -408,7 +383,6 @@ describe('GET /api/peers', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('peers').that.is.an('array');
 				node.expect(res.body.peers.length).to.be.at.most(limit);
 				done();
@@ -420,8 +394,7 @@ describe('GET /api/peers', function () {
 			var params = 'limit=' + limit;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value 101 is greater than maximum 100');
+				node.expect(res.body).to.have.property('message').to.equal('Value 101 is greater than maximum 100');
 				done();
 			});
 		});
@@ -434,8 +407,7 @@ describe('GET /api/peers', function () {
 			var params = 'offset=' + offset;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Expected type integer but found type string');
+				node.expect(res.body).to.have.property('message').to.equal('Expected type integer but found type string');
 				done();
 			});
 		});
@@ -445,8 +417,7 @@ describe('GET /api/peers', function () {
 			var params = 'offset=' + offset;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Value -1 is less than minimum 0');
+				node.expect(res.body).to.have.property('message').to.equal('Value -1 is less than minimum 0');
 				done();
 			});
 		});
@@ -456,7 +427,80 @@ describe('GET /api/peers', function () {
 			var params = 'offset=' + offset;
 
 			http.get('/api/peers?' + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
+				done();
+			});
+		});
+	});
+});
+
+describe('GET /api/peers codes', function () {
+
+	describe('when query is malformed', function () {
+
+		var invalidParams = 'port="invalidValue"';
+
+		it('should return http code = 400', function (done) {
+			http.get('/api/peers?' + invalidParams, function (err, res) {
+				node.expect(res).to.have.property('status').equal(400);
+				done();
+			});
+		});
+	});
+
+	describe('when limit is exceeded', function () {
+
+		it('should return http code = 429', function (done) {
+			var count = 0;
+			var requestsLimit = node.config.api.options.limits.max - 1;
+			// Wait for new request window frame
+			setTimeout(function () {
+				node.async.whilst(
+					function () {
+						return count <= requestsLimit;
+					},
+					function (cb) {
+						http.get('/api/peers', function (err, res) {
+							node.expect(res).to.have.property('status').equal(200);
+							count += 1;
+							cb();
+						});
+					},
+					function () {
+						http.get('/api/peers', function (err, res) {
+							node.expect(res).to.have.property('status').equal(429);
+							// Wait for new request window frame before starting next tests
+							setTimeout(done, 1001);
+						});
+					}
+				);
+			}, 1001);
+		});
+	});
+
+	describe('when query does not return results', function () {
+
+		var notExistingPort = 1111;
+		var emptyResultParams = 'port=' + notExistingPort;
+
+		it('should return http code = 200', function (done) {
+			http.get('/api/peers?' + emptyResultParams, function (err, res) {
+				node.expect(res).to.have.property('status').equal(200);
+				done();
+			});
+		});
+	});
+
+	describe('when query returns results', function () {
+
+		var validParams;
+
+		before(function () {
+			validParams = 'port=' + validHeaders.port;
+		});
+
+		it('should return http code = 200', function (done) {
+			http.get('/api/peers?' + validParams, function (err, res) {
+				node.expect(res).to.have.property('status').equal(200);
 				done();
 			});
 		});

@@ -2,18 +2,21 @@
 
 var _ = require('lodash');
 var async = require('async');
-var constants = require('../helpers/constants.js');
-var failureCodes = require('../api/ws/rpc/failureCodes.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
+var util = require('util');
+
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
+var constants = require('../helpers/constants.js');
+var failureCodes = require('../api/ws/rpc/failureCodes.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
 var sql = require('../sql/peers.js');
-var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {};
@@ -38,7 +41,7 @@ function Peers (cb, scope) {
 		build: scope.build,
 		lastCommit: scope.lastCommit,
 		logic: {
-			peers: scope.logic.peers,
+			peers: scope.logic.peers
 		},
 		config: {
 			peers: scope.config.peers,
@@ -628,21 +631,10 @@ Peers.prototype.shared = {
 	getPeers: function (req, cb) {
 		library.schema.validate(req.body, schema.getPeers, function (err) {
 			if (err) {
-				return setImmediate(cb, err[0].message);
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.QUERY_MALFORMED));
 			}
-
-			if (req.body.limit < 0 || req.body.limit > 100) {
-				return setImmediate(cb, 'Invalid limit. Maximum is 100');
-			}
-
 			req.body.normalized = true;
-			__private.getByFilter(req.body, function (err, peers) {
-				if (err) {
-					return setImmediate(cb, 'Failed to get peers');
-				}
-
-				return setImmediate(cb, null, {peers: peers});
-			});
+			return setImmediate(cb, null, {peers: __private.getByFilter(req.body)});
 		});
 	}
 };
