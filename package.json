@@ -22,6 +22,9 @@
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
+  "engines": {
+    "npm": "=5.3.0"
+  },
   "dependencies": {
     "async": "=2.4.1",
     "bignumber.js": "=4.0.2",
