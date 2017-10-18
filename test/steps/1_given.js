@@ -37,6 +37,10 @@ import {
 
 const envToStub = require('../../src/utils/env');
 
+export function inputs() {
+	this.test.ctx.inputs = getQuotedStrings(this.test.parent.title);
+}
+
 export function anInput() {
 	const input = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.input = input;

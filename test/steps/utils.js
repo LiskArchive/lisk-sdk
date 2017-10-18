@@ -17,6 +17,7 @@ import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
 import * as env from '../../src/commands/env';
 import * as get from '../../src/commands/get';
+import * as list from '../../src/commands/list';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
 import * as print from '../../src/utils/print';
@@ -48,6 +49,7 @@ export const getActionCreator = actionName => ({
 	'create account': createAccount.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,
+	list: list.actionCreator,
 })[actionName];
 
 export const setUpFsStubs = () => {

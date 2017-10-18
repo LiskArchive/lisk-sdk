@@ -27,7 +27,7 @@ const description = `Get information from <type> with parameters <input, input, 
 	- list blocks 5510510593472232540 16450842638530591789
 `;
 
-const actionCreator = () => async ({ type, variadic }) => {
+export const actionCreator = () => async ({ type, inputs }) => {
 	const singularType = Object.keys(SINGULARS).includes(type)
 		? SINGULARS[type]
 		: type;
@@ -36,14 +36,14 @@ const actionCreator = () => async ({ type, variadic }) => {
 		throw new Error('Unsupported type.');
 	}
 
-	const queries = variadic.map(handlers[singularType]);
+	const queries = inputs.map(handlers[singularType]);
 
 	return Promise.all(queries)
 		.then(results => results.map(processResult(singularType)));
 };
 
 const list = createCommand({
-	command: 'list <type> <variadic...>',
+	command: 'list <type> <inputs...>',
 	autocomplete: COMMAND_TYPES,
 	description,
 	actionCreator,
