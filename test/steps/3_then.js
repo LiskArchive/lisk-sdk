@@ -22,7 +22,34 @@ import tablify from '../../src/utils/tablify';
 import {
 	getCommandInstance,
 	getFirstQuotedString,
+	getFirstBoolean,
 } from './utils';
+
+export function itShouldWriteTheUpdatedConfigToTheConfigFile() {
+	const { filePath, config } = this.test.ctx;
+	return (fsUtils.writeJsonSync).should.be.calledWithExactly(filePath, config);
+}
+
+export function itShouldUpdateTheConfigVariableToTheValue() {
+	const { config, value } = this.test.ctx;
+	const variable = getFirstQuotedString(this.test.title);
+	return (config).should.have.property(variable).equal(value);
+}
+
+export function itShouldUpdateTheConfigNestedVariableToBoolean() {
+	const { config } = this.test.ctx;
+	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
+	const boolean = getFirstBoolean(this.test.title);
+	const value = nestedVariable.reduce((currentObject, nextKey) => currentObject[nextKey], config);
+	return (value).should.equal(boolean);
+}
+
+export function itShouldUpdateTheConfigVariableToBoolean() {
+	const { config } = this.test.ctx;
+	const variable = getFirstQuotedString(this.test.title);
+	const boolean = getFirstBoolean(this.test.title);
+	return (config).should.have.property(variable).equal(boolean);
+}
 
 export function theVorpalCommandInstanceShouldHaveTheAutocompleteList() {
 	const { vorpal, command, autocompleteList } = this.test.ctx;
@@ -101,6 +128,20 @@ export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheA
 		address,
 	};
 	return (returnValue).should.be.fulfilledWith(expectedObject);
+}
+
+export async function itShouldResolveToAnObjectWithMessage() {
+	const { returnValue } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	const result = await returnValue;
+	return (result).should.have.property('message').equal(message);
+}
+
+export async function itShouldResolveToAnObjectWithWarning() {
+	const { returnValue } = this.test.ctx;
+	const warning = getFirstQuotedString(this.test.title);
+	const result = await returnValue;
+	return (result).should.have.property('warning').equal(warning);
 }
 
 export function theMnemonicPassphraseShouldBeA12WordString() {

@@ -53,6 +53,34 @@ export function aType() {
 
 export const anUnknownType = aType;
 
+export function vorpalIsInInteractiveMode() {
+	delete process.env.NON_INTERACTIVE_MODE;
+}
+
+export function vorpalIsInNonInteractiveMode() {
+	process.env.NON_INTERACTIVE_MODE = true;
+}
+
+export function theConfigFileCanBeWritten() {}
+
+export function theConfigFileCannotBeWritten() {
+	fsUtils.writeJsonSync.throws('EACCES: permission denied');
+}
+
+export function aValue() {
+	const value = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.value = value;
+}
+
+export const anUnknownValue = aValue;
+
+export function aVariable() {
+	const variable = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.variable = variable;
+}
+
+export const anUnknownVariable = aVariable;
+
 export function anAction() {
 	const actionName = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.action = getActionCreator(actionName)();

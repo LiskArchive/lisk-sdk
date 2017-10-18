@@ -29,7 +29,7 @@ describe('input utils', () => {
 	beforeEach(() => {
 		setUpFsStubs();
 	});
-	after(restoreEnvVariable(ENV_VARIABLE));
+	afterEach(restoreEnvVariable(ENV_VARIABLE));
 	describe('#getFirstLineFromString', () => {
 		describe('Given there is no string available', () => {
 			beforeEach(given.thereIsNoStringAvailable);
