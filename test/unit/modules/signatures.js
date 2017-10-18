@@ -28,13 +28,6 @@ describe('signatures', function () {
 
 	describe('shared', function () {
 
-		describe('getFee', function () {
-
-			it('should call callback with error = null');
-
-			it('should call callback with fee taken from constants.fees.secondSignature');
-		});
-
 		describe('postSignatures', function () {
 
 			it('should call modules.transport.shared.postSignatures with req.body and callback');

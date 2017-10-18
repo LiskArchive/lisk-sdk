@@ -26,8 +26,8 @@ function Signatures (cb, scope) {
 		ed: scope.ed,
 		balancesSequence: scope.balancesSequence,
 		logic: {
-			transaction: scope.logic.transaction,
-		},
+			transaction: scope.logic.transaction
+		}
 	};
 	self = this;
 
@@ -75,13 +75,10 @@ Signatures.prototype.onBind = function (scope) {
  * @see {@link http://apidocjs.com/}
  */
 Signatures.prototype.shared = {
-	getFee: function (req, cb) {
-		var fee = constants.fees.secondSignature;
-
-		return setImmediate(cb, null, {fee: fee});
-	},
-
 	postSignatures: function (req, cb) {
+		if (!self.isLoaded()) {
+			return setImmediate(cb, 'Blockchain is loading');
+		}
 		return modules.transport.shared.postSignatures(req.body, cb);
 	}
 };
