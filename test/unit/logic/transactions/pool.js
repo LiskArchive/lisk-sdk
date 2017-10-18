@@ -74,6 +74,16 @@ var transactions = [
 	node.lisk.vote.createVote(testAccounts[0].secret, 
 		['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
 	/* Type: 4 - Multisignature registration.*/
+	[
+		/* - Create normal multisignature, all accounts in database */
+		createMultisignatureSigned (testAccounts[0].secret, null, 
+			['+' + testAccounts[1].account.publicKey, '+' + testAccounts[2].account.publicKey], 
+			[testAccounts[1].secret, testAccounts[2].secret], 1, 2),
+		/* - Create multisignature signed with signer account not register in database.*/
+		createMultisignatureSigned (testAccounts[2].secret, null, 
+			['+6a23c387172fdf66654f27ccb451ceb4bed7507584c20ed5168f0e7a979f9c5e'], 
+			['horse endless tag awkward pact reveal kiss april crash interest prefer lunch'], 1, 1)
+	]
 ];
 
 var invalidsTxs = [
@@ -95,9 +105,18 @@ var invalidsTxs = [
 		/* - Submit votes from an account without enough credit.*/
 		node.lisk.vote.createVote(testAccounts[1].secret, 
 			['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
-		/* - Submit votes to an account taht is not a delegate.*/
+		/* - Submit votes to an account that is not a delegate.*/
 		node.lisk.vote.createVote(testAccounts[2].secret, 
 			['+181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c'])
+	],
+	/* Type: 4.*/
+	[
+		/* - Create multisignature signed from an account without enough credit.*/
+		createMultisignatureSigned (testAccounts[1].secret, null, 
+			['+' + testAccounts[3].account.publicKey,], [testAccounts[3].secret], 1, 1),
+		/* - Create multisignature signed without.*/
+		createMultisignatureSigned (testAccounts[3].secret, null, 
+			['+' + testAccounts[2].account.publicKey,], [testAccounts[2].secret], 1, 2)
 	]
 ];
 
@@ -143,6 +162,17 @@ function restoreSpiesState () {
 	error.restore();
 }
 
+function createMultisignatureSigned (creatorSecret, creatorSecondSecret, keysgroup, signeersSecrets, min, lifetime) {
+	var multisignatureTransaction = node.lisk.multisignature.createMultisignature(creatorSecret, creatorSecondSecret, keysgroup, min, lifetime);
+	var signatures = [];
+	signeersSecrets.forEach(function (secret) {
+		var sign = node.lisk.multisignature.signTransaction(multisignatureTransaction, secret);
+		signatures.push(sign);
+	});
+	multisignatureTransaction.signatures = signatures;
+	return multisignatureTransaction;
+}
+
 describe('txPool', function () {
 	
 	var accounts;
@@ -181,6 +211,7 @@ describe('txPool', function () {
 				modulesLoader.initModules([
 					{accounts: require('../../../../modules/accounts')},
 					{delegates: require('../../../../modules/delegates')},
+					{multisignatures: require('../../../../modules/multisignatures')},
 				], [
 					{'transaction': require('../../../../logic/transaction')},
 					{'account': require('../../../../logic/account')}
@@ -194,10 +225,13 @@ describe('txPool', function () {
 					var logicVote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
 					logicVote.bind(__modules.delegates);
 
+					var logicMultisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, __trsLogic, modulesLoader.scope.logger);
+
 					__modules.accounts.onBind(__modules);
 					accounts = __modules.accounts;
 					
 					__modules.delegates.onBind(__modules);
+					__modules.multisignatures.onBind(__modules);
 
 					txPool.bind(__modules.accounts);
 
@@ -205,7 +239,7 @@ describe('txPool', function () {
 					__trsLogic.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
 					__trsLogic.attachAssetType(transactionTypes.DELEGATE, logicDelegates);
 					__trsLogic.attachAssetType(transactionTypes.SIGNATURE, new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger));
-					__trsLogic.attachAssetType(transactionTypes.MULTI, new Multisignature());
+					__trsLogic.attachAssetType(transactionTypes.MULTI, logicMultisignature);
 
 					done();
 				});
@@ -698,7 +732,7 @@ describe('txPool', function () {
 			describe('Tx type: 4 - Multisignature registration', function () {
 
 				it('should be ok when add normal transaction to unverified', function (done) {
-					txPool.add(transactions[4], function (err, cbtx) {
+					txPool.add(transactions[4][0], function (err, cbtx) {
 						if (err) {
 							done(err);
 						}
@@ -706,7 +740,17 @@ describe('txPool', function () {
 						done();
 					});
 				});
-	
+
+				it('should be ok when add transaction to unverified with not register signer in database', function (done) {
+					txPool.add(transactions[4][1], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[4][0], function (err, cbtx) {
 						if (err) {
@@ -717,7 +761,7 @@ describe('txPool', function () {
 					});
 				});
 
-				it('should be ok when add transaction to unverified that votes a non delegate', function (done) {
+				it('should be ok when add transaction to unverified without enough signatures', function (done) {
 					txPool.add(invalidsTxs[4][1], function (err, cbtx) {
 						if (err) {
 							done(err);
@@ -735,21 +779,28 @@ describe('txPool', function () {
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[4][0].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[4][0].senderId, 'balance: 0'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[4][1].id);
-						expect(error.args[1][1]).to.equal('Delegate not found');
+						expect(error.args[1][1]).to.equal('Invalid multisignature min. Must be less than or equal to keysgroup size');
 						poolTotals.invalid += 1;
-						poolTotals.ready += 1;
+						poolTotals.ready += 2;
 						done();
 					});
 				});
 
 				it('should fail when add same normal transaction to unverified', function (done) {
-					txPool.add(transactions[3], function (err, cbtx) {
-						expect(err).to.equal('Transaction is already in pool: ' + transactions[3].id);
+					txPool.add(transactions[4][0], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already in pool: ' + transactions[4][0].id);
 						done();
 					});
 				});
 
-				it('should fail when add same transaction that votes a non delegate to unverified', function (done) {
+				it('should fail when add same transaction with unregister signer to unverified', function (done) {
+					txPool.add(transactions[4][1], function (err, cbtx) {
+						expect(err).to.equal('Transaction is already in pool: ' + transactions[4][1].id);
+						done();
+					});
+				});
+
+				it('should fail when add same transaction without enough signatures to unverified', function (done) {
 					txPool.add(invalidsTxs[4][1], function (err, cbtx) {
 						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidsTxs[4][1].id);
 						done();
@@ -757,7 +808,16 @@ describe('txPool', function () {
 				});
 
 				it('should be ok when delete normal transaction from ready', function (done) {
-					var deletedTx = txPool.delete(transactions[4]);
+					var deletedTx = txPool.delete(transactions[4][0]);
+					
+					expect(deletedTx.length).to.equal(1);
+					expect(deletedTx[0]).to.equal('ready');
+					poolTotals.ready -= 1;
+					done();
+				});
+
+				it('should be ok when delete transaction without enough signatures from ready', function (done) {
+					var deletedTx = txPool.delete(transactions[4][1]);
 					
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
