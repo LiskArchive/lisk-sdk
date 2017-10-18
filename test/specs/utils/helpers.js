@@ -36,16 +36,16 @@ describe('utils helpers', () => {
 		});
 	});
 	describe('#shouldUseJsonOutput', () => {
-		describe('Given a config with json set to "true"', () => {
+		describe('Given a config with json set to true', () => {
 			beforeEach(given.aConfigWithJsonSetTo);
-			describe('Given an options object with json set to "true"', () => {
+			describe('Given an options object with json set to true', () => {
 				beforeEach(given.anOptionsObjectWithJsonSetTo);
 				describe('When shouldUseJsonOutput is called with the config and options', () => {
 					beforeEach(when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions);
 					it('Then it should return true', then.itShouldReturnTrue);
 				});
 			});
-			describe('Given an options object with json set to "false"', () => {
+			describe('Given an options object with json set to false', () => {
 				beforeEach(given.anOptionsObjectWithJsonSetTo);
 				describe('When shouldUseJsonOutput is called with the config and options', () => {
 					beforeEach(when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions);
@@ -60,16 +60,16 @@ describe('utils helpers', () => {
 				});
 			});
 		});
-		describe('Given a config with json set to "false"', () => {
+		describe('Given a config with json set to false', () => {
 			beforeEach(given.aConfigWithJsonSetTo);
-			describe('Given an options object with json set to "true"', () => {
+			describe('Given an options object with json set to true', () => {
 				beforeEach(given.anOptionsObjectWithJsonSetTo);
 				describe('When shouldUseJsonOutput is called with the config and options', () => {
 					beforeEach(when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions);
 					it('Then it should return true', then.itShouldReturnTrue);
 				});
 			});
-			describe('Given an options object with json set to "false"', () => {
+			describe('Given an options object with json set to false', () => {
 				beforeEach(given.anOptionsObjectWithJsonSetTo);
 				describe('When shouldUseJsonOutput is called with the config and options', () => {
 					beforeEach(when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions);
@@ -104,7 +104,7 @@ describe('utils helpers', () => {
 		beforeEach(setUpPrintStubs);
 		describe('Given a Vorpal instance', () => {
 			beforeEach(given.aVorpalInstance);
-			describe('Given an options object with JSON set to "true"', () => {
+			describe('Given an options object with JSON set to true', () => {
 				beforeEach(given.anOptionsObjectWithJsonSetTo);
 				describe('Given a parameters object with the options', () => {
 					beforeEach(given.aParametersObjectWithTheOptions);

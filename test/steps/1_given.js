@@ -30,6 +30,7 @@ import {
 	DEFAULT_ERROR_MESSAGE,
 	getFirstQuotedString,
 	getQuotedStrings,
+	getFirstBoolean,
 	getActionCreator,
 	createFakeInterface,
 	createStreamStub,
@@ -673,20 +674,16 @@ export function aTypeWithNoAlias() {
 }
 
 export function aConfigWithJsonSetTo() {
-	const stringBoolean = getFirstQuotedString(this.test.parent.title);
-	const config = {
-		json: stringBoolean === 'true',
-	};
+	const json = getFirstBoolean(this.test.parent.title);
+	const config = { json };
 
 	env.default = config;
 	this.test.ctx.config = config;
 }
 
 export function anOptionsObjectWithJsonSetTo() {
-	const stringBoolean = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.options = {
-		json: stringBoolean === 'true',
-	};
+	const json = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { json };
 }
 
 export function anEmptyOptionsObject() {
