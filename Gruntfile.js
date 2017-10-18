@@ -63,12 +63,12 @@ module.exports = function (grunt) {
 			},
 
 			testUnit: {
-				command: 'TEST_TYPE=unit && node test/unit/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=unit && node test/unit/index.js',
 				maxBuffer: maxBufferSize
 			},
 
 			testUnitExtensive: {
-				command: 'TEST_TYPE=unit && node test/unit/index.js @slow',
+				command: 'export NODE_ENV=test TEST_TYPE=unit && node test/unit/index.js @slow',
 				maxBuffer: maxBufferSize
 			},
 
