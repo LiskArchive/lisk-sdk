@@ -20,6 +20,7 @@ var paths = [
 	'./helpers/z_schema.js',
 
 	'./logic/account.js',
+	'./logic/blockReward.js',
 	'./logic/delegate.js',
 	'./logic/inTransfer.js',
 	'./logic/peer.js',
@@ -42,6 +43,7 @@ var paths = [
 	'./modules/peers.js',
 	'./modules/transactions.js',
 
+	'./sql/blockRewards.js',
 	'./sql/delegatesList.js',
 	'./sql/rounds.js',
 
@@ -50,7 +52,11 @@ var paths = [
 
 var parallelTestsRunning = {};
 paths.forEach(function (test) {
-	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), 'test/unit/' + test], {
+	var mochaArguments = ['--timeout', (8 * 60 * 1000).toString(), 'test/unit/' + test];
+	if (typeof process.argv[2] == 'undefined' || process.argv[2] != '@slow') {
+		mochaArguments.push('--grep', '@slow', '--invert');
+	};
+	var child = child_process.spawn('node_modules/.bin/_mocha', mochaArguments, {
 		cwd: __dirname + '/../..',
 		detached: true,
 		stdio: 'inherit'

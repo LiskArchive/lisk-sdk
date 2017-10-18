@@ -68,7 +68,7 @@ module.exports = function (grunt) {
 			},
 
 			testUnitExtensive: {
-				command: 'TEST_TYPE=unit && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
+				command: 'TEST_TYPE=unit && node test/unit/index.js @slow',
 				maxBuffer: maxBufferSize
 			},
 
@@ -160,8 +160,6 @@ module.exports = function (grunt) {
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['test-unit', 'test-functional', 'test-integration']);
-	grunt.registerTask('test-single', ['eslint', 'exec:testSingle']);
-	grunt.registerTask('test-single-extensive', ['eslint', 'exec:testSingleExtensive']);
 	grunt.registerTask('test-unit', ['eslint', 'exec:testUnit']);
 	grunt.registerTask('test-unit-extensive', ['eslint', 'exec:testUnitExtensive']);
 	grunt.registerTask('test-functional', ['test-functional-ws', 'test-functional-http-get', 'test-functional-http-post']);
