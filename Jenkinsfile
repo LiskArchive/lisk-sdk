@@ -76,10 +76,24 @@ def cleanup_master() {
 	}
 }
 
-def run_test(test_path) {
+def run_action(action) {
 	try {
 		sh """
-		export TEST=${test_path} TEST_TYPE='FUNC' NODE_ENV='TEST'
+		cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+		npm run ${action}
+		"""
+	} catch (err) {
+		echo "Error: ${err}"
+		currentBuild.result = 'FAILURE'
+		report()
+		error('Stopping build: ' + action + ' failed')
+	}	
+}
+
+def run_single_test(test_path, test_type) {
+	try {
+		sh """
+		export TEST=${test_path} TEST_TYPE=${test_type}
 		cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 		npm run ${params.JENKINS_PROFILE}
 		"""
@@ -87,7 +101,7 @@ def run_test(test_path) {
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
-		error('Stopping build: master cleanup failed')
+		error('Stopping build: ' + test_path + ' failed')
 	}
 }
 
@@ -238,132 +252,39 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		parallel(
 			"ESLint" : {
 				node('node-01'){
-					sh '''
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run eslint
-					'''
+					run_action('eslint')
 				}
 			},
-			"Functional Accounts" : {
+			"Functional HTTP GET tests" : {
 				node('node-01'){
-					run_test('test/functional/http/get/accounts.js')
+					run_action('test-functional-http-get')
 				}
-			},
-			"Functional Blocks" : {
-				node('node-01'){
-					run_test('test/functional/http/get/blocks.js')
-				}
-			},
-			"Functional Dapps" : {
-				node('node-01'){
-					run_test('test/functional/http/get/dapps.js')
-				}
-			},
-			"Functional Delegates" : {
-				node('node-01'){
-					run_test('test/functional/http/get/delegates.js')
-				}
-			},
-			"Functional Loader" : {
-				node('node-01'){
-					run_test('test/functional/http/get/loader.js')
-				}
-			},
-			"Functional Multisignatures" : {
-				node('node-01'){
-					run_test('test/functional/http/get/multisignatures.js')
-				}
-			},
-			"Functional Multisignatures post" : {
-				node('node-01'){
-					run_test('test/functional/http/get/multisignatures.js')
-				}
-			},
-			"Functional Transactions" : {
-				node('node-01'){
-					run_test('test/functional/http/get/transactions.js')
-				}
-			},
-			"Functional POST transaction type 0" : {
-				node('node-01'){
-					run_test('test/functional/http/post/0.transfer.js')
-				}
-			},
-			"Functional POST transaction type 1" : {
-				node('node-01'){
-					run_test('test/functional/http/post/1.second.secret.js')
-				}
-			},
-			"Functional POST tx type 2" : {
-				node('node-01'){
-					sh """
-					export TEST=test/functional/http/post/2.delegate.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-					npm run ${params.JENKINS_PROFILE}
-					"""
-				}
-			}, // End node-01 functional tests
-			"Functional Peers" : {
+			}, // End node-01 tests
+			"Functional HTTP POST tests" : {
 				node('node-02'){
-					run_test('test/functional/http/get/peers.js')
+					run_action('test-functional-http-post')
 				}
-			},
-			"Functional Transport - Main" : {
-				node('node-02'){
-					run_test('test/functional/ws/transport.js')
-				}
-			},
-			"Functional Transport - Blocks" : {
-				node('node-02'){
-					run_test('test/functional/ws/transport.blocks.js')
-				}
-			},
-			"Functional Transport - Client" : {
-				node('node-02'){
-					run_test('test/functional/ws/transport.client.js')
-				}
-			},
-			"Functional Transport - Handshake" : {
-				node('node-02'){
-					run_test('test/functional/ws/transport.handshake.js')
-				}
-			},
-			"Functional Transport - Transactions" : {
-				node('node-02'){
-					run_test('test/functional/ws/transport.transactions.js')
-				}
-			}, // End Node-02 Tests
-			"Unit Tests" : {
+			}, // End Node-02 tests
+			"Functional WS tests" : {
 				node('node-03'){
-					try {
-						sh '''
-						export TEST_TYPE='UNIT' NODE_ENV='TEST'
-						cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-						npm run test-unit
-						'''
-					} catch (err) {
-						echo "Error: ${err}"
-						currentBuild.result = 'FAILURE'
-						report()
-						error('Stopping build: unit tests failed')
-					}
+					run_action('test-functional-ws')
+				}
+			}, // End Node-03 tests
+			"Unit Tests" : {
+				node('node-04'){
+					run_action('test-unit')
 				}
 			},
 			"Unit Tests - sql blockRewards" : {
-				node('node-03'){
-					run_test('test/unit/sql/blockRewards.js')
+				node('node-04'){
+					run_single_test('test/unit/sql/blockRewards.js', 'UNIT')
 				}
 			},
 			"Unit Tests - logic blockReward" : {
-				node('node-03'){
-					run_test('test/unit/logic/blockReward.js ')
-				}
-			},// End Node-03 unit tests
-			"Functional Stress - Transactions" : {
 				node('node-04'){
-					run_test('test/functional/ws/transport.transactions.stress.js')
+					run_single_test('test/unit/logic/blockReward.js ', 'UNIT')
 				}
-			} // End Node-04
+			}// End Node-04 unit tests
 		) // End Parallel
 	}
 
@@ -381,6 +302,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Gather Coverage Node-03" : {
 				node('node-03'){
+					report_coverage('03')
+				}
+			},
+			"Gather Coverage Node-04" : {
+				node('node-04'){
 					try {
 						sh '''
 						export HOST=127.0.0.1:4000
@@ -389,7 +315,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						npm run fetchCoverage
 						# Submit coverage reports to Master
 						scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
-						scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-03.zip
+						scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-04.zip
 						'''
 					} catch (err) {
 						echo "Error: ${err}"
@@ -397,11 +323,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						report()
 						error('Stopping build: submitting coverage failed')
 					}
-				}
-			},
-			"Gather Coverage Node-04" : {
-				node('node-04'){
-					report_coverage('04')
 				}
 			}
 		)
