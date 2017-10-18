@@ -131,9 +131,9 @@ def report(){
 lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 
 	properties([
-	  parameters([
-	    string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow test, change this value to jenkins-extensive.', )
-	   ])
+		parameters([
+			string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow test, change this value to jenkins-extensive.', )
+		 ])
 	])
 
 	stage ('Prepare Workspace') {
@@ -284,14 +284,14 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					run_test('test/functional/http/get/transactions.js')
 				}
 			},
-			"Functional POST tx type 0" : {
+			"Functional POST transaction type 0" : {
 				node('node-01'){
 					run_test('test/functional/http/post/0.transfer.js')
-        }
+				}
 			},
-			"Functional POST tx type 1" : {
+			"Functional POST transaction type 1" : {
 				node('node-01'){
-          run_test('test/functional/http/post/0.transfer.js')
+					run_test('test/functional/http/post/1.second.secret.js')
 				}
 			},
 			"Functional POST tx type 2" : {

@@ -9,7 +9,7 @@ var sinon   = require('sinon');
 
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 
 var typesRepresentatives = require('../../common/typesRepresentatives.js');
 
@@ -100,13 +100,13 @@ describe('signature', function () {
 
 	describe('with transaction and sender objects', function () {
 
-		var trs;
-		var rawTrs; 
+		var transaction;
+		var rawTransaction;
 		var sender;
 
 		beforeEach(function () {
-			trs = _.cloneDeep(validTransaction);
-			rawTrs = _.cloneDeep(rawValidTransaction);
+			transaction = _.cloneDeep(validTransaction);
+			rawTransaction = _.cloneDeep(rawValidTransaction);
 			sender = _.cloneDeep(validSender);
 		});
 
@@ -147,7 +147,7 @@ describe('signature', function () {
 			var fee;
 
 			beforeEach(function () {
-				fee = signature.calculateFee.call(transactionMock, trs);
+				fee = signature.calculateFee.call(transactionMock, transaction);
 			});
 
 			it('should return constants.fees.secondSignature', function () {
@@ -162,9 +162,9 @@ describe('signature', function () {
 				describe('when asset = undefined', function () {
 
 					it('should call callback with error = "Invalid transaction asset"', function (done) {
-						delete trs.asset;
+						delete transaction.asset;
 
-						signature.verify(trs, sender, function (err) {
+						signature.verify(transaction, sender, function (err) {
 							expect(err).to.equal('Invalid transaction asset');
 							done();
 						});
@@ -174,9 +174,9 @@ describe('signature', function () {
 				describe('when signature = undefined', function () {
 
 					it('should call callback with error = "Invalid transaction asset', function (done) {
-						delete trs.asset.signature;
+						delete transaction.asset.signature;
 
-						signature.verify(trs, sender, function (err) {
+						signature.verify(transaction, sender, function (err) {
 							expect(err).to.equal('Invalid transaction asset');
 							done();
 						});
@@ -186,9 +186,9 @@ describe('signature', function () {
 				describe('when amount != 0', function () {
 
 					it('should call callback with error = "Invalid transaction amount', function (done) {
-						trs.amount = 1;
+						transaction.amount = 1;
 
-						signature.verify(trs, sender, function (err) {
+						signature.verify(transaction, sender, function (err) {
 							expect(err).to.equal('Invalid transaction amount');
 							done();
 						});
@@ -198,9 +198,9 @@ describe('signature', function () {
 				describe('when publicKey = undefined', function () {
 
 					it('should call callback with error = "Invalid public key', function (done) {
-						delete trs.asset.signature.publicKey;
+						delete transaction.asset.signature.publicKey;
 
-						signature.verify(trs, sender, function (err) {
+						signature.verify(transaction, sender, function (err) {
 							expect(err).to.equal('Invalid public key');
 							done();
 						});
@@ -210,9 +210,9 @@ describe('signature', function () {
 				describe('when publicKey is invalid', function () {
 
 					it('should call callback with error = "Invalid public key', function (done) {
-						trs.asset.signature.publicKey = 'invalid-public-key';
+						transaction.asset.signature.publicKey = 'invalid-public-key';
 
-						signature.verify(trs, sender, function (err) {
+						signature.verify(transaction, sender, function (err) {
 							expect(err).to.equal('Invalid public key');
 							done();
 						});
@@ -223,7 +223,7 @@ describe('signature', function () {
 			describe('when transaction is valid', function () {
 
 				it('should call callback with error = null', function (done) {
-					signature.verify(trs, sender, done);
+					signature.verify(transaction, sender, done);
 				});
 			});
 		});
@@ -231,12 +231,12 @@ describe('signature', function () {
 		describe('process', function () {
 
 			it('should call callback with error = null', function (done) {
-				signature.process(trs, sender, done);
+				signature.process(transaction, sender, done);
 			});
 
-			it('should call callback with result = trs', function (done) {
-				signature.process(trs, sender, function (err, res) {
-					expect(res).to.eql(trs);
+			it('should call callback with result = transaction', function (done) {
+				signature.process(transaction, sender, function (err, res) {
+					expect(res).to.eql(transaction);
 					done();
 				});
 			});
@@ -246,43 +246,43 @@ describe('signature', function () {
 
 			describe('when asset is invalid', function () {
 
-				describe('when trs.asset.signature.publicKey is a number', function () {
+				describe('when transaction.asset.signature.publicKey is a number', function () {
 
 					var validNumber = 1;
 
 					beforeEach(function () {
-						trs.asset.signature.publicKey = validNumber;
+						transaction.asset.signature.publicKey = validNumber;
 					});
 
 					it('should throw', function () {
-						expect(signature.getBytes.bind(trs)).to.throw();
+						expect(signature.getBytes.bind(transaction)).to.throw();
 					});
 				});
 
-				describe('when trs.asset = undefined', function () {
+				describe('when transaction.asset = undefined', function () {
 
 					beforeEach(function () {
-						delete trs.asset;
+						delete transaction.asset;
 					});
 
 					it('should throw', function () {
-						expect(signature.getBytes.bind(trs)).to.throw();
+						expect(signature.getBytes.bind(transaction)).to.throw();
 					});
 				});
 			});
 
 			describe('when asset is valid', function () {
 
-				describe('when trs.asset.signature.publicKey is defined', function () {
+				describe('when transaction.asset.signature.publicKey is defined', function () {
 
 					var signatureBytes;
 
 					beforeEach(function () {
-						signatureBytes = signature.getBytes(trs);
+						signatureBytes = signature.getBytes(transaction);
 					});
 
 					it('should return bytes in hex format', function () {
-						expect(signatureBytes).to.eql(Buffer.from(trs.asset.signature.publicKey, 'hex'));
+						expect(signatureBytes).to.eql(Buffer.from(transaction.asset.signature.publicKey, 'hex'));
 					});
 
 					it('should return bytes of length 32', function () {
@@ -355,7 +355,7 @@ describe('signature', function () {
 				});
 
 				it('should call callback with error', function (done) {
-					signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
+					signature.applyUnconfirmed.call(transactionMock, transaction, sender, function (err) {
 						expect(err).to.equal('Second signature already enabled');
 						done();
 					});
@@ -370,7 +370,7 @@ describe('signature', function () {
 
 
 				it('should call callback with error', function (done) {
-					signature.applyUnconfirmed.call(transactionMock, trs, sender, function (err) {
+					signature.applyUnconfirmed.call(transactionMock, transaction, sender, function (err) {
 						expect(err).to.equal('Second signature already enabled');
 						done();
 					});
@@ -423,7 +423,7 @@ describe('signature', function () {
 				beforeEach(function () {
 					library = Signature.__get__('library');
 					schemaSpy = sinon.spy(library.schema, 'validate');
-					signature.objectNormalize(trs);
+					signature.objectNormalize(transaction);
 				});
 
 				afterEach(function () {
@@ -435,7 +435,7 @@ describe('signature', function () {
 				});
 
 				it('signature schema', function () {
-					expect(schemaSpy.calledWithExactly(trs.asset.signature, Signature.prototype.schema)).to.equal(true);
+					expect(schemaSpy.calledWithExactly(transaction.asset.signature, Signature.prototype.schema)).to.equal(true);
 				});
 			});
 
@@ -447,9 +447,9 @@ describe('signature', function () {
 
 					nonStrings.forEach(function (type) {
 						it('should throw when username type is ' + type.description, function () {
-							trs.asset.signature.publicKey = type.input;
+							transaction.asset.signature.publicKey = type.input;
 							expect(function () {
-								signature.objectNormalize(trs);
+								signature.objectNormalize(transaction);
 							}).to.throw('Failed to validate signature schema: Expected type string but found type ' + type.expectation);
 						});
 					});
@@ -461,9 +461,9 @@ describe('signature', function () {
 
 					nonEmptyStrings.forEach(function (type) {
 						it('should throw when username is: ' + type.description, function () {
-							trs.asset.signature.publicKey = type.input;
+							transaction.asset.signature.publicKey = type.input;
 							expect(function () {
-								signature.objectNormalize(trs);
+								signature.objectNormalize(transaction);
 							}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: ' + type.input);
 						});
 					});
@@ -473,7 +473,7 @@ describe('signature', function () {
 			describe('when library.schema.validate succeeds', function () {
 
 				it('should return transaction', function () {
-					expect(signature.objectNormalize(trs)).to.eql(trs);
+					expect(signature.objectNormalize(transaction)).to.eql(transaction);
 				});
 			});
 		});
@@ -483,11 +483,11 @@ describe('signature', function () {
 			describe('when publicKey is undefined', function () {
 
 				beforeEach(function () {
-					delete rawTrs.s_publicKey;
+					delete rawTransaction.s_publicKey;
 				});
 
 				it('should return null', function () {
-					expect(signature.dbRead(rawTrs)).to.eql(null);
+					expect(signature.dbRead(rawTransaction)).to.eql(null);
 				});
 			});
 
@@ -497,11 +497,11 @@ describe('signature', function () {
 				var transactionId = '5197781214824378819';
 
 				it('should return publicKey property', function () {
-					expect(signature.dbRead(rawTrs).signature.publicKey).to.equal(publicKey);
+					expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(publicKey);
 				});
 
 				it('should return transactionId', function () {
-					expect(signature.dbRead(rawTrs).signature.transactionId).to.eql(transactionId);
+					expect(signature.dbRead(rawTransaction).signature.transactionId).to.eql(transactionId);
 				});
 			});
 		});
@@ -510,9 +510,9 @@ describe('signature', function () {
 
 			it('should return an error when publicKey is a number', function () {
 				var invalidPublicKey = 12;
-				trs.asset.signature.publicKey = invalidPublicKey;
+				transaction.asset.signature.publicKey = invalidPublicKey;
 				expect(function () {
-					signature.dbSave(trs);
+					signature.dbSave(transaction);
 				}).to.throw();
 			});
 
@@ -528,40 +528,40 @@ describe('signature', function () {
 							'publicKey'
 						],
 						values: {
-							transactionId: trs.id,
-							publicKey: Buffer.from(trs.asset.signature.publicKey, 'hex')
+							transactionId: transaction.id,
+							publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex')
 						}
 					};
 				});
 
 				it('should return signature db promise for signature transaction', function () {
-					expect(signature.dbSave(trs)).to.eql(expectedPromise);
+					expect(signature.dbSave(transaction)).to.eql(expectedPromise);
 				});
 			});
 		});
 
 		describe('ready', function () {
 
-			it('should return true for single signature trs', function () {
-				expect(signature.ready(trs, sender)).to.equal(true);
+			it('should return true for single signature transaction', function () {
+				expect(signature.ready(transaction, sender)).to.equal(true);
 			});
 
 			it('should return false for multi signature transaction with less signatures', function () {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-				expect(signature.ready(trs, sender)).to.equal(false);
+				expect(signature.ready(transaction, sender)).to.equal(false);
 			});
 
 			it('should return true for multi signature transaction with at least min signatures', function () {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 				sender.multimin = 1;
 
-				delete trs.signature;
+				delete transaction.signature;
 				// Not really correct signature, but we are not testing that over here
-				trs.signature = crypto.randomBytes(64).toString('hex');;
-				trs.signatures = [crypto.randomBytes(64).toString('hex')];
+				transaction.signature = crypto.randomBytes(64).toString('hex');;
+				transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-				expect(signature.ready(trs, sender)).to.equal(true);
+				expect(signature.ready(transaction, sender)).to.equal(true);
 			});
 		});
 	});

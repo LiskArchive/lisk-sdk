@@ -262,7 +262,7 @@ node.expectedFee = function (amount) {
 };
 
 // Returns the expected fee for the given amount with data property
-node.expectedFeeForTrsWithData = function (amount) {
+node.expectedFeeForTransactionWithData = function (amount) {
 	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
 };
 
