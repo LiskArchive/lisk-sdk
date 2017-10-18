@@ -27,8 +27,8 @@
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
   "engines": {
-    "node": "=6.11.4",
-    "npm": "=5.3.0"
+    "node": ">=6.11.1 =<8.7.0",
+    "npm": ">=3.10.0 =<5.3.0"
   },
   "dependencies": {
     "async": "=2.4.1",
