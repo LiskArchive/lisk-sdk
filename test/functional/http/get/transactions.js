@@ -23,17 +23,18 @@ var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
 describe('GET /api/transactions', function () {
 
 	var transactionList = [];
-	var offsetTimestamp = 0;
 
 	var account = node.randomAccount();
 	var account2 = node.randomAccount();
+	var minAmount = 20 * node.normalizer; // 20 LSK
+	var maxAmount = 100 * node.normalizer; // 100 LSK
 
 	// Crediting accounts
 	before(function () {
 
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 100*100000000));
-		promises.push(creditAccountPromise(account2.address, 20*100000000));
+		promises.push(creditAccountPromise(account.address, maxAmount));
+		promises.push(creditAccountPromise(account2.address, minAmount));
 
 		return node.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
@@ -50,6 +51,7 @@ describe('GET /api/transactions', function () {
 
 		var cache;
 		var getJsonForKeyPromise;
+		var url = '/api/transactions?';
 
 		before(function (done) {
 			node.config.cacheEnabled = true;
@@ -58,7 +60,7 @@ describe('GET /api/transactions', function () {
 				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
 				node.expect(err).to.not.exist;
 				node.expect(__cache).to.be.an('object');
-				return done(err, __cache);
+				return done(err);
 			});
 		});
 
@@ -66,7 +68,7 @@ describe('GET /api/transactions', function () {
 			cache.flushDb(function (err, status) {
 				node.expect(err).to.not.exist;
 				node.expect(status).to.equal('OK');
-				done(err, status);
+				done(err);
 			});
 		});
 
@@ -75,9 +77,7 @@ describe('GET /api/transactions', function () {
 		});
 
 		it('cache transactions by the url and parameters when response is a success', function () {
-			var url, params;
-			url = '/api/transactions?';
-			params = [
+			var params = [
 				'blockId=' + '1',
 				'senderId=' + node.gAccount.address,
 				'recipientId=' + account.address,
@@ -93,9 +93,7 @@ describe('GET /api/transactions', function () {
 		});
 
 		it('should not cache if response is not a success', function () {
-			var url, params;
-			url = '/api/transactions?';
-			params = [
+			var params = [
 				'whatever:senderId=' + node.gAccount.address
 			];
 
@@ -167,8 +165,6 @@ describe('GET /api/transactions', function () {
 			var limit = 10;
 			var offset = 0;
 			var orderBy = 'amount:asc';
-			var minAmount = 20*100000000; // 20 LSK
-			var maxAmount = 100*100000000; // 100 LSK
 
 			var params = [
 				'minAmount=' + minAmount,
@@ -182,10 +178,10 @@ describe('GET /api/transactions', function () {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res.transactions).to.have.length.within(2, limit);
-				node.expect(res.transactions[0].amount).to.be.equal(minAmount);
-				node.expect(res.transactions[res.transactions.length-1].amount).to.be.equal(maxAmount);
 				for (var i = 0; i < res.transactions.length; i++) {
 					if (res.transactions[i + 1]) {
+						node.expect(res.transactions[i].amount).to.be.at.most(maxAmount);
+						node.expect(res.transactions[i].amount).to.be.at.least(minAmount);
 						node.expect(res.transactions[i].amount).to.be.at.most(res.transactions[i + 1].amount);
 					}
 				}
@@ -321,14 +317,11 @@ describe('GET /api/transactions', function () {
 		});
 
 		it('using no params should be ok', function () {
-			return getTransactionsPromise([]).then(function (res) {
+			var params = [];
+
+			return getTransactionsPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i + 1]) {
-						node.expect(res.transactions[i].amount).to.be.at.least(res.transactions[i + 1].amount);
-					}
-				}
+				node.expect(res).to.have.property('transactions').that.is.an('array').not.empty;
 			});
 		});
 
@@ -380,31 +373,33 @@ describe('GET /api/transactions', function () {
 				for (var i = 0; i < res.transactions.length; i++) {
 					if (res.transactions[i + 1]) {
 						node.expect(res.transactions[i].timestamp).to.be.at.most(res.transactions[i + 1].timestamp);
-						if (flag === 0) {
-							offsetTimestamp = res.transactions[i + 1].timestamp;
-							flag = 1;
-						}
 					}
 				}
 			});
 		});
 
-		it('using offset == 1 should be ok', function () {
-			var offset = 1;
-			var params = [
-				'offset=' + offset
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
+		it('using offset=1 should be ok', function () {
+			return getTransactionsPromise([]).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactions').that.is.an('array');
-				if (res.transactions.length > 0) {
-					node.expect(res.transactions[0].timestamp).to.be.equal(offsetTimestamp);
-				}
+
+				var offset = 1;
+				var params = [
+					'offset=' + offset
+				];
+
+				return getTransactionsPromise(params).then(function (result) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactions').that.is.an('array');
+					
+					result.transactions.forEach(function (transaction){
+						node.expect(res.transactions[0].id).not.equal(transaction.id);
+					});
+				});
 			});
 		});
 
-		it('using offset == "one" should fail', function () {
+		it('using offset="one" should fail', function () {
 			var offset = 'one';
 			var params = [
 				'offset=' + offset
@@ -462,7 +457,7 @@ describe('GET /api/transactions', function () {
 					var dividedIndices = res.transactions.reduce(function (memo, peer, index) {
 						memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
 						return memo;
-					}, {notNullIndices: [], nullIndices: []});
+					}, { notNullIndices: [], nullIndices: [] });
 
 					if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
 						var ascOrder = function (a, b) { return a - b; };
@@ -519,7 +514,7 @@ describe('GET /api/transactions', function () {
 	describe('/count', function () {
 
 		it('should be ok', function () {
-			return getCountPromise().then(function (res) {
+			return getCountPromise('transactions').then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('confirmed').that.is.an('number');
 				node.expect(res).to.have.property('queued').that.is.an('number');
@@ -540,7 +535,7 @@ describe('GET /api/transactions', function () {
 
 		it('using valid transaction with data field should be ok', function () {
 			var amountToSend = 123456789;
-			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
+			var expectedFee = node.expectedFeeForTransactionWithData(amountToSend);
 			var data = 'extra information';
 			var transaction = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 

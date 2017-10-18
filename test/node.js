@@ -28,7 +28,7 @@ node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
 node.Promise = require('bluebird');
-var randomString = require('randomstring');
+node.randomString = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
 
@@ -42,13 +42,13 @@ node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
-node.nonce = randomString.generate(16);
+node.nonce = node.randomString.generate(16);
 
 // Transaction fees
 node.fees = {
 	voteFee: node.constants.fees.vote,
 	transactionFee: node.constants.fees.send,
-	secondPasswordFee: node.constants.fees.secondsignature,
+	secondPasswordFee: node.constants.fees.secondSignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
 	dappRegistrationFee: node.constants.fees.dapp,
@@ -227,7 +227,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 node.generatePeerHeaders = function (ip, port, nonce) {
 	port = port || 9999;
 	ip = ip || '127.0.0.1';
-	nonce = nonce || randomString.generate(16);
+	nonce = nonce || node.randomString.generate(16);
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
 	var version = node.version;
@@ -260,19 +260,19 @@ node.expectedFee = function (amount) {
 };
 
 // Returns the expected fee for the given amount with data property
-node.expectedFeeForTrsWithData = function (amount) {
+node.expectedFeeForTransactionWithData = function (amount) {
 	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
 };
 
 // Returns a random username of 16 characters
 node.randomUsername = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = node.randomString.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = node.randomString.generate({
 		length: node.randomNumber(1, 15),
 		charset: custom
 	});
@@ -282,13 +282,13 @@ node.randomUsername = function () {
 
 // Returns a random delegate name of 20 characters
 node.randomDelegateName = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = node.randomString.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = node.randomString.generate({
 		length: node.randomNumber(1, 19),
 		charset: custom
 	});
@@ -298,13 +298,13 @@ node.randomDelegateName = function () {
 
 // Returns a random capitialized username of 16 characters
 node.randomCapitalUsername = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = node.randomString.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'uppercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = node.randomString.generate({
 		length: node.randomNumber(1, 15),
 		charset: custom
 	});
@@ -316,7 +316,7 @@ node.randomCapitalUsername = function () {
 node.randomApplicationName = function () {
 	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	return randomString.generate({
+	return node.randomString.generate({
 		length: node.randomNumber(1, 32),
 		charset: custom
 	});

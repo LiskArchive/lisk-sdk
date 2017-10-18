@@ -32,7 +32,7 @@ describe('signatures', function () {
 
 			it('should call callback with error = null');
 
-			it('should call callback with fee taken from constants.fees.secondsignature');
+			it('should call callback with fee taken from constants.fees.secondSignature');
 		});
 
 		describe('postSignatures', function () {

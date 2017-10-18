@@ -34,8 +34,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	describe('before new block', function () {
 
 		it('good transactions should remain unconfirmed', function () {
-			return node.Promise.map(goodTransactions, function (tx) {
-				return getTransactionPromise(tx.id).then(function (res) {
+			return node.Promise.map(goodTransactions, function (transaction) {
+				return getTransactionPromise(transaction.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('error').equal('Transaction not found');
 				});
@@ -44,8 +44,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		if (pendingMultisignatures) {
 			it('pendingMultisignatures should remain in the pending queue', function () {
-				return node.Promise.map(pendingMultisignatures, function (tx) {
-					return getPendingMultisignaturePromise(tx).then(function (res) {
+				return node.Promise.map(pendingMultisignatures, function (transaction) {
+					return getPendingMultisignaturePromise(transaction).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
 					});
@@ -53,8 +53,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 			});
 
 			it('pendingMultisignatures should not be confirmed', function () {
-				return node.Promise.map(pendingMultisignatures, function (tx) {
-					return getTransactionPromise(tx.id).then(function (res) {
+				return node.Promise.map(pendingMultisignatures, function (transaction) {
+					return getTransactionPromise(transaction.id).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.not.ok;
 						node.expect(res).to.have.property('error').equal('Transaction not found');
 					});
@@ -70,8 +70,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('bad transactions should not be confirmed', function () {
-			return node.Promise.map(badTransactions, function (tx) {
-				return getTransactionPromise(tx.id).then(function (res) {
+			return node.Promise.map(badTransactions, function (transaction) {
+				return getTransactionPromise(transaction.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('error').equal('Transaction not found');
 				});
@@ -79,8 +79,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('good transactions should not be unconfirmed', function () {
-			return node.Promise.map(goodTransactions, function (tx) {
-				return getUnconfirmedTransactionPromise(tx.id).then(function (res) {
+			return node.Promise.map(goodTransactions, function (transaction) {
+				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('error').equal('Transaction not found');
 				});
@@ -88,18 +88,18 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('good transactions should be confirmed', function () {
-			return node.Promise.map(goodTransactions, function (tx) {
-				return getTransactionPromise(tx.id).then(function (res) {
+			return node.Promise.map(goodTransactions, function (transaction) {
+				return getTransactionPromise(transaction.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transaction').to.have.property('id').equal(tx.id);
+					node.expect(res).to.have.property('transaction').to.have.property('id').equal(transaction.id);
 				});
 			});
 		});
 
 		if (pendingMultisignatures) {
 			it('pendingMultisignatures should remain in the pending queue', function () {
-				return node.Promise.map(pendingMultisignatures, function (tx) {
-					return getPendingMultisignaturePromise(tx).then(function (res) {
+				return node.Promise.map(pendingMultisignatures, function (transaction) {
+					return getPendingMultisignaturePromise(transaction).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
 					});
@@ -107,8 +107,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 			});
 
 			it('pendingMultisignatures should not be confirmed', function () {
-				return node.Promise.map(pendingMultisignatures, function (tx) {
-					return getTransactionPromise(tx.id).then(function (res) {
+				return node.Promise.map(pendingMultisignatures, function (transaction) {
+					return getTransactionPromise(transaction.id).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.not.ok;
 						node.expect(res).to.have.property('error').equal('Transaction not found');
 					});
