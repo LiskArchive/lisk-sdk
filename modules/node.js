@@ -65,7 +65,7 @@ Node.prototype.shared = {
 			network = network || {height: null};
 			return setImmediate(cb, null, {
 				broadhash: modules.system.getBroadhash(),
-				consensus: modules.peers.getConsensus(),
+				consensus: modules.peers.getConsensus() || null,
 				height: modules.blocks.lastBlock.get().height,
 				networkHeight: network.height,
 				syncing: modules.loader.syncing()

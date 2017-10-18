@@ -4,6 +4,7 @@ require('./get/dapps');
 require('./get/delegates');
 require('./get/loader');
 require('./get/multisignatures');
+require('./get/node');
 require('./get/peers');
 require('./get/transactions');
 require('./post/0.transfer');

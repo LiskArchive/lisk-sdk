@@ -87,3 +87,41 @@ describe('GET /api/node/constants', function () {
 		node.expect(constantsResponse).to.have.nested.property('fees.data').equal(10000000);
 	});
 });
+
+describe('GET /api/node/status', function () {
+
+	var statusResponse;
+
+	before(function (done) {
+		http.get('/api/node/status', function (err, res) {
+			statusResponse = res.body;
+			done();
+		});
+	});
+
+	it('should return a result containing broadhash that is a string of length 64', function () {
+		node.expect(statusResponse).to.have.property('broadhash').that.is.a('string').and.has.a.lengthOf(64);
+	});
+
+	it('should return a result containing consensus as a number >= 0 and <= 100 or null', function () {
+		node.expect(statusResponse).to.have.property('consensus');
+		if (statusResponse.consensus !== null) {
+			node.expect(statusResponse.consensus).to.be.at.most(100).and.at.least(0);
+		}
+	});
+
+	it('should return a result containing height as a number >= 1', function () {
+		node.expect(statusResponse).to.have.property('height').that.is.a('number').at.least(1);
+	});
+
+	it('should return a result containing networkHeight as a number >= 1 or null', function () {
+		node.expect(statusResponse).to.have.property('networkHeight');
+		if (statusResponse.consensus !== null) {
+			node.expect(statusResponse.consensus).to.be.at.least(1);
+		}
+	});
+
+	it('should return a result containing syncing that is boolean', function () {
+		node.expect(statusResponse).to.have.property('syncing').to.be.a('boolean');
+	});
+});
