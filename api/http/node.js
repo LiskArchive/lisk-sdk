@@ -24,7 +24,7 @@ function NodeHttpApi (nodeModule, app) {
 	router.map(nodeModule.shared, {
 		'get /constants': 'getConstants',
 		'get /status': 'getStatus'
-	});
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/node', app, router, nodeModule.isLoaded);
 }
