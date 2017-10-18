@@ -52,11 +52,12 @@ var paths = [
 
 var parallelTestsRunning = {};
 paths.forEach(function (test) {
-	var mochaArguments = ['--timeout', (8 * 60 * 1000).toString(), 'test/unit/' + test];
+	var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', 'test/unit/' + test, '--', '--timeout', (8 * 60 * 1000).toString()];
 	if (typeof process.argv[2] == 'undefined' || process.argv[2] != '@slow') {
-		mochaArguments.push('--grep', '@slow', '--invert');
+		coverageArguments.push('--grep', '@slow', '--invert');
 	};
-	var child = child_process.spawn('node_modules/.bin/_mocha', mochaArguments, {
+
+	var child = child_process.spawn('node_modules/.bin/istanbul', coverageArguments, {
 		cwd: __dirname + '/../..',
 		detached: true,
 		stdio: 'inherit'
