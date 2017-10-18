@@ -1,6 +1,7 @@
 'use strict';
 
-var constants = require('../helpers/constants.js');
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var Signature = require('../logic/signature.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
@@ -77,9 +78,16 @@ Signatures.prototype.onBind = function (scope) {
 Signatures.prototype.shared = {
 	postSignatures: function (req, cb) {
 		if (!self.isLoaded()) {
-			return setImmediate(cb, 'Blockchain is loading');
+			return setImmediate(cb, new ApiError('Blockchain is loading', apiCodes.INTERNAL_SERVER_ERROR));
 		}
-		return modules.transport.shared.postSignatures(req.body, cb);
+		return modules.transport.shared.postSignatures(req.body, function (err, res) {
+			if (res.success === false) {
+				var errorCode = err.message === 'Invalid signatures body' ? apiCodes.BAD_REQUEST : apiCodes.INTERNAL_SERVER_ERROR;
+				return setImmediate(cb, new ApiError(err.message, errorCode));
+			} else {
+				return setImmediate(cb, null, {status: 'Signature Accepted'});
+			}
+		});
 	}
 };
 
