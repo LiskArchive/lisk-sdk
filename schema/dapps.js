@@ -13,18 +13,10 @@ module.exports = {
 				minLength: 1,
 				maxLength: 20
 			},
-			category: {
-				type: 'string',
-				minLength: 1
-			},
 			name: {
 				type: 'string',
 				minLength: 1,
 				maxLength: 32
-			},
-			type: {
-				type: 'integer',
-				minimum: 0
 			},
 			orderBy: {
 				type: 'string',
