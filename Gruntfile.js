@@ -62,22 +62,12 @@ module.exports = function (grunt) {
 				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
 			},
 
-			coverageSingle: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST -- --grep @slow --invert',
-				maxBuffer: maxBufferSize
-			},
-
-			coverageSingleExtensive: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST',
-				maxBuffer: maxBufferSize
-			},
-
-			coverageUnit: {
+			testUnit: {
 				command: 'TEST_TYPE=unit && node test/unit/index.js',
 				maxBuffer: maxBufferSize
 			},
 
-			coverageUnitSlow: {
+			testUnitExtensive: {
 				command: 'TEST_TYPE=unit && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
 				maxBuffer: maxBufferSize
 			},
@@ -88,7 +78,7 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalWsExtensive: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && ./node_modules/.bin/_mocha test/functional/ws/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/ws/index.js',
 				maxBuffer: maxBufferSize
 			},
 
@@ -98,12 +88,12 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalHttpGetExtensive: {
-				command: 'export NODE_ENV=test && ./node_modules/.bin/_mocha test/functional/http/get/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/get/index.js',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalHttpPost: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/post/index.js -- --grep @slow --invert',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/post/index.js',
 				maxBuffer: maxBufferSize
 			},
 
@@ -167,13 +157,13 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('jenkins', ['exec:coverageSingle']);
-	grunt.registerTask('jenkins-extensive', ['exec:coverageSingleExtensive']);
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 	grunt.registerTask('test', ['test-unit', 'test-functional', 'test-integration']);
-	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
-	grunt.registerTask('test-unit-slow', ['eslint', 'exec:coverageUnitSlow']);
+	grunt.registerTask('test-single', ['eslint', 'exec:testSingle']);
+	grunt.registerTask('test-single-extensive', ['eslint', 'exec:testSingleExtensive']);
+	grunt.registerTask('test-unit', ['eslint', 'exec:testUnit']);
+	grunt.registerTask('test-unit-extensive', ['eslint', 'exec:testUnitExtensive']);
 	grunt.registerTask('test-functional', ['test-functional-ws', 'test-functional-http-get', 'test-functional-http-post']);
 	grunt.registerTask('test-functional-ws', ['eslint', 'exec:testFunctionalWs']);
 	grunt.registerTask('test-functional-ws-extensive', ['eslint', 'exec:testFunctionalWsExtensive']);
