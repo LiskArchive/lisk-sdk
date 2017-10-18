@@ -2,7 +2,7 @@
 
 var crypto = require('crypto');
 
-var BlockReward = require('../../logic/blockReward.js');
+var BlockReward = require('../logic/blockReward.js');
 var constants = require('../helpers/constants.js');
 
 // Private fields
