@@ -30,18 +30,16 @@ import {
 	DEFAULT_ERROR_MESSAGE,
 	getFirstQuotedString,
 	getQuotedStrings,
+	getActionCreator,
 	createFakeInterface,
 	createStreamStub,
 } from './utils';
-import * as createAccount from '../../src/commands/createAccount';
 
-const actionCreators = {
-	'create account': createAccount.actionCreator,
-};
+const envToStub = require('../../src/utils/env');
 
 export function anAction() {
 	const actionName = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.action = actionCreators[actionName]();
+	this.test.ctx.action = getActionCreator(actionName)();
 }
 
 export function anOptionsListIncluding() {
@@ -324,6 +322,21 @@ export function anEncryptedMessageWithANonce() {
 	lisk.crypto.encryptMessageWithSecret.returns(encryptedMessageWithNonce);
 
 	this.test.ctx.encryptedMessageWithNonce = encryptedMessageWithNonce;
+}
+
+export function aConfig() {
+	const config = {
+		name: 'testy',
+		json: true,
+		liskJS: {
+			testnet: false,
+			node: 'localhost',
+			port: 7357,
+			ssl: true,
+		},
+	};
+	envToStub.default = config;
+	this.test.ctx.config = config;
 }
 
 export function aDefaultConfig() {
