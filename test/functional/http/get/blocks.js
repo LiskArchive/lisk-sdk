@@ -64,7 +64,7 @@ describe('GET /api/blocks/getFee', function () {
 	});
 });
 
-describe('GET /api/blocks/getfees', function () {
+describe('GET /api/blocks/getFees', function () {
 
 	it('should be ok', function (done) {
 		http.get('/api/blocks/getFees', function (err, res) {
@@ -72,7 +72,9 @@ describe('GET /api/blocks/getfees', function () {
 			node.expect(res.body).to.have.property('fees');
 			node.expect(res.body.fees.send).to.equal(node.fees.transactionFee);
 			node.expect(res.body.fees.vote).to.equal(node.fees.voteFee);
-			node.expect(res.body.fees.dapp).to.equal(node.fees.dappRegistrationFee);
+			node.expect(res.body.fees.dappRegistration).to.equal(node.fees.dappRegistrationFee);
+			node.expect(res.body.fees.dappDeposit).to.equal(node.fees.dappDepositFee);
+			node.expect(res.body.fees.dappWithdrawal).to.equal(node.fees.dappWithdrawalFee);
 			node.expect(res.body.fees.secondSignature).to.equal(node.fees.secondPasswordFee);
 			node.expect(res.body.fees.delegate).to.equal(node.fees.delegateRegistrationFee);
 			node.expect(res.body.fees.multisignature).to.equal(node.fees.multisignatureRegistrationFee);

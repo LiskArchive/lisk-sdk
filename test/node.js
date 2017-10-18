@@ -52,6 +52,8 @@ node.fees = {
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
 	dappRegistrationFee: node.constants.fees.dappRegistration,
+	dappDepositFee: node.constants.fees.dappDeposit,
+	dappWithdrawalFee: node.constants.fees.dappWithdrawal,
 	dataFee: node.constants.fees.data
 };
 
