@@ -72,6 +72,11 @@ export function theObjectShouldBePrinted() {
 	return (printFunction).should.be.calledWithExactly(testObject);
 }
 
+export function itShouldResolveToTheResultOfTheQuery() {
+	const { returnValue, queryResult } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(queryResult);
+}
+
 export function itShouldResolveToTheConfig() {
 	const { returnValue, config } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith(config);
