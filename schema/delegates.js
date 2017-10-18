@@ -25,7 +25,7 @@ module.exports = {
 			publicKey: {
 				type: 'string',
 				format: 'publicKey'
-			},
+			}
 		},
 		required: ['key', 'publicKey']
 	},
@@ -61,17 +61,6 @@ module.exports = {
 		},
 		required: ['q']
 	},
-	getVoters: {
-		id: 'delegates.getVoters',
-		type: 'object',
-		properties: {
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['publicKey']
-	},
 	getDelegates: {
 		id: 'delegates.getDelegates',
 		type: 'object',
@@ -89,22 +78,5 @@ module.exports = {
 				minimum: 0
 			}
 		}
-	},
-	getForgedByAccount: {
-		id: 'delegates.getForgedByAccount',
-		type: 'object',
-		properties: {
-			generatorPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			start: {
-				type: 'integer'
-			},
-			end: {
-				type: 'integer'
-			}
-		},
-		required: ['generatorPublicKey']
 	}
 };

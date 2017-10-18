@@ -671,25 +671,6 @@ Delegates.prototype.internal = {
 
 			__private.toggleForgingStatus(req.body.publicKey, req.body.key, cb);
 		});
-	},
-	forgingEnableAll: function (req, cb) {
-		if (Object.keys(__private.tmpKeypairs).length === 0) {
-			return setImmediate(cb, 'No delegate keypairs defined');
-		}
-
-		__private.keypairs = __private.tmpKeypairs;
-		__private.tmpKeypairs = {};
-		return setImmediate(cb);
-	},
-
-	forgingDisableAll: function (req, cb) {
-		if (Object.keys(__private.tmpKeypairs).length !== 0) {
-			return setImmediate(cb, 'Delegate keypairs are defined');
-		}
-
-		__private.tmpKeypairs = __private.keypairs;
-		__private.keypairs = {};
-		return setImmediate(cb);
 	}
 };
 
@@ -699,6 +680,7 @@ Delegates.prototype.internal = {
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.shared = {
+
 	getDelegate: function (req, cb) {
 		library.schema.validate(req.body, schema.getDelegate, function (err) {
 			if (err) {
@@ -729,7 +711,7 @@ Delegates.prototype.shared = {
 		});
 	},
 
-	getNextForgers: function (req, cb) {
+	getForgers: function (req, cb) {
 		var currentBlock = modules.blocks.lastBlock.get();
 		var limit = req.body.limit || 10;
 
@@ -773,41 +755,6 @@ Delegates.prototype.shared = {
 			}).catch(function (err) {
 				library.logger.error(err.stack);
 				return setImmediate(cb, 'Database search failed');
-			});
-		});
-	},
-
-	count: function (req, cb) {
-		library.db.one(sql.count).then(function (row) {
-			return setImmediate(cb, null, { count: row.count });
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Failed to count delegates');
-		});
-	},
-
-	getVoters: function (req, cb) {
-		library.schema.validate(req.body, schema.getVoters, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			library.db.one(sql.getVoters, { publicKey: req.body.publicKey }).then(function (row) {
-				var addresses = (row.accountIds) ? row.accountIds : [];
-
-				modules.accounts.getAccounts({
-					address: { $in: addresses },
-					sort: 'balance'
-				}, ['address', 'balance', 'username', 'publicKey'], function (err, rows) {
-					if (err) {
-						return setImmediate(cb, err);
-					} else {
-						return setImmediate(cb, null, {accounts: rows});
-					}
-				});
-			}).catch(function (err) {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Failed to get voters for delegate: ' + req.body.publicKey);
 			});
 		});
 	},
@@ -858,38 +805,6 @@ Delegates.prototype.shared = {
 
 				return setImmediate(cb, null, {delegates: delegates, totalCount: data.count});
 			});
-		});
-	},
-
-	getFee: function (req, cb) {
-		return setImmediate(cb, null, {fee: constants.fees.delegate});
-	},
-
-	getForgedByAccount: function (req, cb) {
-		library.schema.validate(req.body, schema.getForgedByAccount, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			if (req.body.start !== undefined || req.body.end !== undefined) {
-				modules.blocks.utils.aggregateBlocksReward({generatorPublicKey: req.body.generatorPublicKey, start: req.body.start, end: req.body.end}, function (err, reward) {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
-					return setImmediate(cb, null, {fees: reward.fees, rewards: reward.rewards, forged: forged, count: reward.count});
-				});
-			} else {
-				modules.accounts.getAccount({publicKey: req.body.generatorPublicKey}, ['fees', 'rewards'], function (err, account) {
-					if (err || !account) {
-						return setImmediate(cb, err || 'Account not found');
-					}
-
-					var forged = new bignum(account.fees).plus(new bignum(account.rewards)).toString();
-					return setImmediate(cb, null, {fees: account.fees, rewards: account.rewards, forged: forged});
-				});
-			}
 		});
 	}
 };

@@ -8,20 +8,10 @@ var httpApi = require('../../helpers/httpApi');
  * - End point: `/api/delegates`
  * - Public API:
  * 	- get 	/
- * 	- get 	/count
- * 	- get 	/search
- * 	- get 	/voters
- * 	- get 	/get
- * 	- get 	/fee
- * 	- get 	/forging/getForgedByAccount
- * 	- get	/getNextForgers
+ * 	- get	/forgers
  * - Private API:
- * 	- post 	/forging/enable
- * 	- post 	/forging/disable
- * 	- get 	/forging/status
- * - Debug API:
- * 	- get	/forging/disableAll
- * 	- get	/forging/enableAll
+ * 	- put 	/forging
+ * 	- get 	/forging
  * @memberof module:delegates
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -39,26 +29,13 @@ function DelegatesHttpApi (delegatesModule, app, logger, cache) {
 
 	router.map(delegatesModule.shared, {
 		'get /': 'getDelegates',
-		'get /count': 'count',
-		'get /search': 'search',
-		'get /voters': 'getVoters',
-		'get /get': 'getDelegate',
-		'get /fee': 'getFee',
-		'get /forging/getForgedByAccount': 'getForgedByAccount',
-		'get /getNextForgers': 'getNextForgers'
+		'get /forgers': 'getForgers'
 	});
 
 	router.map(delegatesModule.internal, {
 		'put /forging': 'forgingToggle',
-		'get /forging/status': 'forgingStatus'
+		'get /forging': 'forgingStatus'
 	});
-
-	if (process.env.DEBUG) {
-		router.map(delegatesModule.internal, {
-			'get /forging/disableAll': 'forgingDisableAll',
-			'get /forging/enableAll': 'forgingEnableAll'
-		});
-	}
 
 	httpApi.registerEndpoint('/api/delegates', app, router, delegatesModule.isLoaded);
 }

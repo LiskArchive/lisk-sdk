@@ -16,8 +16,6 @@ var DelegatesSql = {
     'register_timestamp'
   ],
 
-  count: 'SELECT COUNT(*)::int FROM delegates',
-
   delegateList: 'SELECT getDelegatesList() AS list;',
 
   search: function (params) {
