@@ -20,7 +20,7 @@ var paths = [
 	'./helpers/z_schema.js',
 
 	'./logic/account.js',
-	'./logic/blockReward.js',
+	'./logic/blockReward.js', // @slow
 	'./logic/delegate.js',
 	'./logic/inTransfer.js',
 	'./logic/peer.js',
@@ -43,7 +43,7 @@ var paths = [
 	'./modules/peers.js',
 	'./modules/transactions.js',
 
-	'./sql/blockRewards.js',
+	'./sql/blockRewards.js', // @slow
 	'./sql/delegatesList.js',
 	'./sql/rounds.js',
 
@@ -51,12 +51,12 @@ var paths = [
 ];
 
 var parallelTestsRunning = {};
+
 paths.forEach(function (test) {
 	var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', 'test/unit/' + test, '--', '--timeout', (8 * 60 * 1000).toString()];
-	if (typeof process.argv[2] == 'undefined' || process.argv[2] != '@slow') {
+	if (process.argv[2] !== '@slow') {
 		coverageArguments.push('--grep', '@slow', '--invert');
 	};
-
 	var child = child_process.spawn('node_modules/.bin/istanbul', coverageArguments, {
 		cwd: __dirname + '/../..',
 		detached: true,
