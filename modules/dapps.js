@@ -1,3 +1,7 @@
+'use strict';
+
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var DApp = require('../logic/dapp.js');
 var dappCategories = require('../helpers/dappCategories.js');
 var InTransfer = require('../logic/inTransfer.js');
@@ -229,13 +233,18 @@ DApps.prototype.isLoaded = function () {
  */
 DApps.prototype.shared = {
 
-	list: function (query, cb) {
-		__private.list(query, function (err, dapps) {
+	list: function (req, cb) {
+		library.schema.validate(req.body, schema.list, function (err) {
 			if (err) {
-				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, {success: true, dapps: dapps});
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
+			__private.list(req.body, function (err, dapps) {
+				if (err) {
+					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
+				} else {
+					return setImmediate(cb, null, {dapps: dapps});
+				}
+			});
 		});
 	}
 };
