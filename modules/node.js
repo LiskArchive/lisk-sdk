@@ -13,14 +13,8 @@ var loaded;
 
 /**
  * Initializes library with scope content and private variables:
- * - os
- * - version
- * - port
- * - height
- * - nethash
- * - broadhash
- * - minVersion
- * - nonce
+ * - library
+ * - blockReward
  * @class
  * @classdesc Main System methods.
  * @param {setImmediateCallback} cb - Callback function.
@@ -55,6 +49,7 @@ Node.prototype.shared = {
 			epoch: constants.epochTime,
 			fees: constants.fees,
 			nethash: library.config.nethash,
+			nonce: library.config.nonce,
 			milestone: blockReward.calcMilestone(height),
 			reward: blockReward.calcReward(height),
 			supply: blockReward.calcSupply(height),
@@ -66,7 +61,8 @@ Node.prototype.shared = {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
 		}
-		modules.loader.getNetwork(function (network) {
+		modules.loader.getNetwork(function (err, network) {
+			network = network || {height: null};
 			return setImmediate(cb, null, {
 				broadhash: modules.system.getBroadhash(),
 				consensus: modules.peers.getConsensus(),
