@@ -855,12 +855,17 @@ describe('txPool', function () {
 		describe('method add', function () {
 
 			it('should be ok when add transactions to fill pool storage', function (done) {
-				var trx = transactions.concat(invalidsTxs);
-				txPool.add(trx, function (err, cbtx) {
-					if (err) {
-						done(err);
+				var txs = [];
+				invalidsTxs.forEach(function (e) {
+					if (Array.isArray(e)) {
+						txs = txs.concat(e);
+					} else {
+						txs.push(e);
 					}
+				});
+				txPool.add(txs, function (err, cbtx) {
 					expect(cbtx).to.be.undefined;
+					expect(err).to.equal('Transaction pool is full');
 					done();
 				});
 			});
@@ -886,7 +891,7 @@ describe('txPool', function () {
 		describe('method delete', function () {
 
 			it('should be ok when delete a transaction from unverified', function (done) {
-				var deleteTx = txPool.delete(transactions[0]);
+				var deleteTx = txPool.delete(invalidsTxs[0]);
 
 				expect(deleteTx).to.be.an('array').that.is.not.empty;
 				expect(deleteTx.length).to.equal(1);
@@ -914,14 +919,19 @@ describe('txPool', function () {
 	
 	describe('ready', function () {
 		describe('method addReady/getReady', function () {
-
+			var txs = [];
+			transactions.forEach(function (e) {
+				if (Array.isArray(e)) {
+					txs = txs.concat(e);
+				} else {
+					txs.push(e);
+				}
+			});
+			
 			it('should be ok when add transactions to ready', function (done) {
-				txPool.addReady(transactions.slice(0,5), function (err, cbtx) {
-					if (err) {
-						done(err);
-					}
+				txPool.addReady(txs, function (err, cbtx) {
 					expect(cbtx).to.be.undefined;
-					poolTotals.ready += transactions.slice(0,5).length;
+					poolTotals.ready += txs.length;
 					done();
 				});
 			});
@@ -932,14 +942,12 @@ describe('txPool', function () {
 				expect(readyTxs[1].fee).to.be.at.least(readyTxs[2].fee);
 				expect(readyTxs[2].fee).to.be.at.least(readyTxs[3].fee);
 				expect(readyTxs[3].fee).to.be.at.least(readyTxs[4].fee);
+				expect(readyTxs[4].fee).to.be.at.least(readyTxs[5].fee);
 				done();
 			});
 
 			it('should be ok when add type 2 transaction again to ready', function (done) {
 				txPool.addReady(transactions[2], function (err, cbtx) {
-					if (err) {
-						done(err);
-					}
 					expect(cbtx).to.be.undefined;
 					done();
 				});
