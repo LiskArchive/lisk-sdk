@@ -124,7 +124,7 @@ node.randomLISK = function () {
 
 // Returns current block height
 node.getHeight = function (cb) {
-	var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+	var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 	request.use(node.popsicle.plugins.parse(['json']));
 
@@ -189,7 +189,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 
 	node.async.doWhilst(
 		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 			request.use(node.popsicle.plugins.parse(['json']));
 
