@@ -19,8 +19,15 @@ describe('dapps', function () {
 				it('should call the logger.error with error stack');
 			});
 		});
-		
+
 		describe('list', function () {
+
+			describe('when filter.transactionId exists', function () {
+
+				it('should call sql.list with transactionId filter in where');
+
+				it('should call db.query with transactionId param');
+			});
 
 			describe('when filter.type >= 0', function () {
 
@@ -170,30 +177,7 @@ describe('dapps', function () {
 		it('should return true if modules does not exist');
 	});
 
-	describe('internal', function () {
-
-		describe('get', function () {
-
-			it('should call __private.get with param.id');
-
-			describe('when __private.get succeeds', function () {
-
-				it('should call callback with error = null');
-
-				it('should call callback with result containing success = true');
-
-				it('should call callback with result containing dapp as an object');
-			});
-
-			describe('when __private.get fails', function () {
-
-				it('should call callback with error = null');
-
-				it('should call callback with result containing success = false');
-
-				it('should call callback with result containing error');
-			});
-		});
+	describe('shared', function () {
 
 		describe('list', function () {
 
@@ -203,61 +187,49 @@ describe('dapps', function () {
 
 				it('should call callback with error = null');
 
-				it('should call callback with result containing success = true');
-
 				it('should call callback with result containing dapps as an array');
 			});
 
 			describe('when __private.list fails', function () {
 
-				it('should call callback with error');
+				it('should call callback with ApiError');
+
+				it('should call callback with ApiError with code 500');
 			});
-		});
-
-		describe('categories', function () {
-
-			it('should call callback with error = null');
-
-			it('should call callback with result containing success = true');
-
-			it('should call callback with result containing dappsCategories as an object');
 		});
 	});
 
-	describe('shared', function () {
+	describe('shared.getGenesis', function () {
 
-		describe('getGenesis', function () {
+		it('should call db.query with sql.getGenesis query');
 
-			it('should call db.query with sql.getGenesis query');
+		it('should call db.query with dappid');
 
-			it('should call db.query with dappid');
+		describe('when db.query fails', function () {
 
-			describe('when db.query fails', function () {
+			it('should call callback with the DApp#getGenesis error');
 
-				it('should call callback with the DApp#getGenesis error');
+			it('should call the logger.error with error stack');
+		});
 
-				it('should call the logger.error with error stack');
+		describe('when db.query succeeds', function () {
+
+			describe('and returns no results', function () {
+
+				it('should call callback with an error');
 			});
 
-			describe('when db.query succeeds', function () {
+			describe('and returns results', function () {
 
-				describe('and returns no results', function () {
+				it('should call callback with error = null');
 
-					it('should call callback with an error');
-				});
+				it('should call callback with result containing pointId');
 
-				describe('and returns results', function () {
+				it('should call callback with result containing pointHeight');
 
-					it('should call callback with error = null');
+				it('should call callback with result containing authorId');
 
-					it('should call callback with result containing pointId');
-
-					it('should call callback with result containing pointHeight');
-
-					it('should call callback with result containing authorId');
-
-					it('should call callback with result containing dappid');
-				});
+				it('should call callback with result containing dappid');
 			});
 		});
 	});
