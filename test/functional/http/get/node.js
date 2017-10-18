@@ -31,8 +31,8 @@ describe('GET /api/node/constants', function () {
 		node.expect(constantsResponse).to.have.property('nethash').equal('198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d');
 	});
 
-	it('should return a result containing nonce = "Lm8aN0rlnMsUZ0uM"', function () {
-		node.expect(constantsResponse).to.have.property('nonce').equal('Lm8aN0rlnMsUZ0uM');
+	it('should return a result containing nonce as a string of length 16', function () {
+		node.expect(constantsResponse).to.have.property('nonce').that.is.a('string').and.has.a.lengthOf(16);
 	});
 
 	it('should return a result containing milestone that is a number <= 4', function () {
