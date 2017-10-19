@@ -77,6 +77,12 @@ export function itShouldResolveToTheResultOfTheQuery() {
 	return (returnValue).should.be.fulfilledWith(queryResult);
 }
 
+export function itShouldResolveToAnArrayOfQueryResults() {
+	const { returnValue, inputs, queryResult } = this.test.ctx;
+	const arrayOfQueryResults = inputs.map(() => queryResult);
+	return (returnValue).should.be.fulfilledWith(arrayOfQueryResults);
+}
+
 export function itShouldResolveToTheConfig() {
 	const { returnValue, config } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith(config);
