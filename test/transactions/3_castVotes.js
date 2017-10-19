@@ -82,7 +82,7 @@ describe('#castVotes transaction', () => {
 					.and.equal('0');
 			});
 
-			it('should have fee string equal to 0', () => {
+			it('should have fee string equal to 100000000', () => {
 				castVotesTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
