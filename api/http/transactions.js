@@ -44,8 +44,11 @@ function TransactionsHttpApi (transactionsModule, app, logger, cache) {
 		'get /multisignatures': 'getMultisignatureTransactions',
 		'get /unconfirmed/get': 'getUnconfirmedTransaction',
 		'get /unconfirmed': 'getUnconfirmedTransactions',
-		'post /': 'postTransactions'
 	});
+
+	router.map(transactionsModule.shared, {
+		'post /': 'postTransactions'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/transactions', app, router, transactionsModule.isLoaded);
 }

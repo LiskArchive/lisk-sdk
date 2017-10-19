@@ -5,6 +5,8 @@ var async = require('async');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var OrderBy = require('../helpers/orderBy.js');
 var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
@@ -693,7 +695,26 @@ Transactions.prototype.shared = {
 	},
 
 	postTransactions: function (req, cb) {
-		return modules.transport.shared.postTransactions(req.body, cb);
+		return modules.transport.shared.postTransactions(req.body, function (err, res) {
+
+			function mapOldResponseStructureToNew (res, cb) {
+				var newResponse;
+
+				if (res.success == false) {
+					newResponse = new ApiError(res.message, apiCodes.BAD_REQUEST);
+					return setImmediate(cb, newResponse);
+				}
+
+				if (res.success == true) {
+					newResponse = {
+						status: 'Transaction(s) accepted'
+					};
+					return setImmediate(cb, null, newResponse);
+				}
+			}
+
+			mapOldResponseStructureToNew(res, cb);
+		});
 	}
 };
 
