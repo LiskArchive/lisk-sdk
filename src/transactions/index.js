@@ -13,7 +13,6 @@
  *
  */
 import send from './0_send';
-import sendFromMultisignatureAccount from './0_sendFromMultisignatureAccount';
 import registerSecondPassphrase from './1_registerSecondPassphrase';
 import registerDelegate from './2_registerDelegate';
 import castVotes from './3_castVotes';
@@ -24,7 +23,6 @@ import transferOutOfDapp from './7_transferOutOfDapp';
 
 export default {
 	send,
-	sendFromMultisignatureAccount,
 	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
