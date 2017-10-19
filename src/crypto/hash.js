@@ -28,15 +28,20 @@ export function getSha256Hash(data, format) {
 
 	if (typeof data === 'string') {
 		if (!['utf8', 'hex'].includes(format)) {
-			throw new Error('Unsupported string format. Currently only `hex` and `utf8` are supported.');
+			throw new Error(
+				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
+			);
 		}
-		const encoded = format === 'utf8'
-			? naclInstance.encode_utf8(data)
-			: naclInstance.from_hex(data);
+		const encoded =
+			format === 'utf8'
+				? naclInstance.encode_utf8(data)
+				: naclInstance.from_hex(data);
 		return Buffer.from(naclInstance.crypto_hash_sha256(encoded));
 	}
 
-	throw new Error('Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.');
+	throw new Error(
+		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
+	);
 }
 
 /**

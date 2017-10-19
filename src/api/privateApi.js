@@ -24,8 +24,10 @@ const GET = 'GET';
  */
 
 export function netHashOptions() {
-	const testnetNethash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const mainnetNethash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+	const testnetNethash =
+		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const mainnetNethash =
+		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 
 	const commonNethash = {
 		'Content-Type': 'application/json',
@@ -54,9 +56,7 @@ export function netHashOptions() {
  */
 
 export function getURLPrefix() {
-	return this.ssl
-		? 'https'
-		: 'http';
+	return this.ssl ? 'https' : 'http';
 }
 
 /**
@@ -66,9 +66,7 @@ export function getURLPrefix() {
  */
 
 export function getFullURL() {
-	const nodeUrl = this.port
-		? `${this.node}:${this.port}`
-		: this.node;
+	const nodeUrl = this.port ? `${this.node}:${this.port}` : this.node;
 
 	return `${getURLPrefix.call(this)}://${nodeUrl}`;
 }
@@ -91,7 +89,6 @@ export function getNodes() {
  * @private
  */
 
-
 export function isBanned(node) {
 	return this.bannedNodes.includes(node);
 }
@@ -103,14 +100,15 @@ export function isBanned(node) {
  */
 
 export function getRandomNode() {
-	const nodes = getNodes.call(this)
-		.filter(node => !isBanned.call(this, node));
+	const nodes = getNodes.call(this).filter(node => !isBanned.call(this, node));
 
 	if (!nodes.length) {
-		throw new Error('Cannot get random node: all relevant nodes have been banned.');
+		throw new Error(
+			'Cannot get random node: all relevant nodes have been banned.',
+		);
 	}
 
-	const randomIndex = Math.floor((Math.random() * nodes.length));
+	const randomIndex = Math.floor(Math.random() * nodes.length);
 	return nodes[randomIndex];
 }
 
@@ -127,12 +125,16 @@ export function selectNewNode() {
 		return getRandomNode.call(this);
 	} else if (providedNode) {
 		if (isBanned.call(this, providedNode)) {
-			throw new Error('Cannot select node: provided node has been banned and randomNode is not set to true.');
+			throw new Error(
+				'Cannot select node: provided node has been banned and randomNode is not set to true.',
+			);
 		}
 		return providedNode;
 	}
 
-	throw new Error('Cannot select node: no node provided and randomNode is not set to true.');
+	throw new Error(
+		'Cannot select node: no node provided and randomNode is not set to true.',
+	);
 }
 
 /**
@@ -172,9 +174,12 @@ export function hasAvailableNodes() {
 
 export function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
-	const url = method === GET
-		? `${getFullURL.call(this)}/api/${requestType}${utils.serialiseHTTPData.call(this, options)}`
-		: `${getFullURL.call(this)}/api/${requestType}`;
+	const url =
+		method === GET
+			? `${getFullURL.call(
+					this,
+				)}/api/${requestType}${utils.serialiseHTTPData.call(this, options)}`
+			: `${getFullURL.call(this)}/api/${requestType}`;
 
 	return {
 		method,
@@ -195,7 +200,12 @@ export function createRequestObject(method, requestType, providedOptions) {
  */
 
 export function sendRequestPromise(requestMethod, requestType, options) {
-	const requestObject = createRequestObject.call(this, requestMethod, requestType, options);
+	const requestObject = createRequestObject.call(
+		this,
+		requestMethod,
+		requestType,
+		options,
+	);
 
 	return popsicle
 		.request(requestObject)
@@ -213,8 +223,18 @@ export function sendRequestPromise(requestMethod, requestType, options) {
  * @return {Promise}
  */
 
-export function handleTimestampIsInFutureFailures(requestMethod, requestType, options, result) {
-	if (!result.success && result.message && result.message.match(/Timestamp is in the future/) && !(options.timeOffset > 40)) {
+export function handleTimestampIsInFutureFailures(
+	requestMethod,
+	requestType,
+	options,
+	result,
+) {
+	if (
+		!result.success &&
+		result.message &&
+		result.message.match(/Timestamp is in the future/) &&
+		!(options.timeOffset > 40)
+	) {
 		const newOptions = Object.assign({}, options, {
 			timeOffset: (options.timeOffset || 0) + 10,
 		});
@@ -235,19 +255,25 @@ export function handleTimestampIsInFutureFailures(requestMethod, requestType, op
  * @return {Promise}
  */
 
-export function handleSendRequestFailures(requestMethod, requestType, options, error) {
+export function handleSendRequestFailures(
+	requestMethod,
+	requestType,
+	options,
+	error,
+) {
 	const that = this;
 	if (hasAvailableNodes.call(that)) {
-		return new Promise(((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			setTimeout(() => {
 				if (that.randomNode) {
 					banActiveNode.call(that);
 				}
 				that.setNode();
-				that.sendRequest(requestMethod, requestType, options)
+				that
+					.sendRequest(requestMethod, requestType, options)
 					.then(resolve, reject);
 			}, 1000);
-		}));
+		});
 	}
 	return Promise.resolve({
 		success: false,

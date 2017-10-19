@@ -22,19 +22,19 @@ import {
 describe('transaction utils', () => {
 	describe('exports', () => {
 		it('should have getTimeFromBlockchainEpoch', () => {
-			(getTimeFromBlockchainEpoch).should.be.type('function');
+			getTimeFromBlockchainEpoch.should.be.type('function');
 		});
 
 		it('should have getTimeWithOffset', () => {
-			(getTimeWithOffset).should.be.type('function');
+			getTimeWithOffset.should.be.type('function');
 		});
 
 		it('should have getTransactionBytes', () => {
-			(getTransactionBytes).should.be.type('function');
+			getTransactionBytes.should.be.type('function');
 		});
 
 		it('should have prepareTransaction', () => {
-			(prepareTransaction).should.be.type('function');
+			prepareTransaction.should.be.type('function');
 		});
 	});
 });

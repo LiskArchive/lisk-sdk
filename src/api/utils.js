@@ -37,7 +37,11 @@ export const optionallyCallCallback = (callback, result) => {
  */
 
 export const constructRequestData = (providedObject, optionsOrCallback) => {
-	const providedOptions = typeof optionsOrCallback !== 'function' && typeof optionsOrCallback !== 'undefined' ? optionsOrCallback : {};
+	const providedOptions =
+		typeof optionsOrCallback !== 'function' &&
+		typeof optionsOrCallback !== 'undefined'
+			? optionsOrCallback
+			: {};
 	return Object.assign({}, providedOptions, providedObject);
 };
 
@@ -53,7 +57,10 @@ export const constructRequestData = (providedObject, optionsOrCallback) => {
 export const wrapSendRequest = (method, endpoint, getDataFn) =>
 	function wrappedSendRequest(value, optionsOrCallback, callbackIfOptions) {
 		const callback = callbackIfOptions || optionsOrCallback;
-		const data = constructRequestData(getDataFn(value, optionsOrCallback), optionsOrCallback);
+		const data = constructRequestData(
+			getDataFn(value, optionsOrCallback),
+			optionsOrCallback,
+		);
 		return this.sendRequest(method, endpoint, data, callback);
 	};
 
@@ -63,13 +70,12 @@ export const wrapSendRequest = (method, endpoint, getDataFn) =>
  * @return options object
  */
 
-export const checkOptions = (options) => {
-	Object.entries(options)
-		.forEach(([key, value]) => {
-			if (value === undefined || Number.isNaN(value)) {
-				throw new Error(`"${key}" option should not be ${value}`);
-			}
-		});
+export const checkOptions = options => {
+	Object.entries(options).forEach(([key, value]) => {
+		if (value === undefined || Number.isNaN(value)) {
+			throw new Error(`"${key}" option should not be ${value}`);
+		}
+	});
 
 	return options;
 };
@@ -80,24 +86,18 @@ export const checkOptions = (options) => {
  *
  * @return trimmed object
  */
-export const trimObj = (obj) => {
+export const trimObj = obj => {
 	const isArray = Array.isArray(obj);
 	if (!isArray && typeof obj !== 'object') {
-		return Number.isInteger(obj)
-			? obj.toString()
-			: obj;
+		return Number.isInteger(obj) ? obj.toString() : obj;
 	}
 
-	const trim = value => (
-		typeof value === 'string'
-			? value.trim()
-			: trimObj(value)
-	);
+	const trim = value =>
+		typeof value === 'string' ? value.trim() : trimObj(value);
 
 	return isArray
 		? obj.map(trim)
-		: Object.entries(obj)
-			.reduce((accumulator, [key, value]) => {
+		: Object.entries(obj).reduce((accumulator, [key, value]) => {
 				const trimmedKey = trim(key);
 				const trimmedValue = trim(value);
 				return Object.assign({}, accumulator, {
@@ -112,12 +112,14 @@ export const trimObj = (obj) => {
  *
  * @return query string
  */
-export const toQueryString = (obj) => {
-	const parts = Object.entries(obj)
-		.reduce((accumulator, [key, value]) => [
+export const toQueryString = obj => {
+	const parts = Object.entries(obj).reduce(
+		(accumulator, [key, value]) => [
 			...accumulator,
 			`${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
-		], []);
+		],
+		[],
+	);
 
 	return parts.join('&');
 };
@@ -129,7 +131,7 @@ export const toQueryString = (obj) => {
  * @return serialisedData string
  */
 
-export const serialiseHTTPData = (data) => {
+export const serialiseHTTPData = data => {
 	const trimmed = trimObj(data);
 	const queryString = toQueryString(trimmed);
 	return `?${queryString}`;

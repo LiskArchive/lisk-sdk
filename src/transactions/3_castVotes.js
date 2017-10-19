@@ -32,7 +32,12 @@ import { getTimeWithOffset } from './utils/time';
  * @return {Object}
  */
 
-export default function castVotes({ secret, delegates, secondSecret, timeOffset }) {
+export default function castVotes({
+	secret,
+	delegates,
+	secondSecret,
+	timeOffset,
+}) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {

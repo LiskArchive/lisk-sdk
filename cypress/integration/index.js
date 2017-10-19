@@ -15,13 +15,10 @@
 const ROOT_DIR = Cypress.env('ROOT_DIR');
 const FORCE_RELOAD = true;
 
-const throwFailuresInWindow = (win) => {
-	const failures = win
-		.parent
-		.document
+const throwFailuresInWindow = win => {
+	const failures = win.parent.document
 		.getElementById(`Your App: '${ROOT_DIR}'`)
-		.contentDocument
-		.getElementsByClassName('fail');
+		.contentDocument.getElementsByClassName('fail');
 
 	if (failures.length) {
 		const failuresHTML = Array.from(failures).map(el => el.outerHTML);

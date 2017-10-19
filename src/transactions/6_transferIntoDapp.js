@@ -34,7 +34,13 @@ import { getTimeWithOffset } from './utils/time';
  * @return {Object}
  */
 
-export default function transferIntoDapp({ dappId, amount, secret, secondSecret, timeOffset }) {
+export default function transferIntoDapp({
+	dappId,
+	amount,
+	secret,
+	secondSecret,
+	timeOffset,
+}) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {

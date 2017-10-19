@@ -43,7 +43,11 @@ function newSignature(secondSecret) {
  * @return {Object}
  */
 
-export default function registerSecondPassphrase({ secret, secondSecret, timeOffset }) {
+export default function registerSecondPassphrase({
+	secret,
+	secondSecret,
+	timeOffset,
+}) {
 	const keys = cryptoModule.getKeys(secret);
 
 	const signature = newSignature(secondSecret);

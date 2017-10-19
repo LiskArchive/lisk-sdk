@@ -13,7 +13,7 @@
  *
  */
 mocha.checkLeaks();
-mocha.run((failures) => {
+mocha.run(failures => {
 	document.getElementById('failures').innerText = failures;
 	document.getElementById('done').innerText = 'DONE';
 });

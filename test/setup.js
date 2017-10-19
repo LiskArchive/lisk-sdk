@@ -24,7 +24,8 @@ should.use((_, Assertion) => {
 		this.params = {
 			operator: 'to be hex string',
 		};
-		(Buffer.from(this.obj, 'hex').toString('hex'))
+		Buffer.from(this.obj, 'hex')
+			.toString('hex')
 			.should.equal(this.obj);
 	});
 
@@ -32,7 +33,7 @@ should.use((_, Assertion) => {
 		this.params = {
 			operator: 'to be an integer',
 		};
-		(parseInt(this.obj, 10)).should.equal(this.obj);
+		parseInt(this.obj, 10).should.equal(this.obj);
 	});
 });
 
@@ -41,6 +42,6 @@ Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create();
 
-naclFactory.instantiate((nacl) => {
+naclFactory.instantiate(nacl => {
 	global.naclInstance = nacl;
 });

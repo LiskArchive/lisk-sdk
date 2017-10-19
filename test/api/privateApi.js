@@ -60,7 +60,9 @@ describe('privateApi module', () => {
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
-		sendRequestStub = sandbox.stub(LSK, 'sendRequest').resolves(Object.assign({}, sendRequestResult));
+		sendRequestStub = sandbox
+			.stub(LSK, 'sendRequest')
+			.resolves(Object.assign({}, sendRequestResult));
 	});
 
 	describe('#netHashOptions', () => {
@@ -73,23 +75,23 @@ describe('privateApi module', () => {
 
 		it('should return an object with a testnet nethash', () => {
 			const { testnet } = result;
-			(testnet).should.have.property('Content-Type').and.be.type('string');
-			(testnet).should.have.property('nethash').and.be.type('string');
-			(testnet).should.have.property('broadhash').and.be.type('string');
-			(testnet).should.have.property('os').and.be.type('string');
-			(testnet).should.have.property('version').and.be.type('string');
-			(testnet).should.have.property('minVersion').and.be.type('string');
-			(testnet).should.have.property('port').and.be.type('number');
+			testnet.should.have.property('Content-Type').and.be.type('string');
+			testnet.should.have.property('nethash').and.be.type('string');
+			testnet.should.have.property('broadhash').and.be.type('string');
+			testnet.should.have.property('os').and.be.type('string');
+			testnet.should.have.property('version').and.be.type('string');
+			testnet.should.have.property('minVersion').and.be.type('string');
+			testnet.should.have.property('port').and.be.type('number');
 		});
 		it('should return an object with a mainnet nethash', () => {
 			const { mainnet } = result;
-			(mainnet).should.have.property('Content-Type').and.be.type('string');
-			(mainnet).should.have.property('nethash').and.be.type('string');
-			(mainnet).should.have.property('broadhash').and.be.type('string');
-			(mainnet).should.have.property('os').and.be.type('string');
-			(mainnet).should.have.property('version').and.be.type('string');
-			(mainnet).should.have.property('minVersion').and.be.type('string');
-			(mainnet).should.have.property('port').and.be.type('number');
+			mainnet.should.have.property('Content-Type').and.be.type('string');
+			mainnet.should.have.property('nethash').and.be.type('string');
+			mainnet.should.have.property('broadhash').and.be.type('string');
+			mainnet.should.have.property('os').and.be.type('string');
+			mainnet.should.have.property('version').and.be.type('string');
+			mainnet.should.have.property('minVersion').and.be.type('string');
+			mainnet.should.have.property('port').and.be.type('number');
 		});
 	});
 
@@ -99,13 +101,13 @@ describe('privateApi module', () => {
 		it('should return http when ssl is set to false', () => {
 			LSK.ssl = false;
 			const result = getURLPrefix.call(LSK);
-			(result).should.be.equal('http');
+			result.should.be.equal('http');
 		});
 
 		it('should return https when ssl is set to true', () => {
 			LSK.ssl = true;
 			const result = getURLPrefix.call(LSK);
-			(result).should.be.equal('https');
+			result.should.be.equal('https');
 		});
 	});
 
@@ -120,7 +122,10 @@ describe('privateApi module', () => {
 		beforeEach(() => {
 			getURLPrefixStub = sandbox.stub().returns(URLPrefix);
 			// eslint-disable-next-line no-underscore-dangle
-			restoreGetURLPrefixStub = privateApi.__set__('getURLPrefix', getURLPrefixStub);
+			restoreGetURLPrefixStub = privateApi.__set__(
+				'getURLPrefix',
+				getURLPrefixStub,
+			);
 			result = getFullURL.call(LSK);
 		});
 
@@ -129,17 +134,17 @@ describe('privateApi module', () => {
 		});
 
 		it('should get the URL prefix', () => {
-			(getURLPrefixStub.calledOn(LSK)).should.be.true();
+			getURLPrefixStub.calledOn(LSK).should.be.true();
 		});
 
 		it('should add the prefix to the node URL and the port', () => {
-			(result).should.equal(`${URLPrefix}://${LSK.node}:${port}`);
+			result.should.equal(`${URLPrefix}://${LSK.node}:${port}`);
 		});
 
 		it('should not include a port if not set', () => {
 			delete LSK.port;
 			result = getFullURL.call(LSK);
-			(result).should.equal(`${URLPrefix}://${LSK.node}`);
+			result.should.equal(`${URLPrefix}://${LSK.node}`);
 		});
 	});
 
@@ -154,13 +159,13 @@ describe('privateApi module', () => {
 			it('should return default testnet nodes if testnet is set to true', () => {
 				LSK.testnet = true;
 				const nodes = getNodes.call(LSK);
-				(nodes).should.be.eql(defaultTestnetNodes);
+				nodes.should.be.eql(defaultTestnetNodes);
 			});
 
 			it('should return default SSL nodes if testnet is not set to true', () => {
 				LSK.testnet = false;
 				const nodes = getNodes.call(LSK);
-				(nodes).should.be.eql(defaultSSLNodes);
+				nodes.should.be.eql(defaultSSLNodes);
 			});
 		});
 
@@ -172,13 +177,13 @@ describe('privateApi module', () => {
 			it('should return default testnet nodes if testnet is set to true', () => {
 				LSK.testnet = true;
 				const nodes = getNodes.call(LSK);
-				(nodes).should.be.eql(defaultTestnetNodes);
+				nodes.should.be.eql(defaultTestnetNodes);
 			});
 
 			it('should return default mainnet nodes if testnet is not set to true', () => {
 				LSK.testnet = false;
 				const nodes = getNodes.call(LSK);
-				(nodes).should.be.eql(defaultNodes);
+				nodes.should.be.eql(defaultNodes);
 			});
 		});
 	});
@@ -187,12 +192,12 @@ describe('privateApi module', () => {
 		const { isBanned } = privateApi;
 		it('should return true when provided node is banned', () => {
 			LSK.bannedNodes = [].concat(defaultNodes);
-			(isBanned.call(LSK, localNode)).should.be.true();
+			isBanned.call(LSK, localNode).should.be.true();
 		});
 
 		it('should return false when provided node is not banned', () => {
 			LSK.bannedNodes = [];
-			(isBanned.call(LSK, localNode)).should.be.false();
+			isBanned.call(LSK, localNode).should.be.false();
 		});
 	});
 
@@ -213,17 +218,21 @@ describe('privateApi module', () => {
 
 		it('should throw an error if all relevant nodes are banned', () => {
 			LSK.bannedNodes = [].concat(defaultNodes);
-			(getRandomNode.bind(LSK)).should.throw('Cannot get random node: all relevant nodes have been banned.');
+			getRandomNode
+				.bind(LSK)
+				.should.throw(
+					'Cannot get random node: all relevant nodes have been banned.',
+				);
 		});
 
 		it('should get nodes', () => {
 			getRandomNode.call(LSK);
-			(getNodesStub.calledOn(LSK)).should.be.true();
+			getNodesStub.calledOn(LSK).should.be.true();
 		});
 
 		it('should return a node', () => {
 			const result = getRandomNode.call(LSK);
-			(LSK.defaultNodes).should.containEql(result);
+			LSK.defaultNodes.should.containEql(result);
 		});
 
 		it('should randomly select the node', () => {
@@ -247,7 +256,10 @@ describe('privateApi module', () => {
 		beforeEach(() => {
 			getRandomNodeStub = sandbox.stub().returns(getRandomNodeResult);
 			// eslint-disable-next-line no-underscore-dangle
-			restoreGetRandomNode = privateApi.__set__('getRandomNode', getRandomNodeStub);
+			restoreGetRandomNode = privateApi.__set__(
+				'getRandomNode',
+				getRandomNodeStub,
+			);
 		});
 
 		afterEach(() => {
@@ -265,12 +277,16 @@ describe('privateApi module', () => {
 
 				it('should throw an error if the provided node is banned', () => {
 					LSK.bannedNodes = [customNode];
-					(selectNewNode.bind(LSK)).should.throw('Cannot select node: provided node has been banned and randomNode is not set to true.');
+					selectNewNode
+						.bind(LSK)
+						.should.throw(
+							'Cannot select node: provided node has been banned and randomNode is not set to true.',
+						);
 				});
 
 				it('should return the provided node if it is not banned', () => {
 					const result = selectNewNode.call(LSK);
-					(result).should.be.equal(customNode);
+					result.should.be.equal(customNode);
 				});
 			});
 
@@ -281,12 +297,12 @@ describe('privateApi module', () => {
 
 				it('should call getRandomNode', () => {
 					selectNewNode.call(LSK);
-					(getRandomNodeStub.calledOn(LSK)).should.be.true();
+					getRandomNodeStub.calledOn(LSK).should.be.true();
 				});
 
 				it('should return a random node', () => {
 					const result = selectNewNode.call(LSK);
-					(result).should.be.equal(getRandomNodeResult);
+					result.should.be.equal(getRandomNodeResult);
 				});
 			});
 		});
@@ -302,7 +318,11 @@ describe('privateApi module', () => {
 				});
 
 				it('should throw an error', () => {
-					(selectNewNode.bind(LSK)).should.throw('Cannot select node: no node provided and randomNode is not set to true.');
+					selectNewNode
+						.bind(LSK)
+						.should.throw(
+							'Cannot select node: no node provided and randomNode is not set to true.',
+						);
 				});
 			});
 
@@ -313,12 +333,12 @@ describe('privateApi module', () => {
 
 				it('should call getRandomNode', () => {
 					selectNewNode.call(LSK);
-					(getRandomNodeStub.calledOn(LSK)).should.be.true();
+					getRandomNodeStub.calledOn(LSK).should.be.true();
 				});
 
 				it('should return a random node', () => {
 					const result = selectNewNode.call(LSK);
-					(result).should.be.equal(getRandomNodeResult);
+					result.should.be.equal(getRandomNodeResult);
 				});
 			});
 		});
@@ -335,7 +355,7 @@ describe('privateApi module', () => {
 		it('should add current node to banned nodes', () => {
 			banActiveNode.call(LSK);
 
-			(LSK.bannedNodes).should.containEql(node);
+			LSK.bannedNodes.should.containEql(node);
 		});
 
 		it('should not duplicate a banned node', () => {
@@ -343,7 +363,7 @@ describe('privateApi module', () => {
 			LSK.bannedNodes = bannedNodes;
 			banActiveNode.call(LSK);
 
-			(LSK.bannedNodes).should.be.eql(bannedNodes);
+			LSK.bannedNodes.should.be.eql(bannedNodes);
 		});
 	});
 
@@ -369,14 +389,14 @@ describe('privateApi module', () => {
 
 			it('should get nodes', () => {
 				hasAvailableNodes.call(LSK);
-				(getNodesStub.calledOn(LSK)).should.be.true();
+				getNodesStub.calledOn(LSK).should.be.true();
 			});
 
 			it('should return false without nodes left', () => {
 				LSK.defaultNodes = [];
 				restoreGetNodesStub();
 				const result = hasAvailableNodes.call(LSK);
-				(result).should.be.false();
+				result.should.be.false();
 			});
 		});
 
@@ -387,7 +407,7 @@ describe('privateApi module', () => {
 
 			it('should return false', () => {
 				const result = hasAvailableNodes.call(LSK);
-				(result).should.be.false();
+				result.should.be.false();
 			});
 		});
 	});
@@ -413,31 +433,48 @@ describe('privateApi module', () => {
 		it('should create a valid request object for GET request', () => {
 			expectedObject.url += `?limit=${options.limit}&offset=${options.offset}&details=${options.details}`;
 
-			const requestObject = privateApi.createRequestObject.call(LSK, GET, defaultEndpoint, options);
-			(requestObject).should.be.eql(expectedObject);
+			const requestObject = privateApi.createRequestObject.call(
+				LSK,
+				GET,
+				defaultEndpoint,
+				options,
+			);
+			requestObject.should.be.eql(expectedObject);
 		});
 
 		it('should create a valid request object for POST request', () => {
 			expectedObject.body = Object.assign({}, options);
 			expectedObject.method = POST;
 
-			const requestObject = privateApi.createRequestObject
-				.call(LSK, POST, defaultEndpoint, options);
-			(requestObject).should.be.eql(expectedObject);
+			const requestObject = privateApi.createRequestObject.call(
+				LSK,
+				POST,
+				defaultEndpoint,
+				options,
+			);
+			requestObject.should.be.eql(expectedObject);
 		});
 
 		it('should create a valid request object for POST request without options', () => {
 			expectedObject.method = POST;
 
-			const requestObject = privateApi.createRequestObject.call(LSK, POST, defaultEndpoint);
-			(requestObject).should.be.eql(expectedObject);
+			const requestObject = privateApi.createRequestObject.call(
+				LSK,
+				POST,
+				defaultEndpoint,
+			);
+			requestObject.should.be.eql(expectedObject);
 		});
 
 		it('should create a valid request object for undefined request method without options', () => {
 			expectedObject.method = undefined;
 
-			const requestObject = privateApi.createRequestObject.call(LSK, undefined, defaultEndpoint);
-			(requestObject).should.be.eql(expectedObject);
+			const requestObject = privateApi.createRequestObject.call(
+				LSK,
+				undefined,
+				defaultEndpoint,
+			);
+			requestObject.should.be.eql(expectedObject);
 		});
 	});
 
@@ -468,7 +505,10 @@ describe('privateApi module', () => {
 				.stub()
 				.returns(Object.assign({}, createRequestObjectResult));
 			// eslint-disable-next-line no-underscore-dangle
-			restoreCreateRequestObject = privateApi.__set__('createRequestObject', createRequestObjectStub);
+			restoreCreateRequestObject = privateApi.__set__(
+				'createRequestObject',
+				createRequestObjectStub,
+			);
 			sendRequestPromiseResult = sendRequestPromise
 				.call(LSK, defaultMethod, defaultEndpoint, options)
 				.catch(result => result);
@@ -480,16 +520,16 @@ describe('privateApi module', () => {
 		});
 
 		it('should create a request object', () => {
-			(createRequestObjectStub.calledOn(LSK)).should.be.true();
-			(createRequestObjectStub.calledWithExactly(defaultMethod, defaultEndpoint, options))
+			createRequestObjectStub.calledOn(LSK).should.be.true();
+			createRequestObjectStub
+				.calledWithExactly(defaultMethod, defaultEndpoint, options)
 				.should.be.true();
 		});
 
 		it('should return the result of a popsicle request', () => {
-			return sendRequestPromiseResult
-				.then((result) => {
-					(result).should.be.instanceof(popsicle.PopsicleError);
-				});
+			return sendRequestPromiseResult.then(result => {
+				result.should.be.instanceof(popsicle.PopsicleError);
+			});
 		});
 	});
 
@@ -514,8 +554,8 @@ describe('privateApi module', () => {
 			result.success = true;
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
-				.then((returnValue) => {
-					(returnValue).should.equal(result);
+				.then(returnValue => {
+					returnValue.should.equal(result);
 				});
 		});
 
@@ -523,8 +563,8 @@ describe('privateApi module', () => {
 			delete result.message;
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
-				.then((returnValue) => {
-					(returnValue).should.equal(result);
+				.then(returnValue => {
+					returnValue.should.equal(result);
 				});
 		});
 
@@ -532,8 +572,8 @@ describe('privateApi module', () => {
 			result.message = 'Timestamp is in the past';
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
-				.then((returnValue) => {
-					(returnValue).should.equal(result);
+				.then(returnValue => {
+					returnValue.should.equal(result);
 				});
 		});
 
@@ -541,8 +581,8 @@ describe('privateApi module', () => {
 			options.timeOffset = 41;
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
-				.then((returnValue) => {
-					(returnValue).should.equal(result);
+				.then(returnValue => {
+					returnValue.should.equal(result);
 				});
 		});
 
@@ -551,9 +591,10 @@ describe('privateApi module', () => {
 			const expectedOptions = Object.assign({}, options, { timeOffset: 10 });
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
-				.then((returnValue) => {
-					(returnValue).should.be.eql(sendRequestResult);
-					(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions))
+				.then(returnValue => {
+					returnValue.should.be.eql(sendRequestResult);
+					sendRequestStub
+						.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions)
 						.should.be.true();
 				});
 		});
@@ -562,9 +603,10 @@ describe('privateApi module', () => {
 			const expectedOptions = Object.assign({}, options, { timeOffset: 50 });
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
-				.then((returnValue) => {
-					(returnValue).should.be.eql(sendRequestResult);
-					(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions))
+				.then(returnValue => {
+					returnValue.should.be.eql(sendRequestResult);
+					sendRequestStub
+						.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions)
 						.should.be.true();
 				});
 		});
@@ -590,7 +632,10 @@ describe('privateApi module', () => {
 			setNodeSpy = sandbox.spy(LSK, 'setNode');
 			banActiveNodeSpy = sandbox.spy();
 			// eslint-disable-next-line no-underscore-dangle
-			restorebanActiveNodeSpy = privateApi.__set__('banActiveNode', banActiveNodeSpy);
+			restorebanActiveNodeSpy = privateApi.__set__(
+				'banActiveNode',
+				banActiveNodeSpy,
+			);
 		});
 
 		afterEach(() => {
@@ -601,7 +646,10 @@ describe('privateApi module', () => {
 			beforeEach(() => {
 				hasAvailableNodesStub = sandbox.stub().returns(true);
 				// eslint-disable-next-line no-underscore-dangle
-				restorehasAvailableNodesStub = privateApi.__set__('hasAvailableNodes', hasAvailableNodesStub);
+				restorehasAvailableNodesStub = privateApi.__set__(
+					'hasAvailableNodes',
+					hasAvailableNodesStub,
+				);
 			});
 
 			afterEach(() => {
@@ -610,66 +658,81 @@ describe('privateApi module', () => {
 
 			it('should ban the node with options randomNode true', () => {
 				LSK.randomNode = true;
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						(banActiveNodeSpy.calledOn(LSK)).should.be.true();
+						banActiveNodeSpy.calledOn(LSK).should.be.true();
 					});
 			});
 
 			it('should not ban the node with options randomNode false', () => {
 				LSK.randomNode = false;
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						(banActiveNodeSpy.calledOn(LSK)).should.be.false();
+						banActiveNodeSpy.calledOn(LSK).should.be.false();
 					});
 			});
 
 			it('should set a new node', () => {
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						(setNodeSpy.calledOnce).should.be.true();
+						setNodeSpy.calledOnce.should.be.true();
 					});
 			});
 
 			it('should send the request again with the same arguments', () => {
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						(sendRequestStub.calledWithExactly(defaultMethod, defaultEndpoint, options))
+						sendRequestStub
+							.calledWithExactly(defaultMethod, defaultEndpoint, options)
 							.should.be.true();
 					});
 			});
 
 			it('should resolve to the result of the request', () => {
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then((result) => {
-						(result).should.be.eql(sendRequestResult);
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(result => {
+						result.should.be.eql(sendRequestResult);
 					});
 			});
 		});
 
 		describe('if no redial is possible', () => {
 			beforeEach(() => {
-				hasAvailableNodesStub = sandbox.stub(privateApi, 'hasAvailableNodes').returns(false);
+				hasAvailableNodesStub = sandbox
+					.stub(privateApi, 'hasAvailableNodes')
+					.returns(false);
 			});
 
 			it('should resolve to an object with success set to false', () => {
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then((result) => {
-						(result).should.have.property('success').and.be.equal(false);
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(result => {
+						result.should.have.property('success').and.be.equal(false);
 					});
 			});
 
 			it('should resolve to an object with the provided error if no redial is possible', () => {
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then((result) => {
-						(result).should.have.property('error').and.be.equal(error);
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(result => {
+						result.should.have.property('error').and.be.equal(error);
 					});
 			});
 
 			it('should resolve to an object with a helpful message', () => {
-				return handleSendRequestFailures.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then((result) => {
-						(result).should.have.property('message').and.be.equal('Could not create an HTTP request to any known nodes.');
+				return handleSendRequestFailures
+					.call(LSK, defaultMethod, defaultEndpoint, options, error)
+					.then(result => {
+						result.should.have
+							.property('message')
+							.and.be.equal(
+								'Could not create an HTTP request to any known nodes.',
+							);
 					});
 			});
 		});

@@ -35,10 +35,15 @@ import { getTimeWithOffset } from './utils/time';
  */
 
 export default function send({
-	recipientId, amount, secret, secondSecret, data, timeOffset,
+	recipientId,
+	amount,
+	secret,
+	secondSecret,
+	data,
+	timeOffset,
 }) {
 	const keys = cryptoModule.getKeys(secret);
-	const fee = data ? (SEND_FEE + DATA_FEE) : SEND_FEE;
+	const fee = data ? SEND_FEE + DATA_FEE : SEND_FEE;
 	const transaction = {
 		type: 0,
 		amount,
@@ -50,7 +55,10 @@ export default function send({
 	};
 
 	if (data && data.length > 0) {
-		if (data !== data.toString('utf8')) throw new Error('Invalid encoding in transaction data. Data must be utf-8 encoded.');
+		if (data !== data.toString('utf8'))
+			throw new Error(
+				'Invalid encoding in transaction data. Data must be utf-8 encoded.',
+			);
 		transaction.asset.data = data;
 	}
 

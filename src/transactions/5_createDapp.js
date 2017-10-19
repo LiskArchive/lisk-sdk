@@ -23,7 +23,7 @@ import { getTimeWithOffset } from './utils/time';
 
 const isInt = n => parseInt(n, 10) === n;
 
-const validateOptions = (options) => {
+const validateOptions = options => {
 	if (typeof options !== 'object') {
 		throw new Error('Options must be an object.');
 	}
@@ -54,7 +54,12 @@ const validateOptions = (options) => {
  * @return {Object}
  */
 
-export default function createDapp({ secret, secondSecret, options, timeOffset }) {
+export default function createDapp({
+	secret,
+	secondSecret,
+	options,
+	timeOffset,
+}) {
 	validateOptions(options);
 
 	const keys = cryptoModule.getKeys(secret);

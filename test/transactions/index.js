@@ -17,15 +17,21 @@ import transaction from '../../src/transactions/index';
 describe('transactions', () => {
 	describe('exports', () => {
 		it('should have all supported create transaction functions', () => {
-			(transaction).should.have.property('send').be.type('function');
-			(transaction).should.have.property('sendFromMultisignatureAccount').be.type('function');
-			(transaction).should.have.property('registerSecondPassphrase').be.type('function');
-			(transaction).should.have.property('registerDelegate').be.type('function');
-			(transaction).should.have.property('castVotes').be.type('function');
-			(transaction).should.have.property('registerMultisignature').be.type('function');
-			(transaction).should.have.property('createDapp').be.type('function');
-			(transaction).should.have.property('transferIntoDapp').be.type('function');
-			(transaction).should.have.property('transferOutOfDapp').be.type('function');
+			transaction.should.have.property('send').be.type('function');
+			transaction.should.have
+				.property('sendFromMultisignatureAccount')
+				.be.type('function');
+			transaction.should.have
+				.property('registerSecondPassphrase')
+				.be.type('function');
+			transaction.should.have.property('registerDelegate').be.type('function');
+			transaction.should.have.property('castVotes').be.type('function');
+			transaction.should.have
+				.property('registerMultisignature')
+				.be.type('function');
+			transaction.should.have.property('createDapp').be.type('function');
+			transaction.should.have.property('transferIntoDapp').be.type('function');
+			transaction.should.have.property('transferOutOfDapp').be.type('function');
 		});
 	});
 });

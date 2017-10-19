@@ -34,14 +34,14 @@ describe('time module', () => {
 		it('should return current time as number', () => {
 			const time = getTimeFromBlockchainEpoch();
 
-			(time).should.be.equal(nowEpochTime);
+			time.should.be.equal(nowEpochTime);
 		});
 
 		it('should return epoch time for provided time as number, equal to 10', () => {
 			const realTime = 1464109210001;
 			const time = getTimeFromBlockchainEpoch(realTime);
 
-			(time).should.be.equal(10);
+			time.should.be.equal(10);
 		});
 	});
 
@@ -49,21 +49,21 @@ describe('time module', () => {
 		it('should get time with undefined offset', () => {
 			const time = getTimeWithOffset();
 
-			(time).should.be.equal(nowEpochTime);
+			time.should.be.equal(nowEpochTime);
 		});
 
 		it('should get time with positive offset', () => {
 			const offset = 3;
 			const time = getTimeWithOffset(offset);
 
-			(time).should.be.equal(23);
+			time.should.be.equal(23);
 		});
 
 		it('should get time with negative offset', () => {
 			const offset = -3;
 			const time = getTimeWithOffset(offset);
 
-			(time).should.be.equal(17);
+			time.should.be.equal(17);
 		});
 	});
 });

@@ -23,8 +23,10 @@ describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
 	const testPort = 7000;
 	const livePort = 8000;
-	const mainnetHash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-	const testnetHash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const mainnetHash =
+		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+	const testnetHash =
+		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const defaultNethash = {
 		'Content-Type': 'application/json',
 		nethash: mainnetHash,
@@ -86,22 +88,22 @@ describe('Lisk API module', () => {
 		handleTimestampIsInFutureFailuresStub = sandbox
 			.stub(privateApi, 'handleTimestampIsInFutureFailures')
 			.resolves(Object.assign({}, defaultRequestPromiseResult.body));
-		handleSendRequestFailuresStub = sandbox
-			.stub(privateApi, 'handleSendRequestFailures');
-		getFullURLStub = sandbox
-			.stub(privateApi, 'getFullURL')
-			.returns(defaultUrl);
+		handleSendRequestFailuresStub = sandbox.stub(
+			privateApi,
+			'handleSendRequestFailures',
+		);
+		getFullURLStub = sandbox.stub(privateApi, 'getFullURL').returns(defaultUrl);
 
 		LSK = new LiskAPI({});
 	});
 
 	describe('LiskAPI()', () => {
 		it('should create a new instance of LiskAPI', () => {
-			(LSK).should.be.type('object').and.be.instanceof(LiskAPI);
+			LSK.should.be.type('object').and.be.instanceof(LiskAPI);
 		});
 
 		it('should set node string by default', () => {
-			(LSK).should.have.property('node').and.be.type('string');
+			LSK.should.have.property('node').and.be.type('string');
 		});
 
 		describe('with option testnet true', () => {
@@ -110,11 +112,11 @@ describe('Lisk API module', () => {
 			});
 
 			it('should set the port to 7000 on initialization', () => {
-				(LSK).should.have.property('port').be.equal(testPort);
+				LSK.should.have.property('port').be.equal(testPort);
 			});
 
 			it('should set testnet to true on initialization', () => {
-				(LSK).should.have.property('testnet').be.equal(true);
+				LSK.should.have.property('testnet').be.equal(true);
 			});
 		});
 	});
@@ -122,69 +124,69 @@ describe('Lisk API module', () => {
 	describe('on initialize', () => {
 		describe('SSL', () => {
 			it('should set SSL to false on initialization when no SSL options is passed', () => {
-				(LSK).should.have.property('ssl').be.false();
+				LSK.should.have.property('ssl').be.false();
 			});
 
 			it('should set SSL to true on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: true });
-				(LSK).should.have.property('ssl').be.true();
+				LSK.should.have.property('ssl').be.true();
 			});
 
 			it('should set SSL to false on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: false });
-				(LSK).should.have.property('ssl').be.false();
+				LSK.should.have.property('ssl').be.false();
 			});
 		});
 
 		describe('randomNode', () => {
 			it('should set randomNode to true when randomNode not explicitly set', () => {
-				(LSK).should.have.property('randomNode').be.true();
+				LSK.should.have.property('randomNode').be.true();
 			});
 
 			it('should set randomNode to true on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ randomNode: true });
-				(LSK).should.have.property('randomNode').be.true();
+				LSK.should.have.property('randomNode').be.true();
 			});
 
 			it('should set randomNode to false on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ randomNode: false });
-				(LSK).should.have.property('randomNode').be.false();
+				LSK.should.have.property('randomNode').be.false();
 			});
 		});
 
 		describe('port', () => {
 			it('should set port to desired port if set on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ port: 2000 });
-				(LSK).should.have.property('port').be.equal(2000);
+				LSK.should.have.property('port').be.equal(2000);
 			});
 
 			it('should set port to default testnet port if not set but used testnet on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ port: undefined, testnet: true });
-				(LSK).should.have.property('port').be.equal(7000);
+				LSK.should.have.property('port').be.equal(7000);
 			});
 
 			it('should set testnet true and port to 100 on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ port: 100, testnet: true });
-				(LSK).should.have.property('port').be.equal(100);
+				LSK.should.have.property('port').be.equal(100);
 			});
 		});
 
 		describe('nodes', () => {
 			it('should set all nodes lists to provided nodes on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ nodes: defaultNodes });
-				(LSK).should.have.property('defaultNodes').be.equal(defaultNodes);
-				(LSK).should.have.property('defaultTestnetNodes').be.equal(defaultNodes);
-				(LSK).should.have.property('defaultSSLNodes').be.equal(defaultNodes);
+				LSK.should.have.property('defaultNodes').be.equal(defaultNodes);
+				LSK.should.have.property('defaultTestnetNodes').be.equal(defaultNodes);
+				LSK.should.have.property('defaultSSLNodes').be.equal(defaultNodes);
 			});
 
 			it('should set all bannedNodes list to provided bannedNodes on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ bannedNodes: defaultbannedNodes });
-				(LSK).should.have.property('bannedNodes').be.equal(defaultbannedNodes);
+				LSK.should.have.property('bannedNodes').be.equal(defaultbannedNodes);
 			});
 
 			it('should set node to provided node on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ node: defaultUrl });
-				(LSK).should.have.property('node').be.equal(defaultUrl);
+				LSK.should.have.property('node').be.equal(defaultUrl);
 			});
 		});
 
@@ -201,54 +203,63 @@ describe('Lisk API module', () => {
 					port: livePort,
 				};
 				LSK = new LiskAPI({ nethash: ownNethash });
-				(LSK).should.have.property('nethash').be.eql(expectedDevNethash);
+				LSK.should.have.property('nethash').be.eql(expectedDevNethash);
 			});
 		});
 	});
 
 	describe('#getNethash', () => {
 		it('should provide default mainnet nethash values', () => {
-			(LSK.getNethash()).should.eql(defaultNethash);
+			LSK.getNethash().should.eql(defaultNethash);
 		});
 
 		it('should provide default testnet nethash values', () => {
 			LSK = new LiskAPI({ testnet: true });
-			(LSK.getNethash()).should.eql(testnetNethash);
+			LSK.getNethash().should.eql(testnetNethash);
 		});
 
 		it('should get values for a custom nethash', () => {
-			(LSK.getNethash('123')).should.be.eql(customNethash);
+			LSK.getNethash('123').should.be.eql(customNethash);
 		});
 	});
 
 	describe('#getNodes', () => {
 		it('should get a set of nodes', () => {
-			(LSK.getNodes()).should.be.type('object');
+			LSK.getNodes().should.be.type('object');
 		});
 
 		it('should list 8 official nodes', () => {
 			const nodes = LSK.getNodes();
-			(nodes).should.have.property('official').have.property('length').be.equal(8);
-			nodes.official.forEach((node) => {
-				(node).should.have.property('node').and.be.type('string');
+			nodes.should.have
+				.property('official')
+				.have.property('length')
+				.be.equal(8);
+			nodes.official.forEach(node => {
+				node.should.have.property('node').and.be.type('string');
 			});
 		});
 
 		it('should list 8 ssl nodes', () => {
 			const nodes = LSK.getNodes();
-			(nodes).should.have.property('ssl').have.property('length').be.equal(8);
-			nodes.ssl.forEach((node) => {
-				(node).should.have.property('node').and.be.type('string');
-				(node).should.have.property('ssl').and.be.true();
+			nodes.should.have
+				.property('ssl')
+				.have.property('length')
+				.be.equal(8);
+			nodes.ssl.forEach(node => {
+				node.should.have.property('node').and.be.type('string');
+				node.should.have.property('ssl').and.be.true();
 			});
 		});
 
 		it('should list 1 testnet node', () => {
 			const nodes = LSK.getNodes();
-			(nodes).should.have.property('testnet').have.property('length').be.equal(1);
-			nodes.testnet.forEach((node) => {
-				(node).should.have.property('node').and.be.type('string');
-				(node).should.have.property('testnet').and.be.true();
+			nodes.should.have
+				.property('testnet')
+				.have.property('length')
+				.be.equal(1);
+			nodes.testnet.forEach(node => {
+				node.should.have.property('node').and.be.type('string');
+				node.should.have.property('testnet').and.be.true();
 			});
 		});
 	});
@@ -258,15 +269,15 @@ describe('Lisk API module', () => {
 			const myOwnNode = 'myOwnNode.com';
 			LSK.setNode(myOwnNode);
 
-			(LSK).should.have.property('node').and.be.equal(myOwnNode);
+			LSK.should.have.property('node').and.be.equal(myOwnNode);
 		});
 
 		it('should select a node when called with undefined', () => {
 			const callCount = selectNewNodeStub.callCount;
 			LSK.setNode();
 
-			(selectNewNodeStub.callCount).should.be.equal(callCount + 1);
-			(LSK).should.have.property('node').and.be.equal(defaultSelectedNode);
+			selectNewNodeStub.callCount.should.be.equal(callCount + 1);
+			LSK.should.have.property('node').and.be.equal(defaultSelectedNode);
 		});
 	});
 
@@ -277,17 +288,17 @@ describe('Lisk API module', () => {
 			});
 
 			it('should set testnet to true', () => {
-				(LSK).should.have.property('testnet').and.be.true();
+				LSK.should.have.property('testnet').and.be.true();
 			});
 
 			it('should set port to 7000', () => {
-				(LSK).should.have.property('port').and.be.equal(testPort);
+				LSK.should.have.property('port').and.be.equal(testPort);
 			});
 
 			it('should select a node', () => {
 				const callCount = selectNewNodeStub.callCount;
 				LSK.setTestnet(true);
-				(selectNewNodeStub.callCount).should.be.equal(callCount + 1);
+				selectNewNodeStub.callCount.should.be.equal(callCount + 1);
 			});
 		});
 
@@ -297,17 +308,17 @@ describe('Lisk API module', () => {
 			});
 
 			it('should set testnet to false', () => {
-				(LSK).should.have.property('testnet').and.be.false();
+				LSK.should.have.property('testnet').and.be.false();
 			});
 
 			it('should set port to 8000', () => {
-				(LSK).should.have.property('port').and.be.equal(livePort);
+				LSK.should.have.property('port').and.be.equal(livePort);
 			});
 
 			it('should select a node', () => {
 				const callCount = selectNewNodeStub.callCount;
 				LSK.setTestnet(true);
-				(selectNewNodeStub.callCount).should.be.equal(callCount + 1);
+				selectNewNodeStub.callCount.should.be.equal(callCount + 1);
 			});
 		});
 
@@ -319,12 +330,17 @@ describe('Lisk API module', () => {
 			describe('when initially on mainnet', () => {
 				it('should reset banned nodes when switching from mainnet to testnet', () => {
 					LSK.setTestnet(true);
-					(LSK).should.have.property('bannedNodes').and.be.Array().and.be.empty();
+					LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should not reset banned nodes when switching from mainnet to mainnet', () => {
 					LSK.setTestnet(false);
-					(LSK).should.have.property('bannedNodes').and.be.eql(defaultbannedNodes);
+					LSK.should.have
+						.property('bannedNodes')
+						.and.be.eql(defaultbannedNodes);
 				});
 			});
 
@@ -335,12 +351,17 @@ describe('Lisk API module', () => {
 
 				it('should reset banned nodes when switching from testnet to mainnet', () => {
 					LSK.setTestnet(false);
-					(LSK).should.have.property('bannedNodes').and.be.Array().and.be.empty();
+					LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should not reset banned nodes when switching from testnet to testnet', () => {
 					LSK.setTestnet(true);
-					(LSK).should.have.property('bannedNodes').and.be.eql(defaultbannedNodes);
+					LSK.should.have
+						.property('bannedNodes')
+						.and.be.eql(defaultbannedNodes);
 				});
 			});
 		});
@@ -355,38 +376,41 @@ describe('Lisk API module', () => {
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
 					LSK.setSSL(true);
-					(LSK).should.have.property('ssl').and.be.true();
+					LSK.should.have.property('ssl').and.be.true();
 				});
 
 				it('should not change bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(true);
-					(LSK).should.have.property('bannedNodes').and.eql(defaultbannedNodes);
+					LSK.should.have.property('bannedNodes').and.eql(defaultbannedNodes);
 				});
 
 				it('should not select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(true);
-					(selectNewNodeStub.callCount).should.equal(callCount);
+					selectNewNodeStub.callCount.should.equal(callCount);
 				});
 			});
 
 			describe('when set to false', () => {
 				it('should have ssl set to false', () => {
 					LSK.setSSL(false);
-					(LSK).should.have.property('ssl').and.be.false();
+					LSK.should.have.property('ssl').and.be.false();
 				});
 
 				it('should reset bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(false);
-					(LSK).should.have.property('bannedNodes').and.be.Array().and.be.empty();
+					LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(false);
-					(selectNewNodeStub.callCount).should.equal(callCount + 1);
+					selectNewNodeStub.callCount.should.equal(callCount + 1);
 				});
 			});
 		});
@@ -399,38 +423,41 @@ describe('Lisk API module', () => {
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
 					LSK.setSSL(true);
-					(LSK).should.have.property('ssl').and.be.true();
+					LSK.should.have.property('ssl').and.be.true();
 				});
 
 				it('should reset bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(true);
-					(LSK).should.have.property('bannedNodes').and.be.Array().and.be.empty();
+					LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(true);
-					(selectNewNodeStub.callCount).should.equal(callCount + 1);
+					selectNewNodeStub.callCount.should.equal(callCount + 1);
 				});
 			});
 
 			describe('when set to false', () => {
 				it('should have ssl set to false', () => {
 					LSK.setSSL(false);
-					(LSK).should.have.property('ssl').and.be.false();
+					LSK.should.have.property('ssl').and.be.false();
 				});
 
 				it('should not change bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(false);
-					(LSK).should.have.property('bannedNodes').and.eql(defaultbannedNodes);
+					LSK.should.have.property('bannedNodes').and.eql(defaultbannedNodes);
 				});
 
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(false);
-					(selectNewNodeStub.callCount).should.equal(callCount);
+					selectNewNodeStub.callCount.should.equal(callCount);
 				});
 			});
 		});
@@ -438,12 +465,11 @@ describe('Lisk API module', () => {
 
 	describe('#broadcastSignedTransaction', () => {
 		it('should use getFullURL to get the url', () => {
-			return new Promise((resolve) => {
+			return new Promise(resolve => {
 				LSK.broadcastSignedTransaction({}, resolve);
-			})
-				.then(() => {
-					(getFullURLStub.calledOn(LSK)).should.be.true();
-				});
+			}).then(() => {
+				getFullURLStub.calledOn(LSK).should.be.true();
+			});
 		});
 
 		it('should call sendRequestPromise with a prepared request object', () => {
@@ -457,22 +483,22 @@ describe('Lisk API module', () => {
 				requestParams: { transaction },
 			};
 
-			return new Promise((resolve) => {
+			return new Promise(resolve => {
 				LSK.broadcastSignedTransaction(transaction, resolve);
-			})
-				.then(() => {
-					(sendRequestPromiseStub.calledOn(LSK)).should.be.true();
-					(sendRequestPromiseStub.calledWithExactly(POST, requestObject)).should.be.true();
-				});
+			}).then(() => {
+				sendRequestPromiseStub.calledOn(LSK).should.be.true();
+				sendRequestPromiseStub
+					.calledWithExactly(POST, requestObject)
+					.should.be.true();
+			});
 		});
 
 		it('should call the callback with the body of the result of sendRequestPromise', () => {
-			return new Promise((resolve) => {
+			return new Promise(resolve => {
 				LSK.broadcastSignedTransaction({}, resolve);
-			})
-				.then((result) => {
-					(result).should.be.equal(defaultRequestPromiseResult.body);
-				});
+			}).then(result => {
+				result.should.be.equal(defaultRequestPromiseResult.body);
+			});
 		});
 	});
 
@@ -489,76 +515,74 @@ describe('Lisk API module', () => {
 		});
 
 		it('should call a callback if provided with no options', () => {
-			return new Promise((resolve) => {
+			return new Promise(resolve => {
 				LSK.sendRequest(method, endpoint, resolve);
 			});
 		});
 
 		it('should call a callback if provided with options', () => {
-			return new Promise((resolve) => {
+			return new Promise(resolve => {
 				LSK.sendRequest(method, endpoint, options, resolve);
 			});
 		});
 
 		it('should return a promise if no callback is provided with no options', () => {
-			return new Promise((resolve) => {
-				LSK.sendRequest(method, endpoint)
-					.then(resolve);
+			return new Promise(resolve => {
+				LSK.sendRequest(method, endpoint).then(resolve);
 			});
 		});
 
 		it('should return a promise if no callback is provided with options', () => {
-			return new Promise((resolve) => {
-				LSK.sendRequest(method, endpoint, options)
-					.then(resolve);
+			return new Promise(resolve => {
+				LSK.sendRequest(method, endpoint, options).then(resolve);
 			});
 		});
 
 		it('should check options if provided', () => {
-			return LSK.sendRequest(method, endpoint, options)
-				.then(() => {
-					(checkOptionsStub.calledWithExactly(options)).should.be.true();
-				});
+			return LSK.sendRequest(method, endpoint, options).then(() => {
+				checkOptionsStub.calledWithExactly(options).should.be.true();
+			});
 		});
 
 		it('should call sendRequestPromise with provided options', () => {
-			return LSK.sendRequest(method, endpoint, options)
-				.then(() => {
-					(sendRequestPromiseStub.calledOn(LSK)).should.be.true();
-					(sendRequestPromiseStub.firstCall.args[2]).should.be.eql(defaultCheckedOptions);
-				});
+			return LSK.sendRequest(method, endpoint, options).then(() => {
+				sendRequestPromiseStub.calledOn(LSK).should.be.true();
+				sendRequestPromiseStub.firstCall.args[2].should.be.eql(
+					defaultCheckedOptions,
+				);
+			});
 		});
 
 		it('should call sendRequestPromise with default options', () => {
-			return LSK.sendRequest(method, endpoint)
-				.then(() => {
-					(sendRequestPromiseStub.calledOn(LSK)).should.be.true();
-					(sendRequestPromiseStub.firstCall.args[2]).should.be.eql({});
-				});
+			return LSK.sendRequest(method, endpoint).then(() => {
+				sendRequestPromiseStub.calledOn(LSK).should.be.true();
+				sendRequestPromiseStub.firstCall.args[2].should.be.eql({});
+			});
 		});
 
 		it('should handle timestamp is in future failures', () => {
-			return LSK.sendRequest(method, endpoint, options)
-				.then(() => {
-					(handleTimestampIsInFutureFailuresStub.calledOn(LSK)).should.be.true();
-					(handleTimestampIsInFutureFailuresStub.calledWithExactly(
-						method, endpoint, defaultCheckedOptions, defaultRequestPromiseResult.body,
-					))
-						.should.be.true();
-				});
+			return LSK.sendRequest(method, endpoint, options).then(() => {
+				handleTimestampIsInFutureFailuresStub.calledOn(LSK).should.be.true();
+				handleTimestampIsInFutureFailuresStub
+					.calledWithExactly(
+						method,
+						endpoint,
+						defaultCheckedOptions,
+						defaultRequestPromiseResult.body,
+					)
+					.should.be.true();
+			});
 		});
 
 		it('should catch promise rejections', () => {
 			const error = new Error('oh no');
 			handleTimestampIsInFutureFailuresStub.rejects(error);
-			return LSK.sendRequest(method, endpoint, options)
-				.then(() => {
-					(handleSendRequestFailuresStub.calledOn(LSK)).should.be.true();
-					(handleSendRequestFailuresStub.calledWithExactly(
-						method, endpoint, defaultCheckedOptions, error,
-					))
-						.should.be.true();
-				});
+			return LSK.sendRequest(method, endpoint, options).then(() => {
+				handleSendRequestFailuresStub.calledOn(LSK).should.be.true();
+				handleSendRequestFailuresStub
+					.calledWithExactly(method, endpoint, defaultCheckedOptions, error)
+					.should.be.true();
+			});
 		});
 	});
 
@@ -576,7 +600,9 @@ describe('Lisk API module', () => {
 				const options = { address };
 
 				LSK.getAccount(address, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'accounts', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'accounts', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -585,7 +611,9 @@ describe('Lisk API module', () => {
 				const options = { limit: defaultRequestLimit };
 
 				LSK.getActiveDelegates(defaultRequestLimit, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'delegates', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -600,12 +628,25 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getStandbyDelegates(defaultRequestLimit, options, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'delegates', options, callback)
+					.should.be.true();
 			});
 
 			it('should get standby delegates with a default offset and ordering when not specified', () => {
 				LSK.getStandbyDelegates(defaultRequestLimit, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'delegates', { limit: defaultRequestLimit, orderBy: defaultOrderBy, offset: defaultRequestOffset }, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(
+						GET,
+						'delegates',
+						{
+							limit: defaultRequestLimit,
+							orderBy: defaultOrderBy,
+							offset: defaultRequestOffset,
+						},
+						callback,
+					)
+					.should.be.true();
 			});
 		});
 
@@ -615,7 +656,9 @@ describe('Lisk API module', () => {
 				const options = { search: searchTerm };
 
 				LSK.searchDelegatesByUsername(searchTerm, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'delegates', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'delegates', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -624,17 +667,22 @@ describe('Lisk API module', () => {
 				const options = { limit: defaultRequestLimit };
 
 				LSK.getBlocks(defaultRequestLimit, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'blocks', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'blocks', options, callback)
+					.should.be.true();
 			});
 		});
 
 		describe('#getForgedBlocks', () => {
 			it('should get blocks for a given generator public key', () => {
-				const generatorPublicKey = '130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0';
+				const generatorPublicKey =
+					'130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0';
 				const options = { generatorPublicKey };
 
 				LSK.getForgedBlocks(generatorPublicKey, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'blocks', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'blocks', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -644,7 +692,9 @@ describe('Lisk API module', () => {
 				const options = { height };
 
 				LSK.getBlock(height, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'blocks', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'blocks', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -668,7 +718,14 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getTransactions(recipientAddress, options, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions', expectedPassedOptions, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(
+						GET,
+						'transactions',
+						expectedPassedOptions,
+						callback,
+					)
+					.should.be.true();
 			});
 		});
 
@@ -678,7 +735,9 @@ describe('Lisk API module', () => {
 				const options = { transactionId };
 
 				LSK.getTransaction(transactionId, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'transactions', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -688,7 +747,9 @@ describe('Lisk API module', () => {
 				const options = { address };
 
 				LSK.getVotes(address, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'votes', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'votes', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -698,7 +759,9 @@ describe('Lisk API module', () => {
 				const options = { username };
 
 				LSK.getVoters(username, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'voters', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'voters', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -708,7 +771,9 @@ describe('Lisk API module', () => {
 				const options = { transactionId };
 
 				LSK.getUnsignedMultisignatureTransactions(options, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'transactions/unsigned', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'transactions/unsigned', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -718,7 +783,9 @@ describe('Lisk API module', () => {
 				const options = { transactionId };
 
 				LSK.getDapp(transactionId, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'dapps', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'dapps', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -730,7 +797,9 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getDapps(options, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'dapps', options, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'dapps', options, callback)
+					.should.be.true();
 			});
 		});
 
@@ -748,7 +817,9 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getDappsByCategory(category, options, callback);
-				(LSK.sendRequest.calledWithExactly(GET, 'dapps', expectedPassedOptions, callback)).should.be.true();
+				LSK.sendRequest
+					.calledWithExactly(GET, 'dapps', expectedPassedOptions, callback)
+					.should.be.true();
 			});
 		});
 
@@ -762,8 +833,16 @@ describe('Lisk API module', () => {
 					secondSecret: defaultSecondSecret,
 				};
 
-				LSK.sendLSK(recipientId, defaultAmount, defaultSecret, defaultSecondSecret, callback);
-				(LSK.sendRequest.calledWithExactly(POST, 'transactions', options, callback)).should.be.true();
+				LSK.sendLSK(
+					recipientId,
+					defaultAmount,
+					defaultSecret,
+					defaultSecondSecret,
+					callback,
+				);
+				LSK.sendRequest
+					.calledWithExactly(POST, 'transactions', options, callback)
+					.should.be.true();
 			});
 		});
 	});

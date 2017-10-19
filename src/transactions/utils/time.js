@@ -21,7 +21,7 @@ import { EPOCH_TIME_MILLISECONDS } from '../../constants';
  * @return {Number}
  */
 
-export const getTimeFromBlockchainEpoch = (givenTimestamp) => {
+export const getTimeFromBlockchainEpoch = givenTimestamp => {
 	const startingPoint = givenTimestamp || new Date().getTime();
 	const blockchainInitialTime = EPOCH_TIME_MILLISECONDS;
 	return Math.floor((startingPoint - blockchainInitialTime) / 1000);
@@ -33,10 +33,8 @@ export const getTimeFromBlockchainEpoch = (givenTimestamp) => {
 * @return {Number}
 */
 
-export const getTimeWithOffset = (offset) => {
+export const getTimeWithOffset = offset => {
 	const now = new Date().getTime();
-	const timeWithOffset = offset
-		? now + (offset * 1000)
-		: now;
+	const timeWithOffset = offset ? now + offset * 1000 : now;
 	return getTimeFromBlockchainEpoch(timeWithOffset);
 };
