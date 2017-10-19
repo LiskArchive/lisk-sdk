@@ -42,8 +42,8 @@ export default function registerMultisignatureAccount({
 
 	const transaction = {
 		type: 4,
-		amount: 0,
-		fee: MULTISIGNATURE_FEE * keygroupFees,
+		amount: '0',
+		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

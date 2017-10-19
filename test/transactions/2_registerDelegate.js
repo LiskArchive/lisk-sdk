@@ -20,6 +20,7 @@ const time = require('../../src/transactions/utils/time');
 afterEach(() => sandbox.restore());
 
 describe('#registerDelegate tranasction', () => {
+	const fixedPoint = 10 ** 8;
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey =
@@ -27,7 +28,7 @@ describe('#registerDelegate tranasction', () => {
 	const secondPublicKey =
 		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const username = 'test_delegate_1@\\';
-	const fee = 25e8;
+	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
@@ -77,17 +78,17 @@ describe('#registerDelegate tranasction', () => {
 					.and.equal(2);
 			});
 
-			it('should have amount number equal to 0', () => {
+			it('should have amount string equal to 0', () => {
 				registerDelegateTransaction.should.have
 					.property('amount')
-					.and.be.type('number')
-					.and.equal(0);
+					.and.be.type('string')
+					.and.equal('0');
 			});
 
-			it('should have fee number equal to 25 LSK', () => {
+			it('should have fee string equal to 25 LSK', () => {
 				registerDelegateTransaction.should.have
 					.property('fee')
-					.and.be.type('number')
+					.and.be.type('string')
 					.and.equal(fee);
 			});
 

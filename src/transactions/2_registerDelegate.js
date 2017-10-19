@@ -42,8 +42,8 @@ export default function registerDelegate({
 
 	const transaction = {
 		type: 2,
-		amount: 0,
-		fee: DELEGATE_FEE,
+		amount: '0',
+		fee: DELEGATE_FEE.toString(),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

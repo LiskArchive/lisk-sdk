@@ -75,18 +75,18 @@ describe('#castVotes transaction', () => {
 					.and.equal(3);
 			});
 
-			it('should have amount number equal to 0', () => {
+			it('should have amount string equal to 0', () => {
 				castVotesTransaction.should.have
 					.property('amount')
-					.and.be.type('number')
-					.and.equal(0);
+					.and.be.type('string')
+					.and.equal('0');
 			});
 
-			it('should have fee number equal to 0', () => {
+			it('should have fee string equal to 100000000', () => {
 				castVotesTransaction.should.have
 					.property('fee')
-					.and.be.type('number')
-					.and.equal(1e8);
+					.and.be.type('string')
+					.and.equal('100000000');
 			});
 
 			it('should have recipientId string equal to address', () => {

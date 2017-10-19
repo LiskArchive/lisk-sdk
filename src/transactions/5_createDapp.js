@@ -66,8 +66,8 @@ export default function createDapp({
 
 	const transaction = {
 		type: 5,
-		amount: 0,
-		fee: DAPP_FEE,
+		amount: '0',
+		fee: DAPP_FEE.toString(),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

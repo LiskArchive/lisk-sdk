@@ -47,8 +47,8 @@ export default function sendFromMultisignatureAccount({
 
 	const transaction = {
 		type: 0,
-		amount,
-		fee: SEND_FEE,
+		amount: amount.toString(),
+		fee: SEND_FEE.toString(),
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		requesterPublicKey: requesterPublicKey || keys.publicKey,

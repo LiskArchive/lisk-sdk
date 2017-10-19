@@ -6,6 +6,7 @@ const time = require('../../src/transactions/utils/time');
 afterEach(() => sandbox.restore());
 
 describe('#sendFromMultisignatureAccount transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const keys = {
@@ -21,8 +22,8 @@ describe('#sendFromMultisignatureAccount transaction', () => {
 			'9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
 	};
 	const recipientId = '123456789L';
-	const amount = 50e8;
-	const sendFee = 0.1e8;
+	const amount = (500 * fixedPoint).toString();
+	const sendFee = (0.1 * fixedPoint).toString();
 	const requesterPublicKey = 'abc123';
 	const timeWithOffset = 38350076;
 
@@ -84,17 +85,17 @@ describe('#sendFromMultisignatureAccount transaction', () => {
 					.and.equal(0);
 			});
 
-			it('should have amount number equal to 500 LSK', () => {
+			it('should have amount string equal to 500 LSK', () => {
 				sendFromMultisignatureAccountTransaction.should.have
 					.property('amount')
-					.and.be.type('number')
+					.and.be.type('string')
 					.and.equal(amount);
 			});
 
-			it('should have fee number equal to 0.1 LSK', () => {
+			it('should have fee string equal to 0.1 LSK', () => {
 				sendFromMultisignatureAccountTransaction.should.have
 					.property('fee')
-					.and.be.type('number')
+					.and.be.type('string')
 					.and.equal(sendFee);
 			});
 
