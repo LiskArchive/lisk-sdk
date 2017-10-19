@@ -13,348 +13,280 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import fs from 'fs';
 import os from 'os';
-import set from '../../../src/commands/set';
-import env from '../../../src/utils/env';
 import {
-	readJsonSync,
-	writeJsonSync,
-} from '../../../src/utils/fs';
-import liskInstance from '../../../src/utils/liskInstance';
-import tablify from '../../../src/utils/tablify';
-import {
-	getCommands,
-	getRequiredArgs,
-	setUpVorpalWithCommand,
-} from './utils';
+	setUpFsStubs,
+	setUpEnvVariable,
+	restoreEnvVariable,
+} from '../../steps/utils';
+import * as given from '../../steps/1_given';
+import * as when from '../../steps/2_when';
+import * as then from '../../steps/3_then';
 
-const configFilePath = `${os.homedir()}/.lisky/config.json`;
-const writeConfig = config => writeJsonSync(configFilePath, config);
+const ENV_VARIABLE = 'NON_INTERACTIVE_MODE';
 
-const initialConfig = readJsonSync(configFilePath);
-
-const defaultConfig = {
-	name: 'lisky',
-	json: false,
-	liskJS: {
-		testnet: false,
-	},
-};
-
-describe('lisky set command palette', () => {
-	let vorpal;
-	let capturedOutput = [];
-
+describe('set command', () => {
+	before(setUpEnvVariable(ENV_VARIABLE));
 	beforeEach(() => {
-		writeConfig(defaultConfig);
-		vorpal = setUpVorpalWithCommand(set, capturedOutput);
+		setUpFsStubs();
 	});
-
-	afterEach(() => {
-		vorpal.ui.removeAllListeners();
-		capturedOutput = [];
-	});
-
-	after(() => {
-		writeConfig(initialConfig);
-	});
-
-	describe('setup', () => {
-		const commandName = 'set';
-
-		it('should be available', () => {
-			const setCommands = getCommands(vorpal, commandName);
-			(setCommands).should.have.length(1);
-		});
-
-		it('should have 2 required inputs', () => {
-			const requiredArgs = getRequiredArgs(vorpal, commandName);
-			(requiredArgs).should.have.length(2);
-		});
-	});
-
-	describe('problems', () => {
-		it('should handle unknown config variables', () => {
-			const invalidVariableCommand = 'set xxx true';
-			return vorpal.exec(invalidVariableCommand, () => {
-				(capturedOutput[0]).should.be.equal('Unsupported variable name.');
-			});
-		});
-
-		describe('without write file permissions', () => {
-			const command = 'set json true';
-
-			beforeEach(() => {
-				sandbox.stub(fs, 'writeFileSync').throws('EACCES: permission denied, open \'~/.lisky/config.json\'');
-			});
-
-			it('should show a warning if the config file is not writable', () => {
-				return vorpal.exec(command)
-					.then(() => {
-						(capturedOutput[0]).should.be.equal(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
+	afterEach(restoreEnvVariable(ENV_VARIABLE));
+	describe('Given a config', () => {
+		beforeEach(given.aConfig);
+		describe(`Given a directory path "${os.homedir()}/.lisky"`, () => {
+			beforeEach(given.aDirectoryPath);
+			describe('Given a config file name "config.json"', () => {
+				beforeEach(given.aConfigFileName);
+				describe('Given an action "set"', () => {
+					beforeEach(given.anAction);
+					describe('Given an unknown variable "xxx"', () => {
+						beforeEach(given.anUnknownVariable);
+						describe('Given a value "true"', () => {
+							beforeEach(given.aValue);
+							describe('When the action is called with the variable and the value', () => {
+								beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+								it('Then it should reject with message "Unsupported variable name."', then.itShouldRejectWithMessage);
+							});
+						});
 					});
-			});
-
-			describe('in interactive mode', () => {
-				before(() => {
-					process.env.NON_INTERACTIVE_MODE = false;
-				});
-
-				after(() => {
-					delete process.env.NON_INTERACTIVE_MODE;
-				});
-
-				it('should inform the user that the option was successfully updated.', () => {
-					return vorpal.exec(command)
-						.then(() => {
-							(capturedOutput[1]).should.be.equal(JSON.stringify({ message: 'Successfully set json output to true.' }));
+					describe('Given a variable "json"', () => {
+						beforeEach(given.aVariable);
+						describe('Given an unknown value "xxx"', () => {
+							beforeEach(given.anUnknownValue);
+							describe('When the action is called with the variable and the value', () => {
+								beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+								it('Then it should reject with message "Value must be a boolean."', then.itShouldRejectWithMessage);
+							});
 						});
-				});
-			});
-
-			describe('in non-interactive mode', () => {
-				before(() => {
-					process.env.NON_INTERACTIVE_MODE = true;
-				});
-
-				after(() => {
-					delete process.env.NON_INTERACTIVE_MODE;
-				});
-
-				it('should inform the user that the option was not successfully updated.', () => {
-					return vorpal.exec(command)
-						.then(() => {
-							(capturedOutput[1]).should.be.equal(JSON.stringify({ message: 'Could not set json output to true.' }));
+						describe('Given a value "true"', () => {
+							beforeEach(given.aValue);
+							describe('Given the config file cannot be written', () => {
+								beforeEach(given.theConfigFileCannotBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "json" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
+										it('Then it should resolve to an object with message "Successfully set json to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+							describe('Given the config file can be written', () => {
+								beforeEach(given.theConfigFileCanBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "json" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set json to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "json" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set json to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
 						});
-				});
-			});
-		});
-	});
-
-	describe('options', () => {
-		const nameProperty = 'name';
-		const customName = 'my-custom-name';
-		const setNameCommand = `set ${nameProperty} ${customName}`;
-		let setNameResult;
-
-		describe('name option', () => {
-			beforeEach(() => {
-				setNameResult = { message: `Successfully set ${nameProperty} to ${customName}.` };
-				return vorpal.exec(setNameCommand);
-			});
-
-			it('should set name to my-custom-name in the in-memory config', () => {
-				(env)
-					.should.have.property(nameProperty)
-					.be.equal(customName);
-			});
-
-			it('should set name to my-custom-name in the config file', () => {
-				const config = readJsonSync(configFilePath);
-
-				(config)
-					.should.have.property(nameProperty)
-					.be.equal(customName);
-			});
-
-			it('should inform the user that the config name has been updated to my-custom-name', () => {
-				(capturedOutput[0]).should.be.equal(JSON.stringify(setNameResult));
-			});
-		});
-
-		describe('json option', () => {
-			const setJsonTrueCommand = 'set json true';
-			const setJsonFalseCommand = 'set json false';
-			const invalidValueCommand = 'set json tru';
-			let setJsonTrueResult;
-			let setJsonFalseResult;
-			let invalidValueResult;
-			const jsonProperty = 'json';
-
-			describe('to a non-boolean value', () => {
-				beforeEach(() => {
-					setJsonTrueResult = { message: 'Successfully set json output to true.' };
-					setJsonFalseResult = { message: 'Successfully set json output to false.' };
-					invalidValueResult = { message: 'Cannot set json output to tru.' };
-					return vorpal.exec(setJsonTrueCommand)
-						.then(vorpal.exec.bind(vorpal, invalidValueCommand));
-				});
-
-				it('should not change the value of json in the in-memory config', () => {
-					(env)
-						.should.have.property(jsonProperty)
-						.be.true();
-				});
-
-				it('should not change the value of json in the config file', () => {
-					const config = readJsonSync(configFilePath);
-
-					(config)
-						.should.have.property(jsonProperty)
-						.be.true();
-				});
-
-				it('should inform the user that the config has not been updated', () => {
-					(capturedOutput[1]).should.be.equal(JSON.stringify(invalidValueResult));
-				});
-			});
-
-			describe('to true', () => {
-				beforeEach(() => {
-					return vorpal.exec(setJsonTrueCommand);
-				});
-
-				it('should set json to true in the in-memory config', () => {
-					(env)
-						.should.have.property(jsonProperty)
-						.be.true();
-				});
-
-				it('should set json to true in the config file', () => {
-					const config = readJsonSync(configFilePath);
-
-					(config)
-						.should.have.property(jsonProperty)
-						.be.true();
-				});
-
-				it('should inform the user that the config has been updated to true', () => {
-					(capturedOutput[0]).should.be.equal(JSON.stringify(setJsonTrueResult));
-				});
-			});
-
-			describe('to false', () => {
-				beforeEach(() => {
-					return vorpal.exec(setJsonFalseCommand);
-				});
-
-				it('should set json to false in the in-memory config', () => {
-					(env)
-						.should.have.property(jsonProperty)
-						.be.false();
-				});
-
-				it('should set json to false in the config file', () => {
-					const config = readJsonSync(configFilePath);
-
-					(config)
-						.should.have.property(jsonProperty)
-						.be.false();
-				});
-
-				it('should inform the user that the config has been updated to false', () => {
-					(capturedOutput[0]).should.be.equal(tablify(setJsonFalseResult).toString());
-				});
-			});
-		});
-
-		describe('testnet option', () => {
-			const setTestnetTrueCommand = 'set testnet true';
-			const setTestnetFalseCommand = 'set testnet false';
-			const invalidValueCommand = 'set testnet tru';
-			let setTestnetTrueResult;
-			let setTestnetFalseResult;
-			let invalidValueResult;
-			const testnetProperties = ['liskJS', 'testnet'];
-
-			let setTestnetStub;
-
-			beforeEach(() => {
-				setTestnetTrueResult = { message: 'Successfully set testnet to true.' };
-				setTestnetFalseResult = { message: 'Successfully set testnet to false.' };
-				invalidValueResult = { message: 'Cannot set testnet to tru.' };
-				setTestnetStub = sandbox.stub(liskInstance, 'setTestnet');
-			});
-
-			describe('to a non-boolean value', () => {
-				beforeEach(() => {
-					return vorpal.exec(setTestnetTrueCommand)
-						.then(vorpal.exec.bind(vorpal, invalidValueCommand));
-				});
-
-				it('should not change the value of testnet on the lisk instance', () => {
-					(setTestnetStub.calledTwice).should.be.false();
-				});
-
-				it('should not change the value of testnet in the config file', () => {
-					const config = readJsonSync(configFilePath);
-
-					(config)
-						.should.have.property(testnetProperties[0])
-						.have.property(testnetProperties[1])
-						.be.true();
-				});
-
-				it('should not change the value of testnet in the in-memory config', () => {
-					(env)
-						.should.have.property(testnetProperties[0])
-						.have.property(testnetProperties[1])
-						.be.true();
-				});
-
-				it('should inform the user that the config has not been updated', () => {
-					(capturedOutput[1]).should.be.equal(tablify(invalidValueResult).toString());
-				});
-			});
-
-			describe('to true', () => {
-				beforeEach(() => {
-					return vorpal.exec(setTestnetTrueCommand);
-				});
-
-				it('should set testnet to true on the lisk instance', () => {
-					(setTestnetStub.calledWithExactly(true)).should.be.true();
-				});
-
-				it('should set json to true in the in-memory config', () => {
-					(env)
-						.should.have.property(testnetProperties[0])
-						.have.property(testnetProperties[1])
-						.be.true();
-				});
-
-				it('should set testnet to true in the config file', () => {
-					const config = readJsonSync(configFilePath);
-
-					(config)
-						.should.have.property(testnetProperties[0])
-						.have.property(testnetProperties[1])
-						.be.true();
-				});
-
-				it('should inform the user that the config has been updated to true', () => {
-					(capturedOutput[0]).should.be.equal(tablify(setTestnetTrueResult).toString());
-				});
-			});
-
-			describe('to false', () => {
-				beforeEach(() => {
-					return vorpal.exec(setTestnetFalseCommand);
-				});
-
-				it('should set testnet to false on the lisk instance', () => {
-					(setTestnetStub.calledWithExactly(false)).should.be.true();
-				});
-
-				it('should set json to false in the in-memory config', () => {
-					(env)
-						.should.have.property(testnetProperties[0])
-						.have.property(testnetProperties[1])
-						.be.false();
-				});
-
-				it('should set testnet to false in the config file', () => {
-					const config = readJsonSync(configFilePath);
-
-					(config)
-						.should.have.property(testnetProperties[0])
-						.have.property(testnetProperties[1])
-						.be.false();
-				});
-
-				it('should inform the user that the config has been updated to false', () => {
-					(capturedOutput[0]).should.be.equal(tablify(setTestnetFalseResult).toString());
+						describe('Given a value "false"', () => {
+							beforeEach(given.aValue);
+							describe('Given the config file cannot be written', () => {
+								beforeEach(given.theConfigFileCannotBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "json" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
+										it('Then it should resolve to an object with message "Successfully set json to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+							describe('Given the config file can be written', () => {
+								beforeEach(given.theConfigFileCanBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "json" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set json to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "json" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set json to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+						});
+					});
+					describe('Given a variable "name"', () => {
+						beforeEach(given.aVariable);
+						describe('Given a value "my_custom_lisky"', () => {
+							beforeEach(given.aValue);
+							describe('Given the config file cannot be written', () => {
+								beforeEach(given.theConfigFileCannotBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "name" to the value', then.itShouldUpdateTheConfigVariableToTheValue);
+										it('Then it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
+										it('Then it should resolve to an object with message "Successfully set name to my_custom_lisky."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+							describe('Given the config file can be written', () => {
+								beforeEach(given.theConfigFileCanBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "name" to the value', then.itShouldUpdateTheConfigVariableToTheValue);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set name to my_custom_lisky."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "name" to the value', then.itShouldUpdateTheConfigVariableToTheValue);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set name to my_custom_lisky."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+						});
+					});
+					describe('Given a variable "testnet"', () => {
+						beforeEach(given.aVariable);
+						describe('Given an unknown value "xxx"', () => {
+							beforeEach(given.anUnknownValue);
+							describe('When the action is called with the variable and the value', () => {
+								beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+								it('Then it should reject with message "Value must be a boolean."', then.itShouldRejectWithMessage);
+							});
+						});
+						describe('Given a value "true"', () => {
+							beforeEach(given.aValue);
+							describe('Given the config file cannot be written', () => {
+								beforeEach(given.theConfigFileCannotBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config nested variable "liskJS.testnet" to boolean true', then.itShouldUpdateTheConfigNestedVariableToBoolean);
+										it('Then it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
+										it('Then it should resolve to an object with message "Successfully set testnet to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+							describe('Given the config file can be written', () => {
+								beforeEach(given.theConfigFileCanBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config nested variable "liskJS.testnet" to boolean true', then.itShouldUpdateTheConfigNestedVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set testnet to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config nested variable "liskJS.testnet" to boolean true', then.itShouldUpdateTheConfigNestedVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set testnet to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+						});
+						describe('Given a value "false"', () => {
+							beforeEach(given.aValue);
+							describe('Given the config file cannot be written', () => {
+								beforeEach(given.theConfigFileCannotBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config nested variable "liskJS.testnet" to boolean false', then.itShouldUpdateTheConfigNestedVariableToBoolean);
+										it('Then it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
+										it('Then it should resolve to an object with message "Successfully set testnet to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+							describe('Given the config file can be written', () => {
+								beforeEach(given.theConfigFileCanBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config nested variable "liskJS.testnet" to boolean false', then.itShouldUpdateTheConfigNestedVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set testnet to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config nested variable "liskJS.testnet" to boolean false', then.itShouldUpdateTheConfigNestedVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set testnet to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+						});
+					});
 				});
 			});
 		});

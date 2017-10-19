@@ -27,13 +27,13 @@ describe('print utils', () => {
 			beforeEach(given.thereIsAVorpalInstanceWithAnActiveCommandThatCanLog);
 			describe('Given there is a result to print', () => {
 				beforeEach(given.thereIsAResultToPrint);
-				describe('Given a config with json set to "true"', () => {
+				describe('Given a config with json set to true', () => {
 					beforeEach(given.aConfigWithJsonSetTo);
 					describe('When the result is printed', () => {
 						beforeEach(when.theResultIsPrinted);
 						it('Then shouldUseJsonOutput should be called with the config and an empty options object', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject);
 					});
-					describe('Given an options object with json set to "false"', () => {
+					describe('Given an options object with json set to false', () => {
 						beforeEach(given.anOptionsObjectWithJsonSetTo);
 						describe('Given JSON should not be printed', () => {
 							beforeEach(given.jsonShouldNotBePrinted);

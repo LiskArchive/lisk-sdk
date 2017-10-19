@@ -67,6 +67,13 @@ export function theActionIsCalledWithTheTypeAndTheInput() {
 	return returnValue.catch(e => e);
 }
 
+export function theActionIsCalledWithTheVariableAndTheValue() {
+	const { action, variable, value } = this.test.ctx;
+	const returnValue = action({ variable, value });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalled() {
 	const { action } = this.test.ctx;
 	const returnValue = action();

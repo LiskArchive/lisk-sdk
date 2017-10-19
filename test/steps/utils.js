@@ -18,14 +18,21 @@ import * as createAccount from '../../src/commands/createAccount';
 import * as env from '../../src/commands/env';
 import * as get from '../../src/commands/get';
 import * as list from '../../src/commands/list';
+import * as set from '../../src/commands/set';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
 import * as print from '../../src/utils/print';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
 
+const BOOLEANS = {
+	true: true,
+	false: false,
+};
+
 const regExpQuotes = /"((.|\s\S)+?)"/;
 const regExpNumbers = /\d+/g;
+const regExpBoolean = /(true|false)/;
 
 export const getFirstQuotedString = title => title.match(regExpQuotes)[1];
 
@@ -40,6 +47,8 @@ export const getNumbersFromTitle = (title) => {
 	return title.match(regExpNumbers).map(Number);
 };
 
+export const getFirstBoolean = title => BOOLEANS[title.match(regExpBoolean)[1]];
+
 export const getCommandInstance = (vorpal, command) => {
 	const commandStem = command.match(/^[^[|<]+/)[0].slice(0, -1);
 	return vorpal.find(commandStem);
@@ -50,6 +59,7 @@ export const getActionCreator = actionName => ({
 	env: env.actionCreator,
 	get: get.actionCreator,
 	list: list.actionCreator,
+	set: set.actionCreator,
 })[actionName];
 
 export const setUpFsStubs = () => {
