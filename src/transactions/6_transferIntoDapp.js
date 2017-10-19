@@ -45,8 +45,8 @@ export default function transferIntoDapp({
 
 	const transaction = {
 		type: 6,
-		amount,
-		fee: IN_TRANSFER_FEE,
+		amount: amount.toString(),
+		fee: IN_TRANSFER_FEE.toString(),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

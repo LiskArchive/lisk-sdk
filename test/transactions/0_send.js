@@ -31,9 +31,9 @@ describe('#send transaction', () => {
 		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const emptyPublicKey =
 		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
-	const amount = 1000;
-	const sendFee = 0.1 * fixedPoint;
-	const sendWithDataFee = 0.2 * fixedPoint;
+	const amount = '1000';
+	const sendFee = (0.1 * fixedPoint).toString();
+	const sendWithDataFee = (0.2 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
@@ -91,17 +91,17 @@ describe('#send transaction', () => {
 						.and.equal(0);
 				});
 
-				it('should have amount number equal to provided amount', () => {
+				it('should have amount string equal to provided amount', () => {
 					sendTransaction.should.have
 						.property('amount')
-						.and.be.type('number')
+						.and.be.type('string')
 						.and.equal(amount);
 				});
 
-				it('should have fee number equal to send fee', () => {
+				it('should have fee string equal to send fee', () => {
 					sendTransaction.should.have
 						.property('fee')
-						.and.be.type('number')
+						.and.be.type('string')
 						.and.equal(sendFee);
 				});
 
@@ -173,10 +173,10 @@ describe('#send transaction', () => {
 					);
 			});
 
-			it('should have fee number equal to send with data fee', () => {
+			it('should have fee string equal to send with data fee', () => {
 				sendTransaction.should.have
 					.property('fee')
-					.and.be.type('number')
+					.and.be.type('string')
 					.and.equal(sendWithDataFee);
 			});
 

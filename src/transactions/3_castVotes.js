@@ -42,8 +42,8 @@ export default function castVotes({
 
 	const transaction = {
 		type: 3,
-		amount: 0,
-		fee: VOTE_FEE,
+		amount: '0',
+		fee: VOTE_FEE.toString(),
 		recipientId: cryptoModule.getAddress(keys.publicKey),
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

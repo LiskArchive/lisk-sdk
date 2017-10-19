@@ -53,8 +53,8 @@ export default function registerSecondPassphrase({
 	const signature = newSignature(secondSecret);
 	const transaction = {
 		type: 1,
-		amount: 0,
-		fee: SIGNATURE_FEE,
+		amount: '0',
+		fee: SIGNATURE_FEE.toString(),
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

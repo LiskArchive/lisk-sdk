@@ -20,6 +20,7 @@ const time = require('../../src/transactions/utils/time');
 afterEach(() => sandbox.restore());
 
 describe('#transferIntoDapp transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const dappId = '1234213';
 	const secret = 'secret';
 	const secondSecret = 'secondSecret';
@@ -27,8 +28,8 @@ describe('#transferIntoDapp transaction', () => {
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey =
 		'8b509500d5950122b3e446189b4312805515c8e7814a409e09ac5c21935564af';
-	const amount = 10e8;
-	const sendFee = 0.1e8;
+	const amount = (10 * fixedPoint).toString();
+	const sendFee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
 
@@ -82,17 +83,17 @@ describe('#transferIntoDapp transaction', () => {
 					.and.equal(6);
 			});
 
-			it('should have amount number equal to 10 LSK', () => {
+			it('should have amount string equal to 10 LSK', () => {
 				transferIntoDappTransaction.should.have
 					.property('amount')
-					.and.be.type('number')
+					.and.be.type('string')
 					.and.equal(amount);
 			});
 
-			it('should have fee number equal to 0.1 LSK', () => {
+			it('should have fee string equal to 0.1 LSK', () => {
 				transferIntoDappTransaction.should.have
 					.property('fee')
-					.and.be.type('number')
+					.and.be.type('string')
 					.and.equal(sendFee);
 			});
 

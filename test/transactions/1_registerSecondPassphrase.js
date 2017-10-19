@@ -20,6 +20,7 @@ const time = require('../../src/transactions/utils/time');
 afterEach(() => sandbox.restore());
 
 describe('#registerSecondPassphrase transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey =
@@ -28,7 +29,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const emptyStringPublicKey =
 		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
-	const secondPassphraseFee = 5e8;
+	const secondPassphraseFee = (5 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
@@ -77,17 +78,17 @@ describe('#registerSecondPassphrase transaction', () => {
 				.and.equal(1);
 		});
 
-		it('should have amount number equal to 0', () => {
+		it('should have amount string equal to 0', () => {
 			registerSecondPassphraseTransaction.should.have
 				.property('amount')
-				.and.be.type('number')
-				.and.equal(0);
+				.and.be.type('string')
+				.and.equal('0');
 		});
 
-		it('should have fee number equal to second passphrase fee', () => {
+		it('should have fee string equal to second passphrase fee', () => {
 			registerSecondPassphraseTransaction.should.have
 				.property('fee')
-				.and.be.type('number')
+				.and.be.type('string')
 				.and.equal(secondPassphraseFee);
 		});
 

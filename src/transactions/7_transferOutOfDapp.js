@@ -49,8 +49,8 @@ export default function transferOutOfDapp({
 
 	const transaction = {
 		type: 7,
-		amount,
-		fee: OUT_TRANSFER_FEE,
+		amount: amount.toString(),
+		fee: OUT_TRANSFER_FEE.toString(),
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),

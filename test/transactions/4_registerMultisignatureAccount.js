@@ -98,18 +98,18 @@ describe('#registerMultisignatureAccount transaction', () => {
 					.and.equal(4);
 			});
 
-			it('should have amount number equal to 0', () => {
+			it('should have amount string equal to 0', () => {
 				registerMultisignatureTransaction.should.have
 					.property('amount')
-					.and.be.type('number')
-					.and.equal(0);
+					.and.be.type('string')
+					.and.equal('0');
 			});
 
-			it('should have fee number equal to 15 LSK', () => {
+			it('should have fee string equal to 15 LSK', () => {
 				registerMultisignatureTransaction.should.have
 					.property('fee')
-					.and.be.type('number')
-					.and.equal(15e8);
+					.and.be.type('string')
+					.and.equal('1500000000');
 			});
 
 			it('should have recipientId string equal to null', () => {

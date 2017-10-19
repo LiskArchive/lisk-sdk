@@ -20,6 +20,7 @@ const time = require('../../src/transactions/utils/time');
 afterEach(() => sandbox.restore());
 
 describe('#createDapp transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const secret = 'secret';
 	const secondSecret = 'second secret';
 	const publicKey =
@@ -36,7 +37,7 @@ describe('#createDapp transaction', () => {
 		icon:
 			'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
 	};
-	const fee = 25e8;
+	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const noOptionsError = 'Options must be an object.';
 	const categoryIntegerError = 'Dapp category must be an integer.';
@@ -144,17 +145,17 @@ describe('#createDapp transaction', () => {
 					.and.equal(5);
 			});
 
-			it('should have amount number equal to 0', () => {
+			it('should have amount string equal to 0', () => {
 				createDappTransaction.should.have
 					.property('amount')
-					.and.be.type('number')
-					.and.equal(0);
+					.and.be.type('string')
+					.and.equal('0');
 			});
 
-			it('should have fee number equal to 25 LSK', () => {
+			it('should have fee string equal to 25 LSK', () => {
 				createDappTransaction.should.have
 					.property('fee')
-					.and.be.type('number')
+					.and.be.type('string')
 					.and.equal(fee);
 			});
 

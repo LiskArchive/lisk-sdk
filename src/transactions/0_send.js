@@ -46,8 +46,8 @@ export default function send({
 	const fee = data ? SEND_FEE + DATA_FEE : SEND_FEE;
 	const transaction = {
 		type: 0,
-		amount,
-		fee,
+		amount: amount.toString(),
+		fee: fee.toString(),
 		recipientId,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),
