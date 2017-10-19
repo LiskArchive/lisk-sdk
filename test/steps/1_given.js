@@ -22,6 +22,7 @@ import cryptoInstance from '../../src/utils/cryptoModule';
 import * as env from '../../src/utils/env';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import * as inputUtils from '../../src/utils/input';
 import liskInstance from '../../src/utils/liskInstance';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import commonOptions from '../../src/utils/options';
@@ -37,6 +38,17 @@ import {
 } from './utils';
 
 const envToStub = require('../../src/utils/env');
+
+export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
+	const { passphrase, message } = this.test.ctx;
+	inputUtils.getStdIn.resolves({ passphrase, data: message });
+}
+
+export function theMessageIsProvidedViaStdIn() {
+	const { message } = this.test.ctx;
+	// getStdInResult.data = message;
+	inputUtils.getStdIn.resolves({ data: message });
+}
 
 export function inputs() {
 	this.test.ctx.inputs = getQuotedStrings(this.test.parent.title);
@@ -83,8 +95,9 @@ export function aVariable() {
 export const anUnknownVariable = aVariable;
 
 export function anAction() {
+	const { vorpal } = this.test.ctx;
 	const actionName = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.action = getActionCreator(actionName)();
+	this.test.ctx.action = getActionCreator(actionName)(vorpal);
 }
 
 export function anOptionsListIncluding() {
@@ -162,7 +175,8 @@ export function aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt() {
 	this.test.ctx.vorpal = {
 		ui: {},
 		activeCommand: {
-			prompt: sandbox.stub().onFirstCall().resolves({ passphrase }),
+			prompt: sandbox.stub().resolves({ passphrase }),
+			// prompt: sandbox.stub().onFirstCall().resolves({ passphrase }),
 		},
 	};
 }
@@ -305,6 +319,27 @@ export function anArrayOfObjectsWithDivergentKeys() {
 	];
 }
 
+export function aCryptoInstanceHasBeenInitialised() {
+	const cryptoResult = {
+		some: 'result',
+		testing: 123,
+	};
+
+	[
+		'encryptMessage',
+		'decryptMessage',
+		'encryptPassphrase',
+		'decryptPassphrase',
+		'getKeys',
+		'getAddressFromPublicKey',
+	].forEach((methodName) => {
+		sandbox.stub(cryptoInstance, methodName).returns(cryptoResult);
+	});
+
+	this.test.ctx.cryptoResult = cryptoResult;
+	this.test.ctx.cryptoInstance = cryptoInstance;
+}
+
 export function aCryptoInstance() {
 	[
 		'getKeys',
@@ -319,7 +354,11 @@ export function aCryptoInstance() {
 }
 
 export function aPassphrase() {
-	this.test.ctx.passphrase = getFirstQuotedString(this.test.parent.title);
+	const passphrase = getFirstQuotedString(this.test.parent.title);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.resolves(passphrase);
+	}
+	this.test.ctx.passphrase = passphrase;
 }
 
 export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
@@ -357,9 +396,19 @@ export function anEncryptedPassphraseWithAnIV() {
 export function aMessage() {
 	const message = getFirstQuotedString(this.test.parent.title);
 
-	lisk.crypto.decryptMessageWithSecret.returns(message);
+	if (typeof lisk.crypto.decryptMessageWithSecret.returns === 'function') {
+		lisk.crypto.decryptMessageWithSecret.returns(message);
+	}
+	if (typeof inputUtils.getData.resolves === 'function') {
+		inputUtils.getData.resolves(message);
+	}
 
 	this.test.ctx.message = message;
+}
+
+export function aRecipient() {
+	const recipient = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.recipient = recipient;
 }
 
 export function aRecipientPassphraseWithPrivateKeyAndPublicKey() {
@@ -568,6 +617,9 @@ export function thePassphraseIsProvidedViaStdIn() {
 	const { passphrase } = this.test.ctx;
 
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(passphrase));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ passphrase });
+	}
 
 	this.test.ctx.passphraseIsRequired = true;
 }
@@ -679,6 +731,33 @@ export function aConfigWithJsonSetTo() {
 
 	env.default = config;
 	this.test.ctx.config = config;
+}
+
+export function anOptionsObjectWithPassphraseSetToAndMessageSetTo() {
+	const [passphrase, message] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.options = { passphrase, message };
+}
+
+export function anOptionsObjectWithMessageSetTo() {
+	const message = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.options = { message };
+}
+
+export function anOptionsObjectWithMessageSetToUnknownSource() {
+	const message = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.options = { message };
+	inputUtils.getData.rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
+}
+
+export function anOptionsObjectWithPassphraseSetTo() {
+	const passphraseSource = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.options = { passphrase: passphraseSource };
+}
+
+export function anOptionsObjectWithPassphraseSetToUnknownSource() {
+	const passphrase = getFirstQuotedString(this.test.parent.title);
+	inputUtils.getData.rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
+	this.test.ctx.options = { passphrase };
 }
 
 export function anOptionsObjectWithJsonSetTo() {

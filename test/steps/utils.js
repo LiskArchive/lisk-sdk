@@ -15,12 +15,14 @@
  */
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
+import * as encryptMessage from '../../src/commands/encryptMessage';
 import * as env from '../../src/commands/env';
 import * as get from '../../src/commands/get';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
+import * as input from '../../src/utils/input';
 import * as print from '../../src/utils/print';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
@@ -30,7 +32,7 @@ const BOOLEANS = {
 	false: false,
 };
 
-const regExpQuotes = /"((.|\s\S)+?)"/;
+const regExpQuotes = /"((.|\n|\s\S)+?)"/;
 const regExpNumbers = /\d+/g;
 const regExpBoolean = /(true|false)/;
 
@@ -56,6 +58,7 @@ export const getCommandInstance = (vorpal, command) => {
 
 export const getActionCreator = actionName => ({
 	'create account': createAccount.actionCreator,
+	'encrypt message': encryptMessage.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,
 	list: list.actionCreator,
@@ -94,6 +97,14 @@ export const setUpHelperStubs = () => {
 		'shouldUseJsonOutput',
 		'createErrorHandler',
 	].forEach(methodName => sandbox.stub(helpers, methodName));
+};
+
+export const setUpInputStubs = () => {
+	[
+		'getStdIn',
+		'getData',
+		'getPassphrase',
+	].forEach(methodName => sandbox.stub(input, methodName).resolves({}));
 };
 
 export function setUpPrintStubs() {

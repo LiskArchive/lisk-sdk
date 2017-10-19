@@ -53,6 +53,20 @@ import {
 
 const tablifyToSpy = require('../../src/utils/tablify');
 
+export function theActionIsCalledWithTheRecipientAndTheOptions() {
+	const { action, recipient, options } = this.test.ctx;
+	const returnValue = action({ recipient, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheRecipientTheMessageAndTheOptions() {
+	const { action, recipient, message, options } = this.test.ctx;
+	const returnValue = action({ recipient, message, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalledWithTheTypeAndTheInputs() {
 	const { action, type, inputs } = this.test.ctx;
 	const returnValue = action({ type, inputs });
