@@ -260,7 +260,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 			});
 		});
 
-		it('upvoting ' + (constants.activeDelegates + 1) + ' delegates (number of actived delegates + 1) separately should be ok but just 101 votes confirmed', function () {
+		it('upvoting ' + (constants.activeDelegates + 1) + ' delegates (number of actived delegates + 1) separately should be ok and only 101 votes confirmed', function () {
 			var transaction1 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 33).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
@@ -302,7 +302,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('unconfirmed state', function () {
 
-		it('upvoting with valid params and duplicate submission should be ok but just last transaction to arrive will be confirmed', function () {
+		it('upvoting with valid params and duplicate submission should be ok and only last transaction to arrive will be confirmed', function () {
 			transaction = node.lisk.vote.createVote(accountDuplicates.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction)
@@ -429,7 +429,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('unconfirmed state after validation', function () {
 
-		it('downvoting with valid params and duplicate submission should be ok but just last transaction to arrive will be confirmed', function () {
+		it('downvoting with valid params and duplicate submission should be ok and only last transaction to arrive will be confirmed', function () {
 			transaction = node.lisk.vote.createVote(accountDuplicates.password, ['-' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction)
