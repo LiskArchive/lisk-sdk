@@ -23,7 +23,7 @@ function SignaturesHttpApi (signaturesModule, app) {
 
 	router.map(signaturesModule.shared, {
 		'post /': 'postSignatures'
-	});
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/signatures', app, router, signaturesModule.isLoaded);
 }
