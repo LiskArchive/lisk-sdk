@@ -27,6 +27,13 @@ import {
 	getFirstBoolean,
 } from './utils';
 
+
+export function theLiskTransactionObjectShouldHaveTransactionCreationFunctions() {
+	const { createLiskTransaction } = this.test.ctx;
+	return (createLiskTransaction).should.have.keys('createTransaction', 'signTransaction', 'createMultisignature', 'createSignature', 'createDelegate', 'createVote');
+}
+
+
 export function itShouldGetTheDataUsingTheMessageFromStdIn() {
 	const { message } = this.test.ctx;
 	const firstCallArgs = input.getData.firstCall.args;

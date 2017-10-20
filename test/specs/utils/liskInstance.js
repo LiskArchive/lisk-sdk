@@ -21,4 +21,9 @@ describe('liskInstance util', () => {
 		beforeEach(given.aLiskInstance);
 		it('Then the lisk instance should be a lisk-js api instance', then.theLiskInstanceShouldBeALiskJSApiInstance);
 	});
+
+	describe('Given a lisk transaction object', () => {
+		beforeEach(given.aLiskTransactionObject);
+		it('Then the lisk transaction object should have transaction creation functions', then.theLiskTransactionObjectShouldHaveTransactionCreationFunctions);
+	});
 });

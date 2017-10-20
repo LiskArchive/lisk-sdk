@@ -1,0 +1,64 @@
+LiskInstance:
+
+export const createLiskTransaction = Object.assign({},
+	lisk.transaction,
+	lisk.multisignature,
+	lisk.signature,
+	lisk.delegate,
+	lisk.vote,
+);
+
+LiskInstance tests:
+
+describe('Given a lisk transaction object', () => {
+  beforeEach(given.aLiskTransactionObject);
+  it('Then the lisk transaction object should have transaction creation functions', then.theLiskTransactionObjectShouldHaveTransactionCreationFunctions);
+});
+});
+
+
+Given:
+
+
+export function aLiskTransactionObject() {
+	this.test.ctx.createLiskTransaction = createLiskTransaction;
+}
+
+export function anAlias() {
+	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);
+}
+
+Then:
+
+export function theLiskTransactionObjectShouldHaveTransactionCreationFunctions() {
+	const { createLiskTransaction } = this.test.ctx;
+	return (createLiskTransaction).should.have.keys('createTransaction', 'signTransaction', 'createMultisignature', 'createSignature', 'createDelegate', 'createVote');
+}
+
+export function theVorpalCommandInstanceShouldHaveTheAlias() {
+	const { vorpal, command, alias } = this.test.ctx;
+	const { _aliases } = getCommandInstance(vorpal, command);
+	return (_aliases).should.be.eql([alias]);
+}
+
+
+helpers:
+
+	if (alias) commandInstance.alias(alias);
+
+
+Options:
+
+const secondPassphraseDescription = `Specifies a source for your secret second passphrase. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+
+	Examples:
+	- --second-passphrase 'pass:my secret passphrase' (should only be used where security is not important)
+	- --second-passphrase env:SECRET_PASSPHRASE
+	- --second-passphrase file:/path/to/my/passphrase.txt (takes the first line only)
+	- --second-passphrase stdin (takes the first line only)
+`;
+
+helpers test:
+
+describe('Given an alias "alternative command"', () => {
+						beforeEach(given.anAlias);

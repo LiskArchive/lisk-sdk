@@ -23,7 +23,7 @@ import * as env from '../../src/utils/env';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
 import * as inputUtils from '../../src/utils/input';
-import liskInstance from '../../src/utils/liskInstance';
+import liskInstance, { createLiskTransaction } from '../../src/utils/liskInstance';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import commonOptions from '../../src/utils/options';
 import queryInstance from '../../src/utils/query';
@@ -38,6 +38,10 @@ import {
 } from './utils';
 
 const envToStub = require('../../src/utils/env');
+
+export function aLiskTransactionObject() {
+	this.test.ctx.createLiskTransaction = createLiskTransaction;
+}
 
 export function aSenderPublicKey() {
 	const senderPublicKey = getFirstQuotedString(this.test.parent.title);

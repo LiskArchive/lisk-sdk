@@ -17,3 +17,11 @@ import lisk from 'lisk-js';
 import config from './env';
 
 export default lisk.api(config.liskJS);
+
+export const createLiskTransaction = Object.assign({},
+	lisk.transaction,
+	lisk.multisignature,
+	lisk.signature,
+	lisk.delegate,
+	lisk.vote,
+);
