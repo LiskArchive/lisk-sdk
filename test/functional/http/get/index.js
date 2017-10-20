@@ -5,5 +5,6 @@ require('./delegates');
 require('./loader');
 require('./multisignatures');
 require('./multisignatures.post');
+require('./node');
 require('./peers');
 require('./transactions');
