@@ -39,6 +39,10 @@ import {
 
 const envToStub = require('../../src/utils/env');
 
+export function anAlias() {
+	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);
+}
+
 export function aLiskTransactionObject() {
 	this.test.ctx.createLiskTransaction = createLiskTransaction;
 }

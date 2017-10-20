@@ -27,12 +27,16 @@ import {
 	getFirstBoolean,
 } from './utils';
 
+export function theVorpalCommandInstanceShouldHaveTheAlias() {
+	const { vorpal, command, alias } = this.test.ctx;
+	const { _aliases } = getCommandInstance(vorpal, command);
+	return (_aliases).should.be.eql([alias]);
+}
 
 export function theLiskTransactionObjectShouldHaveTransactionCreationFunctions() {
 	const { createLiskTransaction } = this.test.ctx;
 	return (createLiskTransaction).should.have.keys('createTransaction', 'signTransaction', 'createMultisignature', 'createSignature', 'createDelegate', 'createVote');
 }
-
 
 export function itShouldGetTheDataUsingTheMessageFromStdIn() {
 	const { message } = this.test.ctx;

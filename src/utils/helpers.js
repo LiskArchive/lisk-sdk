@@ -42,6 +42,7 @@ export const createCommand = ({
 	actionCreator,
 	options = [],
 	errorPrefix,
+	alias,
 }) => function createdCommand(vorpal) {
 	const action = wrapActionCreator(vorpal, actionCreator, errorPrefix);
 	const commandInstance = vorpal
@@ -49,6 +50,8 @@ export const createCommand = ({
 		.autocomplete(autocomplete)
 		.description(description)
 		.action(action);
+
+	if (alias) commandInstance.alias(alias);
 
 	[
 		...options,
