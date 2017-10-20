@@ -11,6 +11,15 @@ const passphraseDescription = `Specifies a source for your secret passphrase. Li
 	- --passphrase stdin (takes the first line only)
 `;
 
+const secondPassphraseDescription = `Specifies a source for your secret second passphrase. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+
+	Examples:
+	- --second-passphrase 'pass:my secret passphrase' (should only be used where security is not important)
+	- --second-passphrase env:SECRET_PASSPHRASE
+	- --second-passphrase file:/path/to/my/passphrase.txt (takes the first line only)
+	- --second-passphrase stdin (takes the first line only)
+`;
+
 const passwordDescription = `Specifies a source for your secret password. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
 
 	Examples:
@@ -33,6 +42,7 @@ const options = {
 	json: ['-j, --json', jsonDescription],
 	noJson: ['-t, --no-json', noJsonDescription],
 	passphrase: ['-p, --passphrase <source>', passphraseDescription],
+	secondPassphrase: ['-s, --second-passphrase <source>', secondPassphraseDescription],
 	password: ['-w, --password <source>', passwordDescription],
 	message: ['-m, --message <source>', messageDescription],
 };
