@@ -82,8 +82,8 @@ Signatures.prototype.shared = {
 		}
 		return modules.transport.shared.postSignatures(req.body, function (err, res) {
 			if (res.success === false) {
-				var errorCode = err.message === 'Invalid signatures body' ? apiCodes.BAD_REQUEST : apiCodes.INTERNAL_SERVER_ERROR;
-				return setImmediate(cb, new ApiError(err.message, errorCode));
+				var errorCode = res.message === 'Invalid signatures body' ? apiCodes.BAD_REQUEST : apiCodes.INTERNAL_SERVER_ERROR;
+				return setImmediate(cb, new ApiError(res.message, errorCode));
 			} else {
 				return setImmediate(cb, null, {status: 'Signature Accepted'});
 			}
