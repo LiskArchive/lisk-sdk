@@ -43,7 +43,7 @@ const handleInput = outputPublicKey => ([passphrase, password]) => {
 		: cipherAndIv;
 };
 
-const actionCreator = vorpal => async ({ options }) => {
+export const actionCreator = vorpal => async ({ options }) => {
 	const {
 		passphrase: passphraseSource,
 		password: passwordSource,
