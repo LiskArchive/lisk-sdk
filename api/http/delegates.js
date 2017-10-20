@@ -30,12 +30,12 @@ function DelegatesHttpApi (delegatesModule, app, logger, cache) {
 	router.map(delegatesModule.shared, {
 		'get /': 'getDelegates',
 		'get /forgers': 'getForgers'
-	});
+	}, {responseWithCode: true});
 
 	router.map(delegatesModule.internal, {
 		'put /forging': 'forgingToggle',
 		'get /forging': 'forgingStatus'
-	});
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/delegates', app, router, delegatesModule.isLoaded);
 }

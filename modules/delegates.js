@@ -2,6 +2,8 @@
 
 var _ = require('lodash');
 var async = require('async');
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
 var checkIpInList = require('../helpers/checkIpInList.js');
@@ -762,12 +764,12 @@ Delegates.prototype.shared = {
 	getDelegates: function (req, cb) {
 		library.schema.validate(req.body, schema.getDelegates, function (err) {
 			if (err) {
-				return setImmediate(cb, err[0].message);
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
 
 			modules.delegates.getDelegates(req.body, function (err, data) {
 				if (err) {
-					return setImmediate(cb, err);
+					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 				}
 
 				function compareNumber (a, b) {
@@ -803,7 +805,7 @@ Delegates.prototype.shared = {
 
 				var delegates = data.delegates.slice(data.offset, data.limit);
 
-				return setImmediate(cb, null, {delegates: delegates, totalCount: data.count});
+				return setImmediate(cb, null, {delegates: delegates, count: data.count});
 			});
 		});
 	}

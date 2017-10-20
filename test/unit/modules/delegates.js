@@ -210,7 +210,7 @@ describe('delegates', function () {
 		});
 	});
 
-	describe('__private', function (cb) {
+	describe('__private', function () {
 
 		describe('loadDelegates', function () {
 
