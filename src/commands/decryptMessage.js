@@ -27,25 +27,26 @@ const description = `Decrypt an encrypted message from a given sender public key
 	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
 
-const handlePassphrase = (vorpal, nonce, senderPublicKey) => ([passphrase, data]) =>
+const handlePassphrase = (nonce, senderPublicKey) => ([passphrase, data]) =>
 	cryptoModule.decryptMessage(data, nonce, passphrase, senderPublicKey);
 
-const actionCreator = vorpal => async ({ message, nonce, senderPublicKey, options }) => {
+export const actionCreator = vorpal => async ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;
 	const messageSource = options.message;
 
-	return (message || messageSource
-		? getStdIn({
-			passphraseIsRequired: passphraseSource === 'stdin',
-			dataIsRequired: messageSource === 'stdin',
-		})
-		: Promise.reject({ message: 'No message was provided.' })
-	)
+	if (!message && !messageSource) {
+		throw new Error('No message was provided.');
+	}
+
+	return getStdIn({
+		passphraseIsRequired: passphraseSource === 'stdin',
+		dataIsRequired: messageSource === 'stdin',
+	})
 		.then(stdIn => Promise.all([
 			getPassphrase(vorpal, options.passphrase, stdIn.passphrase),
 			getData(message, messageSource, stdIn.data),
 		]))
-		.then(handlePassphrase(vorpal, nonce, senderPublicKey));
+		.then(handlePassphrase(nonce, senderPublicKey));
 };
 
 const decryptMessage = createCommand({

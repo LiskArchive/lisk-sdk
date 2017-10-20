@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
+import * as decryptMessage from '../../src/commands/decryptMessage';
 import * as encryptMessage from '../../src/commands/encryptMessage';
 import * as env from '../../src/commands/env';
 import * as get from '../../src/commands/get';
@@ -58,6 +59,7 @@ export const getCommandInstance = (vorpal, command) => {
 
 export const getActionCreator = actionName => ({
 	'create account': createAccount.actionCreator,
+	'decrypt message': decryptMessage.actionCreator,
 	'encrypt message': encryptMessage.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,
