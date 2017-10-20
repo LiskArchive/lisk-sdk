@@ -25,8 +25,8 @@ var loaded;
 function Voters (cb, scope) {
 	library = {
 		db: scope.db,
-		schema: scope.schema,
-		logger: scope.logger
+		logger: scope.logger,
+		schema: scope.schema
 	};
 	setImmediate(cb, null, this);
 }

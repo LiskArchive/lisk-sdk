@@ -41,6 +41,7 @@ var paths = [
 	'./modules/delegates.js',
 	'./modules/loader.js',
 	'./modules/peers.js',
+	'./modules/voters.js',
 	'./modules/transactions.js',
 
 	'./sql/blockRewards.js', // @slow
