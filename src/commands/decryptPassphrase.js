@@ -42,17 +42,18 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 const handleInput = iv => ([cipher, password]) =>
 	cryptoModule.decryptPassphrase({ cipher, iv }, password);
 
-const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
+export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
 
-	return (passphrase || passphraseSource
-		? getStdIn({
-			passphraseIsRequired: passwordSource === 'stdin',
-			dataIsRequired: passphraseSource === 'stdin',
-		})
-		: Promise.reject({ message: 'No passphrase was provided.' })
-	)
+	if (!passphrase && !passphraseSource) {
+		throw new Error('No encrypted passphrase was provided.');
+	}
+
+	return getStdIn({
+		passphraseIsRequired: passwordSource === 'stdin',
+		dataIsRequired: passphraseSource === 'stdin',
+	})
 		.then(stdIn => Promise.all([
 			getData(passphrase, passphraseSource, getFirstLineFromString(stdIn.data)),
 			getPassphrase(vorpal, passwordSource, stdIn.passphrase, {

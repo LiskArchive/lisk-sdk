@@ -31,6 +31,7 @@ import {
 	getFirstBoolean,
 	getNumbersFromTitle,
 	getTransactionCreatorFunctionNameByType,
+	hasAncestorWithTitleMatching,
 } from './utils';
 
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {
@@ -56,6 +57,23 @@ export function theVorpalCommandInstanceShouldHaveTheAlias() {
 	return (_aliases).should.be.eql([alias]);
 }
 
+export function itShouldGetThePasswordUsingTheSource() {
+	const { options } = this.test.ctx;
+	const firstCallArgs = input.getPassphrase.firstCall.args;
+	return (firstCallArgs[1]).should.equal(options.password);
+}
+
+export function itShouldGetTheEncryptedPassphraseUsingTheEncryptedPassphraseFromStdIn() {
+	const { cipherAndIv: { cipher } } = this.test.ctx;
+	const firstCallArgs = input.getData.firstCall.args;
+	return (firstCallArgs[2]).should.equal(cipher);
+}
+
+export function itShouldGetTheEncryptedPassphraseUsingThePassphraseArgument() {
+	const { cipherAndIv: { cipher: passphrase } } = this.test.ctx;
+	return (input.getData).should.be.calledWith(passphrase);
+}
+
 export function itShouldNotGetTheKeysForThePassphrase() {
 	return (cryptoInstance.getKeys).should.not.be.called();
 }
@@ -67,13 +85,21 @@ export function itShouldGetTheKeysForThePassphrase() {
 
 export function itShouldGetThePasswordFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
-	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
+	const property = isDecryptPassphraseAction
+		? 'passphraseIsRequired'
+		: 'dataIsRequired';
+	return (firstCallArgs[0]).should.have.property(property).equal(true);
 }
 
 export function itShouldGetThePasswordUsingThePasswordFromStdIn() {
 	const { password } = this.test.ctx;
-	const secondCallArgs = input.getPassphrase.secondCall.args;
-	return (secondCallArgs[2]).should.equal(password);
+	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
+	const call = isDecryptPassphraseAction
+		? 'firstCall'
+		: 'secondCall';
+	const { args } = input.getPassphrase[call];
+	return (args[2]).should.equal(password);
 }
 
 export function itShouldGetThePasswordUsingThePasswordSource() {
@@ -153,6 +179,12 @@ export function itShouldGetThePasswordWithARepeatedPrompt() {
 	return (secondCallArgs[3]).should.have.property('shouldRepeat').be.true();
 }
 
+export function itShouldGetThePasswordWithASinglePrompt() {
+	const { getGetPassphrasePasswordCall } = this.test.ctx;
+	const { args } = getGetPassphrasePasswordCall();
+	return (args[3] === undefined || !args[3].shouldRepeat).should.be.true();
+}
+
 export function itShouldGetTheSecondPassphraseUsingTheVorpalInstance() {
 	const { vorpal } = this.test.ctx;
 	return (input.getPassphrase.secondCall).should.be.calledWith(vorpal);
@@ -164,8 +196,8 @@ export function itShouldGetThePassphraseUsingTheVorpalInstance() {
 }
 
 export function itShouldGetThePasswordUsingTheVorpalInstance() {
-	const { vorpal } = this.test.ctx;
-	return (input.getPassphrase.secondCall).should.be.calledWith(vorpal);
+	const { vorpal, getGetPassphrasePasswordCall } = this.test.ctx;
+	return (getGetPassphrasePasswordCall()).should.be.calledWith(vorpal);
 }
 
 export function itShouldNotGetThePassphraseFromStdIn() {
@@ -173,9 +205,24 @@ export function itShouldNotGetThePassphraseFromStdIn() {
 	return (firstCallArgs[0]).should.have.property('passphraseIsRequired').equal(false);
 }
 
-export function itShouldNotGetThePasswordFromStdIn() {
+export function itShouldNotGetTheEncryptedPassphraseFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(false);
+}
+
+export function itShouldGetTheEncryptedPassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldNotGetThePasswordFromStdIn() {
+	const { stdInInputs = [] } = this.test.ctx;
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
+	const property = stdInInputs.length && !isDecryptPassphraseAction
+		? 'dataIsRequired'
+		: 'passphraseIsRequired';
+	return (firstCallArgs[0]).should.have.property(property).equal(false);
 }
 
 export function itShouldGetThePassphraseFromStdIn() {
@@ -191,6 +238,16 @@ export function itShouldNotGetTheMessageFromStdIn() {
 export function itShouldGetTheMessageFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
+	const { returnValue, cryptoResult } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(cryptoResult);
+}
+
+export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
+	const { cipherAndIv, password } = this.test.ctx;
+	return (cryptoInstance.decryptPassphrase).should.be.calledWithExactly(cipherAndIv, password);
 }
 
 export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey() {
