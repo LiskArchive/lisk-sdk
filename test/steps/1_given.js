@@ -39,6 +39,24 @@ import {
 
 const envToStub = require('../../src/utils/env');
 
+export function aSenderPublicKey() {
+	const senderPublicKey = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.senderPublicKey = senderPublicKey;
+}
+
+export function aNonce() {
+	const nonce = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.nonce = nonce;
+}
+
+export function anEncryptedMessage() {
+	const message = getFirstQuotedString(this.test.parent.title);
+	if (typeof inputUtils.getData.resolves === 'function') {
+		inputUtils.getData.resolves(message);
+	}
+	this.test.ctx.message = message;
+}
+
 export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
 	const { passphrase, message } = this.test.ctx;
 	inputUtils.getStdIn.resolves({ passphrase, data: message });

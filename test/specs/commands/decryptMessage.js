@@ -13,475 +13,138 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import decryptMessageCommand from '../../../src/commands/decryptMessage';
-import cryptoModule from '../../../src/utils/cryptoModule';
-import * as input from '../../../src/utils/input';
-import * as print from '../../../src/utils/print';
-import {
-	getCommands,
-	getRequiredArgs,
-	setUpVorpalWithCommand,
-} from './utils';
+import { setUpInputStubs } from '../../steps/utils';
+import * as given from '../../steps/1_given';
+import * as when from '../../steps/2_when';
+import * as then from '../../steps/3_then';
 
 describe('decrypt message command', () => {
-	const command = 'decrypt message';
-	let vorpal;
-
 	beforeEach(() => {
-		vorpal = setUpVorpalWithCommand(decryptMessageCommand);
+		setUpInputStubs();
 	});
-
-	afterEach(() => {
-		vorpal.ui.removeAllListeners();
-	});
-
-	describe('setup', () => {
-		it('should be available', () => {
-			const decryptCommands = getCommands(vorpal, command);
-			(decryptCommands).should.have.length(1);
-		});
-
-		it('should require 2 inputs', () => {
-			const requiredArgs = getRequiredArgs(vorpal, command);
-			(requiredArgs).should.have.length(2);
-		});
-	});
-
-	describe('when executed', () => {
-		const data = 'Hello Lisker';
-		const encryptedData = '4728715ed4463a37d8e90720a27377f04a84911b95520c2582a8b6da';
-		const nonce = '682be05eeb73a794163b5584cac6b33769c2abd867459cae';
-		const passphrase = 'recipient secret';
-		// sender passphrase: 'sender secret'
-		const senderPublicKey = '38433137692948be1c05bbae686c9c850d3c8d9c52c1aebb4a7c1d5dd6d010d7';
-		const defaultPassphraseSource = `pass:${passphrase}`;
-		const commandWithSenderAndNonce = `${command} ${senderPublicKey} ${nonce}`;
-		const commandWithMessage = `${commandWithSenderAndNonce} ${encryptedData}`;
-		const commandWithPassphrase = `${commandWithSenderAndNonce} --passphrase "${defaultPassphraseSource}"`;
-		const cryptoDecryptReturnObject = { data };
-
-		const defaultErrorMessage = 'Some error message.';
-		const wrappedErrorMessage = `Could not decrypt message: ${defaultErrorMessage}`;
-
-		let stdInResult;
-		let getStdInStub;
-		let getPassphraseStub;
-		let getDataStub;
-		let decryptStub;
-		let printSpy;
-		let printResultStub;
-
-		beforeEach(() => {
-			getStdInStub = sandbox.stub(input, 'getStdIn').resolves({});
-			getPassphraseStub = sandbox.stub(input, 'getPassphrase').resolves(passphrase);
-			getDataStub = sandbox.stub(input, 'getData').resolves(encryptedData);
-			decryptStub = sandbox.stub(cryptoModule, 'decryptMessage').returns(cryptoDecryptReturnObject);
-			printSpy = sandbox.spy();
-			printResultStub = sandbox.stub(print, 'printResult').returns(printSpy);
-		});
-
-		describe('if no message source has been provided', () => {
-			beforeEach(() => {
-				return vorpal.exec(commandWithSenderAndNonce);
-			});
-
-			it('should inform the user that the decryption was not successful', () => {
-				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-				(printSpy.calledWithExactly({ error: 'Could not decrypt message: No message was provided.' })).should.be.true();
-			});
-		});
-
-		describe('if the stdin cannot be retrieved', () => {
-			beforeEach(() => {
-				getStdInStub.rejects(new Error(defaultErrorMessage));
-				return vorpal.exec(commandWithMessage);
-			});
-
-			it('should inform the user the decryption was not successful', () => {
-				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-				(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
-			});
-		});
-
-		describe('if an error occurs during decryption', () => {
-			beforeEach(() => {
-				decryptStub.rejects(new Error(defaultErrorMessage));
-				return vorpal.exec(commandWithMessage);
-			});
-
-			it('should inform the user the decryption was not successful', () => {
-				(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-				(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
-			});
-		});
-
-		describe('passphrase', () => {
-			describe('if the passphrase cannot be retrieved', () => {
-				beforeEach(() => {
-					getPassphraseStub.rejects(new Error(defaultErrorMessage));
-					return vorpal.exec(commandWithMessage);
+	describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
+		beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
+		describe('Given a crypto instance has been initialised', () => {
+			beforeEach(given.aCryptoInstanceHasBeenInitialised);
+			describe('Given an action "decrypt message"', () => {
+				beforeEach(given.anAction);
+				describe('Given a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', () => {
+					beforeEach(given.aPassphrase);
+					describe('Given an encrypted message "4728715ed4463a37d8e90720a27377f04a84911b95520c2582a8b6da"', () => {
+						beforeEach(given.anEncryptedMessage);
+						describe('Given a nonce "682be05eeb73a794163b5584cac6b33769c2abd867459cae"', () => {
+							beforeEach(given.aNonce);
+							describe('Given a sender public key "38433137692948be1c05bbae686c9c850d3c8d9c52c1aebb4a7c1d5dd6d010d7"', () => {
+								beforeEach(given.aSenderPublicKey);
+								describe('Given the passphrase is provided via the prompt', () => {
+									beforeEach(given.thePassphraseIsProvidedViaThePrompt);
+									describe('Given an empty options object', () => {
+										beforeEach(given.anEmptyOptionsObject);
+										describe('When the action is called with the nonce, the senderPublicKey and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheNonceTheSenderPublicKeyAndTheOptions);
+											it('Then it should reject with message "No message was provided."', then.itShouldRejectWithMessage);
+										});
+										describe('When the action is called with the message, the nonce, the senderPublicKey and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheMessageTheNonceTheSenderPublicKeyAndTheOptions);
+											it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+											it('Then it should not get the message from stdin', then.itShouldNotGetTheMessageFromStdIn);
+											it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
+											it('Then it should get the passphrase with a single prompt', then.itShouldGetThePassphraseWithASinglePrompt);
+											it('Then it should get the data using the message argument', then.itShouldGetTheDataUsingTheMessageArgument);
+											it('Then it should decrypt the message using the nonce, the passphrase and the sender public key', then.itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey);
+											it('Then it should resolve to the result of decrypting the message', then.itShouldResolveToTheResultOfDecryptingTheMessage);
+										});
+									});
+									describe('Given an options object with message set to unknown source "xxx"', () => {
+										beforeEach(given.anOptionsObjectWithMessageSetToUnknownSource);
+										describe('When the action is called with the nonce, the senderPublicKey and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheNonceTheSenderPublicKeyAndTheOptions);
+											it('Then it should reject with message "Unknown data source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
+										});
+									});
+									describe('Given an options object with message set to "file:/path/to/my/message.txt"', () => {
+										beforeEach(given.anOptionsObjectWithMessageSetTo);
+										describe('When the action is called with the nonce, the senderPublicKey and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheNonceTheSenderPublicKeyAndTheOptions);
+											it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+											it('Then it should not get the message from stdin', then.itShouldNotGetTheMessageFromStdIn);
+											it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
+											it('Then it should get the passphrase with a single prompt', then.itShouldGetThePassphraseWithASinglePrompt);
+											it('Then it should get the data using the message source', then.itShouldGetTheDataUsingTheMessageSource);
+											it('Then it should decrypt the message using the nonce, the passphrase and the sender public key', then.itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey);
+											it('Then it should resolve to the result of decrypting the message', then.itShouldResolveToTheResultOfDecryptingTheMessage);
+										});
+									});
+									describe('Given an options object with message set to "stdin"', () => {
+										beforeEach(given.anOptionsObjectWithMessageSetTo);
+										describe('Given the message is provided via stdin', () => {
+											beforeEach(given.theMessageIsProvidedViaStdIn);
+											describe('When the action is called with the nonce, the senderPublicKey and the options', () => {
+												beforeEach(when.theActionIsCalledWithTheNonceTheSenderPublicKeyAndTheOptions);
+												it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+												it('Then it should get the message from stdin', then.itShouldGetTheMessageFromStdIn);
+												it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
+												it('Then it should get the passphrase with a single prompt', then.itShouldGetThePassphraseWithASinglePrompt);
+												it('Then it should get the data using the message from stdin', then.itShouldGetTheDataUsingTheMessageFromStdIn);
+												it('Then it should decrypt the message using the nonce, the passphrase and the sender public key', then.itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey);
+												it('Then it should resolve to the result of decrypting the message', then.itShouldResolveToTheResultOfDecryptingTheMessage);
+											});
+										});
+									});
+								});
+								describe('Given an options object with passphrase set to unknown source "xxx"', () => {
+									beforeEach(given.anOptionsObjectWithPassphraseSetToUnknownSource);
+									describe('When the action is called with the message, the nonce, the senderPublicKey and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheMessageTheNonceTheSenderPublicKeyAndTheOptions);
+										it('Then it should reject with message "Unknown data source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given an options object with passphrase set to "file:/path/to/my/message.txt"', () => {
+									beforeEach(given.anOptionsObjectWithPassphraseSetTo);
+									describe('When the action is called with the message, the nonce, the senderPublicKey and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheMessageTheNonceTheSenderPublicKeyAndTheOptions);
+										it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+										it('Then it should not get the message from stdin', then.itShouldNotGetTheMessageFromStdIn);
+										it('Then it should get the passphrase using the passphrase source', then.itShouldGetThePassphraseUsingThePassphraseSource);
+										it('Then it should get the data using the message argument', then.itShouldGetTheDataUsingTheMessageArgument);
+										it('Then it should decrypt the message using the nonce, the passphrase and the sender public key', then.itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey);
+										it('Then it should resolve to the result of decrypting the message', then.itShouldResolveToTheResultOfDecryptingTheMessage);
+									});
+								});
+								describe('Given an options object with passphrase set to "stdin"', () => {
+									beforeEach(given.anOptionsObjectWithPassphraseSetTo);
+									describe('Given the passphrase is provided via stdin', () => {
+										beforeEach(given.thePassphraseIsProvidedViaStdIn);
+										describe('When the action is called with the message, the nonce, the senderPublicKey and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheMessageTheNonceTheSenderPublicKeyAndTheOptions);
+											it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
+											it('Then it should not get the message from stdin', then.itShouldNotGetTheMessageFromStdIn);
+											it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
+											it('Then it should get the data using the message argument', then.itShouldGetTheDataUsingTheMessageArgument);
+											it('Then it should decrypt the message using the nonce, the passphrase and the sender public key', then.itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey);
+											it('Then it should resolve to the result of decrypting the message', then.itShouldResolveToTheResultOfDecryptingTheMessage);
+										});
+									});
+								});
+								describe('Given an options object with passphrase set to "stdin" and message set to "stdin"', () => {
+									beforeEach(given.anOptionsObjectWithPassphraseSetToAndMessageSetTo);
+									describe('Given the passphrase and the message are provided via stdin', () => {
+										beforeEach(given.thePassphraseAndTheMessageAreProvidedViaStdIn);
+										describe('When the action is called with the nonce, the senderPublicKey and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheNonceTheSenderPublicKeyAndTheOptions);
+											it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
+											it('Then it should get the message from stdin', then.itShouldGetTheMessageFromStdIn);
+											it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
+											it('Then it should get the data using the message from stdin', then.itShouldGetTheDataUsingTheMessageFromStdIn);
+											it('Then it should decrypt the message using the nonce, the passphrase and the sender public key', then.itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey);
+											it('Then it should resolve to the result of decrypting the message', then.itShouldResolveToTheResultOfDecryptingTheMessage);
+										});
+									});
+								});
+							});
+						});
+					});
 				});
-
-				it('should inform the user the decryption was not successful', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-					(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
-				});
-			});
-
-			describe('with passphrase passed via prompt', () => {
-				beforeEach(() => {
-					return vorpal.exec(commandWithMessage);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: false,
-						dataIsRequired: false,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, undefined, undefined))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-
-			describe('with plaintext passphrase passed via command line', () => {
-				const passphraseSource = `pass:${passphrase}`;
-				const passphrasePlainTextCommand = `${commandWithMessage} --passphrase "${passphraseSource}"`;
-
-				beforeEach(() => {
-					return vorpal.exec(passphrasePlainTextCommand);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: false,
-						dataIsRequired: false,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase method with correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, undefined))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
-						.should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-
-			describe('with passphrase passed via environmental variable', () => {
-				const envVariable = 'TEST_PASSPHRASE';
-				const passphraseSource = `env:${envVariable}`;
-				const passphraseEnvCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
-
-				beforeEach(() => {
-					return vorpal.exec(passphraseEnvCommand);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: false,
-						dataIsRequired: false,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase with correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, undefined))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
-						.should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-
-			describe('with passphrase passed via file path', () => {
-				const passphraseSource = 'file:/path/to/passphrase.txt';
-				const passphraseFileCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
-
-				beforeEach(() => {
-					return vorpal.exec(passphraseFileCommand);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: false,
-						dataIsRequired: false,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase method with correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, undefined))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
-						.should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-
-			describe('with passphrase passed via stdin', () => {
-				const passphraseSource = 'stdin';
-				const passphraseStdInCommand = `${commandWithMessage} --passphrase ${passphraseSource}`;
-
-				beforeEach(() => {
-					stdInResult = { passphrase };
-					getStdInStub.resolves(stdInResult);
-					return vorpal.exec(passphraseStdInCommand);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: true,
-						dataIsRequired: false,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, passphraseSource, passphrase))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: passphraseSource }))
-						.should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-		});
-
-		describe('encrypted data', () => {
-			describe('if the data cannot be retrieved', () => {
-				beforeEach(() => {
-					getDataStub.rejects(new Error(defaultErrorMessage));
-					return vorpal.exec(commandWithMessage);
-				});
-
-				it('should inform the user the decryption was not successful', () => {
-					(printResultStub.calledWithExactly(vorpal, {})).should.be.true();
-					(printSpy.calledWithExactly({ error: wrappedErrorMessage })).should.be.true();
-				});
-			});
-
-			describe('with data passed as a command line argument', () => {
-				const dataPlainTextCommand = `${commandWithPassphrase} "${encryptedData}"`;
-
-				beforeEach(() => {
-					return vorpal.exec(dataPlainTextCommand);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: false,
-						dataIsRequired: false,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, undefined))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(encryptedData, undefined, undefined))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource }))
-						.should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-
-			describe('with data passed via file path', () => {
-				const dataFileCommand = `${commandWithPassphrase} --message file:/path/to/message.txt`;
-
-				beforeEach(() => {
-					return vorpal.exec(dataFileCommand);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: false,
-						dataIsRequired: false,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, undefined))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(undefined, 'file:/path/to/message.txt', undefined))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, message: 'file:/path/to/message.txt' }))
-						.should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-
-			describe('with data passed via stdin', () => {
-				const dataStdInCommand = `${commandWithPassphrase} --message stdin`;
-
-				beforeEach(() => {
-					stdInResult = { data: encryptedData };
-					getStdInStub.resolves(stdInResult);
-					return vorpal.exec(dataStdInCommand);
-				});
-
-				it('should call the input util getStdIn with the correct parameters', () => {
-					(getStdInStub.calledWithExactly({
-						passphraseIsRequired: false,
-						dataIsRequired: true,
-					}))
-						.should.be.true();
-				});
-
-				it('should call the input util getPassphrase with the correct parameters', () => {
-					(getPassphraseStub.calledWithExactly(vorpal, defaultPassphraseSource, undefined))
-						.should.be.true();
-				});
-
-				it('should call the input util getData with the correct parameters', () => {
-					(getDataStub.calledWithExactly(undefined, 'stdin', encryptedData))
-						.should.be.true();
-				});
-
-				it('should call the crypto module decrypt method with correct parameters', () => {
-					(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-						.should.be.true();
-				});
-
-				it('should print the result', () => {
-					(printResultStub.calledWithExactly(vorpal, { passphrase: defaultPassphraseSource, message: 'stdin' }))
-						.should.be.true();
-					(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
-				});
-			});
-		});
-
-		describe('with passphrase and encrypted data passed via stdin', () => {
-			const passphraseAndMessageStdInCommand = `${command} ${senderPublicKey} ${nonce} --message stdin --passphrase stdin`;
-
-			beforeEach(() => {
-				stdInResult = { passphrase, data: encryptedData };
-				getStdInStub.resolves(stdInResult);
-				getDataStub.resolves(encryptedData);
-				return vorpal.exec(passphraseAndMessageStdInCommand);
-			});
-
-			it('should call the input util getStdIn with the correct parameters', () => {
-				(getStdInStub.calledWithExactly({
-					passphraseIsRequired: true,
-					dataIsRequired: true,
-				}))
-					.should.be.true();
-			});
-
-			it('should call the input util getPassphrase with the correct parameters', () => {
-				(getPassphraseStub.calledWithExactly(vorpal, 'stdin', passphrase))
-					.should.be.true();
-			});
-
-			it('should call the input util getData with the correct parameters', () => {
-				(getDataStub.calledWithExactly(undefined, 'stdin', encryptedData))
-					.should.be.true();
-			});
-
-			it('should call the crypto module encrypt method with correct parameters', () => {
-				(decryptStub.calledWithExactly(encryptedData, nonce, passphrase, senderPublicKey))
-					.should.be.true();
-			});
-
-			it('should print the result', () => {
-				(printResultStub.calledWithExactly(vorpal, { passphrase: 'stdin', message: 'stdin' }))
-					.should.be.true();
-				(printSpy.calledWithExactly(cryptoDecryptReturnObject)).should.be.true();
 			});
 		});
 	});

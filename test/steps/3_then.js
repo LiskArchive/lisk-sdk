@@ -56,6 +56,11 @@ export function itShouldGetThePassphraseUsingThePassphraseSource() {
 	return (firstCallArgs[1]).should.equal(options.passphrase);
 }
 
+export function itShouldGetThePassphraseWithASinglePrompt() {
+	const firstCallArgs = input.getPassphrase.firstCall.args;
+	return (firstCallArgs[3] === undefined || !firstCallArgs[3].shouldRepeat).should.be.true();
+}
+
 export function itShouldGetThePassphraseWithARepeatedPrompt() {
 	const firstCallArgs = input.getPassphrase.firstCall.args;
 	return (firstCallArgs[3]).should.eql({ shouldRepeat: true });
@@ -84,6 +89,16 @@ export function itShouldNotGetTheMessageFromStdIn() {
 export function itShouldGetTheMessageFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
+	const { message, nonce, passphrase, senderPublicKey } = this.test.ctx;
+	return (cryptoInstance.decryptMessage).should.be.calledWithExactly(message, nonce, passphrase, senderPublicKey);
+}
+
+export function itShouldResolveToTheResultOfDecryptingTheMessage() {
+	const { returnValue, cryptoResult } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(cryptoResult);
 }
 
 export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
