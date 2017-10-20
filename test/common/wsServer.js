@@ -59,6 +59,7 @@ var wsServer = {
 		port: 9999,
 		wsEngine: 'uws',
 		appName: 'testWSServer',
+		secretKey: 'liskSecretKey',
 		workerController: __dirname + '/wsServer.js'
 	}
 };
