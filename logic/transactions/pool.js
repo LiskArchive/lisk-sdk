@@ -588,7 +588,7 @@ TxPool.prototype.addSignature = function (transactionId, secret, cb) {
 		}
 	
 		multisignatureTransaction.signatures.push(signature);
-		return setImmediate(cb);		
+		return setImmediate(cb);
 	});
 };
 

@@ -82,7 +82,10 @@ var transactions = [
 		/* - Create multisignature signed with signer account not register in database.*/
 		createMultisignatureSigned (testAccounts[2].secret, null, 
 			['+6a23c387172fdf66654f27ccb451ceb4bed7507584c20ed5168f0e7a979f9c5e'], 
-			['horse endless tag awkward pact reveal kiss april crash interest prefer lunch'], 1, 1)
+			['horse endless tag awkward pact reveal kiss april crash interest prefer lunch'], 1, 1),
+		/* - Create multisignature signed without enough signatures.*/
+		createMultisignatureSigned (testAccounts[3].secret, null, 
+			['+' + testAccounts[2].account.publicKey,'+' + testAccounts[1].account.publicKey], [testAccounts[2].secret], 1, 2)
 	]
 ];
 
@@ -113,10 +116,10 @@ var invalidsTxs = [
 	[
 		/* - Create multisignature signed from an account without enough credit.*/
 		createMultisignatureSigned (testAccounts[1].secret, null, 
-			['+' + testAccounts[3].account.publicKey,], [testAccounts[3].secret], 1, 1),
-		/* - Create multisignature signed without.*/
+			['+' + testAccounts[3].account.publicKey], [testAccounts[3].secret], 1, 1),
+		/* - Create multisignature signed with invalid signature.*/
 		createMultisignatureSigned (testAccounts[3].secret, null, 
-			['+' + testAccounts[2].account.publicKey,], [testAccounts[2].secret], 1, 2)
+			['+' + testAccounts[2].account.publicKey], [testAccounts[1].secret], 1, 1)
 	]
 ];
 
@@ -205,7 +208,8 @@ describe('txPool', function () {
 					__trsLogic,
 					__accountLogic,
 					modulesLoader.scope.bus,
-					modulesLoader.scope.logger
+					modulesLoader.scope.logger,
+					modulesLoader.scope.ed
 				);
 	
 				modulesLoader.initModules([
@@ -751,6 +755,16 @@ describe('txPool', function () {
 					});
 				});
 
+				it('should be ok when add transaction to unverified without enough signatures', function (done) {
+					txPool.add(transactions[4][2], function (err, cbtx) {
+						if (err) {
+							done(err);
+						}
+						expect(cbtx).to.be.undefined;
+						done();
+					});
+				});
+
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[4][0], function (err, cbtx) {
 						if (err) {
@@ -761,7 +775,7 @@ describe('txPool', function () {
 					});
 				});
 
-				it('should be ok when add transaction to unverified without enough signatures', function (done) {
+				it('should be ok when add transaction to unverified with invalid signeer', function (done) {
 					txPool.add(invalidsTxs[4][1], function (err, cbtx) {
 						if (err) {
 							done(err);
@@ -779,8 +793,9 @@ describe('txPool', function () {
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[4][0].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[4][0].senderId, 'balance: 0'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[4][1].id);
-						expect(error.args[1][1]).to.equal('Invalid multisignature min. Must be less than or equal to keysgroup size');
+						expect(error.args[1][1]).to.equal('Failed to verify multisignature');
 						poolTotals.invalid += 1;
+						poolTotals.pending += 1;
 						poolTotals.ready += 2;
 						done();
 					});
@@ -816,15 +831,6 @@ describe('txPool', function () {
 					done();
 				});
 
-				it('should be ok when delete transaction without enough signatures from ready', function (done) {
-					var deletedTx = txPool.delete(transactions[4][1]);
-					
-					expect(deletedTx.length).to.equal(1);
-					expect(deletedTx[0]).to.equal('ready');
-					poolTotals.ready -= 1;
-					done();
-				});
-
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
 					
@@ -842,6 +848,67 @@ describe('txPool', function () {
 					expect(totals.ready).to.be.equal(poolTotals.ready);
 					expect(totals.invalid).to.be.equal(poolTotals.invalid);
 					done();
+				});
+
+				describe('Sign multisignature', function () {
+
+					it('should fail when sign transaction with invalid signeer', function (done) {
+						txPool.addSignature(transactions[4][2].id, testAccounts[0].secret, function (err, cbtx) {
+							expect(err).to.equal('Permission to sign transaction denied');
+							done();
+						});
+					});
+
+					it('should be ok when sign pending transaction', function (done) {
+						txPool.addSignature(transactions[4][2].id, testAccounts[1].secret, function (err, cbtx) {
+							expect(err).to.be.undefined;
+							expect(cbtx).to.be.undefined;
+							done();
+						});
+					});
+
+					it('should fail when sign same pending transaction again', function (done) {
+						txPool.addSignature(transactions[4][2].id, testAccounts[1].secret, function (err, cbtx) {
+							expect(err).to.equal('Transaction already signed');
+							done();
+						});
+					});
+
+					it('should be ok when process pool txs', function (done) {
+						txPool.processPool(function (err, cbprPool) {
+							expect(error.args.length).to.equal(0);
+							poolTotals.pending -= 1;
+							poolTotals.ready += 1;
+							done();
+						});
+					});
+
+					it('should fail when sign transaction that is not in the pool', function (done) {
+						txPool.addSignature(transactions[4][2].id, testAccounts[1].secret, function (err, cbtx) {
+							expect(err).to.equal('Transaction not in pool');
+							done();
+						});
+					});
+
+					it('should be ok when delete transaction from ready', function (done) {
+						var deletedTx = txPool.delete(transactions[4][2]);
+
+						expect(deletedTx.length).to.equal(1);
+						expect(deletedTx[0]).to.equal('ready');
+						poolTotals.ready -= 1;
+						done();
+					});
+
+					it('should be ok when get pool totals', function (done) {
+						var totals = txPool.getUsage();
+		
+						expect(totals).to.be.an('object');
+						expect(totals.unverified).to.be.equal(poolTotals.unverified);
+						expect(totals.pending).to.be.equal(poolTotals.pending);
+						expect(totals.ready).to.be.equal(poolTotals.ready);
+						expect(totals.invalid).to.be.equal(poolTotals.invalid);
+						done();
+					});
 				});
 			});
 		});
@@ -1009,17 +1076,17 @@ describe('txPool', function () {
 	describe('checkBalance', function () {
 
 		it('should be ok when checked account balance with enough LSK for transaction', function (done) {
-			txPool.checkBalance(transactions[5], transactions[5].senderId, function (err, cbBalance) {
+			txPool.checkBalance(transactions[0], { address: transactions[0].senderId }, function (err, cbBalance) {
 				if (err) {
 					done(err);
 				}
-				expect(cbBalance).to.equal('balance: 52999955.9');
+				expect(cbBalance).to.equal('balance: 52999979');
 				done();
 			});
 		});
 
 		it('should fail when checked account balance with not enough LSK for transaction', function (done) {
-			txPool.checkBalance(transactions[6], transactions[6].senderId, function (err, cbBalance) {
+			txPool.checkBalance(invalidsTxs[0], { address: invalidsTxs[0].senderId }, function (err, cbBalance) {
 				if (err) {
 					expect(err).to.equal('Account does not have enough LSK: 2896019180726908125L balance: 0');
 					done();
@@ -1032,14 +1099,14 @@ describe('txPool', function () {
 
 		describe('get transaction by id', function () {
 
-			it.skip('should be ok when transaction is in unverified list', function (done) {
-				var transaction = txPool.get(transactions[5].id);
-				expect(transaction.tx).to.deep.equal(transactions[5]);
+			it('should be ok when transaction is in unverified list', function (done) {
+				var transaction = txPool.get(transactions[0].id);
+				expect(transaction.tx).to.deep.equal(transactions[0]);
 				expect(transaction.status).to.equal('unverified');
 				done();
 			});
 
-			it.skip('should be ok when transaction is in pending list', function (done) {
+			it('should be ok when transaction is in pending list', function (done) {
 				var transaction = txPool.get(transactions[5].id);
 				expect(transaction.tx).to.deep.equal(transactions[5]);
 				expect(transaction.status).to.equal('pending');
