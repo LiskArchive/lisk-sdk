@@ -94,6 +94,14 @@ function getForgingStatus (params, cb) {
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
+function getNodeConstants (cb) {
+	http.get('/api/node/constants', httpCallbackHelper.bind(null, cb));
+}
+
+function getNodeStatus (cb) {
+	http.get('/api/node/status', httpCallbackHelper.bind(null, cb));
+}
+
 function getDelegates (params, cb) {
 	var url = '/api/delegates';
 	url = paramsHelper(url, params);
@@ -155,6 +163,8 @@ var getUnconfirmedTransactionsPromise = node.Promise.promisify(getUnconfirmedTra
 var getMultisignaturesTransactionPromise = node.Promise.promisify(getMultisignaturesTransaction);
 var getMultisignaturesTransactionsPromise = node.Promise.promisify(getMultisignaturesTransactions);
 var getPendingMultisignaturePromise = node.Promise.promisify(getPendingMultisignature);
+var getNodeConstantsPromise = node.Promise.promisify(getNodeConstants);
+var getNodeStatusPromise = node.Promise.promisify(getNodeStatus);
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
@@ -189,6 +199,8 @@ module.exports = {
 	getMultisignaturesTransactionsPromise: getMultisignaturesTransactionsPromise,
 	getPendingMultisignature: getPendingMultisignature,
 	getPendingMultisignaturePromise: getPendingMultisignaturePromise,
+	getNodeConstantsPromise: getNodeConstantsPromise,
+	getNodeStatusPromise: getNodeStatusPromise,
 	sendSignature: sendSignature,
 	sendSignaturePromise: sendSignaturePromise,
 	sendTransaction: sendTransaction,

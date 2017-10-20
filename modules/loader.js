@@ -248,7 +248,7 @@ __private.loadTransactions = function (cb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
 				} catch (e) {
-					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', tx: transaction});
+					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', transaction: transaction});
 
 					library.logger.warn(['Transaction', id, 'is not valid, peer removed'].join(' '), peer.string);
 					modules.peers.remove(peer.ip, peer.port);

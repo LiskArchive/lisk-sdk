@@ -67,16 +67,15 @@ module.exports = {
 				minimum: 1,
 				maximum: 65535
 			},
+			httpPort: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 65535
+			},
 			state: {
 				type: 'integer',
 				minimum: 0,
 				maximum: 2
-			},
-			os: {
-				type: 'string',
-				format: 'os',
-				minLength: 1,
-				maxLength: 64
 			},
 			version: {
 				type: 'string',
@@ -108,21 +107,5 @@ module.exports = {
 				minimum: 0
 			}
 		}
-	},
-	getPeer: {
-		id: 'peer.getPeer',
-		type: 'object',
-		properties: {
-			ip: {
-				type: 'string',
-				format: 'ip'
-			},
-			port: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 65535
-			}
-		},
-		required: ['ip', 'port']
 	}
 };

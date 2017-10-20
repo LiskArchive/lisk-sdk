@@ -2,18 +2,21 @@
 
 var _ = require('lodash');
 var async = require('async');
-var constants = require('../helpers/constants.js');
-var failureCodes = require('../api/ws/rpc/failureCodes.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var fs = require('fs');
 var ip = require('ip');
 var path = require('path');
 var pgp = require('pg-promise')(); // We also initialize library here
+var util = require('util');
+
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
+var constants = require('../helpers/constants.js');
+var failureCodes = require('../api/ws/rpc/failureCodes.js');
+var jobsQueue = require('../helpers/jobsQueue.js');
 var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
 var sql = require('../sql/peers.js');
-var util = require('util');
 
 // Private fields
 var modules, library, self, __private = {};
@@ -38,7 +41,7 @@ function Peers (cb, scope) {
 		build: scope.build,
 		lastCommit: scope.lastCommit,
 		logic: {
-			peers: scope.logic.peers,
+			peers: scope.logic.peers
 		},
 		config: {
 			peers: scope.config.peers,
@@ -76,7 +79,7 @@ __private.countByFilter = function (filter, cb) {
  * @returns {setImmediateCallback|[Peer]} peers
  */
 __private.getByFilter = function (filter, cb) {
-	var allowedFields = ['ip', 'port', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
+	var allowedFields = ['ip', 'port', 'httpPort', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
 	var limit  = filter.limit ? Math.abs(filter.limit) : null;
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
 
@@ -625,90 +628,13 @@ Peers.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Peers.prototype.shared = {
-	count: function (req, cb) {
-		async.series({
-			connected: function (cb) {
-				__private.countByFilter({state: Peer.STATE.CONNECTED}, cb);
-			},
-			disconnected: function (cb) {
-				__private.countByFilter({state: Peer.STATE.DISCONNECTED}, cb);
-			},
-			banned: function (cb) {
-				__private.countByFilter({state: Peer.STATE.BANNED}, cb);
-			}
-		}, function (err, res) {
-			if (err) {
-				return setImmediate(cb, 'Failed to get peer count');
-			}
-
-			return setImmediate(cb, null, res);
-		});
-	},
-
 	getPeers: function (req, cb) {
 		library.schema.validate(req.body, schema.getPeers, function (err) {
 			if (err) {
-				return setImmediate(cb, err[0].message);
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
-
-			if (req.body.limit < 0 || req.body.limit > 100) {
-				return setImmediate(cb, 'Invalid limit. Maximum is 100');
-			}
-
 			req.body.normalized = true;
-			__private.getByFilter(req.body, function (err, peers) {
-				if (err) {
-					return setImmediate(cb, 'Failed to get peers');
-				}
-
-				return setImmediate(cb, null, {peers: peers});
-			});
-		});
-	},
-
-	getPeer: function (req, cb) {
-		library.schema.validate(req.body, schema.getPeer, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-			__private.getByFilter({
-				ip: req.body.ip,
-				port: req.body.port,
-				normalized: true
-			}, function (err, peers) {
-				if (err) {
-					return setImmediate(cb, 'Failed to get peer');
-				}
-
-				if (peers.length) {
-					return setImmediate(cb, null, {success: true, peer: peers[0]});
-				} else {
-					return setImmediate(cb, 'Peer not found');
-				}
-			});
-		});
-	},
-
-	/*
-	 * Returns information about version
-	 *
-	 * @public
-	 * @async
-	 * @method version
-	 * @param  {Object}   req HTTP request object
-	 * @param  {function} cb Callback function
-	 * @return {function} cb Callback function from params (through setImmediate)
-	 * @return {Object}   cb.err Always return `null` here
-	 * @return {Object}   cb.obj Anonymous object with version info
-	 * @return {string}   cb.obj.build Build information (if available, otherwise '')
-	 * @return {string}   cb.obj.commit Hash of last git commit (if available, otherwise '')
-	 * @return {string}   cb.obj.version Lisk version from config file
-	 */
-	version: function (req, cb) {
-		return setImmediate(cb, null, {
-			build: library.build,
-			commit: library.lastCommit,
-			version: library.config.version
+			return setImmediate(cb, null, {peers: __private.getByFilter(req.body)});
 		});
 	}
 };
