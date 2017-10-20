@@ -31,39 +31,7 @@ var tests = [
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
 
-	describe('before new block', function () {
-
-		it('good transactions should remain unconfirmed', function () {
-			return node.Promise.map(goodTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
-				});
-			});
-		});
-
-		if (pendingMultisignatures) {
-			it('pendingMultisignatures should remain in the pending queue', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getPendingMultisignaturePromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
-					});
-				});
-			});
-
-			it('pendingMultisignatures should not be confirmed', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getTransactionPromise(transaction.id).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('error').equal('Transaction not found');
-					});
-				});
-			});
-	  };
-	});
-
-	describe('after new block', function () {
+	describe('after two blocks', function () {
 
 		before(function () {
 			return onNewBlockPromise();
