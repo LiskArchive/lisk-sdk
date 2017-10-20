@@ -2,6 +2,8 @@
 
 var async = require('async');
 var _ = require('lodash');
+var crypto = require('crypto');
+
 var config = require('../../config.json');
 var constants = require('../../helpers/constants.js');
 var jobsQueue = require('../../helpers/jobsQueue.js');
@@ -26,10 +28,11 @@ var modules, library, self, __private = {}, pool = {};
  * @param {Object} logger
  */
 // Constructor
-function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolExpiryInterval, transaction, account, bus, logger) {
+function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolExpiryInterval, transaction, account, bus, logger, ed) {
 	library = {
 		logger: logger,
 		bus: bus,
+		ed: ed,
 		logic: {
 			transaction: transaction,
 			account, account
@@ -179,6 +182,26 @@ __private.addReady = function (transaction, poolList, cb) {
 	poolList.transactions[transaction.id] = transaction;
 	poolList.count++;
 	return setImmediate(cb);
+};
+
+/**
+ * Crates signature based on multisignature transaction and secret.
+ * @private
+ * @param {transaction} transaction
+ * @param {String} secret
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+__private.createSignature = function (transaction, secret, cb) {
+	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
+	var keypair = library.ed.makeKeypair(hash);
+	var publicKey = keypair.publicKey.toString('hex');
+	
+	if (transaction.asset.multisignature.keysgroup.indexOf('+' + publicKey) === -1) {
+		return setImmediate(cb, 'Permission to sign transaction denied');
+	}
+	var signature = library.logic.transaction.multisign(keypair, transaction);
+	return setImmediate(cb, null, signature);
 };
 
 /**
@@ -540,6 +563,36 @@ TxPool.prototype.addReady = function (transactions, cb) {
 };
 
 /**
+ * Creates and adds signature to multisignature transaction.
+ * @param {String} transactionId transaction id
+ * @param {String} secret secret
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+TxPool.prototype.addSignature = function (transactionId, secret, cb) {
+	var multisignatureTransaction = pool.verified.pending.transactions[transactionId];
+
+	if (multisignatureTransaction === undefined) {
+		library.logger.error(['Failed to add signature to multisignature. Transaction', transactionId, 'not in pool'].join(' '));
+		return setImmediate(cb, 'Transaction not in pool');
+	}
+
+	// TODO: replace with checkSignature to reflect API 1.0.18 functionality
+	__private.createSignature(multisignatureTransaction, secret, function (err, signature) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		if (multisignatureTransaction.signatures.indexOf(signature) !== -1) {
+			library.logger.error(['Transaction already signed:', transactionId].join(' '));
+			return setImmediate(cb, 'Transaction already signed');
+		}
+	
+		multisignatureTransaction.signatures.push(signature);
+		return setImmediate(cb);		
+	});
+};
+
+/**
  * Deletes transaction from pool list.
  * @implements {__private.delete}
  * @param {transaction} transaction
@@ -614,8 +667,16 @@ TxPool.prototype.processPool = function (cb) {
 			// process pool.verified.pending (multisig txs signs), and take care 
 			// about moving transactions from `verified.pending` to `verified.ready`
 			async.eachSeries(pool.verified.pending.transactions, function (transaction, eachSeriesCb) {
-				__private.delete(transaction.id, pool.verified.pending);
-				__private.add(transaction, pool.verified.ready, eachSeriesCb);
+				// Check multisignatures
+				if (transaction.type === transactionTypes.MULTI && 
+					Array.isArray(transaction.signatures) && 
+					transaction.signatures.length >= transaction.asset.multisignature.min
+				) {
+					__private.delete(transaction.id, pool.verified.pending);
+					__private.add(transaction, pool.verified.ready, eachSeriesCb);
+				} else {
+					return setImmediate(eachSeriesCb);
+				}
 			}, function (err) {
 				return setImmediate(seriesCb, err);
 			});
