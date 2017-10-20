@@ -102,7 +102,7 @@ function getDelegates (params, cb) {
 }
 
 function getVoters (params, cb) {
-	var url = '/api/delegates/voters';
+	var url = '/api/voters';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));

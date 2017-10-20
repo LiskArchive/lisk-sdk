@@ -90,7 +90,8 @@ var config = {
 		delegates: './modules/delegates.js',
 		multisignatures: './modules/multisignatures.js',
 		dapps: './modules/dapps.js',
-		cache: './modules/cache.js'
+		cache: './modules/cache.js',
+		voters: './modules/voters'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -102,6 +103,7 @@ var config = {
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
+		voters: { ws: './api/http/voters.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };

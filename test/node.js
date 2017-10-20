@@ -425,6 +425,7 @@ node.initApplication = function (cb, initScope) {
 			peers: '../modules/peers.js',
 			delegates: '../modules/delegates.js',
 			multisignatures: '../modules/multisignatures.js',
+			voters: '../modules/voters.js',
 			dapps: '../modules/dapps.js'
 			// cache: '../modules/cache.js'
 		};
