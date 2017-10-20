@@ -40,6 +40,7 @@ var paths = [
 	'./modules/cache.js',
 	'./modules/delegates.js',
 	'./modules/loader.js',
+	'./modules/node.js',
 	'./modules/peers.js',
 	'./modules/transactions.js',
 

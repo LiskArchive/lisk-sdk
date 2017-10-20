@@ -6,7 +6,7 @@ var getNodeStatusPromise = require('../../../common/apiHelpers').getNodeStatusPr
 
 describe('GET /api/node', function () {
 
-	describe('constants', function () {
+	describe('/constants', function () {
 
 		var constantsResponse;
 
@@ -91,7 +91,7 @@ describe('GET /api/node', function () {
 		});
 	});
 
-	describe('status', function () {
+	describe('/status', function () {
 
 		var statusResponse;
 
