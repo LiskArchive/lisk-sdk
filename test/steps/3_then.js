@@ -15,8 +15,10 @@
  */
 import fs from 'fs';
 import lisk from 'lisk-js';
+import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import * as input from '../../src/utils/input';
 import commonOptions from '../../src/utils/options';
 import tablify from '../../src/utils/tablify';
 import {
@@ -24,6 +26,75 @@ import {
 	getFirstQuotedString,
 	getFirstBoolean,
 } from './utils';
+
+export function itShouldGetTheDataUsingTheMessageFromStdIn() {
+	const { message } = this.test.ctx;
+	const firstCallArgs = input.getData.firstCall.args;
+	return (firstCallArgs[2]).should.equal(message);
+}
+
+export function itShouldGetTheDataUsingTheMessageArgument() {
+	const { message } = this.test.ctx;
+	return (input.getData).should.be.calledWith(message);
+}
+
+export function itShouldGetTheDataUsingTheMessageSource() {
+	const { options } = this.test.ctx;
+	const firstCallArgs = input.getData.firstCall.args;
+	return (firstCallArgs[1]).should.equal(options.message);
+}
+
+export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
+	const { passphrase } = this.test.ctx;
+	const firstCallArgs = input.getPassphrase.firstCall.args;
+	return (firstCallArgs[2]).should.equal(passphrase);
+}
+
+export function itShouldGetThePassphraseUsingThePassphraseSource() {
+	const { options } = this.test.ctx;
+	const firstCallArgs = input.getPassphrase.firstCall.args;
+	return (firstCallArgs[1]).should.equal(options.passphrase);
+}
+
+export function itShouldGetThePassphraseWithARepeatedPrompt() {
+	const firstCallArgs = input.getPassphrase.firstCall.args;
+	return (firstCallArgs[3]).should.eql({ shouldRepeat: true });
+}
+
+export function itShouldGetThePassphraseUsingTheVorpalInstance() {
+	const { vorpal } = this.test.ctx;
+	return (input.getPassphrase).should.be.calledWith(vorpal);
+}
+
+export function itShouldNotGetThePassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('passphraseIsRequired').equal(false);
+}
+
+export function itShouldGetThePassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('passphraseIsRequired').equal(true);
+}
+
+export function itShouldNotGetTheMessageFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(false);
+}
+
+export function itShouldGetTheMessageFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
+	const { message, passphrase, recipient } = this.test.ctx;
+	return (cryptoInstance.encryptMessage).should.be.calledWithExactly(message, passphrase, recipient);
+}
+
+export function itShouldResolveToTheResultOfEncryptingTheMessage() {
+	const { returnValue, cryptoResult } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(cryptoResult);
+}
 
 export function itShouldWriteTheUpdatedConfigToTheConfigFile() {
 	const { filePath, config } = this.test.ctx;
@@ -323,14 +394,14 @@ export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues(
 }
 
 export function theCryptoInstanceShouldHaveName() {
-	const { cryptoInstance } = this.test.ctx;
+	const { cryptoInstance: crypto } = this.test.ctx;
 	const name = getFirstQuotedString(this.test.title);
-	return (cryptoInstance.constructor).should.have.property('name').equal(name);
+	return (crypto.constructor).should.have.property('name').equal(name);
 }
 
 export function theCryptoInstanceShouldHaveLiskJSAsAProperty() {
-	const { cryptoInstance } = this.test.ctx;
-	return (cryptoInstance).should.have.property('liskCrypto').equal(lisk.crypto);
+	const { cryptoInstance: crypto } = this.test.ctx;
+	return (crypto).should.have.property('liskCrypto').equal(lisk.crypto);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {

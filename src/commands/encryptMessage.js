@@ -30,17 +30,18 @@ const description = `Encrypt a message for a given recipient public key using yo
 const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
 	cryptoModule.encryptMessage(message, passphrase, recipient);
 
-const actionCreator = vorpal => async ({ recipient, message, options }) => {
+export const actionCreator = vorpal => async ({ recipient, message, options }) => {
 	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
 
-	return (message || messageSource
-		? getStdIn({
-			passphraseIsRequired: passphraseSource === 'stdin',
-			dataIsRequired: messageSource === 'stdin',
-		})
-		: Promise.reject({ message: 'No message was provided.' })
-	)
+	if (!message && !messageSource) {
+		throw new Error('No message was provided.');
+	}
+
+	return getStdIn({
+		passphraseIsRequired: passphraseSource === 'stdin',
+		dataIsRequired: messageSource === 'stdin',
+	})
 		.then(stdIn => Promise.all([
 			getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true }),
 			getData(message, messageSource, stdIn.data),
