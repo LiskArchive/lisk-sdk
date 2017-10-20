@@ -38,6 +38,7 @@ var paths = [
 	'./modules/blocks/process.js',
 	'./modules/blocks/verify.js',
 	'./modules/cache.js',
+	'./modules/dapps.js',
 	'./modules/delegates.js',
 	'./modules/loader.js',
 	'./modules/node.js',
