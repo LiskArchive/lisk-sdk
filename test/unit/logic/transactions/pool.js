@@ -263,19 +263,13 @@ describe('txPool', function () {
 		
 		it('should be ok when generate account 1', function (done) {
 			accounts.setAccountAndGet(testAccounts[0].account, function (err, newaccount) {
-				if (err) {
-					return done(err);
-				}
 				expect(newaccount.address).to.equal(testAccounts[0].account.address);
 				done();
 			});
 		});
-		
+
 		it('should be ok when generate account 2', function (done) {
 			accounts.setAccountAndGet(testAccounts[1].account, function (err, newaccount) {
-				if (err) {
-					return done(err);
-				}
 				expect(newaccount.address).to.equal(testAccounts[1].account.address);
 				done();
 			});
@@ -283,19 +277,13 @@ describe('txPool', function () {
 
 		it('should be ok when generate account 3', function (done) {
 			accounts.setAccountAndGet(testAccounts[2].account, function (err, newaccount) {
-				if (err) {
-					return done(err);
-				}
 				expect(newaccount.address).to.equal(testAccounts[2].account.address);
 				done();
 			});
 		});
-		
+
 		it('should be ok when generate account 4', function (done) {
 			accounts.setAccountAndGet(testAccounts[3].account, function (err, newaccount) {
-				if (err) {
-					return done(err);
-				}
 				expect(newaccount.address).to.equal(testAccounts[3].account.address);
 				done();
 			});
@@ -303,7 +291,7 @@ describe('txPool', function () {
 	});
 
 	describe('process workers', function () {
-		
+
 		it('should be ok when get pool totals to initialize local counter', function (done) {
 			var totals = txPool.getUsage();
 
@@ -323,9 +311,6 @@ describe('txPool', function () {
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[0], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -333,9 +318,6 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[0], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -346,19 +328,13 @@ describe('txPool', function () {
 					tmpTxInvalidId.id = '01234567890123456789';
 
 					txPool.add(tmpTxInvalidId, function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
 				});
-	
+
 				it('should be ok when process pool txs', function (done) {
 					txPool.processPool(function (err, cbprPool) {
-						if (err) {
-							done(err);
-						}
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[0].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 3'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + tmpTxInvalidId.id);
@@ -368,7 +344,7 @@ describe('txPool', function () {
 						done();
 					});
 				});
-	
+
 				it('should fail when add same normal transaction to unverified', function (done) {
 					txPool.add(transactions[0], function (err, cbtx) {
 						expect(err).to.equal('Transaction is already in pool: ' + transactions[0].id);
@@ -385,7 +361,7 @@ describe('txPool', function () {
 
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTx = txPool.delete(transactions[0]);
-					
+
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
 					poolTotals.ready -= 1;
@@ -394,7 +370,7 @@ describe('txPool', function () {
 
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
-					
+
 					expect(invalidTxs).to.equal(1);
 					poolTotals.invalid -= 1;
 					done();
@@ -402,7 +378,7 @@ describe('txPool', function () {
 
 				it('should be ok when get pool totals', function (done) {
 					var totals = txPool.getUsage();
-	
+
 					expect(totals).to.be.an('object');
 					expect(totals.unverified).to.equal(poolTotals.unverified);
 					expect(totals.pending).to.equal(poolTotals.pending);
@@ -411,30 +387,24 @@ describe('txPool', function () {
 					done();
 				});
 			});
-			
+
 			describe('Tx type: 1 - Register a second signature', function () {
 				var invalidTransactionType;
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[1], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
 				});
-	
+
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[1], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
 				});
-	
+
 				it('should be ok when add transaction to unverified with invalid transaction type', function (done) {
 					invalidTransactionType = _.cloneDeep(invalidsTxs[0]);
 					invalidTransactionType.id = '12345678901234567890';
@@ -451,9 +421,6 @@ describe('txPool', function () {
 
 				it('should be ok when process pool txs', function (done) {
 					txPool.processPool(function (err, cbprPool) {
-						if (err) {
-							done(err);
-						}
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[1].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 0'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidTransactionType.id);
@@ -480,7 +447,7 @@ describe('txPool', function () {
 
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTx = txPool.delete(transactions[1]);
-					
+
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
 					poolTotals.ready -= 1;
@@ -489,7 +456,7 @@ describe('txPool', function () {
 
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
-					
+
 					expect(invalidTxs).to.equal(poolTotals.invalid);
 					poolTotals.invalid -= invalidTxs;
 					done();
@@ -497,7 +464,7 @@ describe('txPool', function () {
 
 				it('should be ok when get pool totals', function (done) {
 					var totals = txPool.getUsage();
-	
+
 					expect(totals).to.be.an('object');
 					expect(totals.unverified).to.be.equal(poolTotals.unverified);
 					expect(totals.pending).to.be.equal(poolTotals.pending);
@@ -511,19 +478,13 @@ describe('txPool', function () {
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[2], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
 				});
-	
+
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[2][0], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -531,9 +492,6 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified that already is a delegate', function (done) {
 					txPool.add(invalidsTxs[2][1], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -541,20 +499,13 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified with same username', function (done) {
 					txPool.add(invalidsTxs[2][2], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
 				});
-	
-				it('should be ok when add transaction to unverified with invalid signature', function (done) {
 
+				it('should be ok when add transaction to unverified with invalid signature', function (done) {
 					txPool.add(hackedTransactions[0], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -562,9 +513,6 @@ describe('txPool', function () {
 
 				it('should be ok when process pool txs', function (done) {
 					txPool.processPool(function (err, cbprPool) {
-						if (err) {
-							done(err);
-						}
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[2][0].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[2][0].senderId, 'balance: 0'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[2][1].id);
@@ -616,7 +564,7 @@ describe('txPool', function () {
 
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTx = txPool.delete(transactions[2]);
-					
+
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
 					poolTotals.ready -= 1;
@@ -625,7 +573,7 @@ describe('txPool', function () {
 
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
-					
+
 					expect(invalidTxs).to.equal(poolTotals.invalid);
 					poolTotals.invalid -= invalidTxs;
 					done();
@@ -633,7 +581,7 @@ describe('txPool', function () {
 
 				it('should be ok when get pool totals', function (done) {
 					var totals = txPool.getUsage();
-	
+
 					expect(totals).to.be.an('object');
 					expect(totals.unverified).to.be.equal(poolTotals.unverified);
 					expect(totals.pending).to.be.equal(poolTotals.pending);
@@ -647,19 +595,13 @@ describe('txPool', function () {
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[3], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
 				});
-	
+
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[3][0], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -667,9 +609,6 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified that votes a non delegate', function (done) {
 					txPool.add(invalidsTxs[3][1], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -677,9 +616,6 @@ describe('txPool', function () {
 	
 				it('should be ok when process pool txs', function (done) {
 					txPool.processPool(function (err, cbprPool) {
-						if (err) {
-							done(err);
-						}
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[3][0].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[3][0].senderId, 'balance: 0'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[3][1].id);
@@ -706,7 +642,7 @@ describe('txPool', function () {
 
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTx = txPool.delete(transactions[3]);
-					
+
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
 					poolTotals.ready -= 1;
@@ -715,7 +651,7 @@ describe('txPool', function () {
 
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
-					
+
 					expect(invalidTxs).to.equal(poolTotals.invalid);
 					poolTotals.invalid -= invalidTxs;
 					done();
@@ -723,7 +659,7 @@ describe('txPool', function () {
 
 				it('should be ok when get pool totals', function (done) {
 					var totals = txPool.getUsage();
-	
+
 					expect(totals).to.be.an('object');
 					expect(totals.unverified).to.be.equal(poolTotals.unverified);
 					expect(totals.pending).to.be.equal(poolTotals.pending);
@@ -737,9 +673,6 @@ describe('txPool', function () {
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[4][0], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -747,9 +680,6 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified with not register signer in database', function (done) {
 					txPool.add(transactions[4][1], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -757,9 +687,6 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified without enough signatures', function (done) {
 					txPool.add(transactions[4][2], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -767,9 +694,6 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified with not enough LSK', function (done) {
 					txPool.add(invalidsTxs[4][0], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -777,19 +701,13 @@ describe('txPool', function () {
 
 				it('should be ok when add transaction to unverified with invalid signeer', function (done) {
 					txPool.add(invalidsTxs[4][1], function (err, cbtx) {
-						if (err) {
-							done(err);
-						}
 						expect(cbtx).to.be.undefined;
 						done();
 					});
 				});
-	
+
 				it('should be ok when process pool txs', function (done) {
 					txPool.processPool(function (err, cbprPool) {
-						if (err) {
-							done(err);
-						}
 						expect(error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTxs[4][0].id);
 						expect(error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTxs[4][0].senderId, 'balance: 0'].join(' '));
 						expect(error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[4][1].id);
@@ -824,7 +742,7 @@ describe('txPool', function () {
 
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTx = txPool.delete(transactions[4][0]);
-					
+
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
 					poolTotals.ready -= 1;
@@ -833,7 +751,7 @@ describe('txPool', function () {
 
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTxs = txPool.resetInvalidTransactions();
-					
+
 					expect(invalidTxs).to.equal(poolTotals.invalid);
 					poolTotals.invalid -= invalidTxs;
 					done();
@@ -841,7 +759,7 @@ describe('txPool', function () {
 
 				it('should be ok when get pool totals', function (done) {
 					var totals = txPool.getUsage();
-	
+
 					expect(totals).to.be.an('object');
 					expect(totals.unverified).to.be.equal(poolTotals.unverified);
 					expect(totals.pending).to.be.equal(poolTotals.pending);
@@ -901,7 +819,7 @@ describe('txPool', function () {
 
 					it('should be ok when get pool totals', function (done) {
 						var totals = txPool.getUsage();
-		
+
 						expect(totals).to.be.an('object');
 						expect(totals.unverified).to.be.equal(poolTotals.unverified);
 						expect(totals.pending).to.be.equal(poolTotals.pending);
@@ -983,7 +901,7 @@ describe('txPool', function () {
 			});
 		});
 	});
-	
+
 	describe('ready', function () {
 		describe('method addReady/getReady', function () {
 			var txs = [];
@@ -994,7 +912,7 @@ describe('txPool', function () {
 					txs.push(e);
 				}
 			});
-			
+
 			it('should be ok when add transactions to ready', function (done) {
 				txPool.addReady(txs, function (err, cbtx) {
 					expect(cbtx).to.be.undefined;
@@ -1005,6 +923,7 @@ describe('txPool', function () {
 
 			it('should be ok when get transactions from ready', function (done) {
 				var readyTxs = txPool.getReady();
+
 				expect(readyTxs[0].fee).to.be.at.least(readyTxs[1].fee);
 				expect(readyTxs[1].fee).to.be.at.least(readyTxs[2].fee);
 				expect(readyTxs[2].fee).to.be.at.least(readyTxs[3].fee);
@@ -1022,6 +941,7 @@ describe('txPool', function () {
 
 			it('should be ok when get transactions from ready', function (done) {
 				var readyTxs = txPool.getReady();
+
 				expect(readyTxs[0].receivedAt).to.not.equal(readyTxs[1].receivedAt);
 				expect(readyTxs[1].receivedAt).to.equal(readyTxs[2].receivedAt);
 				expect(readyTxs[2].receivedAt).to.equal(readyTxs[3].receivedAt);
@@ -1054,6 +974,7 @@ describe('txPool', function () {
 
 		it('should be ok when serialize transaction', function (done) {
 			broadcastTx = bson.serialize(transactions[0]);
+
 			expect(broadcastTx).that.is.an('Uint8Array');
 			done();
 		});
@@ -1068,6 +989,7 @@ describe('txPool', function () {
 
 		it('should be ok when deserialize transaction', function (done) {
 			broadcastTx = bson.deserialize(broadcastTx);
+
 			expect(broadcastTx).to.deep.equal(transactions[0]);
 			done();
 		});
@@ -1077,9 +999,6 @@ describe('txPool', function () {
 
 		it('should be ok when checked account balance with enough LSK for transaction', function (done) {
 			txPool.checkBalance(transactions[0], { address: transactions[0].senderId }, function (err, cbBalance) {
-				if (err) {
-					done(err);
-				}
 				expect(cbBalance).to.equal('balance: 52999979');
 				done();
 			});
@@ -1087,10 +1006,8 @@ describe('txPool', function () {
 
 		it('should fail when checked account balance with not enough LSK for transaction', function (done) {
 			txPool.checkBalance(invalidsTxs[0], { address: invalidsTxs[0].senderId }, function (err, cbBalance) {
-				if (err) {
-					expect(err).to.equal('Account does not have enough LSK: 2896019180726908125L balance: 0');
-					done();
-				}
+				expect(err).to.equal('Account does not have enough LSK: 2896019180726908125L balance: 0');
+				done();
 			});
 		});
 	});
@@ -1101,6 +1018,7 @@ describe('txPool', function () {
 
 			it('should be ok when transaction is in unverified list', function (done) {
 				var transaction = txPool.get(transactions[0].id);
+
 				expect(transaction.tx).to.deep.equal(transactions[0]);
 				expect(transaction.status).to.equal('unverified');
 				done();
@@ -1108,6 +1026,7 @@ describe('txPool', function () {
 
 			it('should be ok when transaction is in pending list', function (done) {
 				var transaction = txPool.get(transactions[5].id);
+
 				expect(transaction.tx).to.deep.equal(transactions[5]);
 				expect(transaction.status).to.equal('pending');
 				done();
@@ -1115,6 +1034,7 @@ describe('txPool', function () {
 
 			it('should be ok when transaction is in ready list', function (done) {
 				var transaction = txPool.get(transactions[5].id);
+
 				expect(transaction.tx).to.deep.equal(transactions[5]);
 				expect(transaction.status).to.equal('ready');
 				done();
@@ -1122,6 +1042,7 @@ describe('txPool', function () {
 
 			it('should fail when transaction is not in the pool', function (done) {
 				var transaction = txPool.get(transactions[0].id);
+
 				expect(transaction.tx).to.be.undefined;
 				expect(transaction.status).to.equal('Transaction not in pool');
 				done();
@@ -1134,43 +1055,47 @@ describe('txPool', function () {
 
 				it('should be ok when pool list is unverified', function (done) {
 					var txs = txPool.getAll('unverified', { limit: null});
+
 					expect(txs.length).to.equal(0);
 					done();
 				});
-	
+
 				it('should be ok when pool list is pending', function (done) {
 					var txs = txPool.getAll('pending', { limit: null});
+
 					expect(txs.length).to.equal(0);
 					done();
 				});
-				
+
 				it('should be ok when pool list is ready', function (done) {
 					var txs = txPool.getAll('ready', { limit: null});
+
 					expect(txs.length).to.equal(5);
 					done();
 				});
-	
+
 				it('should fail when filter is invalid', function (done) {
 					var txs = txPool.getAll('unknown', { limit: null});
+
 					expect(txs).to.equal('Invalid filter');
 					done();
 				});
 			});
 
 			describe('by id (address) and publicKey', function () {
-				
+
 				it('should be ok when sender account is valid', function (done) {
 					var txs = txPool.getAll('sender_id', { id: '2737453412992791987L' });
-	
+
 					expect(txs.unverified.length).to.equal(0);
 					expect(txs.pending.length).to.equal(0);
 					expect(txs.ready.length).to.equal(3);
 					done();
 				});
-	
+
 				it('should be ok when recipient account is valid', function (done) {
 					var txs = txPool.getAll('recipient_id', { id: '16313739661670634666L' });
-	
+
 					expect(txs.unverified.length).to.equal(0);
 					expect(txs.pending.length).to.equal(0);
 					expect(txs.ready.length).to.equal(1);
@@ -1179,16 +1104,16 @@ describe('txPool', function () {
 
 				it('should be ok when sender publicKey is valid', function (done) {
 					var txs = txPool.getAll('sender_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
-	
+
 					expect(txs.unverified.length).to.equal(0);
 					expect(txs.pending.length).to.equal(0);
 					expect(txs.ready.length).to.equal(3);
 					done();
 				});
-	
+
 				it('should be ok when requester publicKey is valid', function (done) {
 					var txs = txPool.getAll('recipient_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
-	
+
 					expect(txs.unverified.length).to.equal(0);
 					expect(txs.pending.length).to.equal(0);
 					expect(txs.ready.length).to.equal(0);
