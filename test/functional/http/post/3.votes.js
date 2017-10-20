@@ -260,7 +260,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 			});
 		});
 
-		it('upvoting ' + (constants.activeDelegates + 1) + ' delegates (number of actived delegates + 1) separately should be ok and only 101 votes confirmed', function () {
+		it('upvoting ' + constants.activeDelegates + ' delegates (number of actived delegates) separately should be ok', function () {
 			var transaction1 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 33).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
@@ -273,23 +273,14 @@ describe('POST /api/transactions (type 3) votes', function () {
 			var transaction4 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(99, 102).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
-			// This transaction will be accepted but not confirmed due to we reach the maximum allowed votes
-			var transaction5 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, ['+' + node.eAccount.publicKey]);
 
-			// First transaction to arrive is the last one to be confirmed
-			return sendTransactionPromise(transaction5)
-				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction5.id);
-					badTransactions.push(transaction5);
+			var promises = [];
+			promises.push(sendTransactionPromise(transaction1));
+			promises.push(sendTransactionPromise(transaction2));
+			promises.push(sendTransactionPromise(transaction3));
+			promises.push(sendTransactionPromise(transaction4));
 
-					var promises = [];
-					promises.push(sendTransactionPromise(transaction1));
-					promises.push(sendTransactionPromise(transaction2));
-					promises.push(sendTransactionPromise(transaction3));
-					promises.push(sendTransactionPromise(transaction4));
-					return node.Promise.all(promises);
-				})
+			return node.Promise.all(promises)
 				.then(function (res) {
 					res.forEach(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
