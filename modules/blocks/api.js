@@ -160,13 +160,13 @@ API.prototype.getBlocks = function (req, cb) {
 
 	library.schema.validate(req.body, schema.getBlocks, function (err) {
 		if (err) {
-			return setImmediate(cb, new ApiError(err[0].message, apiCodes.QUERY_MALFORMED));
+			return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 		}
 
 		library.dbSequence.add(function (cb) {
 			__private.list(req.body, function (err, data) {
 				if (err) {
-					return setImmediate(cb, new ApiError(err[0].message, apiCodes.ERROR_DEFAULT));
+					return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
 				}
 				return setImmediate(cb, null, {blocks: data.blocks, count: data.count});
 			});
