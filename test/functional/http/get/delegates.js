@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../../../node.js');
+var http = require('../../../common/httpCommunication.js');
 var modulesLoader = require('../../../common/modulesLoader');
 var genesisDelegates = require('../../../genesisDelegates.json');
 
@@ -400,7 +401,6 @@ describe('GET /api/delegates', function () {
 
 		var account = node.randomAccount();
 
-		// Crediting account and vote delegate
 		before(function () {
 			var promises = [];
 			promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
@@ -422,39 +422,27 @@ describe('GET /api/delegates', function () {
 		});
 
 		it('using no publicKey should be ok', function () {
-			var params = [
-				'publicKey='
-			];
-
-			return getVotersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('accounts').that.is.an('array').that.is.empty;
+			http.get('/api/delegates/voters?publicKey=', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('accounts').that.is.an('array').that.is.empty;
 			});
 		});
 
 		it('using invalid publicKey should fail', function () {
-			var params = [
-				'publicKey=' + 'notAPublicKey'
-			];
-
-			return getVotersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
+			http.get('/api/delegates/voters?publicKey=notAPublicKey', function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
+				node.expect(res.body).to.have.property('error');
 			});
 		});
 
 		it('using valid publicKey should be ok', function () {
-			var params = [
-				'publicKey=' + node.eAccount.publicKey
-			];
-
-			return onNewBlockPromise().then(function (res) {
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('accounts').that.is.an('array');
+			return onNewBlockPromise().then(function () {
+				http.get('/api/delegates/voters?publicKey=' + node.eAccount.publicKey, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.be.ok;
+					node.expect(res.body).to.have.property('accounts').that.is.an('array');
 					var flag = 0;
-					for (var i = 0; i < res.accounts.length; i++) {
-						if (res.accounts[i].address === account.address) {
+					for (var i = 0; i < res.body.accounts.length; i++) {
+						if (res.body.accounts[i].address === account.address) {
 							flag = 1;
 						}
 					}
