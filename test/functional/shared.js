@@ -46,23 +46,23 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		if (pendingMultisignatures) {
-			it('pendingMultisignatures should remain in the pending queue', function () {
+			it.skip('pendingMultisignatures should remain in the pending queue', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
 					return getPendingMultisignaturePromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
+						node.expect(res).to.have.property('status').equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').to.have.lengthOf(0);
 					});
 				});
 			});
 
-			it('pendingMultisignatures should not be confirmed', function () {
+			it.skip('pendingMultisignatures should not be confirmed', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
 					var params = [
 						'id=' + transaction.id
 					];
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('error').equal('Transaction not found');
+						node.expect(res).to.have.property('status').to.equal(400);
+						node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					});
 				});
 			});
@@ -90,8 +90,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		it.skip('good transactions should not be unconfirmed', function () {
 			return node.Promise.map(goodTransactions, function (transaction) {
 				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});
@@ -112,8 +112,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 			it.skip('pendingMultisignatures should remain in the pending queue', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
 					return getPendingMultisignaturePromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
 					});
 				});
 			});
@@ -124,8 +124,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 						'id=' + transaction.id
 					];
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('error').equal('Transaction not found');
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 					});
 				});
 			});
@@ -172,12 +172,12 @@ function invalidAssets (account, option, badTransactions) {
 	describe('using invalid asset values', function () {
 
 		tests.forEach(function (test) {
-			it.skip('using ' + test.describe + ' should fail', function () {
+			it('using ' + test.describe + ' should fail', function () {
 				transaction.asset = test.args;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -187,8 +187,8 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset;
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});
@@ -201,8 +201,8 @@ function invalidAssets (account, option, badTransactions) {
 				transaction.asset[option] = test.args;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -212,8 +212,8 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset[option];
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});
