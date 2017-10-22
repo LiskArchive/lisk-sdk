@@ -435,10 +435,8 @@ Delegates.prototype.getDelegates = function (query, cb) {
 	if (!query) {
 		throw 'Missing query argument';
 	}
-	modules.accounts.getAccounts({
-		isDelegate: 1,
-		sort: { 'vote': -1, 'publicKey': 1 }
-	}, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks'], function (err, delegates) {
+	query = _.assign({sort: { 'vote': -1, 'publicKey': 1 }}, query, {isDelegate: 1});
+	modules.accounts.getAccounts(query, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks'], function (err, delegates) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
