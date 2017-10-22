@@ -5,7 +5,11 @@
  * @memberof module:helpers
  * @function
  * @param {Array} orderBy
- * @param {string} options
+ * @param {Object} options
+ * @param {string} options.fieldPrefix
+ * @param {string} options.sortField
+ * @param {string} options.sortMethod - asc / desc
+ * @param {Array} options.sortFields
  * @return {Object} error | {sortField, sortMethod}.
  */
 function OrderBy (orderBy, options) {
