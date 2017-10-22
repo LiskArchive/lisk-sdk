@@ -404,31 +404,28 @@ describe('GET /api/delegates', function () {
 
 		// Crediting account and vote delegate
 		before(function () {
+			var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
 			var promises = [];
-			promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
+			promises.push(sendTransactionPromise(transaction));
 
 			return node.Promise.all(promises)
 				.then(function (results) {
 					results.forEach(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactionId').that.is.not.empty;
-						transactionsToWaitFor.push(res.transactionId);
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 					});
-				})
-				.then(function (res) {
+					transactionsToWaitFor.push(transaction.id);
 					return waitForConfirmations(transactionsToWaitFor);
 				})
 				.then(function (res) {
 					var transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], null);
+					transactionsToWaitFor = [];
+					transactionsToWaitFor.push(transaction.id);
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.not.empty;
-					transactionsToWaitFor = [];
-					transactionsToWaitFor.push(res.transactionId);
-				})
-				.then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 					return waitForConfirmations(transactionsToWaitFor);
 				});
 		});

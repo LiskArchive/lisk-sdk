@@ -17,22 +17,20 @@ describe('GET /api/multisignatures/', function () {
 
 	before(function () {
 		//Crediting accounts
-		return creditAccountPromise(scenario.account.address, 1000 * node.normalizer)
+		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, node.gAccount.password);
+		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-				transactionsToWaitFor.push(res.transactionId);
-			})
-			.then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				transactionsToWaitFor.push(sendTransaction.id);
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
+				// This is a global transaction
 				transaction = node.lisk.multisignature.createMultisignature(scenario.account.password, null, scenario.keysgroup, 1, 2);
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(res.transactionId);
 			});
 	});

@@ -74,8 +74,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 						'id=' + transaction.id
 					];
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('error').equal('Transaction not found');
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 					});
 				});
 			});
@@ -114,8 +114,8 @@ function invalidAssets (account, option, badTransactions) {
 				transaction.asset = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -125,8 +125,8 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset;
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});
@@ -139,8 +139,8 @@ function invalidAssets (account, option, badTransactions) {
 				transaction.asset[option] = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -150,8 +150,8 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset[option];
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});

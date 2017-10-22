@@ -5,7 +5,6 @@ var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('POST /api/transactions (type 5) register dapp', function () {
@@ -32,19 +31,20 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 	// Crediting accounts
 	before(function () {
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.dappRegistration, node.gAccount.password);
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.dappRegistration));
+		promises.push(sendTransactionPromise(transaction1));
+		promises.push(sendTransactionPromise(transaction2));
 
 		return node.Promise.all(promises)
 			.then(function (results) {
 				results.forEach(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.not.empty;
-					transactionsToWaitFor.push(res.transactionId);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 				});
-			})
-			.then(function () {
+
+				transactionsToWaitFor.push(transaction1.id, transaction2.id);
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
@@ -60,8 +60,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				delete transaction.asset.dapp.category;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Missing required property: category$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/Missing required property: category$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -71,8 +71,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.category = '0';
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type integer but found type string');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type integer but found type string');
 					badTransactions.push(transaction);
 				});
 			});
@@ -82,8 +82,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.category = -1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Value -1 is less than minimum 0$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/Value -1 is less than minimum 0$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -93,8 +93,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.category = 9;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Value 9 is greater than maximum 8$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/Value 9 is greater than maximum 8$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -103,8 +103,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
@@ -119,8 +119,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
@@ -130,8 +130,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.description = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -143,8 +143,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
@@ -157,8 +157,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/String is too long \(161 chars\), maximum 160$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/String is too long \(161 chars\), maximum 160$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -173,8 +173,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
@@ -184,8 +184,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.icon = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -197,8 +197,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid application icon link');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid application icon link');
 					badTransactions.push(transaction);
 				});
 			});
@@ -210,8 +210,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid application icon file type');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid application icon file type');
 					badTransactions.push(transaction);
 				});
 			});
@@ -226,8 +226,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid application link');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid application link');
 					badTransactions.push(transaction);
 				});
 			});
@@ -237,8 +237,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.link = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -251,8 +251,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid application file type');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid application file type');
 					badTransactions.push(transaction);
 				});
 			});
@@ -265,8 +265,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				delete transaction.asset.dapp.name;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Missing required property: name$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/Missing required property: name$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -276,8 +276,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.name = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -287,8 +287,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.name = '';
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/String is too short \(0 chars\), minimum 1$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/String is too short \(0 chars\), minimum 1$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -301,8 +301,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/String is too long \(33 chars\), maximum 32$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/String is too long \(33 chars\), maximum 32$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -317,8 +317,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
@@ -328,8 +328,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.tags = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -341,8 +341,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
@@ -355,8 +355,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/String is too long \(161 chars\), maximum 160$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/String is too long \(161 chars\), maximum 160$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -368,8 +368,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
@@ -382,8 +382,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Encountered duplicate tag: ' + tag + ' in application');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Encountered duplicate tag: ' + tag + ' in application');
 					badTransactions.push(transaction);
 				});
 			});
@@ -396,8 +396,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				delete transaction.asset.dapp.type;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Missing required property: type$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/Missing required property: type$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -407,8 +407,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.type = -1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Value -1 is less than minimum 0$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/Value -1 is less than minimum 0$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -418,8 +418,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction.asset.dapp.type = -1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.match(/Value -1 is less than minimum 0$/);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/Value -1 is less than minimum 0$/);
 					badTransactions.push(transaction);
 				});
 			});
@@ -430,8 +430,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid application type');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid application type');
 					badTransactions.push(transaction);
 				});
 			});
@@ -444,8 +444,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			transaction = node.lisk.dapp.createDapp(accountNoFunds.password, null, node.randomApplication());
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.not.be.ok;
-				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
@@ -454,8 +454,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, node.randomApplication());
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -464,8 +464,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -478,8 +478,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// badTransactions.push(transaction);
 				})
@@ -490,8 +490,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// goodTransactions.push(transaction);
 				});
@@ -502,8 +502,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// badTransactions.push(transaction);
 				})
@@ -514,8 +514,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// goodTransactions.push(transaction);
 				});
@@ -526,8 +526,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// badTransactions.push(transaction);
 				})
@@ -538,8 +538,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// goodTransactions.push(transaction);
 				});
@@ -557,8 +557,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Application name already exists: ' + dappDuplicateNameFail.name);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application name already exists: ' + dappDuplicateNameFail.name);
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -567,8 +567,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Application link already exists: ' + dappDuplicateLinkFail.link);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application link already exists: ' + dappDuplicateLinkFail.link);
 				badTransactionsEnforcement.push(transaction);
 			});
 		});

@@ -24,8 +24,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		typesRepresentatives.allTypes.forEach(function (test) {
 			it('using ' + test.description + ' should fail', function () {
 				return sendTransactionPromise(test.input).then(function (res) {
-					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				});
 			});
 		});
@@ -134,8 +134,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, -1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					//goodTransactions.push(transaction);
 				});
@@ -145,8 +145,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					//goodTransactions.push(transaction);
 				});
@@ -156,8 +156,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1000);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction timestamp. Timestamp is in the future');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction timestamp. Timestamp is in the future');
 					// TODO: Enable when transaction pool order is fixed
 					//badTransactions.push(transaction);
 				});
@@ -178,8 +178,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 						transaction.asset.data = test.input;
 
 						return sendTransactionPromise(transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.not.ok;
-							node.expect(res).to.have.property('message').not.empty;
+							node.expect(res).to.have.property('status').to.equal(400);
+							node.expect(res).to.have.nested.property('body.message').not.empty;
 							badTransactions.push(transaction);
 						});
 					});
@@ -197,8 +197,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password, null, test.input);
 						
 						return sendTransactionPromise(transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
-							node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+							node.expect(res).to.have.property('status').to.equal(200);
+							node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 							goodTransactions.push(transaction);
 						});
 					});
