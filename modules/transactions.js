@@ -13,6 +13,7 @@ var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Transfer = require('../logic/transfer.js');
+var Promise = require('bluebird');
 
 // Private fields
 var __private = {};
@@ -77,19 +78,16 @@ __private.list = function (filter, cb) {
 	var params = {};
 	var where = [];
 	var allowedFieldsMap = {
+		id:									 '"t_id" = ${id}',
 		blockId:             '"t_blockId" = ${blockId}',
-		senderPublicKey:     '"t_senderPublicKey" = DECODE (${senderPublicKey}, \'hex\')',
-		recipientPublicKey:  '"m_recipientPublicKey" = DECODE (${recipientPublicKey}, \'hex\')',
-		senderId:            '"t_senderId" = ${senderId}',
-		recipientId:         '"t_recipientId" = ${recipientId}',
 		fromHeight:          '"b_height" >= ${fromHeight}',
 		toHeight:            '"b_height" <= ${toHeight}',
 		fromTimestamp:       '"t_timestamp" >= ${fromTimestamp}',
 		toTimestamp:         '"t_timestamp" <= ${toTimestamp}',
-		senderIds:           '"t_senderId" IN (${senderIds:csv})',
-		recipientIds:        '"t_recipientId" IN (${recipientIds:csv})',
-		senderPublicKeys:    'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKeys:csv})',
-		recipientPublicKeys: 'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKeys:csv})',
+		senderId:            '"t_senderId" IN (${senderId:csv})',
+		recipientId:         '"t_recipientId" IN (${recipientId:csv})',
+		senderPublicKey:     'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKey:csv})',
+		recipientPublicKey:  'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKey:csv})',
 		minAmount:           '"t_amount" >= ${minAmount}',
 		maxAmount:           '"t_amount" <= ${maxAmount}',
 		type:                '"t_type" = ${type}',
@@ -104,42 +102,26 @@ __private.list = function (filter, cb) {
 	var owner = '';
 	var isFirstWhere = true;
 
-	var processParams = function (value, key) {
-		var field = String(key).split(':');
-		if (field.length === 1) {
-			// Only field identifier, so using default 'OR' condition
-			field.unshift('OR');
-		} else if (field.length === 2) {
-			// Condition supplied, checking if correct one
-			if (_.includes(['or', 'and'], field[0].toLowerCase())) {
-				field[0] = field[0].toUpperCase();
-			} else {
-				throw new Error('Incorrect condition [' + field[0] + '] for field: ' + field[1]);
-			}
-		} else {
-			// Invalid parameter 'x:y:z'
-			throw new Error('Invalid parameter supplied: ' + key);
-		}
-
+	var processParams = function (value, field) {
 		// Mutating parametres when unix timestamp is supplied
-		if (_.includes(['fromUnixTime', 'toUnixTime'], field[1])) {
+		if (_.includes(['fromUnixTime', 'toUnixTime'], field)) {
 			// Lisk epoch is 1464109200 as unix timestamp
 			value = value - constants.epochTime.getTime() / 1000;
-			field[1] = field[1].replace('UnixTime', 'Timestamp');
+			field = field.replace('UnixTime', 'Timestamp');
 		}
 
-		if (!_.includes(_.keys(allowedFieldsMap), field[1])) {
-			throw new Error('Parameter is not supported: ' + field[1]);
+		if (!_.includes(_.keys(allowedFieldsMap), field)) {
+			throw new Error('Parameter is not supported: ' + field);
 		}
 
 		// Checking for empty parameters, 0 is allowed for few
-		if (!value && !(value === 0 && _.includes(['fromTimestamp', 'minAmount', 'minConfirmations', 'type', 'offset'], field[1]))) {
-			throw new Error('Value for parameter [' + field[1] + '] cannot be empty');
+		if (!value && !(value === 0 && _.includes(['fromTimestamp', 'minAmount', 'minConfirmations', 'type', 'offset'], field))) {
+			throw new Error('Value for parameter [' + field + '] cannot be empty');
 		}
 
-		if (allowedFieldsMap[field[1]]) {
-			where.push((!isFirstWhere ? (field[0] + ' ') : '') + allowedFieldsMap[field[1]]);
-			params[field[1]] = value;
+		if (allowedFieldsMap[field]) {
+			where.push((!isFirstWhere ? ('AND ') : '') + allowedFieldsMap[field]);
+			params[field] = value;
 			isFirstWhere = false;
 		}
 	};
@@ -193,99 +175,82 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, orderBy.error);
 	}
 
+	var rawTransactionRows;
+	var count;
+
 	library.db.query(sql.countList({
 		where: where,
 		owner: owner
 	}), params).then(function (rows) {
-		var count = rows.length ? rows[0].count : 0;
-
-		library.db.query(sql.list({
+		count = rows.length ? rows[0].count : 0;
+		return library.db.query(sql.list({
 			where: where,
 			owner: owner,
 			sortField: orderBy.sortField,
 			sortMethod: orderBy.sortMethod
-		}), params).then(function (rows) {
-			var transactions = [];
-
-			for (var i = 0; i < rows.length; i++) {
-				transactions.push(library.logic.transaction.dbRead(rows[i]));
-			}
-
-			var data = {
-				transactions: transactions,
-				count: count
-			};
-
-			return setImmediate(cb, null, data);
-		}).catch(function (err) {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Transactions#list error');
+		}), params);
+	}).then(function (rows) {
+		rawTransactionRows = rows;
+		return __private.getAssetForIds(groupTransactionIdsByType(rows));
+	}).then(function (rows) {
+		var assetRowsByTransactionId = {};
+		_.each(rows, function (row) {
+			assetRowsByTransactionId[row.transaction_id] = row;
 		});
+
+		var transactions = rawTransactionRows.map(function (rawTransactionRow) {
+			return library.logic.transaction.dbRead(_.merge(rawTransactionRow, assetRowsByTransactionId[rawTransactionRow.t_id]));
+		});
+
+		var data = {
+			transactions: transactions,
+			count: count
+		};
+
+		return setImmediate(cb, null, data);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Transactions#list error');
 	});
 };
 
-/**
- * Gets transaction by id from `trs_list` view.
- * @private
- * @param {string} id
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error | data: {transaction}
- */
-__private.getById = function (id, cb) {
-	library.db.query(sql.getById, {id: id}).then(function (rows) {
-		if (!rows.length) {
-			return setImmediate(cb, 'Transaction not found: ' + id);
-		}
-
-		var rawTransaction = rows[0];
-		var queryNames = {};
-		queryNames[transactionTypes.SEND] = 'getTransferById';
-		queryNames[transactionTypes.SIGNATURE] = 'getSignatureById';
-		queryNames[transactionTypes.DELEGATE] = 'getDelegateById';
-		queryNames[transactionTypes.VOTE] = 'getVotesById';
-		queryNames[transactionTypes.MULTI] = 'getMultiById';
-		queryNames[transactionTypes.DAPP] = 'getDappById';
-		queryNames[transactionTypes.IN_TRANSFER] = 'getInTransferById';
-		queryNames[transactionTypes.OUT_TRANSFER] = 'getOutTransferById';
-
-		var queryName = queryNames[rawTransaction.t_type];
-
-		if (queryName) {
-			__private.getAssetForRawTransaction(rawTransaction, queryName, function (err, rawTransactionWithAsset) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				var transaction = library.logic.transaction.dbRead(rawTransactionWithAsset);
-				return setImmediate(cb, null, transaction);
-			});
-		} else {
-			var transaction = library.logic.transaction.dbRead(rawTransaction);
-			return setImmediate(cb, null, transaction);
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Transactions#getById error');
+function groupTransactionIdsByType (rawTransactions) {
+	var groupedTransactions = _.groupBy(rawTransactions, 't_type');
+	var transactionIdsByType = _.map(_.keys(groupedTransactions), function (type) {
+		var groupedTransactionsId = {};
+		groupedTransactionsId[type] = _.map(groupedTransactions[type], 't_id');
+		return groupedTransactionsId;
 	});
+
+	return _.assign.apply(null, transactionIdsByType);
+}
+
+__private.getAssetForIds = function (idsByType) {
+	var assetRawRows = _.values(_.mapValues(idsByType, __private.getAssetForIdsBasedOnType));
+	return Promise.all(assetRawRows).then(_.flatMap);
 };
 
-__private.getAssetForRawTransaction = function (rawTransaction, queryName, cb) {
-	library.db.query(sql[queryName], {id: rawTransaction.t_id}).then(function (rows) {
-		if (!rows.length) {
-			return setImmediate(cb, null, rawTransaction);
-		}
+__private.getQueryNameByType = function (type) {
+	var queryNames = {};
+	queryNames[transactionTypes.SEND] = 'getTransferByIds';
+	queryNames[transactionTypes.SIGNATURE] = 'getSignatureByIds';
+	queryNames[transactionTypes.DELEGATE] = 'getDelegateByIds';
+	queryNames[transactionTypes.VOTE] = 'getVotesByIds';
+	queryNames[transactionTypes.MULTI] = 'getMultiByIds';
+	queryNames[transactionTypes.DAPP] = 'getDappByIds';
+	queryNames[transactionTypes.IN_TRANSFER] = 'getInTransferByIds';
+	queryNames[transactionTypes.OUT_TRANSFER] = 'getOutTransferByIds';
 
-		var rawTransactionWithAsset = _.merge(rawTransaction, rows[0]);
-
-		return setImmediate(cb, null, rawTransactionWithAsset);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Transactions#getAssetForRawTransaction error');
-	});
+	var queryName = queryNames[type];
+	return queryName;
 };
+
+__private.getAssetForIdsBasedOnType = function (ids, type) {
+	var queryName = __private.getQueryNameByType(type);
+
+	return library.db.query(sql[queryName], {id: ids});
+};
+
 /**
  * Gets transaction by calling parameter method.
  * @private
@@ -605,23 +570,17 @@ Transactions.prototype.shared = {
 	getTransactions: function (req, cb) {
 		async.waterfall([
 			function (waterCb) {
-				var params = {};
-				var pattern = /(and|or){1}:/i;
-
-				// Filter out 'and:'/'or:' from params to perform schema validation
+				// Query parameters which can have 1 or multiple values are parsed as strings when the have 1 value. We need to convert string into an array of length 1
 				_.each(req.body, function (value, key) {
-					var param = String(key).replace(pattern, '');
-					// Dealing with array-like parameters (csv comma separated)
-					if (_.includes(['senderIds', 'recipientIds', 'senderPublicKeys', 'recipientPublicKeys'], param)) {
-						value = String(value).split(',');
-						req.body[key] = value;
+					// Dealing with parameters which must be array to array if they are string 
+					if (_.includes(['senderId', 'recipientId', 'senderPublicKey', 'recipientPublicKey'], key) && typeof value === 'string') {
+						req.body[key] = [value];
 					}
-					params[param] = value;
 				});
 
-				library.schema.validate(params, schema.getTransactions, function (err) {
+				library.schema.validate(req.body, schema.getTransactions, function (err) {
 					if (err) {
-						return setImmediate(waterCb, err[0].message);
+						return setImmediate(waterCb, err);
 					} else {
 						return setImmediate(waterCb, null);
 					}
@@ -637,7 +596,22 @@ Transactions.prototype.shared = {
 				});
 			}
 		], function (err, res) {
-			return setImmediate(cb, err, res);
+			function mapOldResponseStructureToNew (err, res, cb) {
+				var error = null;
+				var response = null;
+
+				if (err) {
+					error = new ApiError(err, apiCodes.BAD_REQUEST);
+				}
+
+				if (res) {
+					response = res;
+				}
+
+				return setImmediate(cb, error, response);
+			}
+
+			return mapOldResponseStructureToNew(err, res, cb);
 		});
 	},
 
@@ -698,19 +672,19 @@ Transactions.prototype.shared = {
 		return modules.transport.shared.postTransactions(req.body, function (err, res) {
 
 			function mapOldResponseStructureToNew (res, cb) {
-				var newResponse;
+				var error = null;
+				var response = null;
 
 				if (res.success == false) {
-					newResponse = new ApiError(res.message, apiCodes.BAD_REQUEST);
-					return setImmediate(cb, newResponse);
+					error = new ApiError(res.message, apiCodes.BAD_REQUEST);
 				}
 
 				if (res.success == true) {
-					newResponse = {
+					response = {
 						status: 'Transaction(s) accepted'
 					};
-					return setImmediate(cb, null, newResponse);
 				}
+				return setImmediate(cb, error, response);
 			}
 
 			mapOldResponseStructureToNew(res, cb);

@@ -4,7 +4,7 @@ var node = require('../node');
 var typesRepresentatives = require('../common/typesRepresentatives');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
-var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
+var getTransactionsPromise = require('../common/apiHelpers').getTransactionsPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
 var getPendingMultisignaturesPromise = require('../common/apiHelpers').getPendingMultisignaturesPromise;
 var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
@@ -22,9 +22,12 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		it('bad transactions should not be confirmed', function () {
 			return node.Promise.map(badTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+				var params = [
+					'id=' + transaction.id
+				];
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});
@@ -40,9 +43,12 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		it('good transactions should be confirmed', function () {
 			return node.Promise.map(goodTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transaction').to.have.property('id').equal(transaction.id);
+				var params = [
+					'id=' + transaction.id
+				];
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
 				});
 			});
 		});
@@ -64,7 +70,10 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 			it('pendingMultisignatures should not be confirmed', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getTransactionPromise(transaction.id).then(function (res) {
+					var params = [
+						'id=' + transaction.id
+					];
+					return getTransactionsPromise(params).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.not.ok;
 						node.expect(res).to.have.property('error').equal('Transaction not found');
 					});
