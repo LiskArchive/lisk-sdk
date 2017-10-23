@@ -81,7 +81,7 @@ module.exports = {
 				properties: {
 					host: {
 						type: 'string',
-						format: 'ip',
+						format: 'ipOrFQDN',
 					},
 					port: {
 						type: 'integer',

@@ -23,6 +23,7 @@ var ip = require('ip');
  * @return {boolean} True if the format is valid
  */
 var z_schema = require('z-schema');
+var FormatValidators = require('z-schema/src/FormatValidators');
 
 z_schema.registerFormat('id', function (str) {
 	if (str.length === 0) {
@@ -103,6 +104,13 @@ z_schema.registerFormat('parsedInt', function (value) {
 
 z_schema.registerFormat('ip', function (str) {
 	return ip.isV4Format(str);
+});
+
+/* Since an IP is not considered to be a hostname 
+   while used with SSL. So have to apply additional 
+   validation for IP and FQDN. */
+z_schema.registerFormat('ipOrFQDN', function (str) {
+	return ip.isV4Format(str) || FormatValidators.hostname(str);
 });
 
 z_schema.registerFormat('os', function (str) {
