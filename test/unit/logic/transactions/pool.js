@@ -10,6 +10,7 @@ var TxPool = require('../../../../logic/transactions/pool.js');
 var Transaction = require('../../../../logic/transaction.js');
 var Account = require('../../../../logic/account.js');
 var bson = require('../../../../helpers/bson.js');
+var constants = require('../../../../helpers/constants.js');
 
 var transactionTypes = require('../../../../helpers/transactionTypes');
 var Vote = require('../../../../logic/vote.js');
@@ -185,7 +186,9 @@ describe('txPool', function () {
 	var poolStorageTxsLimit;
 
 	before(function (done) {
-		
+		constants.unconfirmedTransactionTimeOut = 1;
+		constants.signatureTransactionTimeOutMultiplier = 1;
+		constants.secondsPerHour = 1;
 		modulesLoader.scope.config.transactions.poolStorageTxsLimit = 6;
 		modulesLoader.scope.config.transactions.poolProcessInterval = 60000000;
 		modulesLoader.scope.config.transactions.poolExpiryInterval = 300000000;
@@ -475,6 +478,7 @@ describe('txPool', function () {
 			});
 
 			describe('Tx type: 2 - Register a delegate', function () {
+				var invalidSignature;
 
 				it('should be ok when add normal transaction to unverified', function (done) {
 					txPool.add(transactions[2], function (err, cbtx) {
@@ -505,7 +509,9 @@ describe('txPool', function () {
 				});
 
 				it('should be ok when add transaction to unverified with invalid signature', function (done) {
-					txPool.add(hackedTransactions[0], function (err, cbtx) {
+					invalidSignature = _.cloneDeep(hackedTransactions[0]);
+
+					txPool.add(invalidSignature, function (err, cbtx) {
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -519,7 +525,7 @@ describe('txPool', function () {
 						expect(error.args[1][1]).to.equal('Account is already a delegate');
 						expect(error.args[2][0]).to.equal('Failed to process unverified transaction: ' + invalidsTxs[2][2].id);
 						expect(error.args[2][1]).to.equal('Username already exists');
-						expect(error.args[3][0]).to.equal('Failed to process unverified transaction: ' + hackedTransactions[0].id);
+						expect(error.args[3][0]).to.equal('Failed to process unverified transaction: ' + invalidSignature.id);
 						expect(error.args[3][1]).to.equal('Failed to verify signature');
 						poolTotals.invalid += 3;
 						poolTotals.ready += 1;
@@ -556,8 +562,8 @@ describe('txPool', function () {
 				});
 
 				it('should fail when add same transaction with invalid signature to unverified', function (done) {
-					txPool.add(hackedTransactions[0], function (err, cbtx) {
-						expect(err).to.equal('Transaction is already processed as invalid: ' + hackedTransactions[0].id);
+					txPool.add(invalidSignature, function (err, cbtx) {
+						expect(err).to.equal('Transaction is already processed as invalid: ' + invalidSignature.id);
 						done();
 					});
 				});
@@ -670,9 +676,13 @@ describe('txPool', function () {
 			});
 
 			describe('Tx type: 4 - Multisignature registration', function () {
+				var notEnoughSignatures;
+				var completedSignatures;
 
 				it('should be ok when add normal transaction to unverified', function (done) {
-					txPool.add(transactions[4][0], function (err, cbtx) {
+					completedSignatures = _.cloneDeep(transactions[4][0]);
+
+					txPool.add(completedSignatures, function (err, cbtx) {
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -686,7 +696,9 @@ describe('txPool', function () {
 				});
 
 				it('should be ok when add transaction to unverified without enough signatures', function (done) {
-					txPool.add(transactions[4][2], function (err, cbtx) {
+					notEnoughSignatures = _.cloneDeep(transactions[4][2]);
+
+					txPool.add(notEnoughSignatures, function (err, cbtx) {
 						expect(cbtx).to.be.undefined;
 						done();
 					});
@@ -720,8 +732,8 @@ describe('txPool', function () {
 				});
 
 				it('should fail when add same normal transaction to unverified', function (done) {
-					txPool.add(transactions[4][0], function (err, cbtx) {
-						expect(err).to.equal('Transaction is already in pool: ' + transactions[4][0].id);
+					txPool.add(completedSignatures, function (err, cbtx) {
+						expect(err).to.equal('Transaction is already in pool: ' + completedSignatures.id);
 						done();
 					});
 				});
@@ -741,7 +753,16 @@ describe('txPool', function () {
 				});
 
 				it('should be ok when delete normal transaction from ready', function (done) {
-					var deletedTx = txPool.delete(transactions[4][0]);
+					var deletedTx = txPool.delete(completedSignatures);
+
+					expect(deletedTx.length).to.equal(1);
+					expect(deletedTx[0]).to.equal('ready');
+					poolTotals.ready -= 1;
+					done();
+				});
+
+				it('should be ok when delete normal transaction without enough signatures to unverified', function (done) {
+					var deletedTx = txPool.delete(transactions[4][1]);
 
 					expect(deletedTx.length).to.equal(1);
 					expect(deletedTx[0]).to.equal('ready');
@@ -832,6 +853,123 @@ describe('txPool', function () {
 		});
 
 		describe('expireTransactions', function () {
+			var invalidSignature;
+			var completedSignatures;
+			var notEnoughSignatures;
+			var normalTransaction;
+
+			it('should be ok when add transaction to unverified with invalid signature', function (done) {
+				invalidSignature = _.cloneDeep(hackedTransactions[0]);
+
+				txPool.add(invalidSignature, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when add normal transaction type 4 to unverified', function (done) {
+				completedSignatures = _.cloneDeep(transactions[4][0]);
+
+				txPool.add(completedSignatures, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when add transaction type 4 to unverified without enough signatures', function (done) {
+				notEnoughSignatures = _.cloneDeep(transactions[4][2]);
+
+				txPool.add(notEnoughSignatures, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when process pool txs', function (done) {
+				txPool.processPool(function (err, cbprPool) {
+					expect(error.args[0][0]).to.equal('Failed to process unverified transaction: ' + invalidSignature.id);
+					expect(error.args[0][1]).to.equal('Failed to verify signature');
+					poolTotals.invalid += 1;
+					poolTotals.ready += 1; 
+					poolTotals.pending += 1;
+					done();
+				});
+			});
+
+			it('should be ok when add normal transaction type 2 to unverified', function (done) {
+				normalTransaction = _.cloneDeep(transactions[2]);
+
+				txPool.add(normalTransaction, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					poolTotals.unverified += 1;
+					done();
+				});
+			});
+
+			it('should be ok when get pool totals', function (done) {
+				var totals = txPool.getUsage();
+
+				expect(totals).to.be.an('object');
+				expect(totals.unverified).to.be.equal(poolTotals.unverified);
+				expect(totals.pending).to.be.equal(poolTotals.pending);
+				expect(totals.ready).to.be.equal(poolTotals.ready);
+				expect(totals.invalid).to.be.equal(poolTotals.invalid);
+				done();
+			});
+
+			it('should be ok when get transaction from unverified list', function (done) {
+				var transaction = txPool.get(normalTransaction.id);
+
+				expect(transaction.tx).to.deep.equal(normalTransaction);
+				expect(transaction.status).to.equal('unverified');
+				normalTransaction.receivedAt = transaction.tx.receivedAt;
+				done();
+			});
+
+			it('should be ok when get transaction from pending list', function (done) {
+				var transaction = txPool.get(notEnoughSignatures.id);
+
+				expect(transaction.tx).to.deep.equal(notEnoughSignatures);
+				expect(transaction.status).to.equal('pending');
+				notEnoughSignatures.receivedAt = transaction.tx.receivedAt;
+				done();
+			});
+
+			it('should be ok when transaction from ready list', function (done) {
+				var transaction = txPool.get(completedSignatures.id);
+
+				expect(transaction.tx).to.deep.equal(completedSignatures);
+				expect(transaction.status).to.equal('ready');
+				completedSignatures.receivedAt = transaction.tx.receivedAt;
+				done();
+			});
+
+			it('should be ok when exprire transactions', function (done) {
+				setTimeout(function () {
+					txPool.expireTransactions(function (err, cbprPool) {
+						expect(info.args.length).to.equal(3);
+						expect(info.args[0][0]).to.equal(['Expired transaction:', normalTransaction.id, 'received at:', normalTransaction.receivedAt.toUTCString()].join(' '));
+						expect(info.args[1][0]).to.equal(['Expired transaction:', notEnoughSignatures.id, 'received at:', notEnoughSignatures.receivedAt.toUTCString()].join(' '));
+						expect(info.args[2][0]).to.equal(['Expired transaction:', completedSignatures.id, 'received at:', completedSignatures.receivedAt.toUTCString()].join(' '));
+						poolTotals.pending -= 1;
+						poolTotals.ready -= 1;
+						poolTotals.unverified -= 1;
+						done();
+					});
+				}, 2000);
+
+			});
+
+			it('should be ok when get pool totals', function (done) {
+				var totals = txPool.getUsage();
+
+				expect(totals).to.be.an('object');
+				expect(totals.unverified).to.be.equal(poolTotals.unverified);
+				expect(totals.pending).to.be.equal(poolTotals.pending);
+				expect(totals.ready).to.be.equal(poolTotals.ready);
+				expect(totals.invalid).to.be.equal(poolTotals.invalid);
+				done();
+			});
 		});
 	});
 
@@ -999,7 +1137,7 @@ describe('txPool', function () {
 
 		it('should be ok when checked account balance with enough LSK for transaction', function (done) {
 			txPool.checkBalance(transactions[0], { address: transactions[0].senderId }, function (err, cbBalance) {
-				expect(cbBalance).to.equal('balance: 52999979');
+				expect(cbBalance).to.equal('balance: 52999994');
 				done();
 			});
 		});
