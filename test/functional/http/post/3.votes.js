@@ -7,6 +7,7 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var registerDelegatePromise = require('../../../common/apiHelpers').registerDelegatePromise;
+var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
 var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 describe('POST /api/transactions (type 3) votes', function () {
@@ -89,7 +90,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				});
 			})
 			.then(function (res) {
-				return waitForBlocksPromise(7);
+				return getBlocksToWaitPromise().then(waitForBlocksPromise); 
 			})
 			.then(function (res) {
 				return registerDelegatePromise(delegateAccount).then(function (result) {
@@ -124,7 +125,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				});
 			})
 			.then(function (res) {
-				return waitForBlocksPromise(7);
+				return getBlocksToWaitPromise().then(waitForBlocksPromise);
 			});
 	});
 
