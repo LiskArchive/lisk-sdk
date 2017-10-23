@@ -108,7 +108,9 @@ var constants = {
 			minItems: 1,
 			maxItems: 15
 		}
-	}
+	},
+	secondsPerHour: 3600,
+	signatureTransactionTimeOutMultiplier: 8
 };
 
 module.exports = constants;

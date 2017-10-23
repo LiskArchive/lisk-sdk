@@ -278,9 +278,9 @@ __private.expireTxsFromList = function (poolList, cb) {
  */
 __private.transactionTimeOut = function (transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
-		return (transaction.asset.multisignature.lifetime * 3600);
+		return (transaction.asset.multisignature.lifetime * constants.secondsPerHour);
 	} else if (Array.isArray(transaction.signatures)) {
-		return (constants.unconfirmedTransactionTimeOut * 8);
+		return (constants.unconfirmedTransactionTimeOut * constants.signatureTransactionTimeOutMultiplier);
 	} else {
 		return (constants.unconfirmedTransactionTimeOut);
 	}
@@ -564,6 +564,7 @@ TxPool.prototype.addReady = function (transactions, cb) {
 
 /**
  * Creates and adds signature to multisignature transaction.
+ * @implements {__private.createSignature}
  * @param {String} transactionId transaction id
  * @param {String} secret secret
  * @param {function} cb - Callback function.
