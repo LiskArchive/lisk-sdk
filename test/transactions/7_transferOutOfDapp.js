@@ -17,8 +17,6 @@ import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
-afterEach(() => sandbox.restore());
-
 describe('#transferOutOfDapp', () => {
 	const fixedPoint = 10 ** 8;
 	const transactionId = '9876567';

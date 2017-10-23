@@ -15,8 +15,6 @@
 const popsicle = require('popsicle');
 const privateApi = require('../../src/api/privateApi');
 
-afterEach(() => sandbox.restore());
-
 describe('privateApi module', () => {
 	const port = 7000;
 	const localNode = 'localhost';

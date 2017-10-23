@@ -17,8 +17,6 @@ import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
-afterEach(() => sandbox.restore());
-
 describe('#send transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const recipientId = '58191285901858109L';
