@@ -28,11 +28,11 @@ function AccountsHttpApi (accountsModule, app) {
 	var router = new Router();
 
 	router.map(accountsModule.shared, {
-		'get /delegates': 'getDelegates',
+		'get /delegates': 'getDelegates'
 	});
 
 	router.map(accountsModule.shared, {
-		'get /': 'getAccounts',
+		'get /': 'getAccounts'
 	}, {responseWithCode: true});
 
 	if (process.env.TOP && process.env.TOP.toUpperCase() === 'TRUE') {
