@@ -4,26 +4,26 @@ var async = require('async');
 
 var constants = require('../../../../helpers/constants');
 var node = require('../../../node.js');
-var sendLISK = require('../../../common/complexTransactions.js').sendLISK;
-var sendTransaction = require('../../../common/complexTransactions.js').sendTransaction;
-
-var multisigAccount = node.randomAccount();
-var memberAccount1 = node.randomAccount();
-var memberAccount2 = node.randomAccount();
-
-before(function (done) {
-	sendLISK({
-		secret: node.gAccount.password,
-		amount: node.randomLISK(),
-		address: multisigAccount.address
-	}, function (err, res) {
-		node.expect(res).to.have.property('success').to.be.ok;
-		node.expect(res).to.have.property('transactionId').that.is.not.empty;
-		node.onNewBlock(done);
-	});
-});
+var sendLISK = require('../../../common/apiHelpers.js').sendLISK;
+var sendTransaction = require('../../../common/apiHelpers.js').sendTransaction;
 
 describe('POST /api/multisignatures', function () {
+
+	var multisigAccount = node.randomAccount();
+	var memberAccount1 = node.randomAccount();
+	var memberAccount2 = node.randomAccount();
+
+	before(function (done) {
+		sendLISK({
+			secret: node.gAccount.password,
+			amount: node.randomLISK(),
+			address: multisigAccount.address
+		}, function (err, res) {
+			node.expect(res).to.have.property('success').to.be.ok;
+			node.expect(res).to.have.property('transactionId').that.is.not.empty;
+			node.onNewBlock(done);
+		});
+	});
 
 	it('using null member in keysgroup should fail', function (done) {
 		var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, null], 1, 2);

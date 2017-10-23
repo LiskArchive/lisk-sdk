@@ -152,9 +152,9 @@ __private.receiveSignatures = function (query, cb) {
  * @private
  * @implements {library.schema.validate}
  * @implements {modules.multisignatures.processSignature}
- * @param {object} query
+ * @param {Object} query
  * @param {string} query.signature
- * @param {object} query.transaction
+ * @param {Object} query.transaction
  * @return {setImmediateCallback} cb | error messages
  */
 __private.receiveSignature = function (query, cb) {
@@ -242,7 +242,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	try {
 		transaction = library.logic.transaction.objectNormalize(transaction);
 	} catch (e) {
-		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', tx: transaction});
+		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', transaction: transaction});
 
 		__private.removePeer({peer: peer, code: 'ETRANSACTION'}, extraLogMessage);
 
@@ -556,11 +556,11 @@ Transport.prototype.shared = {
 		var transactions = modules.transactions.getMultisignatureTransactionList(true, constants.maxSharedTxs);
 		var signatures = [];
 
-		async.eachSeries(transactions, function (trs, __cb) {
-			if (trs.signatures && trs.signatures.length) {
+		async.eachSeries(transactions, function (transaction, __cb) {
+			if (transaction.signatures && transaction.signatures.length) {
 				signatures.push({
-					transaction: trs.id,
-					signatures: trs.signatures
+					transaction: transaction.id,
+					signatures: transaction.signatures
 				});
 			}
 			return setImmediate(__cb);

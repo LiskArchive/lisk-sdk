@@ -71,12 +71,13 @@ var modulesLoader = new function () {
 	/**
 	 * Initializes Logic class with params
 	 *
-	 * @param {Function} Logic
+	 * @param {function} Logic
 	 * @param {Object} scope
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initLogic = function (Logic, scope, cb) {
 		jobsQueue.jobs = {};
+		scope = _.assign({}, this.scope, scope);
 		switch (Logic.name) {
 			case 'Account':
 				new Logic(scope.db, scope.schema, scope.logger, cb);
@@ -113,12 +114,13 @@ var modulesLoader = new function () {
 	/**
 	 * Initializes Module class with params
 	 *
-	 * @param {Function} Module
+	 * @param {function} Module
 	 * @param {Object} scope
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initModule = function (Module, scope, cb) {
 		jobsQueue.jobs = {};
+		scope = _.assign({}, this.scope, scope);
 		return new Module(cb, scope);
 	};
 
@@ -128,15 +130,12 @@ var modulesLoader = new function () {
 	 * @param {Array<{name: Module}>} modules
 	 * @param {Array<{name: Logic}>} logic
 	 * @param {Object>} scope
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initModules = function (modules, logic, scope, cb) {
+		scope = _.assign({}, this.scope, scope);
 		async.waterfall([
 			function (waterCb) {
-				this.getDbConnection(waterCb);
-			}.bind(this),
-			function (db, waterCb) {
-				scope = _.merge(this.scope, {db: db}, scope);
 				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
@@ -146,7 +145,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope = _.merge(this.scope, {logic: logic}, scope);
+				scope = _.assign({}, this.scope, scope, {logic: logic});
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
@@ -173,8 +172,8 @@ var modulesLoader = new function () {
 	/**
 	 * Initializes all created Modules in directory
 	 *
-	 * @param {Function} cb
-	 * @param {object} [scope={}] scope
+	 * @param {function} cb
+	 * @param {Object} [scope={}] scope
 	 */
 	this.initAllModules = function (cb, scope) {
 		this.initModules([
@@ -197,33 +196,11 @@ var modulesLoader = new function () {
 	};
 
 	/**
-	 * Initializes Module class with basic conf
-	 *
-	 * @param {Function} Module
-	 * @param {Function} cb
-	 * @param {Object=} scope
-	 */
-	this.initModuleWithDb = function (Module, cb, scope) {
-		this.initWithDb(Module, this.initModule, cb, scope);
-	};
-
-	/**
-	 * Initializes Logic class with basic conf
-	 *
-	 * @param {Function} Logic
-	 * @param {Function} cb
-	 * @param {Object=} scope
-	 */
-	this.initLogicWithDb = function (Logic, cb, scope) {
-		this.initWithDb(Logic, this.initLogic, cb, scope);
-	};
-
-	/**
 	 * Accepts Class to invoke (Logic or Module) and fills the scope with basic conf
 	 *
-	 * @param {Function} Klass
-	 * @param {Function} moduleConstructor
-	 * @param {Function} cb
+	 * @param {function} Klass
+	 * @param {function} moduleConstructor
+	 * @param {function} cb
 	 * @param {Object=} scope
 	 */
 	this.initWithDb = function (Klass, moduleConstructor, cb, scope) {
@@ -239,7 +216,7 @@ var modulesLoader = new function () {
 	/**
 	 * Starts and returns db connection
 	 *
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.getDbConnection = function (cb) {
 		if (this.db) {
@@ -256,7 +233,7 @@ var modulesLoader = new function () {
 
 	/**
 	 * Initializes Cache module
-	 * @param {Function} cb
+	 * @param {function} cb
 	 */
 	this.initCache = function (cb) {
 		var cacheEnabled, cacheConfig;
@@ -272,6 +249,4 @@ var modulesLoader = new function () {
 	};
 };
 
-module.exports = {
-	modulesLoader: modulesLoader
-};
+module.exports = modulesLoader;

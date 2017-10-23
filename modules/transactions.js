@@ -252,12 +252,12 @@ __private.getById = function (id, cb) {
 		var queryName = queryNames[rawTransaction.t_type];
 
 		if (queryName) {
-			__private.getAssetForRawTrs(rawTransaction, queryName, function (err, rawTrsWithAsset) {
+			__private.getAssetForRawTransaction(rawTransaction, queryName, function (err, rawTransactionWithAsset) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
 
-				var transaction = library.logic.transaction.dbRead(rawTrsWithAsset);
+				var transaction = library.logic.transaction.dbRead(rawTransactionWithAsset);
 				return setImmediate(cb, null, transaction);
 			});
 		} else {
@@ -270,18 +270,18 @@ __private.getById = function (id, cb) {
 	});
 };
 
-__private.getAssetForRawTrs = function (rawTrs, queryName, cb) {
-	library.db.query(sql[queryName], {id: rawTrs.t_id}).then(function (rows) {
+__private.getAssetForRawTransaction = function (rawTransaction, queryName, cb) {
+	library.db.query(sql[queryName], {id: rawTransaction.t_id}).then(function (rows) {
 		if (!rows.length) {
-			return setImmediate(cb, null, rawTrs);
+			return setImmediate(cb, null, rawTransaction);
 		}
 
-		var rawTrsWithAsset = _.merge(rawTrs, rows[0]);
+		var rawTransactionWithAsset = _.merge(rawTransaction, rows[0]);
 
-		return setImmediate(cb, null, rawTrsWithAsset);
+		return setImmediate(cb, null, rawTransactionWithAsset);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Transactions#getAssetForRawTrs error');
+		return setImmediate(cb, 'Transactions#getAssetForRawTransaction error');
 	});
 };
 /**
@@ -581,7 +581,6 @@ Transactions.prototype.isLoaded = function () {
 Transactions.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
-		transactions: scope.transactions,
 		transport: scope.transport
 	};
 

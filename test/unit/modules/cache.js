@@ -5,7 +5,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
 var sinon = require('sinon');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var Cache = require('../../../modules/cache.js');
 
 describe('cache', function () {
@@ -312,7 +312,7 @@ describe('cache', function () {
 
 	describe('onTransactionsSaved', function (done) {
 
-		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 trs', function (done) {
+		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 
@@ -331,7 +331,7 @@ describe('cache', function () {
 			});
 		});
 
-		it('should remove keys that match pattern /api/delegate on type 2 trs', function (done) {
+		it('should remove keys that match pattern /api/delegate on type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 

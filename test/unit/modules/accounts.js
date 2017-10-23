@@ -12,7 +12,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
 var AccountModule = require('../../../modules/accounts.js');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var validAccount = {
@@ -49,29 +49,19 @@ describe('account', function () {
 
 	var accounts;
 	var accountLogic;
-
-	var db;
 	var dbSandbox;
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_accounts');
 		dbSandbox.create(function (err, __db) {
-			modulesLoader.db = __db;
-			db = __db;
-			done(err);
-		});
-	});
-
-	before(function (done) {
-		node.initApplication(function (err, __scope) {
-			// wait for mem_accounts to be populated
-			setTimeout(function () {
+			node.initApplication(function (err, __scope) {
+				// For correctly initializing setting blocks module
 				__scope.modules.blocks.lastBlock.set({height: 10});
 				accounts = __scope.modules.accounts;
 				accountLogic = __scope.logic.account;
-				done();
-			}, 5000);
-		}, db);
+				done(err);
+			}, {db: __db});
+		});
 	});
 
 	after(function (done) {

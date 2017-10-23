@@ -53,7 +53,7 @@ function Process (logger, block, peers, transaction, schema, db, dbSequence, seq
  * @async
  * @method receiveBlock
  * @param {Object}   block Full normalized block
- * @param {Function} cb Callback function
+ * @param {function} cb Callback function
  */
 __private.receiveBlock = function (block, cb) {
 	library.logger.info([
@@ -77,7 +77,7 @@ __private.receiveBlock = function (block, cb) {
  * @async
  * @method receiveBlock
  * @param {Object}   block Received block
- * @param {Function} cb Callback function
+ * @param {function} cb Callback function
  */
 __private.receiveForkOne = function (block, lastBlock, cb) {
 	var tmp_block = _.clone(block);
@@ -131,7 +131,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
  * @async
  * @method receiveBlock
  * @param {Object}   block Received block
- * @param {Function} cb Callback function
+ * @param {function} cb Callback function
  */
 __private.receiveForkFive = function (block, lastBlock, cb) {
 	var tmp_block = _.clone(block);
@@ -197,8 +197,8 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
  * @method getCommonBlock
  * @param  {Peer}     peer Peer to perform chain comparison with
  * @param  {number}   height Block height
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.res Result object
  */
@@ -283,8 +283,8 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
  * @param  {number}   limit Limit amount of blocks
  * @param  {number}   offset Offset to start at
  * @param  {boolean}  verify Indicator that block needs to be verified
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.lastBlock Current last block
  */
@@ -373,8 +373,8 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
  * @public
  * @method loadBlocksFromPeer
  * @param  {Peer}     peer Peer to perform chain comparison with
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.lastValidBlock Normalized new last block
  */
@@ -463,8 +463,8 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
  * @method generateBlock
  * @param  {Object}   keypair Pair of private and public keys, see: helpers.ed.makeKeypair
  * @param  {number}   timestamp Slot time, see: helpers.slots.getSlotTime
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error message if error occurred
  */
 Process.prototype.generateBlock = function (keypair, timestamp, cb) {

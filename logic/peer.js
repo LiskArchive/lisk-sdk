@@ -31,6 +31,7 @@ function Peer (peer) {
  * @typedef {Object} peer
  * @property {string} ip
  * @property {number} port - Between 1 and 65535
+ * @property {number} httpPort - Between 1 and 65535
  * @property {number} state - Between 0 and 2. (banned = 0, unbanned = 1, active = 2)
  * @property {string} os - Between 1 and 64 chars
  * @property {string} version - Between 5 and 12 chars
@@ -126,6 +127,7 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.port = this.parseInt(peer.port, 0);
+	peer.httpPort = this.parseInt(peer.httpPort, 0);
 	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
 	return peer;
