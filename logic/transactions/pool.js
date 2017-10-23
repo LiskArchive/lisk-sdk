@@ -259,7 +259,7 @@ __private.expireTxsFromList = function (poolList, cb) {
 		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
 		if (seconds > timeOut) {
-			__private.delete(poolList, transaction.id);
+			__private.delete(transaction.id, poolList);
 			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
 			return setImmediate(eachSeriesCb);
 		} else {
@@ -695,14 +695,14 @@ TxPool.prototype.processPool = function (cb) {
  */
 TxPool.prototype.expireTransactions = function (cb) {
 
-	async.waterfall([
+	async.series([
 		function (seriesCb) {
 			__private.expireTxsFromList(pool.unverified, seriesCb);
 		},
-		function (res, seriesCb) {
+		function (seriesCb) {
 			__private.expireTxsFromList(pool.verified.pending, seriesCb);
 		},
-		function (res, seriesCb) {
+		function (seriesCb) {
 			__private.expireTxsFromList(pool.verified.ready, seriesCb);
 		}
 	], function (err) {
