@@ -55,7 +55,9 @@ var constants = {
 		secondSignature: 500000000,
 		delegate: 2500000000,
 		multisignature: 500000000,
-		dapp: 2500000000,
+		dappRegistration: 2500000000,
+		dappWithdrawal: 10000000,
+		dappDeposit: 10000000,
 		data: 10000000
 	},
 	feeStart: 1,

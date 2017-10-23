@@ -93,8 +93,8 @@ describe('dapp', function () {
 
 		describe('calculateFee', function () {
 
-			it('should return constants.fees.dapp', function () {
-				expect(dapp.calculateFee(transaction)).to.equal(node.constants.fees.dapp);
+			it('should return constants.fees.dappRegistration', function () {
+				expect(dapp.calculateFee(transaction)).to.equal(node.constants.fees.dappRegistration);
 			});
 		});
 

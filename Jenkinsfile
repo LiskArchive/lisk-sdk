@@ -90,21 +90,6 @@ def run_action(action) {
 	}	
 }
 
-def run_single_test(test_path, test_type) {
-	try {
-		sh """
-		export TEST=${test_path} TEST_TYPE=${test_type}
-		cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-		npm run ${params.JENKINS_PROFILE}
-		"""
-	} catch (err) {
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: ' + test_path + ' failed')
-	}
-}
-
 def report_coverage(node) {
 	try {
 		sh """
@@ -257,7 +242,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Functional HTTP GET tests" : {
 				node('node-01'){
-					run_action('test-functional-http-get')
+					if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+						run_action('test-functional-http-get-extensive')
+					} else {
+						run_action('test-functional-http-get')
+					}
 				}
 			}, // End node-01 tests
 			"Functional HTTP POST tests" : {
@@ -267,22 +256,20 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			}, // End Node-02 tests
 			"Functional WS tests" : {
 				node('node-03'){
-					run_action('test-functional-ws')
+					if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+						run_action('test-functional-ws-extensive')
+					} else {
+						run_action('test-functional-ws')
+					}
 				}
 			}, // End Node-03 tests
 			"Unit Tests" : {
 				node('node-04'){
-					run_action('test-unit')
-				}
-			},
-			"Unit Tests - sql blockRewards" : {
-				node('node-04'){
-					run_single_test('test/unit/sql/blockRewards.js', 'UNIT')
-				}
-			},
-			"Unit Tests - logic blockReward" : {
-				node('node-04'){
-					run_single_test('test/unit/logic/blockReward.js ', 'UNIT')
+					if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+						run_action('test-unit-extensive')
+					} else {
+						run_action('test-unit')
+					}					
 				}
 			}// End Node-04 unit tests
 		) // End Parallel

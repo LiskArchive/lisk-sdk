@@ -41,9 +41,5 @@ describe('helpers/apiError', function () {
 		it('should return result containing message = "Valid error message"', function () {
 			expect(apiError.toJson()).to.have.property('message').equal(validErrorMessage);
 		});
-
-		it('should return result containing code = 501', function () {
-			expect(apiError.toJson()).to.have.property('code').equal(validErrorCode);
-		});
 	});
 });

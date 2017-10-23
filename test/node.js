@@ -51,7 +51,9 @@ node.fees = {
 	secondPasswordFee: node.constants.fees.secondSignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappRegistrationFee: node.constants.fees.dapp,
+	dappRegistrationFee: node.constants.fees.dappRegistration,
+	dappDepositFee: node.constants.fees.dappDeposit,
+	dappWithdrawalFee: node.constants.fees.dappWithdrawal,
 	dataFee: node.constants.fees.data
 };
 
@@ -124,7 +126,7 @@ node.randomLISK = function () {
 
 // Returns current block height
 node.getHeight = function (cb) {
-	var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+	var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 	request.use(node.popsicle.plugins.parse(['json']));
 
@@ -189,7 +191,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 
 	node.async.doWhilst(
 		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 			request.use(node.popsicle.plugins.parse(['json']));
 
@@ -239,8 +241,10 @@ node.generatePeerHeaders = function (ip, port, nonce) {
 		os: os,
 		ip: ip,
 		port: port,
+		httpPort: +node.config.httpPort,
 		version: version,
-		nonce: nonce
+		nonce: nonce,
+		status: 2
 	};
 };
 
@@ -414,17 +418,17 @@ node.initApplication = function (cb, initScope) {
 
 		var modulesInit = {
 			accounts: '../modules/accounts.js',
-			transactions: '../modules/transactions.js',
 			blocks: '../modules/blocks.js',
-			signatures: '../modules/signatures.js',
-			transport: '../modules/transport.js',
-			loader: '../modules/loader.js',
-			system: '../modules/system.js',
-			peers: '../modules/peers.js',
+			dapps: '../modules/dapps.js',
 			delegates: '../modules/delegates.js',
+			loader: '../modules/loader.js',
 			multisignatures: '../modules/multisignatures.js',
-			dapps: '../modules/dapps.js'
-			// cache: '../modules/cache.js'
+			node: '../modules/node.js',
+			peers: '../modules/peers.js',
+			signatures: '../modules/signatures.js',
+			system: '../modules/system.js',
+			transactions: '../modules/transactions.js',
+			transport: '../modules/transport.js'
 		};
 
 		// Init limited application layer

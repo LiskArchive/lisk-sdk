@@ -71,7 +71,7 @@ var db;
 var dbSandbox;
 var originalBlockRewardsOffset;
 
-describe('BlockRewardsSQL', function () {
+describe('BlockRewardsSQL @slow', function () {
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_sql_block_rewards');

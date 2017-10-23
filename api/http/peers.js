@@ -8,9 +8,6 @@ var httpApi = require('../../helpers/httpApi');
  * - End point: `/api/peers`
  * - Public API:
  * 	- get	/
- * 	- get	/version
- * 	- get	/get
- * 	- get	/count
  * @memberof module:peers
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -24,11 +21,8 @@ function PeersHttpApi (peersModule, app) {
 	var router = new Router();
 
 	router.map(peersModule.shared, {
-		'get /': 'getPeers',
-		'get /version': 'version',
-		'get /get': 'getPeer',
-		'get /count': 'count'
-	});
+		'get /': 'getPeers'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/peers', app, router, peersModule.isLoaded);
 }
