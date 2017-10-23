@@ -31,6 +31,7 @@ import {
 const convert = require('../../src/crypto/convert');
 const keys = require('../../src/crypto/keys');
 const hash = require('../../src/crypto/hash');
+const getTransactionHash = require('../../src/transactions/utils/getTransactionHash');
 
 const makeInvalid = str => {
 	const char = str[0] === '0' ? '1' : '0';
@@ -153,7 +154,7 @@ ${defaultSecondSignature}
 			});
 
 		getTransactionHashStub = sandbox
-			.stub(hash, 'getTransactionHash')
+			.stub(getTransactionHash, 'default')
 			.returns(
 				Buffer.from(
 					'c62214460d66eeb1d9db3fb708e31040d2629fbdb6c93887c5eb0f3243912f91',

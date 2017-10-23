@@ -12,7 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { default as getTransactionBytes } from './getTransactionBytes';
-export { default as getTransactionHash } from './getTransactionHash';
-export { default as prepareTransaction } from './prepareTransaction';
-export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
+import crypto from '../../crypto';
+import getTransactionBytes from './getTransactionBytes';
+
+/**
+* @method getTransactionHash
+* @param transaction Object
+*
+* @return {string}
+*/
+
+export default function getTransactionHash(transaction) {
+	const bytes = getTransactionBytes(transaction);
+	return crypto.getSha256Hash(bytes);
+}

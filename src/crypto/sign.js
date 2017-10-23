@@ -19,7 +19,8 @@ import {
 	convertPrivateKeyEd2Curve,
 	convertPublicKeyEd2Curve,
 } from './convert';
-import { getTransactionHash, getSha256Hash } from './hash';
+import { getSha256Hash } from './hash';
+import { getTransactionHash } from '../transactions/utils';
 import { getRawPrivateAndPublicKeyFromSecret } from './keys';
 
 const createHeader = text => `-----${text}-----`;
