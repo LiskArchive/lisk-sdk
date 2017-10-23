@@ -1,6 +1,5 @@
 'use strict';
 
-var cluster = require('cluster');
 var child_process = require('child_process');
 
 var paths = [
