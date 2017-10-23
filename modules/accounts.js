@@ -8,6 +8,7 @@ var extend = require('extend');
 var schema = require('../schema/accounts.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Vote = require('../logic/vote.js');
+var _ = require('lodash');
 
 // Private fields
 var modules, library, self, __private = {};
@@ -206,46 +207,6 @@ Accounts.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Accounts.prototype.shared = {
-
-	getBalance: function (req, cb) {
-		library.schema.validate(req.body, schema.getBalance, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				var balance = account ? account.balance : '0';
-				var unconfirmedBalance = account ? account.u_balance : '0';
-
-				return setImmediate(cb, null, {balance: balance, unconfirmedBalance: unconfirmedBalance});
-			});
-		});
-	},
-
-	getPublickey: function (req, cb) {
-		library.schema.validate(req.body, schema.getPublicKey, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account || !account.publicKey) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				return setImmediate(cb, null, {publicKey: account.publicKey});
-			});
-		});
-	},
-
 	getDelegates: function (req, cb) {
 		library.schema.validate(req.body, schema.getDelegates, function (err) {
 			if (err) {
@@ -276,38 +237,19 @@ Accounts.prototype.shared = {
 		});
 	},
 
-	getDelegatesFee: function (req, cb) {
-		return setImmediate(cb, null, {fee: constants.fees.delegate});
-	},
-
-	getAccount: function (req, cb) {
-		library.schema.validate(req.body, schema.getAccount, function (err) {
+	getAccounts: function (req, cb) {
+		library.schema.validate(req.body, schema.getAccounts, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
 
-			if (!req.body.address && !req.body.publicKey) {
-				return setImmediate(cb, 'Missing required property: address or publicKey');
-			}
-
-			// self.getAccount can accept publicKey as argument, but we also compare here
-			// if account publicKey match address (when both are supplied)
-			var address = req.body.publicKey ? self.generateAddressByPublicKey(req.body.publicKey) : req.body.address;
-			if (req.body.address && req.body.publicKey && address !== req.body.address) {
-				return setImmediate(cb, 'Account publicKey does not match address');
-			}
-
-			self.getAccount({ address: address }, function (err, account) {
+			library.logic.account.getAll(req.body, function (err, accounts) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
 
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				return setImmediate(cb, null, {
-					account: {
+				accounts = _.map(accounts, function (account) {
+					return {
 						address: account.address,
 						unconfirmedBalance: account.u_balance,
 						balance: account.balance,
@@ -317,42 +259,15 @@ Accounts.prototype.shared = {
 						secondPublicKey: account.secondPublicKey,
 						multisignatures: account.multisignatures || [],
 						u_multisignatures: account.u_multisignatures || []
-					}
+					};
+				});
+
+				return setImmediate(cb, null, {
+					accounts: accounts
 				});
 			});
 		});
 	}
-};
-
-// Internal API
-/**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-Accounts.prototype.internal = {
-	top: function (query, cb) {
-		self.getAccounts({
-			sort: {
-				balance: -1
-			},
-			offset: query.offset,
-			limit: (query.limit || 100)
-		}, function (err, raw) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			var accounts = raw.map(function (account) {
-				return {
-					address: account.address,
-					balance: account.balance,
-					publicKey: account.publicKey
-				};
-			});
-
-			return setImmediate(cb, null, {success: true, accounts: accounts});
-		});
-	},
 };
 
 // Export
