@@ -35,7 +35,6 @@ function TransactionsHttpApi (transactionsModule, app, logger, cache) {
 	]);
 
 	router.map(transactionsModule.shared, {
-		'get /get': 'getTransaction',
 		'get /count': 'getTransactionsCount',
 		'get /queued/get': 'getQueuedTransaction',
 		'get /queued': 'getQueuedTransactions',

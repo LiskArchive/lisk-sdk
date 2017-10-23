@@ -580,7 +580,7 @@ Transactions.prototype.shared = {
 
 				library.schema.validate(req.body, schema.getTransactions, function (err) {
 					if (err) {
-						return setImmediate(waterCb, err);
+						return setImmediate(waterCb, err[0].message);
 					} else {
 						return setImmediate(waterCb, null);
 					}
@@ -612,22 +612,6 @@ Transactions.prototype.shared = {
 			}
 
 			return mapOldResponseStructureToNew(err, res, cb);
-		});
-	},
-
-	getTransaction: function (req, cb) {
-		library.schema.validate(req.body, schema.getTransaction, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			__private.getById(req.body.id, function (err, transaction) {
-				if (!transaction || err) {
-					return setImmediate(cb, 'Transaction not found');
-				}
-
-				return setImmediate(cb, null, {transaction: transaction});
-			});
 		});
 	},
 

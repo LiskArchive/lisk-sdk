@@ -44,8 +44,6 @@ var TransactionsSql = {
 		].filter(Boolean).join(' ');
 	},
 
-	getById: 'SELECT *, ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey" FROM trs_list WHERE "t_id" = ${id}',
-
 	getTransferByIds: 'SELECT "transactionId" as "transaction_id", CONVERT_FROM(data, \'utf8\') AS "tf_data" FROM transfer WHERE "transactionId" IN (${id:csv})',
 
 	getVotesByIds: 'SELECT "transactionId" as "transaction_id", votes AS "v_votes" FROM votes WHERE "transactionId" IN (${id:csv})',
