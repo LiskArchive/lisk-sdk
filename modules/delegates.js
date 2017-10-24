@@ -435,8 +435,16 @@ Delegates.prototype.getDelegates = function (query, cb) {
 	if (!query) {
 		throw 'Missing query argument';
 	}
-	query = _.assign({sort: { 'vote': -1, 'publicKey': 1 }}, query, {isDelegate: 1});
-	modules.accounts.getAccounts(query, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks'], function (err, delegates) {
+	if (query.search) {
+		query.username = {$like: '%' + query.search + '%'};
+		delete query.search;
+	}
+	query.limit = query.limit || constants.activeDelegates;
+	if (query.limit > constants.activeDelegates) {
+		query.limit = constants.activeDelegates;
+	}
+	var getAccountQuery = _.assign({}, query, {sort: {username: 1}});
+	modules.accounts.getAccounts(getAccountQuery, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks', 'secondPublicKey'], function (err, delegates) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -444,8 +452,6 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		var limit = query.limit || constants.activeDelegates;
 		var offset = query.offset || 0;
 		var active = query.active;
-
-		limit = limit > constants.activeDelegates ? constants.activeDelegates : limit;
 
 		var count = delegates.length;
 		var length = Math.min(limit, count);
@@ -468,7 +474,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 			delegates[i].productivity = (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0;
 		}
 
-		var orderBy = OrderBy(query.orderBy, {quoteField: false});
+		var orderBy = OrderBy(query.sort, {quoteField: false});
 
 		if (orderBy.error) {
 			return setImmediate(cb, orderBy.error);
@@ -643,12 +649,12 @@ Delegates.prototype.isLoaded = function () {
 Delegates.prototype.internal = {
 	forgingStatus: function (req, cb) {
 		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return setImmediate(cb, 'Access denied');
+			return setImmediate(cb, new ApiError('Access denied', apiCodes.FORBIDDEN));
 		}
 
 		library.schema.validate(req.body, schema.forgingStatus, function (err) {
 			if (err) {
-				return setImmediate(cb, err[0].message);
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
 			}
 
 			if (req.body.publicKey) {
@@ -661,15 +667,20 @@ Delegates.prototype.internal = {
 	},
 	forgingToggle: function (req, cb) {
 		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return setImmediate(cb, 'Access denied');
+			return setImmediate(cb, new ApiError('Access denied', apiCodes.FORBIDDEN));
 		}
 
 		library.schema.validate(req.body, schema.toggleForging, function (err) {
 			if (err) {
-				return setImmediate(cb, err[0].message);
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
 			}
 
-			__private.toggleForgingStatus(req.body.publicKey, req.body.key, cb);
+			__private.toggleForgingStatus(req.body.publicKey, req.body.key, function (err, res) {
+				if (err) {
+					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
+				}
+				return setImmediate(cb, null, res);
+			});
 		});
 	}
 };
@@ -784,9 +795,9 @@ Delegates.prototype.shared = {
 					var sorta = a[data.sortField];
 					var sortb = b[data.sortField];
 					if (data.sortMethod === 'ASC') {
-				  return sorta.localeCompare(sortb);
+					  return sorta.localeCompare(sortb);
 					} else {
-				  return sortb.localeCompare(sorta);
+					  return sortb.localeCompare(sorta);
 					}
 				}
 
@@ -797,13 +808,10 @@ Delegates.prototype.shared = {
 					} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
 						data.delegates = data.delegates.sort(compareString);
 					} else {
-						return setImmediate(cb, 'Invalid sort field');
+						return setImmediate(cb, new ApiError('Invalid sort field', apiCodes.BAD_REQUEST));
 					}
 				}
-
-				var delegates = data.delegates.slice(data.offset, data.limit);
-
-				return setImmediate(cb, null, {delegates: delegates, count: data.count});
+				return setImmediate(cb, null, {delegates: data.delegates, count: data.count});
 			});
 		});
 	}
