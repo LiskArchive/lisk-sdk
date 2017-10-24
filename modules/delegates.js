@@ -329,7 +329,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				}
 
 				if (math === '-' && (delegates === null || delegates.indexOf(publicKey) === -1)) {
-					return setImmediate(cb, 'Failed to remove delegate, \'' + account.username + '\' was not voted for');
+					return setImmediate(cb, 'Failed to remove vote, delegate \'' + account.username + '\' was not voted for');
 				}
 
 				return setImmediate(cb);

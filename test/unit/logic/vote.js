@@ -266,7 +266,7 @@ describe('vote', function () {
 			var trs = _.cloneDeep(validTransaction);
 			trs.asset.votes = ['-' + node.eAccount.publicKey];
 			vote.verify(trs, validSender, function (err) {
-				expect(err).to.equal('Failed to remove delegate, \'genesis_100\' was not voted for');
+				expect(err).to.equal('Failed to remove vote, delegate \'genesis_100\' was not voted for');
 				done();
 			});
 		});
@@ -367,7 +367,7 @@ describe('vote', function () {
 			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '+' + v;
 			});
-			vote.checkConfirmedDelegates(trs, function (err) {
+			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to add vote, delegate \'genesis_99\' already voted for');
 				done();
 			});
@@ -396,7 +396,7 @@ describe('vote', function () {
 			var trs = _.cloneDeep(validTransaction);
 			trs.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
 			vote.checkConfirmedDelegates(trs, function (err) {
-				expect(err).to.equal('Failed to remove delegate, \'genesis_86\' was not voted for');
+				expect(err).to.equal('Failed to remove vote, delegate \'genesis_86\' was not voted for');
 				done();
 			});
 		});
@@ -417,7 +417,7 @@ describe('vote', function () {
 			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '+' + v;
 			});
-			vote.checkUnconfirmedDelegates(trs, function (err) {
+			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to add vote, delegate \'genesis_99\' already voted for');
 
 				done();
@@ -447,7 +447,7 @@ describe('vote', function () {
 			var trs = _.cloneDeep(validTransaction);
 			trs.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
 			vote.checkUnconfirmedDelegates(trs, function (err) {
-				expect(err).to.equal('Failed to remove delegate, \'genesis_86\' was not voted for');
+				expect(err).to.equal('Failed to remove vote, delegate \'genesis_86\' was not voted for');
 				done();
 			});
 		});
