@@ -7,11 +7,8 @@ var schema = require('../../schema/dapps');
 /**
  * Binds api with modules and creates common url.
  * - End point: `/api/dapps`
- * - Private API:
- * 	- get	/categories
  * - Sanitized
- * 	- get	/
- * 	- get	/get
+ * 	- get /
  * @memberof module:dapps
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -24,12 +21,9 @@ function DappsHttpApi (dappsModule, app) {
 
 	var router = new Router();
 
-	router.map(dappsModule.internal, {
-		'get /categories': 'categories',
-	});
-
-	router.get('/', httpApi.middleware.sanitize('query', schema.list, dappsModule.internal.list));
-	router.get('/get', httpApi.middleware.sanitize('query', schema.get, dappsModule.internal.get));
+	router.map(dappsModule.shared, {
+		'get /': 'list'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/dapps', app, router, dappsModule.isLoaded);
 }
