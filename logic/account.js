@@ -194,26 +194,6 @@ function Account (db, schema, logger, cb) {
 			expression: '("rate")::bigint'
 		},
 		{
-			name: 'delegates',
-			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
-		},
-		{
-			name: 'u_delegates',
-			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
-		},
-		{
 			name: 'multisignatures',
 			type: 'Text',
 			filter: {
