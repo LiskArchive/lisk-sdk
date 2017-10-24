@@ -263,10 +263,10 @@ describe('vote', function () {
 		});
 
 		it('should return error when removing vote for delegate sender has not voted', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['-' + node.eAccount.publicKey];
-			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Failed to remove vote, account has not voted for this delegate');
+			var trs = _.cloneDeep(validTransaction);
+			trs.asset.votes = ['-' + node.eAccount.publicKey];
+			vote.verify(trs, validSender, function (err) {
+				expect(err).to.equal('Failed to remove delegate, \'genesis_100\' was not voted for');
 				done();
 			});
 		});
@@ -367,8 +367,8 @@ describe('vote', function () {
 			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '+' + v;
 			});
-			vote.checkConfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to add vote, account has already voted for this delegate');
+			vote.checkConfirmedDelegates(trs, function (err) {
+				expect(err).to.equal('Failed to add vote, delegate \'genesis_99\' already voted for');
 				done();
 			});
 		});
@@ -393,10 +393,10 @@ describe('vote', function () {
 	describe('checkConfirmedDelegates (remove vote)', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
-			vote.checkConfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to remove vote, account has not voted for this delegate');
+			var trs = _.cloneDeep(validTransaction);
+			trs.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
+			vote.checkConfirmedDelegates(trs, function (err) {
+				expect(err).to.equal('Failed to remove delegate, \'genesis_86\' was not voted for');
 				done();
 			});
 		});
@@ -417,8 +417,9 @@ describe('vote', function () {
 			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '+' + v;
 			});
-			vote.checkUnconfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to add vote, account has already voted for this delegate');
+			vote.checkUnconfirmedDelegates(trs, function (err) {
+				expect(err).to.equal('Failed to add vote, delegate \'genesis_99\' already voted for');
+
 				done();
 			});
 		});
@@ -443,10 +444,10 @@ describe('vote', function () {
 	describe('checkUnconfirmedDelegates (remove vote)', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
-			vote.checkUnconfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to remove vote, account has not voted for this delegate');
+			var trs = _.cloneDeep(validTransaction);
+			trs.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
+			vote.checkUnconfirmedDelegates(trs, function (err) {
+				expect(err).to.equal('Failed to remove delegate, \'genesis_86\' was not voted for');
 				done();
 			});
 		});
