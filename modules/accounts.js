@@ -2,6 +2,7 @@
 
 var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
+var slots = require('../helpers/slots.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
 var extend = require('extend');
@@ -249,6 +250,11 @@ Accounts.prototype.shared = {
 				}
 
 				accounts = _.map(accounts, function (account) {
+
+					var outsider = account.rank + 1 > slots.delegates;
+					var percent = 100 - (account.missedblocks / ((account.producedblocks + account.missedblocks) / 100));
+					percent = Math.abs(percent) || 0;
+
 					return {
 						address: account.address,
 						unconfirmedBalance: account.u_balance,
@@ -258,7 +264,17 @@ Accounts.prototype.shared = {
 						secondSignature: account.secondSignature,
 						secondPublicKey: account.secondPublicKey,
 						multisignatures: account.multisignatures || [],
-						u_multisignatures: account.u_multisignatures || []
+						u_multisignatures: account.u_multisignatures || [],
+						delegate: {
+							username: account.username,
+							vote: account.vote,
+							rewards: account.rewards,
+							producedBlocks: account.producedBlocks,
+							missedBlocks: account.missedBlocks,
+							rank: account.rank,
+							approval: 1,
+							productivity: (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0
+						},
 					};
 				});
 
