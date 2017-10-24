@@ -165,9 +165,7 @@ function getBlocksToWaitPromise () {
 		})
 		.then(function (res) {
 			count += res.count;
-			console.log('count');
-			console.log(count);
-			return Math.ceil(count / constants.maxTxsPerBlock) + 1;
+			return Math.ceil(count / constants.maxTxsPerBlock);
 		});
 }
 
