@@ -105,10 +105,16 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
  * @return {transaction[]}
  */
 __private.getTxsFromPoolList = function (transactions, limit) {
-	var txs;
+	var txs = {};
 
 	if (limit) {
-		txs = Object.keys(transactions).splice(limit);
+		var i = 1;
+		for (var key in transactions) {
+			txs[key] = transactions[key];
+			if (++i > limit) { break; }
+		}
+	} else {
+		txs = transactions;
 	}
 
 	return txs;
