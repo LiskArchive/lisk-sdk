@@ -7,7 +7,9 @@
  * @module helpers/httpApi
  */
 
+var _ = require('lodash');
 var extend = require('extend');
+var apiCodes = require('./apiCodes');
 var checkIpInList = require('./checkIpInList');
 
 /**
@@ -192,6 +194,26 @@ function respond (res, err, response) {
 }
 
 /**
+ * Adds code status to responses for every failed request.
+ * Default error code is 500.
+ * Success code is 200.
+ * Success code for empty data is 204.
+ * @param {Object} res
+ * @param {ApiError} err
+ * @param {Object} response
+ */
+function respondWithCode (res, err, response) {
+	if (err) {
+		return res.status(err.code || apiCodes.INTERNAL_SERVER_ERROR).json(err.toJson());
+	} else {
+		var isResponseEmpty = function (response) {
+			var firstValue = _(response).values().first();
+			return _.isArray(firstValue) && _.isEmpty(firstValue);
+		};
+		return res.status(isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK).json(response);
+	}
+}
+/**
  * Register router in express app using default middleware.
  * @param {string} route
  * @param {Object} app
@@ -207,5 +229,6 @@ function registerEndpoint (route, app, router, isLoaded) {
 module.exports = {
 	middleware: middleware,
 	registerEndpoint: registerEndpoint,
-	respond: respond
+	respond: respond,
+	respondWithCode: respondWithCode
 };

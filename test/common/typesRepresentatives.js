@@ -1,5 +1,7 @@
 'use strict';
 
+var difference = require('lodash').difference;
+
 var arrays = [
 	{
 		input: [],
@@ -165,14 +167,25 @@ var allTypes = arrays
 module.exports = {
 	allTypes: allTypes,
 	arrays: arrays,
+	nonArrays: difference(allTypes, arrays),
 	booleans: booleans,
+	nonBooleans: difference(allTypes, booleans),
 	positiveIntegers: positiveIntegers,
+	nonPositiveIntegers: difference(allTypes, positiveIntegers),
 	negativeIntegers: negativeIntegers,
+	nonNegativeIntegers: difference(allTypes, negativeIntegers),
 	positiveNumbers: positiveNumbers,
+	nonPositiveNumbers: difference(allTypes, positiveNumbers),
 	negativeNumbers: negativeNumbers,
+	nonNegativeNumbers: difference(allTypes, negativeNumbers),
 	objects: objects,
+	nonObjects: difference(allTypes, objects),
 	others: others,
+	nonOthers: difference(allTypes, others),
 	strings: strings,
+	nonStrings: difference(allTypes, strings),
 	nonEmptyStrings: nonEmptyStrings,
-	emptyString: emptyString
+	nonNonEmptyStrings: difference(allTypes, nonEmptyStrings),
+	emptyString: emptyString,
+	nonEmptyString: difference(allTypes, emptyString)
 };

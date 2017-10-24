@@ -24,7 +24,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 	describe('transaction processing', function () {
 
-		it('mutating data used to build the tx id should fail', function () {
+		it('mutating data used to build the transaction id should fail', function () {
 			transaction = node.randomTx();
 			transaction.timestamp += 1;
 
@@ -75,7 +75,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				recipientId: node.eAccount.address,
 				signature: 'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
 				id: '15307587316657110485',
-				fee: 10000000
+				fee: 0.1 * node.normalizer
 			};
 
 			return sendTransactionPromise(signedTransactionFromGenesis).then(function (res) {
@@ -119,12 +119,12 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 	});
 
-	describe('transaction confirmations', function () {
+	describe('confirmation', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
 	});
 
-	describe('enforcement', function () {
+	describe('validation', function () {
 
 		it('sending already confirmed transaction should fail', function () {
 			return sendTransactionPromise(goodTransaction).then(function (res) {

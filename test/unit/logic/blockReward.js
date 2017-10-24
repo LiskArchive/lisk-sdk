@@ -9,7 +9,7 @@ var constants = require('../../../helpers/constants.js');
 constants.rewards.distance = 3000000;
 constants.rewards.offset = 1451520;
 
-describe('BlockReward', function () {
+describe('BlockReward @slow', function () {
 
 	var blockReward = new BlockReward();
 
