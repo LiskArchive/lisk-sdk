@@ -18,6 +18,7 @@ import lisk from 'lisk-js';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import { createLiskTransaction } from '../../src/utils/liskInstance';
 import * as input from '../../src/utils/input';
 import commonOptions from '../../src/utils/options';
 import tablify from '../../src/utils/tablify';
@@ -27,6 +28,16 @@ import {
 	getFirstBoolean,
 } from './utils';
 
+export function itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
+	const { passphrase, secondPassphrase } = this.test.ctx;
+	(createLiskTransaction.createSignature).should.be.calledWith(passphrase, secondPassphrase);
+}
+
+export function itShouldResolveToTheCreatedTransaction() {
+	const { returnValue, createdTransaction } = this.test.ctx;
+	(returnValue).should.be.fulfilledWith(createdTransaction);
+}
+
 export function theVorpalCommandInstanceShouldHaveTheAlias() {
 	const { vorpal, command, alias } = this.test.ctx;
 	const { _aliases } = getCommandInstance(vorpal, command);
@@ -34,8 +45,8 @@ export function theVorpalCommandInstanceShouldHaveTheAlias() {
 }
 
 export function theLiskTransactionObjectShouldHaveTransactionCreationFunctions() {
-	const { createLiskTransaction } = this.test.ctx;
-	return (createLiskTransaction).should.have.keys('createTransaction', 'signTransaction', 'createMultisignature', 'createSignature', 'createDelegate', 'createVote');
+	const { createLiskTransaction: createLiskTransactions } = this.test.ctx;
+	return (createLiskTransactions).should.have.keys('createTransaction', 'signTransaction', 'createMultisignature', 'createSignature', 'createDelegate', 'createVote');
 }
 
 export function itShouldGetTheDataUsingTheMessageFromStdIn() {
@@ -49,10 +60,26 @@ export function itShouldGetTheDataUsingTheMessageArgument() {
 	return (input.getData).should.be.calledWith(message);
 }
 
+export function itShouldNotGetTheSecondPassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(false);
+}
+
 export function itShouldGetTheDataUsingTheMessageSource() {
 	const { options } = this.test.ctx;
 	const firstCallArgs = input.getData.firstCall.args;
 	return (firstCallArgs[1]).should.equal(options.message);
+}
+
+export function itShouldGetTheSecondPassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn() {
+	const { secondPassphrase } = this.test.ctx;
+	const firstCallArgs = input.getSecondPassphrase.firstCall.args;
+	return (firstCallArgs[2]).should.equal(secondPassphrase);
 }
 
 export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
@@ -65,6 +92,11 @@ export function itShouldGetThePassphraseUsingThePassphraseSource() {
 	const { options } = this.test.ctx;
 	const firstCallArgs = input.getPassphrase.firstCall.args;
 	return (firstCallArgs[1]).should.equal(options.passphrase);
+}
+
+export function itShouldGetTheSecondPassphraseWithARepeatedPrompt() {
+	const firstCallArgs = input.getSecondPassphrase.firstCall.args;
+	return (firstCallArgs[3]).should.eql({ shouldRepeat: true });
 }
 
 export function itShouldGetThePassphraseWithASinglePrompt() {

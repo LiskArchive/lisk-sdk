@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
+import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
 import * as decryptMessage from '../../src/commands/decryptMessage';
 import * as encryptMessage from '../../src/commands/encryptMessage';
 import * as env from '../../src/commands/env';
@@ -61,6 +62,7 @@ export const getActionCreator = actionName => ({
 	'create account': createAccount.actionCreator,
 	'decrypt message': decryptMessage.actionCreator,
 	'encrypt message': encryptMessage.actionCreator,
+	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,
 	list: list.actionCreator,
@@ -106,6 +108,7 @@ export const setUpInputStubs = () => {
 		'getStdIn',
 		'getData',
 		'getPassphrase',
+		'getSecondPassphrase',
 	].forEach(methodName => sandbox.stub(input, methodName).resolves({}));
 };
 
