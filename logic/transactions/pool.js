@@ -19,7 +19,7 @@ var modules, library, self, __private = {}, pool = {};
  * transaction expiry timer.
  * @memberof module:transactions
  * @class
- * @classdesc Main TxPool logic.
+ * @classdesc Main TransactionPool logic.
  * @implements {processPool}
  * @param {number} broadcastInterval
  * @param {number} releaseLimit
@@ -28,7 +28,7 @@ var modules, library, self, __private = {}, pool = {};
  * @param {Object} logger
  */
 // Constructor
-function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolExpiryInterval, transaction, account, bus, logger, ed) {
+function TransactionPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolExpiryInterval, transaction, account, bus, logger, ed) {
 	library = {
 		logger: logger,
 		bus: bus,
@@ -43,7 +43,7 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 				releaseLimit: releaseLimit,
 			},
 			transactions: {
-				poolStorageTxsLimit: poolLimit,
+				poolStorageTransactionsLimit: poolLimit,
 				poolProcessInterval: poolInterval,
 				poolExpiryInterval: poolExpiryInterval
 			}
@@ -51,7 +51,7 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 	};
 	self = this;
 
-	self.poolStorageTxsLimit = library.config.transactions.poolStorageTxsLimit;
+	self.poolStorageTransactionsLimit = library.config.transactions.poolStorageTransactionsLimit;
 	self.poolProcessInterval = library.config.transactions.poolProcessInterval;
 	self.poolExpiryInterval = library.config.transactions.poolExpiryInterval;
 	pool = {
@@ -73,7 +73,7 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 		});
 	}
 
-	jobsQueue.register('txPoolNextBundle', nextBundle, self.poolProcessInterval);
+	jobsQueue.register('transactionPoolNextBundle', nextBundle, self.poolProcessInterval);
 
 	// Transaction expiry timer
 	function nextExpiry (cb) {
@@ -85,14 +85,14 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
 		});
 	}
 
-	jobsQueue.register('txPoolNextExpiry', nextExpiry, self.poolExpiryInterval);
+	jobsQueue.register('transactionPoolNextExpiry', nextExpiry, self.poolExpiryInterval);
 
 	// Invalid transactions reset timer
 	function nextReset () {
-		library.logger.debug(['Cleared invalid txs:', self.resetInvalidTransactions()].join(' '));
+		library.logger.debug(['Cleared invalid transactions:', self.resetInvalidTransactions()].join(' '));
 	}
 
-	jobsQueue.register('txPoolNextReset', nextReset, self.poolExpiryInterval * 10);
+	jobsQueue.register('transactionPoolNextReset', nextReset, self.poolExpiryInterval * 10);
 }
 
 
@@ -104,20 +104,20 @@ function TxPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolE
  * @param {number} limit
  * @return {transaction[]}
  */
-__private.getTxsFromPoolList = function (transactions, limit) {
-	var txs = {};
+__private.getTransactionsFromPoolList = function (transactionsInPool, limit) {
+	var transactions = {};
 
 	if (limit) {
 		var i = 1;
-		for (var key in transactions) {
-			txs[key] = transactions[key];
+		for (var key in transactionsInPool) {
+			transactions[key] = transactionsInPool[key];
 			if (++i > limit) { break; }
 		}
 	} else {
-		txs = transactions;
+		transactions = transactionsInPool;
 	}
 
-	return txs;
+	return transactions;
 };
 
 /**
@@ -126,14 +126,14 @@ __private.getTxsFromPoolList = function (transactions, limit) {
  * @param {Object} filter search criteria
  * @return {Objetc} transactions by pool list
  */
-__private.getAllPoolTxsByFilter = function (filter) {
-	var txs = {
+__private.getAllPoolTransactionsByFilter = function (filter) {
+	var transactions = {
 		unverified: _.filter(pool.unverified.transactions, filter),
 		pending: _.filter(pool.verified.pending.transactions, filter),
 		ready: _.filter(pool.verified.ready.transactions, filter)
 	};
 
-	return txs;
+	return transactions;
 };
 
 /**
@@ -153,7 +153,7 @@ __private.transactionInPool = function (id) {
 
 /**
  * Adds transactions to pool list.
- * Checks if tx is in pool. Checks pool limit.
+ * Checks if transaction is in pool. Checks pool limit.
  * @implements {__private.transactionInPool}
  * @param {transaction} transaction
  * @param {Object} poolList
@@ -161,7 +161,7 @@ __private.transactionInPool = function (id) {
  * @return {setImmediateCallback} error | cb
  */
 __private.add = function (transaction, poolList, cb) {
-	if (__private.countTxsPool() >= self.poolStorageTxsLimit) {
+	if (__private.countTransactionsPool() >= self.poolStorageTransactionsLimit) {
 		return setImmediate(cb, 'Transaction pool is full');
 	}
 	if (pool.invalid.transactions[transaction.id] !== undefined) {
@@ -226,9 +226,9 @@ __private.addInvalid = function (id) {
  * @return {boolean} true if transaction id is on the list and was deleted
  */
 __private.delete = function (id, poolList) {
-	var tx = poolList.transactions[id];
+	var transaction = poolList.transactions[id];
 
-	if (tx !== undefined) {
+	if (transaction !== undefined) {
 		delete poolList.transactions[id];
 		poolList.count--;
 		return true;
@@ -240,7 +240,7 @@ __private.delete = function (id, poolList) {
  * Sums unverified, verified.pending and verified.ready counters.
  * @return {Number} Total = unverified + pending + ready
  */
-__private.countTxsPool = function () {
+__private.countTransactionsPool = function () {
 	return pool.unverified.count + pool.verified.pending.count + pool.verified.ready.count;
 };
 
@@ -253,7 +253,7 @@ __private.countTxsPool = function () {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} cb|error
  */
-__private.expireTxsFromList = function (poolList, cb) {
+__private.expireTransactionsFromList = function (poolList, cb) {
 	async.eachSeries(poolList.transactions, function (transaction, eachSeriesCb) {
 		if (!transaction) {
 			return setImmediate(eachSeriesCb);
@@ -372,7 +372,7 @@ __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
  * Bounds input parameters to private variable modules.
  * @param {Accounts} accounts
  */
-TxPool.prototype.bind = function (accounts) {
+TransactionPool.prototype.bind = function (accounts) {
 	modules = {
 		accounts: accounts,
 	};
@@ -382,7 +382,7 @@ TxPool.prototype.bind = function (accounts) {
  * Gets invalid, unverified, verified.pending and verified.ready counters.
  * @return {Object} unverified, pending, ready
  */
-TxPool.prototype.getUsage = function () {
+TransactionPool.prototype.getUsage = function () {
 	return {
 		unverified: pool.unverified.count,
 		pending: pool.verified.pending.count,
@@ -395,62 +395,62 @@ TxPool.prototype.getUsage = function () {
  * Gets transaction based on transaction id.
  * Checks all pool lists: unverified, pending, ready.
  * @param {string} id
- * @return {Object} tx, status
+ * @return {Object} transaction, status
  */
-TxPool.prototype.get = function (id) {
-	var tx = pool.unverified.transactions[id];
-	if (tx !== undefined) {
+TransactionPool.prototype.get = function (id) {
+	var transaction = pool.unverified.transactions[id];
+	if (transaction !== undefined) {
 		return {
-			tx: tx,
+			transaction: transaction,
 			status: 'unverified'
 		};
 	}
 
-	tx = pool.verified.pending.transactions[id];
-	if (tx !== undefined) {
+	transaction = pool.verified.pending.transactions[id];
+	if (transaction !== undefined) {
 		return {
-			tx: tx,
+			transaction: transaction,
 			status: 'pending'
 		};
 	}
 	
-	tx = pool.verified.ready.transactions[id];
-	if (tx !== undefined) {
+	transaction = pool.verified.ready.transactions[id];
+	if (transaction !== undefined) {
 		return {
-			tx: tx,
+			transaction: transaction,
 			status: 'ready'
 		};
 	}
 	return {
-		tx: undefined,
+		transaction: undefined,
 		status: 'Transaction not in pool'
 	};
 };
 
 /**
  * Gets all transactions based on limited filters.
- * @implements {__private.getTxsFromPoolList}
- * @implements {__private.getAllPoolTxsByFilter}
+ * @implements {__private.getTransactionsFromPoolList}
+ * @implements {__private.getAllPoolTransactionsByFilter}
  * @param {string} filter
  * @param {Object} params
  * @return {[transaction]} transaction list based on filter.
  */
-TxPool.prototype.getAll  = function (filter, params) {
+TransactionPool.prototype.getAll  = function (filter, params) {
 	switch (filter) {
 		case 'unverified':
-			return __private.getTxsFromPoolList(pool.unverified.transactions, params.limit);
+			return __private.getTransactionsFromPoolList(pool.unverified.transactions, params.limit);
 		case 'pending':
-			return __private.getTxsFromPoolList(pool.verified.pending.transactions, params.limit);
+			return __private.getTransactionsFromPoolList(pool.verified.pending.transactions, params.limit);
 		case 'ready':
-			return __private.getTxsFromPoolList(pool.verified.ready.transactions, params.limit);
+			return __private.getTransactionsFromPoolList(pool.verified.ready.transactions, params.limit);
 		case 'sender_id':
-			return __private.getAllPoolTxsByFilter({'senderId': params.id});
+			return __private.getAllPoolTransactionsByFilter({'senderId': params.id});
 		case 'sender_pk':
-			return __private.getAllPoolTxsByFilter({'senderPublicKey': params.publicKey});
+			return __private.getAllPoolTransactionsByFilter({'senderPublicKey': params.publicKey});
 		case 'recipient_id':
-			return __private.getAllPoolTxsByFilter({'recipientId': params.id});
+			return __private.getAllPoolTransactionsByFilter({'recipientId': params.id});
 		case 'recipient_pk':
-			return __private.getAllPoolTxsByFilter({'requesterPublicKey': params.publicKey});
+			return __private.getAllPoolTransactionsByFilter({'requesterPublicKey': params.publicKey});
 		default:
 			return 'Invalid filter';
 	}
@@ -461,7 +461,7 @@ TxPool.prototype.getAll  = function (filter, params) {
  * @param {number} limit
  * @return {[transaction]}
  */
-TxPool.prototype.getReady = function (limit) {
+TransactionPool.prototype.getReady = function (limit) {
 	var r = _.orderBy(pool.verified.ready.transactions, ['fee', 'receivedAt'],['desc', 'asc']);
 	if (limit && limit < r.length) {
 		r.splice(limit);
@@ -476,10 +476,10 @@ TxPool.prototype.getReady = function (limit) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} err, transactions
  */
-TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
+TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 	var poolBalance = new bignum('0');
-	var paymentTxs;
-	var receiptTxs;
+	var paymentTransactions;
+	var receiptTransactions;
 
 	library.logic.account.get({ address: sender.address }, 'balance', function (err, account) {
 		if (err) {
@@ -487,22 +487,22 @@ TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
 		}
 
 		// total payments
-		paymentTxs = self.getAll('sender_id', { id: sender.address });
-		if (paymentTxs.ready.length > 0) {
-			paymentTxs.ready.forEach(function (paymentTx) {
-				if (paymentTx.amount) {
-					poolBalance = poolBalance.minus(paymentTx.amount.toString());
+		paymentTransactions = self.getAll('sender_id', { id: sender.address });
+		if (paymentTransactions.ready.length > 0) {
+			paymentTransactions.ready.forEach(function (paymentTransaction) {
+				if (paymentTransaction.amount) {
+					poolBalance = poolBalance.minus(paymentTransaction.amount.toString());
 				}
-				poolBalance = poolBalance.minus(paymentTx.fee.toString());
+				poolBalance = poolBalance.minus(paymentTransaction.fee.toString());
 			});
 		}
 		
 		// total receipts
-		receiptTxs = self.getAll('recipient_id', { id: sender.address });
-		if (receiptTxs.ready.length > 0) {
-			receiptTxs.ready.forEach(function (receiptTx) {
-				if (receiptTx.type === transactionTypes.SEND) {
-					poolBalance = poolBalance.plus(receiptTx.amount.toString());
+		receiptTransactions = self.getAll('recipient_id', { id: sender.address });
+		if (receiptTransactions.ready.length > 0) {
+			receiptTransactions.ready.forEach(function (receiptTransaction) {
+				if (receiptTransaction.type === transactionTypes.SEND) {
+					poolBalance = poolBalance.plus(receiptTransaction.amount.toString());
 				}
 			});
 		}
@@ -535,7 +535,7 @@ TxPool.prototype.checkBalance  = function (transaction, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-TxPool.prototype.add = function (transactions, cb) {
+TransactionPool.prototype.add = function (transactions, cb) {
 	if (!Array.isArray(transactions)) {
 		transactions = [transactions];
 	}
@@ -554,7 +554,7 @@ TxPool.prototype.add = function (transactions, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-TxPool.prototype.addReady = function (transactions, cb) {
+TransactionPool.prototype.addReady = function (transactions, cb) {
 	if (!Array.isArray(transactions)) {
 		transactions = [transactions];
 	}
@@ -576,7 +576,7 @@ TxPool.prototype.addReady = function (transactions, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-TxPool.prototype.addSignature = function (transactionId, secret, cb) {
+TransactionPool.prototype.addSignature = function (transactionId, secret, cb) {
 	var multisignatureTransaction = pool.verified.pending.transactions[transactionId];
 
 	if (multisignatureTransaction === undefined) {
@@ -605,7 +605,7 @@ TxPool.prototype.addSignature = function (transactionId, secret, cb) {
  * @param {transaction} transaction
  * @return {Array} names of cleared lists
  */
-TxPool.prototype.delete = function (transaction) {
+TransactionPool.prototype.delete = function (transaction) {
 	var clearedList = [];
 	var poolList = ['unverified','pending','ready'];
 
@@ -616,7 +616,7 @@ TxPool.prototype.delete = function (transaction) {
 	});
 	if (clearedList.length > 0) {
 		if (clearedList.length > 1) {
-			library.logger.debug(['Cleared duplicated tx in pool list:', clearedList, 'txid:', transaction.id].join(' '));
+			library.logger.debug(['Cleared duplicated transaction in pool list:', clearedList, 'transactionid:', transaction.id].join(' '));
 		}
 	}
 	return clearedList;	
@@ -624,7 +624,7 @@ TxPool.prototype.delete = function (transaction) {
 
 /**
  * Pulls transactions from unverified, perform verifications and if successful
- * push to either verified.pending (when tx is multisign or timestamp is in 
+ * push to either verified.pending (when transaction is multisign or timestamp is in 
  * future) or verified.ready otherwise.
  * @implements {__private.delete}
  * @implements {processVerifyTransaction}
@@ -632,7 +632,7 @@ TxPool.prototype.delete = function (transaction) {
  * @param {function} cb
  * @return {setImmediateCallback} err | cb
  */
-TxPool.prototype.processPool = function (cb) {
+TransactionPool.prototype.processPool = function (cb) {
 	async.series({
 		processUnverified: function (seriesCb) {
 			if (pool.unverified.count === 0) {
@@ -671,7 +671,7 @@ TxPool.prototype.processPool = function (cb) {
 				return setImmediate(seriesCb);
 			}
 
-			// process pool.verified.pending (multisig txs signs), and take care 
+			// process pool.verified.pending (multisig transactions signs), and take care 
 			// about moving transactions from `verified.pending` to `verified.ready`
 			async.eachSeries(pool.verified.pending.transactions, function (transaction, eachSeriesCb) {
 				// Check multisignatures
@@ -695,21 +695,21 @@ TxPool.prototype.processPool = function (cb) {
 
 /**
  * Expires transactions.
- * @implements {__private.expireTxsFromList}
+ * @implements {__private.expireTransactionsFromList}
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error, cb
  */
-TxPool.prototype.expireTransactions = function (cb) {
+TransactionPool.prototype.expireTransactions = function (cb) {
 
 	async.series([
 		function (seriesCb) {
-			__private.expireTxsFromList(pool.unverified, seriesCb);
+			__private.expireTransactionsFromList(pool.unverified, seriesCb);
 		},
 		function (seriesCb) {
-			__private.expireTxsFromList(pool.verified.pending, seriesCb);
+			__private.expireTransactionsFromList(pool.verified.pending, seriesCb);
 		},
 		function (seriesCb) {
-			__private.expireTxsFromList(pool.verified.ready, seriesCb);
+			__private.expireTransactionsFromList(pool.verified.ready, seriesCb);
 		}
 	], function (err) {
 		return setImmediate(cb, err);
@@ -719,11 +719,11 @@ TxPool.prototype.expireTransactions = function (cb) {
 /**
  * Reset invalid transactions.
  */
-TxPool.prototype.resetInvalidTransactions = function () {
+TransactionPool.prototype.resetInvalidTransactions = function () {
 	var counter = 0;
 
-	for (var tx in pool.invalid.transactions) {
-		delete pool.invalid.transactions[tx];
+	for (var transaction in pool.invalid.transactions) {
+		delete pool.invalid.transactions[transaction];
 		counter++;
 	}
 	pool.invalid.count = 0;
@@ -731,4 +731,4 @@ TxPool.prototype.resetInvalidTransactions = function () {
 };
 
 // Export
-module.exports = TxPool;
+module.exports = TransactionPool;
