@@ -91,7 +91,7 @@
     "jsdoc": "=3.4.3",
     "jsdox": "=0.4.10",
     "lisk-js": "LiskHQ/lisk-js#4cab930",
-    "mocha": "=3.4.2",
+    "mocha": "=4.0.1",
     "moment": "=2.18.1",
     "pm2": "=2.4.6",
     "rewire": "=2.5.2",
