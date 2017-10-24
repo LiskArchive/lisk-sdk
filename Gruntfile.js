@@ -93,7 +93,7 @@ module.exports = function (grunt) {
 			},
 
 			testFunctionalHttpPost: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && node test/functional/http/post/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha test/functional/http/post/index.js',
 				maxBuffer: maxBufferSize
 			},
 
