@@ -110,7 +110,12 @@
     "relayLimit": 2
   },
   "transactions": {
-    "maxTxsPerQueue": 1000
+		"maxTxsPerQueue": 1000,
+		"pool": {
+			"storageLimit": 4000,
+			"processInterval": 5000,
+			"expiryInteval": 25000
+		}
   },
   "forging": {
     "force": false,
