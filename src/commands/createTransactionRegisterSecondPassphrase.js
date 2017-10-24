@@ -16,7 +16,6 @@
 import {
 	getStdIn,
 	getPassphrase,
-	getSecondPassphrase,
 	getFirstLineFromString,
 } from '../utils/input';
 import { createCommand } from '../utils/helpers';
@@ -45,7 +44,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 		dataIsRequired: secondPassphraseSource === 'stdin',
 	})
 		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true })
-			.then(passphrase => getSecondPassphrase(
+			.then(passphrase => getPassphrase(
 				vorpal,
 				secondPassphraseSource,
 				getFirstLineFromString(stdIn.data),

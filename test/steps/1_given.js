@@ -68,7 +68,7 @@ export function anEncryptedMessage() {
 export function theSecondPassphraseIsProvidedViaStdIn() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
 	inputUtils.getStdIn.resolves({ passphrase, data: secondPassphrase });
-	inputUtils.getSecondPassphrase.onFirstCall().resolves(secondPassphrase);
+	inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
 }
 
 
@@ -76,7 +76,7 @@ export function thePassphraseAndTheSecondPassphraseIsProvidedViaStdIn() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
 	inputUtils.getStdIn.resolves({ passphrase, data: secondPassphrase });
 	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-	inputUtils.getSecondPassphrase.onFirstCall().resolves(secondPassphrase);
+	inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
 }
 
 export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
@@ -416,8 +416,8 @@ export function aCryptoInstance() {
 
 export function aSecondPassphrase() {
 	const secondPassphrase = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getSecondPassphrase.resolves === 'function') {
-		inputUtils.getSecondPassphrase.resolves(secondPassphrase);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
 	}
 	this.test.ctx.secondPassphrase = secondPassphrase;
 }
@@ -824,8 +824,8 @@ export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetToStdIn(
 export function anOptionsObjectWithPassphraseSetToStdInAndSecondPassphraseSetTo() {
 	const [passphraseSource, secondPassphraseSource] = getQuotedStrings(this.test.parent.title);
 	const { secondPassphrase } = this.test.ctx;
-	if (typeof inputUtils.getSecondPassphrase.resolves === 'function') {
-		inputUtils.getSecondPassphrase.onFirstCall().resolves(secondPassphrase);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
 	}
 	this.test.ctx.options = { passphrase: passphraseSource, 'second-passphrase': secondPassphraseSource };
 }
@@ -861,10 +861,10 @@ export function anOptionsObjectWithPassphraseSetTo() {
 	this.test.ctx.options = { passphrase: passphraseSource };
 }
 
-export function anOptionsObjectWithSecondPassphraseSourceSetToUnknown() {
+export function anOptionsObjectWithSecondPassphraseSetToUnknownSource() {
 	const secondPassphrase = getFirstQuotedString(this.test.parent.title);
-	inputUtils.getSecondPassphrase.rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
-	this.test.ctx.options = { secondPassphrase };
+	inputUtils.getPassphrase.onSecondCall().rejects(new Error('Unknown passphrase source type. Must be one of `file`, or `stdin`.'));
+	this.test.ctx.options = { 'second-passphrase': secondPassphrase };
 }
 
 export function anOptionsObjectWithPassphraseSetToUnknownSource() {

@@ -18,7 +18,7 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe.only('create transaction register second passphrase command', () => {
+describe('create transaction register second passphrase command', () => {
 	beforeEach(() => {
 		setUpInputStubs();
 	});
@@ -39,8 +39,8 @@ describe.only('create transaction register second passphrase command', () => {
 								it('Then it should reject with message "Unknown passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 							});
 						});
-						describe('Given an options object with passphrase set to unknown source "xxx"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToUnknownSource);
+						describe('Given an options object with second passphrase set to unknown source "xxx"', () => {
+							beforeEach(given.anOptionsObjectWithSecondPassphraseSetToUnknownSource);
 							describe('When the action is called with the options', () => {
 								beforeEach(when.theActionIsCalledWithTheOptions);
 								it('Then it should reject with message "Unknown passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);

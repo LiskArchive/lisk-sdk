@@ -78,8 +78,8 @@ export function itShouldGetTheSecondPassphraseFromStdIn() {
 
 export function itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn() {
 	const { secondPassphrase } = this.test.ctx;
-	const firstCallArgs = input.getSecondPassphrase.firstCall.args;
-	return (firstCallArgs[2]).should.equal(secondPassphrase);
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[2]).should.equal(secondPassphrase);
 }
 
 export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
@@ -95,8 +95,8 @@ export function itShouldGetThePassphraseUsingThePassphraseSource() {
 }
 
 export function itShouldGetTheSecondPassphraseWithARepeatedPrompt() {
-	const firstCallArgs = input.getSecondPassphrase.firstCall.args;
-	return (firstCallArgs[3]).should.eql({ shouldRepeat: true });
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[3]).should.eql({ shouldRepeat: true });
 }
 
 export function itShouldGetThePassphraseWithASinglePrompt() {

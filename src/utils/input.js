@@ -151,15 +151,6 @@ export const getPassphrase = async (vorpal, passphraseSource, passphrase, option
 	return getPassphraseFromSource(passphraseSource, optionsWithDefaults);
 };
 
-export const getSecondPassphrase = async (
-	vorpal, secondPassphraseSource, secondPassphrase, options,
-) => {
-	const optionsWithDefaults = Object.assign({ displayName: 'your secret second passphrase' }, options);
-	if (secondPassphrase) return secondPassphrase;
-	if (!secondPassphraseSource) return getPassphraseFromPrompt(vorpal, optionsWithDefaults);
-	return getPassphraseFromSource(secondPassphraseSource, optionsWithDefaults);
-};
-
 export const getFirstLineFromString = multilineString => (
 	typeof multilineString === 'string'
 		? multilineString.split(/[\r\n]+/)[0]

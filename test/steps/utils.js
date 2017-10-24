@@ -108,7 +108,6 @@ export const setUpInputStubs = () => {
 		'getStdIn',
 		'getData',
 		'getPassphrase',
-		'getSecondPassphrase',
 	].forEach(methodName => sandbox.stub(input, methodName).resolves({}));
 };
 
