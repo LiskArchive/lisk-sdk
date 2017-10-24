@@ -99,14 +99,13 @@ describe('GET /api/multisignatures', function () {
 		});
 	});
 
-	describe('POST signatures/sign (regular account)', function () {
+	describe('POST signatures (regular account)', function () {
 
 		var transaction;
 
 		before(function (done) {
 			transaction = node.lisk.transaction.createTransaction(accounts[0].address, 1, node.gAccount.password);
 			sendTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').that.is.not.empty;
 				transaction.id = res.transactionId;
 				done();
@@ -120,9 +119,9 @@ describe('GET /api/multisignatures', function () {
 					node.expect(res.body).to.have.property('transaction');
 					node.expect(res.body.transaction).to.have.property('id').to.equal(transaction.id);
 					var signature = node.lisk.multisignature.signTransaction(transaction, multisigAccount.password);
-					sendSignature(signature, transaction, function (err, res) {
-						node.expect(res).to.have.property('success').to.not.be.ok;
-						node.expect(res).to.have.property('message').to.equal('Error processing signature: Transaction not found');
+					http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, function (err, res) {
+						node.expect(res).to.have.property('status').to.equal(500);
+						node.expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Transaction not found');
 						done();
 					});
 				});

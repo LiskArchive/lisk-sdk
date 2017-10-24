@@ -22,9 +22,8 @@ function SignaturesHttpApi (signaturesModule, app) {
 	var router = new Router();
 
 	router.map(signaturesModule.shared, {
-		'post /': 'postSignatures',
-		'get /fee': 'getFee'
-	});
+		'post /': 'postSignatures'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/signatures', app, router, signaturesModule.isLoaded);
 }
