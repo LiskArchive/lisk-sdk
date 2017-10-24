@@ -585,8 +585,21 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	delete filter.sort;
 
 	if (typeof filter.address === 'string') {
-		filter.address = {
-			$upper: ['address', filter.address]
+		filter['a.address'] = {
+			$upper: ['a.ddress', filter.address]
+		};
+		delete filter.address;
+	}
+
+	if (typeof filter.publicKey === 'string') {
+		filter.publicKey = {
+			$decode: ['publicKey', filter.publicKey, 'hex']
+		};
+	}
+
+	if (typeof filter.secondPublicKey === 'string') {
+		filter.secondPublicKey = {
+			$decode: ['secondPublicKey', filter.secondPublicKey, 'hex']
 		};
 	}
 
