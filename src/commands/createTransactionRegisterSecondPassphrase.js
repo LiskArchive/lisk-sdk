@@ -49,6 +49,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 				secondPassphraseSource,
 				getFirstLineFromString(stdIn.data),
 				{ shouldRepeat: true },
+				'your second secret passphrase',
 			)
 				.then(secondPassphrase => [passphrase, secondPassphrase]),
 			),
