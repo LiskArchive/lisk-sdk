@@ -935,7 +935,7 @@ describe('txPool', function () {
 				done();
 			});
 
-			it('should be ok when transaction from ready list', function (done) {
+			it('should be ok when get transaction from ready list', function (done) {
 				var transaction = txPool.get(completedSignatures.id);
 
 				expect(transaction.tx).to.deep.equal(completedSignatures);
@@ -960,6 +960,14 @@ describe('txPool', function () {
 
 			});
 
+			it('should be ok when reset invalid transactions list', function (done) {
+				var invalidTxs = txPool.resetInvalidTransactions();
+
+				expect(invalidTxs).to.equal(1);
+				poolTotals.invalid -= 1;
+				done();
+			});
+
 			it('should be ok when get pool totals', function (done) {
 				var totals = txPool.getUsage();
 
@@ -969,6 +977,203 @@ describe('txPool', function () {
 				expect(totals.ready).to.be.equal(poolTotals.ready);
 				expect(totals.invalid).to.be.equal(poolTotals.invalid);
 				done();
+			});
+		});
+	});
+
+	describe('getters', function () {
+		var invalidSignature;
+		var completedSignatures;
+		var notEnoughSignatures;
+		var normalTransaction;
+
+		describe('load transactions to pool', function () {
+
+			it('should be ok when add transaction to unverified with invalid signature', function (done) {
+				invalidSignature = _.cloneDeep(hackedTransactions[0]);
+
+				txPool.add(invalidSignature, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when add normal transaction type 4 to unverified', function (done) {
+				completedSignatures = _.cloneDeep(transactions[4][0]);
+
+				txPool.add(completedSignatures, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when add transaction type 4 to unverified without enough signatures', function (done) {
+				notEnoughSignatures = _.cloneDeep(transactions[4][2]);
+
+				txPool.add(notEnoughSignatures, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when process pool txs', function (done) {
+				txPool.processPool(function (err, cbprPool) {
+					expect(error.args[0][0]).to.equal('Failed to process unverified transaction: ' + invalidSignature.id);
+					expect(error.args[0][1]).to.equal('Failed to verify signature');
+					poolTotals.invalid += 1;
+					poolTotals.ready += 1; 
+					poolTotals.pending += 1;
+					done();
+				});
+			});
+
+			it('should be ok when add normal transaction type 2 to unverified', function (done) {
+				normalTransaction = _.cloneDeep(transactions[2]);
+
+				txPool.add(normalTransaction, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					poolTotals.unverified += 1;
+					done();
+				});
+			});
+
+			it('should be ok when add normal transaction type 3 to unverified', function (done) {
+				var normalTransactionT3 = _.cloneDeep(transactions[3]);
+				normalTransactionT3.requesterPublicKey = '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8';
+				txPool.add(normalTransactionT3, function (err, cbtx) {
+					expect(cbtx).to.be.undefined;
+					poolTotals.unverified += 1;
+					done();
+				});
+			});
+		});
+
+		describe('get transaction by id', function () {
+
+			it('should be ok when transaction is in unverified list', function (done) {
+				var transaction = txPool.get(normalTransaction.id);
+
+				expect(transaction.tx).to.deep.equal(normalTransaction);
+				expect(transaction.status).to.equal('unverified');
+				done();
+			});
+
+			it('should be ok when transaction is in pending list', function (done) {
+				var transaction = txPool.get(notEnoughSignatures.id);
+
+				expect(transaction.tx).to.deep.equal(notEnoughSignatures);
+				expect(transaction.status).to.equal('pending');
+				done();
+			});
+
+			it('should be ok when transaction is in ready list', function (done) {
+				var transaction = txPool.get(completedSignatures.id);
+
+				expect(transaction.tx).to.deep.equal(completedSignatures);
+				expect(transaction.status).to.equal('ready');
+				done();
+			});
+
+			it('should fail when transaction is not in the pool', function (done) {
+				var transaction = txPool.get(transactions[0].id);
+
+				expect(transaction.tx).to.be.undefined;
+				expect(transaction.status).to.equal('Transaction not in pool');
+				done();
+			});
+		});
+
+		describe('getAll', function () {
+
+			describe('by pool list', function () {
+
+				it('should be ok when check pool list unverified', function (done) {
+					var txs = txPool.getAll('unverified', { limit: null });
+
+					expect(Object.keys(txs).length).to.equal(2);
+					done();
+				});
+
+				it('should be ok when check pool list unverified with limit', function (done) {
+					var txs = txPool.getAll('unverified', { limit: 1 });
+
+					expect(Object.keys(txs).length).to.equal(1);
+					done();
+				});
+
+				it('should be ok when check pool list pending', function (done) {
+					var txs = txPool.getAll('pending', { limit: null });
+
+					expect(Object.keys(txs).length).to.equal(1);
+					done();
+				});
+
+				it('should be ok when check pool list pending with limit', function (done) {
+					var txs = txPool.getAll('pending', { limit: 1 });
+
+					expect(Object.keys(txs).length).to.equal(1);
+					done();
+				});
+
+				it('should be ok when check pool list ready', function (done) {
+					var txs = txPool.getAll('ready', { limit: null });
+
+					expect(Object.keys(txs).length).to.equal(1);
+					done();
+				});
+
+				it('should be ok when check pool list ready with limit', function (done) {
+					var txs = txPool.getAll('ready', { limit: 1 });
+
+					expect(Object.keys(txs).length).to.equal(1);
+					done();
+				});
+
+				it('should fail when filter is invalid', function (done) {
+					var txs = txPool.getAll('unknown', { limit: null });
+
+					expect(txs).to.equal('Invalid filter');
+					done();
+				});
+			});
+
+			describe('by id (address) and publicKey', function () {
+
+				it('should be ok when sender account is valid', function (done) {
+					var txs = txPool.getAll('sender_id', { id: '2737453412992791987L' });
+
+					expect(txs.unverified.length).to.equal(1);
+					expect(txs.pending.length).to.equal(0);
+					expect(txs.ready.length).to.equal(1);
+					done();
+				});
+
+				it('should be ok when recipient account is valid', function (done) {
+					var txs = txPool.getAll('recipient_id', { id: '2737453412992791987L' });
+
+					expect(txs.unverified.length).to.equal(1);
+					expect(txs.pending.length).to.equal(0);
+					expect(txs.ready.length).to.equal(0);
+					done();
+				});
+
+				it('should be ok when sender publicKey is valid', function (done) {
+					var txs = txPool.getAll('sender_pk', { publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8' });
+
+					expect(txs.unverified.length).to.equal(1);
+					expect(txs.pending.length).to.equal(1);
+					expect(txs.ready.length).to.equal(0);
+					done();
+				});
+
+				it('should be ok when requester publicKey is valid', function (done) {
+					var txs = txPool.getAll('recipient_pk', { publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8' });
+
+					expect(txs.unverified.length).to.equal(1);
+					expect(txs.pending.length).to.equal(0);
+					expect(txs.ready.length).to.equal(0);
+					done();
+				});
 			});
 		});
 	});
@@ -1050,11 +1255,12 @@ describe('txPool', function () {
 					txs.push(e);
 				}
 			});
+			txs.pop();
 
 			it('should be ok when add transactions to ready', function (done) {
 				txPool.addReady(txs, function (err, cbtx) {
 					expect(cbtx).to.be.undefined;
-					poolTotals.ready += txs.length;
+					poolTotals.ready += txs.length -1;
 					done();
 				});
 			});
@@ -1093,6 +1299,7 @@ describe('txPool', function () {
 				expect(deleteTx).to.be.an('array').that.is.not.empty;
 				expect(deleteTx.length).to.equal(1);
 				expect(deleteTx[0]).to.equal('ready');
+				poolTotals.ready -= 1;
 				done();
 			});
 
@@ -1100,8 +1307,7 @@ describe('txPool', function () {
 				var totals = txPool.getUsage();
 
 				expect(totals).to.be.an('object');
-				expect(totals.ready).to.equal(poolTotals.ready - 1);
-				poolTotals = totals;
+				expect(totals.ready).to.equal(poolTotals.ready);
 				done();
 			});
 		});
@@ -1146,117 +1352,6 @@ describe('txPool', function () {
 			txPool.checkBalance(invalidsTxs[0], { address: invalidsTxs[0].senderId }, function (err, cbBalance) {
 				expect(err).to.equal('Account does not have enough LSK: 2896019180726908125L balance: 0');
 				done();
-			});
-		});
-	});
-
-	describe('getters', function () {
-
-		describe('get transaction by id', function () {
-
-			it('should be ok when transaction is in unverified list', function (done) {
-				var transaction = txPool.get(transactions[0].id);
-
-				expect(transaction.tx).to.deep.equal(transactions[0]);
-				expect(transaction.status).to.equal('unverified');
-				done();
-			});
-
-			it('should be ok when transaction is in pending list', function (done) {
-				var transaction = txPool.get(transactions[5].id);
-
-				expect(transaction.tx).to.deep.equal(transactions[5]);
-				expect(transaction.status).to.equal('pending');
-				done();
-			});
-
-			it('should be ok when transaction is in ready list', function (done) {
-				var transaction = txPool.get(transactions[5].id);
-
-				expect(transaction.tx).to.deep.equal(transactions[5]);
-				expect(transaction.status).to.equal('ready');
-				done();
-			});
-
-			it('should fail when transaction is not in the pool', function (done) {
-				var transaction = txPool.get(transactions[0].id);
-
-				expect(transaction.tx).to.be.undefined;
-				expect(transaction.status).to.equal('Transaction not in pool');
-				done();
-			});
-		});
-
-		describe('getAll', function () {
-
-			describe('by pool list', function () {
-
-				it('should be ok when pool list is unverified', function (done) {
-					var txs = txPool.getAll('unverified', { limit: null});
-
-					expect(txs.length).to.equal(0);
-					done();
-				});
-
-				it('should be ok when pool list is pending', function (done) {
-					var txs = txPool.getAll('pending', { limit: null});
-
-					expect(txs.length).to.equal(0);
-					done();
-				});
-
-				it('should be ok when pool list is ready', function (done) {
-					var txs = txPool.getAll('ready', { limit: null});
-
-					expect(txs.length).to.equal(5);
-					done();
-				});
-
-				it('should fail when filter is invalid', function (done) {
-					var txs = txPool.getAll('unknown', { limit: null});
-
-					expect(txs).to.equal('Invalid filter');
-					done();
-				});
-			});
-
-			describe('by id (address) and publicKey', function () {
-
-				it('should be ok when sender account is valid', function (done) {
-					var txs = txPool.getAll('sender_id', { id: '2737453412992791987L' });
-
-					expect(txs.unverified.length).to.equal(0);
-					expect(txs.pending.length).to.equal(0);
-					expect(txs.ready.length).to.equal(3);
-					done();
-				});
-
-				it('should be ok when recipient account is valid', function (done) {
-					var txs = txPool.getAll('recipient_id', { id: '16313739661670634666L' });
-
-					expect(txs.unverified.length).to.equal(0);
-					expect(txs.pending.length).to.equal(0);
-					expect(txs.ready.length).to.equal(1);
-					done();
-				});
-
-				it('should be ok when sender publicKey is valid', function (done) {
-					var txs = txPool.getAll('sender_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
-
-					expect(txs.unverified.length).to.equal(0);
-					expect(txs.pending.length).to.equal(0);
-					expect(txs.ready.length).to.equal(3);
-					done();
-				});
-
-				it('should be ok when requester publicKey is valid', function (done) {
-					var txs = txPool.getAll('recipient_pk', { publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5' });
-
-					expect(txs.unverified.length).to.equal(0);
-					expect(txs.pending.length).to.equal(0);
-					expect(txs.ready.length).to.equal(0);
-					done();
-				});
 			});
 		});
 	});
