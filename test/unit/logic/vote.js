@@ -264,7 +264,7 @@ describe('vote', function () {
 
 		it('should return error when removing vote for delegate sender has not voted', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-            transaction.asset.votes = ['-' + node.eAccount.publicKey];
+			transaction.asset.votes = ['-' + node.eAccount.publicKey];
 			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Failed to remove vote, delegate \'genesis_100\' was not voted for');
 				done();
@@ -394,7 +394,7 @@ describe('vote', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-            transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
+			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
 			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to remove vote, delegate \'genesis_86\' was not voted for');
 				done();
@@ -445,7 +445,7 @@ describe('vote', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-            transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
+			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to remove vote, delegate \'genesis_86\' was not voted for');
 				done();
