@@ -33,12 +33,11 @@ module.exports = {
 		id: 'delegates.getDelegates',
 		type: 'object',
 		properties: {
-
 			address: {
 				type: 'string',
 				format: 'address',
-				minLength: 21,
-				maxLength: 21
+				minLength: 20,
+				maxLength: 20
 			},
 			publicKey: {
 				type: 'string',
@@ -56,7 +55,6 @@ module.exports = {
 			},
 			search: {
 				type: 'string',
-				format: 'username',
 				minLength: 1,
 				maxLength: 20
 			},
@@ -64,13 +62,13 @@ module.exports = {
 				type: 'number',
 				minimum: 1
 			},
-			orderBy: {
+			sort: {
 				type: 'string'
 			},
 			limit: {
 				type: 'number',
 				minimum: 1,
-				maximum: constants.activeDelegates
+				maximum: 101
 			},
 			offset: {
 				type: 'number',
