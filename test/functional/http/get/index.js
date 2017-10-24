@@ -9,7 +9,6 @@ var pathFiles = [
 	'./delegates',
 	'./loader',
 	'./multisignatures',
-	'./multisignatures.post',
 	'./node',
 	'./peers',
 	'./transactions',
