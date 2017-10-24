@@ -5,8 +5,9 @@ var node = require('../node');
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
-var getPendingMultisignaturePromise = require('../common/apiHelpers').getPendingMultisignaturePromise;
-var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
+var getPendingMultisignaturesPromise = require('../common/apiHelpers').getPendingMultisignaturesPromise;
+var getBlocksToWaitPromise = require('../common/apiHelpers').getBlocksToWaitPromise;
+var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 var tests = [
 	{describe: 'null',              args: null},
@@ -70,9 +71,14 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		if (pendingMultisignatures) {
 			it('pendingMultisignatures should remain in the pending queue', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getPendingMultisignaturePromise(transaction).then(function (res) {
+					var params = [
+						'publicKey=' + transaction.senderPublicKey
+					];
+
+					return getPendingMultisignaturesPromise(params).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
+						node.expect(res.transactions[0]).to.have.property('transaction').to.have.property('id').to.equal(transaction.id);
 					});
 				});
 			});
@@ -176,9 +182,26 @@ function invalidAssets (account, option, badTransactions) {
 	});
 }
 
+function multisigScenario (size, amount) {
+	this.account = node.randomAccount();
+	this.members = new Array();
+	this.keysgroup = new Array();
+
+	var i, auxAccount;
+	for (i = 0; i < size - 1; i++) {
+		auxAccount = node.randomAccount();
+		this.members.push(auxAccount);
+		this.keysgroup.push('+' + auxAccount.publicKey);
+	}
+
+	this.tx = null;
+	this.amount = amount || 100000000000;
+}
+
 module.exports = {
 	tests: tests,
 	confirmationPhase: confirmationPhase,
 	invalidTxs: invalidTxs,
-	invalidAssets: invalidAssets
+	invalidAssets: invalidAssets,
+	multisigScenario: multisigScenario
 };
