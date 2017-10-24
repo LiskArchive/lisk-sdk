@@ -4,6 +4,7 @@ var lisk = require('lisk-js');
 
 var node = require('../node');
 var http = require('./httpCommunication');
+var constants = require('../../helpers/constants');
 
 function paramsHelper (url, params) {
 	if (typeof params != 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
@@ -153,6 +154,19 @@ function getBalance (address, cb) {
 	http.get('/api/accounts/getBalance?address=' + address, httpCallbackHelper.bind(null, cb));
 }
 
+function getBlocksToWaitPromise () {
+	var count = 0;
+	return getUnconfirmedTransactionsPromise()
+		.then(function (res) {
+			count += res.count;
+			return getQueuedTransactionsPromise();
+		})
+		.then(function (res) {
+			count += res.count;
+			return Math.ceil(count / constants.maxTxsPerBlock);
+		});
+}
+
 var getTransactionPromise = node.Promise.promisify(getTransaction);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
@@ -227,5 +241,6 @@ module.exports = {
 	getPublicKey: getPublicKey,
 	getBalancePromise: getBalancePromise,
 	getBalance: getBalance,
-	getPublicKeyPromise: getPublicKeyPromise
+	getPublicKeyPromise: getPublicKeyPromise,
+	getBlocksToWaitPromise: getBlocksToWaitPromise
 };
