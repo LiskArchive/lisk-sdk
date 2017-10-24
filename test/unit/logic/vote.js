@@ -8,12 +8,14 @@ var expect = require('chai').expect;
 var _  = require('lodash');
 
 var node = require('./../../node.js');
+var DBSandbox = require('../../common/globalBefore').DBSandbox;
+
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff.js');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants.js');
 
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var TransactionLogic = require('../../../logic/transaction.js');
 var Vote = require('../../../logic/vote.js');
 var Transfer = require('../../../logic/transfer.js');
@@ -73,10 +75,12 @@ var validTransaction = {
 
 describe('vote', function () {
 
+	var dbSandbox;
 	var voteBindings;
 	var vote;
 	var accountsModule;
-	var transaction;
+	var delegatesModule;
+	var transactionLogic;
 	var dummyBlock = {
 		id: '9314232245035524467',
 		height: 1
@@ -88,13 +92,13 @@ describe('vote', function () {
 		'904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37'
 	];
 	function addVotes (votes, done) {
-		var trs = _.clone(validTransaction);
-		trs.asset.votes = votes;
+		var transaction = _.clone(validTransaction);
+		transaction.asset.votes = votes;
 		async.parallel([
 			function (cb) {
-				vote.apply.call(transaction, trs, dummyBlock, validSender, cb);
+				vote.apply.call(transactionLogic, transaction, dummyBlock, validSender, cb);
 			}, function (cb) {
-				vote.applyUnconfirmed.call(transaction, trs, validSender, cb);
+				vote.applyUnconfirmed.call(transactionLogic, transaction, validSender, cb);
 			}
 		], done);
 	}
@@ -121,64 +125,39 @@ describe('vote', function () {
 	}
 
 	before(function (done) {
-		async.auto({
-			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb, {});
-			},
-			transactionLogic: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(TransactionLogic, function (err, __transaction) {
-					cb(err, __transaction);
-				}, {
-					ed: require('../../../helpers/ed'),
-					account: result.account
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_vote');
+		dbSandbox.create(function (err, __db) {
+			node.initApplication(function (err, scope) {
+				accountsModule = scope.modules.accounts;
+				delegatesModule = scope.modules.delegates;
+				vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
+				voteBindings = {
+					delegate: delegatesModule,
+					account: accountsModule
+				};
+				vote.bind(delegatesModule);
+				delegatesModule.onBind({
+					accounts: accountsModule
 				});
-			}],
-			accountModule: ['accountLogic', 'transactionLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(AccountModule, cb, {
-					logic: {
-						account: result.accountLogic,
-						transaction: result.transactionLogic
-					}
-				});
-			}],
-			delegateModule: ['accountModule', function (result, cb) {
-				modulesLoader.initModuleWithDb(DelegateModule, function (err, __delegates) {
-					// not all required bindings, only the ones required for votes
-					__delegates.onBind({
-						accounts: result.accountModule,
-					});
-					cb(err, __delegates);
-				}, {
-					logic: {
-						transaction: result.transactionLogic
-					},
-					library: {
-						schema: modulesLoader.scope.schema
-					}
-				});
-			}]
-		}, function (err, result) {
-			expect(err).to.not.exist;
-			vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
-			voteBindings = {
-				delegate: result.delegateModule,
-				account: result.accountModule
-			};
-			vote.bind(result.delegateModule);
-			transaction = result.transactionLogic;
-			transaction.attachAssetType(transactionTypes.VOTE, vote);
-			accountsModule = result.accountModule;
-			done();
+				transactionLogic = scope.logic.transaction;
+				transactionLogic.attachAssetType(transactionTypes.VOTE, vote);
+				done();
+			}, {db: __db});
 		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	before(function (done) {
 		// create new account for testing;
 		var transfer = new Transfer();
 		transfer.bind(voteBindings.account);
-		transaction.attachAssetType(transactionTypes.SEND, transfer);
+		transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
 
-		var sendTrs = {
+		var sendTransaction = {
 			type: 0,
 			amount: 8067474861277,
 			senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -203,7 +182,7 @@ describe('vote', function () {
 			blockId: '8505659485551877884',
 		};
 
-		transaction.apply(sendTrs, dummyBlock, sender, done);
+		transactionLogic.apply(sendTransaction, dummyBlock, sender, done);
 	});
 
 	before(function (done) {
@@ -236,65 +215,65 @@ describe('vote', function () {
 
 	describe('verify', function () {
 		it('should return error when receipientId and sender id are different', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.recipientId = node.gAccount.address;
-			vote.verify(trs, validSender, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.recipientId = node.gAccount.address;
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid recipient');
 				done();
 			});
 		});
 
 		it('should return error when votes are not set', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			delete trs.asset.votes;
-			vote.verify(trs, validSender, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			delete transaction.asset.votes;
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid transaction asset');
 				done();
 			});
 		});
 
 		it('should return error asset votes are not an array', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = '+' + votedDelegates[0];
-			vote.verify(trs, validSender, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = '+' + votedDelegates[0];
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid votes. Must be an array');
 				done();
 			});
 		});
 
 		it('should return error when voting for an account twice', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
 				return (i % 2 ? '+': '-') + votedDelegates[0];
 			});
 
-			vote.verify(trs, validSender, function (err) {
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Multiple votes for same delegate are not allowed');
 				done();
 			});
 		});
 
 		it('should return error when votes array is empty', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = [];
-			vote.verify(trs, validSender, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = [];
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid votes. Must not be empty');
 				done();
 			});
 		});
 
 		it('should return error when removing vote for delegate sender has not voted', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['-' + node.eAccount.publicKey];
-			vote.verify(trs, validSender, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['-' + node.eAccount.publicKey];
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Failed to remove vote, account has not voted for this delegate');
 				done();
 			});
 		});
 
 		it('should return error if votes are more than 33', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = [
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = [
 				'-904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37',
 				'-399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
 				'-6e904b2f678eb3b6c3042acb188a607d903d441d61508d047fe36b3c982995c8',
@@ -337,27 +316,27 @@ describe('vote', function () {
 				'-3476bba16437ee0e04a29daa34d753139fbcfc14152372d7be5b7c75d51bac6c',
 				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746'
 			];
-			vote.verify(trs, validSender, function (err) {
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
 				done();
 			});
 		});
 
 		it('should return error for casting multiple votes for same account in a transaction', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = Array.apply(null, Array(2)).map(function (v, i) {
 				return '+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37';
 			});
-			vote.verify(trs, validSender, function (err) {
+			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Multiple votes for same delegate are not allowed');
 				done();
 			});
 		});
 
 		it('should verify transaction with correct params', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['-904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37'];
-			vote.verify(trs, validSender, done);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['-904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37'];
+			vote.verify(transaction, validSender, done);
 		});
 	});
 
@@ -384,29 +363,29 @@ describe('vote', function () {
 
 	describe('checkConfirmedDelegates (add vote)', function () {
 		it('should return err if vote is already made to a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '+' + v;
 			});
-			vote.checkConfirmedDelegates(trs, function (err) {
+			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to add vote, account has already voted for this delegate');
 				done();
 			});
 		});
 
 		it('should return err when account is not a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['+' + node.gAccount.publicKey];
-			vote.checkConfirmedDelegates(trs, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
 			});
 		});
 
 		it('should be okay when adding vote to a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['+' + node.eAccount.publicKey];
-			vote.checkConfirmedDelegates(trs, done);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			vote.checkConfirmedDelegates(transaction, done);
 		});
 
 	});
@@ -414,49 +393,49 @@ describe('vote', function () {
 	describe('checkConfirmedDelegates (remove vote)', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
-			vote.checkConfirmedDelegates(trs, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
+			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to remove vote, account has not voted for this delegate');
 				done();
 			});
 		});
 
 		it('should be okay when removing vote for a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '-' + v;
 			});
-			vote.checkConfirmedDelegates(trs, done);
+			vote.checkConfirmedDelegates(transaction, done);
 		});
 	});
 
 	describe('checkUnconfirmedDelegates (add vote)', function () {
 
 		it('should return err if vote is already made to a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '+' + v;
 			});
-			vote.checkUnconfirmedDelegates(trs, function (err) {
+			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to add vote, account has already voted for this delegate');
 				done();
 			});
 		});
 
 		it('should return err when account is not a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['+' + node.gAccount.publicKey];
-			vote.checkUnconfirmedDelegates(trs, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
 			});
 		});
 
 		it('should be okay when adding vote to a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['+' + node.eAccount.publicKey];
-			vote.checkUnconfirmedDelegates(trs, done);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			vote.checkUnconfirmedDelegates(transaction, done);
 		});
 
 	});
@@ -464,20 +443,20 @@ describe('vote', function () {
 	describe('checkUnconfirmedDelegates (remove vote)', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
-			vote.checkUnconfirmedDelegates(trs, function (err) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
+			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Failed to remove vote, account has not voted for this delegate');
 				done();
 			});
 		});
 
 		it('should return okay when removing vote for a delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) {
 				return '-' + v;
 			});
-			vote.checkUnconfirmedDelegates(trs, done);
+			vote.checkUnconfirmedDelegates(transaction, done);
 		});
 	});
 
@@ -490,18 +469,18 @@ describe('vote', function () {
 	describe('apply', function () {
 
 		it('should remove votes for delegates', function (done) {
-			var trs = _.clone(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.apply.call(transaction, trs, dummyBlock, validSender, function (err){
-				checkAccountVotes(trs.senderPublicKey, 'confirmed', trs.asset.votes, 'apply', done);
+			var transaction = _.clone(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
+			vote.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err){
+				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'apply', done);
 			});
 		});
 
 		it('should add vote for delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.apply.call(transaction, trs, dummyBlock, validSender, function (err){
-				checkAccountVotes(trs.senderPublicKey, 'confirmed', trs.asset.votes, 'apply', done);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
+			vote.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err){
+				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'apply', done);
 			});
 		});
 	});
@@ -509,18 +488,18 @@ describe('vote', function () {
 	describe('undo', function () {
 
 		it('should undo remove votes for delegates', function (done) {
-			var trs = _.clone(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.undo.call(transaction, validTransaction, dummyBlock, validSender, function (err){
-				checkAccountVotes(trs.senderPublicKey, 'confirmed', trs.asset.votes, 'undo', done);
+			var transaction = _.clone(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
+			vote.undo.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err){
+				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'undo', done);
 			});
 		});
 
 		it('should undo add vote for delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.undo.call(transaction, trs, dummyBlock, validSender, function (err) {
-				checkAccountVotes(trs.senderPublicKey, 'confirmed', trs.asset.votes, 'undo', done);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
+			vote.undo.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
+				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'undo', done);
 			});
 		});
 	});
@@ -528,18 +507,18 @@ describe('vote', function () {
 	describe('applyUnconfirmed', function () {
 
 		it('should remove votes for delegates', function (done) {
-			var trs = _.clone(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.applyUnconfirmed.call(transaction, validTransaction, validSender, function (err) {
-				checkAccountVotes(trs.senderPublicKey, 'unconfirmed', trs.asset.votes, 'apply', done);
+			var transaction = _.clone(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
+			vote.applyUnconfirmed.call(transactionLogic, validTransaction, validSender, function (err) {
+				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'apply', done);
 			});
 		});
 
 		it('should add vote for delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.applyUnconfirmed.call(transaction, trs, validSender, function (err) {
-				checkAccountVotes(trs.senderPublicKey, 'unconfirmed', trs.asset.votes, 'apply', done);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
+			vote.applyUnconfirmed.call(transactionLogic, transaction, validSender, function (err) {
+				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'apply', done);
 			});
 		});
 	});
@@ -547,43 +526,43 @@ describe('vote', function () {
 	describe('undoUnconfirmed', function () {
 
 		it('should undo remove votes for delegates', function (done) {
-			var trs = _.clone(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.undoUnconfirmed.call(transaction, validTransaction, validSender, function (err) {
-				checkAccountVotes(trs.senderPublicKey, 'unconfirmed', trs.asset.votes, 'undo', done);
+			var transaction = _.clone(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
+			vote.undoUnconfirmed.call(transactionLogic, validTransaction, validSender, function (err) {
+				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'undo', done);
 			});
 		});
 
 		it('should undo add vote for delegate', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.undoUnconfirmed.call(transaction, trs, validSender, function (err) {
-				checkAccountVotes(trs.senderPublicKey, 'unconfirmed', trs.asset.votes, 'undo', done);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
+			vote.undoUnconfirmed.call(transactionLogic, transaction, validSender, function (err) {
+				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'undo', done);
 			});
 		});
 	});
 
 	describe('objectNormalize', function () {
 
-		it('should normalize object for valid trs', function () {
-			expect(vote.objectNormalize.call(transaction, validTransaction)).to.eql(validTransaction);
+		it('should normalize object for valid transaction', function () {
+			expect(vote.objectNormalize.call(transactionLogic, validTransaction)).to.eql(validTransaction);
 		});
 
 		it('should throw error for duplicate votes in a transaction', function () {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes.push(trs.asset.votes[0]);
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes.push(transaction.asset.votes[0]);
 			expect(function () {
-				vote.objectNormalize.call(transaction, trs);
+				vote.objectNormalize.call(transactionLogic, transaction);
 			}).to.throw('Failed to validate vote schema: Array items are not unique (indexes 0 and 3)');
 		});
 
 		it('should return error when votes array is longer than maximum acceptable', function () {
-			var trs = _.cloneDeep(validTransaction);
-			trs.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
 				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
 			});
 			expect(function () {
-				vote.objectNormalize.call(transaction, trs);
+				vote.objectNormalize.call(transactionLogic, transaction);
 			}).to.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
 		});
 	});
@@ -618,26 +597,26 @@ describe('vote', function () {
 	});
 	describe('ready', function () {
 
-		it('should return true for single signature trs', function () {
+		it('should return true for single signature transaction', function () {
 			expect(vote.ready(validTransaction, validSender)).to.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', function () {
-			var trs = _.cloneDeep(validTransaction);
+			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			expect(transaction.ready(trs, vs)).to.equal(false);
+			expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', function () {
-			var trs = _.cloneDeep(validTransaction);
+			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			vs.multimin = 1;
-			delete trs.signature;
-			trs.signature = transaction.sign(senderKeypair, trs);
-			trs.signatures = [transaction.multisign(validKeypair, trs)];
-			expect(transaction.ready(trs, vs)).to.equal(true);
+			delete transaction.signature;
+			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signatures = [transactionLogic.multisign(validKeypair, transaction)];
+			expect(transactionLogic.ready(transaction, vs)).to.equal(true);
 		});
 	});
 });

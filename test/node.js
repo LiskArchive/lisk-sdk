@@ -27,7 +27,8 @@ node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
-var randomString = require('randomstring');
+node.Promise = require('bluebird');
+node.randomString = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
 
@@ -41,16 +42,18 @@ node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
-node.nonce = randomString.generate(16);
+node.nonce = node.randomString.generate(16);
 
 // Transaction fees
 node.fees = {
 	voteFee: node.constants.fees.vote,
 	transactionFee: node.constants.fees.send,
-	secondPasswordFee: node.constants.fees.secondsignature,
+	secondPasswordFee: node.constants.fees.secondSignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappRegistrationFee: node.constants.fees.dapp,
+	dappRegistrationFee: node.constants.fees.dappRegistration,
+	dappDepositFee: node.constants.fees.dappDeposit,
+	dappWithdrawalFee: node.constants.fees.dappWithdrawal,
 	dataFee: node.constants.fees.data
 };
 
@@ -105,19 +108,6 @@ if (process.env.SILENT === 'true') {
 // Random LSK amount
 node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 
-// Returns a random delegate name
-node.randomDelegateName = function () {
-	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
-	var delegateName = '';
-	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-
-	for (var i = 0; i < size; i++) {
-		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return delegateName;
-};
-
 // Returns a random property from the given object
 node.randomProperty = function (obj, needKey) {
 	var keys = Object.keys(obj);
@@ -136,7 +126,7 @@ node.randomLISK = function () {
 
 // Returns current block height
 node.getHeight = function (cb) {
-	var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+	var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 	request.use(node.popsicle.plugins.parse(['json']));
 
@@ -201,7 +191,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 
 	node.async.doWhilst(
 		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 			request.use(node.popsicle.plugins.parse(['json']));
 
@@ -239,7 +229,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 node.generatePeerHeaders = function (ip, port, nonce) {
 	port = port || 9999;
 	ip = ip || '127.0.0.1';
-	nonce = nonce || randomString.generate(16);
+	nonce = nonce || node.randomString.generate(16);
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
 	var version = node.version;
@@ -251,8 +241,10 @@ node.generatePeerHeaders = function (ip, port, nonce) {
 		os: os,
 		ip: ip,
 		port: port,
+		httpPort: +node.config.httpPort,
 		version: version,
-		nonce: nonce
+		nonce: nonce,
+		status: 2
 	};
 };
 
@@ -272,47 +264,81 @@ node.expectedFee = function (amount) {
 };
 
 // Returns the expected fee for the given amount with data property
-node.expectedFeeForTrsWithData = function (amount) {
+node.expectedFeeForTransactionWithData = function (amount) {
 	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
 };
 
-// Returns a random username
+// Returns a random username of 16 characters
 node.randomUsername = function () {
-	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
-	var username = '';
-	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var randomLetter = node.randomString.generate({
+		length: 1,
+		charset: 'alphabetic',
+		capitalization: 'lowercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = node.randomString.generate({
+		length: node.randomNumber(1, 15),
+		charset: custom
+	});
 
-	for (var i = 0; i < size; i++) {
-		username += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return username;
+	return randomLetter.concat(username);
 };
 
-// Returns a random capitialized username
+// Returns a random delegate name of 20 characters
+node.randomDelegateName = function () {
+	var randomLetter = node.randomString.generate({
+		length: 1,
+		charset: 'alphabetic',
+		capitalization: 'lowercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = node.randomString.generate({
+		length: node.randomNumber(1, 19),
+		charset: custom
+	});
+
+	return randomLetter.concat(username);
+};
+
+// Returns a random capitialized username of 16 characters
 node.randomCapitalUsername = function () {
-	var size = node.randomNumber(1, 16); // Min. username size is 1, Max. username size is 16
-	var username = 'A';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var randomLetter = node.randomString.generate({
+		length: 1,
+		charset: 'alphabetic',
+		capitalization: 'uppercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = node.randomString.generate({
+		length: node.randomNumber(1, 15),
+		charset: custom
+	});
 
-	for (var i = 0; i < size - 1; i++) {
-		username += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return username;
+	return randomLetter.concat(username);
 };
 
-// Returns a random application name
+// Returns a random application name of 32 characteres
 node.randomApplicationName = function () {
-	var size = node.randomNumber(1, 32); // Min. username size is 1, Max. username size is 32
-	var name = 'A';
-	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	for (var i = 0; i < size - 1; i++) {
-		name += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
+	return node.randomString.generate({
+		length: node.randomNumber(1, 32),
+		charset: custom
+	});
+};
 
-	return name;
+// Test random application
+node.randomApplication = function () {
+	var application = {
+		category: node.randomNumber(0, 9),
+		name: node.randomApplicationName(),
+		description: 'Blockchain based home monitoring tool',
+		tags: 'monitoring temperature power sidechain',
+		type: node.randomNumber(0, 2),
+		link: 'https://' + node.randomApplicationName() + '.zip',
+		icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
+	};
+
+	return application;
 };
 
 // Returns a basic random account
@@ -341,6 +367,13 @@ node.randomTxAccount = function () {
 	});
 };
 
+// Returns an random basic transaction to send 1 LSK from genesis account to a random account
+node.randomTx = function (offset) {
+	var randomAccount = node.randomAccount();
+
+	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password, offset);
+};
+
 // Returns a random password
 node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
@@ -350,11 +383,14 @@ var currentAppScope;
 
 // Init whole application inside tests
 node.initApplication = function (cb, initScope) {
+
+	initScope.waitForGenesisBlock = initScope.waitForGenesisBlock !== false;
+
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
-	    promiseLib: Promise
+		promiseLib: Promise
 	};
 	var db = initScope.db;
 	if (!db) {
@@ -382,17 +418,17 @@ node.initApplication = function (cb, initScope) {
 
 		var modulesInit = {
 			accounts: '../modules/accounts.js',
-			transactions: '../modules/transactions.js',
 			blocks: '../modules/blocks.js',
-			signatures: '../modules/signatures.js',
-			transport: '../modules/transport.js',
-			loader: '../modules/loader.js',
-			system: '../modules/system.js',
-			peers: '../modules/peers.js',
-			delegates: '../modules/delegates.js',
-			multisignatures: '../modules/multisignatures.js',
 			dapps: '../modules/dapps.js',
-			// cache: '../modules/cache.js'
+			delegates: '../modules/delegates.js',
+			loader: '../modules/loader.js',
+			multisignatures: '../modules/multisignatures.js',
+			node: '../modules/node.js',
+			peers: '../modules/peers.js',
+			signatures: '../modules/signatures.js',
+			system: '../modules/system.js',
+			transactions: '../modules/transactions.js',
+			transport: '../modules/transport.js'
 		};
 
 		// Init limited application layer
@@ -506,9 +542,10 @@ node.initApplication = function (cb, initScope) {
 				transport(transportModuleMock);
 				cb();
 			}],
-			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
+			logic: ['db', 'bus', 'schema', 'network', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
 				var Block = require('../logic/block.js');
+				var Multisignature = require('../logic/multisignature.js');
 				var Account = require('../logic/account.js');
 				var Peers = require('../logic/peers.js');
 
@@ -544,6 +581,9 @@ node.initApplication = function (cb, initScope) {
 					}],
 					peers: ['logger', function (scope, cb) {
 						new Peers(scope.logger, cb);
+					}],
+					multisignature: ['schema', 'transaction', 'logger', function (scope, cb) {
+						cb(null, new Multisignature(scope.schema, scope.network, scope.transaction, scope.logger));
 					}]
 				}, cb);
 			}],
@@ -572,10 +612,18 @@ node.initApplication = function (cb, initScope) {
 			}]
 		}, function (err, scope) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
-			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
+
+			scope.modules.delegates.onBlockchainReady = function () {
+				// Wait for genesis block's transactions to be applied into mem_accounts
+				if (initScope.waitForGenesisBlock) {
+					return cb(err, scope);
+				}
+			};
 			currentAppScope = scope;
-			cb(err, scope);
+			if (!initScope.waitForGenesisBlock || initScope.bus) {
+				return cb(err, scope);
+			}
 		});
 	});
 };

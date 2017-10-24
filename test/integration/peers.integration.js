@@ -31,9 +31,10 @@ var SYNC_MODE_DEFAULT_ARGS = {
 	}
 };
 
-var WAIT_BEFORE_CONNECT_MS = 10000;
+var WAIT_BEFORE_CONNECT_MS = 60000;
 
-var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_FIRST, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+SYNC_MODE_DEFAULT_ARGS.ALL_TO_GROUP.INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_GROUP, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 var monitorWSClient = {
 	protocol: 'http',
@@ -81,7 +82,17 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 			break;
 
 		case SYNC_MODE.ALL_TO_GROUP:
-			throw new Error('To implement');
+			if (!Array.isArray(syncModeArgs.ALL_TO_GROUP.INDICES)) {
+				throw new Error('Provide peers indices to sync with as an array');
+			}
+			Array.apply(null, new Array(numOfPeers)).forEach(function (val, index) {
+				if (syncModeArgs.ALL_TO_GROUP.INDICES.indexOf(index) !== -1) {
+					peersList.push({
+						ip: '127.0.0.1',
+						port: 5000 + index
+					});
+				}
+			});
 	}
 	return peersList;
 }
@@ -175,7 +186,7 @@ function killTestNodes (cb) {
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), 'test/api/blocks.js', 'test/api/transactions.js'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), 'test/functional/http/get/blocks.js', 'test/functional/http/get/transactions.js'], {
 		cwd: __dirname + '/../..'
 	});
 
@@ -435,7 +446,7 @@ describe('integration', function () {
 
 			it('should have all peers at the same height', function () {
 				var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
-				expect(uniquePeersHeights).to.have.lengthOf(1);
+				expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 			});
 
 			it('should have all blocks the same at all peers', function () {
@@ -471,7 +482,7 @@ describe('integration', function () {
 
 			it('should have all peers having same amount of confirmed transactions', function () {
 				var uniquePeersTransactionsNumber = _(nodesTransactions).map('length').uniq().value();
-				expect(uniquePeersTransactionsNumber).to.have.lengthOf(1);
+				expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
 			});
 
 			it('should have all transactions the same at all peers', function () {

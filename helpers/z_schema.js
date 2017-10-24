@@ -20,7 +20,7 @@ var ip = require('ip');
  * @memberof module:helpers
  * @requires ip
  * @constructor
- * @return {Boolean} True if the format is valid
+ * @return {boolean} True if the format is valid
  */
 var z_schema = require('z-schema');
 

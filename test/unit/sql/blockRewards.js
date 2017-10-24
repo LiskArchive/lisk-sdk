@@ -7,7 +7,7 @@ var node = require('../../node');
 var sql = require('../../sql/blockRewards.js');
 var constants = require('../../../helpers/constants.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 
 function calcBlockReward (height, reward, done) {
 	return db.query(sql.calcBlockReward, {height: height}).then(function (rows) {
@@ -71,23 +71,17 @@ var db;
 var dbSandbox;
 var originalBlockRewardsOffset;
 
-describe('BlockRewardsSQL', function () {
+describe('BlockRewardsSQL @slow', function () {
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_sql_block_rewards');
 		dbSandbox.create(function (err, __db) {
 			db = __db;
-
 			// Force rewards start at 150-th block
 			originalBlockRewardsOffset = constants.rewards.offset;
 			constants.rewards.distance = 3000000;
 			constants.rewards.offset = 1451520;
-			// wait for mem_accounts to be populated
-			node.initApplication(function (err) {
-				setTimeout(function () {
-					done(err);
-				}, 5000);
-			}, {db: db});
+			node.initApplication(done, {db: db});
 		});
 	});
 

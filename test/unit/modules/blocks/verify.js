@@ -5,7 +5,7 @@ var async = require('async');
 var sinon = require('sinon');
 
 var node = require('../../../node');
-var modulesLoader = require('../../../common/initModule').modulesLoader;
+var modulesLoader = require('../../../common/modulesLoader');
 var exceptions = require('../../../../helpers/exceptions.js');
 var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
 var DBSandbox = require('../../../common/globalBefore').DBSandbox;
@@ -236,18 +236,19 @@ describe('blocks/verify', function () {
 
 	before(function (done) {
 		node.initApplication(function (err, scope) {
+			scope.modules.blocks.verify.onBind(scope.modules);
+			scope.modules.delegates.onBind(scope.modules);
+			scope.modules.transactions.onBind(scope.modules);
+			scope.modules.blocks.chain.onBind(scope.modules);
+			scope.modules.transport.onBind(scope.modules);
+			accounts = scope.modules.accounts;
+			blocksVerify = scope.modules.blocks.verify;
+			blockLogic = scope.logic.block;
+			blocks = scope.modules.blocks;
+			delegates = scope.modules.delegates;
+			db = scope.db;
+			// Bus gets overwritten - waiting for mem_accounts has to be done manually
 			setTimeout(function () {
-				scope.modules.blocks.verify.onBind(scope.modules);
-				scope.modules.delegates.onBind(scope.modules);
-				scope.modules.transactions.onBind(scope.modules);
-				scope.modules.blocks.chain.onBind(scope.modules);
-				scope.modules.transport.onBind(scope.modules);
-				accounts = scope.modules.accounts;
-				blocksVerify = scope.modules.blocks.verify;
-				blockLogic = scope.logic.block;
-				blocks = scope.modules.blocks;
-				delegates = scope.modules.delegates;
-				db = scope.db;
 				done();
 			}, 5000);
 		}, {db: db, bus: modulesLoader.scope.bus});
@@ -471,7 +472,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should fail when a transaction is of an unknown type', function () {
-			var trsType = validBlock.transactions[0].type;
+			var transactionType = validBlock.transactions[0].type;
 			validBlock.transactions[0].type = 555;
 
 			var result = blocksVerify[functionName](validBlock);
@@ -480,11 +481,11 @@ describe('blocks/verify', function () {
 			expect(result.errors[0]).to.equal('Invalid payload hash');
 			expect(result.errors[1]).to.equal('Unknown transaction type ' + validBlock.transactions[0].type);
 
-			validBlock.transactions[0].type = trsType;
+			validBlock.transactions[0].type = transactionType;
 		});
 
 		it('should fail when a transaction is duplicated', function () {
-			var secondTrs = validBlock.transactions[1];
+			var secondTransaction = validBlock.transactions[1];
 			validBlock.transactions[1] = validBlock.transactions[0];
 
 			var result = blocksVerify[functionName](validBlock);
@@ -494,7 +495,7 @@ describe('blocks/verify', function () {
 			expect(result.errors[1]).to.equal('Invalid payload hash');
 			expect(result.errors[2]).to.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
 
-			validBlock.transactions[1] = secondTrs;
+			validBlock.transactions[1] = secondTransaction;
 		});
 
 		it('should fail when payload hash is invalid', function () {
@@ -755,26 +756,26 @@ describe('blocks/verify', function () {
 			});
 
 			it('should fail when transaction type property is missing', function (done) {
-				var trsType = block2.transactions[0].type;
+				var transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 
 				blocksVerify.processBlock(block2, false, function (err, result) {
 					if (err) {
 						expect(err).equal('Unknown transaction type undefined');
-						block2.transactions[0].type = trsType;
+						block2.transactions[0].type = transactionType;
 						done();
 					}
 				}, true);
 			});
 
 			it('should fail when transaction timestamp property is missing', function (done) {
-				var trsTimestamp = block2.transactions[0].timestamp;
+				var transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 
 				blocksVerify.processBlock(block2, false, function (err, result) {
 					if (err) {
 						expect(err).equal('Failed to validate transaction schema: Missing required property: timestamp');
-						block2.transactions[0].timestamp = trsTimestamp;
+						block2.transactions[0].timestamp = transactionTimestamp;
 						done();
 					}
 				}, true);
@@ -790,7 +791,7 @@ describe('blocks/verify', function () {
 			}, true);
 		});
 
-		it('should generate block 2 with valid generator slot and processed trs', function (done) {
+		it('should generate block 2 with valid generator slot and processed transaction', function (done) {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock1, block1);

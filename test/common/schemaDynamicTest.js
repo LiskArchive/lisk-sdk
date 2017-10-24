@@ -1,7 +1,9 @@
 'use strict';
 
-var assign = require('lodash').assign;
-var difference = require('lodash').difference;
+var _ = require('lodash');
+var assign = _.assign;
+var difference = _.difference;
+var set = _.set;
 var chai = require('chai');
 var expect = require('chai').expect;
 var util = require('util');
@@ -20,12 +22,25 @@ var strings = typesRepresentatives.strings;
 
 var self;
 
+SchemaDynamicTest.TEST_STYLE = {
+	ASYNC: function (testFunction, argument, cb) {
+		testFunction(argument, cb);
+	},
+	THROWABLE: function (testFunction, argument, cb) {
+		try {
+			testFunction(argument);
+		} catch (ex) {
+			cb(ex);
+		}
+	}
+};
+
 function SchemaDynamicTest (config) {
 
-	this.customInput = config.customInput;
 	this.customArgumentAssertion = config.customArgumentAssertion;
 	this.customPropertyAssertion = config.customPropertyAssertion;
 	this.customRequiredPropertiesAssertion = config.customRequiredPropertiesAssertion;
+	this.testStyle = config.testStyle || SchemaDynamicTest.TEST_STYLE.ASYNC;
 
 	self = this;
 
@@ -76,7 +91,7 @@ function SchemaDynamicTest (config) {
 				}
 			}
 		},
-		shouldFailWithoutRequiredProperties: self.testRequired
+		shouldFailWithoutRequiredProperties: self.testRequired.bind(self)
 	};
 }
 
@@ -93,33 +108,34 @@ SchemaDynamicTest.prototype.standardInvalidArgumentAssertion = function (input, 
 		.equal('Expected type ' + expectedType + ' but found type ' + input.expectation);
 };
 
-SchemaDynamicTest.prototype.testArgument = function (expectedType, invalidInputs, testedFunction) {
-	var assertion = self.customArgumentAssertion ?  self.customArgumentAssertion.bind(self) : self.standardInvalidArgumentAssertion;
-	var test = function (invalidInput, eachCb) {
-		testedFunction(invalidInput.input, function (err) {
-			assertion(invalidInput, expectedType, err);
-			eachCb();
-		});
-	};
-	self.carpetTesting(test, invalidInputs, 'should return an error when invoked with %s');
-};
-
 SchemaDynamicTest.prototype.standardInvalidPropertyAssertion = function (input, expectedType, property, err) {
 	self.standardInvalidArgumentAssertion(input, expectedType, err);
 };
 
+SchemaDynamicTest.prototype.testArgument = function (expectedType, invalidInputs, testedFunction) {
+	var assertion = this.customArgumentAssertion || this.standardInvalidArgumentAssertion;
+	var test = function (invalidInput, eachCb) {
+		this.testStyle(testedFunction, invalidInput.input, function (err) {
+			assertion(invalidInput, expectedType, err);
+			eachCb();
+		});
+	}.bind(this);
+	this.carpetTesting(test, invalidInputs, 'should return an error when invoked with %s');
+};
+
 SchemaDynamicTest.prototype.testProperty = function (expectedType, invalidInputs, testedFunction, validArgument, property) {
-	var assertion = self.customPropertyAssertion ?  self.customPropertyAssertion.bind(self) : self.standardInvalidPropertyAssertion;
+	var assertion = this.customPropertyAssertion || this.standardInvalidPropertyAssertion;
 	var test = function (invalidInput, eachCb) {
 		var malformedPart = {};
-		malformedPart[property] = invalidInput.input;
+		set(malformedPart, property, invalidInput.input);
+
 		var invalidArgument = assign({}, validArgument, malformedPart);
-		testedFunction(invalidArgument, function (err) {
+		this.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(invalidInput, expectedType, property, err);
 			eachCb();
 		});
-	};
-	self.carpetTesting(test, invalidInputs, 'should return an error when ' + property + ' is %s');
+	}.bind(this);
+	this.carpetTesting(test, invalidInputs, 'should return an error when ' + property + ' is %s');
 };
 
 SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = function (property, err) {
@@ -128,19 +144,19 @@ SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = functio
 };
 
 SchemaDynamicTest.prototype.testRequired = function (testedFunction, validArgument, properties) {
-	var assertion = self.customRequiredPropertiesAssertion ?  self.customRequiredPropertiesAssertion.bind(self) : self.standardMissingRequiredPropertiesAssertion;
+	var assertion = this.customRequiredPropertiesAssertion || this.standardMissingRequiredPropertiesAssertion;
 	var test = function (missingProperty, eachCb) {
 		var invalidArgument = assign({}, validArgument);
 		delete invalidArgument[missingProperty.description];
-		testedFunction(invalidArgument, function (err) {
+		this.testStyle(testedFunction, invalidArgument, function (err) {
 			assertion(missingProperty.description, err);
 			eachCb();
 		});
-	};
+	}.bind(this);
 	var missingFieldsDescriptions = properties.map(function (property) {
 		return {description: property};
 	});
-	self.carpetTesting(test, missingFieldsDescriptions, 'should return an error when invoked without %s');
+	this.carpetTesting(test, missingFieldsDescriptions, 'should return an error when invoked without %s');
 };
 
 module.exports = SchemaDynamicTest;

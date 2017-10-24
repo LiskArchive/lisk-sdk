@@ -1,11 +1,11 @@
 'use strict';
 
-var node = require('./../../node.js'); 
+var node = require('./../../node.js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
 var sinon = require('sinon');
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var modulesLoader = require('../../common/modulesLoader');
 var Cache = require('../../../modules/cache.js');
 
 describe('cache', function () {
@@ -14,10 +14,6 @@ describe('cache', function () {
 
 	before(function (done) {
 		node.config.cacheEnabled = true;
-		done();
-	});
-
-	before(function (done) {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;
@@ -27,16 +23,16 @@ describe('cache', function () {
 		});
 	});
 
-	after(function (done) {
-		cache.quit(done);
-	});
-
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
 			expect(err).to.not.exist;
 			expect(status).to.equal('OK');
 			done(err, status);
 		});
+	});
+
+	after(function (done) {
+		cache.quit(done);
 	});
 
 	describe('setJsonForKey', function () {
@@ -173,7 +169,7 @@ describe('cache', function () {
 		});
 
 	});
-	
+
 	describe('onNewBlock', function () {
 
 		it('should remove all keys matching pattern /api/transactions', function (done) {
@@ -312,12 +308,11 @@ describe('cache', function () {
 				});
 			});
 		});
-
 	});
 
 	describe('onTransactionsSaved', function (done) {
 
-		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 trs', function (done) {
+		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 
@@ -336,7 +331,7 @@ describe('cache', function () {
 			});
 		});
 
-		it('should remove keys that match pattern /api/delegate on type 2 trs', function (done) {
+		it('should remove keys that match pattern /api/delegate on type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 

@@ -1,5 +1,7 @@
 'use strict';
 
+var difference = require('lodash').difference;
+
 var arrays = [
 	{
 		input: [],
@@ -104,12 +106,7 @@ var others = [
 	}
 ];
 
-var strings = [
-	{
-		input: '',
-		description: 'empty string',
-		expectation: 'string'
-	},
+var nonEmptyStrings = [
 	{
 		input: '0',
 		description: '0 as string',
@@ -147,6 +144,16 @@ var strings = [
 	}
 ];
 
+var emptyString = [
+	{
+		input: '',
+		description: 'empty string',
+		expectation: 'string'
+	}
+];
+
+var strings = nonEmptyStrings.concat(emptyString);
+
 var allTypes = arrays
 	.concat(booleans)
 	.concat(positiveIntegers)
@@ -160,12 +167,25 @@ var allTypes = arrays
 module.exports = {
 	allTypes: allTypes,
 	arrays: arrays,
+	nonArrays: difference(allTypes, arrays),
 	booleans: booleans,
+	nonBooleans: difference(allTypes, booleans),
 	positiveIntegers: positiveIntegers,
+	nonPositiveIntegers: difference(allTypes, positiveIntegers),
 	negativeIntegers: negativeIntegers,
+	nonNegativeIntegers: difference(allTypes, negativeIntegers),
 	positiveNumbers: positiveNumbers,
+	nonPositiveNumbers: difference(allTypes, positiveNumbers),
 	negativeNumbers: negativeNumbers,
+	nonNegativeNumbers: difference(allTypes, negativeNumbers),
 	objects: objects,
+	nonObjects: difference(allTypes, objects),
 	others: others,
-	strings: strings
+	nonOthers: difference(allTypes, others),
+	strings: strings,
+	nonStrings: difference(allTypes, strings),
+	nonEmptyStrings: nonEmptyStrings,
+	nonNonEmptyStrings: difference(allTypes, nonEmptyStrings),
+	emptyString: emptyString,
+	nonEmptyString: difference(allTypes, emptyString)
 };

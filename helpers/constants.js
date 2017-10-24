@@ -10,10 +10,10 @@
  * @property {number} blockReceiptTimeOut
  * @property {number} confirmationLength
  * @property {Date} epochTime
- * @property {object} fees - The default values for fees.
+ * @property {Object} fees - The default values for fees.
  * @property {number} fees.send
  * @property {number} fees.vote
- * @property {number} fees.secondsignature
+ * @property {number} fees.secondSignature
  * @property {number} fees.delegate
  * @property {number} fees.multisignature
  * @property {number} fees.dapp
@@ -33,7 +33,7 @@
  * @property {string[]} nethashes - Mainnet and Testnet.
  * @property {number} numberLength
  * @property {number} requestLength
- * @property {object} rewards
+ * @property {Object} rewards
  * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
  * @property {number} rewards.offset - Start rewards at block (n).
  * @property {number} rewards.distance - Distance between each milestone
@@ -52,10 +52,12 @@ var constants = {
 	fees: {
 		send: 10000000,
 		vote: 100000000,
-		secondsignature: 500000000,
+		secondSignature: 500000000,
 		delegate: 2500000000,
 		multisignature: 500000000,
-		dapp: 2500000000,
+		dappRegistration: 2500000000,
+		dappWithdrawal: 10000000,
+		dappDeposit: 10000000,
 		data: 10000000
 	},
 	feeStart: 1,
