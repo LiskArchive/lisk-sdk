@@ -135,7 +135,7 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: String,
 			immutable: true,
-			expression: 'UPPER("address")'
+			expression: 'UPPER(a.address)'
 		},
 		{
 			name: 'publicKey',
@@ -184,15 +184,6 @@ function Account (db, schema, logger, cb) {
 			expression: '("u_balance")::bigint'
 		},
 		{
-			name: 'vote',
-			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
-			conv: Number,
-			expression: '("vote")::bigint'
-		},
-		{
 			name: 'rate',
 			type: 'BigInt',
 			filter: {
@@ -200,26 +191,6 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: Number,
 			expression: '("rate")::bigint'
-		},
-		{
-			name: 'delegates',
-			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
-		},
-		{
-			name: 'u_delegates',
-			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'multisignatures',
@@ -308,33 +279,22 @@ function Account (db, schema, logger, cb) {
 			conv: Boolean
 		},
 		{
-			name: 'producedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
-		},
-		{
-			name: 'missedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
-		},
-		{
 			name: 'fees',
 			type: 'BigInt',
 			filter: {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '("fees")::bigint'
+			expression: '(a."fees")::bigint'
+		},
+		{
+			name: 'rank',
+			type: 'BigInt',
+			filter: {
+				type: 'integer'
+			},
+			conv: Number,
+			expression: '(d."rank")::bigint'
 		},
 		{
 			name: 'rewards',
@@ -343,7 +303,28 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '("rewards")::bigint'
+			expression: '(d."rewards")::bigint'
+		},
+		{
+			name: 'vote',
+			type: 'BigInt',
+			filter: {
+				type: 'integer'
+			},
+			conv: Number,
+			expression: '(d."voters_balance")::bigint'
+		},
+		{
+			name: 'producedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(d."blocks_forged_cnt")::bigint'
+		},
+		{
+			name: 'missedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(d."blocks_missed_cnt")::bigint'
 		},
 		{
 			name: 'virgin',
@@ -609,9 +590,18 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		limit: limit,
 		offset: offset,
 		sort: sort,
-		alias: 'a',
 		condition: filter,
-		fields: realFields
+		fields: realFields,
+		alias: 'a',
+		join: {
+			delegates: {
+				type: 'left',
+				on: {
+					'a.address': 'd.address'
+				},
+				alias: 'd'
+			}
+		}
 	});
 
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
