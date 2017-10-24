@@ -17,8 +17,6 @@ import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
-afterEach(() => sandbox.restore());
-
 describe('#registerDelegate tranasction', () => {
 	const fixedPoint = 10 ** 8;
 	const secret = 'secret';
