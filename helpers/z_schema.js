@@ -2,7 +2,8 @@
 
 var ip = require('ip');
 /**
- * Uses JSON Schema validator z_schema to register custom formats.
+ * Uses JSON Schema validator z_schema to register custom formats. <br/>
+ * Since an IP is not considered to be a hostname while used with SSL. So have to apply additional validation for IP and FQDN with **ipOrFQDN**.
  * - id
  * - address
  * - username
@@ -14,6 +15,7 @@ var ip = require('ip');
  * - delegatesList
  * - parsedInt
  * - ip
+ * - ipOrFQDN
  * - os
  * - version
  * @see {@link https://github.com/zaggino/z-schema}
@@ -106,9 +108,6 @@ z_schema.registerFormat('ip', function (str) {
 	return ip.isV4Format(str);
 });
 
-/* Since an IP is not considered to be a hostname 
-   while used with SSL. So have to apply additional 
-   validation for IP and FQDN. */
 z_schema.registerFormat('ipOrFQDN', function (str) {
 	return ip.isV4Format(str) || FormatValidators.hostname(str);
 });
