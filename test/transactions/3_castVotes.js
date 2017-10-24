@@ -17,8 +17,6 @@ import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
-afterEach(() => sandbox.restore());
-
 describe('#castVotes transaction', () => {
 	const secret = 'secret';
 	const secondSecret = 'second secret';

@@ -14,8 +14,6 @@
  */
 const utils = require('../../src/api/utils');
 
-afterEach(() => sandbox.restore());
-
 describe('api utils module', () => {
 	const POST = 'POST';
 	const defaultMethod = POST;

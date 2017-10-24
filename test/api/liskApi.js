@@ -17,8 +17,6 @@ import LiskAPI from '../../src/api/liskApi';
 const privateApi = require('../../src/api/privateApi');
 const utils = require('../../src/api/utils');
 
-afterEach(() => sandbox.restore());
-
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
 	const testPort = 7000;
