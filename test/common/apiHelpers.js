@@ -27,6 +27,16 @@ function paramsHelper (url, params) {
 	return url;
 }
 
+function httpCallbackHelperWithStatus (cb, err, res) {
+	if (err) {
+		return cb(err);
+	}
+	cb(null, {
+		status: res.status,
+		body: res.body
+	});
+}
+
 function httpCallbackHelper (cb, err, res) {
 	if (err) {
 		return cb(err);
@@ -159,15 +169,7 @@ function getNextForgers (params, cb) {
 }
 
 function getAccounts (params, cb) {
-	http.get('/api/accounts?' + params, httpCallbackHelper.bind(null, cb));
-}
-
-function getPublicKey (address, cb) {
-	http.get('/api/accounts/getPublicKey?address=' + address, httpCallbackHelper.bind(null, cb));
-}
-
-function getBalance (address, cb) {
-	http.get('/api/accounts/getBalance?address=' + address, httpCallbackHelper.bind(null, cb));
+	http.get('/api/accounts?' + params, httpCallbackHelperWithStatus.bind(null, cb));
 }
 
 function getBlocks (params, cb) {
@@ -271,12 +273,6 @@ var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
 var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
 var getNextForgersPromise = node.Promise.promisify(getNextForgers);
 var getAccountsPromise = node.Promise.promisify(getAccounts);
-var getPublicKeyPromise = node.Promise.promisify(getPublicKey);
-var getBalancePromise = node.Promise.promisify(getBalance);
-var getBlocksPromise = node.Promise.promisify(getBlocks);
-var getDappPromise = node.Promise.promisify(getDapp);
-var getDappsPromise = node.Promise.promisify(getDapps);
-var getDappsCategoriesPromise = node.Promise.promisify(getDappsCategories);
 
 module.exports = {
 	getTransactionPromise: getTransactionPromise,
@@ -308,14 +304,6 @@ module.exports = {
 	getNextForgersPromise: getNextForgersPromise,
 	getAccounts: getAccounts,
 	getAccountsPromise: getAccountsPromise,
-	getPublicKey: getPublicKey,
-	getBalancePromise: getBalancePromise,
-	getBalance: getBalance,
-	getPublicKeyPromise: getPublicKeyPromise,
-	getBlocksPromise: getBlocksPromise,
 	getBlocksToWaitPromise: getBlocksToWaitPromise,
 	waitForConfirmations: waitForConfirmations,
-	getDappPromise: getDappPromise,
-	getDappsPromise: getDappsPromise,
-	getDappsCategoriesPromise: getDappsCategoriesPromise
 };
