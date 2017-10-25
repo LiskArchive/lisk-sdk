@@ -4,7 +4,6 @@ var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
 var modulesLoader = require('../../../common/modulesLoader');
 
-var getTransactionsPromise = require('../../../common/apiHelpers').getTransactionsPromise;
 var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
 var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
 
@@ -93,7 +92,7 @@ describe('GET /api/blocks', function () {
 					node.expect(auxResponse).to.eql(response);
 					return onNewBlockPromise();
 				})
-				.then(function (response) {
+				.then(function () {
 					return getJsonForKeyPromise(url + params.join('&'));
 				})
 				.then(function (result) {
@@ -360,48 +359,46 @@ describe('GET /api/blocks', function () {
 					'offset=' + offset
 				];
 
-				return onNewBlockPromise().then(function (res){
-					return getBlocksPromise(params).then(function (res){
-						node.expect(res).to.have.property('blocks').to.be.an('array').that.have.nested.property('0.height').to.be.above(1);
+				return getBlocksPromise(params).then(function (res){
+					node.expect(res).to.have.property('blocks').to.be.an('array').that.have.nested.property('0.height').to.be.above(1);
+				});
+			});
+		});
+
+		describe('/ codes', function () {
+
+			describe('when query is malformed', function () {
+
+				var invalidParams = 'height="invalidValue"';
+
+				it('should return http code = 400', function (done) {
+					http.get('/api/blocks?' + invalidParams, function (err, res) {
+						node.expect(res).to.have.property('status').equal(400);
+						done();
 					});
 				});
 			});
-		});
-	});
 
-	describe('codes', function () {
+			describe('when query does not return results', function () {
 
-		describe('when query is malformed', function () {
+				var notExistingId = '01234567890123456789';
+				var emptyResultParams = 'id=' + notExistingId;
 
-			var invalidParams = 'height="invalidValue"';
-
-			it('should return http code = 400', function (done) {
-				http.get('/api/blocks?' + invalidParams, function (err, res) {
-					node.expect(res).to.have.property('status').equal(400);
-					done();
+				it('should return http code = 200', function (done) {
+					http.get('/api/blocks?' + emptyResultParams, function (err, res) {
+						node.expect(res).to.have.property('status').equal(200);
+						done();
+					});
 				});
 			});
-		});
 
-		describe('when query does not return results', function () {
+			describe('when query returns results', function () {
 
-			var notExistingId = '01234567890123456789';
-			var emptyResultParams = 'id=' + notExistingId;
-
-			it('should return http code = 200', function (done) {
-				http.get('/api/blocks?' + emptyResultParams, function (err, res) {
-					node.expect(res).to.have.property('status').equal(200);
-					done();
-				});
-			});
-		});
-
-		describe('when query returns results', function () {
-
-			it('should return http code = 200', function (done) {
-				http.get('/api/blocks', function (err, res) {
-					node.expect(res).to.have.property('status').equal(200);
-					done();
+				it('should return http code = 200', function (done) {
+					http.get('/api/blocks', function (err, res) {
+						node.expect(res).to.have.property('status').equal(200);
+						done();
+					});
 				});
 			});
 		});

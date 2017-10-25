@@ -165,7 +165,7 @@ var middleware = {
 				var expressSendJson = res.json;
 				res.json = function (response) {
 					// ToDo: Remove response.success check when API refactor is done (#225)
-					if (response.success || res.statusCode === apiCodes.OK) {
+					if (response.success || (response.success === undefined && res.statusCode === apiCodes.OK)) {
 						logger.debug('cached response for key: ', req.url);
 						cache.setJsonForKey(key, response);
 					}
