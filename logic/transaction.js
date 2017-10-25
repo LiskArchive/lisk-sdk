@@ -529,12 +529,14 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 	}
 
 	// Check confirmed sender balance
-	var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
-	var senderBalance = this.checkBalance(amount, 'balance', transaction, sender);
+	/** this check will be done in transaction pool
+	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
+	var senderBalance = this.checkBalance(amount, 'balance', trs, sender);
 
 	if (senderBalance.exceeded) {
 		return setImmediate(cb, senderBalance.error);
 	}
+ */
 
 	// Check timestamp
 	if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
