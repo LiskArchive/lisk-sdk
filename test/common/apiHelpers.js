@@ -6,6 +6,8 @@ var node = require('../node');
 var http = require('./httpCommunication');
 var constants = require('../../helpers/constants');
 
+var waitForBlocks = node.Promise.promisify(node.waitForBlocks);
+
 function paramsHelper (url, params) {
 	if (typeof params != 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
 		// It is an defined array with at least one element
@@ -167,6 +169,46 @@ function getBlocksToWaitPromise () {
 		});
 }
 
+function waitForConfirmations (transactions, limitHeight = 10) {
+
+	function checkConfirmations (transactions) {
+		return node.Promise.map(transactions, function (transaction) {
+			return getTransactionPromise(transaction);
+		})
+			.then(function (res) {
+				return node.Promise.each(res, function (result) {
+					node.expect(result).to.have.property('success').to.be.ok;
+					node.expect(result).to.have.property('transaction').not.empty;
+				})
+					.then(true)
+					.catch(function (err) {
+						throw err;
+					});	
+			})
+			.catch(function (err) {
+				throw err;
+			});	
+	};
+
+	function waitUntilLimit (limit) {
+		if(limit == 0) {
+			throw new Error('Exceeded limit to wait for confirmations');
+		}
+		limit -= 1;
+
+		return waitForBlocks(1)
+			.then(function (res){
+				return checkConfirmations(transactions);
+			})
+			.catch(function (err) {
+				return waitUntilLimit(limit);
+			});
+	}
+
+	// Wait a maximum of limitHeight*25 confirmed transactions
+	return waitUntilLimit(limitHeight);
+}
+
 var getTransactionPromise = node.Promise.promisify(getTransaction);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
@@ -242,5 +284,6 @@ module.exports = {
 	getBalancePromise: getBalancePromise,
 	getBalance: getBalance,
 	getPublicKeyPromise: getPublicKeyPromise,
-	getBlocksToWaitPromise: getBlocksToWaitPromise
+	getBlocksToWaitPromise: getBlocksToWaitPromise,
+	waitForConfirmations: waitForConfirmations
 };

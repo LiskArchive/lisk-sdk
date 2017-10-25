@@ -6,8 +6,7 @@ var sendTransactionPromise = require('../common/apiHelpers').sendTransactionProm
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
 var getPendingMultisignaturePromise = require('../common/apiHelpers').getPendingMultisignaturePromise;
-var getBlocksToWaitPromise = require('../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
 
 var tests = [
 	{describe: 'null',              args: null},
@@ -35,7 +34,14 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			return getBlocksToWaitPromise().then(waitForBlocksPromise);
+			var transactionToWaitFor = goodTransactions.map(function (transaction) {
+				return [transaction.id];
+			});
+			return waitForConfirmations(transactionToWaitFor)
+				.catch(function (err) {
+					node.expect(err).to.be.empty;
+					throw err;
+				});
 		});
 
 		it('bad transactions should not be confirmed', function () {
