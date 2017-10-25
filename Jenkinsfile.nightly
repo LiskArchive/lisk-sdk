@@ -1,0 +1,19 @@
+pipeline {
+	agent { node { label 'lisky' } }
+	stages {
+		stage('Prepare workspace') {
+			steps {
+				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'scan-1', url: 'https://github.com/LiskHQ/lisky']]])
+			}
+		}
+		stage('Run vulnerabilities check') {
+			steps {
+				sh 'npm install --silent'
+				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
+					sh 'snyk test'
+				}
+				sh 'sha1sum package.json >~/.lisky.package.json.sha1sum'
+			}
+		}
+	}
+}
