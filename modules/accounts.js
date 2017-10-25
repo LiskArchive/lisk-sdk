@@ -5,6 +5,8 @@ var BlockReward = require('../logic/blockReward.js');
 var slots = require('../helpers/slots.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var extend = require('extend');
 var schema = require('../schema/accounts.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -188,6 +190,7 @@ Accounts.prototype.onBind = function (scope) {
 		delegates: scope.delegates,
 		accounts: scope.accounts,
 		transactions: scope.transactions,
+		blocks: scope.blocks
 	};
 
 	__private.assetTypes[transactionTypes.VOTE].bind(
@@ -241,19 +244,39 @@ Accounts.prototype.shared = {
 	getAccounts: function (req, cb) {
 		library.schema.validate(req.body, schema.getAccounts, function (err) {
 			if (err) {
-				return setImmediate(cb, err[0].message);
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
 
 			library.logic.account.getAll(req.body, function (err, accounts) {
 				if (err) {
-					return setImmediate(cb, err);
+					return setImmediate(cb, new ApiError(err, apiCodes.BAD_REQUEST));
 				}
 
-				accounts = _.map(accounts, function (account) {
+				var lastBlock = modules.blocks.lastBlock.get();
+				var totalSupply = __private.blockReward.calcSupply(lastBlock.height);
 
-					var outsider = account.rank + 1 > slots.delegates;
-					var percent = 100 - (account.missedblocks / ((account.producedblocks + account.missedblocks) / 100));
-					percent = Math.abs(percent) || 0;
+				accounts = _.map(accounts, function (account) {
+					var delegate = null;
+
+					// Only create delegate properties if account has a username
+					if (account.username) {
+						var approval = (account.vote / totalSupply) * 100;
+						account.approval = Math.round(approval * 1e2) / 1e2;
+						var outsider = account.rank + 1 > slots.delegates;
+						var percent = 100 - (account.missedblocks / ((account.producedblocks + account.missedblocks) / 100));
+						percent = Math.abs(percent) || 0;
+
+						delegate = {
+							username: account.username,
+							vote: account.vote,
+							rewards: account.rewards,
+							producedBlocks: account.producedBlocks,
+							missedBlocks: account.missedBlocks,
+							rank: account.rank,
+							approval: approval,
+							productivity: (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0
+						};
+					}
 
 					return {
 						address: account.address,
@@ -263,18 +286,7 @@ Accounts.prototype.shared = {
 						unconfirmedSignature: account.u_secondSignature,
 						secondSignature: account.secondSignature,
 						secondPublicKey: account.secondPublicKey,
-						multisignatures: account.multisignatures || [],
-						u_multisignatures: account.u_multisignatures || [],
-						delegate: {
-							username: account.username,
-							vote: account.vote,
-							rewards: account.rewards,
-							producedBlocks: account.producedBlocks,
-							missedBlocks: account.missedBlocks,
-							rank: account.rank,
-							approval: 1,
-							productivity: (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0
-						},
+						delegate: delegate
 					};
 				});
 

@@ -28,10 +28,7 @@ function AccountsHttpApi (accountsModule, app) {
 	var router = new Router();
 
 	router.map(accountsModule.shared, {
-		'get /getBalance': 'getBalance',
-		'get /getPublicKey': 'getPublickey',
 		'get /delegates': 'getDelegates',
-		'get /delegates/fee': 'getDelegatesFee'
 	});
 
 	router.map(accountsModule.shared, {
