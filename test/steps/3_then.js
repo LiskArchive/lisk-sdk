@@ -74,6 +74,32 @@ export function theVorpalCommandInstanceShouldHaveTheAlias() {
 	return (_aliases).should.be.eql([alias]);
 }
 
+export function itShouldNotGetTheKeysForThePassphrase() {
+	return (cryptoInstance.getKeys).should.not.be.called();
+}
+
+export function itShouldGetTheKeysForThePassphrase() {
+	const { passphrase } = this.test.ctx;
+	return (cryptoInstance.getKeys).should.be.calledWithExactly(passphrase);
+}
+
+export function itShouldGetThePasswordFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldGetThePasswordUsingThePasswordFromStdIn() {
+	const { password } = this.test.ctx;
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[2]).should.equal(password);
+}
+
+export function itShouldGetThePasswordUsingThePasswordSource() {
+	const { options } = this.test.ctx;
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[1]).should.equal(options.password);
+}
+
 export function itShouldGetTheDataUsingTheMessageFromStdIn() {
 	const { message } = this.test.ctx;
 	const firstCallArgs = input.getData.firstCall.args;
@@ -137,7 +163,12 @@ export function itShouldGetThePassphraseWithASinglePrompt() {
 
 export function itShouldGetThePassphraseWithARepeatedPrompt() {
 	const firstCallArgs = input.getPassphrase.firstCall.args;
-	return (firstCallArgs[3]).should.eql({ shouldRepeat: true });
+	return (firstCallArgs[3]).should.have.property('shouldRepeat').be.true();
+}
+
+export function itShouldGetThePasswordWithARepeatedPrompt() {
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[3]).should.have.property('shouldRepeat').be.true();
 }
 
 export function itShouldGetTheSecondPassphraseUsingTheVorpalInstance() {
@@ -147,12 +178,22 @@ export function itShouldGetTheSecondPassphraseUsingTheVorpalInstance() {
 
 export function itShouldGetThePassphraseUsingTheVorpalInstance() {
 	const { vorpal } = this.test.ctx;
-	return (input.getPassphrase).should.be.calledWith(vorpal);
+	return (input.getPassphrase.firstCall).should.be.calledWith(vorpal);
+}
+
+export function itShouldGetThePasswordUsingTheVorpalInstance() {
+	const { vorpal } = this.test.ctx;
+	return (input.getPassphrase.secondCall).should.be.calledWith(vorpal);
 }
 
 export function itShouldNotGetThePassphraseFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('passphraseIsRequired').equal(false);
+}
+
+export function itShouldNotGetThePasswordFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(false);
 }
 
 export function itShouldGetThePassphraseFromStdIn() {
@@ -168,6 +209,21 @@ export function itShouldNotGetTheMessageFromStdIn() {
 export function itShouldGetTheMessageFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey() {
+	const { returnValue, cryptoResult, publicKey } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(Object.assign({}, cryptoResult, { publicKey }));
+}
+
+export function itShouldEncryptThePassphraseUsingThePassword() {
+	const { passphrase, password } = this.test.ctx;
+	return (cryptoInstance.encryptPassphrase).should.be.calledWithExactly(passphrase, password);
+}
+
+export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
+	const { returnValue, cryptoResult } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(cryptoResult);
 }
 
 export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
