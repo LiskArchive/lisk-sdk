@@ -107,7 +107,7 @@ describe('create transaction register second passphrase command', () => {
 								});
 							});
 						});
-						describe('Given an options object with passphrase set to "file:/path/to/my/password.txt" and second passphrase via "stdin"', () => {
+						describe('Given an options object with passphrase set to "file:/path/to/my/password.txt" and second passphrase set to "stdin"', () => {
 							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
 							describe('Given the second passphrase is provided via stdin', () => {
 								beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);

@@ -642,7 +642,8 @@ export function theSecondPassphraseIsProvidedViaThePrompt() {
 
 export function thePassphraseAndTheSecondPassphraseAreProvidedViaThePrompt() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
-	this.test.ctx.vorpal.activeCommand.prompt.resolves({ passphrase, secondPassphrase });
+	this.test.ctx.vorpal.activeCommand.prompt.onFirstCall().resolves({ passphrase });
+	this.test.ctx.vorpal.activeCommand.prompt.onSecondCall().resolves({ secondPassphrase });
 }
 
 export function thePassphraseIsProvidedViaThePrompt() {
