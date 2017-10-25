@@ -57,6 +57,18 @@ export function anEncryptedMessage() {
 	this.test.ctx.message = message;
 }
 
+export function thePassphraseAndThePasswordAreProvidedViaStdIn() {
+	const { passphrase, password } = this.test.ctx;
+	inputUtils.getStdIn.resolves({ passphrase, data: password });
+	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
+	inputUtils.getPassphrase.onSecondCall().resolves(password);
+}
+
+export function thePasswordIsProvidedViaStdIn() {
+	const { password } = this.test.ctx;
+	inputUtils.getStdIn.resolves({ data: password });
+}
+
 export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
 	const { passphrase, message } = this.test.ctx;
 	inputUtils.getStdIn.resolves({ passphrase, data: message });
@@ -373,10 +385,15 @@ export function aCryptoInstance() {
 
 export function aPassphrase() {
 	const passphrase = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.resolves(passphrase);
-	}
 	this.test.ctx.passphrase = passphrase;
+}
+
+export function aPassphraseWithPublicKey() {
+	const [passphrase, publicKey] = getQuotedStrings(this.test.parent.title);
+	cryptoInstance.getKeys.returns({ publicKey });
+
+	this.test.ctx.passphrase = passphrase;
+	this.test.ctx.publicKey = publicKey;
 }
 
 export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
@@ -396,7 +413,8 @@ export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
 }
 
 export function aPassword() {
-	this.test.ctx.password = getFirstQuotedString(this.test.parent.title);
+	const password = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.password = password;
 }
 
 export function anEncryptedPassphraseWithAnIV() {
@@ -586,8 +604,21 @@ export function aPromptDisplayName() {
 }
 
 export function thePassphraseIsProvidedViaThePrompt() {
-	const { passphrase } = this.test.ctx;
-	this.test.ctx.vorpal.activeCommand.prompt.resolves({ passphrase });
+	const { passphrase, promptInputs = [] } = this.test.ctx;
+	this.test.ctx.vorpal.activeCommand.prompt.onCall(promptInputs.length).resolves({ passphrase });
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
+	}
+	promptInputs.push(passphrase);
+}
+
+export function thePasswordIsProvidedViaThePrompt() {
+	const { password, promptInputs = [] } = this.test.ctx;
+	this.test.ctx.vorpal.activeCommand.prompt.onCall(promptInputs.length).resolves({ password });
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onSecondCall().resolves(password);
+	}
+	promptInputs.push(password);
 }
 
 export function thePassphraseShouldNotBeRepeated() {
@@ -751,9 +782,40 @@ export function aConfigWithJsonSetTo() {
 	this.test.ctx.config = config;
 }
 
+export function anOptionsObjectWithOutputPublicKeySetToBoolean() {
+	const outputPublicKey = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { 'output-public-key': outputPublicKey };
+}
+
+export function anOptionsObjectWithPassphraseSetToAndPasswordSetTo() {
+	const [passphrase, password] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.options = { passphrase, password };
+}
+
+export function anOptionsObjectWithPasswordSetTo() {
+	const { password } = this.test.ctx;
+	const passwordSource = getFirstQuotedString(this.test.parent.title);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onSecondCall().resolves(password);
+	}
+	this.test.ctx.options = { password: passwordSource };
+}
+
+export function anOptionsObjectWithPasswordSetToUnknownSource() {
+	const password = getFirstQuotedString(this.test.parent.title);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onSecondCall().rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
+	}
+	this.test.ctx.options = { password };
+}
+
 export function anOptionsObjectWithPassphraseSetToAndMessageSetTo() {
-	const [passphrase, message] = getQuotedStrings(this.test.parent.title);
-	this.test.ctx.options = { passphrase, message };
+	const { passphrase } = this.test.ctx;
+	const [passphraseSource, messageSource] = getQuotedStrings(this.test.parent.title);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.resolves(passphrase);
+	}
+	this.test.ctx.options = { passphrase: passphraseSource, message: messageSource };
 }
 
 export function anOptionsObjectWithMessageSetTo() {
@@ -763,18 +825,22 @@ export function anOptionsObjectWithMessageSetTo() {
 
 export function anOptionsObjectWithMessageSetToUnknownSource() {
 	const message = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.options = { message };
 	inputUtils.getData.rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
+	this.test.ctx.options = { message };
 }
 
 export function anOptionsObjectWithPassphraseSetTo() {
+	const { passphrase } = this.test.ctx;
 	const passphraseSource = getFirstQuotedString(this.test.parent.title);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.resolves(passphrase);
+	}
 	this.test.ctx.options = { passphrase: passphraseSource };
 }
 
 export function anOptionsObjectWithPassphraseSetToUnknownSource() {
 	const passphrase = getFirstQuotedString(this.test.parent.title);
-	inputUtils.getData.rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
+	inputUtils.getPassphrase.onFirstCall().rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
 	this.test.ctx.options = { passphrase };
 }
 
