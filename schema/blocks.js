@@ -3,6 +3,10 @@
 var constants = require('../helpers/constants.js');
 
 module.exports = {
+	loadBlocksFromPeer: {
+		id: 'blocks.loadBlocksFromPeer',
+		type: 'array'
+	},
 	getBlocks: {
 		id: 'blocks.getBlocks',
 		type: 'object',
