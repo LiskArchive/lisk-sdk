@@ -4,7 +4,6 @@ var async = require('async');
 var _ = require('lodash');
 var crypto = require('crypto');
 
-var config = require('../../config.json');
 var constants = require('../../helpers/constants.js');
 var jobsQueue = require('../../helpers/jobsQueue.js');
 var transactionTypes = require('../../helpers/transactionTypes.js');
@@ -12,48 +11,53 @@ var bignum = require('../../helpers/bignum.js');
 var slots = require('../../helpers/slots.js');
 
 // Private fields
-var modules, library, self, __private = {}, pool = {};
+var modules; 
+var library;
+var self;
+var __private = {};
+var pool = {};
 
 /**
- * Initializes variables, sets bundled transaction timer and
- * transaction expiry timer.
+ * Initializes variables, sets bundled transaction pool timer and
+ * transaction pool expiry timer.
  * @memberof module:transactions
  * @class
  * @classdesc Main TransactionPool logic.
  * @implements {processPool}
- * @param {number} broadcastInterval
- * @param {number} releaseLimit
+ * @param {number} storageLimit
+ * @param {number} processInterval
+ * @param {number} expiryInterval
  * @param {Transaction} transaction - Logic instance
+ * @param {Account} account - Account instance
  * @param {bus} bus
  * @param {Object} logger
+ * @param {Object} ed
  */
 // Constructor
-function TransactionPool (broadcastInterval, releaseLimit, poolLimit, poolInterval, poolExpiryInterval, transaction, account, bus, logger, ed) {
+function TransactionPool (storageLimit, processInterval, expiryInterval, transaction, account, bus, logger, ed) {
 	library = {
 		logger: logger,
 		bus: bus,
 		ed: ed,
 		logic: {
 			transaction: transaction,
-			account, account
+			account: account
 		},
 		config: {
-			broadcasts: {
-				broadcastInterval: broadcastInterval,
-				releaseLimit: releaseLimit,
-			},
 			transactions: {
-				poolStorageTransactionsLimit: poolLimit,
-				poolProcessInterval: poolInterval,
-				poolExpiryInterval: poolExpiryInterval
+				pool: {
+					storageLimit: storageLimit,
+					processInterval: processInterval,
+					expiryInterval: expiryInterval
+				}
 			}
 		},
 	};
 	self = this;
 
-	self.poolStorageTransactionsLimit = library.config.transactions.poolStorageTransactionsLimit;
-	self.poolProcessInterval = library.config.transactions.poolProcessInterval;
-	self.poolExpiryInterval = library.config.transactions.poolExpiryInterval;
+	self.poolStorageTransactionsLimit = library.config.transactions.pool.storageLimit;
+	self.poolProcessInterval = library.config.transactions.pool.processInterval;
+	self.poolExpiryInterval = library.config.transactions.pool.expiryInterval;
 	pool = {
 		unverified: { transactions: {}, count: 0 },
 		verified:{
