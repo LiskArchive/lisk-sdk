@@ -193,6 +193,26 @@ function Account (db, schema, logger, cb) {
 			expression: '("rate")::bigint'
 		},
 		{
+			name: 'delegates',
+			type: 'Text',
+			filter: {
+				type: 'array',
+				uniqueItems: true
+			},
+			conv: Array,
+			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
+		},
+		{
+			name: 'u_delegates',
+			type: 'Text',
+			filter: {
+				type: 'array',
+				uniqueItems: true
+			},
+			conv: Array,
+			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
+		},
+		{
 			name: 'multisignatures',
 			type: 'Text',
 			filter: {
@@ -565,10 +585,17 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	}
 	delete filter.sort;
 
-	if (typeof filter.address === 'string') {
-		filter['a.address'] = {
-			$upper: ['a.ddress', filter.address]
-		};
+	if (filter.address) {
+
+		if (typeof filter.address === 'string') {
+			filter['a.address'] = {
+				$upper: ['a.ddress', filter.address]
+			};
+		}
+
+		if (typeof filter.address === 'object') {
+			filter['a.address'] = filter.address;
+		}
 		delete filter.address;
 	}
 
