@@ -18,7 +18,7 @@ import lisk from 'lisk-js';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
-import { createLiskTransaction } from '../../src/utils/liskInstance';
+import { liskTransaction } from '../../src/utils/transactions';
 import * as input from '../../src/utils/input';
 import commonOptions from '../../src/utils/options';
 import tablify from '../../src/utils/tablify';
@@ -28,25 +28,50 @@ import {
 	getFirstBoolean,
 } from './utils';
 
+export function itShouldHaveTheTransactionCreateTransaction() {
+	const { liskTransactionObject } = this.test.ctx;
+	return (liskTransactionObject).should.have.keys('createTransaction');
+}
+
+export function itShouldHaveTheTransactionSignTransaction() {
+	const { liskTransactionObject } = this.test.ctx;
+	return (liskTransactionObject).should.have.keys('signTransaction');
+}
+
+export function itShouldHaveTheTransactionCreateMultisignature() {
+	const { liskTransactionObject } = this.test.ctx;
+	return (liskTransactionObject).should.have.keys('createMultisignature');
+}
+
+export function itShouldHaveTheTransactionCreateSignature() {
+	const { liskTransactionObject } = this.test.ctx;
+	return (liskTransactionObject).should.have.keys('createSignature');
+}
+
+export function itShouldHaveTheTransactionCreateDelegate() {
+	const { liskTransactionObject } = this.test.ctx;
+	return (liskTransactionObject).should.have.keys('createDelegate');
+}
+
+export function itShouldHaveTheTransactionCreateVote() {
+	const { liskTransactionObject } = this.test.ctx;
+	return (liskTransactionObject).should.have.keys('createVote');
+}
+
 export function itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
-	(createLiskTransaction.createSignature).should.be.calledWith(passphrase, secondPassphrase);
+	return (liskTransaction.createSignature).should.be.calledWith(passphrase, secondPassphrase);
 }
 
 export function itShouldResolveToTheCreatedTransaction() {
 	const { returnValue, createdTransaction } = this.test.ctx;
-	(returnValue).should.be.fulfilledWith(createdTransaction);
+	return (returnValue).should.be.fulfilledWith(createdTransaction);
 }
 
 export function theVorpalCommandInstanceShouldHaveTheAlias() {
 	const { vorpal, command, alias } = this.test.ctx;
 	const { _aliases } = getCommandInstance(vorpal, command);
 	return (_aliases).should.be.eql([alias]);
-}
-
-export function theLiskTransactionObjectShouldHaveTransactionCreationFunctions() {
-	const { createLiskTransaction: createLiskTransactions } = this.test.ctx;
-	return (createLiskTransactions).should.have.keys('createTransaction', 'signTransaction', 'createMultisignature', 'createSignature', 'createDelegate', 'createVote');
 }
 
 export function itShouldGetTheDataUsingTheMessageFromStdIn() {
@@ -88,6 +113,12 @@ export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
 	return (firstCallArgs[2]).should.equal(passphrase);
 }
 
+export function itShouldGetTheSecondPassphraseFromTheSecondPassphraseSource() {
+	const { options } = this.test.ctx;
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[1]).should.equal(options['second-passphrase']);
+}
+
 export function itShouldGetThePassphraseUsingThePassphraseSource() {
 	const { options } = this.test.ctx;
 	const firstCallArgs = input.getPassphrase.firstCall.args;
@@ -96,7 +127,7 @@ export function itShouldGetThePassphraseUsingThePassphraseSource() {
 
 export function itShouldGetTheSecondPassphraseWithARepeatedPrompt() {
 	const secondCallArgs = input.getPassphrase.secondCall.args;
-	return (secondCallArgs[3]).should.eql({ shouldRepeat: true });
+	return (secondCallArgs[3]).should.eql({ shouldRepeat: true, displayName: 'your second secret passphrase' });
 }
 
 export function itShouldGetThePassphraseWithASinglePrompt() {
@@ -107,6 +138,11 @@ export function itShouldGetThePassphraseWithASinglePrompt() {
 export function itShouldGetThePassphraseWithARepeatedPrompt() {
 	const firstCallArgs = input.getPassphrase.firstCall.args;
 	return (firstCallArgs[3]).should.eql({ shouldRepeat: true });
+}
+
+export function itShouldGetTheSecondPassphraseUsingTheVorpalInstance() {
+	const { vorpal } = this.test.ctx;
+	return (input.getPassphrase.secondCall).should.be.calledWith(vorpal);
 }
 
 export function itShouldGetThePassphraseUsingTheVorpalInstance() {
@@ -289,9 +325,9 @@ export function itShouldReturnAnObjectWithTheAddress() {
 	return (returnValue).should.eql({ address });
 }
 
-export function theLiskInstanceShouldBeALiskJSApiInstance() {
-	const { liskInstance } = this.test.ctx;
-	return (liskInstance).should.be.instanceOf(lisk.api);
+export function theliskAPIInstanceShouldBeALiskJSApiInstance() {
+	const { liskAPIInstance } = this.test.ctx;
+	return (liskAPIInstance).should.be.instanceOf(lisk.api);
 }
 
 export function theResultShouldBeReturned() {
@@ -311,32 +347,32 @@ export function jSONOutputShouldBeLogged() {
 	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
 }
 
-export function theLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
-	const { blockId, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
+	const { blockId, liskAPIInstance } = this.test.ctx;
 	const route = 'blocks/get';
 	const options = { id: blockId };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
-	const { address, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
+	const { address, liskAPIInstance } = this.test.ctx;
 	const route = 'accounts';
 	const options = { address };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
-	const { transactionId, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
+	const { transactionId, liskAPIInstance } = this.test.ctx;
 	const route = 'transactions/get';
 	const options = { id: transactionId };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
-	const { delegateUsername, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
+	const { delegateUsername, liskAPIInstance } = this.test.ctx;
 	const route = 'delegates/get';
 	const options = { username: delegateUsername };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
 export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {

@@ -13,15 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
-import config from './env';
+import * as given from '../../steps/1_given';
+import * as then from '../../steps/3_then';
 
-export default lisk.api(config.liskJS);
-
-export const createLiskTransaction = Object.assign({},
-	lisk.transaction,
-	lisk.multisignature,
-	lisk.signature,
-	lisk.delegate,
-	lisk.vote,
-);
+describe('api util', () => {
+	describe('Given a lisk instance', () => {
+		beforeEach(given.aliskAPIInstance);
+		it('Then the lisk instance should be a lisk-js api instance', then.theliskAPIInstanceShouldBeALiskJSApiInstance);
+	});
+});

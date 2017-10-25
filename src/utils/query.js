@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from './liskInstance';
+import lisk from './api';
 
 class Query {
 	constructor() {

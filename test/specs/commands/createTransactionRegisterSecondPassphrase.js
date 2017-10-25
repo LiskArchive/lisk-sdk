@@ -43,26 +43,27 @@ describe('create transaction register second passphrase command', () => {
 							beforeEach(given.anOptionsObjectWithSecondPassphraseSetToUnknownSource);
 							describe('When the action is called with the options', () => {
 								beforeEach(when.theActionIsCalledWithTheOptions);
-								it('Then it should reject with message "Unknown passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
+								it('Then it should reject with message "Unknown second passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 							});
 						});
 						describe('Given an empty options object', () => {
 							beforeEach(given.anEmptyOptionsObject);
-							describe('Given the passphrase and the second passphrase Are provided via the prompt', () => {
+							describe('Given the passphrase and the second passphrase are provided via the prompt', () => {
 								beforeEach(given.thePassphraseAndTheSecondPassphraseAreProvidedViaThePrompt);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 									it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 									it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
+									it('Then it should get the second passphrase using the vorpal instance', then.itShouldGetTheSecondPassphraseUsingTheVorpalInstance);
 									it('Then it should get the second passphrase with a repeated prompt', then.itShouldGetTheSecondPassphraseWithARepeatedPrompt);
-									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
+									it('Then it should have created a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
 						});
 						describe('Given an options object with passphrase set to "stdin"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToStdIn);
+							beforeEach(given.anOptionsObjectWithPassphraseSetTo);
 							describe('Given the passphrase is provided via stdin', () => {
 								beforeEach(given.thePassphraseIsProvidedViaStdIn);
 								describe('Given the second passphrase is provided via the prompt', () => {
@@ -71,8 +72,7 @@ describe('create transaction register second passphrase command', () => {
 										beforeEach(when.theActionIsCalledWithTheOptions);
 										it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
 										it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
-										it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
-										it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
+										it('Then it should get the second passphrase using the vorpal instance', then.itShouldGetTheSecondPassphraseUsingTheVorpalInstance);
 										it('Then it should get the second passphrase with a repeated prompt', then.itShouldGetTheSecondPassphraseWithARepeatedPrompt);
 										it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 										it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
@@ -80,46 +80,42 @@ describe('create transaction register second passphrase command', () => {
 								});
 							});
 						});
-						describe('Given an options object with passphrase and second passphrase set to "stdin"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseAndSecondPassphrasePassphraseSetToStdIn);
-							describe('Given the passphrase and the second passphrase is provided via stdin', () => {
-								beforeEach(given.thePassphraseAndTheSecondPassphraseIsProvidedViaStdIn);
+						describe('Given an options object with passphrase set to "stdin" and second passphrase set to "stdin"', () => {
+							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
+							describe('Given the passphrase and the second passphrase are provided via stdin', () => {
+								beforeEach(given.thePassphraseAndTheSecondPassphraseAreProvidedViaStdIn);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
 									it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
 									it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);
-									it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
-									it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
 						});
 						describe('Given an options object with passphrase set to "stdin" and second passphrase set to "file:/path/to/my/password.txt"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToStdInAndSecondPassphraseSetTo);
+							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
 							describe('Given the passphrase is provided via stdin', () => {
 								beforeEach(given.thePassphraseIsProvidedViaStdIn);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
 									it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
+									it('Then it should get the second passphrase from the second passphrase source', then.itShouldGetTheSecondPassphraseFromTheSecondPassphraseSource);
 									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
-									it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
-									it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
 						});
 						describe('Given an options object with passphrase set to "file:/path/to/my/password.txt" and second passphrase via "stdin"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetToStdIn);
-							describe('Given the passphrase is provided via stdin', () => {
+							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
+							describe('Given the second passphrase is provided via stdin', () => {
 								beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 									it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);
 									it('Then it should get the second passphrase using the second passphrase from stdin', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn);
-									it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});

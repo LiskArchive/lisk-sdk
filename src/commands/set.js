@@ -18,7 +18,7 @@ import { CONFIG_VARIABLES } from '../utils/constants';
 import config from '../utils/env';
 import { writeJsonSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
-import liskInstance from '../utils/liskInstance';
+import liskAPIInstance from '../utils/api';
 
 const configFilePath = `${os.homedir()}/.lisky/config.json`;
 
@@ -78,7 +78,7 @@ const setBoolean = (variable, path) => (value) => {
 	path.reduce(setNestedConfigProperty(newValue), config);
 
 	if (variable === 'testnet') {
-		liskInstance.setTestnet(newValue);
+		liskAPIInstance.setTestnet(newValue);
 	}
 
 	return attemptWriteToFile(variable, value);

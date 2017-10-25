@@ -145,10 +145,9 @@ export const getPassphraseFromSource = async (source, { displayName }) => {
 };
 
 export const getPassphrase = async (
-	vorpal, passphraseSource, passphrase, options, displayPrefix,
+	vorpal, passphraseSource, passphrase, options,
 ) => {
-	const displayName = displayPrefix || 'your secret passphrase';
-	const optionsWithDefaults = Object.assign({ displayName }, options);
+	const optionsWithDefaults = Object.assign({ displayName: 'your secret passphrase' }, options);
 	if (passphrase) return passphrase;
 	if (!passphraseSource) return getPassphraseFromPrompt(vorpal, optionsWithDefaults);
 	return getPassphraseFromSource(passphraseSource, optionsWithDefaults);

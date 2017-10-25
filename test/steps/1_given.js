@@ -23,7 +23,8 @@ import * as env from '../../src/utils/env';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
 import * as inputUtils from '../../src/utils/input';
-import liskInstance, { createLiskTransaction } from '../../src/utils/liskInstance';
+import liskAPIInstance from '../../src/utils/api';
+import { liskTransaction } from '../../src/utils/transactions';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import commonOptions from '../../src/utils/options';
 import queryInstance from '../../src/utils/query';
@@ -44,7 +45,7 @@ export function anAlias() {
 }
 
 export function aLiskTransactionObject() {
-	this.test.ctx.createLiskTransaction = createLiskTransaction;
+	this.test.ctx.liskTransactionObject = liskTransaction;
 }
 
 export function aSenderPublicKey() {
@@ -72,7 +73,7 @@ export function theSecondPassphraseIsProvidedViaStdIn() {
 }
 
 
-export function thePassphraseAndTheSecondPassphraseIsProvidedViaStdIn() {
+export function thePassphraseAndTheSecondPassphraseAreProvidedViaStdIn() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
 	inputUtils.getStdIn.resolves({ passphrase, data: secondPassphrase });
 	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
@@ -86,7 +87,6 @@ export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
 
 export function theMessageIsProvidedViaStdIn() {
 	const { message } = this.test.ctx;
-	// getStdInResult.data = message;
 	inputUtils.getStdIn.resolves({ data: message });
 }
 
@@ -216,7 +216,6 @@ export function aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt() {
 		ui: {},
 		activeCommand: {
 			prompt: sandbox.stub().resolves({ passphrase }),
-			// prompt: sandbox.stub().onFirstCall().resolves({ passphrase }),
 		},
 	};
 }
@@ -225,8 +224,8 @@ export function thereIsAResultToPrint() {
 	this.test.ctx.result = { lisk: 'JS' };
 }
 
-export function aLiskInstance() {
-	this.test.ctx.liskInstance = liskInstance;
+export function aliskAPIInstance() {
+	this.test.ctx.liskAPIInstance = liskAPIInstance;
 }
 
 export function aQueryInstanceHasBeenInitialised() {
@@ -245,7 +244,7 @@ export function aQueryInstanceHasBeenInitialised() {
 
 export function aQueryInstance() {
 	this.test.ctx.queryInstance = queryInstance;
-	sandbox.stub(liskInstance, 'sendRequest');
+	sandbox.stub(liskAPIInstance, 'sendRequest');
 }
 
 export function aBlockID() {
@@ -395,7 +394,7 @@ export function aLiskObjectThatCanCreateTransactions() {
 		'createDelegate',
 		'createVote',
 	].forEach((methodName) => {
-		sandbox.stub(createLiskTransaction, methodName).returns(createdTransaction);
+		sandbox.stub(liskTransaction, methodName).returns(createdTransaction);
 	});
 
 	this.test.ctx.createdTransaction = createdTransaction;
@@ -812,32 +811,14 @@ export function aConfigWithJsonSetTo() {
 	this.test.ctx.config = config;
 }
 
-export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetToStdIn() {
+export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo() {
+	const { secondPassphrase, passphrase } = this.test.ctx;
 	const [passphraseSource, secondPassphraseSource] = getQuotedStrings(this.test.parent.title);
-	const { passphrase } = this.test.ctx;
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
 		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-	}
-	this.test.ctx.options = { passphrase: passphraseSource, 'second-passphrase': secondPassphraseSource };
-}
-
-export function anOptionsObjectWithPassphraseSetToStdInAndSecondPassphraseSetTo() {
-	const [passphraseSource, secondPassphraseSource] = getQuotedStrings(this.test.parent.title);
-	const { secondPassphrase } = this.test.ctx;
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
 		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
 	}
 	this.test.ctx.options = { passphrase: passphraseSource, 'second-passphrase': secondPassphraseSource };
-}
-
-export function anOptionsObjectWithPassphraseAndSecondPassphrasePassphraseSetToStdIn() {
-	const passphraseSource = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.options = { passphrase: passphraseSource, 'second-passphrase': passphraseSource };
-}
-
-export function anOptionsObjectWithPassphraseSetToStdIn() {
-	const passphraseSource = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.options = { passphrase: passphraseSource };
 }
 
 export function anOptionsObjectWithPassphraseSetToAndMessageSetTo() {
@@ -863,7 +844,7 @@ export function anOptionsObjectWithPassphraseSetTo() {
 
 export function anOptionsObjectWithSecondPassphraseSetToUnknownSource() {
 	const secondPassphrase = getFirstQuotedString(this.test.parent.title);
-	inputUtils.getPassphrase.onSecondCall().rejects(new Error('Unknown passphrase source type. Must be one of `file`, or `stdin`.'));
+	inputUtils.getPassphrase.onSecondCall().rejects(new Error('Unknown second passphrase source type. Must be one of `file`, or `stdin`.'));
 	this.test.ctx.options = { 'second-passphrase': secondPassphrase };
 }
 

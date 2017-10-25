@@ -132,19 +132,19 @@ export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocomp
 		command,
 		autocompleteList: autocomplete,
 		description,
+		alias,
 		actionCreator,
 		optionsList: options,
 		prefix: errorPrefix,
-		alias,
 	} = this.test.ctx;
 	this.test.ctx.createdCommand = createCommand({
 		command,
 		autocomplete,
 		description,
+		alias,
 		actionCreator,
 		options,
 		errorPrefix,
-		alias,
 	});
 }
 
