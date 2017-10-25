@@ -164,7 +164,8 @@ var middleware = {
 				// Monkey patching res.json function only if we expect to cache response
 				var expressSendJson = res.json;
 				res.json = function (response) {
-					if (response.success) {
+					// ToDo: Remove response.success check when API refactor is done (#225)
+					if (response.success || res.statusCode === apiCodes.OK) {
 						logger.debug('cached response for key: ', req.url);
 						cache.setJsonForKey(key, response);
 					}
