@@ -3,21 +3,13 @@
 var expect = require('chai').expect;
 var sinon  = require('sinon');
 var _ = require('lodash');
-var node = require('../../../node');
 
-var modulesLoader = require('../../../common/initModule').modulesLoader;
-var TransactionPool = require('../../../../logic/transactions/pool.js');
-var Transaction = require('../../../../logic/transaction.js');
-var Account = require('../../../../logic/account.js');
+var node = require('../../../node');
+var DBSandbox = require('../../../common/globalBefore').DBSandbox;
+var modulesLoader = require('../../../common/modulesLoader');
 var bson = require('../../../../helpers/bson.js');
 var constants = require('../../../../helpers/constants.js');
-
-var transactionTypes = require('../../../../helpers/transactionTypes');
-var Vote = require('../../../../logic/vote.js');
-var Transfer = require('../../../../logic/transfer.js');
-var Delegate = require('../../../../logic/delegate.js');
-var Signature = require('../../../../logic/signature.js');
-var Multisignature = require('../../../../logic/multisignature.js');
+var TransactionPool = require('../../../../logic/transactions/pool.js');
 
 var testAccounts = [
 	{
@@ -182,76 +174,44 @@ describe('transactionPool', function () {
 	var accounts;
 	var transactionPool;
 	var poolTotals;
-	var transactionReady;
 	var poolStorageTransactionsLimit;
+	var dbSandbox;
 
 	before(function (done) {
-		constants.unconfirmedTransactionTimeOut = 1;
-		constants.signatureTransactionTimeOutMultiplier = 1;
-		constants.secondsPerHour = 1;
-		modulesLoader.scope.config.transactions.poolStorageTransactionsLimit = 6;
-		modulesLoader.scope.config.transactions.poolProcessInterval = 60000000;
-		modulesLoader.scope.config.transactions.poolExpiryInterval = 300000000;
-
-		modulesLoader.initLogicWithDb(Account, function (err, __accountLogic) {
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transactionPool');
+		dbSandbox.create(function (err, __db) {
 			if (err) {
 				return done(err);
 			}
-			modulesLoader.initLogic(Transaction, modulesLoader.scope, function (err, __trsLogic) {
-				if (err) {
-					return done(err);
-				}
-				poolStorageTransactionsLimit = modulesLoader.scope.config.transactions.poolStorageTransactionsLimit;
+			// Wait for genesisBlock transaction being applied
+			node.initApplication(function (err, scope) {
+				constants.unconfirmedTransactionTimeOut = 1;
+				constants.signatureTransactionTimeOutMultiplier = 1;
+				constants.secondsPerHour = 1;
+				poolStorageTransactionsLimit =  modulesLoader.scope.config.transactions.pool.storageLimit = 6;
+				modulesLoader.scope.config.transactions.pool.processInterval = 60000000;
+				modulesLoader.scope.config.transactions.pool.expiryInterval = 300000000;
+
+				// Init transaction logic
 				transactionPool = new TransactionPool(
-					modulesLoader.scope.config.broadcasts.broadcastInterval,
-					modulesLoader.scope.config.broadcasts.releaseLimit,
-					modulesLoader.scope.config.transactions.poolStorageTransactionsLimit,
-					modulesLoader.scope.config.transactions.poolProcessInterval,
-					modulesLoader.scope.config.transactions.poolExpiryInterval,
-					__trsLogic,
-					__accountLogic,
+					modulesLoader.scope.config.transactions.pool.storageLimit,
+					modulesLoader.scope.config.transactions.pool.processInterval,
+					modulesLoader.scope.config.transactions.pool.expiryInterval,
+					scope.logic.transaction,
+					scope.logic.account,
 					modulesLoader.scope.bus,
 					modulesLoader.scope.logger,
 					modulesLoader.scope.ed
 				);
-	
-				modulesLoader.initModules([
-					{accounts: require('../../../../modules/accounts')},
-					{delegates: require('../../../../modules/delegates')},
-					{multisignatures: require('../../../../modules/multisignatures')},
-				], [
-					{'transaction': require('../../../../logic/transaction')},
-					{'account': require('../../../../logic/account')}
-				], {}, function (err, __modules) {
-					if (err) {
-						return done(err);
-					}
-					var logicDelegates = new Delegate(modulesLoader.scope.schema);
-					logicDelegates.bind(__modules.accounts);
-
-					var logicVote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
-					logicVote.bind(__modules.delegates);
-
-					var logicMultisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, __trsLogic, modulesLoader.scope.logger);
-
-					__modules.accounts.onBind(__modules);
-					accounts = __modules.accounts;
-					
-					__modules.delegates.onBind(__modules);
-					__modules.multisignatures.onBind(__modules);
-
-					transactionPool.bind(__modules.accounts);
-
-					__trsLogic.attachAssetType(transactionTypes.VOTE, logicVote);
-					__trsLogic.attachAssetType(transactionTypes.SEND, new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema));
-					__trsLogic.attachAssetType(transactionTypes.DELEGATE, logicDelegates);
-					__trsLogic.attachAssetType(transactionTypes.SIGNATURE, new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger));
-					__trsLogic.attachAssetType(transactionTypes.MULTI, logicMultisignature);
-
-					done();
-				});
-			});
-		}, modulesLoader.scope);
+				transactionPool.bind(
+					scope.modules.accounts,
+					null,
+					scope.modules.loader
+				);
+				accounts = scope.modules.accounts;
+				done();
+			}, {db: __db});
+		});
 	});
 
 	beforeEach(function () {
@@ -260,6 +220,11 @@ describe('transactionPool', function () {
 
 	after(function () {
 		restoreSpiesState();
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
 	});
 
 	describe('setup database', function () {
