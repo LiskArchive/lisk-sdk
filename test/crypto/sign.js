@@ -92,7 +92,7 @@ ${defaultSecondSignature}
 
 	let getRawPrivateAndPublicKeyFromSecretStub;
 	let getTransactionHashStub;
-	let getSha256HashStub;
+	let hashStub;
 
 	beforeEach(() => {
 		defaultSignedMessage = {
@@ -161,8 +161,8 @@ ${defaultSecondSignature}
 					'hex',
 				),
 			);
-		getSha256HashStub = sandbox
-			.stub(hash, 'getSha256Hash')
+		hashStub = sandbox
+			.stub(hash, 'default')
 			.returns(
 				Buffer.from(
 					'd43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760',
@@ -551,7 +551,7 @@ ${defaultSecondSignature}
 
 	describe('encrypt and decrypt passphrase with password', () => {
 		beforeEach(() => {
-			getSha256HashStub.returns(
+			hashStub.returns(
 				Buffer.from(
 					'e09dfc943d65d63f4f31e444c81afc6d5cf442c988fb87180165dd7119d3ae61',
 					'hex',

@@ -14,14 +14,14 @@
  */
 
 /**
- * @method getSha256Hash
+ * @method hash
  * @param data
  * @param format
  *
  * @return {string}
  */
-// eslint-disable-next-line import/prefer-default-export
-export function getSha256Hash(data, format) {
+
+export default function hash(data, format) {
 	if (Buffer.isBuffer(data)) {
 		return Buffer.from(naclInstance.crypto_hash_sha256(data));
 	}

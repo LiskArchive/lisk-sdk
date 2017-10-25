@@ -46,7 +46,7 @@ describe('keys', () => {
 			.withArgs(Buffer.from(defaultPublicKey, 'hex'))
 			.returns(defaultPublicKey);
 		sandbox
-			.stub(hash, 'getSha256Hash')
+			.stub(hash, 'default')
 			.returns(Buffer.from(defaultSecretHash, 'hex'));
 	});
 

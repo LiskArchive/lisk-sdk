@@ -12,53 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getSha256Hash } from '../../src/crypto/hash';
+import hashFunction from '../../src/crypto/hash';
 
 describe('hash', () => {
-	describe('#getSha256Hash', () => {
-		const defaultText = 'text123*';
-		let arrayToHash;
-		let defaultHash;
+	const defaultText = 'text123*';
+	let arrayToHash;
+	let defaultHash;
 
-		beforeEach(() => {
-			defaultHash = Buffer.from(
-				'7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971',
-				'hex',
+	beforeEach(() => {
+		defaultHash = Buffer.from(
+			'7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971',
+			'hex',
+		);
+		arrayToHash = [1, 2, 3];
+	});
+
+	it('should generate a sha256 hash from a Buffer', () => {
+		const testBuffer = Buffer.from(defaultText);
+		const hash = hashFunction(testBuffer);
+		hash.should.be.eql(defaultHash);
+	});
+
+	it('should generate a sha256 hash from a utf8 string', () => {
+		const hash = hashFunction(defaultText, 'utf8');
+		hash.should.be.eql(defaultHash);
+	});
+
+	it('should generate a sha256 hash from a hex string', () => {
+		const testHex = Buffer.from(defaultText).toString('hex');
+		const hash = hashFunction(testHex, 'hex');
+		hash.should.be.eql(defaultHash);
+	});
+
+	it('should throw on unknown format when trying a string with format "utf32"', () => {
+		hashFunction
+			.bind(null, defaultText, 'utf32')
+			.should.throw(
+				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
 			);
-			arrayToHash = [1, 2, 3];
-		});
+	});
 
-		it('should generate a sha256 hash from a Buffer', () => {
-			const testBuffer = Buffer.from(defaultText);
-			const hash = getSha256Hash(testBuffer);
-			hash.should.be.eql(defaultHash);
-		});
-
-		it('should generate a sha256 hash from a utf8 string', () => {
-			const hash = getSha256Hash(defaultText, 'utf8');
-			hash.should.be.eql(defaultHash);
-		});
-
-		it('should generate a sha256 hash from a hex string', () => {
-			const testHex = Buffer.from(defaultText).toString('hex');
-			const hash = getSha256Hash(testHex, 'hex');
-			hash.should.be.eql(defaultHash);
-		});
-
-		it('should throw on unknown format when trying a string with format "utf32"', () => {
-			getSha256Hash
-				.bind(null, defaultText, 'utf32')
-				.should.throw(
-					'Unsupported string format. Currently only `hex` and `utf8` are supported.',
-				);
-		});
-
-		it('should throw on unknown format when using an array', () => {
-			getSha256Hash
-				.bind(null, arrayToHash)
-				.should.throw(
-					'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
-				);
-		});
+	it('should throw on unknown format when using an array', () => {
+		hashFunction
+			.bind(null, arrayToHash)
+			.should.throw(
+				'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
+			);
 	});
 });

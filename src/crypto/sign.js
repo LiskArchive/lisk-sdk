@@ -19,7 +19,7 @@ import {
 	convertPrivateKeyEd2Curve,
 	convertPublicKeyEd2Curve,
 } from './convert';
-import { getSha256Hash } from './hash';
+import hash from './hash';
 import { getTransactionHash } from '../transactions/utils';
 import { getRawPrivateAndPublicKeyFromSecret } from './keys';
 
@@ -383,7 +383,7 @@ export function decryptMessageWithSecret(
 
 function encryptAES256CBCWithPassword(plainText, password) {
 	const iv = crypto.randomBytes(16);
-	const passwordHash = getSha256Hash(password, 'utf8');
+	const passwordHash = hash(password, 'utf8');
 	const cipher = crypto.createCipheriv('aes-256-cbc', passwordHash, iv);
 	const firstBlock = cipher.update(plainText, 'utf8');
 	const encrypted = Buffer.concat([firstBlock, cipher.final()]);
@@ -405,7 +405,7 @@ function encryptAES256CBCWithPassword(plainText, password) {
  */
 
 function decryptAES256CBCWithPassword({ cipher, iv }, password) {
-	const passwordHash = getSha256Hash(password, 'utf8');
+	const passwordHash = hash(password, 'utf8');
 	const decipherInit = crypto.createDecipheriv(
 		'aes-256-cbc',
 		passwordHash,

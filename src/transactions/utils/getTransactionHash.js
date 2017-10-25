@@ -24,5 +24,5 @@ import getTransactionBytes from './getTransactionBytes';
 
 export default function getTransactionHash(transaction) {
 	const bytes = getTransactionBytes(transaction);
-	return crypto.getSha256Hash(bytes);
+	return crypto.hash(bytes);
 }
