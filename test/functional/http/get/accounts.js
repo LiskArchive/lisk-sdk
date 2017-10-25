@@ -200,5 +200,28 @@ describe('GET /api/accounts', function () {
 				]);
 			});
 		});
+		
+		it('should return delegate properties for an delegate account', function () {
+			return getAccountsPromise('address=' + node.eAccount.address).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(1);
+				node.expect(res).to.have.nested.property('body.accounts').that.is.an('array');
+				node.expect(res).to.have.nested.property('body.accounts[0].address').to.equal(node.eAccount.address);
+				node.expect(res).to.have.nested.property('body.accounts[0].unconfirmedBalance').that.is.a('string');
+				node.expect(res).to.have.nested.property('body.accounts[0].balance').that.is.a('string');
+				node.expect(res).to.have.nested.property('body.accounts[0].publicKey').to.equal(node.eAccount.publicKey);
+				node.expect(res).to.have.nested.property('body.accounts[0].unconfirmedSignature').to.equal(0);
+				node.expect(res).to.have.nested.property('body.accounts[0].secondSignature').to.equal(0);
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate').that.is.an('object');
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.username').to.equal(node.eAccount.delegateName);
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.rank').that.is.an('string');
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.productivity').that.is.an('number');
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.missedBlocks').that.is.an('string');
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.producedBlocks').that.is.an('string');
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.rewards').that.is.an('string');
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.vote').that.is.an('string');
+				node.expect(res).to.have.nested.property('body.accounts[0].delegate.approval').that.is.an('number');
+			});
+		});
 	});
 });
