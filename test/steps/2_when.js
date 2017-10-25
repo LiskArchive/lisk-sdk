@@ -31,14 +31,15 @@ import * as inputUtils from '../../src/utils/input';
 import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
 import {
+	createMnemonicPassphrase,
+	isValidMnemonicPassphrase,
+} from '../../src/utils/mnemonic';
+import execFile from '../../src/execFile';
+import {
 	DEFAULT_ERROR_MESSAGE,
 	getFirstQuotedString,
 	getQuotedStrings,
 } from './utils';
-import {
-	createMnemonicPassphrase,
-	isValidMnemonicPassphrase,
-} from '../../src/utils/mnemonic';
 
 const tablifyToSpy = require('../../src/utils/tablify');
 
@@ -57,6 +58,32 @@ export function theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions() 
 	const returnValue = action({ iv, passphrase, options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
+}
+
+export function execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction() {
+	const { lisky, filePath, exit } = this.test.ctx;
+	try {
+		const returnValue = execFile(lisky, filePath, null, exit);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue.catch(e => e);
+	} catch (error) {
+		const testFunction = execFile.bind(null, lisky, filePath, null, exit);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
+}
+
+export function execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheExitFunction() {
+	const { lisky, filePath, options, exit } = this.test.ctx;
+	try {
+		const returnValue = execFile(lisky, filePath, options, exit);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue.catch(e => e);
+	} catch (error) {
+		const testFunction = execFile.bind(null, lisky, filePath, options, exit);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
 }
 
 export function theActionIsCalledWithTheMessageTheNonceTheSenderPublicKeyAndTheOptions() {
