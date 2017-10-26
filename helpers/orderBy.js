@@ -87,6 +87,9 @@ function OrderBy (orderBy, options) {
  * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
  */
 OrderBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
+	if (sortableFields.indexOf(sortQuery) !== -1) {
+		sortQuery = sortQuery + ':asc';
+	}
 	var sortQueryMatched = typeof sortQuery !== 'string' ? null : sortQuery.match(/^([a-zA-Z0-9]+):(asc|desc)$/);
 	if (!sortQueryMatched || sortableFields.indexOf(sortQueryMatched[1]) === -1) {
 		return {};
