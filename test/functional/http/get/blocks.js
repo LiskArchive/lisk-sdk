@@ -36,7 +36,7 @@ describe('GET /api/blocks', function () {
 		}
 	}
 
-	describe.skip('from (cache)', function () {
+	describe('from (cache)', function () {
 
 		var cache;
 		var url = '/api/blocks?';
@@ -140,6 +140,7 @@ describe('GET /api/blocks', function () {
 				];
 
 				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(200);
 					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').and.to.be.empty;
 				});
 			});
@@ -252,35 +253,38 @@ describe('GET /api/blocks', function () {
 
 		describe('limit', function () {
 
-			it('using string should fail', function () {
+			it('using string should return bad request response', function () {
 				var limit = 'one';
 				var params = [
 					'limit=' + limit
 				];
 
 				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
 					node.expect(res).to.have.nested.property('body.message').to.equal('Expected type integer but found type string');
 				});
 			});
 
-			it('using -1 should fail', function () {
+			it('using -1 should return bad request response', function () {
 				var limit = -1;
 				var params = [
 					'limit=' + limit
 				];
 
 				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
 					node.expect(res).to.have.nested.property('body.message').to.equal('Value -1 is less than minimum 1');
 				});
 			});
 
-			it('using 0 should fail', function () {
+			it('using 0 should return bad request response', function () {
 				var limit = 0;
 				var params = [
 					'limit=' + limit
 				];
 
 				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
 					node.expect(res).to.have.nested.property('body.message').to.equal('Value 0 is less than minimum 1');
 				});
 			});
@@ -309,13 +313,14 @@ describe('GET /api/blocks', function () {
 				});
 			});
 
-			it('using > 100 should fail', function () {
+			it('using > 100 should return bad request response', function () {
 				var limit = 101;
 				var params = [
 					'limit=' + limit
 				];
 
 				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
 					node.expect(res).to.have.nested.property('body.message').to.equal('Value 101 is greater than maximum 100');
 				});
 			});
@@ -323,24 +328,26 @@ describe('GET /api/blocks', function () {
 
 		describe('offset', function () {
 
-			it('using string should fail', function () {
+			it('using string should return bad request response', function () {
 				var offset = 'one';
 				var params = [
 					'offset=' + offset
 				];
 
 				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
 					node.expect(res).to.have.nested.property('body.message').to.equal('Expected type integer but found type string');
 				});
 			});
 
-			it('using -1 should fail', function () {
+			it('using -1 should return bad request response', function () {
 				var offset = -1;
 				var params = [
 					'offset=' + offset
 				];
 
-				return getBlocksPromise(params).then(function (res){
+				return getBlocksPromise(params).then(function (res) {
+					node.expect(res.statusCode).equal(400);
 					node.expect(res).to.have.nested.property('body.message').to.equal('Value -1 is less than minimum 0');
 				});
 			});
@@ -354,44 +361,6 @@ describe('GET /api/blocks', function () {
 				return getBlocksPromise(params).then(function (res) {
 					expectValidNonEmptyBlocks(res);
 					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').that.have.nested.property('0.height').to.be.above(1);
-				});
-			});
-		});
-
-		describe('/ codes', function () {
-
-			describe('when query is malformed', function () {
-
-				var invalidParams = 'height="invalidValue"';
-
-				it('should return http code = 400', function (done) {
-					http.get('/api/blocks?' + invalidParams, function (err, res) {
-						node.expect(res).to.have.property('status').equal(400);
-						done();
-					});
-				});
-			});
-
-			describe('when query does not return results', function () {
-
-				var notExistingId = '01234567890123456789';
-				var emptyResultParams = 'id=' + notExistingId;
-
-				it('should return http code = 200', function (done) {
-					http.get('/api/blocks?' + emptyResultParams, function (err, res) {
-						node.expect(res).to.have.property('status').equal(200);
-						done();
-					});
-				});
-			});
-
-			describe('when query returns results', function () {
-
-				it('should return http code = 200', function (done) {
-					http.get('/api/blocks', function (err, res) {
-						node.expect(res).to.have.property('status').equal(200);
-						done();
-					});
 				});
 			});
 		});
