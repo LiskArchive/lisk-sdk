@@ -16,7 +16,10 @@
 		"build:browsertest": "grunt build-browsertest",
 		"precommit": "lint-staged && npm run eslint",
 		"prepush": "npm run eslint && npm test",
-		"prepublishOnly": "npm run prepush && npm run build"
+		"prepublishOnly": "npm run prepush && npm run build",
+		"prepublish:browser": "npm run prepublishOnly",
+		"publish:browser": "./bin/publish_browser.sh",
+		"postpublish": "npm run publish:browser"
 	},
 	"repository": {
 		"type": "git",

@@ -10,6 +10,7 @@ index.html
 yuidoc.json
 
 .nyc_output/
+bin/
 browsertest/
 coverage/
 cypress/
