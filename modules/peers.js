@@ -630,7 +630,7 @@ Peers.prototype.isLoaded = function () {
 Peers.prototype.shared = {
 	
 	getPeersSwagger: function (filters, cb) {
-		return setImmediate(cb, null, {peers: __private.getByFilter(filters)});
+		setImmediate(cb, null, {peers: __private.getByFilter(filters)});
 	},
 
 	getPeers: function (req, cb) {

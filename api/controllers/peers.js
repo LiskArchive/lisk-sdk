@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 // Private Fields
 var modules;
 
@@ -16,7 +18,8 @@ function Controller (scope) {
 }
 
 function getPeers (req, res) {
-	modules.peers.shared.getPeersSwagger({
+
+	var filters = {
 		ip: req.swagger.params.ip.value,
 		port: req.swagger.params.wsPort.value,
 		httpPort: req.swagger.params.httpPort.value,
@@ -28,7 +31,12 @@ function getPeers (req, res) {
 		limit: req.swagger.params.limit.value,
 		offset: req.swagger.params.offset.value,
 		orderBy: req.swagger.params.sort.value
-	}, function (err, data){
+	};
+
+	// Remove filters with null values
+	filters = _.pickBy(filters, _.identity);
+
+	modules.peers.shared.getPeersSwagger(filters, function (err, data) {
 		res.send(data);
 	});
 };

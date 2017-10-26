@@ -103,11 +103,11 @@ function getForgingStatus (params, cb) {
 }
 
 function getNodeConstants (cb) {
-	http.get('/api/node/constants', httpCallbackHelper.bind(null, cb));
+	http.get('/LiskHQ/Lisk/1.0.18/node/constants', httpCallbackHelper.bind(null, cb));
 }
 
 function getNodeStatus (cb) {
-	http.get('/api/node/status', httpCallbackHelper.bind(null, cb));
+	http.get('/LiskHQ/Lisk/1.0.18/node/status', httpCallbackHelper.bind(null, cb));
 }
 
 function getDelegates (params, cb) {

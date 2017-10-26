@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../node');
+var _ = require('lodash');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
@@ -196,10 +197,26 @@ function MultisigScenario (size, amount) {
 	this.amount = amount || 100000000000;
 }
 
+function validateParameterResponse (res, paramNames, message) {
+	node.expect(res.body).to.have.property('message').to.equal(message);
+}
+
+function validateSwaggerParameterResponse (res, paramNames, message) {
+	node.expect(res.statusCode).to.equal(400);
+	node.expect(res.body).to.have.property('message').to.equal('Validation errors');
+	node.expect(res.body).to.have.property('errors').to.be.an('array');
+	paramNames.forEach(function (paramName) {
+		var paramError = _.find(res.body.errors, {name: paramName});
+		node.expect(paramError).to.have.property('code').to.equal('INVALID_REQUEST_PARAMETER');
+		node.expect(paramError).to.have.property('errors').to.be.an('array');
+	});
+}
+
 module.exports = {
 	tests: tests,
 	confirmationPhase: confirmationPhase,
 	invalidTransactions: invalidTransactions,
+	MultisigScenario: MultisigScenario,
 	invalidAssets: invalidAssets,
-	MultisigScenario: MultisigScenario
+	validateParameterResponse: validateParameterResponse
 };
