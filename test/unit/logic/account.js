@@ -18,16 +18,15 @@ var modulesLoader = require('../../common/modulesLoader');
 var validAccount = {
 	username: 'genesis_100',
 	isDelegate: 1,
-	u_isDelegate: 1,
+	u_isDelegate: 0,
 	secondSignature: 0,
 	u_secondSignature: 0,
-	u_username: 'genesis_100',
+	u_username: null,
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	secondPublicKey: null,
-	balance: '231386135',
-	u_balance: '231386135',
-	vote: '9820020609280331',
+	balance: '0',
+	u_balance: '0',
 	rate: '0',
 	delegates: null,
 	u_delegates: null,
@@ -37,13 +36,15 @@ var validAccount = {
 	u_multimin: 0,
 	multilifetime: 0,
 	u_multilifetime: 0,
-	blockId: '10352824351134264746',
+	blockId: '6524861224470851795',
 	nameexist: 0,
 	u_nameexist: 0,
-	producedblocks: 27,
-	missedblocks: 1,
-	fees: '231386135',
+	fees: '0',
+	rank: '70',
 	rewards: '0',
+	vote: '10000000000000000',
+	producedBlocks: '0',
+	missedBlocks: '0',
 	virgin: 1
 };
 
@@ -196,7 +197,7 @@ describe('account', function () {
 
 			account.getAll({
 				limit: 0,
-				sort: {username: 1}
+				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(sortedUsernames);
@@ -211,7 +212,7 @@ describe('account', function () {
 
 			account.getAll({
 				offset: 0,
-				sort: {username: 1}
+				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(sortedUsernames);
@@ -283,7 +284,7 @@ describe('account', function () {
 			account.getAll({
 				limit: 50,
 				offset: 0,
-				sort: {username: 1}
+				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(sortedUsernames);
@@ -298,7 +299,7 @@ describe('account', function () {
 
 			account.getAll({
 				limit: -50,
-				sort: {username: 1}
+				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(sortedUsernames);
@@ -310,7 +311,7 @@ describe('account', function () {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
 				return {username: v.username};
 			});
-			account.getAll({sort: {username: 1}}, ['username'], function (err, res) {
+			account.getAll({sort: 'username:asc'}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(sortedUsernames);
 				done();
@@ -321,7 +322,7 @@ describe('account', function () {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').reverse().map(function (v) {
 				return {username: v.username};
 			});
-			account.getAll({sort: {username: -1}}, ['username'], function (err, res) {
+			account.getAll({sort: 'username:desc'}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.eql(sortedUsernames);
 				done();
