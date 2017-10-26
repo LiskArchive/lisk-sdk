@@ -7,8 +7,7 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
-var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('POST /api/transactions (type 4) register multisignature', function () {
 
@@ -23,7 +22,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 	};
 
 	var transaction, signature;
-
+	var transactionsToWaitFor = [];
 	var badTransactions = [];
 	var goodTransactions = [];
 	var badTransactionsEnforcement = [];
@@ -39,10 +38,12 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			return creditAccountPromise(scenarios[key].account.address, scenarios[key].amount).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').that.is.not.empty;
+				transactionsToWaitFor.push(res.transactionId);
 			});
-		})).then(function (res) {
-			return getBlocksToWaitPromise().then(waitForBlocksPromise);
-		});
+		}))
+			.then(function (res) {
+				return waitForConfirmations(transactionsToWaitFor);
+			});
 	});
 
 	describe('schema validations', function () {

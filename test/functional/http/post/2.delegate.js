@@ -37,6 +37,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 				results.forEach(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').that.is.not.empty;
+					transactionsToWaitFor.push(res.transactionId);
 				});
 			})
 			.then(function (res) {
