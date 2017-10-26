@@ -32,6 +32,7 @@ describe('print utils', () => {
 					describe('When the result is printed', () => {
 						beforeEach(when.theResultIsPrinted);
 						it('Then shouldUseJsonOutput should be called with the config and an empty options object', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject);
+						it('Then shouldUsePrettyOutput should be called with the config and an empty options object', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject);
 					});
 					describe('Given an options object with json set to false', () => {
 						beforeEach(given.anOptionsObjectWithJsonSetTo);
@@ -46,11 +47,63 @@ describe('print utils', () => {
 						});
 						describe('Given JSON should be printed', () => {
 							beforeEach(given.jsonShouldBePrinted);
-							describe('When the result is printed', () => {
-								beforeEach(when.theResultIsPrinted);
-								it('Then shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
-								it('Then the result should be returned', then.theResultShouldBeReturned);
-								it('Then JSON output should be logged', then.jSONOutputShouldBeLogged);
+							describe('Given output should not be pretty', () => {
+								beforeEach(given.outputShouldNotBePretty);
+								describe('When the result is printed', () => {
+									beforeEach(when.theResultIsPrinted);
+									it('Then shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
+									it('Then shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
+									it('Then the result should be returned', then.theResultShouldBeReturned);
+									it('Then JSON output should be logged', then.jSONOutputShouldBeLogged);
+								});
+							});
+							describe('Given the options object has key "pretty" set to boolean true', () => {
+								beforeEach(given.theOptionsObjectHasKeySetToBoolean);
+								describe('Given output should be pretty', () => {
+									beforeEach(given.outputShouldBePretty);
+									describe('When the result is printed', () => {
+										beforeEach(when.theResultIsPrinted);
+										it('Then shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
+										it('Then shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
+										it('Then the result should be returned', then.theResultShouldBeReturned);
+										it('Then pretty JSON output should be logged', then.prettyJSONOutputShouldBeLogged);
+									});
+								});
+							});
+						});
+					});
+				});
+				describe('Given a config with json set to true and pretty set to true', () => {
+					beforeEach(given.aConfigWithJsonSetToAndPrettySetTo);
+					describe('Given an empty options object', () => {
+						beforeEach(given.anEmptyOptionsObject);
+						describe('Given JSON should be printed', () => {
+							beforeEach(given.jsonShouldBePrinted);
+							describe('Given output should be pretty', () => {
+								beforeEach(given.outputShouldBePretty);
+								describe('When the result is printed', () => {
+									beforeEach(when.theResultIsPrinted);
+									it('Then shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
+									it('Then shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
+									it('Then the result should be returned', then.theResultShouldBeReturned);
+									it('Then pretty JSON output should be logged', then.prettyJSONOutputShouldBeLogged);
+								});
+							});
+						});
+					});
+					describe('Given an options object with key "pretty" set to boolean false', () => {
+						beforeEach(given.anOptionsObjectWithKeySetToBoolean);
+						describe('Given JSON should be printed', () => {
+							beforeEach(given.jsonShouldBePrinted);
+							describe('Given output should not be pretty', () => {
+								beforeEach(given.outputShouldNotBePretty);
+								describe('When the result is printed', () => {
+									beforeEach(when.theResultIsPrinted);
+									it('Then shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
+									it('Then shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
+									it('Then the result should be returned', then.theResultShouldBeReturned);
+									it('Then JSON output should be logged', then.jSONOutputShouldBeLogged);
+								});
 							});
 						});
 					});

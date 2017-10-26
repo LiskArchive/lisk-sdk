@@ -37,7 +37,7 @@ const BOOLEANS = {
 
 const regExpQuotes = /"((.|\n|\s\S)+?)"/;
 const regExpNumbers = /\d+/g;
-const regExpBoolean = /(true|false)/;
+const regExpBooleans = /(true|false)/;
 
 export const getFirstQuotedString = title => title.match(regExpQuotes)[1];
 
@@ -52,7 +52,14 @@ export const getNumbersFromTitle = (title) => {
 	return title.match(regExpNumbers).map(Number);
 };
 
-export const getFirstBoolean = title => BOOLEANS[title.match(regExpBoolean)[1]];
+export const getFirstBoolean = title => BOOLEANS[title.match(regExpBooleans)[1]];
+
+export const getBooleans = (title) => {
+	const globalRegExp = new RegExp(regExpBooleans, 'g');
+	return title
+		.match(globalRegExp)
+		.map(key => BOOLEANS[key]);
+};
 
 export const getCommandInstance = (vorpal, command) => {
 	const commandStem = command.match(/^[^[|<]+/)[0].slice(0, -1);
@@ -99,9 +106,10 @@ export const setUpProcessStubs = () => {
 
 export const setUpHelperStubs = () => {
 	[
+		'createErrorHandler',
 		'deAlias',
 		'shouldUseJsonOutput',
-		'createErrorHandler',
+		'shouldUsePrettyOutput',
 	].forEach(methodName => sandbox.stub(helpers, methodName));
 };
 

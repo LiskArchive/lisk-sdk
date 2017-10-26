@@ -85,6 +85,56 @@ describe('utils helpers', () => {
 			});
 		});
 	});
+	describe('#shouldUsePrettyOutput', () => {
+		describe('Given a config with pretty set to true', () => {
+			beforeEach(given.aConfigWithPrettySetTo);
+			describe('Given an options object with pretty set to true', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return true', then.itShouldReturnTrue);
+				});
+			});
+			describe('Given an options object with pretty set to false', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return false', then.itShouldReturnFalse);
+				});
+			});
+			describe('Given an empty options object', () => {
+				beforeEach(given.anEmptyOptionsObject);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return true', then.itShouldReturnTrue);
+				});
+			});
+		});
+		describe('Given a config with pretty set to false', () => {
+			beforeEach(given.aConfigWithPrettySetTo);
+			describe('Given an options object with pretty set to true', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return true', then.itShouldReturnTrue);
+				});
+			});
+			describe('Given an options object with pretty set to false', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return false', then.itShouldReturnFalse);
+				});
+			});
+			describe('Given an empty options object', () => {
+				beforeEach(given.anEmptyOptionsObject);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return false', then.itShouldReturnFalse);
+				});
+			});
+		});
+	});
 	describe('#createErrorHandler', () => {
 		describe('Given a prefix "Some error message prefix"', () => {
 			beforeEach(given.aPrefix);
