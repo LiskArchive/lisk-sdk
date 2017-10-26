@@ -41,6 +41,7 @@ var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var z_schema = require('./helpers/z_schema.js');
+var swagger = require('./config/swagger');
 
 process.stdin.resume();
 
@@ -75,6 +76,7 @@ process.env.TOP = appConfig.topAccounts;
  * @property {Object} api - `api/http` folder content.
  */
 var config = {
+	root: path.dirname(__filename),
 	db: appConfig.db,
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
@@ -380,6 +382,17 @@ d.run(function () {
 			scope.network.app.use(httpApi.middleware.applyAPIAccessRules.bind(null, scope.config));
 
 			cb();
+		}],
+
+		swagger: ['connect', 'modules', 'logger', 'cache', function(scope, cb) {
+
+			// Load Swagger controllers and bind the scope
+			var controllerFolder = './api/controllers/';
+			fs.readdirSync(controllerFolder).forEach(function (file) {
+			  require(controllerFolder + file).bind(scope);
+			});
+
+			swagger(scope.network.app, config, scope.logger, cb);
 		}],
 
 		ed: function (cb) {
