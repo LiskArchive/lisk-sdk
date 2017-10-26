@@ -38,7 +38,7 @@ describe('#registerDelegate transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('without second secret', () => {
+	describe('with one secret', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({ secret, username });
 		});
@@ -115,6 +115,10 @@ describe('#registerDelegate transaction', () => {
 				.and.be.hexString();
 		});
 
+		it('should not have the second signature property', () => {
+			registerDelegateTransaction.should.not.have.property('signSignature');
+		});
+
 		it('should be signed correctly', () => {
 			const result = cryptoModule.verifyTransaction(
 				registerDelegateTransaction,
@@ -159,16 +163,6 @@ describe('#registerDelegate transaction', () => {
 				username,
 				secondSecret,
 			});
-		});
-
-		it('should differ from the transaction with one secret', () => {
-			const registerDelegateTransactionWithoutSecondSecret = registerDelegate({
-				secret,
-				username,
-			});
-			registerDelegateTransaction.should.not.be.equal(
-				registerDelegateTransactionWithoutSecondSecret,
-			);
 		});
 
 		it('should have the second signature property as hex string', () => {

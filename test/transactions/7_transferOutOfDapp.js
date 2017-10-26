@@ -132,6 +132,10 @@ describe('#transferOutOfDapp', () => {
 					.and.be.hexString();
 			});
 
+			it('should not have the second signature property', () => {
+				transferOutOfDappTransaction.should.not.have.property('signSignature');
+			});
+
 			it('should be signed correctly', () => {
 				const result = cryptoModule.verifyTransaction(
 					transferOutOfDappTransaction,
@@ -180,22 +184,6 @@ describe('#transferOutOfDapp', () => {
 					secret,
 					secondSecret,
 				});
-			});
-
-			it('should differ from the transaction with one secret', () => {
-				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp(
-					{
-						dappId,
-						transactionId,
-						recipientId,
-						amount,
-						secret,
-					},
-				);
-				transferOutOfDappTransaction.should.be.ok();
-				transferOutOfDappTransaction.should.not.be.equal(
-					transferOutOfDappTransactionWithoutSecondSecret,
-				);
 			});
 
 			it('should have the second signature property as hex string', () => {

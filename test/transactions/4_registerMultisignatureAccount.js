@@ -205,22 +205,6 @@ describe('#registerMultisignatureAccount transaction', () => {
 			});
 		});
 
-		it('should differ from the transaction with one secret', () => {
-			const registerMultisignatureTransactionWithoutSecondSecret = registerMultisignatureAccount(
-				{
-					secret,
-					secondSecret,
-					keysgroup,
-					lifetime,
-					min,
-				},
-			);
-			registerMultisignatureTransaction.should.be.ok();
-			registerMultisignatureTransaction.should.not.be.equal(
-				registerMultisignatureTransactionWithoutSecondSecret,
-			);
-		});
-
 		it('should have the second signature property as hex string', () => {
 			registerMultisignatureTransaction.should.have
 				.property('signSignature')

@@ -114,6 +114,10 @@ describe('#castVotes transaction', () => {
 					.and.be.hexString();
 			});
 
+			it('should not have the second signature property', () => {
+				castVotesTransaction.should.not.have.property('signSignature');
+			});
+
 			it('should be signed correctly', () => {
 				const result = cryptoModule.verifyTransaction(castVotesTransaction);
 				result.should.be.ok();
@@ -166,16 +170,6 @@ describe('#castVotes transaction', () => {
 				delegates: publicKeys,
 				secondSecret,
 			});
-		});
-
-		it('should differ from a transaction with one secret', () => {
-			const castVotesTransactionWithoutSecondSecret = castVotes({
-				secret,
-				delegates: publicKeys,
-			});
-			castVotesTransaction.should.not.be.equal(
-				castVotesTransactionWithoutSecondSecret,
-			);
 		});
 
 		it('should have the second signature property as hex string', () => {

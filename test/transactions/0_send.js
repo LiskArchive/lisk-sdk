@@ -43,7 +43,7 @@ describe('#send transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('without second secret', () => {
+	describe('with one secret', () => {
 		describe('without data', () => {
 			beforeEach(() => {
 				sendTransaction = send({
@@ -145,6 +145,10 @@ describe('#send transaction', () => {
 						.and.be.type('object')
 						.and.be.empty();
 				});
+
+				it('should not have the second signature property', () => {
+					sendTransaction.should.not.have.property('signSignature');
+				});
 			});
 		});
 
@@ -199,17 +203,7 @@ describe('#send transaction', () => {
 			});
 		});
 
-		it('should differ from the transaction with one secret', () => {
-			const sendTransactionWithoutSecondSecret = send({
-				recipientId,
-				amount,
-				secret,
-			});
-
-			sendTransaction.should.not.be.equal(sendTransactionWithoutSecondSecret);
-		});
-
-		it('should create a send transaction with data', () => {
+		it('should create a send transaction with data property', () => {
 			sendTransaction = send({
 				recipientId,
 				amount,
@@ -217,6 +211,7 @@ describe('#send transaction', () => {
 				secondSecret,
 				data: testData,
 			});
+
 			sendTransaction.asset.should.have.property('data');
 		});
 
@@ -239,6 +234,7 @@ describe('#send transaction', () => {
 					sendTransaction,
 					secondPublicKey,
 				);
+
 				result.should.be.false();
 			});
 
@@ -255,6 +251,7 @@ describe('#send transaction', () => {
 					sendTransaction,
 					emptyPublicKey,
 				);
+
 				result.should.be.true();
 			});
 		});

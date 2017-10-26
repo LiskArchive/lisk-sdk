@@ -181,6 +181,10 @@ describe('#createDapp transaction', () => {
 					.and.be.hexString();
 			});
 
+			it('should not have the second signature property', () => {
+				createDappTransaction.should.not.have.property('signSignature');
+			});
+
 			it('should be signed correctly', () => {
 				const result = cryptoModule.verifyTransaction(createDappTransaction);
 				result.should.be.ok();
@@ -258,17 +262,6 @@ describe('#createDapp transaction', () => {
 	describe('with second secret', () => {
 		beforeEach(() => {
 			createDappTransaction = createDapp({ secret, secondSecret, options });
-		});
-
-		it('should differ from the transaction with one secret', () => {
-			const createDappTransactionWithoutSecondSecret = createDapp({
-				secret,
-				options,
-			});
-			createDappTransaction.should.be.ok();
-			createDappTransaction.should.not.be.equal(
-				createDappTransactionWithoutSecondSecret,
-			);
 		});
 
 		it('should have the second signature property as hex string', () => {
