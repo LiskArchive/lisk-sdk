@@ -15,7 +15,8 @@ var searchDelegatesPromise = require('../../../common/apiHelpers').searchDelegat
 var putForgingDelegatePromise = require('../../../common/apiHelpers').putForgingDelegatePromise;
 var getForgedByAccountPromise = require('../../../common/apiHelpers').getForgedByAccountPromise;
 var getNextForgersPromise = require('../../../common/apiHelpers').getNextForgersPromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
+var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
 
 describe('GET /api/delegates', function () {
@@ -410,13 +411,13 @@ describe('GET /api/delegates', function () {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').that.is.not.empty;
 				});
-				return onNewBlockPromise();
+				return getBlocksToWaitPromise().then(waitForBlocksPromise);
 			}).then(function (res) {
 				var transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], null);
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').that.is.not.empty;
-					return onNewBlockPromise();
+					return getBlocksToWaitPromise().then(waitForBlocksPromise);
 				});
 			});
 		});
@@ -448,7 +449,7 @@ describe('GET /api/delegates', function () {
 				'publicKey=' + node.eAccount.publicKey
 			];
 
-			return onNewBlockPromise().then(function (res) {
+			return getBlocksToWaitPromise().then(waitForBlocksPromise).then(function (res) {
 				return getVotersPromise(params).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('accounts').that.is.an('array');

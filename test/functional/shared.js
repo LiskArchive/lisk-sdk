@@ -6,7 +6,8 @@ var sendTransactionPromise = require('../common/apiHelpers').sendTransactionProm
 var getTransactionsPromise = require('../common/apiHelpers').getTransactionsPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
 var getPendingMultisignaturePromise = require('../common/apiHelpers').getPendingMultisignaturePromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var getBlocksToWaitPromise = require('../common/apiHelpers').getBlocksToWaitPromise;
+var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 var tests = [
 	{describe: 'null',              args: null},
@@ -31,48 +32,10 @@ var tests = [
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
 
-	describe('before new block', function () {
-
-		it('good transactions should remain unconfirmed', function () {
-			return node.Promise.all(goodTransactions.map(function (transaction) {
-				var params = [
-					'id=' + transaction.id
-				];
-				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').eql([]);
-				});
-			}));
-		});
-
-		if (pendingMultisignatures) {
-			it.skip('pendingMultisignatures should remain in the pending queue', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getPendingMultisignaturePromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('status').equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').to.have.lengthOf(0);
-					});
-				});
-			});
-
-			it.skip('pendingMultisignatures should not be confirmed', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					var params = [
-						'id=' + transaction.id
-					];
-					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(400);
-						node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
-					});
-				});
-			});
-	  };
-	});
-
-	describe('after new block', function () {
+	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			return onNewBlockPromise();
+			return getBlocksToWaitPromise().then(waitForBlocksPromise);
 		});
 
 		it('bad transactions should not be confirmed', function () {

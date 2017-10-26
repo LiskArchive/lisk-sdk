@@ -18,8 +18,8 @@ var getUnconfirmedTransactionsPromise = require('../../../common/apiHelpers').ge
 var getMultisignaturesTransactionPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionPromise;
 var getMultisignaturesTransactionsPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionsPromise;
 var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
-
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
+var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 describe('GET /api/transactions', function () {
 
@@ -48,7 +48,7 @@ describe('GET /api/transactions', function () {
 		}).then(function (res) {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
-			return onNewBlockPromise();
+			return getBlocksToWaitPromise().then(waitForBlocksPromise); 
 		});
 	});
 

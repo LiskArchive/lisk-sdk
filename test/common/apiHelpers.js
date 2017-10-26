@@ -4,6 +4,7 @@ var lisk = require('lisk-js');
 
 var node = require('../node');
 var http = require('./httpCommunication');
+var constants = require('../../helpers/constants');
 
 function paramsHelper (url, params) {
 	if (typeof params != 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
@@ -97,6 +98,14 @@ function getForgingStatus (params, cb) {
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
+function getNodeConstants (cb) {
+	http.get('/api/node/constants', httpCallbackHelper.bind(null, cb));
+}
+
+function getNodeStatus (cb) {
+	http.get('/api/node/status', httpCallbackHelper.bind(null, cb));
+}
+
 function getDelegates (params, cb) {
 	var url = '/api/delegates';
 	url = paramsHelper(url, params);
@@ -148,6 +157,19 @@ function getBalance (address, cb) {
 	http.get('/api/accounts/getBalance?address=' + address, httpCallbackHelper.bind(null, cb));
 }
 
+function getBlocksToWaitPromise () {
+	var count = 0;
+	return getUnconfirmedTransactionsPromise()
+		.then(function (res) {
+			count += res.count;
+			return getQueuedTransactionsPromise();
+		})
+		.then(function (res) {
+			count += res.count;
+			return Math.ceil(count / constants.maxTxsPerBlock);
+		});
+}
+
 var getTransactionPromise = node.Promise.promisify(getTransaction);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
@@ -158,6 +180,8 @@ var getUnconfirmedTransactionsPromise = node.Promise.promisify(getUnconfirmedTra
 var getMultisignaturesTransactionPromise = node.Promise.promisify(getMultisignaturesTransaction);
 var getMultisignaturesTransactionsPromise = node.Promise.promisify(getMultisignaturesTransactions);
 var getPendingMultisignaturePromise = node.Promise.promisify(getPendingMultisignature);
+var getNodeConstantsPromise = node.Promise.promisify(getNodeConstants);
+var getNodeStatusPromise = node.Promise.promisify(getNodeStatus);
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
@@ -192,6 +216,8 @@ module.exports = {
 	getMultisignaturesTransactionsPromise: getMultisignaturesTransactionsPromise,
 	getPendingMultisignature: getPendingMultisignature,
 	getPendingMultisignaturePromise: getPendingMultisignaturePromise,
+	getNodeConstantsPromise: getNodeConstantsPromise,
+	getNodeStatusPromise: getNodeStatusPromise,
 	sendSignature: sendSignature,
 	sendSignaturePromise: sendSignaturePromise,
 	sendTransaction: sendTransaction,
@@ -218,5 +244,6 @@ module.exports = {
 	getPublicKey: getPublicKey,
 	getBalancePromise: getBalancePromise,
 	getBalance: getBalance,
-	getPublicKeyPromise: getPublicKeyPromise
+	getPublicKeyPromise: getPublicKeyPromise,
+	getBlocksToWaitPromise: getBlocksToWaitPromise
 };

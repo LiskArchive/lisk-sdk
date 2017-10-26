@@ -8,6 +8,7 @@
  * @property {Delegates} delegates
  * @property {Loader} loader
  * @property {Multisignatures} multisignatures
+ * @property {Node} node
  * @property {Peers} peers
  * @property {Server} server
  * @property {Signatures} signatures

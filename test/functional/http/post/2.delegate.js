@@ -6,7 +6,8 @@ var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
+var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 describe('POST /api/transactions (type 2) register delegate', function () {
 
@@ -37,7 +38,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 			});
 		}).then(function (res) {
-			return onNewBlockPromise();
+			return getBlocksToWaitPromise().then(waitForBlocksPromise);
 		});
 	});
 

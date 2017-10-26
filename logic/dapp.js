@@ -46,7 +46,7 @@ DApp.prototype.bind = function () {};
  * @return {number} fee
  */
 DApp.prototype.calculateFee = function (transaction, sender) {
-	return constants.fees.dapp;
+	return constants.fees.dappRegistration;
 };
 
 /**

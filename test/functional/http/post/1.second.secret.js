@@ -7,8 +7,8 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
-
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
+var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 describe('POST /api/transactions (type 1) register second secret', function () {
 
@@ -41,7 +41,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 			});
 		}).then(function (res) {
-			return onNewBlockPromise();
+			return getBlocksToWaitPromise().then(waitForBlocksPromise);
 		});
 	});
 
