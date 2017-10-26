@@ -24,6 +24,13 @@ function httpCallbackHelper (cb, err, res) {
 	cb(null, res.body);
 }
 
+function httpResponseCallbackHelper (cb, err, res) {
+	if (err) {
+		return cb(err);
+	}
+	cb(null, res);
+}
+
 function getTransaction (transaction, cb) {
 	http.get('/api/transactions/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
 }
@@ -156,6 +163,13 @@ function getBalance (address, cb) {
 	http.get('/api/accounts/getBalance?address=' + address, httpCallbackHelper.bind(null, cb));
 }
 
+function getBlocks (params, cb) {
+	var url = '/api/blocks';
+	url = paramsHelper(url, params);
+
+	http.get(url, httpResponseCallbackHelper.bind(null, cb));
+}
+
 function getBlocksToWaitPromise () {
 	var count = 0;
 	return getUnconfirmedTransactionsPromise()
@@ -230,6 +244,7 @@ var getNextForgersPromise = node.Promise.promisify(getNextForgers);
 var getAccountsPromise = node.Promise.promisify(getAccounts);
 var getPublicKeyPromise = node.Promise.promisify(getPublicKey);
 var getBalancePromise = node.Promise.promisify(getBalance);
+var getBlocksPromise = node.Promise.promisify(getBlocks);
 
 module.exports = {
 	getTransaction: getTransaction,
@@ -279,6 +294,7 @@ module.exports = {
 	getBalancePromise: getBalancePromise,
 	getBalance: getBalance,
 	getPublicKeyPromise: getPublicKeyPromise,
+	getBlocksPromise: getBlocksPromise,
 	getBlocksToWaitPromise: getBlocksToWaitPromise,
 	waitForConfirmations: waitForConfirmations
 };
