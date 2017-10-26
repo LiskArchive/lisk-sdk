@@ -22,6 +22,13 @@ function httpCallbackHelper (cb, err, res) {
 	cb(null, res.body);
 }
 
+function httpResponseCallbackHelper (cb, err, res) {
+	if (err) {
+		return cb(err);
+	}
+	cb(null, res);
+}
+
 function getTransaction (transaction, cb) {
 	http.get('/api/transactions/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
 }
@@ -158,7 +165,7 @@ function getBlocks (params, cb) {
 	var url = '/api/blocks';
 	url = paramsHelper(url, params);
 
-	http.get(url, httpCallbackHelper.bind(null, cb));
+	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getBlocksToWaitPromise () {
