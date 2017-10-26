@@ -38,7 +38,7 @@ describe('#registerDelegate transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with one secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({ secret, username });
 		});
@@ -156,7 +156,7 @@ describe('#registerDelegate transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({
 				secret,

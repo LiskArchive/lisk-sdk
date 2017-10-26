@@ -54,7 +54,7 @@ describe('#createDapp transaction', () => {
 		options = Object.assign({}, defaultOptions);
 	});
 
-	describe('without second secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			createDappTransaction = createDapp({ secret, options });
 		});
@@ -259,7 +259,7 @@ describe('#createDapp transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			createDappTransaction = createDapp({ secret, secondSecret, options });
 		});

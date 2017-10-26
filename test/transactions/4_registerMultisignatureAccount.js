@@ -47,7 +47,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 		keysgroup = ['+123456789', '-987654321'];
 	});
 
-	describe('without second secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			registerMultisignatureTransaction = registerMultisignatureAccount({
 				secret,
@@ -194,7 +194,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			registerMultisignatureTransaction = registerMultisignatureAccount({
 				secret,

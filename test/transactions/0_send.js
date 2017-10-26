@@ -43,7 +43,7 @@ describe('#send transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with one secret', () => {
+	describe('with first secret', () => {
 		describe('without data', () => {
 			beforeEach(() => {
 				sendTransaction = send({
@@ -193,7 +193,7 @@ describe('#send transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			sendTransaction = send({
 				recipientId,

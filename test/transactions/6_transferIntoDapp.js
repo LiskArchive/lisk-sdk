@@ -40,7 +40,7 @@ describe('#transferIntoDapp transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with one secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			transferIntoDappTransaction = transferIntoDapp({
 				dappId,
@@ -157,7 +157,7 @@ describe('#transferIntoDapp transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			transferIntoDappTransaction = transferIntoDapp({
 				dappId,

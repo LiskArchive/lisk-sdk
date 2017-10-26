@@ -37,7 +37,7 @@ describe('#castVotes transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('without second secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({ secret, delegates: publicKeys });
 		});
@@ -163,7 +163,7 @@ describe('#castVotes transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({
 				secret,

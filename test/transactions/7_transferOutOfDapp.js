@@ -42,7 +42,7 @@ describe('#transferOutOfDapp', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with one secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			transferOutOfDappTransaction = transferOutOfDapp({
 				dappId,
@@ -174,7 +174,7 @@ describe('#transferOutOfDapp', () => {
 			});
 		});
 
-		describe('with second secret', () => {
+		describe('with first and second secret', () => {
 			beforeEach(() => {
 				transferOutOfDappTransaction = transferOutOfDapp({
 					dappId,
