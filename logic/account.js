@@ -7,6 +7,7 @@ var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
+var orderBy = require('../helpers/orderBy.js');
 
 // Private fields
 var self, library, __private = {};
@@ -581,7 +582,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	delete filter.offset;
 
 	if (filter.sort) {
-		sort = filter.sort;
+		sort = orderBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance']);
 	}
 	delete filter.sort;
 
