@@ -453,7 +453,7 @@ paths:
         200:
           description: Node constants
           schema:
-            $ref: '#/definitions/GetNodeConstants'
+            $ref: '#/definitions/NodeConstants'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
@@ -465,7 +465,7 @@ paths:
       - Node
       summary: requests Status data
       operationId: getStatus
-      description: 
+      description:
         This API call returns all current constants data on the system
       produces:
       - application/json
@@ -473,7 +473,7 @@ paths:
         200:
           description: Node constants
           schema:
-            $ref: '#/definitions/GetNodeStatus'
+            $ref: '#/definitions/NodeStatus'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
@@ -486,8 +486,8 @@ paths:
       - Peers
       summary: requests Peers data
       operationId: getPeers
-      description: 
-        This API call returns Peers related data 
+      description:
+        This API call returns Peers related data
       produces:
       - application/json
       parameters:
@@ -501,11 +501,15 @@ paths:
         description: state of the peers to return
         type: integer
         format: int32
+        minimum: 1
+        maximum: 65535
       - in: query
         name: wsPort
         description: state of the peers to return
         type: integer
         format: int32
+        minimum: 1
+        maximum: 65535
       - in: query
         name: os
         description: state of the peers to return
@@ -514,22 +518,27 @@ paths:
         name: version
         description: state of the peers to return
         type: string
-        format: int32
+        format: version
+        minLength: 5
+        maxLength: 12
       - in: query
         name: state
         description: state of the peers to return
         type: integer
         format: int32
+        minimum: 0
+        maximum: 2
       - in: query
         name: height
         description: state of the peers to return
         type: integer
         format: int32
+        minimum: 1
       - in: query
         name: broadhash
         description: state of the peers to return
         type: string
-        format: int32
+        format: hex
       - in: query
         name: limit
         description: specifies number of records to return
@@ -542,6 +551,7 @@ paths:
         description: number of records to skip for pagination
         type: integer
         format: int32
+        minimum: 0
       - in: query
         name: sort
         description: fields to sort on to query
@@ -585,7 +595,7 @@ paths:
       - Signatures
       summary: submits an array of signatures objects to sign multisignature transactions
       operationId: postSignatures
-      description: 
+      description:
         submits signature(s) to sign a multisignature transaction
       consumes:
       - application/json
@@ -605,11 +615,11 @@ paths:
                 $ref: '#/definitions/PostSignatures'
       responses:
         200:
-          description: Signature is accepted by the node for processing 
+          description: Signature is accepted by the node for processing
           schema:
             type: object
             properties:
-              status: 
+              status:
                 type: string
                 example: Signature Accepted
         400:
@@ -627,7 +637,7 @@ paths:
       - Transactions
       summary: requests transactions data
       operationId: getTransactions
-      description: 
+      description:
         This API call returns transactions matching filter criteria
       produces:
       - application/json
@@ -710,7 +720,7 @@ paths:
       - Transactions
       summary: submits signed transactions for processing
       operationId: postTransaction
-      description: 
+      description:
         submits signed transactions from lisk-js to be processed into a block
       consumes:
       - application/json
@@ -730,11 +740,11 @@ paths:
                 $ref: '#/definitions/PostTransactions'
       responses:
         200:
-          description: Transaction is accepted by the node for processing 
+          description: Transaction is accepted by the node for processing
           schema:
             type: object
             properties:
-              status: 
+              status:
                 type: string
                 example: Transaction Accepted
         400:
@@ -751,7 +761,7 @@ paths:
       - Transactions
       summary: requests Queues data for multisignatures queue
       operationId: getPendingMultisignatures
-      description: 
+      description:
         This API call returns all queued data for unsigned multisignature transactions
       produces:
       - application/
@@ -823,7 +833,7 @@ paths:
       - Transactions
       summary: requests Queues data for unconfirmed queue
       operationId: getUnconfirmedTransactions
-      description: 
+      description:
         This API call returns all queued data for normal transactions
       produces:
       - application/json
@@ -895,7 +905,7 @@ paths:
       - Transactions
       summary: requests Queues data for pending queue
       operationId: getPendingTransactions
-      description: 
+      description:
         This API call returns all pending data for normal transactions
       produces:
       - application/json
@@ -958,7 +968,7 @@ paths:
           schema:
             $ref: '#/definitions/ResponseCode400'
         429:
-          description: Too many requests, exceeded rate limit.     
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/ResponseCode429'
 # Vote
@@ -968,7 +978,7 @@ paths:
       - Votes
       summary: requests vote data for a given account
       operationId: getVotes
-      description: 
+      description:
         This API call returns all votes by a given account
       produces:
       - application/json
@@ -1011,9 +1021,9 @@ paths:
     get:
       tags:
       - Votes
-      summary: requests vote data for a given delegate 
+      summary: requests vote data for a given delegate
       operationId: getVoters
-      description: 
+      description:
         This API call returns all votes for a given delegate
       produces:
       - application/json
@@ -1041,7 +1051,7 @@ paths:
         type: string
       responses:
         200:
-          description: Voters List 
+          description: Voters List
           schema:
             $ref: '#/definitions/GetVoters'
         400:
@@ -1052,7 +1062,7 @@ paths:
           description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/ResponseCode429'
-            
+
 definitions:
 # Accounts Models
   GetAccounts:
@@ -1107,10 +1117,10 @@ definitions:
       missedBlocks:
         type: integer
         example: 427
-      rate: 
+      rate:
         type: integer
         example: 91
-      approval: 
+      approval:
         type: string
         example: 14.22
       productivity:
@@ -1120,7 +1130,7 @@ definitions:
     type: object
     properties:
       min:
-        type: integer 
+        type: integer
         example: 2
       lifetime:
         type: integer
@@ -1133,7 +1143,7 @@ definitions:
     type: object
     properties:
       min:
-        type: integer 
+        type: integer
         example: 2
       lifetime:
         type: integer
@@ -1170,7 +1180,7 @@ definitions:
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
       payloadLength:
         type: string
-        example: 117 
+        example: 117
       payloadHash:
         type: string
         example: 4e4d91be041e09a2e54bb7dd38f1f2a02ee7432ec9f169ba63cd1f193a733dd2
@@ -1182,7 +1192,7 @@ definitions:
         example: 200
       previousBlockId:
         type: string
-        example: 15918760246746894806        
+        example: 15918760246746894806
       forged: # Object
         $ref: '#/definitions/BlockFees'
   BlockFees:
@@ -1256,16 +1266,16 @@ definitions:
       missedBlocks:
         type: integer
         example: 427
-      rate: 
+      rate:
         type: integer
         example: 91
-      approval: 
+      approval:
         type: string
         example: 14.22
       productivity:
         type: string
         example: 96.41
-        
+
   GetDelegateForgingStatus:
     type: object
     properties:
@@ -1275,7 +1285,7 @@ definitions:
       publicKey:
         type: string
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        
+
   GetNextForgers:
     type: object
     properties:
@@ -1291,7 +1301,7 @@ definitions:
       slot:
         type: string
         example: 4368793
-        
+
 # Fees Models
   Fees:
     type: object
@@ -1363,7 +1373,7 @@ definitions:
         type: string
         example: "2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205"
 # State Related Models
-  GetNodeConstants:
+  NodeConstants:
     type: object
     required:
     - epoch
@@ -1393,7 +1403,7 @@ definitions:
         example: v0.8.0
       nethash:
         type: string
-        example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511 
+        example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511
       supply:
         type: string
         example: 10575384500000000
@@ -1402,7 +1412,7 @@ definitions:
         example: 500000000
       fees:
         $ref: '#/definitions/Fees'
-  GetNodeStatus:
+  NodeStatus:
     type: object
     required:
     - syncing
@@ -1502,7 +1512,7 @@ definitions:
       address:
         type: string
         example: "6251001604903637008L"
-      balance: 
+      balance:
         type: string
         example: "100000000"
 # Transactions Models
@@ -1515,7 +1525,7 @@ definitions:
       amount:
         type: string
         example: 15000000
-      fee: 
+      fee:
         type: string
         example: 10000000
       type:
@@ -1545,7 +1555,7 @@ definitions:
       recipientPublicKey:
         type: string
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-      signature: 
+      signature:
         type: string
         example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
       secondSignature:
@@ -1555,7 +1565,7 @@ definitions:
       multisignatures:
         type: array
         items:
-          type: string 
+          type: string
           example: '72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a'
       asset:
         type: object
@@ -1565,22 +1575,22 @@ definitions:
   PostTransactions:
     type: object
     properties:
-      id: 
+      id:
         type: string
         example: '222675625422353767'
       type:
         type: integer
         example: 0
-      amount: 
+      amount:
         type: string
         example: '123'
-      fee: 
+      fee:
         type: string
         example: 10000000
       recipientId:
         type: string
         example: '123'
-      timestamp: 
+      timestamp:
         type: integer
         example: 28676212
       asset:
@@ -1592,10 +1602,10 @@ definitions:
       senderSecondPublicKey:
         type: string
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-      signature: 
+      signature:
         type: string
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
-      secondSignature: 
+      secondSignature:
         type: string
         example: 62c03057eca4eee0dc719e40d0fd814186e43b27e373cb5c2f9148e48936a34c0bcf78ffef676f0e5bd5739fb94024dd8ca4e8f092e690533af3eb5d66c45f0d
 # Queue related Models
@@ -1638,7 +1648,7 @@ definitions:
       recipientPublicKey:
         type: string
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-      signature: 
+      signature:
         type: string
         example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
       secondSignature:
@@ -1681,7 +1691,7 @@ definitions:
       recipientPublicKey:
         type: string
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-      signature: 
+      signature:
         type: string
         example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
       secondSignature:
@@ -1724,16 +1734,16 @@ definitions:
       recipientPublicKey:
         type: string
         example: null
-      signature: 
+      signature:
         type: string
         example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
-      secondSignature: 
+      secondSignature:
         type: string
         example: null
       asset:
         type: object
-        properties: 
-          multisignature: 
+        properties:
+          multisignature:
             type: object
             properties:
               min:
@@ -1744,7 +1754,7 @@ definitions:
                 example: 72
               keysgroup:
                 example: [{ "address": '6251001604903637008L', "publicKey": '+2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079'},{ "address": '12668885769632475474L', "publicKey": '+a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd'},{ "address": '12668123452434343274L', "publicKey": '+a233323232235677777754465fd76c16fcc434222663a64dffefe550f96feadd'}]
-                  
+
       signatures:
         example: [{ "address": '6251001604903637008L', "publicKey": '2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079', "signature": '72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a', "timestamp": 100000 },{ "address": '12668885769632475474L', "publicKey": '2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079', "signature": '2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205', "timestamp": 102000 }]
       propagation:
@@ -1769,13 +1779,13 @@ definitions:
   Propagation:
     type: object
     properties:
-      relays: 
+      relays:
         type: integer
         example: 1
       receivedAtUnix:
         type: integer
         example: 28227092
-      
+
 # Response Code Templates
 
   ResponseCode204:
@@ -1784,14 +1794,14 @@ definitions:
       error:
         type: string
         example: No data returned
-  
+
   ResponseCode400:
     type: object
     properties:
       error:
         type: string
         example: Malformed query parameters.
-  
+
   ResponseCode429:
     type: object
     properties:
@@ -1826,8 +1836,8 @@ definitions:
       lifetime:
         type: integer
         example: 72
-        
+
 
 # Added by API Auto Mocking Plugin
 host: virtserver.swaggerhub.com
-basePath: /api2
+basePath: /LiskHQ/Lisk/1.0.18

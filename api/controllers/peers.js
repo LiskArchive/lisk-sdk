@@ -18,7 +18,7 @@ function Controller (scope) {
 function getPeers (req, res) {
 	modules.peers.shared.getPeersSwagger({
 		ip: req.swagger.params.ip.value,
-		wsPort: req.swagger.params.wsPort.value,
+		port: req.swagger.params.wsPort.value,
 		httpPort: req.swagger.params.httpPort.value,
 		state: req.swagger.params.state.value,
 		os: req.swagger.params.os.value,
@@ -27,7 +27,7 @@ function getPeers (req, res) {
 		height: req.swagger.params.height.value,
 		limit: req.swagger.params.limit.value,
 		offset: req.swagger.params.offset.value,
-		sort: req.swagger.params.sort.value
+		orderBy: req.swagger.params.sort.value
 	}, function (err, data){
 		res.send(data);
 	});
