@@ -603,21 +603,21 @@ TransactionPool.prototype.addSignature = function (transactionId, secret, cb) {
 /**
  * Deletes transaction from pool list.
  * @implements {__private.delete}
- * @param {transaction} transaction
+ * @param {string} id transaction id
  * @return {Array} names of cleared lists
  */
-TransactionPool.prototype.delete = function (transaction) {
+TransactionPool.prototype.delete = function (id) {
 	var clearedList = [];
 	var poolList = ['unverified','pending','ready'];
 
 	[pool.unverified, pool.verified.pending, pool.verified.ready].forEach(function (list, index) {
-		if (__private.delete(transaction.id, list)) {
+		if (__private.delete(id, list)) {
 			clearedList.push(poolList[index]);
 		}
 	});
 	if (clearedList.length > 0) {
 		if (clearedList.length > 1) {
-			library.logger.debug(['Cleared duplicated transaction in pool list:', clearedList, 'transactionid:', transaction.id].join(' '));
+			library.logger.debug(['Cleared duplicated transaction in pool list:', clearedList, 'transaction id:', id].join(' '));
 		}
 	}
 	return clearedList;	
