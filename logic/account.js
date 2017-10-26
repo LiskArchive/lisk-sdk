@@ -135,7 +135,7 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: String,
 			immutable: true,
-			expression: 'UPPER("address")'
+			expression: 'UPPER(a.address)'
 		},
 		{
 			name: 'publicKey',
@@ -182,15 +182,6 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: Number,
 			expression: '("u_balance")::bigint'
-		},
-		{
-			name: 'vote',
-			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
-			conv: Number,
-			expression: '("vote")::bigint'
 		},
 		{
 			name: 'rate',
@@ -308,33 +299,22 @@ function Account (db, schema, logger, cb) {
 			conv: Boolean
 		},
 		{
-			name: 'producedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
-		},
-		{
-			name: 'missedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
-		},
-		{
 			name: 'fees',
 			type: 'BigInt',
 			filter: {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '("fees")::bigint'
+			expression: '(a."fees")::bigint'
+		},
+		{
+			name: 'rank',
+			type: 'BigInt',
+			filter: {
+				type: 'integer'
+			},
+			conv: Number,
+			expression: '(d."rank")::bigint'
 		},
 		{
 			name: 'rewards',
@@ -343,7 +323,28 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '("rewards")::bigint'
+			expression: '(d."rewards")::bigint'
+		},
+		{
+			name: 'vote',
+			type: 'BigInt',
+			filter: {
+				type: 'integer'
+			},
+			conv: Number,
+			expression: '(d."voters_balance")::bigint'
+		},
+		{
+			name: 'producedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(d."blocks_forged_cnt")::bigint'
+		},
+		{
+			name: 'missedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(d."blocks_missed_cnt")::bigint'
 		},
 		{
 			name: 'virgin',
@@ -584,9 +585,29 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	}
 	delete filter.sort;
 
-	if (typeof filter.address === 'string') {
-		filter.address = {
-			$upper: ['address', filter.address]
+	if (filter.address) {
+
+		if (typeof filter.address === 'string') {
+			filter['a.address'] = {
+				$upper: ['a.ddress', filter.address]
+			};
+		}
+
+		if (typeof filter.address === 'object') {
+			filter['a.address'] = filter.address;
+		}
+		delete filter.address;
+	}
+
+	if (typeof filter.publicKey === 'string') {
+		filter.publicKey = {
+			$decode: ['publicKey', filter.publicKey, 'hex']
+		};
+	}
+
+	if (typeof filter.secondPublicKey === 'string') {
+		filter.secondPublicKey = {
+			$decode: ['secondPublicKey', filter.secondPublicKey, 'hex']
 		};
 	}
 
@@ -596,9 +617,18 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		limit: limit,
 		offset: offset,
 		sort: sort,
-		alias: 'a',
 		condition: filter,
-		fields: realFields
+		fields: realFields,
+		alias: 'a',
+		join: {
+			delegates: {
+				type: 'left',
+				on: {
+					'a.address': 'd.address'
+				},
+				alias: 'd'
+			}
+		}
 	});
 
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {

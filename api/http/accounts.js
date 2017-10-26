@@ -28,12 +28,12 @@ function AccountsHttpApi (accountsModule, app) {
 	var router = new Router();
 
 	router.map(accountsModule.shared, {
-		'get /': 'getAccount',
-		'get /getBalance': 'getBalance',
-		'get /getPublicKey': 'getPublickey',
 		'get /delegates': 'getDelegates',
-		'get /delegates/fee': 'getDelegatesFee'
 	});
+
+	router.map(accountsModule.shared, {
+		'get /': 'getAccounts',
+	}, {responseWithCode: true});
 
 	if (process.env.TOP && process.env.TOP.toUpperCase() === 'TRUE') {
 		router.get('/top', httpApi.middleware.sanitize('query', schema.top, accountsModule.internal.top));

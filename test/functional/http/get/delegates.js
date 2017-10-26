@@ -444,7 +444,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using valid publicKey should be ok', function () {
+		it.skip('using valid publicKey should be ok', function () {
 			var params = [
 				'publicKey=' + node.eAccount.publicKey
 			];

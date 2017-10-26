@@ -1,32 +1,6 @@
 'use strict';
 
 module.exports = {
-	getBalance: {
-		id: 'accounts.getBalance',
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			}
-		},
-		required: ['address']
-	},
-	getPublicKey: {
-		id: 'accounts.getPublickey',
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			}
-		},
-		required: ['address']
-	},
 	getDelegates: {
 		id: 'accounts.getDelegates',
 		type: 'object',
@@ -40,8 +14,8 @@ module.exports = {
 		},
 		required: ['address']
 	},
-	getAccount: {
-		id: 'accounts.getAccount',
+	getAccounts: {
+		id: 'accounts.getAccounts',
 		type: 'object',
 		properties: {
 			address: {
@@ -53,17 +27,22 @@ module.exports = {
 			publicKey: {
 				type: 'string',
 				format: 'publicKey'
-			}
-		}
-	},
-	top: {
-		id: 'accounts.top',
-		type: 'object',
-		properties: {
+			},
+			secondPublicKey: {
+				type: 'string',
+				format: 'publicKey'
+			},
+			username: {
+				type: 'string',
+				format: 'username'
+			},
+			orderBy: {
+				type: 'string'
+			},
 			limit: {
 				type: 'integer',
-				minimum: 0,
-				maximum: 100
+				minimum: 1,
+				maximum: 1000
 			},
 			offset: {
 				type: 'integer',
