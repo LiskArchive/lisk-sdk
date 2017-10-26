@@ -67,8 +67,8 @@ function TransactionPool (storageLimit, processInterval, expiryInterval, transac
 		invalid: { transactions: {}, count: 0 }
 	};
 
-	// Bundled transaction timer
-	function nextBundle (cb) {
+	// Pool cycle timer
+	function nextPoolCycle (cb) {
 		self.processPool(function (err) {
 			if (err) {
 				library.logger.log('processPool transaction timer', err);
@@ -77,7 +77,7 @@ function TransactionPool (storageLimit, processInterval, expiryInterval, transac
 		});
 	}
 
-	jobsQueue.register('transactionPoolNextBundle', nextBundle, self.poolProcessInterval);
+	jobsQueue.register('transactionPoolNextCycle', nextPoolCycle, self.poolProcessInterval);
 
 	// Transaction expiry timer
 	function nextExpiry (cb) {
@@ -102,23 +102,20 @@ function TransactionPool (storageLimit, processInterval, expiryInterval, transac
 
 // Private
 /**
- * Gets all or limited number of transactions from input array.
+ * Gets all or limited number of transactions from input object list and returns ordered array.
  * @private
- * @param {transaction[]} transactions
+ * @param {transaction{}} transactions
+ * @param {boolean} reverse
  * @param {number} limit
  * @return {transaction[]}
  */
-__private.getTransactionsFromPoolList = function (transactionsInPool, limit) {
-	var transactions = {};
+__private.getTransactionsFromPoolList = function (transactionsInPool, reverse, limit) {
+	var transactions = _.orderBy(transactionsInPool, ['receivedAt'],['asc']);
+
+	transactions = reverse ? transactions.reverse() : transactions;
 
 	if (limit) {
-		var i = 1;
-		for (var key in transactionsInPool) {
-			transactions[key] = transactionsInPool[key];
-			if (++i > limit) { break; }
-		}
-	} else {
-		transactions = transactionsInPool;
+		transactions.splice(limit);
 	}
 
 	return transactions;
@@ -195,7 +192,7 @@ __private.addReady = function (transaction, poolList, cb) {
 };
 
 /**
- * Crates signature based on multisignature transaction and secret.
+ * Creates signature based on multisignature transaction and secret.
  * @private
  * @param {transaction} transaction
  * @param {String} secret
@@ -442,11 +439,11 @@ TransactionPool.prototype.get = function (id) {
 TransactionPool.prototype.getAll  = function (filter, params) {
 	switch (filter) {
 		case 'unverified':
-			return __private.getTransactionsFromPoolList(pool.unverified.transactions, params.limit);
+			return __private.getTransactionsFromPoolList(pool.unverified.transactions, params.reverse, params.limit);
 		case 'pending':
-			return __private.getTransactionsFromPoolList(pool.verified.pending.transactions, params.limit);
+			return __private.getTransactionsFromPoolList(pool.verified.pending.transactions, params.reverse, params.limit);
 		case 'ready':
-			return __private.getTransactionsFromPoolList(pool.verified.ready.transactions, params.limit);
+			return __private.getTransactionsFromPoolList(pool.verified.ready.transactions, params.reverse, params.limit);
 		case 'sender_id':
 			return __private.getAllPoolTransactionsByFilter({'senderId': params.id});
 		case 'sender_pk':
@@ -463,7 +460,7 @@ TransactionPool.prototype.getAll  = function (filter, params) {
 /**
  * Gets ready transactions ordered by fee and received time.
  * @param {number} limit
- * @return {[transaction]}
+ * @return {transaction[]}
  */
 TransactionPool.prototype.getReady = function (limit) {
 	var r = _.orderBy(pool.verified.ready.transactions, ['fee', 'receivedAt'],['desc', 'asc']);
