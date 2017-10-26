@@ -71,9 +71,9 @@ describe('GET /api/blocks', function () {
 			];
 
 			return getBlocksPromise(params).then(function (res) {
-				node.expect(res).to.have.property('body.blocks').that.is.an('array');
+				node.expect(res).to.have.nested.property('body.blocks').that.is.an('array');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(res).to.eql(response);
+					node.expect(res.body).to.eql(response);
 				});
 			});
 		});
@@ -85,7 +85,7 @@ describe('GET /api/blocks', function () {
 			];
 
 			return getBlocksPromise(params).then(function (res) {
-				node.expect(res).to.have.property('body.message').to.equal('Value ' + height + ' is less than minimum 1');
+				node.expect(res).to.have.nested.property('body.message').to.equal('Value ' + height + ' is less than minimum 1');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
 					node.expect(response).to.eql(null);
 				});
@@ -101,7 +101,7 @@ describe('GET /api/blocks', function () {
 			return getBlocksPromise(params)
 				.then(function (res) {
 					expectValidNonEmptyBlocks(res);
-					auxResponse = res;
+					auxResponse = res.body;
 					return getJsonForKeyPromise(url + params.join('&'));
 				})
 				.then(function (response) {
