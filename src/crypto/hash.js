@@ -12,16 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionBytes } from '../transactions/utils';
 
 /**
- * @method getSha256Hash
+ * @method hash
  * @param data
  * @param format
  *
  * @return {string}
  */
-export function getSha256Hash(data, format) {
+
+export default function hash(data, format) {
 	if (Buffer.isBuffer(data)) {
 		return Buffer.from(naclInstance.crypto_hash_sha256(data));
 	}
@@ -42,16 +42,4 @@ export function getSha256Hash(data, format) {
 	throw new Error(
 		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 	);
-}
-
-/**
- * @method getTransactionHash
- * @param transaction Object
- *
- * @return {string}
- */
-
-export function getTransactionHash(transaction) {
-	const bytes = getTransactionBytes(transaction);
-	return getSha256Hash(bytes);
 }

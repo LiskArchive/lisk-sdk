@@ -12,9 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as convert from './convert';
-import hash from './hash';
-import * as keys from './keys';
-import * as sign from './sign';
+import crypto from '../../crypto';
+import getTransactionBytes from './getTransactionBytes';
 
-export default Object.assign({}, convert, { hash }, keys, sign);
+/**
+* @method getTransactionHash
+* @param transaction Object
+*
+* @return {string}
+*/
+
+export default function getTransactionHash(transaction) {
+	const bytes = getTransactionBytes(transaction);
+	return crypto.hash(bytes);
+}

@@ -31,6 +31,7 @@ import {
 const convert = require('../../src/crypto/convert');
 const keys = require('../../src/crypto/keys');
 const hash = require('../../src/crypto/hash');
+const getTransactionHash = require('../../src/transactions/utils/getTransactionHash');
 
 const makeInvalid = str => {
 	const char = str[0] === '0' ? '1' : '0';
@@ -91,7 +92,7 @@ ${defaultSecondSignature}
 
 	let getRawPrivateAndPublicKeyFromSecretStub;
 	let getTransactionHashStub;
-	let getSha256HashStub;
+	let hashStub;
 
 	beforeEach(() => {
 		defaultSignedMessage = {
@@ -153,15 +154,15 @@ ${defaultSecondSignature}
 			});
 
 		getTransactionHashStub = sandbox
-			.stub(hash, 'getTransactionHash')
+			.stub(getTransactionHash, 'default')
 			.returns(
 				Buffer.from(
 					'c62214460d66eeb1d9db3fb708e31040d2629fbdb6c93887c5eb0f3243912f91',
 					'hex',
 				),
 			);
-		getSha256HashStub = sandbox
-			.stub(hash, 'getSha256Hash')
+		hashStub = sandbox
+			.stub(hash, 'default')
 			.returns(
 				Buffer.from(
 					'd43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760',
@@ -550,7 +551,7 @@ ${defaultSecondSignature}
 
 	describe('encrypt and decrypt passphrase with password', () => {
 		beforeEach(() => {
-			getSha256HashStub.returns(
+			hashStub.returns(
 				Buffer.from(
 					'e09dfc943d65d63f4f31e444c81afc6d5cf442c988fb87180165dd7119d3ae61',
 					'hex',

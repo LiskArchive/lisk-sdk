@@ -106,7 +106,7 @@ describe('convert', () => {
 
 	describe('#getAddressFromPublicKey', () => {
 		beforeEach(() => {
-			sandbox.stub(hash, 'getSha256Hash').returns(defaultPublicKeyHash);
+			sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
 		});
 
 		it('should generate address from publicKey', () => {
@@ -117,7 +117,7 @@ describe('convert', () => {
 
 	describe('#getAddress', () => {
 		beforeEach(() => {
-			sandbox.stub(hash, 'getSha256Hash').returns(defaultPublicKeyHash);
+			sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
 		});
 
 		it('should generate address from publicKey', () => {
@@ -128,7 +128,7 @@ describe('convert', () => {
 
 	describe('#getId', () => {
 		beforeEach(() => {
-			sandbox.stub(hash, 'getSha256Hash').returns(defaultTransactionHash);
+			sandbox.stub(hash, 'default').returns(defaultTransactionHash);
 			sandbox.stub(utils, 'getTransactionBytes');
 		});
 
