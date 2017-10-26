@@ -93,14 +93,19 @@ def run_action(action) {
 def report_coverage(node) {
 	try {
 		sh """
-		HOST=127.0.0.1:4000 npm run fetchCoverage
+		export HOST=127.0.0.1:4000
+		# Gathers tests into single lcov.info
+		npm run coverageReport
+		npm run fetchCoverage
+		# Submit coverage reports to Master
+		scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
 		scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-${node}.zip
 		"""
 	} catch (err) {
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
-		error('Stopping build: reporting coverage statistics failed')
+		error('Stopping build: reporting coverage statistics failed node-' + node)
 	}
 }
 
@@ -294,22 +299,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Gather Coverage Node-04" : {
 				node('node-04'){
-					try {
-						sh '''
-						export HOST=127.0.0.1:4000
-						# Gathers unit test into single lcov.info
-						npm run coverageReport
-						npm run fetchCoverage
-						# Submit coverage reports to Master
-						scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
-						scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-04.zip
-						'''
-					} catch (err) {
-						echo "Error: ${err}"
-						currentBuild.result = 'FAILURE'
-						report()
-						error('Stopping build: submitting coverage failed')
-					}
+					report_coverage('04')
 				}
 			}
 		)
