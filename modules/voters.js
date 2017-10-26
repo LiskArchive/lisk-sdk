@@ -13,7 +13,7 @@ var schema = require('../schema/voters');
 // Private fields
 var modules;
 var library;
-var loaded;
+var loaded = false;
 
 /**
  * Initializes library with scope content and private variables:
@@ -55,9 +55,21 @@ var populateVoters = function (sort, addresses, cb) {
 	modules.accounts.getAccounts({address: {$in: addresses}, sort: sortQuery}, ['address', 'balance', 'username', 'publicKey'], cb);
 };
 
+/**
+ * @return {boolean}
+ */
+Voters.prototype.isLoaded = function () {
+	return loaded;
+};
+
 // Public methods
 Voters.prototype.shared = {
 
+	/**
+	 * API function for getting the delegate including his voters
+	 * @param {Object} req
+	 * @param {function} cb
+	 */
 	getVoters: function (req, cb) {
 		if (!loaded) {
 			return setImmediate(cb, new ApiError('Blockchain is loading', apiCodes.INTERNAL_SERVER_ERROR));
