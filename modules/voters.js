@@ -1,10 +1,12 @@
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var crypto = require('crypto');
 
 var apiCodes = require('../helpers/apiCodes');
 var ApiError = require('../helpers/apiError');
+var OrderBy = require('../helpers/orderBy');
 var sql = require('../sql/voters');
 var schema = require('../schema/voters');
 
@@ -32,7 +34,7 @@ function Voters (cb, scope) {
 }
 
 var getDelegate = function (query, cb) {
-	return modules.accounts.getAccount(query, ['publicKey', 'address', 'balance'], cb);
+	return modules.accounts.getAccount(_.assign({}, query, {sort: {}}), ['publicKey', 'address', 'balance'], cb);
 };
 
 var getVotersForDelegates = function (delegate, cb) {
@@ -48,8 +50,9 @@ var getVotersForDelegates = function (delegate, cb) {
 	});
 };
 
-var populateVoters = function (addresses, cb) {
-	modules.accounts.getAccounts({address: {$in: addresses}}, ['address', 'balance', 'username', 'publicKey'], cb);
+var populateVoters = function (sort, addresses, cb) {
+	var sortQuery = OrderBy.sortQueryToJsonSqlFormat(sort, ['address', 'balance', 'username', 'publicKey']);
+	modules.accounts.getAccounts({address: {$in: addresses}, sort: sortQuery}, ['address', 'balance', 'username', 'publicKey'], cb);
 };
 
 // Public methods
@@ -66,7 +69,7 @@ Voters.prototype.shared = {
 			async.autoInject({
 				delegate: getDelegate.bind(null, req.body),
 				votersAddresses: ['delegate', getVotersForDelegates],
-				populatedVoters: ['votersAddresses', populateVoters]
+				populatedVoters: ['votersAddresses', populateVoters.bind(null, req.body.sort)]
 			}, function (err, results) {
 				if (err) {
 					if (err.message === 'No data returned') {
