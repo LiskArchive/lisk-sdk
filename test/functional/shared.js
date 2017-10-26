@@ -3,7 +3,7 @@
 var node = require('../node');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
-var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
+var getTransactionsPromise = require('../common/apiHelpers').getTransactionsPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
 var getPendingMultisignaturePromise = require('../common/apiHelpers').getPendingMultisignaturePromise;
 var getBlocksToWaitPromise = require('../common/apiHelpers').getBlocksToWaitPromise;
@@ -40,46 +40,55 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		it('bad transactions should not be confirmed', function () {
 			return node.Promise.map(badTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+				var params = [
+					'id=' + transaction.id
+				];
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});
 
-		it('good transactions should not be unconfirmed', function () {
+		it.skip('good transactions should not be unconfirmed', function () {
 			return node.Promise.map(goodTransactions, function (transaction) {
 				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});
 
 		it('good transactions should be confirmed', function () {
 			return node.Promise.map(goodTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transaction').to.have.property('id').equal(transaction.id);
+				var params = [
+					'id=' + transaction.id
+				];
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
 				});
 			});
 		});
 
 		if (pendingMultisignatures) {
-			it('pendingMultisignatures should remain in the pending queue', function () {
+			it.skip('pendingMultisignatures should remain in the pending queue', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
 					return getPendingMultisignaturePromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
 					});
 				});
 			});
 
-			it('pendingMultisignatures should not be confirmed', function () {
+			it.skip('pendingMultisignatures should not be confirmed', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getTransactionPromise(transaction.id).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('error').equal('Transaction not found');
+					var params = [
+						'id=' + transaction.id
+					];
+					return getTransactionsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 					});
 				});
 			});
@@ -92,8 +101,8 @@ function invalidTxs () {
 	tests.forEach(function (test) {
 		it('using ' + test.describe + ' should fail', function () {
 			return sendTransactionPromise(test.args).then(function (res) {
-				node.expect(res).to.have.property('success').to.not.be.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 			});
 		});
 	});
@@ -130,8 +139,8 @@ function invalidAssets (account, option, badTransactions) {
 				transaction.asset = test.args;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -141,8 +150,8 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset;
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});
@@ -155,8 +164,8 @@ function invalidAssets (account, option, badTransactions) {
 				transaction.asset[option] = test.args;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -166,8 +175,8 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset[option];
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});

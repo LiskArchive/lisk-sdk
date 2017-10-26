@@ -7,6 +7,12 @@ module.exports = {
 		id: 'transactions.getTransactions',
 		type: 'object',
 		properties: {
+			id: {
+				type: 'string',
+				format: 'id',
+				minLength: 1,
+				maxLength: 20
+			},
 			blockId: {
 				type: 'string',
 				format: 'id',
@@ -18,27 +24,11 @@ module.exports = {
 				minimum: 0,
 				maximum: 10
 			},
-			senderId: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			},
-			senderPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
 			ownerPublicKey: {
 				type: 'string',
 				format: 'publicKey'
 			},
 			ownerAddress: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			},
-			recipientId: {
 				type: 'string',
 				format: 'address',
 				minLength: 1,
@@ -54,7 +44,7 @@ module.exports = {
 				minimum: 0,
 				maximum: constants.fixedPoint
 			},
-			senderPublicKeys: {
+			senderPublicKey: {
 				type: 'array',
 				minItems: 1,
 				'items': {
@@ -62,7 +52,7 @@ module.exports = {
 					format: 'publicKey'
 				}
 			},
-			recipientPublicKeys: {
+			recipientPublicKey: {
 				type: 'array',
 				minItems: 1,
 				'items': {
@@ -70,7 +60,7 @@ module.exports = {
 					format: 'publicKey'
 				}
 			},
-			senderIds: {
+			senderId: {
 				type: 'array',
 				minItems: 1,
 				'items': {
@@ -80,10 +70,10 @@ module.exports = {
 					maxLength: 22
 				}
 			},
-			recipientIds: {
+			recipientId: {
 				type: 'array',
 				minItems: 1,
-				'items': {
+				items: {
 					type: 'string',
 					format: 'address',
 					minLength: 1,

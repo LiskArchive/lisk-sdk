@@ -19,7 +19,10 @@ function httpCallbackHelper (cb, err, res) {
 	if (err) {
 		return cb(err);
 	}
-	cb(null, res.body);
+	cb(null, {
+		status: res.status,
+		body: res.body
+	});
 }
 
 function getTransaction (transaction, cb) {
@@ -62,7 +65,7 @@ function getPendingMultisignature (transaction, cb) {
 }
 
 function sendTransaction (transaction, cb) {
-	http.post('/api/transactions', {transaction: transaction}, httpCallbackHelper.bind(null, cb));
+	http.post('/api/transactions', {transactions: [transaction]}, httpCallbackHelper.bind(null, cb));
 }
 
 function sendSignature (signature, transaction, cb) {

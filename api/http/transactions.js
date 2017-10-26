@@ -35,7 +35,6 @@ function TransactionsHttpApi (transactionsModule, app, logger, cache) {
 	]);
 
 	router.map(transactionsModule.shared, {
-		'get /': 'getTransactions',
 		'get /get': 'getTransaction',
 		'get /count': 'getTransactionsCount',
 		'get /queued/get': 'getQueuedTransaction',
@@ -44,8 +43,12 @@ function TransactionsHttpApi (transactionsModule, app, logger, cache) {
 		'get /multisignatures': 'getMultisignatureTransactions',
 		'get /unconfirmed/get': 'getUnconfirmedTransaction',
 		'get /unconfirmed': 'getUnconfirmedTransactions',
-		'post /': 'postTransactions'
 	});
+
+	router.map(transactionsModule.shared, {
+		'get /': 'getTransactions',
+		'post /': 'postTransactions'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/transactions', app, router, transactionsModule.isLoaded);
 }
