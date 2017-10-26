@@ -27,13 +27,13 @@ import {
 	getFirstQuotedString,
 	getFirstBoolean,
 	getNumbersFromTitle,
-	getTransactionFunctionNameByType,
+	getTransactionCreatorFunctionNameByType,
 } from './utils';
 
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const { transactionsObject } = this.test.ctx;
 	const transactionType = getNumbersFromTitle(this.test.title)[0];
-	const transactionFunctionName = getTransactionFunctionNameByType(transactionType);
+	const transactionFunctionName = getTransactionCreatorFunctionNameByType(transactionType);
 	return (transactionsObject).should.have.key(transactionFunctionName).and.be.type('function');
 }
 
