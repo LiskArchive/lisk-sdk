@@ -284,6 +284,12 @@ export function theVorpalCommandInstanceShouldHaveTheNoJsonOption() {
 	return (options).should.matchAny(option => option.flags === commonOptions.noJson[0]);
 }
 
+export function theVorpalCommandInstanceShouldHaveThePrettyOption() {
+	const { vorpal, command } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	return (options).should.matchAny(option => option.flags === commonOptions.pretty[0]);
+}
+
 export function theVorpalInstanceShouldHaveTheCommand() {
 	const { vorpal, command } = this.test.ctx;
 	const commandInstance = getCommandInstance(vorpal, command);

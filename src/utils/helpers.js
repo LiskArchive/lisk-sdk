@@ -58,8 +58,9 @@ export const createCommand = ({
 	if (alias) commandInstance.alias(alias);
 
 	[
-		...options,
 		commonOptions.json,
 		commonOptions.noJson,
+		commonOptions.pretty,
+		...options,
 	].forEach(option => commandInstance.option(...option));
 };
