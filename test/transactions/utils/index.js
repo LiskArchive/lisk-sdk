@@ -16,6 +16,7 @@ import {
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
 	getTransactionBytes,
+	getTransactionHash,
 	prepareTransaction,
 } from '../../../src/transactions/utils';
 
@@ -31,6 +32,10 @@ describe('transaction utils', () => {
 
 		it('should have getTransactionBytes', () => {
 			getTransactionBytes.should.be.type('function');
+		});
+
+		it('should have getTransactionBytes', () => {
+			getTransactionHash.should.be.type('function');
 		});
 
 		it('should have prepareTransaction', () => {

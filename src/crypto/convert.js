@@ -14,7 +14,7 @@
  */
 import bignum from 'browserify-bignum';
 import ed2curve from 'ed2curve';
-import { getSha256Hash } from './hash';
+import hash from './hash';
 import { getTransactionBytes } from '../transactions/utils';
 
 /**
@@ -71,7 +71,7 @@ export function toAddress(buffer) {
  */
 
 export function getAddressFromPublicKey(publicKey) {
-	const publicKeyHash = getSha256Hash(publicKey, 'hex');
+	const publicKeyHash = hash(publicKey, 'hex');
 
 	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
 	const address = toAddress(publicKeyTransform);
@@ -99,7 +99,7 @@ export function getAddress(publicKey) {
 
 export function getId(transaction) {
 	const transactionBytes = getTransactionBytes(transaction);
-	const transactionHash = getSha256Hash(transactionBytes);
+	const transactionHash = hash(transactionBytes);
 	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(
 		transactionHash,
 	);
