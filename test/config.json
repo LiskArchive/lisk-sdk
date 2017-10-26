@@ -76,7 +76,7 @@
 				"pool": {
 					"storageLimit": 4000,
 					"processInterval": 5000,
-					"expiryInteval": 25000
+					"expiryInterval": 25000
 				}
     },
     "forging": {
