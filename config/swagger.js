@@ -13,10 +13,10 @@ var YAML = require('js-yaml');
  * @requires fs
  * @requires js-yaml
  * @module config:swagger
- * @param {object} app - An express app to which map the swagger details
- * @param {object} config - Application Configurations
- * @param {object} logger - Application Logger
- * @param {object} scope - Application Scope
+ * @param {Object} app - An express app to which map the swagger details
+ * @param {Object} config - Application Configurations
+ * @param {Object} logger - Application Logger
+ * @param {Object} scope - Application Scope
  * @param {function} cb - Callback function.
  * @returns {void} 
  */
@@ -42,7 +42,7 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 	  SwaggerRunner.create(swaggerConfig, function(err, runner) {
 		
 		if (err) {
-			// Some error occured in configuring the swagger
+			// Some error occurred in configuring the swagger
 			cb('Swagger Runner Error : ' + err);
 			return;
 		}
