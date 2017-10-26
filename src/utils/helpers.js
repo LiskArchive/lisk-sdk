@@ -39,6 +39,7 @@ export const createCommand = ({
 	command,
 	autocomplete,
 	description,
+	alias,
 	actionCreator,
 	options = [],
 	errorPrefix,
@@ -49,6 +50,8 @@ export const createCommand = ({
 		.autocomplete(autocomplete)
 		.description(description)
 		.action(action);
+
+	if (alias) commandInstance.alias(alias);
 
 	[
 		...options,

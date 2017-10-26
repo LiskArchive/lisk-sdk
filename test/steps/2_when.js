@@ -127,11 +127,12 @@ export function theCreatedCommandIsCalledWithTheVorpalInstance() {
 	this.test.ctx.returnValue = createdCommand(vorpal);
 }
 
-export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix() {
+export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheAliasTheActionCreatorTheOptionsListAndThePrefix() {
 	const {
 		command,
 		autocompleteList: autocomplete,
 		description,
+		alias,
 		actionCreator,
 		optionsList: options,
 		prefix: errorPrefix,
@@ -140,6 +141,7 @@ export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocomp
 		command,
 		autocomplete,
 		description,
+		alias,
 		actionCreator,
 		options,
 		errorPrefix,

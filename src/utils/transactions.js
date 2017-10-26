@@ -13,12 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as given from '../../steps/1_given';
-import * as then from '../../steps/3_then';
+import lisk from 'lisk-js';
 
-describe('liskInstance util', () => {
-	describe('Given a lisk instance', () => {
-		beforeEach(given.aLiskInstance);
-		it('Then the lisk instance should be a lisk-js api instance', then.theLiskInstanceShouldBeALiskJSApiInstance);
-	});
-});
+export default Object.assign({},
+	lisk.transaction,
+	lisk.multisignature,
+	lisk.signature,
+	lisk.delegate,
+	lisk.vote,
+);

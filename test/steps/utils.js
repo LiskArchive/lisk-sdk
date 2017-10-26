@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
+import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
 import * as decryptMessage from '../../src/commands/decryptMessage';
 import * as encryptMessage from '../../src/commands/encryptMessage';
 import * as encryptPassphrase from '../../src/commands/encryptPassphrase';
@@ -63,6 +64,7 @@ export const getActionCreator = actionName => ({
 	'decrypt message': decryptMessage.actionCreator,
 	'encrypt message': encryptMessage.actionCreator,
 	'encrypt passphrase': encryptPassphrase.actionCreator,
+	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,
 	list: list.actionCreator,
@@ -143,3 +145,14 @@ export const createStreamStub = on => ({
 	close: () => {},
 	on,
 });
+
+export function getTransactionCreatorFunctionNameByType(transactionType) {
+	switch (transactionType) {
+	case 0:	return 'createTransaction';
+	case 1: return 'signTransaction';
+	case 2:	return 'createDelegate';
+	case 3: return 'createVote';
+	case 4: return 'createMultisignature';
+	default: throw new Error(`Transaction type ${transactionType} is not supported`);
+	}
+}
