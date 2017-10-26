@@ -105,7 +105,7 @@ var config = {
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		voters: { ws: './api/http/voters.js' },
+		voters: { http: './api/http/voters.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
