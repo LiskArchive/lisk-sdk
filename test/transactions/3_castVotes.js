@@ -168,39 +168,38 @@ describe('#castVotes transaction', () => {
 			});
 		});
 
-		it('should create a vote transaction with a second secret', () => {
+		it('should differ from a transaction with one secret', () => {
 			const castVotesTransactionWithoutSecondSecret = castVotes({
 				secret,
 				delegates: publicKeys,
 			});
-			castVotesTransaction.should.be.ok();
 			castVotesTransaction.should.not.be.equal(
 				castVotesTransactionWithoutSecondSecret,
 			);
 		});
 
-		describe('returned cast votes transaction', () => {
-			it('should have second signature hex string', () => {
-				castVotesTransaction.should.have
-					.property('signSignature')
-					.and.be.hexString();
-			});
+		it('should have the second signature property as hex string', () => {
+			castVotesTransaction.should.have
+				.property('signSignature')
+				.and.be.hexString();
+		});
 
-			it('should be second signed correctly', () => {
+		describe('verification of the created transaction', () => {
+			it('should return true on a correctly signed transaction', () => {
 				const result = cryptoModule.verifyTransaction(
 					castVotesTransaction,
 					secondPublicKey,
 				);
-				result.should.be.ok();
+				result.should.be.true();
 			});
 
-			it('should not be second signed correctly if modified', () => {
+			it('should return false when modified', () => {
 				castVotesTransaction.amount = 100;
 				const result = cryptoModule.verifyTransaction(
 					castVotesTransaction,
 					secondPublicKey,
 				);
-				result.should.not.be.ok();
+				result.should.be.false();
 			});
 		});
 	});

@@ -199,17 +199,17 @@ describe('#send transaction', () => {
 			});
 		});
 
-		it('should create a send transaction', () => {
+		it('should differ from the transaction with one secret', () => {
 			const sendTransactionWithoutSecondSecret = send({
 				recipientId,
 				amount,
 				secret,
 			});
-			sendTransaction.should.be.ok();
+
 			sendTransaction.should.not.be.equal(sendTransactionWithoutSecondSecret);
 		});
 
-		it('should create send transaction with second signature and data', () => {
+		it('should create a send transaction with data', () => {
 			sendTransaction = send({
 				recipientId,
 				amount,
@@ -217,25 +217,32 @@ describe('#send transaction', () => {
 				secondSecret,
 				data: testData,
 			});
-			sendTransaction.should.be.ok();
+			sendTransaction.asset.should.have.property('data');
 		});
 
-		describe('returned send transaction', () => {
-			it('should have second signature hex string', () => {
-				sendTransaction.should.have
-					.property('signSignature')
-					.and.be.hexString();
-			});
+		it('should have the second signature property as hex string', () => {
+			sendTransaction.should.have.property('signSignature').and.be.hexString();
+		});
 
-			it('should be second signed correctly', () => {
+		describe('verification of the created transaction', () => {
+			it('should return true on a correctly signed transaction', () => {
 				const result = cryptoModule.verifyTransaction(
 					sendTransaction,
 					secondPublicKey,
 				);
-				result.should.be.ok();
+				result.should.be.true();
 			});
 
-			it('should be second signed correctly if second signature is an empty string', () => {
+			it('should return false when modified', () => {
+				sendTransaction.amount = 100;
+				const result = cryptoModule.verifyTransaction(
+					sendTransaction,
+					secondPublicKey,
+				);
+				result.should.be.false();
+			});
+
+			it('should return true when second secret is passed as an empty string', () => {
 				sendTransaction = send({
 					recipientId,
 					amount,
@@ -243,20 +250,12 @@ describe('#send transaction', () => {
 					secondSecret: '',
 					testData,
 				});
+
 				const result = cryptoModule.verifyTransaction(
 					sendTransaction,
 					emptyPublicKey,
 				);
-				result.should.be.ok();
-			});
-
-			it('should not be second signed correctly if modified', () => {
-				sendTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					sendTransaction,
-					secondPublicKey,
-				);
-				result.should.not.be.ok();
+				result.should.be.true();
 			});
 		});
 	});

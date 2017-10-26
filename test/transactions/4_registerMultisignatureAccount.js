@@ -205,7 +205,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 			});
 		});
 
-		it('should create a multisignature transaction with a second secret', () => {
+		it('should differ from the transaction with one secret', () => {
 			const registerMultisignatureTransactionWithoutSecondSecret = registerMultisignatureAccount(
 				{
 					secret,
@@ -221,28 +221,28 @@ describe('#registerMultisignatureAccount transaction', () => {
 			);
 		});
 
-		describe('returned register multisignature transaction', () => {
-			it('should have second signature hex string', () => {
-				registerMultisignatureTransaction.should.have
-					.property('signSignature')
-					.and.be.hexString();
-			});
+		it('should have the second signature property as hex string', () => {
+			registerMultisignatureTransaction.should.have
+				.property('signSignature')
+				.and.be.hexString();
+		});
 
-			it('should be second signed correctly', () => {
+		describe('verification of the created transaction', () => {
+			it('should return true on a correctly signed transaction', () => {
 				const result = cryptoModule.verifyTransaction(
 					registerMultisignatureTransaction,
 					secondKeys.publicKey,
 				);
-				result.should.be.ok();
+				result.should.be.true();
 			});
 
-			it('should not be second signed correctly if modified', () => {
+			it('should return false when modified', () => {
 				registerMultisignatureTransaction.amount = 100;
 				const result = cryptoModule.verifyTransaction(
 					registerMultisignatureTransaction,
 					secondKeys.publicKey,
 				);
-				result.should.not.be.ok();
+				result.should.be.false();
 			});
 		});
 	});

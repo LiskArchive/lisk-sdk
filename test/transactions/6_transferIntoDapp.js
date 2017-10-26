@@ -163,7 +163,7 @@ describe('#transferIntoDapp transaction', () => {
 			});
 		});
 
-		it('should create an transfer into dapp transaction with a second secret', () => {
+		it('should differ from the transaction with one secret', () => {
 			const transferIntoDappTransactionWithoutSecondSecret = transferIntoDapp({
 				dappId,
 				amount,
@@ -175,28 +175,28 @@ describe('#transferIntoDapp transaction', () => {
 			);
 		});
 
-		describe('returned inTransfer dapp transaction', () => {
-			it('should have second signature hex string', () => {
-				transferIntoDappTransaction.should.have
-					.property('signSignature')
-					.and.be.hexString();
-			});
+		it('should have the second signature property as hex string', () => {
+			transferIntoDappTransaction.should.have
+				.property('signSignature')
+				.and.be.hexString();
+		});
 
-			it('should be second signed correctly', () => {
+		describe('verification of the created transaction', () => {
+			it('should return true on a correctly signed transaction', () => {
 				const result = cryptoModule.verifyTransaction(
 					transferIntoDappTransaction,
 					secondPublicKey,
 				);
-				result.should.be.ok();
+				result.should.be.true();
 			});
 
-			it('should not be second signed correctly if modified', () => {
+			it('should return false when modified', () => {
 				transferIntoDappTransaction.amount = 100;
 				const result = cryptoModule.verifyTransaction(
 					transferIntoDappTransaction,
 					secondPublicKey,
 				);
-				result.should.not.be.ok();
+				result.should.be.false();
 			});
 		});
 	});

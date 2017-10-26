@@ -116,21 +116,6 @@ describe('#registerSecondPassphrase transaction', () => {
 				.and.be.hexString();
 		});
 
-		it('should be signed correctly', () => {
-			const result = cryptoModule.verifyTransaction(
-				registerSecondPassphraseTransaction,
-			);
-			result.should.be.ok();
-		});
-
-		it('should not be signed correctly if modified', () => {
-			registerSecondPassphraseTransaction.amount = 100;
-			const result = cryptoModule.verifyTransaction(
-				registerSecondPassphraseTransaction,
-			);
-			result.should.be.not.ok();
-		});
-
 		it('should have asset object', () => {
 			registerSecondPassphraseTransaction.should.have
 				.property('asset')
@@ -177,6 +162,23 @@ describe('#registerSecondPassphrase transaction', () => {
 				registerSecondPassphraseTransaction.asset.signature.publicKey.should.be.equal(
 					emptyStringPublicKey,
 				);
+			});
+
+			describe('verification of the created transaction', () => {
+				it('should return true on a correctly signed transaction', () => {
+					const result = cryptoModule.verifyTransaction(
+						registerSecondPassphraseTransaction,
+					);
+					result.should.be.true();
+				});
+
+				it('should return false when modified', () => {
+					registerSecondPassphraseTransaction.amount = 100;
+					const result = cryptoModule.verifyTransaction(
+						registerSecondPassphraseTransaction,
+					);
+					result.should.be.false();
+				});
 			});
 		});
 	});
