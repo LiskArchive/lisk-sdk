@@ -645,9 +645,13 @@ node.appCleanup = function (done) {
 	});
 };
 
-before(function (done) {
-	require('./common/globalBefore').waitUntilBlockchainReady(done);
-});
+// Check if before available meaning required in a test suite
+// Since this file is used by console as well.
+if (typeof before === 'function') {
+	before(function (done) {
+		require('./common/globalBefore').waitUntilBlockchainReady(done);
+	});
+}
 
 // Exports
 module.exports = node;
