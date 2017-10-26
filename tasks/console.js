@@ -3,6 +3,12 @@
 var repl = require('repl');
 var fs = require('fs');
 var path = require('path');
+
+// Created this before in global scope as its dependency of test/node.js
+if(typeof before !== 'function') {
+	global.before = function before (cb) { cb(); };
+}
+
 var node = require('../test/node');
 
 node.initApplication(function (err, scope) {
