@@ -43,10 +43,6 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			})
 			.then(function (res) {
 				return waitForConfirmations(transactionsToWaitFor);
-			})
-			.catch(function (err) {
-				node.expect(err).to.be.empty;
-				throw err;
 			});
 	});
 

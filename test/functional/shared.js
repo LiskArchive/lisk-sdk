@@ -37,11 +37,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 			var transactionToWaitFor = goodTransactions.map(function (transaction) {
 				return [transaction.id];
 			});
-			return waitForConfirmations(transactionToWaitFor)
-				.catch(function (err) {
-					node.expect(err).to.be.empty;
-					throw err;
-				});
+			return waitForConfirmations(transactionToWaitFor);
 		});
 
 		it('bad transactions should not be confirmed', function () {

@@ -169,7 +169,8 @@ function getBlocksToWaitPromise () {
 		});
 }
 
-function waitForConfirmations (transactions, limitHeight = 10) {
+function waitForConfirmations (transactions, limitHeight) {
+	limitHeight = limitHeight || 10;
 
 	function checkConfirmations (transactions) {
 		return node.Promise.map(transactions, function (transaction) {
@@ -177,17 +178,11 @@ function waitForConfirmations (transactions, limitHeight = 10) {
 		})
 			.then(function (res) {
 				return node.Promise.each(res, function (result) {
-					node.expect(result).to.have.property('success').to.be.ok;
-					node.expect(result).to.have.property('transaction').not.empty;
-				})
-					.then(true)
-					.catch(function (err) {
-						throw err;
-					});	
-			})
-			.catch(function (err) {
-				throw err;
-			});	
+					if (result.success === false) {
+						throw Error(result.error);
+					}
+				});
+			});
 	};
 
 	function waitUntilLimit (limit) {

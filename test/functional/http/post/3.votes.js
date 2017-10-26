@@ -133,10 +133,6 @@ describe('POST /api/transactions (type 3) votes', function () {
 			})
 			.then(function (res) {
 				return waitForConfirmations(transactionsToWaitFor);
-			})
-			.catch(function (err) {
-				node.expect(err).to.be.empty;
-				throw err;
 			});
 	});
 

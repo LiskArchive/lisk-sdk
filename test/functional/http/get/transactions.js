@@ -45,10 +45,6 @@ describe('GET /api/transactions', function () {
 			})
 			.then(function (res) {
 				return waitForConfirmations(transactionList);
-			})
-			.catch(function (err) {
-				node.expect(err).to.be.empty;
-				throw err;
 			});
 	});
 

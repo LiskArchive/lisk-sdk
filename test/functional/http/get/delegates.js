@@ -430,10 +430,6 @@ describe('GET /api/delegates', function () {
 				})
 				.then(function (res) {
 					return waitForConfirmations(transactionsToWaitFor);
-				})
-				.catch(function (err) {
-					node.expect(err).to.be.empty;
-					throw err;
 				});
 		});
 
