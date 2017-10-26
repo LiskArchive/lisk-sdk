@@ -1,10 +1,19 @@
-require('./accounts');
-require('./blocks');
-require('./dapps');
-require('./delegates');
-require('./loader');
-require('./multisignatures');
-require('./multisignatures.post');
-require('./peers');
-require('./voters');
-require('./transactions');
+'use strict';
+
+var parallelTests = require('../../../common/parallelTests').parallelTests;
+
+var pathFiles = [
+	'./accounts',
+	'./blocks',
+	'./dapps',
+	'./delegates',
+	'./loader',
+	'./multisignatures',
+	'./multisignatures.post',
+	'./node',
+	'./peers',
+	'./transactions',
+	'./voters'
+];
+
+parallelTests(pathFiles, 'test/functional/http/get/');

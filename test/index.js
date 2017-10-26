@@ -1,2 +1,0 @@
-require('./unit');
-require('./integration');

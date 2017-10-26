@@ -6,7 +6,8 @@ var sendTransactionPromise = require('../common/apiHelpers').sendTransactionProm
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
 var getPendingMultisignaturePromise = require('../common/apiHelpers').getPendingMultisignaturePromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var getBlocksToWaitPromise = require('../common/apiHelpers').getBlocksToWaitPromise;
+var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 var tests = [
 	{describe: 'null',              args: null},
@@ -31,42 +32,10 @@ var tests = [
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
 
-	describe('before new block', function () {
-
-		it('good transactions should remain unconfirmed', function () {
-			return node.Promise.map(goodTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
-				});
-			});
-		});
-
-		if (pendingMultisignatures) {
-			it('pendingMultisignatures should remain in the pending queue', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getPendingMultisignaturePromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
-					});
-				});
-			});
-
-			it('pendingMultisignatures should not be confirmed', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getTransactionPromise(transaction.id).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('error').equal('Transaction not found');
-					});
-				});
-			});
-	  };
-	});
-
-	describe('after new block', function () {
+	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			return onNewBlockPromise();
+			return getBlocksToWaitPromise().then(waitForBlocksPromise);
 		});
 
 		it('bad transactions should not be confirmed', function () {
