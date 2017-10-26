@@ -7,13 +7,13 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
 var getPendingMultisignaturesPromise = require('../../../common/apiHelpers').getPendingMultisignaturesPromise;
-var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('GET /api/multisignatures/', function () {
 
 	var scenario = new shared.multisigScenario(3);
 	var transaction;
+	var transactionsToWaitFor = [];
 
 	before(function () {
 		//Crediting accounts
@@ -21,10 +21,10 @@ describe('GET /api/multisignatures/', function () {
 			.then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-				return getBlocksToWaitPromise();
+				transactionsToWaitFor.push(res.transactionId);
 			})
 			.then(function (res) {
-				return waitForBlocksPromise(res);
+				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
 				transaction = node.lisk.multisignature.createMultisignature(scenario.account.password, null, scenario.keysgroup, 1, 2);;
@@ -34,6 +34,7 @@ describe('GET /api/multisignatures/', function () {
 			.then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				transactionsToWaitFor.push(res.transactionId);
 			});
 	});
 
