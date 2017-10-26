@@ -66,6 +66,7 @@
     "socketcluster-client": "=5.3.0",
     "sodium": "LiskHQ/node-sodium#716de00",
     "strftime": "=0.10.0",
+    "swagger-node-runner": "^0.7.3",
     "valid-url": "=1.0.9",
     "validator": "=7.0.0",
     "validator.js": "=2.0.3",

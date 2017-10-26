@@ -628,6 +628,11 @@ Peers.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Peers.prototype.shared = {
+	
+	getPeersSwagger: function (filters, cb) {
+		return setImmediate(cb, null, {peers: __private.getByFilter(filters)});
+	},
+
 	getPeers: function (req, cb) {
 		library.schema.validate(req.body, schema.getPeers, function (err) {
 			if (err) {

@@ -27,106 +27,118 @@ var ip = require('ip');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
 
-z_schema.registerFormat('id', function (str) {
-	if (str.length === 0) {
-		return true;
-	}
-
-	return /^[0-9]+$/g.test(str);
-});
-
-z_schema.registerFormat('address', function (str) {
-	if (str.length === 0) {
-		return true;
-	}
-
-	return /^[0-9]+[L]$/ig.test(str);
-});
-
-z_schema.registerFormat('username', function (str) {
-	if (str.length === 0) {
-		return true;
-	}
-
-	return /^[a-z0-9!@$&_.]+$/ig.test(str);
-});
-
-z_schema.registerFormat('hex', function (str) {
-	return /^[a-f0-9]*$/i.test(str);
-});
-
-z_schema.registerFormat('publicKey', function (str) {
-	if (str.length === 0) {
-		return true;
-	}
-
-	return /^[a-f0-9]{64}$/i.test(str);
-});
-
-z_schema.registerFormat('csv', function (str) {
-	try {
-		var a = str.split(',');
-		if (a.length > 0 && a.length <= 1000) {
+var liskFormats = {
+	id: function (str) {
+		if (str.length === 0) {
 			return true;
-		} else {
+		}
+	
+		return /^[0-9]+$/g.test(str);
+	}, 
+
+	address: function (str) {
+		if (str.length === 0) {
+			return true;
+		}
+	
+		return /^[0-9]+[L]$/ig.test(str);
+	},
+
+	username: function (str) {
+		if (str.length === 0) {
+			return true;
+		}
+	
+		return /^[a-z0-9!@$&_.]+$/ig.test(str);
+	},
+
+	hex: function (str) {
+		return /^[a-f0-9]*$/i.test(str);
+	},
+
+	publicKey: function (str) {
+		if (str.length === 0) {
+			return true;
+		}
+	
+		return /^[a-f0-9]{64}$/i.test(str);
+	},
+
+	csv: function (str) {
+		try {
+			var a = str.split(',');
+			if (a.length > 0 && a.length <= 1000) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (e) {
 			return false;
 		}
-	} catch (e) {
-		return false;
-	}
-});
+	},
 
-z_schema.registerFormat('signature', function (str) {
-	if (str.length === 0) {
+	signature: function (str) {
+		if (str.length === 0) {
+			return true;
+		}
+	
+		return /^[a-f0-9]{128}$/i.test(str);
+	},
+
+	queryList: function (obj) {
+		obj.limit = 100;
 		return true;
-	}
+	},
 
-	return /^[a-f0-9]{128}$/i.test(str);
-});
-
-z_schema.registerFormat('queryList', function (obj) {
-	obj.limit = 100;
-	return true;
-});
-
-z_schema.registerFormat('delegatesList', function (obj) {
-	obj.limit = 101;
-	return true;
-});
-
-z_schema.registerFormat('parsedInt', function (value) {
-	/*eslint-disable eqeqeq */
-	if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
-		return false;
-	}
-	/*eslint-enable eqeqeq */
-	value = parseInt(value);
-	return true;
-});
-
-z_schema.registerFormat('ip', function (str) {
-	return ip.isV4Format(str);
-});
-
-z_schema.registerFormat('ipOrFQDN', function (str) {
-	return ip.isV4Format(str) || FormatValidators.hostname(str);
-});
-
-z_schema.registerFormat('os', function (str) {
-	if (str.length === 0) {
+	delegatesList: function (obj) {
+		obj.limit = 101;
 		return true;
-	}
+	},
 
-	return /^[a-z0-9-_.+]+$/ig.test(str);
-});
-
-z_schema.registerFormat('version', function (str) {
-	if (str.length === 0) {
+	parsedInt: function (value) {
+		/*eslint-disable eqeqeq */
+		if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
+			return false;
+		}
+		/*eslint-enable eqeqeq */
+		value = parseInt(value);
 		return true;
-	}
+	},
 
-	return /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
+	ip: function (str) {
+		return ip.isV4Format(str);
+	},
+
+	os: function (str) {
+		if (str.length === 0) {
+			return true;
+		}
+	
+		return /^[a-z0-9-_.+]+$/ig.test(str);
+	},
+
+	version: function (str) {
+		if (str.length === 0) {
+			return true;
+		}
+	
+		return /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
+	},
+
+	ipOrFQDN: function (str) {
+		return ip.isV4Format(str) || FormatValidators.hostname(str);
+	},
+};
+
+// Register the formats 
+Object.keys(liskFormats).forEach(function (formatName) {
+	z_schema.registerFormat(formatName, liskFormats[formatName]);
 });
+
+
+// Assigned as custom attribute to be used later 
+// since z_schema.getRegisteredFormats() only resturns keys not the methods
+z_schema.formatsCache = liskFormats;	
 
 // Exports
 module.exports = z_schema;
