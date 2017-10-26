@@ -26,31 +26,15 @@ import {
 	getCommandInstance,
 	getFirstQuotedString,
 	getFirstBoolean,
+	getNumbersFromTitle,
+	getTransactionFunctionNameByType,
 } from './utils';
 
-export function itShouldHaveTheTransactionTransfer() {
+export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const { transactionsObject } = this.test.ctx;
-	return (transactionsObject).should.have.keys('createTransaction');
-}
-
-export function itShouldHaveTheTransactionRegisterSecondPassphrase() {
-	const { transactionsObject } = this.test.ctx;
-	return (transactionsObject).should.have.keys('createSignature');
-}
-
-export function itShouldHaveTheTransactionRegisterDelegate() {
-	const { transactionsObject } = this.test.ctx;
-	return (transactionsObject).should.have.keys('createDelegate');
-}
-
-export function itShouldHaveTheTransactionCastVotes() {
-	const { transactionsObject } = this.test.ctx;
-	return (transactionsObject).should.have.keys('createVote');
-}
-
-export function itShouldHaveTheTransactionRegisterMultisignatureAccount() {
-	const { transactionsObject } = this.test.ctx;
-	return (transactionsObject).should.have.keys('createMultisignature');
+	const transactionType = getNumbersFromTitle(this.test.title)[0];
+	const transactionFunctionName = getTransactionFunctionNameByType(transactionType);
+	return (transactionsObject).should.have.key(transactionFunctionName).and.be.type('function');
 }
 
 export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {

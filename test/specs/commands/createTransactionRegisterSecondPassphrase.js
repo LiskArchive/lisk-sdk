@@ -75,6 +75,7 @@ describe('create transaction register second passphrase command', () => {
 										it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
 										it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 										it('Then it should get the second passphrase using the vorpal instance', then.itShouldGetTheSecondPassphraseUsingTheVorpalInstance);
+										it('Then it should get the second passphrase with a repeated prompt', then.itShouldGetTheSecondPassphraseWithARepeatedPrompt);
 										it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 										it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 									});

@@ -18,12 +18,12 @@ import * as given from '../../steps/1_given';
 import * as then from '../../steps/3_then';
 
 describe('transactions util', () => {
-	describe('Given a transaction object', () => {
+	describe('Given a transactions object', () => {
 		beforeEach(given.aTransactionsObject);
-		it('Then it should have the transaction transfer', then.itShouldHaveTheTransactionTransfer);
-		it('Then it should have the transaction register second passphrase', then.itShouldHaveTheTransactionRegisterSecondPassphrase);
-		it('Then it should have the transaction register delegate', then.itShouldHaveTheTransactionRegisterDelegate);
-		it('Then it should have the transaction cast votes', then.itShouldHaveTheTransactionCastVotes);
-		it('Then it should have the transaction register multisignature account', then.itShouldHaveTheTransactionRegisterMultisignatureAccount);
+		it('Then it should have a function for creating a type 0 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
+		it('Then it should have a function for creating a type 1 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
+		it('Then it should have a function for creating a type 2 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
+		it('Then it should have a function for creating a type 3 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
+		it('Then it should have a function for creating a type 4 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
 	});
 });

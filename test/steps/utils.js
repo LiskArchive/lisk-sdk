@@ -145,3 +145,14 @@ export const createStreamStub = on => ({
 	close: () => {},
 	on,
 });
+
+export function getTransactionFunctionNameByType(transactionType) {
+	switch (transactionType) {
+	case 0:	return 'createTransaction';
+	case 1: return 'signTransaction';
+	case 2:	return 'createDelegate';
+	case 3: return 'createVote';
+	case 4: return 'createMultisignature';
+	default: return 'notIncludedType';
+	}
+}
