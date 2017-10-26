@@ -18,7 +18,7 @@ import lisk from 'lisk-js';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
-import { liskTransaction } from '../../src/utils/transactions';
+import transactions from '../../src/utils/transactions';
 import * as input from '../../src/utils/input';
 import commonOptions from '../../src/utils/options';
 import tablify from '../../src/utils/tablify';
@@ -28,39 +28,34 @@ import {
 	getFirstBoolean,
 } from './utils';
 
-export function itShouldHaveTheTransactionCreateTransaction() {
-	const { liskTransactionObject } = this.test.ctx;
-	return (liskTransactionObject).should.have.keys('createTransaction');
+export function itShouldHaveTheTransactionTransfer() {
+	const { transactionsObject } = this.test.ctx;
+	return (transactionsObject).should.have.keys('createTransaction');
 }
 
-export function itShouldHaveTheTransactionSignTransaction() {
-	const { liskTransactionObject } = this.test.ctx;
-	return (liskTransactionObject).should.have.keys('signTransaction');
+export function itShouldHaveTheTransactionRegisterSecondPassphrase() {
+	const { transactionsObject } = this.test.ctx;
+	return (transactionsObject).should.have.keys('createSignature');
 }
 
-export function itShouldHaveTheTransactionCreateMultisignature() {
-	const { liskTransactionObject } = this.test.ctx;
-	return (liskTransactionObject).should.have.keys('createMultisignature');
+export function itShouldHaveTheTransactionRegisterDelegate() {
+	const { transactionsObject } = this.test.ctx;
+	return (transactionsObject).should.have.keys('createDelegate');
 }
 
-export function itShouldHaveTheTransactionCreateSignature() {
-	const { liskTransactionObject } = this.test.ctx;
-	return (liskTransactionObject).should.have.keys('createSignature');
+export function itShouldHaveTheTransactionCastVotes() {
+	const { transactionsObject } = this.test.ctx;
+	return (transactionsObject).should.have.keys('createVote');
 }
 
-export function itShouldHaveTheTransactionCreateDelegate() {
-	const { liskTransactionObject } = this.test.ctx;
-	return (liskTransactionObject).should.have.keys('createDelegate');
+export function itShouldHaveTheTransactionRegisterMultisignatureAccount() {
+	const { transactionsObject } = this.test.ctx;
+	return (transactionsObject).should.have.keys('createMultisignature');
 }
 
-export function itShouldHaveTheTransactionCreateVote() {
-	const { liskTransactionObject } = this.test.ctx;
-	return (liskTransactionObject).should.have.keys('createVote');
-}
-
-export function itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
+export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
-	return (liskTransaction.createSignature).should.be.calledWith(passphrase, secondPassphrase);
+	return (transactions.createSignature).should.be.calledWith(passphrase, secondPassphrase);
 }
 
 export function itShouldResolveToTheCreatedTransaction() {
@@ -139,7 +134,7 @@ export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
 	return (firstCallArgs[2]).should.equal(passphrase);
 }
 
-export function itShouldGetTheSecondPassphraseFromTheSecondPassphraseSource() {
+export function itShouldGetTheSecondPassphraseUsingTheSecondPassphraseSource() {
 	const { options } = this.test.ctx;
 	const secondCallArgs = input.getPassphrase.secondCall.args;
 	return (secondCallArgs[1]).should.equal(options['second-passphrase']);

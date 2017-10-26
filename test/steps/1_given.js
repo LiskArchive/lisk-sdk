@@ -24,7 +24,7 @@ import * as fsUtils from '../../src/utils/fs';
 import { shouldUseJsonOutput } from '../../src/utils/helpers';
 import * as inputUtils from '../../src/utils/input';
 import liskAPIInstance from '../../src/utils/api';
-import { liskTransaction } from '../../src/utils/transactions';
+import transactions from '../../src/utils/transactions';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import commonOptions from '../../src/utils/options';
 import queryInstance from '../../src/utils/query';
@@ -44,8 +44,8 @@ export function anAlias() {
 	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);
 }
 
-export function aLiskTransactionObject() {
-	this.test.ctx.liskTransactionObject = liskTransaction;
+export function aTransactionsObject() {
+	this.test.ctx.transactionsObject = transactions;
 }
 
 export function aSenderPublicKey() {
@@ -405,7 +405,7 @@ export function aLiskObjectThatCanCreateTransactions() {
 		'createDelegate',
 		'createVote',
 	].forEach((methodName) => {
-		sandbox.stub(liskTransaction, methodName).returns(createdTransaction);
+		sandbox.stub(transactions, methodName).returns(createdTransaction);
 	});
 
 	this.test.ctx.createdTransaction = createdTransaction;

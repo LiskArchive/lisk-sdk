@@ -8,7 +8,7 @@ const passphraseDescription = `Specifies a source for your secret passphrase. Li
 	- --passphrase 'pass:my secret passphrase' (should only be used where security is not important)
 	- --passphrase env:SECRET_PASSPHRASE
 	- --passphrase file:/path/to/my/passphrase.txt (takes the first line only)
-	- --passphrase stdin (takes the first line only)
+	- --passphrase stdin (takes one line only)
 `;
 
 const secondPassphraseDescription = `Specifies a source for your second secret passphrase. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
@@ -17,7 +17,7 @@ const secondPassphraseDescription = `Specifies a source for your second secret p
 	- --second-passphrase 'pass:my second secret passphrase' (should only be used where security is not important)
 	- --second-passphrase env:SECOND_SECRET_PASSPHRASE
 	- --second-passphrase file:/path/to/my/secondPassphrase.txt (takes the first line only)
-	- --second-passphrase stdin (takes the first line only)
+	- --second-passphrase stdin (takes one line only)
 `;
 
 const passwordDescription = `Specifies a source for your secret password. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.

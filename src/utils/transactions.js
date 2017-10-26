@@ -15,8 +15,7 @@
  */
 import lisk from 'lisk-js';
 
-// eslint-disable-next-line import/prefer-default-export
-export const liskTransaction = Object.assign({},
+export default Object.assign({},
 	lisk.transaction,
 	lisk.multisignature,
 	lisk.signature,

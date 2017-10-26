@@ -18,13 +18,12 @@ import * as given from '../../steps/1_given';
 import * as then from '../../steps/3_then';
 
 describe('transactions util', () => {
-	describe('Given a lisk transaction object', () => {
-		beforeEach(given.aLiskTransactionObject);
-		it('Then it should have the transaction create transaction', then.itShouldHaveTheTransactionCreateTransaction);
-		it('Then it should have the transaction sign transaction', then.itShouldHaveTheTransactionSignTransaction);
-		it('Then it should have the transaction create multisignature', then.itShouldHaveTheTransactionCreateMultisignature);
-		it('Then it should have the transaction create signature', then.itShouldHaveTheTransactionCreateSignature);
-		it('Then it should have the transaction create delegate', then.itShouldHaveTheTransactionCreateDelegate);
-		it('Then it should have the transaction create vote', then.itShouldHaveTheTransactionCreateVote);
+	describe('Given a transaction object', () => {
+		beforeEach(given.aTransactionsObject);
+		it('Then it should have the transaction transfer', then.itShouldHaveTheTransactionTransfer);
+		it('Then it should have the transaction register second passphrase', then.itShouldHaveTheTransactionRegisterSecondPassphrase);
+		it('Then it should have the transaction register delegate', then.itShouldHaveTheTransactionRegisterDelegate);
+		it('Then it should have the transaction cast votes', then.itShouldHaveTheTransactionCastVotes);
+		it('Then it should have the transaction register multisignature account', then.itShouldHaveTheTransactionRegisterMultisignatureAccount);
 	});
 });

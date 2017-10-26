@@ -55,9 +55,10 @@ describe('create transaction register second passphrase command', () => {
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 									it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 									it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
+									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 									it('Then it should get the second passphrase using the vorpal instance', then.itShouldGetTheSecondPassphraseUsingTheVorpalInstance);
 									it('Then it should get the second passphrase with a repeated prompt', then.itShouldGetTheSecondPassphraseWithARepeatedPrompt);
-									it('Then it should have created a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
+									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
@@ -72,9 +73,9 @@ describe('create transaction register second passphrase command', () => {
 										beforeEach(when.theActionIsCalledWithTheOptions);
 										it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
 										it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
+										it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 										it('Then it should get the second passphrase using the vorpal instance', then.itShouldGetTheSecondPassphraseUsingTheVorpalInstance);
-										it('Then it should get the second passphrase with a repeated prompt', then.itShouldGetTheSecondPassphraseWithARepeatedPrompt);
-										it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
+										it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 										it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 									});
 								});
@@ -87,8 +88,10 @@ describe('create transaction register second passphrase command', () => {
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
 									it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
+									it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
 									it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);
-									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
+									it('Then it should get the second passphrase using the second passphrase from stdin', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn);
+									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
@@ -100,9 +103,10 @@ describe('create transaction register second passphrase command', () => {
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
 									it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
-									it('Then it should get the second passphrase from the second passphrase source', then.itShouldGetTheSecondPassphraseFromTheSecondPassphraseSource);
+									it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
 									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
-									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
+									it('Then it should get the second passphrase using the second passphrase source', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseSource);
+									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
@@ -114,9 +118,10 @@ describe('create transaction register second passphrase command', () => {
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+									it('Then it should get the passphrase from the passphrase source', then.itShouldGetThePassphraseUsingThePassphraseSource);
 									it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);
 									it('Then it should get the second passphrase using the second passphrase from stdin', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn);
-									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldHaveCreatedARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
+									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});

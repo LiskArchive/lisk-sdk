@@ -20,7 +20,7 @@ import {
 } from '../utils/input';
 import { createCommand } from '../utils/helpers';
 import commonOptions from '../utils/options';
-import { liskTransaction } from '../utils/transactions';
+import transactions from '../utils/transactions';
 
 const description = `Creates a transaction which will register a second passphrase for an existing account if broadcast to the network.
 
@@ -31,7 +31,7 @@ const description = `Creates a transaction which will register a second passphra
 
 export const createSignature = (
 	[passphrase, secondPassphrase],
-) => liskTransaction.createSignature(passphrase, secondPassphrase);
+) => transactions.createSignature(passphrase, secondPassphrase);
 
 export const actionCreator = vorpal => async ({ options }) => {
 	const {

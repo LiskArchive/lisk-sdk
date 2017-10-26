@@ -18,7 +18,7 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Query class', () => {
-	describe('Given a lisk instance', () => {
+	describe('Given a lisk api instance', () => {
 		beforeEach(given.aliskAPIInstance);
 		describe('Given a query instance', () => {
 			beforeEach(given.aQueryInstance);
