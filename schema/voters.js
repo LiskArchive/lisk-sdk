@@ -8,8 +8,8 @@ module.exports = {
 			address: {
 				type: 'string',
 				format: 'address',
-				minLength: 21,
-				maxLength: 21
+				minLength: 2,
+				maxLength: 22
 			},
 			publicKey: {
 				type: 'string',
@@ -30,7 +30,7 @@ module.exports = {
 				type: 'integer',
 				minimum: 0
 			},
-			orderBy: {
+			sort: {
 				type: 'string'
 			}
 		},
