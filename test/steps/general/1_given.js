@@ -92,3 +92,7 @@ export function anObjectWithMessage() {
 		message,
 	};
 }
+
+export function anExitFunction() {
+	this.test.ctx.exit = sandbox.stub();
+}
