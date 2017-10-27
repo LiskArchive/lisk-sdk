@@ -48,14 +48,26 @@ describe('GET /api/multisignatures/', function () {
 			});
 		});
 
-		it('using invalid public key should fail', function () {
+		it('using integer should fail', function () {
 			var params = [
-				'publickKey=' + 1234
+				'publicKey=' + 1
 			];
 
 			return getPendingMultisignaturesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
+				node.expect(res).to.have.property('error').to.equal('Expected type string but found type integer');
+			});
+		});
+
+		it('using invalid publicKey should fail', function () {
+			var invalidPublicKey = '1234a';
+			var params = [
+				'publicKey=' + invalidPublicKey
+			];
+
+			return getPendingMultisignaturesPromise(params).then(function (res) {
+				node.expect(res).to.have.property('success').to.be.not.ok;
+				node.expect(res).to.have.property('error').to.equal('Object didn\'t pass validation for format publicKey: ' + invalidPublicKey);
 			});
 		});
 
