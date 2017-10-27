@@ -21,6 +21,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 	var accountNoFunds = node.randomAccount();
 	var accountMinimalFunds = node.randomAccount();
 
+	// Variables to check unconfirmed states
 	var dappDuplicate = node.randomApplication();
 	var dappDuplicateNameSuccess = node.randomApplication();
 	var dappDuplicateNameFail = node.randomApplication();
@@ -43,7 +44,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 					transactionsToWaitFor.push(res.transactionId);
 				});
 			})
-			.then(function (res) {
+			.then(function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
@@ -84,6 +85,16 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.match(/Value 9 is greater than maximum 8$/);
 					badTransactions.push(transaction);
+				});
+			});
+
+			it('with correct integer should be ok', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					goodTransactions.push(transaction);
 				});
 			});
 		});
@@ -174,7 +185,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		});
 
 		describe('link', function () {
-			
+
 			it('with empty string should fail', function () {
 				var application = node.randomApplication();
 				application.link = '';
@@ -395,7 +406,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 	describe('unconfirmed state', function () {
 
-		it('duplicate submission identical app should be ok and only last transaction to arrive will be confirmed', function () {
+		it('duplicate submission identical app should be ok and only last transaction to arrive should be confirmed', function () {
 			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicate);
 
 			return sendTransactionPromise(transaction)
@@ -419,7 +430,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 		});
 
-		it('two different dapps with same name should be ok and only last transaction to arrive will be confirmed', function () {
+		it('two different dapps with same name should be ok and only last transaction to arrive should be confirmed', function () {
 			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail);
 
 			return sendTransactionPromise(transaction)
@@ -443,7 +454,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 		});
 
-		it('two different dapps with same link should be ok and only last transaction to arrive will be confirmed', function () {
+		it('two different dapps with same link should be ok and only last transaction to arrive should be confirmed', function () {
 			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail);
 
 			return sendTransactionPromise(transaction)
@@ -493,7 +504,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				node.expect(res).to.have.property('message').to.equal('Application link already exists: ' + dappDuplicateLinkFail.link);
 				badTransactionsEnforcement.push(transaction);
 			});
-		});	
+		});
 	});
 
 	describe('confirm validation', function () {

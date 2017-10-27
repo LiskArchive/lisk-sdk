@@ -301,7 +301,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('unconfirmed state', function () {
 
-		it('upvoting with valid params and duplicate submission should be ok and only last transaction to arrive will be confirmed', function () {
+		it('upvoting with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
 			transaction = node.lisk.vote.createVote(accountDuplicates.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction)
@@ -430,7 +430,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('unconfirmed state after validation', function () {
 
-		it('downvoting with valid params and duplicate submission should be ok and only last transaction to arrive will be confirmed', function () {
+		it('downvoting with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
 			transaction = node.lisk.vote.createVote(accountDuplicates.password, ['-' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction)
