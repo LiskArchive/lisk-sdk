@@ -4,161 +4,60 @@ var node = require('../../../node.js');
 var http = require('../../../common/httpCommunication.js');
 var modulesLoader = require('../../../common/modulesLoader');
 
+var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
+var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+
 describe('GET /api/blocks', function () {
 
+	// Testnet genesis block data
 	var block = {
-		blockHeight: 0,
-		id: 0,
-		generatorPublicKey: '',
-		totalAmount: 0,
+		blockHeight: 1,
+		id: '6524861224470851795',
+		generatorPublicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+		totalAmount: 10000000000000000,
 		totalFee: 0
 	};
 
 	var testBlocksUnder101 = false;
 
-	describe('/getBroadhash', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getBroadhash', function (err, res) {
-				node.expect(res.body).to.have.property('broadhash').to.be.a('string');
-				done();
-			});
-		});
-	});
-
-	describe('/getEpoch', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getEpoch', function (err, res) {
-				node.expect(res.body).to.have.property('epoch').to.be.a('string');
-				done();
-			});
-		});
-	});
-
-	describe('/getHeight', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getHeight', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				if (res.body.success && res.body.height != null) {
-					node.expect(res.body).to.have.property('height').to.be.above(0);
-					block.blockHeight = res.body.height;
-
-					if (res.body.height > 100) {
-						testBlocksUnder101 = true;
-					}
-				}
-				done();
-			});
-		});
-	});
-
-	describe('/getFee', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getFee', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('fee');
-				node.expect(res.body.fee).to.equal(node.fees.transactionFee);
-				done();
-			});
-		});
-	});
-
-	describe('GET /api/blocks/getFees', function () {
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getFees', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('fees');
-				node.expect(res.body.fees.send).to.equal(node.fees.transactionFee);
-				node.expect(res.body.fees.vote).to.equal(node.fees.voteFee);
-				node.expect(res.body.fees.dappRegistration).to.equal(node.fees.dappRegistrationFee);
-				node.expect(res.body.fees.dappDeposit).to.equal(node.fees.dappDepositFee);
-				node.expect(res.body.fees.dappWithdrawal).to.equal(node.fees.dappWithdrawalFee);
-				node.expect(res.body.fees.secondSignature).to.equal(node.fees.secondPasswordFee);
-				node.expect(res.body.fees.delegate).to.equal(node.fees.delegateRegistrationFee);
-				node.expect(res.body.fees.multisignature).to.equal(node.fees.multisignatureRegistrationFee);
-				done();
-			});
-		});
-	});
-
-	describe('/getNethash', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getNethash', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('nethash').to.be.a('string');
-				node.expect(res.body.nethash).to.equal(node.config.nethash);
-				done();
-			});
-		});
-	});
-
-	describe('/getMilestone', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getMilestone', function (err, res) {
-				node.expect(res.body).to.have.property('milestone').to.be.a('number');
-				done();
-			});
-		});
-	});
-
-	describe('/getReward', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getReward', function (err, res) {
-				node.expect(res.body).to.have.property('reward').to.be.a('number');
-				done();
-			});
-		});
-	});
-
-	describe('/getSupply', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getSupply', function (err, res) {
-				node.expect(res.body).to.have.property('supply').to.be.a('number');
-				done();
-			});
-		});
-	});
-
-	describe('/getStatus', function () {
-
-		it('should be ok', function (done) {
-			http.get('/api/blocks/getStatus', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('broadhash').to.be.a('string');
-				node.expect(res.body).to.have.property('epoch').to.be.a('string');
-				node.expect(res.body).to.have.property('height').to.be.a('number');
-				node.expect(res.body).to.have.property('fee').to.be.a('number');
-				node.expect(res.body).to.have.property('milestone').to.be.a('number');
-				node.expect(res.body).to.have.property('nethash').to.be.a('string');
-				node.expect(res.body).to.have.property('reward').to.be.a('number');
-				node.expect(res.body).to.have.property('supply').to.be.a('number');
-				done();
-			});
-		});
-	});
+	function expectValidNonEmptyBlocks (res) {
+		node.expect(res.statusCode).equal(200);
+		node.expect(res).to.have.nested.property('body.blocks').that.is.an('array').and.is.not.empty;
+		node.expect(res).to.have.nested.property('body.blocks.0.id').to.be.a('string');
+		node.expect(res).to.have.nested.property('body.blocks.0.totalAmount').to.be.a('number');
+		node.expect(res).to.have.nested.property('body.blocks.0.totalFee').to.be.a('number');
+		node.expect(res).to.have.nested.property('body.blocks.0.generatorId').to.be.a('string');
+		node.expect(res).to.have.nested.property('body.blocks.0.blockSignature').to.be.a('string');
+		node.expect(res).to.have.nested.property('body.blocks.0.height').to.be.a('number').and.to.be.at.least(1);
+		if (res.body.blocks[0].height === 1) {
+			node.expect(res).to.have.nested.property('body.blocks.0.previousBlock').to.be.null;
+		} else {
+			node.expect(res).to.have.nested.property('body.blocks.0.previousBlock').to.be.a('string');
+		}
+	}
 
 	describe('from (cache)', function () {
 
 		var cache;
+		var url = '/api/blocks?';
+		var getJsonForKeyPromise;
 
 		before(function (done) {
 			node.config.cacheEnabled = true;
-			done();
-		});
-
-		before(function (done) {
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
+				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
 				node.expect(err).to.not.exist;
 				node.expect(__cache).to.be.an('object');
-				return done(err, __cache);
+				return done(err);
+			});
+		});
+
+		afterEach(function (done) {
+			cache.flushDb(function (err, status) {
+				node.expect(err).to.not.exist;
+				node.expect(status).to.equal('OK');
+				done(err);
 			});
 		});
 
@@ -166,243 +65,303 @@ describe('GET /api/blocks', function () {
 			cache.quit(done);
 		});
 
-		afterEach(function (done) {
-			cache.flushDb(function (err, status) {
-				node.expect(err).to.not.exist;
-				node.expect(status).to.equal('OK');
-				done(err, status);
-			});
-		});
+		it('cache blocks by the url and parameters when response is a success', function () {
+			var params = [
+				'height=' + block.blockHeight
+			];
 
-		it('cache blocks by the url and parameters when response is a success', function (done) {
-			var url, params;
-			url = '/api/blocks?';
-			params = 'height=' + block.blockHeight;
-			http.get(url + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				node.expect(res.body).to.have.property('count').to.equal(1);
-				var response = res.body;
-				cache.getJsonForKey(url + params, function (err, res) {
-					node.expect(err).to.not.exist;
-					node.expect(res).to.eql(response);
-					done();
+			return getBlocksPromise(params).then(function (res) {
+				node.expect(res).to.have.nested.property('body.blocks').that.is.an('array');
+				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
+					node.expect(res.body).to.eql(response);
 				});
 			});
 		});
 
-		it('should not cache if response is not a success', function (done) {
-			var url, params;
-			url = '/api/blocks?';
-			params = 'height=' + -1000;
-			http.get(url + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.not.be.ok;
-				cache.getJsonForKey(url + params, function (err, res) {
-					node.expect(err).to.not.exist;
-					node.expect(res).to.eql(null);
-					done();
+		it('should not cache if response is not a success', function () {
+			var height = -1000;
+			var params = [
+				'height=' + height
+			];
+
+			return getBlocksPromise(params).then(function (res) {
+				node.expect(res).to.have.nested.property('body.message').to.equal('Value ' + height + ' is less than minimum 1');
+				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
+					node.expect(response).to.eql(null);
 				});
 			});
 		});
 
-		it('should remove entry from cache on new block', function (done) {
-			var url, params;
-			url = '/api/blocks?';
-			params = 'height=' + block.blockHeight;
-			http.get(url + params, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				node.expect(res.body).to.have.property('count').to.equal(1);
-				var response = res.body;
-				cache.getJsonForKey(url + params, function (err, res) {
-					node.expect(err).to.not.exist;
-					node.expect(res).to.eql(response);
-					node.onNewBlock(function (err) {
-						node.expect(err).to.not.exist;
-						cache.getJsonForKey(url + params, function (err, res) {
-							node.expect(err).to.not.exist;
-							node.expect(res).to.eql(null);
-							done();
-						});
-					});
+		it('should remove entry from cache on new block', function () {
+			var auxResponse;
+			var params = [
+				'height=' + block.blockHeight
+			];
+			
+			return getBlocksPromise(params)
+				.then(function (res) {
+					expectValidNonEmptyBlocks(res);
+					auxResponse = res.body;
+					return getJsonForKeyPromise(url + params.join('&'));
+				})
+				.then(function (response) {
+					node.expect(auxResponse).to.eql(response);
+					return onNewBlockPromise();
+				})
+				.then(function () {
+					return getJsonForKeyPromise(url + params.join('&'));
+				})
+				.then(function (result) {
+					node.expect(result).to.eql(null);
 				});
-			});
 		});
 	});
 
-	describe('/', function () {
+	describe('?', function () {
 
-		function getBlocks (params, done) {
-			http.get('/api/blocks?' + params, done);
-		}
+		describe('id', function () {
 
-		it('using height should be ok', function (done) {
-			getBlocks('height=' + block.blockHeight, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				node.expect(res.body).to.have.property('count').to.equal(1);
-				node.expect(res.body.blocks.length).to.equal(1);
-				node.expect(res.body.blocks[0]).to.have.property('previousBlock');
-				node.expect(res.body.blocks[0]).to.have.property('totalAmount');
-				node.expect(res.body.blocks[0]).to.have.property('totalFee');
-				node.expect(res.body.blocks[0]).to.have.property('generatorId');
-				node.expect(res.body.blocks[0]).to.have.property('confirmations');
-				node.expect(res.body.blocks[0]).to.have.property('blockSignature');
-				node.expect(res.body.blocks[0]).to.have.property('numberOfTransactions');
-				node.expect(res.body.blocks[0].height).to.equal(block.blockHeight);
-				block.id = res.body.blocks[0].id;
-				block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
-				block.totalAmount = res.body.blocks[0].totalAmount;
-				block.totalFee = res.body.blocks[0].totalFee;
-				done();
+			it('using genesisblock id should return the result', function () {
+				var id = '6524861224470851795';
+				var params = [
+					'id=' + id
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					expectValidNonEmptyBlocks(res);
+					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').that.have.nested.property('0.id').equal(id);
+				});
 			});
-		});
 
-		it('using height < 100 should be ok', function (done) {
-			if (!testBlocksUnder101) {
-				return this.skip();
-			}
+			it('using unknown id should return empty blocks array', function () {
+				var id = '9928719876370886655';
+				var params = [
+					'id=' + id
+				];
 
-			getBlocks('height=' + 10, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('count');
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				node.expect(res.body.blocks.length).to.equal(1);
-				node.expect(res.body.blocks[0]).to.have.property('previousBlock');
-				node.expect(res.body.blocks[0]).to.have.property('totalAmount');
-				node.expect(res.body.blocks[0]).to.have.property('totalFee');
-				node.expect(res.body.blocks[0]).to.have.property('generatorId');
-				node.expect(res.body.blocks[0]).to.have.property('confirmations');
-				node.expect(res.body.blocks[0]).to.have.property('blockSignature');
-				node.expect(res.body.blocks[0]).to.have.property('numberOfTransactions');
-				node.expect(res.body.blocks[0].height).to.equal(10);
-				block.id = res.body.blocks[0].id;
-				block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
-				block.totalAmount = res.body.blocks[0].totalAmount;
-				block.totalFee = res.body.blocks[0].totalFee;
-				done();
-			});
-		});
-
-		it('using generatorPublicKey should be ok', function (done) {
-			getBlocks('generatorPublicKey=' + block.generatorPublicKey, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				for (var i = 0; i < res.body.blocks.length; i++) {
-					node.expect(res.body.blocks[i].generatorPublicKey).to.equal(block.generatorPublicKey);
-				}
-				done();
-			});
-		});
-
-		it('using totalFee should be ok', function (done) {
-			getBlocks('totalFee=' + block.totalFee, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				for (var i = 0; i < res.body.blocks.length; i++) {
-					node.expect(res.body.blocks[i].totalFee).to.equal(block.totalFee);
-				}
-				done();
-			});
-		});
-
-		it('using totalAmount should be ok', function (done) {
-			getBlocks('totalAmount=' + block.totalAmount, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				for (var i = 0; i < res.body.blocks.length; i++) {
-					node.expect(res.body.blocks[i].totalAmount).to.equal(block.totalAmount);
-				}
-				done();
-			});
-		});
-
-		it('using previousBlock should be ok', function (done) {
-			if (block.id === null) {
-				return this.skip();
-			}
-
-			var previousBlock = block.id;
-
-			node.onNewBlock(function (err) {
-				getBlocks('previousBlock=' + block.id, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('blocks').that.is.an('array');
-					node.expect(res.body.blocks).to.have.length(1);
-					node.expect(res.body.blocks[0].previousBlock).to.equal(previousBlock);
-					done();
+				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(200);
+					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').and.to.be.empty;
 				});
 			});
 		});
 
-		it('using orderBy == "height:asc" should be ok', function (done) {
-			getBlocks('orderBy=' + 'height:asc', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				for (var i = 0; i < res.body.blocks.length; i++) {
-					if (res.body.blocks[i + 1] != null) {
-						node.expect(res.body.blocks[i].height).to.be.below(res.body.blocks[i + 1].height);
-					}
+		describe('height', function () {
+
+			it('using correct params should be ok', function () {
+				var params = [
+					'height=' + block.blockHeight
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					expectValidNonEmptyBlocks(res);
+					node.expect(res).to.have.nested.property('body.blocks.0.height').to.be.a('number').equal(block.blockHeight);
+				});
+			});
+
+			it('using < 100 should be ok', function () {
+				if (!testBlocksUnder101) {
+					return this.skip();
 				}
-				done();
+				var params = [
+					'height=' + 10
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					expectValidNonEmptyBlocks(res.body);
+					node.expect(res).to.have.nested.property('body.blocks.0.height').to.be.a('number').equal(10);
+				});
 			});
 		});
 
-		it('using orderBy == "height:desc" should be ok', function (done) {
-			getBlocks('orderBy=' + 'height:desc', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				for (var i = 0; i < res.body.blocks.length; i++) {
-					if (res.body.blocks[i + 1] != null) {
-						node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
+		describe('generatorPublicKey', function () {
+
+			it('using correct params should be ok', function () {
+				var params = [
+					'generatorPublicKey=' + block.generatorPublicKey
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					expectValidNonEmptyBlocks(res);
+					for (var i = 0; i < res.body.blocks.length; i++) {
+						node.expect(res.body.blocks[i].generatorPublicKey).to.equal(block.generatorPublicKey);
 					}
-				}
-				done();
+				});
 			});
 		});
 
-		it('should be ordered by "height:desc" by default', function (done) {
-			getBlocks('', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				for (var i = 0; i < res.body.blocks.length; i++) {
-					if (res.body.blocks[i + 1] != null) {
-						node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
+		describe('totalFee', function () {
+
+			it('using correct params should be ok', function () {
+				var params = [
+					'totalFee=' + block.totalFee
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					expectValidNonEmptyBlocks(res);
+					for (var i = 0; i < res.body.blocks.length; i++) {
+						node.expect(res.body.blocks[i].totalFee).to.equal(block.totalFee);
 					}
-				}
-				done();
-			});
-		});
-	});
-
-	describe('/get?id=', function () {
-
-		function getBlocks (id, done) {
-			http.get('/api/blocks/get?id=' + id, done);
-		}
-
-		it('using genesisblock id should be ok', function (done) {
-			getBlocks('6524861224470851795', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('block').to.be.a('object');
-				node.expect(res.body.block).to.have.property('id').to.be.a('string');
-				done();
+				});
 			});
 		});
 
-		it('using unknown id should fail', function (done) {
-			getBlocks('9928719876370886655', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.be.a('string');
-				done();
+		describe('orderBy', function () {
+
+			it('using "height:asc" should be ok', function () {
+				var params = [
+					'orderBy=' + 'height:asc'
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					expectValidNonEmptyBlocks(res);
+					for (var i = 0; i < res.body.blocks.length; i++) {
+						if (res.body.blocks[i + 1] != null) {
+							node.expect(res.body.blocks[i].height).to.be.below(res.body.blocks[i + 1].height);
+						}
+					}
+				});
+			});
+
+			it('using "height:desc" should be ok', function () {
+				var params = [
+					'orderBy=' + 'height:desc'
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					expectValidNonEmptyBlocks(res);
+					for (var i = 0; i < res.body.blocks.length; i++) {
+						if (res.body.blocks[i + 1] != null) {
+							node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
+						}
+					}
+				});
+			});
+
+			it('using empty params should be ordered by "height:desc" by default', function () {
+				var params = [];
+
+				return getBlocksPromise(params).then(function (res) {
+					for (var i = 0; i < res.body.blocks.length; i++) {
+						if (res.body.blocks[i + 1] != null) {
+							node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
+						}
+					}
+				});
 			});
 		});
 
-		it('using no id should fail', function (done) {
-			getBlocks('', function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.be.a('string');
-				done();
+		describe('limit', function () {
+
+			it('using string should return bad request response', function () {
+				var limit = 'one';
+				var params = [
+					'limit=' + limit
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Expected type integer but found type string');
+				});
+			});
+
+			it('using -1 should return bad request response', function () {
+				var limit = -1;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Value -1 is less than minimum 1');
+				});
+			});
+
+			it('using 0 should return bad request response', function () {
+				var limit = 0;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Value 0 is less than minimum 1');
+				});
+			});
+
+			it('using 1 should be ok', function () {
+				var limit = 1;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					expectValidNonEmptyBlocks(res);
+					node.expect(res).to.have.nested.property('body.blocks').that.is.an('array').and.have.a.lengthOf.at.most(limit);
+				});
+			});
+
+			it('using 100 should be ok', function () {
+				var limit = 100;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					expectValidNonEmptyBlocks(res);
+					node.expect(res).to.have.nested.property('body.blocks').that.is.an('array').and.have.a.lengthOf.at.most(limit);
+				});
+			});
+
+			it('using > 100 should return bad request response', function () {
+				var limit = 101;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Value 101 is greater than maximum 100');
+				});
+			});
+		});
+
+		describe('offset', function () {
+
+			it('using string should return bad request response', function () {
+				var offset = 'one';
+				var params = [
+					'offset=' + offset
+				];
+
+				return getBlocksPromise(params).then(function (res){
+					node.expect(res.statusCode).equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Expected type integer but found type string');
+				});
+			});
+
+			it('using -1 should return bad request response', function () {
+				var offset = -1;
+				var params = [
+					'offset=' + offset
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					node.expect(res.statusCode).equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Value -1 is less than minimum 0');
+				});
+			});
+
+			it('using 1 should be ok', function () {
+				var offset = 1;
+				var params = [
+					'offset=' + offset
+				];
+
+				return getBlocksPromise(params).then(function (res) {
+					expectValidNonEmptyBlocks(res);
+					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').that.have.nested.property('0.height').to.be.above(1);
+				});
 			});
 		});
 	});

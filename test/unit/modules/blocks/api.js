@@ -41,8 +41,6 @@ describe('blocks/api', function () {
 
 			describe('when filter.generatorPublicKey exists', function () {
 
-				it('should call sql.countList with generatorPublicKey filter in where');
-
 				it('should call db.query with generatorPublicKey param');
 
 				describe('when db.query succeeds', function () {
@@ -54,8 +52,6 @@ describe('blocks/api', function () {
 			});
 
 			describe('when filter.numberOfTransactions exists', function () {
-
-				it('should call sql.countList with numberOfTransactions filter in where');
 
 				it('should call db.query with numberOfTransactions param');
 
@@ -69,8 +65,6 @@ describe('blocks/api', function () {
 
 			describe('when filter.previousBlock exists', function () {
 
-				it('should call sql.countList with previousBlock filter in where');
-
 				it('should call db.query with previousBlock param');
 
 				describe('when db.query succeeds', function () {
@@ -82,8 +76,6 @@ describe('blocks/api', function () {
 			});
 
 			describe('when filter.height >= 0', function () {
-
-				it('should call sql.countList with height filter in where');
 
 				it('should call db.query with height param');
 
@@ -97,8 +89,6 @@ describe('blocks/api', function () {
 
 			describe('when filter.totalAmount >= 0', function () {
 
-				it('should call sql.countList with totalAmount filter in where');
-
 				it('should call db.query with totalAmount param');
 
 				describe('when db.query succeeds', function () {
@@ -110,8 +100,6 @@ describe('blocks/api', function () {
 			});
 
 			describe('when filter.type >= 0', function () {
-
-				it('should call sql.countList with type filter in where');
 
 				it('should call db.query with type param');
 
@@ -125,8 +113,6 @@ describe('blocks/api', function () {
 
 			describe('when filter.totalFee >= 0', function () {
 
-				it('should call sql.countList with totalFee filter in where');
-
 				it('should call db.query with totalFee param');
 
 				describe('when db.query succeeds', function () {
@@ -139,8 +125,6 @@ describe('blocks/api', function () {
 
 			describe('when filter.reward >= 0', function () {
 
-				it('should call sql.countList with reward filter in where');
-
 				it('should call db.query with reward param');
 
 				describe('when db.query succeeds', function () {
@@ -152,8 +136,6 @@ describe('blocks/api', function () {
 			});
 
 			describe('when filter.limit exists', function () {
-
-				it('should call sql.countList with limit filter in where');
 
 				it('should call db.query with limit param');
 
@@ -180,8 +162,6 @@ describe('blocks/api', function () {
 			});
 
 			describe('when filter.offset exists', function () {
-
-				it('should call sql.countList with offset filter in where');
 
 				it('should call db.query with offset param');
 
@@ -221,49 +201,31 @@ describe('blocks/api', function () {
 
 				it('should call db.query');
 
-				describe('when db.query succeeds', function () {
-
-					it('should call sql.countList with returned by OrderBy sortField');
-
-					it('should call sql.countList with returned by OrderBy sortMethod');
-				});
-			});
-
-			describe('when db.query fails', function () {
-
-				it('should call callback with Blocks#list error');
-
-				it('should call logger.error with error stack');
-			});
-
-			describe('when second db.query succeeds', function () {
-
-				it('should call callback with error = null');
-
-				describe('and returns no results', function () {
-
-					it('should call callback with result containing blocks = []');
-
-					it('should call callback with result containing count = 0');
-				});
-
-				describe('and returns results', function () {
-
-					it('should call library.logic.block.dbRead with every result');
+				describe('when second db.query succeeds', function () {
 
 					it('should call callback with error = null');
 
-					it('should call callback with result containing blocks');
+					describe('and returns no results', function () {
 
-					it('should call callback with result containing count');
+						it('should call callback with result containing blocks = []');
+					});
+
+					describe('and returns results', function () {
+
+						it('should call library.logic.block.dbRead with every result');
+
+						it('should call callback with error = null');
+
+						it('should call callback with result containing blocks');
+					});
 				});
-			});
 
-			describe('when second db.query fails', function () {
+				describe('when db.query fails', function () {
 
-				it('should call callback with Blocks#list error');
+					it('should call callback with Blocks#list error');
 
-				it('should call logger.error with error stack');
+					it('should call logger.error with error stack');
+				});
 			});
 		});
 	});
@@ -353,8 +315,6 @@ describe('blocks/api', function () {
 					it('should call callback with error = null');
 
 					it('should call callback with result containing blocks');
-
-					it('should call callback with result containing count');
 				});
 			});
 		});
