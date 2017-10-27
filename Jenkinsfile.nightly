@@ -6,11 +6,15 @@ pipeline {
 				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'scan-1', url: 'https://github.com/LiskHQ/lisky']]])
 			}
 		}
+		stage('Install dependencies') {
+			steps {
+				sh 'npm install --verbose'
+			}
+		}
 		stage('Run vulnerabilities check') {
 			steps {
-				sh 'npm install --silent'
 				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
-					sh 'snyk test'
+					sh 'snyk --dev test'
 				}
 				sh 'sha1sum package.json >~/.lisky.package.json.sha1sum'
 			}
