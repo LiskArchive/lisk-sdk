@@ -7,12 +7,12 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var registerDelegatePromise = require('../../../common/apiHelpers').registerDelegatePromise;
-var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('POST /api/transactions (type 3) votes', function () {
 
 	var transaction;
+	var transactionsToWaitFor = [];
 	var badTransactions = [];
 	var goodTransactions = [];
 	var badTransactionsEnforcement = [];
@@ -57,6 +57,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				res.forEach(function (result) {
 					node.expect(result).to.have.property('success').to.be.ok;
 					node.expect(result).to.have.property('transactionId').that.is.not.empty;
+					transactionsToWaitFor.push(result.transactionId);
 				});
 			})
 			.then(function (res) {
@@ -71,6 +72,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					results.forEach(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('transactionId').that.is.not.empty;
+						transactionsToWaitFor.push(result.transactionId);
 					});
 				});
 			})
@@ -86,16 +88,19 @@ describe('POST /api/transactions (type 3) votes', function () {
 					results.forEach(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('transactionId').that.is.not.empty;
+						transactionsToWaitFor.push(result.transactionId);
 					});
 				});
 			})
 			.then(function (res) {
-				return getBlocksToWaitPromise().then(waitForBlocksPromise); 
+				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
+				transactionsToWaitFor = [];
 				return registerDelegatePromise(delegateAccount).then(function (result) {
 					node.expect(result).to.have.property('success').to.be.ok;
 					node.expect(result).to.have.property('transactionId').that.is.not.empty;
+					transactionsToWaitFor.push(result.transactionId);
 				});
 			})
 			.then(function (res) {
@@ -108,6 +113,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					results.forEach(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('transactionId').that.is.not.empty;
+						transactionsToWaitFor.push(result.transactionId);
 					});
 				});
 			})
@@ -121,11 +127,12 @@ describe('POST /api/transactions (type 3) votes', function () {
 					results.forEach(function (result) {
 						node.expect(result).to.have.property('success').to.be.ok;
 						node.expect(result).to.have.property('transactionId').that.is.not.empty;
+						transactionsToWaitFor.push(result.transactionId);
 					});
 				});
 			})
 			.then(function (res) {
-				return getBlocksToWaitPromise().then(waitForBlocksPromise);
+				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
 

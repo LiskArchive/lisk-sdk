@@ -6,17 +6,6 @@
  * - End point: `/api/blocks`
  * - Public API:
  * 	- get	/
- * 	- get	/get
- * 	- get	/getBroadhash
- * 	- get	/getEpoch
- * 	- get	/getHeight
- * 	- get	/getNethash
- * 	- get	/getFee
- * 	- get	/getFees
- * 	- get	/getMilestone
- * 	- get	/getReward
- * 	- get	/getSupply
- * 	- get	/getStatus
  * @memberof module:blocks
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -37,19 +26,8 @@ function BlocksHttpApi (blocksModule, app, logger, cache) {
 	]);
 
 	router.map(blocksModule.shared, {
-		'get /': 'getBlocks',
-		'get /get': 'getBlock',
-		'get /getBroadhash': 'getBroadhash',
-		'get /getEpoch': 'getEpoch',
-		'get /getHeight': 'getHeight',
-		'get /getNethash': 'getNethash',
-		'get /getFee': 'getFee',
-		'get /getFees': 'getFees',
-		'get /getMilestone': 'getMilestone',
-		'get /getReward': 'getReward',
-		'get /getSupply': 'getSupply',
-		'get /getStatus': 'getStatus'
-	});
+		'get /': 'getBlocks'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/blocks', app, router, blocksModule.isLoaded);
 }
