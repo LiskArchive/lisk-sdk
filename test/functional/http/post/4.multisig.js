@@ -14,11 +14,11 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 	var scenarios = {
 		'no_funds': new shared.multisigScenario(3, 0),
 		'minimal_funds': new shared.multisigScenario(3, constants.fees.multisignature * 3),
-		'minimum_not_reached': new shared.multisigScenario(4), //4_2
-		'regular': new shared.multisigScenario(3), //3_2
-		'max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16_2
-		'max_signatures_max_min': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16_16
-		'more_than_max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) //17_2
+		'minimum_not_reached': new shared.multisigScenario(4), //4 members 2 min signatures required
+		'regular': new shared.multisigScenario(3), //3 members 2 min signatures required
+		'max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 2 min signatures required 
+		'max_signatures_max_min': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 16 min signatures required
+		'more_than_max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) //17 members 2 min signatures required
 	};
 
 	var transaction, signature;
