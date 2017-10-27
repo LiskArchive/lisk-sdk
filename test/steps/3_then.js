@@ -44,8 +44,8 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheD
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {
 	const { passphrase, delegateUsername } = this.test.ctx;
 	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);
-}  
-  
+}
+
 export function itShouldReturnTheResult() {
 	const { returnValue, result } = this.test.ctx;
 	return (returnValue).should.equal(result);
