@@ -13,7 +13,6 @@
  *
  */
 import registerSecondPassphrase from '../../src/transactions/1_registerSecondPassphrase';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -162,23 +161,6 @@ describe('#registerSecondPassphrase transaction', () => {
 				registerSecondPassphraseTransaction.asset.signature.publicKey.should.be.equal(
 					emptyStringPublicKey,
 				);
-			});
-
-			describe('verification of the created transaction', () => {
-				it('should return true on a correctly signed transaction', () => {
-					const result = cryptoModule.verifyTransaction(
-						registerSecondPassphraseTransaction,
-					);
-					result.should.be.true();
-				});
-
-				it('should return false when modified', () => {
-					registerSecondPassphraseTransaction.amount = 100;
-					const result = cryptoModule.verifyTransaction(
-						registerSecondPassphraseTransaction,
-					);
-					result.should.be.false();
-				});
 			});
 		});
 	});

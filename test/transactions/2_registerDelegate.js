@@ -13,7 +13,6 @@
  *
  */
 import registerDelegate from '../../src/transactions/2_registerDelegate';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -23,8 +22,6 @@ describe('#registerDelegate transaction', () => {
 	const secondSecret = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const secondPublicKey =
-		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
@@ -119,21 +116,6 @@ describe('#registerDelegate transaction', () => {
 			registerDelegateTransaction.should.not.have.property('signSignature');
 		});
 
-		it('should be signed correctly', () => {
-			const result = cryptoModule.verifyTransaction(
-				registerDelegateTransaction,
-			);
-			result.should.be.ok();
-		});
-
-		it('should not be signed correctly if modified', () => {
-			registerDelegateTransaction.amount = 100;
-			const result = cryptoModule.verifyTransaction(
-				registerDelegateTransaction,
-			);
-			result.should.be.not.ok();
-		});
-
 		it('should have asset', () => {
 			registerDelegateTransaction.should.have
 				.property('asset')
@@ -169,25 +151,6 @@ describe('#registerDelegate transaction', () => {
 			registerDelegateTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
-		});
-
-		describe('verification of the created transaction', () => {
-			it('should return true on a correctly signed transaction', () => {
-				const result = cryptoModule.verifyTransaction(
-					registerDelegateTransaction,
-					secondPublicKey,
-				);
-				result.should.be.true();
-			});
-
-			it('should return false when modified', () => {
-				registerDelegateTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					registerDelegateTransaction,
-					secondPublicKey,
-				);
-				result.should.be.false();
-			});
 		});
 	});
 });

@@ -13,7 +13,6 @@
  *
  */
 import createDapp from '../../src/transactions/5_createDapp';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -23,8 +22,6 @@ describe('#createDapp transaction', () => {
 	const secondSecret = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const secondPublicKey =
-		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultOptions = {
 		category: 0,
 		name: 'Lisk Guestbook',
@@ -185,17 +182,6 @@ describe('#createDapp transaction', () => {
 				createDappTransaction.should.not.have.property('signSignature');
 			});
 
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(createDappTransaction);
-				result.should.be.ok();
-			});
-
-			it('should not be signed correctly if modified', () => {
-				createDappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(createDappTransaction);
-				result.should.be.not.ok();
-			});
-
 			it('should have asset', () => {
 				createDappTransaction.should.have.property('asset').and.not.be.empty();
 			});
@@ -268,25 +254,6 @@ describe('#createDapp transaction', () => {
 			createDappTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
-		});
-
-		describe('verification of the created transaction', () => {
-			it('should return true on a correctly signed transaction', () => {
-				const result = cryptoModule.verifyTransaction(
-					createDappTransaction,
-					secondPublicKey,
-				);
-				result.should.be.true();
-			});
-
-			it('should return false when modified', () => {
-				createDappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					createDappTransaction,
-					secondPublicKey,
-				);
-				result.should.be.false();
-			});
 		});
 	});
 });

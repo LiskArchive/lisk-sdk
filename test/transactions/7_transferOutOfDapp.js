@@ -13,7 +13,6 @@
  *
  */
 import transferOutOfDapp from '../../src/transactions/7_transferOutOfDapp';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -26,8 +25,6 @@ describe('#transferOutOfDapp', () => {
 	const secondSecret = 'secondSecret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const secondPublicKey =
-		'8b509500d5950122b3e446189b4312805515c8e7814a409e09ac5c21935564af';
 	const amount = (10 * fixedPoint).toString();
 	const sendFee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
@@ -136,21 +133,6 @@ describe('#transferOutOfDapp', () => {
 				transferOutOfDappTransaction.should.not.have.property('signSignature');
 			});
 
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(
-					transferOutOfDappTransaction,
-				);
-				result.should.be.ok();
-			});
-
-			it('should not be signed correctly if modified', () => {
-				transferOutOfDappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					transferOutOfDappTransaction,
-				);
-				result.should.be.not.ok();
-			});
-
 			it('should have an asset object', () => {
 				transferOutOfDappTransaction.should.have
 					.property('asset')
@@ -190,25 +172,6 @@ describe('#transferOutOfDapp', () => {
 				transferOutOfDappTransaction.should.have
 					.property('signSignature')
 					.and.be.hexString();
-			});
-
-			describe('verification of the created transaction', () => {
-				it('should return true on a correctly signed transaction', () => {
-					const result = cryptoModule.verifyTransaction(
-						transferOutOfDappTransaction,
-						secondPublicKey,
-					);
-					result.should.be.true();
-				});
-
-				it('should return false when modified', () => {
-					transferOutOfDappTransaction.amount = 100;
-					const result = cryptoModule.verifyTransaction(
-						transferOutOfDappTransaction,
-						secondPublicKey,
-					);
-					result.should.be.false();
-				});
 			});
 		});
 	});

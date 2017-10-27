@@ -13,7 +13,6 @@
  *
  */
 import castVotes from '../../src/transactions/3_castVotes';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -23,8 +22,6 @@ describe('#castVotes transaction', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const publicKeys = [`+${publicKey}`];
-	const secondPublicKey =
-		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
 
@@ -118,17 +115,6 @@ describe('#castVotes transaction', () => {
 				castVotesTransaction.should.not.have.property('signSignature');
 			});
 
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(castVotesTransaction);
-				result.should.be.ok();
-			});
-
-			it('should not be signed correctly if modified', () => {
-				castVotesTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(castVotesTransaction);
-				result.should.be.not.ok();
-			});
-
 			it('should have asset', () => {
 				castVotesTransaction.should.have.property('asset').and.not.be.empty();
 			});
@@ -176,25 +162,6 @@ describe('#castVotes transaction', () => {
 			castVotesTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
-		});
-
-		describe('verification of the created transaction', () => {
-			it('should return true on a correctly signed transaction', () => {
-				const result = cryptoModule.verifyTransaction(
-					castVotesTransaction,
-					secondPublicKey,
-				);
-				result.should.be.true();
-			});
-
-			it('should return false when modified', () => {
-				castVotesTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					castVotesTransaction,
-					secondPublicKey,
-				);
-				result.should.be.false();
-			});
 		});
 	});
 });

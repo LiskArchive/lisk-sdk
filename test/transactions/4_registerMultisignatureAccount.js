@@ -13,7 +13,6 @@
  *
  */
 import registerMultisignatureAccount from '../../src/transactions/4_registerMultisignatureAccount';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -25,12 +24,6 @@ describe('#registerMultisignatureAccount transaction', () => {
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		privateKey:
 			'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-	};
-	const secondKeys = {
-		publicKey:
-			'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-		privateKey:
-			'9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
 	};
 	const timeWithOffset = 38350076;
 	const lifetime = 5;
@@ -136,21 +129,6 @@ describe('#registerMultisignatureAccount transaction', () => {
 					.and.be.hexString();
 			});
 
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(
-					registerMultisignatureTransaction,
-				);
-				result.should.be.ok();
-			});
-
-			it('should not be signed correctly if modified', () => {
-				registerMultisignatureTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					registerMultisignatureTransaction,
-				);
-				result.should.be.not.ok();
-			});
-
 			it('should have asset', () => {
 				registerMultisignatureTransaction.should.have
 					.property('asset')
@@ -209,25 +187,6 @@ describe('#registerMultisignatureAccount transaction', () => {
 			registerMultisignatureTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
-		});
-
-		describe('verification of the created transaction', () => {
-			it('should return true on a correctly signed transaction', () => {
-				const result = cryptoModule.verifyTransaction(
-					registerMultisignatureTransaction,
-					secondKeys.publicKey,
-				);
-				result.should.be.true();
-			});
-
-			it('should return false when modified', () => {
-				registerMultisignatureTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					registerMultisignatureTransaction,
-					secondKeys.publicKey,
-				);
-				result.should.be.false();
-			});
 		});
 	});
 });
