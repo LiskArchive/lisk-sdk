@@ -23,6 +23,7 @@ import {
 	createErrorHandler,
 	deAlias,
 	shouldUseJsonOutput,
+	shouldUsePrettyOutput,
 	wrapActionCreator,
 	createCommand,
 } from '../../src/utils/helpers';
@@ -448,6 +449,12 @@ export function deAliasIsCalledOnTheType() {
 export function shouldUseJsonOutputIsCalledWithTheConfigAndOptions() {
 	const { config, options } = this.test.ctx;
 	const returnValue = shouldUseJsonOutput(config, options);
+	this.test.ctx.returnValue = returnValue;
+}
+
+export function shouldUsePrettyOutputIsCalledWithTheConfigAndOptions() {
+	const { config, options } = this.test.ctx;
+	const returnValue = shouldUsePrettyOutput(config, options);
 	this.test.ctx.returnValue = returnValue;
 }
 

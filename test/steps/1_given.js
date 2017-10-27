@@ -21,7 +21,10 @@ import defaultConfig from '../../defaultConfig.json';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as env from '../../src/utils/env';
 import * as fsUtils from '../../src/utils/fs';
-import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import {
+	shouldUseJsonOutput,
+	shouldUsePrettyOutput,
+} from '../../src/utils/helpers';
 import * as inputUtils from '../../src/utils/input';
 import liskAPIInstance from '../../src/utils/api';
 import transactions from '../../src/utils/transactions';
@@ -33,6 +36,7 @@ import {
 	getFirstQuotedString,
 	getQuotedStrings,
 	getFirstBoolean,
+	getBooleans,
 	getActionCreator,
 	createFakeInterface,
 	createStreamStub,
@@ -855,6 +859,34 @@ export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo() {
 	this.test.ctx.options = { passphrase: passphraseSource, 'second-passphrase': secondPassphraseSource };
 }
 
+export function aConfigWithPrettySetTo() {
+	const pretty = getFirstBoolean(this.test.parent.title);
+	const config = { pretty };
+
+	env.default = config;
+	this.test.ctx.config = config;
+}
+
+export function aConfigWithJsonSetToAndPrettySetTo() {
+	const [json, pretty] = getBooleans(this.test.parent.title);
+	const config = { json, pretty };
+
+	env.default = config;
+	this.test.ctx.config = config;
+}
+
+export function anOptionsObjectWithKeySetToBoolean() {
+	const key = getFirstQuotedString(this.test.parent.title);
+	const value = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { [key]: value };
+}
+
+export function theOptionsObjectHasKeySetToBoolean() {
+	const key = getFirstQuotedString(this.test.parent.title);
+	const value = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options[key] = value;
+}
+
 export function anOptionsObjectWithOutputPublicKeySetToBoolean() {
 	const outputPublicKey = getFirstBoolean(this.test.parent.title);
 	this.test.ctx.options = { 'output-public-key': outputPublicKey };
@@ -928,6 +960,11 @@ export function anOptionsObjectWithJsonSetTo() {
 	this.test.ctx.options = { json };
 }
 
+export function anOptionsObjectWithPrettySetTo() {
+	const pretty = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { pretty };
+}
+
 export function anEmptyOptionsObject() {
 	this.test.ctx.options = {};
 }
@@ -950,4 +987,12 @@ export function jsonShouldBePrinted() {
 
 export function jsonShouldNotBePrinted() {
 	shouldUseJsonOutput.returns(false);
+}
+
+export function outputShouldBePretty() {
+	shouldUsePrettyOutput.returns(true);
+}
+
+export function outputShouldNotBePretty() {
+	shouldUsePrettyOutput.returns(false);
 }

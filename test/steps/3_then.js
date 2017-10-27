@@ -17,7 +17,10 @@ import fs from 'fs';
 import lisk from 'lisk-js';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
-import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import {
+	shouldUseJsonOutput,
+	shouldUsePrettyOutput,
+} from '../../src/utils/helpers';
 import transactions from '../../src/utils/transactions';
 import * as input from '../../src/utils/input';
 import commonOptions from '../../src/utils/options';
@@ -281,6 +284,12 @@ export function theVorpalCommandInstanceShouldHaveTheNoJsonOption() {
 	return (options).should.matchAny(option => option.flags === commonOptions.noJson[0]);
 }
 
+export function theVorpalCommandInstanceShouldHaveThePrettyOption() {
+	const { vorpal, command } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	return (options).should.matchAny(option => option.flags === commonOptions.pretty[0]);
+}
+
 export function theVorpalInstanceShouldHaveTheCommand() {
 	const { vorpal, command } = this.test.ctx;
 	const commandInstance = getCommandInstance(vorpal, command);
@@ -376,6 +385,12 @@ export function aTableShouldBeLogged() {
 	return (vorpal.activeCommand.log).should.be.calledWithExactly(tableOutput);
 }
 
+export function prettyJSONOutputShouldBeLogged() {
+	const { result, vorpal } = this.test.ctx;
+	const prettyJsonOutput = JSON.stringify(result, null, '\t');
+	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
+}
+
 export function jSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(result);
@@ -446,9 +461,19 @@ export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsO
 	return (shouldUseJsonOutput).should.be.calledWithExactly(config, {});
 }
 
+export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
+	const { config } = this.test.ctx;
+	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, {});
+}
+
 export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions() {
 	const { config, options } = this.test.ctx;
 	return (shouldUseJsonOutput).should.be.calledWithExactly(config, options);
+}
+
+export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions() {
+	const { config, options } = this.test.ctx;
+	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, options);
 }
 
 export function theReturnedTableShouldHaveNoHead() {

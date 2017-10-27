@@ -26,6 +26,10 @@ export const shouldUseJsonOutput = (config, options) =>
 	(options.json === true || config.json === true)
 		&& options.json !== false;
 
+export const shouldUsePrettyOutput = (config, options) =>
+	(options.pretty === true || config.pretty === true)
+		&& options.pretty !== false;
+
 export const createErrorHandler = prefix => ({ message }) => ({
 	error: `${prefix}: ${message}`,
 });
@@ -54,8 +58,9 @@ export const createCommand = ({
 	if (alias) commandInstance.alias(alias);
 
 	[
-		...options,
 		commonOptions.json,
 		commonOptions.noJson,
+		commonOptions.pretty,
+		...options,
 	].forEach(option => commandInstance.option(...option));
 };
