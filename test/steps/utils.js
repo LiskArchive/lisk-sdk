@@ -17,6 +17,7 @@ import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
 import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
 import * as decryptMessage from '../../src/commands/decryptMessage';
+import * as decryptPassphrase from '../../src/commands/decryptPassphrase';
 import * as encryptMessage from '../../src/commands/encryptMessage';
 import * as encryptPassphrase from '../../src/commands/encryptPassphrase';
 import * as env from '../../src/commands/env';
@@ -69,6 +70,7 @@ export const getCommandInstance = (vorpal, command) => {
 export const getActionCreator = actionName => ({
 	'create account': createAccount.actionCreator,
 	'decrypt message': decryptMessage.actionCreator,
+	'decrypt passphrase': decryptPassphrase.actionCreator,
 	'encrypt message': encryptMessage.actionCreator,
 	'encrypt passphrase': encryptPassphrase.actionCreator,
 	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
@@ -164,3 +166,10 @@ export function getTransactionCreatorFunctionNameByType(transactionType) {
 	default: throw new Error(`Transaction type ${transactionType} is not supported`);
 	}
 }
+
+export const hasAncestorWithTitleMatching = (test, regExp) => {
+	if (test.title.match(regExp)) return true;
+	const { parent } = test;
+	if (!parent) return false;
+	return hasAncestorWithTitleMatching(parent, regExp);
+};

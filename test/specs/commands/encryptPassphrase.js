@@ -71,7 +71,7 @@ describe('encrypt passphrase command', () => {
 								beforeEach(given.anOptionsObjectWithPasswordSetToUnknownSource);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should reject with message "Unknown data source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
+									it('Then it should reject with message "Unknown password source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 								});
 							});
 							describe('Given an options object with password set to "file:/path/to/my/password.txt"', () => {

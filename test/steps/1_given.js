@@ -40,6 +40,7 @@ import {
 	getActionCreator,
 	createFakeInterface,
 	createStreamStub,
+	hasAncestorWithTitleMatching,
 } from './utils';
 
 const envToStub = require('../../src/utils/env');
@@ -84,25 +85,38 @@ export function thePassphraseAndTheSecondPassphraseAreProvidedViaStdIn() {
 }
 
 export function thePassphraseAndThePasswordAreProvidedViaStdIn() {
-	const { passphrase, password } = this.test.ctx;
+	const { passphrase, password, stdInInputs = [] } = this.test.ctx;
+
 	inputUtils.getStdIn.resolves({ passphrase, data: password });
 	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
 	inputUtils.getPassphrase.onSecondCall().resolves(password);
+
+	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'password'];
 }
 
 export function thePasswordIsProvidedViaStdIn() {
-	const { password } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ data: password });
+	const { password, stdInInputs = [] } = this.test.ctx;
+	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
+	const key = isDecryptPassphraseAction
+		? 'passphrase'
+		: 'data';
+
+	inputUtils.getStdIn.resolves({ [key]: password });
+	inputUtils.getPassphrase.resolves(password);
+
+	this.test.ctx.stdInInputs = [...stdInInputs, 'password'];
 }
 
 export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
-	const { passphrase, message } = this.test.ctx;
+	const { passphrase, message, stdInInputs = [] } = this.test.ctx;
 	inputUtils.getStdIn.resolves({ passphrase, data: message });
+	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'message'];
 }
 
 export function theMessageIsProvidedViaStdIn() {
-	const { message } = this.test.ctx;
+	const { message, stdInInputs = [] } = this.test.ctx;
 	inputUtils.getStdIn.resolves({ data: message });
+	this.test.ctx.stdInInputs = [...stdInInputs, 'message'];
 }
 
 export function inputs() {
@@ -479,8 +493,12 @@ export function anEncryptedPassphraseWithAnIV() {
 		cipher: encryptedPassphrase,
 		iv,
 	};
-
-	lisk.crypto.encryptPassphraseWithPassword.returns(cipherAndIv);
+	if (typeof lisk.crypto.encryptPassphraseWithPassword.returns === 'function') {
+		lisk.crypto.encryptPassphraseWithPassword.returns(cipherAndIv);
+	}
+	if (typeof inputUtils.getData.resolves === 'function') {
+		inputUtils.getData.resolves(encryptedPassphrase);
+	}
 
 	this.test.ctx.cipherAndIv = cipherAndIv;
 }
@@ -671,21 +689,35 @@ export function thePassphraseAndTheSecondPassphraseAreProvidedViaThePrompt() {
 }
 
 export function thePassphraseIsProvidedViaThePrompt() {
-	const { passphrase, promptInputs = [] } = this.test.ctx;
-	this.test.ctx.vorpal.activeCommand.prompt.onCall(promptInputs.length).resolves({ passphrase });
+	const { vorpal, passphrase } = this.test.ctx;
+
+	vorpal.activeCommand.prompt.onFirstCall().resolves({ passphrase });
+	this.test.ctx.getPromptPassphraseCall = () => vorpal.activeCommand.prompt.firstCall;
+
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
 		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
+		this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.firstCall;
 	}
-	promptInputs.push(passphrase);
 }
 
 export function thePasswordIsProvidedViaThePrompt() {
-	const { password, promptInputs = [] } = this.test.ctx;
-	this.test.ctx.vorpal.activeCommand.prompt.onCall(promptInputs.length).resolves({ password });
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onSecondCall().resolves(password);
+	const { vorpal, password, getPromptPassphraseCall, getGetPassphrasePassphraseCall } = this.test.ctx;
+
+	if (getPromptPassphraseCall) {
+		vorpal.activeCommand.prompt.onSecondCall().resolves({ password });
+	} else {
+		vorpal.activeCommand.prompt.resolves({ password });
 	}
-	promptInputs.push(password);
+
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		if (getGetPassphrasePassphraseCall) {
+			inputUtils.getPassphrase.onSecondCall().resolves(password);
+			this.test.ctx.getGetPassphrasePasswordCall = () => inputUtils.getPassphrase.secondCall;
+		} else {
+			inputUtils.getPassphrase.resolves(password);
+			this.test.ctx.getGetPassphrasePasswordCall = () => inputUtils.getPassphrase.firstCall;
+		}
+	}
 }
 
 export function thePassphraseShouldNotBeRepeated() {
@@ -729,8 +761,35 @@ export function neitherThePassphraseNorTheDataIsProvidedViaStdIn() {
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(''));
 }
 
+export function thePasswordAndTheEncryptedPassphraseAreProvidedViaStdIn() {
+	const { password, cipherAndIv: { cipher }, stdInInputs = [] } = this.test.ctx;
+
+	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(`${password}\n${cipher}`));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ passphrase: password, data: cipher });
+	}
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.resolves(password);
+	}
+
+	this.test.ctx.dataIsRequired = true;
+	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase'];
+}
+
+export function theEncryptedPassphraseIsProvidedViaStdIn() {
+	const { cipherAndIv: { cipher }, stdInInputs = [] } = this.test.ctx;
+
+	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(cipher));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ data: cipher });
+	}
+
+	this.test.ctx.dataIsRequired = true;
+	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase'];
+}
+
 export function thePassphraseIsProvidedViaStdIn() {
-	const { passphrase } = this.test.ctx;
+	const { passphrase, stdInInputs = [] } = this.test.ctx;
 
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(passphrase));
 	if (typeof inputUtils.getStdIn.resolves === 'function') {
@@ -738,23 +797,26 @@ export function thePassphraseIsProvidedViaStdIn() {
 	}
 
 	this.test.ctx.passphraseIsRequired = true;
+	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase'];
 }
 
 export function theDataIsProvidedViaStdIn() {
-	const { data } = this.test.ctx;
+	const { data, stdInInputs = [] } = this.test.ctx;
 
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(data));
 
 	this.test.ctx.dataIsRequired = true;
+	this.test.ctx.stdInInputs = [...stdInInputs, 'data'];
 }
 
 export function bothThePassphraseAndTheDataAreProvidedViaStdIn() {
-	const { passphrase, data } = this.test.ctx;
+	const { passphrase, data, stdInInputs = [] } = this.test.ctx;
 
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(`${passphrase}\n${data}`));
 
 	this.test.ctx.passphraseIsRequired = true;
 	this.test.ctx.dataIsRequired = true;
+	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'data'];
 }
 
 export function thePassphraseIsStoredInEnvironmentalVariable() {
@@ -812,8 +874,9 @@ export function aDataFilePath() {
 export function noDataIsProvided() {}
 
 export function dataIsProvidedViaStdIn() {
-	const { data } = this.test.ctx;
+	const { data, stdInInputs = [] } = this.test.ctx;
 	this.test.ctx.stdInData = data;
+	this.test.ctx.stdInInputs = [...stdInInputs, 'data'];
 }
 
 export function dataIsProvidedAsAnArgument() {
@@ -901,7 +964,11 @@ export function anOptionsObjectWithPasswordSetTo() {
 	const { password } = this.test.ctx;
 	const passwordSource = getFirstQuotedString(this.test.parent.title);
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onSecondCall().resolves(password);
+		if (hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/)) {
+			inputUtils.getPassphrase.onFirstCall().resolves(password);
+		} else {
+			inputUtils.getPassphrase.onSecondCall().resolves(password);
+		}
 	}
 	this.test.ctx.options = { password: passwordSource };
 }
@@ -909,7 +976,12 @@ export function anOptionsObjectWithPasswordSetTo() {
 export function anOptionsObjectWithPasswordSetToUnknownSource() {
 	const password = getFirstQuotedString(this.test.parent.title);
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onSecondCall().rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
+		const error = new Error('Unknown password source type. Must be one of `file`, or `stdin`.');
+		if (hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/)) {
+			inputUtils.getPassphrase.onFirstCall().rejects(error);
+		} else {
+			inputUtils.getPassphrase.onSecondCall().rejects(error);
+		}
 	}
 	this.test.ctx.options = { password };
 }
@@ -934,11 +1006,24 @@ export function anOptionsObjectWithMessageSetToUnknownSource() {
 	this.test.ctx.options = { message };
 }
 
+export function anOptionsObjectWithEncryptedPassphraseSetTo() {
+	const { passphrase } = this.test.ctx;
+	const passphraseSource = getFirstQuotedString(this.test.parent.title);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onSecondCall().resolves(passphrase);
+		this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.secondCall;
+	}
+	this.test.ctx.options = { passphrase: passphraseSource };
+}
+
 export function anOptionsObjectWithPassphraseSetTo() {
 	const { passphrase } = this.test.ctx;
 	const passphraseSource = getFirstQuotedString(this.test.parent.title);
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.resolves(passphrase);
+		if (!hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/)) {
+			inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
+			this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.firstCall;
+		}
 	}
 	this.test.ctx.options = { passphrase: passphraseSource };
 }
