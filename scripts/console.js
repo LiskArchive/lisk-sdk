@@ -12,7 +12,6 @@ if(typeof before !== 'function') {
 var node = require('../test/node');
 
 node.initApplication(function (err, scope) {
-	var logger = scope.logger;
 
 	var replServer = repl.start({
 		prompt: 'lisk-core [' + scope.config.db.database + '] > ',
@@ -34,7 +33,46 @@ node.initApplication(function (err, scope) {
 	replServer.context.helpers = helpers;
 
 	// A dummy callback method to be utilized in repl
+	// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
 	replServer.context.cb = function (err, data) {
-		logger.log(data);
+		// Make sure cab response showed in terminal
+		console.log(data);
 	};
+
+	replServer.on('exit', function () {
+		console.log('Goodbye! See you later.');
+		process.exit();
+	});
+
 }, {});
+
+
+/**
+ * Event reporting an uncaughtException.
+ * @event uncaughtException
+ */
+/**
+ * Receives a 'uncaughtException' signal and emits a cleanup.
+ * @listens uncaughtException
+ */
+process.on('uncaughtException', function (err) {
+	// Handle error safely
+	console.log('System error', { message: err.message, stack: err.stack });
+	/**
+	 * emits cleanup once 'uncaughtException'.
+	 * @emits cleanup
+	 */
+	process.emit('cleanup');
+});
+
+/**
+* Event reporting an unhandledRejection.
+* @event unhandledRejection
+*/
+/**
+ * Receives a 'unhandledRejection' signal and emits a cleanup.
+ * @listens unhandledRejection
+ */
+process.on('unhandledRejection', function (reason, p) {
+	console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+});
