@@ -39,7 +39,7 @@ var getDelegate = function (query, cb) {
 
 var getVotersForDelegates = function (delegate, cb) {
 	if (!delegate) {
-		return setImmediate(cb, {message: 'No data returned'});
+		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
 	library.db.one(sql.getVoters, {publicKey: delegate.publicKey}).then(function (row) {
 		var addresses = (row.accountIds) ? row.accountIds : [];
@@ -71,9 +71,6 @@ Voters.prototype.shared = {
 	 * @param {function} cb
 	 */
 	getVoters: function (req, cb) {
-		if (!loaded) {
-			return setImmediate(cb, new ApiError('Blockchain is loading', apiCodes.INTERNAL_SERVER_ERROR));
-		}
 		library.schema.validate(req.body, schema.getVoters, function (err) {
 			if (err) {
 				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
@@ -84,10 +81,7 @@ Voters.prototype.shared = {
 				populatedVoters: ['votersAddresses', populateVoters.bind(null, req.body.sort)]
 			}, function (err, results) {
 				if (err) {
-					if (err.message === 'No data returned') {
-						return setImmediate(cb, null, {message: 'No data returned'});
-					}
-					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
+					return setImmediate(cb, err instanceof ApiError ? err : new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 				}
 				results.delegate.voters = results.populatedVoters;
 				results.delegate.votes = results.populatedVoters.length;

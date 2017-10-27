@@ -205,21 +205,21 @@ describe('GET /api/voters', function () {
 				});
 
 				it('should return status status = 200', function () {
-					node.expect(response).to.have.property('status').equal(200);
+					node.expect(response).to.have.property('status').equal(apiCodes.OK);
 				});
 			});
 		});
 
 		describe('publicKey', function () {
 
-			it('using no publicKey should return message = "No data returned"', function () {
+			it('using no publicKey should return empty response and code = 204', function () {
 				var params = [
 					'publicKey='
 				];
 
 				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.OK);
-					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
+					node.expect(res).to.have.property('body').that.is.empty;
 				});
 			});
 
@@ -248,29 +248,29 @@ describe('GET /api/voters', function () {
 				return getVotersPromise(params).then(expectValidNotVotedDelegateResponse);
 			});
 
-			it('using valid not existing publicKey should return message = "No data returned"', function () {
+			it('using valid not existing publicKey should return empty response and code = 204', function () {
 
 				var validNotExistingPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
 				var params = [
 					'publicKey=' + validNotExistingPublicKey
 				];
 				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.OK);
-					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
+					node.expect(res).to.have.property('body').that.is.empty;
 				});
 			});
 		});
 
 		describe('secondPublicKey', function () {
 
-			it('using no secondPublicKey should return message = "No data returned"', function () {
+			it('using no secondPublicKey should return empty response and code = 204', function () {
 				var params = [
 					'secondPublicKey='
 				];
 
 				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.OK);
-					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
+					node.expect(res).to.have.property('body').that.is.empty;
 				});
 			});
 
@@ -285,15 +285,15 @@ describe('GET /api/voters', function () {
 				});
 			});
 
-			it('using valid not existing secondPublicKey should return message = "No data returned"', function () {
+			it('using valid not existing secondPublicKey should return empty response and code = 204', function () {
 
 				var validNotExistingSecondPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
 				var params = [
 					'secondPublicKey=' + validNotExistingSecondPublicKey
 				];
 				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.OK);
-					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
+					node.expect(res).to.have.property('body').that.is.empty;
 				});
 			});
 		});
@@ -336,14 +336,14 @@ describe('GET /api/voters', function () {
 				return getVotersPromise(params).then(expectValidNotVotedDelegateResponse);
 			});
 
-			it('using valid not existing address should return message = "No data returned"', function () {
+			it('using valid not existing address should return empty response and code = 204', function () {
 
 				var params = [
 					'address=' + validNotExistingAddress
 				];
 				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.OK);
-					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
+					node.expect(res).to.have.property('body').that.is.empty;
 				});
 			});
 		});
@@ -380,7 +380,7 @@ describe('GET /api/voters', function () {
 				return getVotersPromise(params).then(expectValidVotedDelegateResponse);
 			});
 
-			it('using valid not existing username should return message = "No data returned"', function () {
+			it('using valid not existing username should return empty response and code = 204', function () {
 
 				var validNotExistingUsername = 'unknownusername';
 
@@ -388,7 +388,8 @@ describe('GET /api/voters', function () {
 					'username=' + validNotExistingUsername
 				];
 				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
+					node.expect(res).to.have.property('body').that.is.empty;
 				});
 			});
 		});
