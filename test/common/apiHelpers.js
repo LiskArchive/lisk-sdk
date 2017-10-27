@@ -204,7 +204,7 @@ function waitForConfirmations (transactions, limitHeight) {
 					}
 				});
 			});
-	};
+	}
 
 	function waitUntilLimit (limit) {
 		if(limit == 0) {

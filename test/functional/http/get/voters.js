@@ -1,12 +1,14 @@
 'use strict';
 
 var _ = require('lodash');
+var randomstring = require('randomstring');
 var node = require('../../../node.js');
 var apiCodes = require('../../../../helpers/apiCodes.js');
 var constants = require('../../../../helpers/constants.js');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 describe('GET /api/voters', function () {
@@ -393,31 +395,37 @@ describe('GET /api/voters', function () {
 
 		describe('sort, limit, offset', function () {
 
+			var validExtraDelegateVoter = node.randomAccount();
 			var validExtraVoter = node.randomAccount();
+
 			before(function () {
-				var enrichExtraVoterTransaction = node.lisk.transaction.createTransaction(
-					validExtraVoter.address,
+				var enrichExtraDelegateVoterTransaction = node.lisk.transaction.createTransaction(
+					validExtraDelegateVoter.address,
 					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
 					node.gAccount.password
 				);
-				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraVoter.password, 'extravoter');
-				var voteByExtraVoterTransaction = node.lisk.vote.createVote(validExtraVoter.password, ['+' + validVotedDelegate.publicKey]);
+				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
+					length: 10,
+					charset: 'alphabetic',
+					capitalization: 'lowercase'
+				}));
+				var voteByExtraDelegateVoterTransaction = node.lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
 
-				return sendTransactionPromise(enrichExtraVoterTransaction)
+				return sendTransactionPromise(enrichExtraDelegateVoterTransaction)
 					.then(function () {
-						return waitForBlocksPromise(1);
+						return waitForConfirmations([enrichExtraDelegateVoterTransaction.id]);
 					})
 					.then(function (){
 						return sendTransactionPromise(registerExtraVoterAsADelegateTransaction);
 					})
 					.then(function () {
-						return waitForBlocksPromise(1);
+						return waitForConfirmations([registerExtraVoterAsADelegateTransaction.id]);
 					})
 					.then(function () {
-						return sendTransactionPromise(voteByExtraVoterTransaction);
+						return sendTransactionPromise(voteByExtraDelegateVoterTransaction);
 					})
 					.then(function () {
-						return waitForBlocksPromise(1);
+						return waitForConfirmations([voteByExtraDelegateVoterTransaction.id]);
 					});
 			});
 
@@ -501,7 +509,7 @@ describe('GET /api/voters', function () {
 				describe('secondPublicKey', function () {
 
 					before(function () {
-						var extraVoterSecondSignatureTransaction = node.lisk.signature.createSignature(validExtraVoter.password, validExtraVoter.secondPassword, 1);
+						var extraVoterSecondSignatureTransaction = node.lisk.signature.createSignature(validExtraDelegateVoter.password, validExtraDelegateVoter.secondPassword, 1);
 						return sendTransactionPromise(extraVoterSecondSignatureTransaction)
 							.then(function () {
 								return waitForBlocksPromise(1);
@@ -534,7 +542,7 @@ describe('GET /api/voters', function () {
 
 						it('using valid existing secondPublicKey of registered delegate should return the never voted result', function () {
 							var params = [
-								'secondPublicKey=' + validExtraVoter.secondPublicKey
+								'secondPublicKey=' + validExtraDelegateVoter.secondPublicKey
 							];
 							return getVotersPromise(params).then(expectValidNotVotedDelegateResponse);
 						});
@@ -542,16 +550,27 @@ describe('GET /api/voters', function () {
 						describe('when delegate with secondPublicKey was voted', function () {
 
 							before(function () {
-								var voteForExtraVoter = node.lisk.vote.createVote(node.gAccount.password, ['+' + validExtraVoter.publicKey]);
-								return sendTransactionPromise(voteForExtraVoter)
+								var enrichExtraVoterTransaction = node.lisk.transaction.createTransaction(
+									validExtraVoter.address,
+									constants.fees.vote + node.randomLISK(),
+									node.gAccount.password
+								);
+								var voteForExtraVoter = node.lisk.vote.createVote(validExtraVoter.password, ['+' + validExtraDelegateVoter.publicKey]);
+								return sendTransactionPromise(enrichExtraVoterTransaction)
 									.then(function () {
-										return waitForBlocksPromise(1);
+										return waitForConfirmations([enrichExtraVoterTransaction.id]);
+									})
+									.then(function (){
+										return sendTransactionPromise(voteForExtraVoter);
+									})
+									.then(function () {
+										return waitForConfirmations([voteForExtraVoter.id]);
 									});
 							});
 
-							it('using valid existing secondPublicKey of genesis delegate should return the result', function () {
+							it('using valid existing secondPublicKey of delegate should return the result', function () {
 								var params = [
-									'secondPublicKey=' + validExtraVoter.secondPublicKey
+									'secondPublicKey=' + validExtraDelegateVoter.secondPublicKey
 								];
 								return getVotersPromise(params).then(expectValidVotedDelegateResponse);
 							});
