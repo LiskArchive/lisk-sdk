@@ -34,14 +34,14 @@ describe('create transaction register delegate command', () => {
 						beforeEach(given.aLiskObjectThatCanCreateTransactions);
 						describe('Given an options object with passphrase set to unknown source "xxx"', () => {
 							beforeEach(given.anOptionsObjectWithPassphraseSetToUnknownSource);
-							describe('When the action is called with the options', () => {
+							describe('When the action is called with the delegate username and the options', () => {
 								beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 								it('Then it should reject with message "Unknown passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 							});
 						});
 						describe('Given an options object with second passphrase set to unknown source "xxx"', () => {
 							beforeEach(given.anOptionsObjectWithSecondPassphraseSetToUnknownSource);
-							describe('When the action is called with the options', () => {
+							describe('When the action is called with the delegate username and the options', () => {
 								beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 								it('Then it should reject with message "Unknown second passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 							});
@@ -50,7 +50,7 @@ describe('create transaction register delegate command', () => {
 							beforeEach(given.anEmptyOptionsObject);
 							describe('Given the passphrase is provided via the prompt', () => {
 								beforeEach(given.thePassphraseIsProvidedViaThePrompt);
-								describe('When the action is called with the options', () => {
+								describe('When the action is called with the delegate username and the options', () => {
 									beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
@@ -66,7 +66,7 @@ describe('create transaction register delegate command', () => {
 							beforeEach(given.anOptionsObjectWithPassphraseSetTo);
 							describe('Given the passphrase is provided via stdin', () => {
 								beforeEach(given.thePassphraseIsProvidedViaStdIn);
-								describe('When the action is called with the options', () => {
+								describe('When the action is called with the delegate username and the options', () => {
 									beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 									it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
 									it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
@@ -80,7 +80,7 @@ describe('create transaction register delegate command', () => {
 							beforeEach(given.anOptionsObjectWithPassphraseSetTo);
 							describe('Given the passphrase is provided via stdin', () => {
 								beforeEach(given.thePassphraseIsProvidedViaStdIn);
-								describe('When the action is called with the options', () => {
+								describe('When the action is called with the delegate username and the options', () => {
 									beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 									it('Then it should get the passphrase using the passphrase source', then.itShouldGetThePassphraseUsingThePassphraseSource);
@@ -98,7 +98,7 @@ describe('create transaction register delegate command', () => {
 									beforeEach(given.thePassphraseIsProvidedViaThePrompt);
 									describe('Given the second passphrase is provided via stdin', () => {
 										beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
-										describe('When the action is called with the options', () => {
+										describe('When the action is called with the delegate username and the options', () => {
 											beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 											it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 											it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
@@ -115,7 +115,7 @@ describe('create transaction register delegate command', () => {
 								beforeEach(given.anOptionsObjectWithSecondPassphraseSetTo);
 								describe('Given the passphrase is provided via the prompt', () => {
 									beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
-									describe('When the action is called with the options', () => {
+									describe('When the action is called with the delegate username and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 										it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 										it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
@@ -129,7 +129,7 @@ describe('create transaction register delegate command', () => {
 							});
 							describe('Given an options object with passphrase set to "file:/path/to/my/passphrase.txt" and second passphrase set to "file:/path/to/my/secondPassphrase.txt"', () => {
 								beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
-								describe('When the action is called with the options', () => {
+								describe('When the action is called with the delegate username and the options', () => {
 									beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
@@ -145,7 +145,7 @@ describe('create transaction register delegate command', () => {
 									beforeEach(given.thePassphraseIsProvidedViaStdIn);
 									describe('Given the second passphrase is provided via stdin', () => {
 										beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
-										describe('When the action is called with the options', () => {
+										describe('When the action is called with the delegate username and the options', () => {
 											beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 											it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
 											it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
