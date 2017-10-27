@@ -46,6 +46,20 @@ import {
 
 const envToStub = require('../../src/utils/env');
 
+export function aResultWithError() {
+	const error = getFirstQuotedString(this.test.parent.title);
+	const result = { error };
+	this.test.ctx.result = result;
+}
+
+export function aResultWithABlock() {
+	const block = { height: 123 };
+	const result = { block };
+
+	this.test.ctx.block = block;
+	this.test.ctx.result = result;
+}
+
 export function anAlias() {
 	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);
 }
@@ -314,10 +328,10 @@ export function aQueryInstanceHasBeenInitialised() {
 		some: 'result',
 		testing: 123,
 	};
-	sandbox.stub(queryInstance, 'isAccountQuery').resolves({ account: queryResult });
-	sandbox.stub(queryInstance, 'isBlockQuery').resolves({ block: queryResult });
-	sandbox.stub(queryInstance, 'isDelegateQuery').resolves({ delegate: queryResult });
-	sandbox.stub(queryInstance, 'isTransactionQuery').resolves({ transaction: queryResult });
+	sandbox.stub(queryInstance, 'getAccount').resolves({ account: queryResult });
+	sandbox.stub(queryInstance, 'getBlock').resolves({ block: queryResult });
+	sandbox.stub(queryInstance, 'getDelegate').resolves({ delegate: queryResult });
+	sandbox.stub(queryInstance, 'getTransaction').resolves({ transaction: queryResult });
 
 	this.test.ctx.queryResult = queryResult;
 	this.test.ctx.queryInstance = queryInstance;

@@ -22,6 +22,7 @@ import {
 import {
 	createErrorHandler,
 	deAlias,
+	processQueryResult,
 	shouldUseJsonOutput,
 	shouldUsePrettyOutput,
 	wrapActionCreator,
@@ -42,6 +43,12 @@ import {
 } from './utils';
 
 const tablifyToSpy = require('../../src/utils/tablify');
+
+export function processQueryResultIsCalledWithTheTypeThenTheResult() {
+	const { type, result } = this.test.ctx;
+	const returnValue = processQueryResult(type)(result);
+	this.test.ctx.returnValue = returnValue;
+}
 
 export function theActionIsCalledWithTheIVAndTheOptions() {
 	const { action, cipherAndIv: { iv }, options } = this.test.ctx;
@@ -234,22 +241,22 @@ export function theResultIsPrinted() {
 
 export function theQueryInstanceGetsABlockUsingTheID() {
 	const { queryInstance, blockId } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.isBlockQuery(blockId);
+	this.test.ctx.returnValue = queryInstance.getBlock(blockId);
 }
 
 export function theQueryInstanceGetsAnAccountUsingTheAddress() {
 	const { queryInstance, address } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.isAccountQuery(address);
+	this.test.ctx.returnValue = queryInstance.getAccount(address);
 }
 
 export function theQueryInstanceGetsATransactionUsingTheID() {
 	const { queryInstance, transactionId } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.isTransactionQuery(transactionId);
+	this.test.ctx.returnValue = queryInstance.getTransaction(transactionId);
 }
 
 export function theQueryInstanceGetsADelegateUsingTheUsername() {
 	const { queryInstance, delegateUsername } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.isDelegateQuery(delegateUsername);
+	this.test.ctx.returnValue = queryInstance.getDelegate(delegateUsername);
 }
 
 export function theJSONIsRead() {

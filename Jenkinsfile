@@ -9,10 +9,7 @@ pipeline {
 		}
 		stage('Install dependencies') {
 			steps {
-				sh '''
-				npm install --verbose
-				cp ~/.coveralls.yml-lisky .coveralls.yml
-				'''
+				sh 'npm install --verbose'
 			}
 		}
 		stage('Run lint') {
@@ -23,13 +20,10 @@ pipeline {
 		stage('Run tests') {
 			steps {
 				sh 'npm run test'
-			}
-		}
-		stage('Run vulnerabilities check') {
-			steps {
-				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
-					sh 'snyk test'
-				}
+				sh '''
+				cp ~/.coveralls.yml-lisky .coveralls.yml
+				npm run cover
+				'''
 			}
 		}
 	}

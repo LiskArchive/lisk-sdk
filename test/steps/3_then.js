@@ -44,6 +44,27 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheD
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {
 	const { passphrase, delegateUsername } = this.test.ctx;
 	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);
+}  
+  
+export function itShouldReturnTheResult() {
+	const { returnValue, result } = this.test.ctx;
+	return (returnValue).should.equal(result);
+}
+
+export function itShouldReturnTheBlock() {
+	const { returnValue, block } = this.test.ctx;
+	return (returnValue).should.equal(block);
+}
+
+export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
+	const { queryInstance, liskAPIInstance } = this.test.ctx;
+	return (queryInstance).should.have.property('client').equal(liskAPIInstance);
+}
+
+export function theQueryInstanceShouldHaveAHandlerFor() {
+	const { queryInstance } = this.test.ctx;
+	const item = getFirstQuotedString(this.test.title);
+	return (queryInstance.handlers).should.have.property(item).be.Function();
 }
 
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {

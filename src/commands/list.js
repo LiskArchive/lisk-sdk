@@ -17,8 +17,12 @@ import {
 	COMMAND_TYPES,
 	SINGULARS,
 } from '../utils/constants';
-import { createCommand } from '../utils/helpers';
-import { handlers, processResult } from './get';
+import {
+	createCommand,
+	deAlias,
+	processQueryResult,
+} from '../utils/helpers';
+import query from '../utils/query';
 
 const description = `Get information from <type> with parameters <input, input, ...>. Types available: accounts, addresses, blocks, delegates, transactions.
 
@@ -36,10 +40,10 @@ export const actionCreator = () => async ({ type, inputs }) => {
 		throw new Error('Unsupported type.');
 	}
 
-	const queries = inputs.map(handlers[singularType]);
+	const queries = inputs.map(query.handlers[deAlias(singularType)]);
 
 	return Promise.all(queries)
-		.then(results => results.map(processResult(singularType)));
+		.then(results => results.map(processQueryResult(singularType)));
 };
 
 const list = createCommand({
