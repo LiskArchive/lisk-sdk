@@ -228,7 +228,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				scenarios.minimal_funds.tx = transaction;
+				scenarios.minimal_funds.transaction = transaction;
 			});
 		});
 
@@ -238,7 +238,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				scenarios.regular.tx = transaction;
+				scenarios.regular.transaction = transaction;
 			});
 		});
 
@@ -248,7 +248,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				scenarios.minimum_not_reached.tx = transaction;
+				scenarios.minimum_not_reached.transaction = transaction;
 			});
 		});
 
@@ -258,7 +258,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				scenarios.max_signatures.tx = transaction;
+				scenarios.max_signatures.transaction = transaction;
 			});
 		});
 
@@ -268,34 +268,34 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				scenarios.max_signatures_max_min.tx = transaction;
+				scenarios.max_signatures_max_min.transaction = transaction;
 			});
 		});
 
 		describe('signing transactions', function () {
 
 			it('with not all the signatures minimum_not_reached scenario (4,2) should be ok but never confirmed', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.tx, scenarios.minimum_not_reached.members[0].password);
+				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0].password);
 
-				return sendSignaturePromise(signature, scenarios.minimum_not_reached.tx).then(function (res) {
+				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
-					pendingMultisignatures.push(scenarios.minimum_not_reached.tx);
+					pendingMultisignatures.push(scenarios.minimum_not_reached.transaction);
 				});
 			});
 
 			it('twice with the same account should fail', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.tx, scenarios.minimum_not_reached.members[0].password);
+				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0].password);
 
-				return sendSignaturePromise(signature, scenarios.minimum_not_reached.tx).then(function (res) {
+				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.equal('Error processing signature: Permission to sign transaction denied');
 				});
 			});
 
 			it('with not requested account should fail', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.tx, node.randomAccount().password);
+				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, node.randomAccount().password);
 
-				return sendSignaturePromise(signature, scenarios.minimum_not_reached.tx).then(function (res) {
+				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.equal('Error processing signature: Failed to verify signature');
 				});
@@ -303,20 +303,20 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 			it('with all the signatures regular scenario (3,2) should be ok and confirmed', function () {
 				return node.Promise.all(node.Promise.map(scenarios.regular.members, function (member) {
-					signature = node.lisk.multisignature.signTransaction(scenarios.regular.tx, member.password);
+					signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
-					return sendSignaturePromise(signature, scenarios.regular.tx).then(function (res) {
+					return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 					});
 				})).then(function (res) {
-					goodTransactions.push(scenarios.regular.tx);
+					goodTransactions.push(scenarios.regular.transaction);
 				});
 			});
 
 			it('with all the signatures already in place regular scenario (3,2) should fail', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.regular.tx, scenarios.regular.members[0].password);
+				signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, scenarios.regular.members[0].password);
 
-				return sendSignaturePromise(signature, scenarios.regular.tx).then(function (res) {
+				return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.equal('Error processing signature: Permission to sign transaction denied');
 				});
@@ -324,25 +324,25 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 			it('with all the signatures max_signatures scenario (16,2) should be ok and confirmed', function () {
 				return node.Promise.all(node.Promise.map(scenarios.max_signatures.members, function (member) {
-					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures.tx, member.password);
+					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures.transaction, member.password);
 
-					return sendSignaturePromise(signature, scenarios.max_signatures.tx).then(function (res) {
+					return sendSignaturePromise(signature, scenarios.max_signatures.transaction).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 					});
 				})).then(function (res) {
-					goodTransactions.push(scenarios.max_signatures.tx);
+					goodTransactions.push(scenarios.max_signatures.transaction);
 				});
 			});
 
 			it('with all the signatures max_signatures_max_min scenario (16,16) should be ok and confirmed', function () {
 				return node.Promise.all(node.Promise.map(scenarios.max_signatures_max_min.members, function (member) {
-					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures_max_min.tx, member.password);
+					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures_max_min.transaction, member.password);
 
-					return sendSignaturePromise(signature, scenarios.max_signatures_max_min.tx).then(function (res) {
+					return sendSignaturePromise(signature, scenarios.max_signatures_max_min.transaction).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 					});
 				})).then(function (res) {
-					goodTransactions.push(scenarios.max_signatures_max_min.tx);
+					goodTransactions.push(scenarios.max_signatures_max_min.transaction);
 				});
 			});
 		});
@@ -373,7 +373,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					scenarios.regular.tx = transaction;
+					scenarios.regular.transaction = transaction;
 				});
 			});
 
@@ -393,7 +393,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					scenarios.max_signatures_max_min.tx = transaction;
+					scenarios.max_signatures_max_min.transaction = transaction;
 				});
 			});
 
@@ -401,25 +401,25 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 				it('with min required signatures regular scenario(3,2) should be ok and confirmed', function () {
 					return node.Promise.all(node.Promise.map(scenarios.regular.members, function (member) {
-						signature = node.lisk.multisignature.signTransaction(scenarios.regular.tx, member.password);
+						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
-						return sendSignaturePromise(signature, scenarios.regular.tx).then(function (res) {
+						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
 					})).then(function (res) {
-						goodTransactionsEnforcement.push(scenarios.regular.tx);
+						goodTransactionsEnforcement.push(scenarios.regular.transaction);
 					});
 				});
 
 				it('with min required signatures max_signatures_max_min scenario(16,16) should be ok and confirmed', function () {
 					return node.Promise.all(node.Promise.map(scenarios.max_signatures_max_min.members, function (member) {
-						signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures_max_min.tx, member.password);
+						signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures_max_min.transaction, member.password);
 
-						return sendSignaturePromise(signature, scenarios.max_signatures_max_min.tx).then(function (res) {
+						return sendSignaturePromise(signature, scenarios.max_signatures_max_min.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
 					})).then(function (res) {
-						goodTransactionsEnforcement.push(scenarios.max_signatures_max_min.tx);
+						goodTransactionsEnforcement.push(scenarios.max_signatures_max_min.transaction);
 					});
 				});
 			});
@@ -433,7 +433,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					scenarios.regular.tx = transaction;
+					scenarios.regular.transaction = transaction;
 				});
 			});
 
@@ -441,13 +441,13 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 				it('with min required signatures regular scenario(3,2) should be ok and confirmed', function () {
 					return node.Promise.all(node.Promise.map(scenarios.regular.members, function (member) {
-						signature = node.lisk.multisignature.signTransaction(scenarios.regular.tx, member.password);
+						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
-						return sendSignaturePromise(signature, scenarios.regular.tx).then(function (res) {
+						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
 					})).then(function (res) {
-						goodTransactionsEnforcement.push(scenarios.regular.tx);
+						goodTransactionsEnforcement.push(scenarios.regular.transaction);
 					});
 				});
 			});
@@ -461,7 +461,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					scenarios.regular.tx = transaction;
+					scenarios.regular.transaction = transaction;
 				});
 			});
 
@@ -469,13 +469,13 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 				it('with min required signatures regular scenario(3,2) should be ok and confirmed', function () {
 					return node.Promise.all(node.Promise.map(scenarios.regular.members, function (member) {
-						signature = node.lisk.multisignature.signTransaction(scenarios.regular.tx, member.password);
+						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
-						return sendSignaturePromise(signature, scenarios.regular.tx).then(function (res) {
+						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
 					})).then(function (res) {
-						goodTransactionsEnforcement.push(scenarios.regular.tx);
+						goodTransactionsEnforcement.push(scenarios.regular.transaction);
 					});
 				});
 			});
@@ -489,7 +489,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					scenarios.regular.tx = transaction;
+					scenarios.regular.transaction = transaction;
 				});
 			});
 
@@ -497,13 +497,13 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 				it('with min required signatures regular scenario(3,2) should be ok and confirmed', function () {
 					return node.Promise.all(node.Promise.map(scenarios.regular.members, function (member) {
-						signature = node.lisk.multisignature.signTransaction(scenarios.regular.tx, member.password);
+						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
-						return sendSignaturePromise(signature, scenarios.regular.tx).then(function (res) {
+						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
 					})).then(function (res) {
-						goodTransactionsEnforcement.push(scenarios.regular.tx);
+						goodTransactionsEnforcement.push(scenarios.regular.transaction);
 					});
 				});
 			});

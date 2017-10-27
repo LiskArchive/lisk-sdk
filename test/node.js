@@ -17,7 +17,7 @@ node.config = require('../config.json');
 node.constants = require('../helpers/constants.js');
 node.dappCategories = require('../helpers/dappCategories.js');
 node.dappTypes = require('../helpers/dappTypes.js');
-node.txTypes = require('../helpers/transactionTypes.js');
+node.transactionTypes = require('../helpers/transactionTypes.js');
 node._ = require('lodash');
 node.async = require('async');
 node.popsicle = require('popsicle');
@@ -357,18 +357,8 @@ node.randomAccount = function () {
 	return account;
 };
 
-// Returns an extended random account
-node.randomTxAccount = function () {
-	return node._.defaults(node.randomAccount(), {
-		sentAmount:'',
-		paidFee: '',
-		totalPaidFee: '',
-		transactions: []
-	});
-};
-
 // Returns an random basic transaction to send 1 LSK from genesis account to a random account
-node.randomTx = function (offset) {
+node.randomTransaction = function (offset) {
 	var randomAccount = node.randomAccount();
 
 	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password, offset);

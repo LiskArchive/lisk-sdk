@@ -40,7 +40,7 @@ describe('GET /api/multisignatures/', function () {
 
 	describe('/pending', function () {
 
-		it('using null public key should be ok', function () {
+		it('using null public key should fail', function () {
 			var params = [];
 			
 			return getPendingMultisignaturesPromise(params).then(function (res) {
@@ -75,7 +75,7 @@ describe('GET /api/multisignatures/', function () {
 						node.expect(element).to.have.property('min').that.is.equal(0);
 						node.expect(element).to.have.property('lifetime').that.is.equal(0);
 						node.expect(element).to.have.property('signed').that.is.true;
-						node.expect(element.transaction).to.have.property('type').that.is.equal(node.txTypes.MULTI);
+						node.expect(element.transaction).to.have.property('type').that.is.equal(node.transactionTypes.MULTI);
 						node.expect(element.transaction).to.have.property('amount').that.is.equal(0);
 						node.expect(element.transaction).to.have.property('senderPublicKey').that.is.equal(scenario.account.publicKey);
 						node.expect(element.transaction).to.have.property('timestamp').that.is.a('number');

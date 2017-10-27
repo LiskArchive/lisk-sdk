@@ -18,7 +18,7 @@ describe('Posting transaction (type 0)', function () {
 	var account = node.randomAccount();
 
 	beforeEach(function () {
-		transaction = node.randomTx();
+		transaction = node.randomTransaction();
 	});
 
 	describe('transaction processing', function () {

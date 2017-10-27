@@ -301,7 +301,7 @@ describe('GET /api/transactions', function () {
 		});
 
 		it('using type should be ok', function () {
-			var type = node.txTypes.SEND;
+			var type = node.transactionTypes.SEND;
 			var params = [
 				'type=' + type
 			];

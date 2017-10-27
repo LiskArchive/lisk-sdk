@@ -95,7 +95,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	});
 };
 
-function invalidTxs () {
+function invalidTransactions () {
 
 	tests.forEach(function (test) {
 		it('using ' + test.describe + ' should fail', function () {
@@ -194,14 +194,14 @@ function multisigScenario (size, amount) {
 		this.keysgroup.push('+' + auxAccount.publicKey);
 	}
 
-	this.tx = null;
+	this.transaction = null;
 	this.amount = amount || 100000000000;
 }
 
 module.exports = {
 	tests: tests,
 	confirmationPhase: confirmationPhase,
-	invalidTxs: invalidTxs,
+	invalidTransactions: invalidTransactions,
 	invalidAssets: invalidAssets,
 	multisigScenario: multisigScenario
 };
