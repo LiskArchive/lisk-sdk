@@ -216,10 +216,10 @@ function waitForConfirmations (transactions, limitHeight) {
 		limit -= 1;
 
 		return waitForBlocks(1)
-			.then(function (res){
+			.then(function (){
 				return checkConfirmations(transactions);
 			})
-			.catch(function (err) {
+			.catch(function () {
 				return waitUntilLimit(limit);
 			});
 	}

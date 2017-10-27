@@ -18,7 +18,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 		'regular': new shared.multisigScenario(3), //3_2
 		'max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16_2
 		'max_signatures_max_min': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16_16
-		'more_than_max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2), //17_2
+		'more_than_max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) //17_2
 	};
 
 	var transaction, signature;
@@ -32,16 +32,16 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 	before(function () {
 		//Crediting accounts
 		return node.Promise.all(Object.keys(scenarios).map(function (key) {
-
-			if (key === 'no_funds') { return; }
-
+			if (key === 'no_funds') {
+				return;
+			}
 			return creditAccountPromise(scenarios[key].account.address, scenarios[key].amount).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').that.is.not.empty;
 				transactionsToWaitFor.push(res.transactionId);
 			});
 		}))
-			.then(function (res) {
+			.then(function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
@@ -308,7 +308,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 					});
-				})).then(function (res) {
+				})).then(function () {
 					goodTransactions.push(scenarios.regular.transaction);
 				});
 			});
@@ -329,7 +329,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					return sendSignaturePromise(signature, scenarios.max_signatures.transaction).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 					});
-				})).then(function (res) {
+				})).then(function () {
 					goodTransactions.push(scenarios.max_signatures.transaction);
 				});
 			});
@@ -406,7 +406,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
-					})).then(function (res) {
+					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.regular.transaction);
 					});
 				});
@@ -418,7 +418,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						return sendSignaturePromise(signature, scenarios.max_signatures_max_min.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
-					})).then(function (res) {
+					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.max_signatures_max_min.transaction);
 					});
 				});
@@ -446,7 +446,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
-					})).then(function (res) {
+					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.regular.transaction);
 					});
 				});
@@ -502,7 +502,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.ok;
 						});
-					})).then(function (res) {
+					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.regular.transaction);
 					});
 				});
