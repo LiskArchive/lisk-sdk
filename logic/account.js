@@ -586,7 +586,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 
 	if (typeof filter.address === 'string') {
 		filter['a.address'] = {
-			$upper: ['a.ddress', filter.address]
+			$upper: ['a.address', filter.address]
 		};
 		delete filter.address;
 	}
