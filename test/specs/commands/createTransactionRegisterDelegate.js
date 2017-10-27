@@ -18,7 +18,7 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('create transaction register second passphrase command', () => {
+describe('create transaction register delegate command', () => {
 	beforeEach(() => {
 		setUpInputStubs();
 	});
