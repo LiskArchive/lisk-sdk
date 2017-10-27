@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from './liskInstance';
+import liskAPIInstance from './api';
 
 class Query {
 	constructor() {
-		this.client = lisk;
+		this.client = liskAPIInstance;
 	}
 
 	isBlockQuery(input) {

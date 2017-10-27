@@ -13,9 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import childProcess from 'child_process';
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
+import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
 import * as decryptMessage from '../../src/commands/decryptMessage';
+import * as decryptPassphrase from '../../src/commands/decryptPassphrase';
 import * as encryptMessage from '../../src/commands/encryptMessage';
 import * as encryptPassphrase from '../../src/commands/encryptPassphrase';
 import * as env from '../../src/commands/env';
@@ -35,8 +38,8 @@ const BOOLEANS = {
 };
 
 const regExpQuotes = /"((.|\n|\s\S)+?)"/;
-const regExpNumbers = /\d+/g;
-const regExpBoolean = /(true|false)/;
+const regExpNumbers = /\d+/;
+const regExpBooleans = /(true|false)/;
 
 export const getFirstQuotedString = title => title.match(regExpQuotes)[1];
 
@@ -47,11 +50,23 @@ export const getQuotedStrings = (title) => {
 		.map(match => match.match(regExpQuotes)[1]);
 };
 
-export const getNumbersFromTitle = (title) => {
-	return title.match(regExpNumbers).map(Number);
+export const getFirstNumber = title => Number(title.match(regExpNumbers)[0]);
+
+export const getNumbers = (title) => {
+	const globalRegExp = new RegExp(regExpNumbers, 'g');
+	return title
+		.match(globalRegExp)
+		.map(Number);
 };
 
-export const getFirstBoolean = title => BOOLEANS[title.match(regExpBoolean)[1]];
+export const getFirstBoolean = title => BOOLEANS[title.match(regExpBooleans)[1]];
+
+export const getBooleans = (title) => {
+	const globalRegExp = new RegExp(regExpBooleans, 'g');
+	return title
+		.match(globalRegExp)
+		.map(key => BOOLEANS[key]);
+};
 
 export const getCommandInstance = (vorpal, command) => {
 	const commandStem = command.match(/^[^[|<]+/)[0].slice(0, -1);
@@ -61,13 +76,19 @@ export const getCommandInstance = (vorpal, command) => {
 export const getActionCreator = actionName => ({
 	'create account': createAccount.actionCreator,
 	'decrypt message': decryptMessage.actionCreator,
+	'decrypt passphrase': decryptPassphrase.actionCreator,
 	'encrypt message': encryptMessage.actionCreator,
 	'encrypt passphrase': encryptPassphrase.actionCreator,
+	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,
 	list: list.actionCreator,
 	set: set.actionCreator,
 })[actionName];
+
+export const setUpChildProcessStubs = () => {
+	sandbox.stub(childProcess, 'exec');
+};
 
 export const setUpFsStubs = () => {
 	[
@@ -97,9 +118,10 @@ export const setUpProcessStubs = () => {
 
 export const setUpHelperStubs = () => {
 	[
+		'createErrorHandler',
 		'deAlias',
 		'shouldUseJsonOutput',
-		'createErrorHandler',
+		'shouldUsePrettyOutput',
 	].forEach(methodName => sandbox.stub(helpers, methodName));
 };
 
@@ -143,3 +165,21 @@ export const createStreamStub = on => ({
 	close: () => {},
 	on,
 });
+
+export function getTransactionCreatorFunctionNameByType(transactionType) {
+	switch (transactionType) {
+	case 0:	return 'createTransaction';
+	case 1: return 'signTransaction';
+	case 2:	return 'createDelegate';
+	case 3: return 'createVote';
+	case 4: return 'createMultisignature';
+	default: throw new Error(`Transaction type ${transactionType} is not supported`);
+	}
+}
+
+export const hasAncestorWithTitleMatching = (test, regExp) => {
+	if (test.title.match(regExp)) return true;
+	const { parent } = test;
+	if (!parent) return false;
+	return hasAncestorWithTitleMatching(parent, regExp);
+};

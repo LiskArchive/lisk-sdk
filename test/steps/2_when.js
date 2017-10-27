@@ -23,35 +23,68 @@ import {
 	createErrorHandler,
 	deAlias,
 	shouldUseJsonOutput,
+	shouldUsePrettyOutput,
 	wrapActionCreator,
 	createCommand,
 } from '../../src/utils/helpers';
-import {
-	splitSource,
-	createPromptOptions,
-	getFirstLineFromString,
-	getPassphraseFromPrompt,
-	getStdIn,
-	getPassphraseFromEnvVariable,
-	getPassphraseFromFile,
-	getPassphraseFromSource,
-	getPassphrase,
-	getDataFromFile,
-	getData,
-} from '../../src/utils/input';
+import * as inputUtils from '../../src/utils/input';
 import { printResult } from '../../src/utils/print';
 import tablify from '../../src/utils/tablify';
+import {
+	createMnemonicPassphrase,
+	isValidMnemonicPassphrase,
+} from '../../src/utils/mnemonic';
+import execFile from '../../src/execFile';
 import {
 	DEFAULT_ERROR_MESSAGE,
 	getFirstQuotedString,
 	getQuotedStrings,
 } from './utils';
-import {
-	createMnemonicPassphrase,
-	isValidMnemonicPassphrase,
-} from '../../src/utils/mnemonic';
 
 const tablifyToSpy = require('../../src/utils/tablify');
+
+export function theActionIsCalledWithTheIVAndTheOptions() {
+	const { action, cipherAndIv: { iv }, options } = this.test.ctx;
+	const returnValue = action({ iv, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions() {
+	const { action, cipherAndIv: { cipher: passphrase, iv }, options } = this.test.ctx;
+
+	inputUtils.getData.onFirstCall().resolves(passphrase);
+
+	const returnValue = action({ iv, passphrase, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction() {
+	const { lisky, filePath, exit } = this.test.ctx;
+	try {
+		const returnValue = execFile(lisky, filePath, null, exit);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue.catch(e => e);
+	} catch (error) {
+		const testFunction = execFile.bind(null, lisky, filePath, null, exit);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
+}
+
+export function execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheExitFunction() {
+	const { lisky, filePath, options, exit } = this.test.ctx;
+	try {
+		const returnValue = execFile(lisky, filePath, options, exit);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue.catch(e => e);
+	} catch (error) {
+		const testFunction = execFile.bind(null, lisky, filePath, options, exit);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
+}
 
 export function theActionIsCalledWithTheMessageTheNonceTheSenderPublicKeyAndTheOptions() {
 	const { action, message, nonce, senderPublicKey, options } = this.test.ctx;
@@ -127,11 +160,12 @@ export function theCreatedCommandIsCalledWithTheVorpalInstance() {
 	this.test.ctx.returnValue = createdCommand(vorpal);
 }
 
-export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix() {
+export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheAliasTheActionCreatorTheOptionsListAndThePrefix() {
 	const {
 		command,
 		autocompleteList: autocomplete,
 		description,
+		alias,
 		actionCreator,
 		optionsList: options,
 		prefix: errorPrefix,
@@ -140,6 +174,7 @@ export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocomp
 		command,
 		autocomplete,
 		description,
+		alias,
 		actionCreator,
 		options,
 		errorPrefix,
@@ -330,17 +365,17 @@ export function theConfigIsLoaded() {
 
 export function theSourceIsSplit() {
 	const { source } = this.test.ctx;
-	this.test.ctx.returnValue = splitSource(source);
+	this.test.ctx.returnValue = inputUtils.splitSource(source);
 }
 
 export function createPromptOptionsIsCalledWithTheMessage() {
 	const { promptMessage } = this.test.ctx;
-	this.test.ctx.returnValue = createPromptOptions(promptMessage);
+	this.test.ctx.returnValue = inputUtils.createPromptOptions(promptMessage);
 }
 
 export function getPassphraseFromPromptIsCalled() {
 	const { vorpal, displayName, shouldRepeat } = this.test.ctx;
-	const returnValue = getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat });
+	const returnValue = inputUtils.getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat });
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -354,7 +389,7 @@ export function getStdInIsCalledWithTheRelevantOptions() {
 			dataIsRequired,
 		}
 		: undefined;
-	const returnValue = getStdIn(options);
+	const returnValue = inputUtils.getStdIn(options);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue;
@@ -362,7 +397,7 @@ export function getStdInIsCalledWithTheRelevantOptions() {
 
 export function getPassphraseFromEnvVariableIsCalled() {
 	const { environmentalVariableName, displayName } = this.test.ctx;
-	const returnValue = getPassphraseFromEnvVariable(environmentalVariableName, displayName);
+	const returnValue = inputUtils.getPassphraseFromEnvVariable(environmentalVariableName, displayName);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -370,7 +405,7 @@ export function getPassphraseFromEnvVariableIsCalled() {
 
 export function getPassphraseFromFileIsCalledOnThePath() {
 	const { filePath } = this.test.ctx;
-	const returnValue = getPassphraseFromFile(filePath);
+	const returnValue = inputUtils.getPassphraseFromFile(filePath);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -378,7 +413,7 @@ export function getPassphraseFromFileIsCalledOnThePath() {
 
 export function getPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs() {
 	const { filePath } = this.test.ctx;
-	const returnValue = getPassphraseFromFile(filePath);
+	const returnValue = inputUtils.getPassphraseFromFile(filePath);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -386,7 +421,7 @@ export function getPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs() 
 
 export function getPassphraseFromSourceIsCalledWithTheRelevantSource() {
 	const { passphraseSource, displayName } = this.test.ctx;
-	const returnValue = getPassphraseFromSource(passphraseSource, { displayName });
+	const returnValue = inputUtils.getPassphraseFromSource(passphraseSource, { displayName });
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -394,7 +429,7 @@ export function getPassphraseFromSourceIsCalledWithTheRelevantSource() {
 
 export function getPassphraseIsPassedAPassphraseDirectly() {
 	const { passphrase } = this.test.ctx;
-	const returnValue = getPassphrase(null, null, passphrase);
+	const returnValue = inputUtils.getPassphrase(null, null, passphrase);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -402,7 +437,7 @@ export function getPassphraseIsPassedAPassphraseDirectly() {
 
 export function getPassphraseIsPassedASourceButNoPassphrase() {
 	const { passphraseSource } = this.test.ctx;
-	const returnValue = getPassphrase(null, passphraseSource);
+	const returnValue = inputUtils.getPassphrase(null, passphraseSource);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -410,7 +445,7 @@ export function getPassphraseIsPassedASourceButNoPassphrase() {
 
 export function getPassphraseIsPassedNeitherASourceNorAPassphrase() {
 	const { vorpal } = this.test.ctx;
-	const returnValue = getPassphrase(vorpal);
+	const returnValue = inputUtils.getPassphrase(vorpal);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -418,12 +453,12 @@ export function getPassphraseIsPassedNeitherASourceNorAPassphrase() {
 
 export function getFirstLineFromStringIsCalledOnTheString() {
 	const { testString } = this.test.ctx;
-	this.test.ctx.returnValue = getFirstLineFromString(testString);
+	this.test.ctx.returnValue = inputUtils.getFirstLineFromString(testString);
 }
 
 export function getDataFromFileIsCalledWithThePath() {
 	const { filePath } = this.test.ctx;
-	const returnValue = getDataFromFile(filePath);
+	const returnValue = inputUtils.getDataFromFile(filePath);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -431,7 +466,7 @@ export function getDataFromFileIsCalledWithThePath() {
 
 export function getDataIsCalled() {
 	const { argData, sourceData, stdInData } = this.test.ctx;
-	const returnValue = getData(argData, sourceData, stdInData);
+	const returnValue = inputUtils.getData(argData, sourceData, stdInData);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -446,6 +481,12 @@ export function deAliasIsCalledOnTheType() {
 export function shouldUseJsonOutputIsCalledWithTheConfigAndOptions() {
 	const { config, options } = this.test.ctx;
 	const returnValue = shouldUseJsonOutput(config, options);
+	this.test.ctx.returnValue = returnValue;
+}
+
+export function shouldUsePrettyOutputIsCalledWithTheConfigAndOptions() {
+	const { config, options } = this.test.ctx;
+	const returnValue = shouldUsePrettyOutput(config, options);
 	this.test.ctx.returnValue = returnValue;
 }
 

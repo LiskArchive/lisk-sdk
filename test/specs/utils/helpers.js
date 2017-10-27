@@ -85,6 +85,56 @@ describe('utils helpers', () => {
 			});
 		});
 	});
+	describe('#shouldUsePrettyOutput', () => {
+		describe('Given a config with pretty set to true', () => {
+			beforeEach(given.aConfigWithPrettySetTo);
+			describe('Given an options object with pretty set to true', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return true', then.itShouldReturnTrue);
+				});
+			});
+			describe('Given an options object with pretty set to false', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return false', then.itShouldReturnFalse);
+				});
+			});
+			describe('Given an empty options object', () => {
+				beforeEach(given.anEmptyOptionsObject);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return true', then.itShouldReturnTrue);
+				});
+			});
+		});
+		describe('Given a config with pretty set to false', () => {
+			beforeEach(given.aConfigWithPrettySetTo);
+			describe('Given an options object with pretty set to true', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return true', then.itShouldReturnTrue);
+				});
+			});
+			describe('Given an options object with pretty set to false', () => {
+				beforeEach(given.anOptionsObjectWithPrettySetTo);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return false', then.itShouldReturnFalse);
+				});
+			});
+			describe('Given an empty options object', () => {
+				beforeEach(given.anEmptyOptionsObject);
+				describe('When shouldUsePrettyOutput is called with the config and options', () => {
+					beforeEach(when.shouldUsePrettyOutputIsCalledWithTheConfigAndOptions);
+					it('Then it should return false', then.itShouldReturnFalse);
+				});
+			});
+		});
+	});
 	describe('#createErrorHandler', () => {
 		describe('Given a prefix "Some error message prefix"', () => {
 			beforeEach(given.aPrefix);
@@ -144,25 +194,30 @@ describe('utils helpers', () => {
 					beforeEach(given.anAutocompleteListIncluding);
 					describe('Given a description "Some description of a command"', () => {
 						beforeEach(given.aDescription);
-						describe('Given an action creator that creates an action that resolves to an object', () => {
-							beforeEach(given.anActionCreatorThatCreatesAnActionThatResolvesToAnObject);
-							describe('Given an options list including "passphrase" and "password"', () => {
-								beforeEach(given.anOptionsListIncluding);
-								describe('Given a prefix "Some error message prefix"', () => {
-									beforeEach(given.aPrefix);
-									describe('When createCommand is called with an object containing the command, the autocomplete list, the description, the action creator, the options list, and the prefix', () => {
-										beforeEach(when.createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix);
-										describe('When the created commmand is called with the Vorpal instance', () => {
-											beforeEach(when.theCreatedCommandIsCalledWithTheVorpalInstance);
-											it('Then the Vorpal instance should have the command', then.theVorpalInstanceShouldHaveTheCommand);
-											it('Then the Vorpal command instance should have the autocomplete list', then.theVorpalCommandInstanceShouldHaveTheAutocompleteList);
-											it('Then the Vorpal command instance should have the description', then.theVorpalCommandInstanceShouldHaveTheDescription);
-											it('Then the Vorpal command instance should have the provided options', then.theVorpalCommandInstanceShouldHaveTheProvidedOptions);
-											it('Then the Vorpal command instance should have the json option', then.theVorpalCommandInstanceShouldHaveTheJsonOption);
-											it('Then the Vorpal command instance should have the noJson option', then.theVorpalCommandInstanceShouldHaveTheNoJsonOption);
-											describe('When the command "some command someArg" is executed', () => {
-												beforeEach(when.theCommandIsExecuted);
-												it('Then it should resolve to the object', then.itShouldResolveToTheObject);
+						describe('Given an alias "alternative command"', () => {
+							beforeEach(given.anAlias);
+							describe('Given an action creator that creates an action that resolves to an object', () => {
+								beforeEach(given.anActionCreatorThatCreatesAnActionThatResolvesToAnObject);
+								describe('Given an options list including "passphrase" and "password"', () => {
+									beforeEach(given.anOptionsListIncluding);
+									describe('Given a prefix "Some error message prefix"', () => {
+										beforeEach(given.aPrefix);
+										describe('When createCommand is called with an object containing the command, the autocomplete list, the description, the action creator, the options list, and the prefix', () => {
+											beforeEach(when.createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheAliasTheActionCreatorTheOptionsListAndThePrefix);
+											describe('When the created commmand is called with the Vorpal instance', () => {
+												beforeEach(when.theCreatedCommandIsCalledWithTheVorpalInstance);
+												it('Then the Vorpal instance should have the command', then.theVorpalInstanceShouldHaveTheCommand);
+												it('Then the Vorpal command instance should have the autocomplete list', then.theVorpalCommandInstanceShouldHaveTheAutocompleteList);
+												it('Then the Vorpal command instance should have the description', then.theVorpalCommandInstanceShouldHaveTheDescription);
+												it('Then the Vorpal command instance should have the alias', then.theVorpalCommandInstanceShouldHaveTheAlias);
+												it('Then the Vorpal command instance should have the provided options', then.theVorpalCommandInstanceShouldHaveTheProvidedOptions);
+												it('Then the Vorpal command instance should have the json option', then.theVorpalCommandInstanceShouldHaveTheJsonOption);
+												it('Then the Vorpal command instance should have the noJson option', then.theVorpalCommandInstanceShouldHaveTheNoJsonOption);
+												it('Then the Vorpal command instance should have the pretty option', then.theVorpalCommandInstanceShouldHaveThePrettyOption);
+												describe('When the command "some command someArg" is executed', () => {
+													beforeEach(when.theCommandIsExecuted);
+													it('Then it should resolve to the object', then.itShouldResolveToTheObject);
+												});
 											});
 										});
 									});

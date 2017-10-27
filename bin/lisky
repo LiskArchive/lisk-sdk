@@ -15,11 +15,37 @@
  *
  */
 var lisky;
+var execFile;
+var firstCommandWords;
+var nonInteractiveLiskyArg = process.argv[1];
+var nonInteractiveCommandArg = process.argv[2];
+var nonInteractiveOptions;
+var commandArgIsFilePath = false;
 
-process.env.NON_INTERACTIVE_MODE = !(process.argv[1].endsWith('lisky') && process.argv.length === 2);
+process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskyArg.endsWith('lisky') && process.argv.length === 2);
 
 lisky = require('../dist').default;
+execFile = require('../dist/execFile').default;
 
-module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
-	? lisky.parse(process.argv)
-	: lisky;
+// eslint-disable-next-line no-underscore-dangle
+firstCommandWords = lisky.commands.map(c => c._name.split(' ')[0]);
+
+function exit(code) {
+	process.exit(code || 0);
+}
+
+if (firstCommandWords.indexOf(nonInteractiveCommandArg) === -1) {
+	commandArgIsFilePath = true;
+	try {
+		nonInteractiveOptions = process.argv.slice(3);
+		execFile(lisky, nonInteractiveCommandArg, nonInteractiveOptions, exit);
+	} catch (error) {
+		commandArgIsFilePath = false;
+	}
+}
+
+if (!commandArgIsFilePath) {
+	module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
+		? (lisky.parse(process.argv))
+		: lisky;
+}

@@ -18,8 +18,8 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Query class', () => {
-	describe('Given a lisk instance', () => {
-		beforeEach(given.aLiskInstance);
+	describe('Given a lisk api instance', () => {
+		beforeEach(given.aliskAPIInstance);
 		describe('Given a query instance', () => {
 			beforeEach(given.aQueryInstance);
 			describe('#isBlockQuery', () => {
@@ -27,7 +27,7 @@ describe('Query class', () => {
 					beforeEach(given.aBlockID);
 					describe('When the query instance gets a block using the ID', () => {
 						beforeEach(when.theQueryInstanceGetsABlockUsingTheID);
-						it('Then the lisk instance should send a request to the blocks/get API endpoint with the block ID', then.theLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID);
+						it('Then the lisk instance should send a request to the blocks/get API endpoint with the block ID', then.theliskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID);
 					});
 				});
 			});
@@ -36,7 +36,7 @@ describe('Query class', () => {
 					beforeEach(given.anAddress);
 					describe('When the query instance gets an account using the address', () => {
 						beforeEach(when.theQueryInstanceGetsAnAccountUsingTheAddress);
-						it('Then the lisk instance should send a request to the accounts API endpoint with the address', then.theLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress);
+						it('Then the lisk instance should send a request to the accounts API endpoint with the address', then.theliskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress);
 					});
 				});
 			});
@@ -45,7 +45,7 @@ describe('Query class', () => {
 					beforeEach(given.aTransactionID);
 					describe('When the query instance gets a transaction using the ID', () => {
 						beforeEach(when.theQueryInstanceGetsATransactionUsingTheID);
-						it('Then the lisk instance should send a request to the transactions/get API endpoint with the transaction ID', then.theLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID);
+						it('Then the lisk instance should send a request to the transactions/get API endpoint with the transaction ID', then.theliskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID);
 					});
 				});
 			});
@@ -54,7 +54,7 @@ describe('Query class', () => {
 					beforeEach(given.aDelegateUsername);
 					describe('When the query instance gets a delegate using the username', () => {
 						beforeEach(when.theQueryInstanceGetsADelegateUsingTheUsername);
-						it('Then the lisk instance should send a request to the delegates/get API endpoint with the username', then.theLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername);
+						it('Then the lisk instance should send a request to the delegates/get API endpoint with the username', then.theliskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername);
 					});
 				});
 			});

@@ -13,11 +13,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import childProcess from 'child_process';
 import fs from 'fs';
 import lisk from 'lisk-js';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
-import { shouldUseJsonOutput } from '../../src/utils/helpers';
+import {
+	shouldUseJsonOutput,
+	shouldUsePrettyOutput,
+} from '../../src/utils/helpers';
+import transactions from '../../src/utils/transactions';
 import * as input from '../../src/utils/input';
 import commonOptions from '../../src/utils/options';
 import tablify from '../../src/utils/tablify';
@@ -25,7 +30,102 @@ import {
 	getCommandInstance,
 	getFirstQuotedString,
 	getFirstBoolean,
+	getFirstNumber,
+	getNumbers,
+	getTransactionCreatorFunctionNameByType,
+	hasAncestorWithTitleMatching,
 } from './utils';
+
+export function itShouldHaveAFunctionForCreatingATypeTransaction() {
+	const { transactionsObject } = this.test.ctx;
+	const transactionType = getNumbers(this.test.title)[0];
+	const transactionFunctionName = getTransactionCreatorFunctionNameByType(transactionType);
+	return (transactionsObject).should.have.key(transactionFunctionName).and.be.type('function');
+}
+
+export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
+	const { passphrase, secondPassphrase } = this.test.ctx;
+	return (transactions.createSignature).should.be.calledWith(passphrase, secondPassphrase);
+}
+
+export function itShouldResolveToTheCreatedTransaction() {
+	const { returnValue, createdTransaction } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(createdTransaction);
+}
+
+export function theVorpalCommandInstanceShouldHaveTheAlias() {
+	const { vorpal, command, alias } = this.test.ctx;
+	const { _aliases } = getCommandInstance(vorpal, command);
+	return (_aliases).should.be.eql([alias]);
+}
+
+export function itShouldGetThePasswordUsingTheSource() {
+	const { options } = this.test.ctx;
+	const firstCallArgs = input.getPassphrase.firstCall.args;
+	return (firstCallArgs[1]).should.equal(options.password);
+}
+
+export function itShouldGetTheEncryptedPassphraseUsingTheEncryptedPassphraseFromStdIn() {
+	const { cipherAndIv: { cipher } } = this.test.ctx;
+	const firstCallArgs = input.getData.firstCall.args;
+	return (firstCallArgs[2]).should.equal(cipher);
+}
+
+export function itShouldGetTheEncryptedPassphraseUsingThePassphraseArgument() {
+	const { cipherAndIv: { cipher: passphrase } } = this.test.ctx;
+	return (input.getData).should.be.calledWith(passphrase);
+}
+
+export function itShouldExecuteAScriptExecutingFirstInASeparateChildProcess() {
+	const command = getFirstQuotedString(this.test.title);
+	return (childProcess.exec).firstCall.should.be.calledWithMatch(command);
+}
+
+export function itShouldExecuteAScriptExecutingSecondInASeparateChildProcess() {
+	const command = getFirstQuotedString(this.test.title);
+	return (childProcess.exec).secondCall.should.be.calledWithMatch(command);
+}
+
+export function itShouldExecuteAScriptExecutingThirdInASeparateChildProcess() {
+	const command = getFirstQuotedString(this.test.title);
+	return (childProcess.exec).thirdCall.should.be.calledWithMatch(command);
+}
+
+export function itShouldNotExecuteAThirdScriptInASeparateChildProcess() {
+	return (childProcess.exec).should.not.be.calledThrice();
+}
+
+export function theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst() {
+	const { lisky, firstChildOutput } = this.test.ctx;
+	return (lisky.log).firstCall.should.be.calledWithExactly(firstChildOutput);
+}
+
+export function theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond() {
+	const { lisky, secondChildOutput } = this.test.ctx;
+	return (lisky.log).secondCall.should.be.calledWithExactly(secondChildOutput);
+}
+
+export function theLiskyInstanceShouldLogTheThirdChildProcessOutputThird() {
+	const { lisky, thirdChildOutput } = this.test.ctx;
+	return (lisky.log).thirdCall.should.be.calledWithExactly(thirdChildOutput);
+}
+
+export function theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond() {
+	const { lisky, secondChildError } = this.test.ctx;
+	return (lisky.log).secondCall.should.be.calledWithExactly(secondChildError);
+}
+
+export function itShouldThrowError() {
+	const { testFunction } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return (testFunction).should.throw(message);
+}
+
+export function itShouldExitWithCode() {
+	const { exit } = this.test.ctx;
+	const code = getFirstNumber(this.test.title);
+	return (exit).should.be.calledWithExactly(code);
+}
 
 export function itShouldNotGetTheKeysForThePassphrase() {
 	return (cryptoInstance.getKeys).should.not.be.called();
@@ -38,13 +138,21 @@ export function itShouldGetTheKeysForThePassphrase() {
 
 export function itShouldGetThePasswordFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
-	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
+	const property = isDecryptPassphraseAction
+		? 'passphraseIsRequired'
+		: 'dataIsRequired';
+	return (firstCallArgs[0]).should.have.property(property).equal(true);
 }
 
 export function itShouldGetThePasswordUsingThePasswordFromStdIn() {
 	const { password } = this.test.ctx;
-	const secondCallArgs = input.getPassphrase.secondCall.args;
-	return (secondCallArgs[2]).should.equal(password);
+	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
+	const call = isDecryptPassphraseAction
+		? 'firstCall'
+		: 'secondCall';
+	const { args } = input.getPassphrase[call];
+	return (args[2]).should.equal(password);
 }
 
 export function itShouldGetThePasswordUsingThePasswordSource() {
@@ -64,10 +172,26 @@ export function itShouldGetTheDataUsingTheMessageArgument() {
 	return (input.getData).should.be.calledWith(message);
 }
 
+export function itShouldNotGetTheSecondPassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(false);
+}
+
 export function itShouldGetTheDataUsingTheMessageSource() {
 	const { options } = this.test.ctx;
 	const firstCallArgs = input.getData.firstCall.args;
 	return (firstCallArgs[1]).should.equal(options.message);
+}
+
+export function itShouldGetTheSecondPassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn() {
+	const { secondPassphrase } = this.test.ctx;
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[2]).should.equal(secondPassphrase);
 }
 
 export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
@@ -76,10 +200,21 @@ export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
 	return (firstCallArgs[2]).should.equal(passphrase);
 }
 
+export function itShouldGetTheSecondPassphraseUsingTheSecondPassphraseSource() {
+	const { options } = this.test.ctx;
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[1]).should.equal(options['second-passphrase']);
+}
+
 export function itShouldGetThePassphraseUsingThePassphraseSource() {
 	const { options } = this.test.ctx;
 	const firstCallArgs = input.getPassphrase.firstCall.args;
 	return (firstCallArgs[1]).should.equal(options.passphrase);
+}
+
+export function itShouldGetTheSecondPassphraseWithARepeatedPrompt() {
+	const secondCallArgs = input.getPassphrase.secondCall.args;
+	return (secondCallArgs[3]).should.eql({ shouldRepeat: true, displayName: 'your second secret passphrase' });
 }
 
 export function itShouldGetThePassphraseWithASinglePrompt() {
@@ -97,14 +232,25 @@ export function itShouldGetThePasswordWithARepeatedPrompt() {
 	return (secondCallArgs[3]).should.have.property('shouldRepeat').be.true();
 }
 
+export function itShouldGetThePasswordWithASinglePrompt() {
+	const { getGetPassphrasePasswordCall } = this.test.ctx;
+	const { args } = getGetPassphrasePasswordCall();
+	return (args[3] === undefined || !args[3].shouldRepeat).should.be.true();
+}
+
+export function itShouldGetTheSecondPassphraseUsingTheVorpalInstance() {
+	const { vorpal } = this.test.ctx;
+	return (input.getPassphrase.secondCall).should.be.calledWith(vorpal);
+}
+
 export function itShouldGetThePassphraseUsingTheVorpalInstance() {
 	const { vorpal } = this.test.ctx;
 	return (input.getPassphrase.firstCall).should.be.calledWith(vorpal);
 }
 
 export function itShouldGetThePasswordUsingTheVorpalInstance() {
-	const { vorpal } = this.test.ctx;
-	return (input.getPassphrase.secondCall).should.be.calledWith(vorpal);
+	const { vorpal, getGetPassphrasePasswordCall } = this.test.ctx;
+	return (getGetPassphrasePasswordCall()).should.be.calledWith(vorpal);
 }
 
 export function itShouldNotGetThePassphraseFromStdIn() {
@@ -112,9 +258,24 @@ export function itShouldNotGetThePassphraseFromStdIn() {
 	return (firstCallArgs[0]).should.have.property('passphraseIsRequired').equal(false);
 }
 
-export function itShouldNotGetThePasswordFromStdIn() {
+export function itShouldNotGetTheEncryptedPassphraseFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(false);
+}
+
+export function itShouldGetTheEncryptedPassphraseFromStdIn() {
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldNotGetThePasswordFromStdIn() {
+	const { stdInInputs = [] } = this.test.ctx;
+	const firstCallArgs = input.getStdIn.firstCall.args;
+	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
+	const property = stdInInputs.length && !isDecryptPassphraseAction
+		? 'dataIsRequired'
+		: 'passphraseIsRequired';
+	return (firstCallArgs[0]).should.have.property(property).equal(false);
 }
 
 export function itShouldGetThePassphraseFromStdIn() {
@@ -130,6 +291,16 @@ export function itShouldNotGetTheMessageFromStdIn() {
 export function itShouldGetTheMessageFromStdIn() {
 	const firstCallArgs = input.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
+}
+
+export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
+	const { returnValue, cryptoResult } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith(cryptoResult);
+}
+
+export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
+	const { cipherAndIv, password } = this.test.ctx;
+	return (cryptoInstance.decryptPassphrase).should.be.calledWithExactly(cipherAndIv, password);
 }
 
 export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey() {
@@ -223,6 +394,12 @@ export function theVorpalCommandInstanceShouldHaveTheNoJsonOption() {
 	return (options).should.matchAny(option => option.flags === commonOptions.noJson[0]);
 }
 
+export function theVorpalCommandInstanceShouldHaveThePrettyOption() {
+	const { vorpal, command } = this.test.ctx;
+	const { options } = getCommandInstance(vorpal, command);
+	return (options).should.matchAny(option => option.flags === commonOptions.pretty[0]);
+}
+
 export function theVorpalInstanceShouldHaveTheCommand() {
 	const { vorpal, command } = this.test.ctx;
 	const commandInstance = getCommandInstance(vorpal, command);
@@ -302,9 +479,9 @@ export function itShouldReturnAnObjectWithTheAddress() {
 	return (returnValue).should.eql({ address });
 }
 
-export function theLiskInstanceShouldBeALiskJSApiInstance() {
-	const { liskInstance } = this.test.ctx;
-	return (liskInstance).should.be.instanceOf(lisk.api);
+export function theliskAPIInstanceShouldBeALiskJSApiInstance() {
+	const { liskAPIInstance } = this.test.ctx;
+	return (liskAPIInstance).should.be.instanceOf(lisk.api);
 }
 
 export function theResultShouldBeReturned() {
@@ -318,38 +495,44 @@ export function aTableShouldBeLogged() {
 	return (vorpal.activeCommand.log).should.be.calledWithExactly(tableOutput);
 }
 
+export function prettyJSONOutputShouldBeLogged() {
+	const { result, vorpal } = this.test.ctx;
+	const prettyJsonOutput = JSON.stringify(result, null, '\t');
+	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
+}
+
 export function jSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(result);
 	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
 }
 
-export function theLiskInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
-	const { blockId, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
+	const { blockId, liskAPIInstance } = this.test.ctx;
 	const route = 'blocks/get';
 	const options = { id: blockId };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theLiskInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
-	const { address, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
+	const { address, liskAPIInstance } = this.test.ctx;
 	const route = 'accounts';
 	const options = { address };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theLiskInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
-	const { transactionId, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
+	const { transactionId, liskAPIInstance } = this.test.ctx;
 	const route = 'transactions/get';
 	const options = { id: transactionId };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theLiskInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
-	const { delegateUsername, liskInstance } = this.test.ctx;
+export function theliskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
+	const { delegateUsername, liskAPIInstance } = this.test.ctx;
 	const route = 'delegates/get';
 	const options = { username: delegateUsername };
-	return (liskInstance.sendRequest).should.be.calledWithExactly(route, options);
+	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
 export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
@@ -388,9 +571,19 @@ export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsO
 	return (shouldUseJsonOutput).should.be.calledWithExactly(config, {});
 }
 
+export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
+	const { config } = this.test.ctx;
+	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, {});
+}
+
 export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions() {
 	const { config, options } = this.test.ctx;
 	return (shouldUseJsonOutput).should.be.calledWithExactly(config, options);
+}
+
+export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions() {
+	const { config, options } = this.test.ctx;
+	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, options);
 }
 
 export function theReturnedTableShouldHaveNoHead() {

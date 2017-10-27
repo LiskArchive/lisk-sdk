@@ -14,14 +14,16 @@
  *
  */
 import config from './env';
-import { shouldUseJsonOutput } from './helpers';
+import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
 // eslint-disable-next-line import/prefer-default-export
 export const printResult = (vorpal, options = {}) => (result) => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
+	const prettifyOutput = shouldUsePrettyOutput(config, options);
+
 	const output = useJsonOutput
-		? JSON.stringify(result)
+		? JSON.stringify(result, null, prettifyOutput ? '\t' : null)
 		: tablify(result).toString();
 
 	vorpal.activeCommand.log(output);
