@@ -258,13 +258,13 @@ describe('GET /api/voters', function () {
 
 		describe('address', function () {
 
-			it('using no address should return message = "String is too short (0 chars), minimum 21"', function () {
+			it('using no address should return message = "String is too short (0 chars), minimum 2"', function () {
 				var params = [
 					'address='
 				];
 
 				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('message').equal('String is too short (0 chars), minimum 21');
+					node.expect(res).to.have.property('message').equal('String is too short (0 chars), minimum 2');
 				});
 			});
 
@@ -450,43 +450,6 @@ describe('GET /api/voters', function () {
 							expectValidVotedDelegateResponse(res);
 							node.expect(_(res.voters).sortBy('publicKey').reverse().map('publicKey').value()).to.be.eql(_.map(res.voters, 'publicKey'));
 						});
-					});
-				});
-			});
-		});
-
-		describe('codes', function () {
-
-			describe('when query is malformed', function () {
-
-				var invalidParams = 'address="invalidAddress"';
-
-				it('should return http code = 400', function (done) {
-					http.get('/api/voters?' + invalidParams, function (err, res) {
-						node.expect(res).to.have.property('status').equal(400);
-						done();
-					});
-				});
-			});
-
-			describe('when query does not return results', function () {
-
-				var emptyResultParams = 'address=' + validNotExistingAddress;
-
-				it('should return http code = 200', function (done) {
-					http.get('/api/voters?' + emptyResultParams, function (err, res) {
-						node.expect(res).to.have.property('status').equal(200);
-						done();
-					});
-				});
-			});
-
-			describe('when query returns results', function () {
-
-				it('should return http code = 200', function (done) {
-					http.get('/api/voters?address=' + node.gAccount.address, function (err, res) {
-						node.expect(res).to.have.property('status').equal(200);
-						done();
 					});
 				});
 			});
