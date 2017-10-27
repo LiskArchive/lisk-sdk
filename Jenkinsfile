@@ -25,13 +25,6 @@ pipeline {
 				sh 'npm run test'
 			}
 		}
-		stage('Run vulnerabilities check') {
-			steps {
-				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
-					sh 'snyk test'
-				}
-			}
-		}
 	}
 	post {
 		always {

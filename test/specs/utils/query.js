@@ -18,11 +18,16 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Query class', () => {
-	describe('Given a lisk api instance', () => {
+	describe('Given a lisk API instance', () => {
 		beforeEach(given.aliskAPIInstance);
 		describe('Given a query instance', () => {
 			beforeEach(given.aQueryInstance);
-			describe('#isBlockQuery', () => {
+			it('Then the query instance should have the Lisk API instance as a client', then.theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient);
+			it('Then the query instance should have a handler for "account"', then.theQueryInstanceShouldHaveAHandlerFor);
+			it('Then the query instance should have a handler for "block"', then.theQueryInstanceShouldHaveAHandlerFor);
+			it('Then the query instance should have a handler for "delegate"', then.theQueryInstanceShouldHaveAHandlerFor);
+			it('Then the query instance should have a handler for "transaction"', then.theQueryInstanceShouldHaveAHandlerFor);
+			describe('#getBlock', () => {
 				describe('Given a block ID "5650160629533476718"', () => {
 					beforeEach(given.aBlockID);
 					describe('When the query instance gets a block using the ID', () => {
@@ -31,7 +36,7 @@ describe('Query class', () => {
 					});
 				});
 			});
-			describe('#isAccountQuery', () => {
+			describe('#getAccount', () => {
 				describe('Given an address "13782017140058682841L"', () => {
 					beforeEach(given.anAddress);
 					describe('When the query instance gets an account using the address', () => {
@@ -40,7 +45,7 @@ describe('Query class', () => {
 					});
 				});
 			});
-			describe('#isTransactionQuery', () => {
+			describe('#getTransaction', () => {
 				describe('Given a transaction ID "16388447461355055139"', () => {
 					beforeEach(given.aTransactionID);
 					describe('When the query instance gets a transaction using the ID', () => {
@@ -49,7 +54,7 @@ describe('Query class', () => {
 					});
 				});
 			});
-			describe('#isDelegateQuery', () => {
+			describe('#getDelegate', () => {
 				describe('Given a delegate username "lightcurve"', () => {
 					beforeEach(given.aDelegateUsername);
 					describe('When the query instance gets a delegate using the username', () => {
