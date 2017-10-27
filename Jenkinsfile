@@ -33,4 +33,21 @@ pipeline {
 			}
 		}
 	}
+	post {
+		always {
+			step([
+				$class: 'GitHubCommitStatusSetter',
+				errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
+				contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins-ci/lisky'],
+				statusResultSource: [
+					$class: 'ConditionalStatusResultSource',
+					results: [
+							[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
+							[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
+							[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build some how escaped evaluation']
+					]
+				]
+			])
+		}
+	}
 }
