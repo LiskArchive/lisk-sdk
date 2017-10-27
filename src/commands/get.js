@@ -14,7 +14,11 @@
  *
  */
 import { COMMAND_TYPES } from '../utils/constants';
-import { createCommand, deAlias } from '../utils/helpers';
+import {
+	createCommand,
+	deAlias,
+	processQueryResult,
+} from '../utils/helpers';
 import query from '../utils/query';
 
 const description = `Get information from <type> with parameter <input>. Types available: account, address, block, delegate, transaction.
@@ -24,27 +28,13 @@ const description = `Get information from <type> with parameter <input>. Types a
 	- get block 5510510593472232540
 `;
 
-export const handlers = {
-	account: account => query.isAccountQuery(account),
-	address: address => query.isAccountQuery(address),
-	block: block => query.isBlockQuery(block),
-	delegate: delegate => query.isDelegateQuery(delegate),
-	transaction: transaction => query.isTransactionQuery(transaction),
-};
-
-export const processResult = type => result => (
-	result.error
-		? result
-		: result[deAlias(type)]
-);
-
 export const actionCreator = () => async ({ type, input }) => {
 	if (!COMMAND_TYPES.includes(type)) {
 		throw new Error('Unsupported type.');
 	}
 
-	return handlers[type](input)
-		.then(processResult(type));
+	return query.handlers[deAlias(type)](input)
+		.then(processQueryResult(type));
 };
 
 const get = createCommand({

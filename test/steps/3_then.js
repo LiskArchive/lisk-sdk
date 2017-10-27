@@ -36,6 +36,17 @@ import {
 	hasAncestorWithTitleMatching,
 } from './utils';
 
+export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
+	const { queryInstance, liskAPIInstance } = this.test.ctx;
+	return (queryInstance).should.have.property('client').equal(liskAPIInstance);
+}
+
+export function theQueryInstanceShouldHaveAHandlerFor() {
+	const { queryInstance } = this.test.ctx;
+	const item = getFirstQuotedString(this.test.title);
+	return (queryInstance.handlers).should.have.property(item).be.Function();
+}
+
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const { transactionsObject } = this.test.ctx;
 	const transactionType = getNumbers(this.test.title)[0];

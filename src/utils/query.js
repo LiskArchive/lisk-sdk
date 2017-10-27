@@ -18,21 +18,27 @@ import liskAPIInstance from './api';
 class Query {
 	constructor() {
 		this.client = liskAPIInstance;
+		this.handlers = {
+			account: account => this.getAccount(account),
+			block: block => this.getBlock(block),
+			delegate: delegate => this.getDelegate(delegate),
+			transaction: transaction => this.getTransaction(transaction),
+		};
 	}
 
-	isBlockQuery(input) {
+	getBlock(input) {
 		return this.client.sendRequest('blocks/get', { id: input });
 	}
 
-	isAccountQuery(input) {
+	getAccount(input) {
 		return this.client.sendRequest('accounts', { address: input });
 	}
 
-	isTransactionQuery(input) {
+	getTransaction(input) {
 		return this.client.sendRequest('transactions/get', { id: input });
 	}
 
-	isDelegateQuery(input) {
+	getDelegate(input) {
 		return this.client.sendRequest('delegates/get', { username: input });
 	}
 }

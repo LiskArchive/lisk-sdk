@@ -22,6 +22,12 @@ export const deAlias = type => (
 		: type
 );
 
+export const processQueryResult = type => result => (
+	result.error
+		? result
+		: result[deAlias(type)]
+);
+
 export const shouldUseJsonOutput = (config, options) =>
 	(options.json === true || config.json === true)
 		&& options.json !== false;
