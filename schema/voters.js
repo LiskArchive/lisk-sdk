@@ -15,6 +15,10 @@ module.exports = {
 				type: 'string',
 				format: 'publicKey'
 			},
+			secondPublicKey: {
+				type: 'string',
+				format: 'publicKey'
+			},
 			username: {
 				type: 'string',
 				format: 'username',
@@ -37,6 +41,7 @@ module.exports = {
 		anyOf: [
 			{required: ['address']},
 			{required: ['publicKey']},
+			{required: ['secondPublicKey']},
 			{required: ['username']}
 		]
 	}

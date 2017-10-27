@@ -259,6 +259,43 @@ describe('GET /api/voters', function () {
 			});
 		});
 
+		describe('secondPublicKey', function () {
+
+			it('using no secondPublicKey should return message = "No data returned"', function () {
+				var params = [
+					'secondPublicKey='
+				];
+
+				return getVotersPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+				});
+			});
+
+			it('using invalid secondPublicKey should fail', function () {
+				var params = [
+					'secondPublicKey=' + 'invalidSecondPublicKey'
+				];
+
+				return getVotersPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').equal('Object didn\'t pass validation for format publicKey: invalidSecondPublicKey');
+				});
+			});
+
+			it('using valid not existing secondPublicKey should return message = "No data returned"', function () {
+
+				var validNotExistingSecondPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
+				var params = [
+					'secondPublicKey=' + validNotExistingSecondPublicKey
+				];
+				return getVotersPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.message').equal('No data returned');
+				});
+			});
+		});
+
 		describe('address', function () {
 
 			it('using no address should return message = "String is too short (0 chars), minimum 2"', function () {
@@ -356,14 +393,14 @@ describe('GET /api/voters', function () {
 
 		describe('sort, limit, offset', function () {
 
+			var validExtraVoter = node.randomAccount();
 			before(function () {
-				var validExtraVoter = node.randomAccount();
 				var enrichExtraVoterTransaction = node.lisk.transaction.createTransaction(
 					validExtraVoter.address,
-					constants.fees.delegate + constants.fees.vote,
+					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
 					node.gAccount.password
 				);
-				var registerExtraVoterAsADelagateTransaction = node.lisk.delegate.createDelegate(validExtraVoter.password, 'extravoter');
+				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraVoter.password, 'extravoter');
 				var voteByExtraVoterTransaction = node.lisk.vote.createVote(validExtraVoter.password, ['+' + validVotedDelegate.publicKey]);
 
 				return sendTransactionPromise(enrichExtraVoterTransaction)
@@ -371,7 +408,7 @@ describe('GET /api/voters', function () {
 						return waitForBlocksPromise(1);
 					})
 					.then(function (){
-						return sendTransactionPromise(registerExtraVoterAsADelagateTransaction);
+						return sendTransactionPromise(registerExtraVoterAsADelegateTransaction);
 					})
 					.then(function () {
 						return waitForBlocksPromise(1);
@@ -457,6 +494,67 @@ describe('GET /api/voters', function () {
 						return getVotersPromise(params).then(function (res) {
 							expectValidVotedDelegateResponse(res);
 							node.expect(_(res.body.voters).sortBy('publicKey').reverse().map('publicKey').value()).to.be.eql(_.map(res.body.voters, 'publicKey'));
+						});
+					});
+				});
+
+				describe('secondPublicKey', function () {
+
+					before(function () {
+						var extraVoterSecondSignatureTransaction = node.lisk.signature.createSignature(validExtraVoter.password, validExtraVoter.secondPassword, 1);
+						return sendTransactionPromise(extraVoterSecondSignatureTransaction)
+							.then(function () {
+								return waitForBlocksPromise(1);
+							});
+					});
+
+					it('should return voters in ascending order', function () {
+						var params = [
+							'username=' + validVotedDelegate.delegateName,
+							'sort=secondPublicKey:asc'
+						];
+						return getVotersPromise(params).then(function (res) {
+							expectValidVotedDelegateResponse(res);
+							node.expect(_(res.body.voters).map('secondPublicKey').sort().value()).to.be.eql(_.map(res.body.voters, 'secondPublicKey'));
+						});
+					});
+
+					it('should return voters in descending order', function () {
+						var params = [
+							'username=' + validVotedDelegate.delegateName,
+							'sort=secondPublicKey:desc'
+						];
+						return getVotersPromise(params).then(function (res) {
+							expectValidVotedDelegateResponse(res);
+							node.expect(_(res.body.voters).map('secondPublicKey').sort().reverse().value()).to.be.eql(_.map(res.body.voters, 'secondPublicKey'));
+						});
+					});
+
+					describe('when a delegate with secondPublicKey registered', function () {
+
+						it('using valid existing secondPublicKey of registered delegate should return the never voted result', function () {
+							var params = [
+								'secondPublicKey=' + validExtraVoter.secondPublicKey
+							];
+							return getVotersPromise(params).then(expectValidNotVotedDelegateResponse);
+						});
+
+						describe('when delegate with secondPublicKey was voted', function () {
+
+							before(function () {
+								var voteForExtraVoter = node.lisk.vote.createVote(node.gAccount.password, ['+' + validExtraVoter.publicKey]);
+								return sendTransactionPromise(voteForExtraVoter)
+									.then(function () {
+										return waitForBlocksPromise(1);
+									});
+							});
+
+							it('using valid existing secondPublicKey of genesis delegate should return the result', function () {
+								var params = [
+									'secondPublicKey=' + validExtraVoter.secondPublicKey
+								];
+								return getVotersPromise(params).then(expectValidVotedDelegateResponse);
+							});
 						});
 					});
 				});
