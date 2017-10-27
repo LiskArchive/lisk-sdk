@@ -22,6 +22,7 @@ import {
 import {
 	createErrorHandler,
 	deAlias,
+	processQueryResult,
 	shouldUseJsonOutput,
 	shouldUsePrettyOutput,
 	wrapActionCreator,
@@ -42,6 +43,12 @@ import {
 } from './utils';
 
 const tablifyToSpy = require('../../src/utils/tablify');
+
+export function processQueryResultIsCalledWithTheTypeThenTheResult() {
+	const { type, result } = this.test.ctx;
+	const returnValue = processQueryResult(type)(result);
+	this.test.ctx.returnValue = returnValue;
+}
 
 export function theActionIsCalledWithTheIVAndTheOptions() {
 	const { action, cipherAndIv: { iv }, options } = this.test.ctx;

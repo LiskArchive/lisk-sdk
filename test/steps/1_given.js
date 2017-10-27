@@ -46,6 +46,20 @@ import {
 
 const envToStub = require('../../src/utils/env');
 
+export function aResultWithError() {
+	const error = getFirstQuotedString(this.test.parent.title);
+	const result = { error };
+	this.test.ctx.result = result;
+}
+
+export function aResultWithABlock() {
+	const block = { height: 123 };
+	const result = { block };
+
+	this.test.ctx.block = block;
+	this.test.ctx.result = result;
+}
+
 export function anAlias() {
 	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);
 }

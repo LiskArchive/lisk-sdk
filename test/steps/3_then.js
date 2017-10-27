@@ -36,6 +36,16 @@ import {
 	hasAncestorWithTitleMatching,
 } from './utils';
 
+export function itShouldReturnTheResult() {
+	const { returnValue, result } = this.test.ctx;
+	return (returnValue).should.equal(result);
+}
+
+export function itShouldReturnTheBlock() {
+	const { returnValue, block } = this.test.ctx;
+	return (returnValue).should.equal(block);
+}
+
 export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
 	const { queryInstance, liskAPIInstance } = this.test.ctx;
 	return (queryInstance).should.have.property('client').equal(liskAPIInstance);

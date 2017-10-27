@@ -35,6 +35,25 @@ describe('utils helpers', () => {
 			});
 		});
 	});
+	describe('#processQueryResult', () => {
+		describe('Given a type "block"', () => {
+			beforeEach(given.aType);
+			describe('Given a result with error "The block could not be found."', () => {
+				beforeEach(given.aResultWithError);
+				describe('When processQueryResult is called with the type then the result', () => {
+					beforeEach(when.processQueryResultIsCalledWithTheTypeThenTheResult);
+					it('Then it should return the result', then.itShouldReturnTheResult);
+				});
+			});
+			describe('Given a result with a block', () => {
+				beforeEach(given.aResultWithABlock);
+				describe('When processQueryResult is called with the type then the result', () => {
+					beforeEach(when.processQueryResultIsCalledWithTheTypeThenTheResult);
+					it('Then it should return the block', then.itShouldReturnTheBlock);
+				});
+			});
+		});
+	});
 	describe('#shouldUseJsonOutput', () => {
 		describe('Given a config with json set to true', () => {
 			beforeEach(given.aConfigWithJsonSetTo);
