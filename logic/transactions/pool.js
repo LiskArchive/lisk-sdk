@@ -156,16 +156,16 @@ __private.transactionInPool = function (id) {
 };
 
 /**
- * Adds transactions to pool list.
- * Checks if transaction is in pool. Checks pool limit.
+ * Adds transactions to unverified pool list.
+ * Checks if transaction is in pool, pool limit and performs basic transaction validations.
+ * @implements {__private.countTransactionsPool}
  * @implements {__private.transactionInPool}
  * @param {Transaction} transaction
- * @param {Object} poolList
- * @param {Object} poolList
+ * @param {boolean} broadcast
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-__private.add = function (transaction, poolList, broadcast, cb) {
+__private.addToUnverified = function (transaction, broadcast, cb) {
 	if (__private.countTransactionsPool() >= self.poolStorageTransactionsLimit) {
 		return setImmediate(cb, 'Transaction pool is full');
 	}
@@ -175,25 +175,87 @@ __private.add = function (transaction, poolList, broadcast, cb) {
 	if (__private.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
 	} else {
-		transaction.broadcast = broadcast;
-		poolList.transactions[transaction.id] = transaction;
-		poolList.count++;
-		return setImmediate(cb);
+		async.waterfall([
+			function setAccountAndGet (waterCb) {
+				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
+			},
+			function getRequester (sender, waterCb) {
+				var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
+	
+				if (multisignatures) {
+					transaction.signatures = transaction.signatures || [];
+				}
+	
+				if (sender && transaction.requesterPublicKey && multisignatures) {
+					modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
+						if (!requester) {
+							return setImmediate(waterCb, 'Requester not found');
+						} else {
+							return setImmediate(waterCb, null, sender, requester);
+						}
+					});
+				} else {
+					return setImmediate(waterCb, null, sender, null);
+				}
+			},
+			function processTransaction (sender, requester, waterCb) {
+				library.logic.transaction.process(transaction, sender, requester, function (err) {
+					if (err) {
+						__private.addInvalid(transaction.id);
+						return setImmediate(waterCb, err);
+					} else {
+						return setImmediate(waterCb, null, sender);
+					}
+				});
+			},
+			function normalizeTransaction (sender, waterCb) {
+				try {
+					transaction = library.logic.transaction.objectNormalize(transaction);
+					return setImmediate(waterCb, null, sender);
+				} catch (err) {
+					__private.addInvalid(transaction.id);
+					return setImmediate(waterCb, err);
+				}
+			}
+		], function (err, sender) {
+			if (!err) {
+				if (broadcast) {
+					transaction.broadcast = true;
+				}
+				pool.unverified.transactions[transaction.id] = transaction;
+				pool.unverified.count++;
+			}
+			return setImmediate(cb, err, sender);
+		});
 	}
 };
 
 /**
- * Adds transactions to pool list.
- * Clear transaction if is in pool.
+ * Adds transactions to pool list without checks.
  * @param {transaction} transaction
  * @param {Object} poolList
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-__private.addReady = function (transaction, poolList, cb) {
+__private.addToPoolList = function (transaction, poolList, cb) {
 	poolList.transactions[transaction.id] = transaction;
 	poolList.count++;
 	return setImmediate(cb);
+};
+
+/**
+ * Adds transactions to pool list without checks.
+ * @param {transaction} transaction
+ * @param {Object} poolList
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+__private.addReadyCeckBroadcast = function (transaction, poolList, cb) {
+	if (transaction.broadcast) {
+		delete transaction.broadcast;
+		pool.broadcast.push(transaction);
+	}
+	return __private.addToPoolList(transaction, pool.verified.ready, cb);
 };
 
 /**
@@ -299,61 +361,20 @@ __private.transactionTimeOut = function (transaction) {
 };
 
 /**
- * Gets sender account, verifies multisignatures, gets requester,
- * process transaction and verifies.
+ * Gets sender account, and verifies transaction.
  * @private
  * @implements {accounts.setAccountAndGet}
  * @implements {accounts.getAccount}
  * @implements {logic.transaction.process}
  * @implements {logic.transaction.verify}
  * @param {transaction} transaction
- * @param {object} broadcast
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} errors | sender
  */
-__private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
-	delete transaction.broadcast;
+__private.processUnverifiedTransaction = function (transaction, cb) {
 	async.waterfall([
 		function setAccountAndGet (waterCb) {
 			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
-		},
-		function getRequester (sender, waterCb) {
-			var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
-
-			if (multisignatures) {
-				transaction.signatures = transaction.signatures || [];
-			}
-
-			if (sender && transaction.requesterPublicKey && multisignatures) {
-				modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
-					if (!requester) {
-						return setImmediate(waterCb, 'Requester not found');
-					} else {
-						return setImmediate(waterCb, null, sender, requester);
-					}
-				});
-			} else {
-				return setImmediate(waterCb, null, sender, null);
-			}
-		},
-		function processTransaction (sender, requester, waterCb) {
-			library.logic.transaction.process(transaction, sender, requester, function (err) {
-				if (err) {
-					__private.addInvalid(transaction.id);
-					return setImmediate(waterCb, err);
-				} else {
-					return setImmediate(waterCb, null, sender);
-				}
-			});
-		},
-		function normalizeTransaction (sender, waterCb) {
-			try {
-				transaction = library.logic.transaction.objectNormalize(transaction);
-				return setImmediate(waterCb, null, sender);
-			} catch (err) {
-				__private.addInvalid(transaction.id);
-				return setImmediate(waterCb, err);
-			}
 		},
 		function verifyTransaction (sender, waterCb) {
 			library.logic.transaction.verify(transaction, sender, function (err) {
@@ -366,10 +387,6 @@ __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
 			});
 		}
 	], function (err, sender) {
-		if (!err) {
-			library.bus.message('unverifiedTransaction', transaction, broadcast);
-		}
-
 		return setImmediate(cb, err, sender);
 	});
 };
@@ -537,7 +554,7 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 
 /**
  * Adds transactions to unverified pool list.
- * @implements {__private.add}
+ * @implements {__private.addToUnverified}
  * @param {transaction} transactions
  * @param {boolean} broadcast
  * @param {function} cb - Callback function.
@@ -548,7 +565,7 @@ TransactionPool.prototype.add = function (transactions, broadcast, cb) {
 		transactions = [transactions];
 	}
 	async.eachSeries(transactions, function (transaction, broadcast, eachSeriesCb) {
-		__private.add(transaction, pool.unverified, broadcast, eachSeriesCb);
+		__private.addToUnverified(transaction, broadcast, eachSeriesCb);
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
@@ -556,9 +573,9 @@ TransactionPool.prototype.add = function (transactions, broadcast, cb) {
 
 /**
  * Adds transactions to verified.ready pool list.
- * @implements {__private.addReady}
+ * @implements {__private.addToPoolList}
  * @implements {delete}
- * @param {transaction} transaction
+ * @param {transaction} transactions
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -570,7 +587,7 @@ TransactionPool.prototype.addReady = function (transactions, cb) {
 	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 		self.delete(transaction);
 		transaction.receivedAt = resetReceivedAt;
-		__private.addReady(transaction, pool.verified.ready, eachSeriesCb);
+		__private.addToPoolList(transaction, pool.verified.ready, eachSeriesCb);
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
@@ -649,7 +666,7 @@ TransactionPool.prototype.processPool = function (cb) {
 
 			async.eachSeries(pool.unverified.transactions, function (transaction, eachSeriesCb) {
 				__private.delete(transaction.id, pool.unverified);
-				__private.processUnverifiedTransaction(transaction, transaction.broadcast, function (err, sender) {
+				__private.processUnverifiedTransaction(transaction, function (err, sender) {
 					if (err) {
 						library.logger.error('Failed to process unverified transaction: ' + transaction.id, err);
 						return setImmediate(eachSeriesCb);
@@ -663,10 +680,9 @@ TransactionPool.prototype.processPool = function (cb) {
 						var receiveAtToTime = transaction.receivedAt.getTime();
 						var timestampToTime = slots.getRealTime(transaction.timestamp);
 						if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures) || receiveAtToTime < timestampToTime) {
-							__private.add(transaction, pool.verified.pending, eachSeriesCb);
+							__private.addToPoolList(transaction, pool.verified.pending, eachSeriesCb);
 						} else {
-							// check transaction and if ok add to verified.ready
-							__private.add(transaction, pool.verified.ready, eachSeriesCb);
+							__private.addReadyCheckBroadcast(transaction, eachSeriesCb);
 						}
 					});
 				});
@@ -688,7 +704,7 @@ TransactionPool.prototype.processPool = function (cb) {
 					transaction.signatures.length >= transaction.asset.multisignature.min
 				) {
 					__private.delete(transaction.id, pool.verified.pending);
-					__private.add(transaction, pool.verified.ready, eachSeriesCb);
+					__private.addReadyCheckBroadcast(transaction, eachSeriesCb);
 				} else {
 					return setImmediate(eachSeriesCb);
 				}
@@ -697,6 +713,8 @@ TransactionPool.prototype.processPool = function (cb) {
 			});
 		}
 	}, function (err) {
+		library.bus.message('unverifiedTransaction', pool.broadcast);
+		pool.broadcast = [];
 		return setImmediate(cb, err);
 	});
 };
