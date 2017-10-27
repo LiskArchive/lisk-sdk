@@ -14,7 +14,7 @@ pipeline {
 		stage('Run vulnerabilities check') {
 			steps {
 				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
-					sh 'snyk --dev test'
+					sh 'snyk test'
 				}
 				sh 'sha1sum package.json >~/.lisky.package.json.sha1sum'
 			}

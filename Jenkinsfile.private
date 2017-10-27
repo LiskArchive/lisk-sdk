@@ -21,7 +21,7 @@ pipeline {
 							exit 0
 						fi
 					fi
-					snyk --dev test
+					snyk test
 					'''
 				}
 			}
