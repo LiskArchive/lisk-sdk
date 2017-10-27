@@ -16,6 +16,7 @@
 import childProcess from 'child_process';
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
+import * as createTransactionRegisterDelegate from '../../src/commands/createTransactionRegisterDelegate';
 import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
 import * as decryptMessage from '../../src/commands/decryptMessage';
 import * as decryptPassphrase from '../../src/commands/decryptPassphrase';
@@ -79,6 +80,7 @@ export const getActionCreator = actionName => ({
 	'decrypt passphrase': decryptPassphrase.actionCreator,
 	'encrypt message': encryptMessage.actionCreator,
 	'encrypt passphrase': encryptPassphrase.actionCreator,
+	'create transaction register delegate': createTransactionRegisterDelegate.actionCreator,
 	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,

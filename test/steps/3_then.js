@@ -36,6 +36,16 @@ import {
 	hasAncestorWithTitleMatching,
 } from './utils';
 
+export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheDelegateUsernameAndTheSecondPassphrase() {
+	const { passphrase, delegateUsername, secondPassphrase } = this.test.ctx;
+	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, secondPassphrase);
+}
+
+export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {
+	const { passphrase, delegateUsername } = this.test.ctx;
+	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);
+}
+
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const { transactionsObject } = this.test.ctx;
 	const transactionType = getNumbers(this.test.title)[0];
@@ -63,6 +73,10 @@ export function itShouldGetThePasswordUsingTheSource() {
 	const { options } = this.test.ctx;
 	const firstCallArgs = input.getPassphrase.firstCall.args;
 	return (firstCallArgs[1]).should.equal(options.password);
+}
+
+export function itShouldNotGetTheSecondPassphrase() {
+	return (input.getPassphrase).should.not.be.calledTwice();
 }
 
 export function itShouldGetTheEncryptedPassphraseUsingTheEncryptedPassphraseFromStdIn() {

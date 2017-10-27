@@ -1093,6 +1093,15 @@ export function anOptionsObjectWithSecondPassphraseSetToUnknownSource() {
 	this.test.ctx.options = { 'second-passphrase': secondPassphrase };
 }
 
+export function anOptionsObjectWithSecondPassphraseSetTo() {
+	const { secondPassphrase } = this.test.ctx;
+	const secondPassphraseSource = getFirstQuotedString(this.test.parent.title);
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
+	}
+	this.test.ctx.options = { 'second-passphrase': secondPassphraseSource };
+}
+
 export function anOptionsObjectWithPassphraseSetToUnknownSource() {
 	const passphrase = getFirstQuotedString(this.test.parent.title);
 	inputUtils.getPassphrase.onFirstCall().rejects(new Error('Unknown passphrase source type. Must be one of `file`, or `stdin`.'));
