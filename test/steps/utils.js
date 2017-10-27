@@ -17,6 +17,7 @@ import childProcess from 'child_process';
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
 import * as createTransactionRegisterDelegate from '../../src/commands/createTransactionRegisterDelegate';
+import * as createTransactionCreateMultisignatureAccount from '../../src/commands/createTransactionCreateMultisignatureAccount';
 import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
 import * as decryptMessage from '../../src/commands/decryptMessage';
 import * as decryptPassphrase from '../../src/commands/decryptPassphrase';
