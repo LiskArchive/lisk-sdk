@@ -117,6 +117,13 @@ function getDelegates (params, cb) {
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
+function getDelegateVoters (params, cb) {
+	var url = '/api/delegates/voters';
+	url = paramsHelper(url, params);
+
+	http.get(url, httpCallbackHelper.bind(null, cb));
+}
+
 function getVoters (params, cb) {
 	var url = '/api/voters';
 	url = paramsHelper(url, params);
@@ -192,6 +199,7 @@ var getCountPromise = node.Promise.promisify(getCount);
 var registerDelegatePromise = node.Promise.promisify(registerDelegate);
 var getForgingStatusPromise = node.Promise.promisify(getForgingStatus);
 var getDelegatesPromise = node.Promise.promisify(getDelegates);
+var getDelegateVotersPromise = node.Promise.promisify(getDelegateVoters);
 var getVotersPromise = node.Promise.promisify(getVoters);
 var searchDelegatesPromise = node.Promise.promisify(searchDelegates);
 var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
@@ -238,6 +246,7 @@ module.exports = {
 	getDelegates: getDelegates,
 	getDelegatesPromise: getDelegatesPromise,
 	getVoters: getVoters,
+	getDelegateVotersPromise: getDelegateVotersPromise,
 	getVotersPromise: getVotersPromise,
 	searchDelegatesPromise: searchDelegatesPromise,
 	putForgingDelegatePromise: putForgingDelegatePromise,
