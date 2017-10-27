@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import childProcess from 'child_process';
 import fs from 'fs';
 import readline from 'readline';
 import lisk from 'lisk-js';
@@ -51,6 +52,57 @@ export function anAlias() {
 
 export function aTransactionsObject() {
 	this.test.ctx.transactionsObject = transactions;
+}
+
+export function anArrayOfOptions() {
+	const options = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.options = options;
+}
+
+export function theSecondChildProcessExitsWithError() {
+	const error = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.secondChildError = error;
+	childProcess.exec.onSecondCall().callsArgWith(1, error, null, null);
+}
+
+export function theSecondChildProcessOutputsToStdErr() {
+	const error = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.secondChildError = error;
+	childProcess.exec.onSecondCall().callsArgWith(1, null, null, error);
+}
+
+export function theFirstChildProcessOutputs() {
+	const output = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.firstChildOutput = output;
+	childProcess.exec.onFirstCall().callsArgWith(1, null, output, null);
+}
+
+export function theSecondChildProcessOutputs() {
+	const output = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.secondChildOutput = output;
+	childProcess.exec.onSecondCall().callsArgWith(1, null, output, null);
+}
+
+export function theThirdChildProcessOutputs() {
+	const output = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.thirdChildOutput = output;
+	childProcess.exec.onThirdCall().callsArgWith(1, null, output, null);
+}
+
+export function aLiskyInstance() {
+	const lisky = {
+		log: sandbox.spy(),
+	};
+	this.test.ctx.lisky = lisky;
+}
+
+export function anExitFunction() {
+	this.test.ctx.exit = sandbox.stub();
+}
+
+export function aFilePath() {
+	const filePath = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.filePath = filePath;
 }
 
 export function aSenderPublicKey() {
@@ -638,6 +690,13 @@ export function anUnknownErrorOccursWhenReadingTheFile() {
 
 	fs.createReadStream.returns(streamStub);
 	fs.readFileSync.throws(error);
+}
+
+export function theFileAtTheFilePathHasContents() {
+	const { filePath } = this.test.ctx;
+	const contents = getFirstQuotedString(this.test.parent.title);
+
+	fs.readFileSync.withArgs(filePath).returns(contents);
 }
 
 export function theFileIsNotValidJSON() {

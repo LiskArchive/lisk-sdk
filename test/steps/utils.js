@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import childProcess from 'child_process';
 import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
 import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
@@ -37,7 +38,7 @@ const BOOLEANS = {
 };
 
 const regExpQuotes = /"((.|\n|\s\S)+?)"/;
-const regExpNumbers = /\d+/g;
+const regExpNumbers = /\d+/;
 const regExpBooleans = /(true|false)/;
 
 export const getFirstQuotedString = title => title.match(regExpQuotes)[1];
@@ -49,8 +50,13 @@ export const getQuotedStrings = (title) => {
 		.map(match => match.match(regExpQuotes)[1]);
 };
 
-export const getNumbersFromTitle = (title) => {
-	return title.match(regExpNumbers).map(Number);
+export const getFirstNumber = title => Number(title.match(regExpNumbers)[0]);
+
+export const getNumbers = (title) => {
+	const globalRegExp = new RegExp(regExpNumbers, 'g');
+	return title
+		.match(globalRegExp)
+		.map(Number);
 };
 
 export const getFirstBoolean = title => BOOLEANS[title.match(regExpBooleans)[1]];
@@ -79,6 +85,10 @@ export const getActionCreator = actionName => ({
 	list: list.actionCreator,
 	set: set.actionCreator,
 })[actionName];
+
+export const setUpChildProcessStubs = () => {
+	sandbox.stub(childProcess, 'exec');
+};
 
 export const setUpFsStubs = () => {
 	[

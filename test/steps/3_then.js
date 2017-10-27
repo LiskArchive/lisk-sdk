@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import childProcess from 'child_process';
 import fs from 'fs';
 import lisk from 'lisk-js';
 import cryptoInstance from '../../src/utils/cryptoModule';
@@ -29,14 +30,15 @@ import {
 	getCommandInstance,
 	getFirstQuotedString,
 	getFirstBoolean,
-	getNumbersFromTitle,
+	getFirstNumber,
+	getNumbers,
 	getTransactionCreatorFunctionNameByType,
 	hasAncestorWithTitleMatching,
 } from './utils';
 
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const { transactionsObject } = this.test.ctx;
-	const transactionType = getNumbersFromTitle(this.test.title)[0];
+	const transactionType = getNumbers(this.test.title)[0];
 	const transactionFunctionName = getTransactionCreatorFunctionNameByType(transactionType);
 	return (transactionsObject).should.have.key(transactionFunctionName).and.be.type('function');
 }
@@ -72,6 +74,57 @@ export function itShouldGetTheEncryptedPassphraseUsingTheEncryptedPassphraseFrom
 export function itShouldGetTheEncryptedPassphraseUsingThePassphraseArgument() {
 	const { cipherAndIv: { cipher: passphrase } } = this.test.ctx;
 	return (input.getData).should.be.calledWith(passphrase);
+}
+
+export function itShouldExecuteAScriptExecutingFirstInASeparateChildProcess() {
+	const command = getFirstQuotedString(this.test.title);
+	return (childProcess.exec).firstCall.should.be.calledWithMatch(command);
+}
+
+export function itShouldExecuteAScriptExecutingSecondInASeparateChildProcess() {
+	const command = getFirstQuotedString(this.test.title);
+	return (childProcess.exec).secondCall.should.be.calledWithMatch(command);
+}
+
+export function itShouldExecuteAScriptExecutingThirdInASeparateChildProcess() {
+	const command = getFirstQuotedString(this.test.title);
+	return (childProcess.exec).thirdCall.should.be.calledWithMatch(command);
+}
+
+export function itShouldNotExecuteAThirdScriptInASeparateChildProcess() {
+	return (childProcess.exec).should.not.be.calledThrice();
+}
+
+export function theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst() {
+	const { lisky, firstChildOutput } = this.test.ctx;
+	return (lisky.log).firstCall.should.be.calledWithExactly(firstChildOutput);
+}
+
+export function theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond() {
+	const { lisky, secondChildOutput } = this.test.ctx;
+	return (lisky.log).secondCall.should.be.calledWithExactly(secondChildOutput);
+}
+
+export function theLiskyInstanceShouldLogTheThirdChildProcessOutputThird() {
+	const { lisky, thirdChildOutput } = this.test.ctx;
+	return (lisky.log).thirdCall.should.be.calledWithExactly(thirdChildOutput);
+}
+
+export function theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond() {
+	const { lisky, secondChildError } = this.test.ctx;
+	return (lisky.log).secondCall.should.be.calledWithExactly(secondChildError);
+}
+
+export function itShouldThrowError() {
+	const { testFunction } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return (testFunction).should.throw(message);
+}
+
+export function itShouldExitWithCode() {
+	const { exit } = this.test.ctx;
+	const code = getFirstNumber(this.test.title);
+	return (exit).should.be.calledWithExactly(code);
 }
 
 export function itShouldNotGetTheKeysForThePassphrase() {
