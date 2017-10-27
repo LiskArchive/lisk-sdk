@@ -22,6 +22,13 @@ function httpCallbackHelper (cb, err, res) {
 	cb(null, res.body);
 }
 
+function httpResponseCallbackHelper (cb, err, res) {
+	if (err) {
+		return cb(err);
+	}
+	cb(null, res);
+}
+
 function getTransaction (transaction, cb) {
 	http.get('/api/transactions/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
 }
@@ -114,7 +121,7 @@ function getVoters (params, cb) {
 	var url = '/api/voters';
 	url = paramsHelper(url, params);
 
-	http.get(url, httpCallbackHelper.bind(null, cb));
+	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function searchDelegates (params, cb) {
