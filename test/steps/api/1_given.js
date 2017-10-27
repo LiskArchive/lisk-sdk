@@ -13,17 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './api/1_given';
-export * from './childProcesses/1_given';
-export * from './config/1_given';
-export * from './crypto/1_given';
-export * from './domain/1_given';
-export * from './files/1_given';
-export * from './general/1_given';
-export * from './inputs/1_given';
-export * from './mnemonic/1_given';
-export * from './options/1_given';
-export * from './printing/1_given';
-export * from './queries/1_given';
-export * from './transactions/1_given';
-export * from './vorpal/1_given';
+import liskAPIInstance from '../../../src/utils/api';
+
+export function aliskAPIInstance() {
+	this.test.ctx.liskAPIInstance = liskAPIInstance;
+}
