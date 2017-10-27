@@ -29,13 +29,13 @@ pipeline {
 	}
 	post {
 		success {
-			githubNotify description: 'The build passed.', status: 'SUCCESS'
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build passed.', status: 'SUCCESS'
 		}
 		failure {
-			githubNotify description: 'The build failed.', status: 'FAILURE'
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build failed.', status: 'FAILURE'
 		}
 		aborted {
-			githubNotify description: 'The build was aborted.', status: 'ERROR'
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build was aborted.', status: 'ERROR'
 		}
 	}
 }
