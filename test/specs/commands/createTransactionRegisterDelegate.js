@@ -53,6 +53,7 @@ describe('create transaction register second passphrase command', () => {
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
 									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 									it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 									it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
 									it('Then it should not get the second passphrase', then.itShouldNotGetTheSecondPassphrase);
@@ -119,9 +120,40 @@ describe('create transaction register second passphrase command', () => {
 										it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 										it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
 										it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+										it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 										it('Then it should get the second passphrase using the second passphrase source', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseSource);
 										it('Then it should create a register delegate transaction using the passphrase, the delegate username and the second passphrase', then.itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheDelegateUsernameAndTheSecondPassphrase);
 										it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+									});
+								});
+							});
+							describe('Given an options object with passphrase set to "file:/path/to/my/passphrase.txt" and second passphrase set to "file:/path/to/my/secondPassphrase.txt"', () => {
+								beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
+								describe('When the action is called with the options', () => {
+									beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
+									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
+									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
+									it('Then it should get the passphrase using the passphrase source', then.itShouldGetThePassphraseUsingThePassphraseSource);
+									it('Then it should get the second passphrase using the second passphrase source', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseSource);
+									it('Then it should create a register delegate transaction using the passphrase, the delegate username and the second passphrase', then.itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheDelegateUsernameAndTheSecondPassphrase);
+									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+								});
+							});
+							describe('Given an options object with passphrase set to "stdin" and second passphrase set to "stdin"', () => {
+								beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
+								describe('Given the passphrase is provided via stdin', () => {
+									beforeEach(given.thePassphraseIsProvidedViaStdIn);
+									describe('Given the second passphrase is provided via stdin', () => {
+										beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
+										describe('When the action is called with the options', () => {
+											beforeEach(when.theActionIsCalledWithTheDelegateUsernameAndTheOptions);
+											it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
+											it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
+											it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);
+											it('Then it should get the second passphrase using the second passphrase from stdin', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn);
+											it('Then it should create a register delegate transaction using the passphrase, the delegate username and the second passphrase', then.itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheDelegateUsernameAndTheSecondPassphrase);
+											it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+										});
 									});
 								});
 							});
