@@ -102,7 +102,7 @@ describe('schema - custom formats', function () {
 		});
 
 		it('should return true if value is an IP or a valid FQDN', function () {
-			var validData = ['192.168.0.1', '127.0.0.1', 'localhost', 'app.server', 'alpha.server.com'];
+			var validData = ['192.168.0.1', '127.0.0.1', 'localhost', 'app.server', 'alpha.server.com', '8.8.8.8'];
 
 			validData.forEach(function (item) {
 				expect(validator.validate(item, schema)).to.equal(true);
