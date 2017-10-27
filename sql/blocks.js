@@ -17,14 +17,6 @@ var BlocksSql = {
 
   deleteBlock: 'DELETE FROM blocks WHERE "id" = ${id};',
 
-  countList: function (params) {
-    if (params.where.length) {
-      return 'SELECT COUNT("b_id")::int FROM blocks_list WHERE ' + params.where.join(' AND ');
-    } else {
-      return 'SELECT COALESCE((SELECT height FROM blocks ORDER BY height DESC LIMIT 1), 0)';
-    }
-  },
-
   aggregateBlocksReward: function (params) {
     return [
       'WITH',
@@ -46,8 +38,6 @@ var BlocksSql = {
       'LIMIT ${limit} OFFSET ${offset}'
     ].filter(Boolean).join(' ');
   },
-
-  getById: 'SELECT * FROM blocks_list WHERE "b_id" = ${id}',
 
   getIdSequence: function () {
     return [
