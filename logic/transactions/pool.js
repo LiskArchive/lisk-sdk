@@ -24,6 +24,8 @@ var pool = {};
  * @class
  * @classdesc Main TransactionPool logic.
  * @implements {processPool}
+ * @implements {expireTransactions}
+ * @implements {resetInvalidTransactions}
  * @param {number} storageLimit
  * @param {number} processInterval
  * @param {number} expiryInterval
@@ -64,7 +66,8 @@ function TransactionPool (storageLimit, processInterval, expiryInterval, transac
 			pending: { transactions: {}, count: 0 },
 			ready: { transactions: {}, count: 0 }
 		},
-		invalid: { transactions: {}, count: 0 }
+		invalid: { transactions: {}, count: 0 },
+		broadcast: []
 	};
 
 	// Pool cycle timer
@@ -96,7 +99,7 @@ function TransactionPool (storageLimit, processInterval, expiryInterval, transac
 		library.logger.debug(['Cleared invalid transactions:', self.resetInvalidTransactions()].join(' '));
 	}
 
-	jobsQueue.register('transactionPoolNextReset', nextReset, self.poolExpiryInterval * 10);
+	jobsQueue.register('transactionPoolNextReset', nextReset, self.poolExpiryInterval);
 }
 
 
@@ -156,12 +159,13 @@ __private.transactionInPool = function (id) {
  * Adds transactions to pool list.
  * Checks if transaction is in pool. Checks pool limit.
  * @implements {__private.transactionInPool}
- * @param {transaction} transaction
+ * @param {Transaction} transaction
+ * @param {Object} poolList
  * @param {Object} poolList
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-__private.add = function (transaction, poolList, cb) {
+__private.add = function (transaction, poolList, broadcast, cb) {
 	if (__private.countTransactionsPool() >= self.poolStorageTransactionsLimit) {
 		return setImmediate(cb, 'Transaction pool is full');
 	}
@@ -171,6 +175,7 @@ __private.add = function (transaction, poolList, cb) {
 	if (__private.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
 	} else {
+		transaction.broadcast = broadcast;
 		poolList.transactions[transaction.id] = transaction;
 		poolList.count++;
 		return setImmediate(cb);
@@ -307,6 +312,7 @@ __private.transactionTimeOut = function (transaction) {
  * @returns {setImmediateCallback} errors | sender
  */
 __private.processUnverifiedTransaction = function (transaction, broadcast, cb) {
+	delete transaction.broadcast;
 	async.waterfall([
 		function setAccountAndGet (waterCb) {
 			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
@@ -532,16 +538,17 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 /**
  * Adds transactions to unverified pool list.
  * @implements {__private.add}
- * @param {transaction} transaction
+ * @param {transaction} transactions
+ * @param {boolean} broadcast
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-TransactionPool.prototype.add = function (transactions, cb) {
+TransactionPool.prototype.add = function (transactions, broadcast, cb) {
 	if (!Array.isArray(transactions)) {
 		transactions = [transactions];
 	}
-	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-		__private.add(transaction, pool.unverified, eachSeriesCb);
+	async.eachSeries(transactions, function (transaction, broadcast, eachSeriesCb) {
+		__private.add(transaction, pool.unverified, broadcast, eachSeriesCb);
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
@@ -642,7 +649,7 @@ TransactionPool.prototype.processPool = function (cb) {
 
 			async.eachSeries(pool.unverified.transactions, function (transaction, eachSeriesCb) {
 				__private.delete(transaction.id, pool.unverified);
-				__private.processUnverifiedTransaction(transaction, true, function (err, sender) {
+				__private.processUnverifiedTransaction(transaction, transaction.broadcast, function (err, sender) {
 					if (err) {
 						library.logger.error('Failed to process unverified transaction: ' + transaction.id, err);
 						return setImmediate(eachSeriesCb);
