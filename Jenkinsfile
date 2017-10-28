@@ -27,4 +27,15 @@ pipeline {
 			}
 		}
 	}
+	post {
+		success {
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build passed.', status: 'SUCCESS'
+		}
+		failure {
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build failed.', status: 'FAILURE'
+		}
+		aborted {
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build was aborted.', status: 'ERROR'
+		}
+	}
 }
