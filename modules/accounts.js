@@ -187,8 +187,6 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
  */
 Accounts.prototype.onBind = function (scope) {
 	modules = {
-		delegates: scope.delegates,
-		accounts: scope.accounts,
 		transactions: scope.transactions,
 		blocks: scope.blocks
 	};
@@ -196,6 +194,7 @@ Accounts.prototype.onBind = function (scope) {
 	__private.assetTypes[transactionTypes.VOTE].bind(
 		scope.delegates
 	);
+	library.logic.account.bind(modules.blocks);
 };
 /**
  * Checks if modules is loaded.
@@ -221,21 +220,11 @@ Accounts.prototype.shared = {
 				if (err) {
 					return setImmediate(cb, new ApiError(err, apiCodes.BAD_REQUEST));
 				}
-
-				var lastBlock = modules.blocks.lastBlock.get();
-				var totalSupply = __private.blockReward.calcSupply(lastBlock.height);
-
 				accounts = _.map(accounts, function (account) {
 					var delegate = null;
 
 					// Only create delegate properties if account has a username
 					if (account.username) {
-						var approval = (account.vote / totalSupply) * 100;
-						account.approval = Math.round(approval * 1e2) / 1e2;
-						var outsider = account.rank + 1 > slots.delegates;
-						var percent = 100 - (account.missedblocks / ((account.producedblocks + account.missedblocks) / 100));
-						percent = Math.abs(percent) || 0;
-
 						delegate = {
 							username: account.username,
 							vote: account.vote,
@@ -243,8 +232,8 @@ Accounts.prototype.shared = {
 							producedBlocks: account.producedBlocks,
 							missedBlocks: account.missedBlocks,
 							rank: account.rank,
-							approval: approval,
-							productivity: (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0
+							approval: account.approval,
+							productivity: account.productivity
 						};
 					}
 
