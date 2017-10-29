@@ -1,19 +1,6 @@
 'use strict';
 
 module.exports = {
-	getDelegates: {
-		id: 'accounts.getDelegates',
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			}
-		},
-		required: ['address']
-	},
 	getAccounts: {
 		id: 'accounts.getAccounts',
 		type: 'object',

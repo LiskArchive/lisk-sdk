@@ -157,44 +157,6 @@ describe('account', function () {
 	});
 
 	describe('shared', function () {
-		describe('getDelegates', function () {
-
-			it('should return error if account does not exist', function (done) {
-				accounts.shared.getDelegates({
-					body: {
-						address: node.randomAccount().address
-					}
-				}, function (err, res){
-					expect(err).to.equal('Account not found');
-					done();
-				});
-			});
-
-			it('should return empty array of an account which dont have any delegate', function (done) {
-				accounts.shared.getDelegates({
-					body: {
-						address: node.eAccount.address
-					}
-				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res.delegates).to.be.an('array').which.is.eql([]);
-					done();
-				});
-			});
-
-			it('should return delegates of an account', function (done) {
-				accounts.shared.getDelegates({
-					body: {
-						address: node.gAccount.address
-					}
-				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res.delegates).to.be.an('array');
-					done();
-				});
-			});
-		});
-
 		describe('getAccounts', function () {
 
 			it('should throw if parameter doesnt have correct schema', function (done) {
@@ -275,8 +237,6 @@ describe('account', function () {
 						sort: sort 
 					}
 				}, function (err, res) {
-					console.log('err');
-					console.log(err);
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
 					for (var i = 0; i < limit - 1; i++) {

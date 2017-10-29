@@ -211,36 +211,6 @@ Accounts.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Accounts.prototype.shared = {
-	getDelegates: function (req, cb) {
-		library.schema.validate(req.body, schema.getDelegates, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				if (account.delegates) {
-					modules.delegates.getDelegates(req.body, function (err, res) {
-						var delegates = res.delegates.filter(function (delegate) {
-							return account.delegates.indexOf(delegate.publicKey) !== -1;
-						});
-
-						return setImmediate(cb, null, {delegates: delegates});
-					});
-				} else {
-					return setImmediate(cb, null, {delegates: []});
-				}
-			});
-		});
-	},
-
 	getAccounts: function (req, cb) {
 		library.schema.validate(req.body, schema.getAccounts, function (err) {
 			if (err) {
