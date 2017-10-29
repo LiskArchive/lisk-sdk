@@ -8,9 +8,10 @@ jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 var orderBy = require('../helpers/orderBy.js');
+var BlockReward = require('../logic/blockReward.js');
 
 // Private fields
-var self, library, __private = {};
+var self, library, modules, __private = {};
 
 /**
  * Main account logic.
@@ -28,6 +29,8 @@ function Account (db, schema, logger, cb) {
 		db: db,
 		schema: schema,
 	};
+
+	__private.blockReward = new BlockReward();
 
 	self = this;
 	library = {
@@ -358,6 +361,14 @@ function Account (db, schema, logger, cb) {
 		}
 	];
 
+	this.computedFields = [{
+		name: 'approval',
+		type: 'integer'
+	}, {
+		name: 'productivity',
+		type: 'integer'
+	}];
+
 	// Obtains fields from model
 	this.fields = this.model.map(function (field) {
 		var _tmp = {};
@@ -408,6 +419,16 @@ function Account (db, schema, logger, cb) {
 	return setImmediate(cb, null, this);
 }
 
+// Public methods
+/**
+ * Binds input parameters to private variables modules.
+ * @param {Blocks} blocks
+ */
+Account.prototype.bind = function (blocks) {
+	modules = {
+		blocks: blocks,
+	};
+};
 /**
  * Creates memory tables related to accounts:
  * - mem_accounts
@@ -551,7 +572,9 @@ Account.prototype.get = function (filter, fields, cb) {
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
 Account.prototype.getAll = function (filter, fields, cb) {
+	var defaultFields = false;
 	if (typeof(fields) === 'function') {
+		defaultFields = true;
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
@@ -641,6 +664,22 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	});
 
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
+		var lastBlock = modules.blocks.lastBlock.get();
+		// If the last block height is undefined, it means it's a genesis block with height = 1
+		var totalSupply = __private.blockReward.calcSupply(lastBlock.height || 0);
+
+		if (defaultFields || fields.includes('approval')) {
+			rows.map(function (accountRow) {
+				accountRow.approval = __private.calculateApproval(accountRow.vote, totalSupply);
+			});
+		}
+
+		if (defaultFields || fields.includes('productivity')) {
+			rows.map(function (accountRow) {
+				accountRow.productivity = __private.calculateProductivity(accountRow.producedBlocks, accountRow.missedblocks, accountRow.rank);
+			});
+		}
+
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -648,6 +687,18 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	});
 };
 
+
+__private.calculateApproval = function (votersBalance, totalSupply) {
+	var approval = (votersBalance / totalSupply) * 100;
+	return Math.round(approval * 1e2) / 1e2;
+};
+
+__private.calculateProductivity = function (producedBlocks, missedBlocks, rank) {
+	var outsider = rank + 1 > slots.delegates;
+	var percent = 100 - (missedBlocks / ((producedBlocks + missedBlocks) / 100));
+	percent = Math.abs(percent) || 0;
+	return (!outsider) ? Math.round(percent * 0e2) / 1e2 : 0;
+};
 /**
  * Sets fields for specific address in mem_accounts table.
  * @param {address} address
@@ -706,7 +757,6 @@ Account.prototype.merge = function (address, diff, cb) {
 					break;
 				case Number:
 					if (isNaN(trueValue) || trueValue === Infinity) {
-						console.log(diff);
 						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
 					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
