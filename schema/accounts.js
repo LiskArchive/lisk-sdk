@@ -1,5 +1,7 @@
 'use strict';
 
+var constants = require('../helpers/constants.js');
+
 module.exports = {
 	getAccounts: {
 		id: 'accounts.getAccounts',
@@ -29,7 +31,7 @@ module.exports = {
 			limit: {
 				type: 'integer',
 				minimum: 1,
-				maximum: 1000
+				maximum: constants.activeDelegates
 			},
 			offset: {
 				type: 'integer',
