@@ -184,20 +184,27 @@ describe('GET /api/accounts', function () {
 			});
 		});
 
-		it('using sort = username and offset = 1 and limit = 5 should return 5 accounts sorted by username', function () {
-			return getAccountsPromise('sort=username' + '&limit=' + 5 + '&offset=1').then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-				var accountUsernames = _.map(res.body.accounts, function (account) {
-					return account.delegate.username;
+		describe('limit', function () {
+
+			it('using limit = 0 should return error', function () {
+				return getAccountsPromise('limit=' + 0).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Value 0 is less than minimum 1');
 				});
-				node.expect(accountUsernames).eql([
-					'genesis_10',
-					'genesis_100',
-					'genesis_101',
-					'genesis_11',
-					'genesis_12'
-				]);
+			});
+
+			it('using limit = 102 should return error', function () {
+				return getAccountsPromise('limit=' + 102).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Value 102 is greater than maximum 101');
+				});
+			});
+
+			it('using limit = 5 should return return 5 accounts', function () {
+				return getAccountsPromise('limit=' + 5).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
+				});
 			});
 		});
 		

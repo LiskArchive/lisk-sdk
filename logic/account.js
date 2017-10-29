@@ -569,17 +569,25 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		}
 	}.bind(this));
 
+	var DEFAULT_LIMIT = constants.activeDelegates;
 	var limit, offset, sort;
 
-	if (filter.limit > 0) {
-		limit = filter.limit;
-	}
-	delete filter.limit;
 
 	if (filter.offset > 0) {
 		offset = filter.offset;
 	}
 	delete filter.offset;
+
+	if (filter.limit > 0) {
+		limit = filter.limit;
+	}
+
+	// Assigning a default value if none is present.
+	if (!limit) {
+		limit = DEFAULT_LIMIT;
+	}
+
+	delete filter.limit;
 
 	if (filter.sort) {
 		sort = orderBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance']);
