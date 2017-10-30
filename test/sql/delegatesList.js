@@ -1,11 +1,11 @@
 'use strict';
 
 var DelegatesList = {
-	generateDelegatesList: 'SELECT generateDelegatesList AS delegates FROM generateDelegatesList(${round}, ${delegates});',
+	generateDelegatesList: 'SELECT generate_delegates_list AS delegates FROM generateDelegatesList(${round}, ${delegates});',
 
-	generateDelegatesListCast: 'SELECT generateDelegatesList AS delegates FROM generateDelegatesList(${round}, ${delegates}::text[]);',
+	generateDelegatesListCast: 'SELECT generate_delegates_list AS delegates FROM generateDelegatesList(${round}, ${delegates}::text[]);',
 
-	getDelegatesList: 'SELECT getDelegatesList() AS list;',
+	getDelegatesList: 'SELECT get_delegates_list() AS list;',
 
 	getActiveDelegates: 'SELECT ARRAY(SELECT ENCODE(pk, \'hex\') AS pk FROM delegates ORDER BY rank ASC LIMIT 101) AS delegates',
 
