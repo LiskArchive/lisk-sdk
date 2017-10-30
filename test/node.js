@@ -6,10 +6,15 @@ var node = {};
 var Promise = require('bluebird');
 var rewire  = require('rewire');
 var sinon   = require('sinon');
+var fs		= require('fs');
+var path = require('path');
+var YAML = require('js-yaml');
+var swaggerDef = YAML.safeLoad(fs.readFileSync(path.join(__dirname, '../schema/swagger.yml')).toString());
 
 // Application specific
 var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
+var swagger = require('../config/swagger');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -97,6 +102,8 @@ node.gAccount = {
 	encryptedSecret: 'ddbb37d465228d52a78ad13555e609750ec30e8f5912a1b8fbdb091f50e269cbcc3875dad032115e828976f0c7f5ed71ce925e16974233152149e902b48cec51d93c2e40a6c95de75c1c5a2c369e6d24',
 	key: 'elephant tree paris dragon chair galaxy',
 };
+
+node.swaggerDef = swaggerDef;
 
 // Optional logging
 if (process.env.SILENT === 'true') {
@@ -479,6 +486,18 @@ node.initApplication = function (cb, initScope) {
 				});
 				cb(null, sequence);
 			}],
+
+			swagger: ['connect', 'modules', 'logger', 'cache', function (scope, cb) {
+
+				// Load Swagger controllers and bind the scope
+				var controllerFolder = './api/controllers/';
+				fs.readdirSync(controllerFolder).forEach(function (file) {
+					require(controllerFolder + file).bind(scope);
+				});
+
+				swagger(scope.network.app, scope.config, scope.logger, cb);
+			}],
+
 			ed: function (cb) {
 				cb(null, require('../helpers/ed.js'));
 			},

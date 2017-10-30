@@ -8,6 +8,16 @@ var constants = require('../../helpers/constants');
 
 var waitForBlocks = node.Promise.promisify(node.waitForBlocks);
 
+/**
+ * A helper method to get path based on swagger
+ *
+ * @param {String} path - A path component
+ * @returns {String} - Full path to that endpoint
+ */
+function swaggerPathFor (path) {
+	return node.swaggerDef.basePath + path;
+}
+
 function paramsHelper (url, params) {
 	if (typeof params != 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
 		// It is an defined array with at least one element
@@ -103,11 +113,11 @@ function getForgingStatus (params, cb) {
 }
 
 function getNodeConstants (cb) {
-	http.get('/LiskHQ/Lisk/1.0.18/node/constants', httpCallbackHelper.bind(null, cb));
+	http.get(swaggerPathFor('/node/constants'), httpCallbackHelper.bind(null, cb));
 }
 
 function getNodeStatus (cb) {
-	http.get('/LiskHQ/Lisk/1.0.18/node/status', httpCallbackHelper.bind(null, cb));
+	http.get(swaggerPathFor('/node/status'), httpCallbackHelper.bind(null, cb));
 }
 
 function getDelegates (params, cb) {
