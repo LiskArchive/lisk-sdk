@@ -49,7 +49,7 @@
     "extend": "=3.0.1",
     "ip": "=1.1.5",
     "json-schema": "=0.2.3",
-    "json-sql": "SargeKhan/json-sql#decode-operator",
+    "json-sql": "LiskHQ/json-sql#6aa525c580f49c9a00e1814721e76764a4c9e0bb",
     "lodash": "=4.17.4",
     "method-override": "=2.3.9",
     "pg-monitor": "=0.8.2",
