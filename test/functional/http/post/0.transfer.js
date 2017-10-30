@@ -1,9 +1,8 @@
 'use strict';
 
-var faker = require('faker');
-
 var node = require('../../../node');
 var shared = require('../../shared');
+var fixtures = require('../../fixtures');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -21,7 +20,14 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidTransactions();
+		fixtures.testCases.forEach(function (test) {
+			it('using ' + test.describe + ' should fail', function () {
+				return sendTransactionPromise(test.args).then(function (res) {
+					node.expect(res).to.have.property('success').to.not.be.ok;
+					node.expect(res).to.have.property('message').that.is.not.empty;
+				});
+			});
+		});
 	});
 
 	describe('transaction processing', function () {
@@ -145,41 +151,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 		describe('with additional data field', function () {
 
-			var maximumString = node.randomString.generate(64);
-			var maximumStringPlus1 = node.randomString.generate(64 + 1);
-
-			var tests = [
-				{ describe: 'null',               args: null,                        result: true },
-				{ describe: 'undefined',          args: undefined,                   result: true },
-				{ describe: 'NaN',                args: NaN,                         result: true },
-				{ describe: 'Infinity',           args: Infinity ,                   result: false },
-				{ describe: '0 integer',          args: 0,                           result: true },
-				{ describe: 'negative integer',   args: -1,                          result: false },
-				{ describe: 'float',              args: 1.2,                         result: false },
-				{ describe: 'negative float',     args: -1.2,                        result: false },
-				{ describe: 'date',               args: faker.date.recent(),         result: false },
-				{ describe: 'true boolean',       args: true,                        result: false },
-				{ describe: 'false boolean',      args: false ,                      result: true },
-				{ describe: 'empty array',        args: [],                          result: false },
-				{ describe: 'empty object',       args: {},                          result: false },
-				{ describe: 'empty string',       args: '',                          result: true },
-				{ describe: '0 as string',        args: '0',                         result: true },
-				{ describe: 'regular string',     args: String('abc'),               result: true },
-				{ describe: 'uppercase string',   args: String('ABC'),               result: true },
-				{ describe: 'alphanumeric',       args: faker.random.alphaNumeric(), result: true },
-				{ describe: 'email',              args: faker.internet.email(),      result: true },
-				{ describe: 'URL',                args: faker.internet.url(),        result: true },
-				{ describe: 'image',              args: faker.random.image(),        result: true },
-				{ describe: 'IP',                 args: faker.internet.ip(),         result: true },
-				{ describe: 'MAC',                args: faker.internet.mac(),        result: true },
-				{ describe: 'uuid',               args: faker.random.uuid(),         result: true },
-				{ describe: 'phone number',       args: faker.phone.phoneNumber(),   result: true },
-				{ describe: 'iban',               args: faker.finance.iban(),        result: true },
-				{ describe: 'maximum chars',      args: maximumString,               result: true },
-				{ describe: 'maximum chars + 1',  args: maximumStringPlus1,          result: false }
-			];
-
-			tests.forEach(function (test, i) {
+			fixtures.testCases.forEach(function (test, i) {
 				if (test.result === true ) {
 					it('using ' + test.describe + ' should be ok', function () {
 						transaction = node.lisk.transaction.createTransaction(account.address, i + 1, node.gAccount.password, null, test.args);
