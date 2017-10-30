@@ -1053,7 +1053,7 @@ describe('transactionPool', function () {
 			describe('by pool list', function () {
 
 				it('should be ok when check pool list unverified', function (done) {
-					var transactions = transactionPool.getAll('unverified', { limit: null });
+					var transactions = transactionPool.getAll('unverified', {limit: null});
 
 					expect(Object.keys(transactions).length).to.equal(2);
 					done();
@@ -1067,35 +1067,35 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when check pool list pending', function (done) {
-					var transactions = transactionPool.getAll('pending', { limit: null });
+					var transactions = transactionPool.getAll('pending', {limit: null});
 
 					expect(Object.keys(transactions).length).to.equal(1);
 					done();
 				});
 
 				it('should be ok when check pool list pending with limit', function (done) {
-					var transactions = transactionPool.getAll('pending', { limit: 1 });
+					var transactions = transactionPool.getAll('pending', {limit: 1});
 
 					expect(Object.keys(transactions).length).to.equal(1);
 					done();
 				});
 
 				it('should be ok when check pool list ready', function (done) {
-					var transactions = transactionPool.getAll('ready', { limit: null });
+					var transactions = transactionPool.getAll('ready', {limit: null});
 
 					expect(Object.keys(transactions).length).to.equal(1);
 					done();
 				});
 
 				it('should be ok when check pool list ready with limit', function (done) {
-					var transactions = transactionPool.getAll('ready', { limit: 1 });
+					var transactions = transactionPool.getAll('ready', {limit: 1});
 
 					expect(Object.keys(transactions).length).to.equal(1);
 					done();
 				});
 
 				it('should fail when filter is invalid', function (done) {
-					var transactions = transactionPool.getAll('unknown', { limit: null });
+					var transactions = transactionPool.getAll('unknown', {limit: null});
 
 					expect(transactions).to.equal('Invalid filter');
 					done();
@@ -1105,7 +1105,7 @@ describe('transactionPool', function () {
 			describe('by id (address) and publicKey', function () {
 
 				it('should be ok when sender account is valid', function (done) {
-					var transactions = transactionPool.getAll('sender_id', { id: '2737453412992791987L' });
+					var transactions = transactionPool.getAll('sender_id', {id: '2737453412992791987L'});
 
 					expect(transactions.unverified.length).to.equal(1);
 					expect(transactions.pending.length).to.equal(0);
@@ -1114,7 +1114,7 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when recipient account is valid', function (done) {
-					var transactions = transactionPool.getAll('recipient_id', { id: '2737453412992791987L' });
+					var transactions = transactionPool.getAll('recipient_id', {id: '2737453412992791987L'});
 
 					expect(transactions.unverified.length).to.equal(1);
 					expect(transactions.pending.length).to.equal(0);
@@ -1123,7 +1123,7 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when sender publicKey is valid', function (done) {
-					var transactions = transactionPool.getAll('sender_pk', { publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8' });
+					var transactions = transactionPool.getAll('sender_pk', {publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8'});
 
 					expect(transactions.unverified.length).to.equal(1);
 					expect(transactions.pending.length).to.equal(1);
@@ -1132,7 +1132,7 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when requester publicKey is valid', function (done) {
-					var transactions = transactionPool.getAll('recipient_pk', { publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8' });
+					var transactions = transactionPool.getAll('recipient_pk', {publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8'});
 
 					expect(transactions.unverified.length).to.equal(1);
 					expect(transactions.pending.length).to.equal(0);
@@ -1242,7 +1242,7 @@ describe('transactionPool', function () {
 			});
 
 			it('should be ok when add type 2 transaction again to ready', function (done) {
-				transactionPool.addReady(transactions[2], function (err, cbtransaction) {
+				transactionPool.addReady(allTransactions[2], function (err, cbtransaction) {
 					expect(cbtransaction).to.be.undefined;
 					done();
 				});
@@ -1251,6 +1251,17 @@ describe('transactionPool', function () {
 			it('should be ok when get transactions from ready', function (done) {
 				var readyTransactions = transactionPool.getReady();
 
+				expect(readyTransactions[0].receivedAt).to.not.equal(readyTransactions[1].receivedAt);
+				expect(readyTransactions[1].receivedAt).to.equal(readyTransactions[2].receivedAt);
+				expect(readyTransactions[2].receivedAt).to.equal(readyTransactions[3].receivedAt);
+				expect(readyTransactions[3].receivedAt).to.equal(readyTransactions[4].receivedAt);
+				done();
+			});
+
+			it('should be ok when get transactions from ready with limit', function (done) {
+				var readyTransactions = transactionPool.getReady(2);
+
+				expect(readyTransactions.length).to.equal(2);
 				expect(readyTransactions[0].receivedAt).to.not.equal(readyTransactions[1].receivedAt);
 				expect(readyTransactions[1].receivedAt).to.equal(readyTransactions[2].receivedAt);
 				expect(readyTransactions[2].receivedAt).to.equal(readyTransactions[3].receivedAt);
@@ -1307,7 +1318,7 @@ describe('transactionPool', function () {
 	describe('checkBalance', function () {
 
 		it('should be ok when checked account balance with enough LSK for transaction', function (done) {
-			transactionPool.checkBalance(transactions[0], { address: transactions[0].senderId }, function (err, cbBalance) {
+			transactionPool.checkBalance(transactions[0], {address: transactions[0].senderId}, function (err, cbBalance) {
 				expect(cbBalance).to.equal('balance: 52999994');
 				done();
 			});
