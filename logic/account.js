@@ -625,7 +625,8 @@ Account.prototype.getAll = function (filter, fields, cb) {
 			};
 		}
 
-		if (typeof filter.address === 'object') {
+		// If we want to get addresses by id
+		if (Array.isArray('filter.address')) {
 			filter['a.address'] = filter.address;
 		}
 		delete filter.address;
