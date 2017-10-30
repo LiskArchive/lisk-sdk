@@ -219,7 +219,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Failed to remove vote, account has not voted for this delegate');
+				node.expect(res).to.have.property('message').to.equal('Failed to remove vote, delegate "' + node.eAccount.delegateName + '" was not voted for');
 				badTransactions.push(transaction);
 			});
 		});
@@ -336,7 +336,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Failed to add vote, account has already voted for this delegate');
+				node.expect(res).to.have.property('message').to.equal('Failed to add vote, delegate "' + node.eAccount.delegateName + '" already voted for');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
