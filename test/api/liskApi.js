@@ -296,7 +296,7 @@ describe('Lisk API module', () => {
 			it('should select a node', () => {
 				const callCount = selectNewNodeStub.callCount;
 				LSK.setTestnet(true);
-				selectNewNodeStub.callCount.should.be.equal(callCount + 1);
+				selectNewNodeStub.should.have.callCount(callCount + 1);
 			});
 		});
 
@@ -316,7 +316,7 @@ describe('Lisk API module', () => {
 			it('should select a node', () => {
 				const callCount = selectNewNodeStub.callCount;
 				LSK.setTestnet(true);
-				selectNewNodeStub.callCount.should.be.equal(callCount + 1);
+				selectNewNodeStub.should.have.callCount(callCount + 1);
 			});
 		});
 
@@ -386,7 +386,7 @@ describe('Lisk API module', () => {
 				it('should not select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(true);
-					selectNewNodeStub.callCount.should.equal(callCount);
+					selectNewNodeStub.should.have.callCount(callCount);
 				});
 			});
 
@@ -408,7 +408,7 @@ describe('Lisk API module', () => {
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(false);
-					selectNewNodeStub.callCount.should.equal(callCount + 1);
+					selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
 			});
 		});
@@ -436,7 +436,7 @@ describe('Lisk API module', () => {
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(true);
-					selectNewNodeStub.callCount.should.equal(callCount + 1);
+					selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
 			});
 
@@ -455,7 +455,7 @@ describe('Lisk API module', () => {
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
 					LSK.setSSL(false);
-					selectNewNodeStub.callCount.should.equal(callCount);
+					selectNewNodeStub.should.have.callCount(callCount);
 				});
 			});
 		});
@@ -466,7 +466,7 @@ describe('Lisk API module', () => {
 			return new Promise(resolve => {
 				LSK.broadcastSignedTransaction({}, resolve);
 			}).then(() => {
-				getFullURLStub.calledOn(LSK).should.be.true();
+				getFullURLStub.should.be.calledOn(LSK);
 			});
 		});
 
@@ -484,10 +484,8 @@ describe('Lisk API module', () => {
 			return new Promise(resolve => {
 				LSK.broadcastSignedTransaction(transaction, resolve);
 			}).then(() => {
-				sendRequestPromiseStub.calledOn(LSK).should.be.true();
-				sendRequestPromiseStub
-					.calledWithExactly(POST, requestObject)
-					.should.be.true();
+				sendRequestPromiseStub.should.be.calledOn(LSK);
+				sendRequestPromiseStub.should.be.calledWithExactly(POST, requestObject);
 			});
 		});
 
@@ -538,13 +536,13 @@ describe('Lisk API module', () => {
 
 		it('should check options if provided', () => {
 			return LSK.sendRequest(method, endpoint, options).then(() => {
-				checkOptionsStub.calledWithExactly(options).should.be.true();
+				checkOptionsStub.should.be.calledWithExactly(options);
 			});
 		});
 
 		it('should call sendRequestPromise with provided options', () => {
 			return LSK.sendRequest(method, endpoint, options).then(() => {
-				sendRequestPromiseStub.calledOn(LSK).should.be.true();
+				sendRequestPromiseStub.should.be.calledOn(LSK);
 				sendRequestPromiseStub.firstCall.args[2].should.be.eql(
 					defaultCheckedOptions,
 				);
@@ -553,22 +551,20 @@ describe('Lisk API module', () => {
 
 		it('should call sendRequestPromise with default options', () => {
 			return LSK.sendRequest(method, endpoint).then(() => {
-				sendRequestPromiseStub.calledOn(LSK).should.be.true();
+				sendRequestPromiseStub.should.be.calledOn(LSK);
 				sendRequestPromiseStub.firstCall.args[2].should.be.eql({});
 			});
 		});
 
 		it('should handle timestamp is in future failures', () => {
 			return LSK.sendRequest(method, endpoint, options).then(() => {
-				handleTimestampIsInFutureFailuresStub.calledOn(LSK).should.be.true();
-				handleTimestampIsInFutureFailuresStub
-					.calledWithExactly(
-						method,
-						endpoint,
-						defaultCheckedOptions,
-						defaultRequestPromiseResult.body,
-					)
-					.should.be.true();
+				handleTimestampIsInFutureFailuresStub.should.be.calledOn(LSK);
+				handleTimestampIsInFutureFailuresStub.should.be.calledWithExactly(
+					method,
+					endpoint,
+					defaultCheckedOptions,
+					defaultRequestPromiseResult.body,
+				);
 			});
 		});
 
@@ -576,10 +572,13 @@ describe('Lisk API module', () => {
 			const error = new Error('oh no');
 			handleTimestampIsInFutureFailuresStub.rejects(error);
 			return LSK.sendRequest(method, endpoint, options).then(() => {
-				handleSendRequestFailuresStub.calledOn(LSK).should.be.true();
-				handleSendRequestFailuresStub
-					.calledWithExactly(method, endpoint, defaultCheckedOptions, error)
-					.should.be.true();
+				handleSendRequestFailuresStub.should.be.calledOn(LSK);
+				handleSendRequestFailuresStub.should.be.calledWithExactly(
+					method,
+					endpoint,
+					defaultCheckedOptions,
+					error,
+				);
 			});
 		});
 	});
@@ -598,9 +597,12 @@ describe('Lisk API module', () => {
 				const options = { address };
 
 				LSK.getAccount(address, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'accounts', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'accounts',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -609,9 +611,12 @@ describe('Lisk API module', () => {
 				const options = { limit: defaultRequestLimit };
 
 				LSK.getActiveDelegates(defaultRequestLimit, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'delegates', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'delegates',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -626,25 +631,26 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getStandbyDelegates(defaultRequestLimit, options, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'delegates', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'delegates',
+					options,
+					callback,
+				);
 			});
 
 			it('should get standby delegates with a default offset and ordering when not specified', () => {
 				LSK.getStandbyDelegates(defaultRequestLimit, callback);
-				LSK.sendRequest
-					.calledWithExactly(
-						GET,
-						'delegates',
-						{
-							limit: defaultRequestLimit,
-							orderBy: defaultOrderBy,
-							offset: defaultRequestOffset,
-						},
-						callback,
-					)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'delegates',
+					{
+						limit: defaultRequestLimit,
+						orderBy: defaultOrderBy,
+						offset: defaultRequestOffset,
+					},
+					callback,
+				);
 			});
 		});
 
@@ -654,9 +660,12 @@ describe('Lisk API module', () => {
 				const options = { search: searchTerm };
 
 				LSK.searchDelegatesByUsername(searchTerm, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'delegates', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'delegates',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -665,9 +674,12 @@ describe('Lisk API module', () => {
 				const options = { limit: defaultRequestLimit };
 
 				LSK.getBlocks(defaultRequestLimit, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'blocks', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'blocks',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -678,9 +690,12 @@ describe('Lisk API module', () => {
 				const options = { generatorPublicKey };
 
 				LSK.getForgedBlocks(generatorPublicKey, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'blocks', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'blocks',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -690,9 +705,12 @@ describe('Lisk API module', () => {
 				const options = { height };
 
 				LSK.getBlock(height, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'blocks', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'blocks',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -716,14 +734,12 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getTransactions(recipientAddress, options, callback);
-				LSK.sendRequest
-					.calledWithExactly(
-						GET,
-						'transactions',
-						expectedPassedOptions,
-						callback,
-					)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'transactions',
+					expectedPassedOptions,
+					callback,
+				);
 			});
 		});
 
@@ -733,9 +749,12 @@ describe('Lisk API module', () => {
 				const options = { transactionId };
 
 				LSK.getTransaction(transactionId, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'transactions', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'transactions',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -745,9 +764,12 @@ describe('Lisk API module', () => {
 				const options = { address };
 
 				LSK.getVotes(address, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'votes', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'votes',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -757,9 +779,12 @@ describe('Lisk API module', () => {
 				const options = { username };
 
 				LSK.getVoters(username, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'voters', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'voters',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -769,9 +794,12 @@ describe('Lisk API module', () => {
 				const options = { transactionId };
 
 				LSK.getUnsignedMultisignatureTransactions(options, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'transactions/unsigned', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'transactions/unsigned',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -781,9 +809,12 @@ describe('Lisk API module', () => {
 				const options = { transactionId };
 
 				LSK.getDapp(transactionId, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'dapps', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'dapps',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -795,9 +826,12 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getDapps(options, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'dapps', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'dapps',
+					options,
+					callback,
+				);
 			});
 		});
 
@@ -815,9 +849,12 @@ describe('Lisk API module', () => {
 				};
 
 				LSK.getDappsByCategory(category, options, callback);
-				LSK.sendRequest
-					.calledWithExactly(GET, 'dapps', expectedPassedOptions, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					GET,
+					'dapps',
+					expectedPassedOptions,
+					callback,
+				);
 			});
 		});
 
@@ -838,9 +875,12 @@ describe('Lisk API module', () => {
 					defaultSecondSecret,
 					callback,
 				);
-				LSK.sendRequest
-					.calledWithExactly(POST, 'transactions', options, callback)
-					.should.be.true();
+				LSK.sendRequest.should.be.calledWithExactly(
+					POST,
+					'transactions',
+					options,
+					callback,
+				);
 			});
 		});
 	});

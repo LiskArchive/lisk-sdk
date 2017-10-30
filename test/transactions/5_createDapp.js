@@ -117,14 +117,14 @@ describe('#createDapp transaction', () => {
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			getTimeWithOffsetStub.calledWithExactly(undefined).should.be.true();
+			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			createDapp({ secret, options, timeOffset: offset });
 
-			getTimeWithOffsetStub.calledWithExactly(offset).should.be.true();
+			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		describe('returned create dapp transaction', () => {
