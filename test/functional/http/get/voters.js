@@ -56,7 +56,7 @@ describe('GET /api/voters', function () {
 					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
 				});
 
-				it('should return status status = 400', function () {
+				it('should return status = 400', function () {
 					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
 				});
 			});
@@ -77,7 +77,7 @@ describe('GET /api/voters', function () {
 					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
 				});
 
-				it('should return status status = 400', function () {
+				it('should return status = 400', function () {
 					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
 				});
 			});
@@ -98,7 +98,7 @@ describe('GET /api/voters', function () {
 					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
 				});
 
-				it('should return status status = 400', function () {
+				it('should return status = 400', function () {
 					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
 				});
 			});
@@ -119,7 +119,7 @@ describe('GET /api/voters', function () {
 					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
 				});
 
-				it('should return status status = 400', function () {
+				it('should return status = 400', function () {
 					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
 				});
 			});
@@ -142,7 +142,7 @@ describe('GET /api/voters', function () {
 					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
 				});
 
-				it('should return status status = 400', function () {
+				it('should return status = 400', function () {
 					node.expect(response).to.have.property('status').equal(400);
 				});
 			});
@@ -154,7 +154,7 @@ describe('GET /api/voters', function () {
 					var validAddress = node.eAccount.address;
 					var validAddressParams = ['address=' + validAddress];
 
-					it('should return status status = 200', function () {
+					it('should return status = 200', function () {
 						return getVotersPromise(validAddressParams).then(function (res) {
 							node.expect(res).to.have.property('status').equal(200);
 						});
@@ -166,7 +166,7 @@ describe('GET /api/voters', function () {
 					var validPublicKey = node.eAccount.publicKey;
 					var validPublicKeyParams = ['publicKey=' + validPublicKey];
 
-					it('should return status status = 200', function () {
+					it('should return status = 200', function () {
 						return getVotersPromise(validPublicKeyParams).then(function (res) {
 							node.expect(res).to.have.property('status').equal(200);
 						});
@@ -178,7 +178,7 @@ describe('GET /api/voters', function () {
 					var validUsername = node.eAccount.delegateName;
 					var validUsernameParams = ['username=' + validUsername];
 
-					it('should return status status = 200', function () {
+					it('should return status = 200', function () {
 						return getVotersPromise(validUsernameParams).then(function (res) {
 							node.expect(res).to.have.property('status').equal(200);
 						});
@@ -204,7 +204,7 @@ describe('GET /api/voters', function () {
 					expectValidVotedDelegateResponse(response);
 				});
 
-				it('should return status status = 200', function () {
+				it('should return status = 200', function () {
 					node.expect(response).to.have.property('status').equal(apiCodes.OK);
 				});
 			});
