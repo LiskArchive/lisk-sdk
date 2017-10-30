@@ -64,8 +64,8 @@ function Account (db, schema, logger, cb) {
 	 * @property {string} blockId
 	 * @property {boolean} nameexist
 	 * @property {boolean} u_nameexist
-	 * @property {number} producedblocks - Between -1 and 1.
-	 * @property {number} missedblocks - Between -1 and 1.
+	 * @property {number} producedblocks
+	 * @property {number} missedblocks
 	 * @property {number} fees
 	 * @property {number} rewards
 	 * @property {boolean} virgin

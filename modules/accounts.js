@@ -206,10 +206,15 @@ Accounts.prototype.isLoaded = function () {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
+ * Public methods, accessible via API
  */
 Accounts.prototype.shared = {
+	/**
+	 * Search accounts based on the query parameter passed.
+	 * @param {Request} req
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallbackObject}
+	 */
 	getAccounts: function (req, cb) {
 		library.schema.validate(req.body, schema.getAccounts, function (err) {
 			if (err) {
