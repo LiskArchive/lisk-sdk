@@ -7,11 +7,12 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
-
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('POST /api/transactions (type 1) register second secret', function () {
 
+	var transaction, signature;
+	var transactionsToWaitFor = [];
 	var badTransactions = [];
 	var goodTransactions = [];
 	var badTransactionsEnforcement = [];
@@ -24,8 +25,6 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	var accountNoSecondPassword = node.randomAccount();
 	var accountDuplicate = node.randomAccount();
 
-	var transaction, signature;
-
 	// Crediting accounts
 	before(function () {
 		var promises = [];
@@ -34,15 +33,17 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		promises.push(creditAccountPromise(accountNoSecondPassword.address, constants.fees.secondSignature));
 		promises.push(creditAccountPromise(accountDuplicate.address, constants.fees.secondSignature));
 
-
-		return node.Promise.all(promises).then(function (results) {
-			results.forEach(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
+		return node.Promise.all(promises)
+			.then(function (results) {
+				results.forEach(function (res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').that.is.not.empty;
+					transactionsToWaitFor.push(res.transactionId);
+				});
+			})
+			.then(function (res) {
+				return waitForConfirmations(transactionsToWaitFor);
 			});
-		}).then(function (res) {
-			return onNewBlockPromise();
-		});
 	});
 
 	describe('schema validations', function () {

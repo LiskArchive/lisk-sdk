@@ -17,8 +17,7 @@ var getUnconfirmedTransactionsPromise = require('../../../common/apiHelpers').ge
 var getMultisignaturesTransactionPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionPromise;
 var getMultisignaturesTransactionsPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionsPromise;
 var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
-
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('GET /api/transactions', function () {
 
@@ -36,15 +35,17 @@ describe('GET /api/transactions', function () {
 		promises.push(creditAccountPromise(account.address, maxAmount));
 		promises.push(creditAccountPromise(account2.address, minAmount));
 
-		return node.Promise.all(promises).then(function (results) {
-			results.forEach(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-				transactionList.push(res.transactionId);
+		return node.Promise.all(promises)
+			.then(function (results) {
+				results.forEach(function (res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').that.is.not.empty;
+					transactionList.push(res.transactionId);
+				});
+			})
+			.then(function (res) {
+				return waitForConfirmations(transactionList);
 			});
-		}).then(function (res) {
-			return onNewBlockPromise();
-		});
 	});
 
 	describe('from cache', function () {
