@@ -76,7 +76,7 @@ __private.countByFilter = function (filter, cb) {
  * @private
  * @param {Object} filter
  * @param {function} [cb=undefined] cb - Callback function (synchronous function if not passed.
- * @returns {setImmediateCallback|[Peer]} peers
+ * @returns {setImmediateCallback|Array<Peer>} peers
  */
 __private.getByFilter = function (filter, cb) {
 	var allowedFields = ['ip', 'port', 'httpPort', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
