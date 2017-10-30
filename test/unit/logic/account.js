@@ -287,44 +287,35 @@ describe('account', function () {
 				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(sortedUsernames);
+				expect(res).to.have.length(50);
+				expect(res).to.eql(_.sortBy(res, 'username'));
 				done();
 			});
 		});
 
 		it('should ignore negative limit', function (done) {
-			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
-			});
-
 			account.getAll({
 				limit: -50,
 				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(sortedUsernames);
+				expect(res).to.eql(_.sortBy(res, 'username'));
 				done();
 			});
 		});
 
 		it('should sort the result according to field type in ascending order', function (done) {
-			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
-			});
 			account.getAll({sort: 'username:asc'}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(sortedUsernames);
+				expect(res).to.eql(_.sortBy(res, 'username'));
 				done();
 			});
 		});
 
 		it('should sort the result according to field type in descending order', function (done) {
-			var sortedUsernames = _.sortBy(allAccounts, 'username').reverse().map(function (v) {
-				return {username: v.username};
-			});
 			account.getAll({sort: 'username:desc'}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(sortedUsernames);
+				expect(res).to.eql(_.sortBy(res, 'username').reverse());
 				done();
 			});
 		});
