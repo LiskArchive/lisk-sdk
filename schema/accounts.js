@@ -23,7 +23,9 @@ module.exports = {
 			},
 			username: {
 				type: 'string',
-				format: 'username'
+				format: 'username',
+				minLength: 1,
+				maxLength: 20
 			},
 			orderBy: {
 				type: 'string'
