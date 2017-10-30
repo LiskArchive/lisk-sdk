@@ -102,6 +102,9 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
 Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
+	params.matchBroadhash = params.matchBroadhash || false;
+	params.unmatchBroadhash = params.unmatchBroadhash || false;
+	params.normalized = false;
 
 	var originalLimit = params.limit;
 
@@ -113,6 +116,12 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
 			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
 			self.consensus = consensus;
+		}
+
+		if (params.broadhash && (params.matchBroadhash || params.unmatchBroadhash)) {
+			peers = peers.filter(function (peer) {
+				return params.matchBroadhash ? peer.broadhash === params.broadhash : peer.broadhash !== params.broadhash;
+			});
 		}
 
 		return setImmediate(cb, null, peers);
