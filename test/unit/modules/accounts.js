@@ -45,7 +45,7 @@ var validAccount = {
 	virgin: 1
 };
 
-describe('account', function () {
+describe('accounts', function () {
 
 	var accounts;
 	var accountLogic;
@@ -69,7 +69,7 @@ describe('account', function () {
 		node.appCleanup(done);
 	});
 
-	describe('Accounts', function () {
+	describe('constructor', function () {
 
 		it('should throw with no params', function () {
 			expect(function () {
@@ -84,6 +84,7 @@ describe('account', function () {
 			expect(accounts.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
+		// ToDo: Design a throwable test
 		it.skip('should throw error for invalid publicKey', function () {
 			var invalidPublicKey = 'invalidPublicKey';
 
@@ -157,6 +158,7 @@ describe('account', function () {
 	});
 
 	describe('shared', function () {
+
 		describe('getAccounts', function () {
 
 			it('should throw if parameter doesnt have correct schema', function (done) {
