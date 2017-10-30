@@ -15,6 +15,7 @@
  */
 import { COMMAND_TYPES, SINGULARS } from '../utils/constants';
 import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
+import commonOptions from '../utils/options';
 import query from '../utils/query';
 
 const description = `Gets an array of information from the blockchain. Types available: accounts, addresses, blocks, delegates, transactions.
@@ -45,6 +46,7 @@ const list = createCommand({
 	autocomplete: COMMAND_TYPES,
 	description,
 	actionCreator,
+	options: [commonOptions.testnet],
 	errorPrefix: 'Could not list',
 });
 
