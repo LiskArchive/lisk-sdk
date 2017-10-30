@@ -440,7 +440,7 @@ describe('GET /api/delegates', function () {
 
 			return getDelegateVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('accounts').that.is.an('array').that.is.empty;
+				node.expect(res).to.have.property('accounts').that.is.an('array');
 			});
 		});
 
