@@ -13,13 +13,20 @@ var YAML = require('js-yaml');
  * @requires fs
  * @requires js-yaml
  * @module config:swagger
- * @param {object} app - An express app to which map the swagger details 
+ * @param {object} app - An express app to which map the swagger details
  * @param {object} config - Application Configurations
  * @param {object} logger - Application Logger
+ * @param {object} scope - Application Scope
  * @param {function} cb - Callback function.
  * @returns {void} 
  */
-function bootstrapSwagger(app, config, logger, cb) {
+function bootstrapSwagger (app, config, logger, scope, cb) {
+
+	// Load Swagger controllers and bind the scope
+	var controllerFolder = '/api/controllers/';
+	fs.readdirSync(config.root + controllerFolder).forEach(function (file) {
+		require(config.root + controllerFolder + file)(scope);
+	});
 
 	var swagger = YAML.safeLoad(fs.readFileSync(path.join(config.root + '/schema/swagger.yml')).toString());
 

@@ -488,14 +488,7 @@ node.initApplication = function (cb, initScope) {
 			}],
 
 			swagger: ['connect', 'modules', 'logger', 'cache', function (scope, cb) {
-
-				// Load Swagger controllers and bind the scope
-				var controllerFolder = './api/controllers/';
-				fs.readdirSync(controllerFolder).forEach(function (file) {
-					require(controllerFolder + file).bind(scope);
-				});
-
-				swagger(scope.network.app, scope.config, scope.logger, cb);
+				swagger(scope.network.app, scope.config, scope.logger, scope, cb);
 			}],
 
 			ed: function (cb) {

@@ -384,15 +384,8 @@ d.run(function () {
 			cb();
 		}],
 
-		swagger: ['connect', 'modules', 'logger', 'cache', function(scope, cb) {
-
-			// Load Swagger controllers and bind the scope
-			var controllerFolder = './api/controllers/';
-			fs.readdirSync(controllerFolder).forEach(function (file) {
-			  require(controllerFolder + file).bind(scope);
-			});
-
-			swagger(scope.network.app, config, scope.logger, cb);
+		swagger: ['connect', 'modules', 'logger', 'cache', function (scope, cb) {
+			swagger(scope.network.app, config, scope.logger, scope, cb);
 		}],
 
 		ed: function (cb) {

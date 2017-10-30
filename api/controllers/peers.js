@@ -8,16 +8,15 @@ var modules;
 /**
  * Initializes with scope content and private variables:
  * - modules
- * @class
+ * @class PeersController
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-// Constructor
-function Controller (scope) {
+function PeersController (scope) {
 	modules = scope.modules; 
 }
 
-function getPeers (req, res) {
+PeersController.getPeers = function (req, res) {
 
 	var filters = {
 		ip: req.swagger.params.ip.value,
@@ -41,7 +40,4 @@ function getPeers (req, res) {
 	});
 };
 
-module.exports = {
-	getPeers: getPeers,
-	bind: Controller
-};
+module.exports = PeersController;

@@ -6,29 +6,24 @@ var modules;
 /**
  * Initializes with scope content and private variables:
  * - modules
- * @class
+ * @class NodeController
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-// Constructor
-function Controller (scope) {
+function NodeController (scope) {
 	modules = scope.modules; 
 }
 
-function getConstants (req, res) {
+NodeController.getConstants = function (req, res) {
 	modules.node.shared.getConstants(null, function (err, data){
 		res.send(data);
 	});
-}
+};
 
-function getStatus (req, res) {
+NodeController.getStatus = function (req, res) {
 	modules.node.shared.getStatus(null, function (err, data){
 		res.send(data);
 	});
-}
-
-module.exports = {
-	getConstants: getConstants,
-	getStatus: getStatus,
-	bind: Controller
 };
+
+module.exports = NodeController;
