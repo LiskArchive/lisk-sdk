@@ -12,13 +12,13 @@ var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirma
 describe('POST /api/transactions (type 4) register multisignature', function () {
 
 	var scenarios = {
-		'no_funds': new shared.multisigScenario(3, 0),
-		'minimal_funds': new shared.multisigScenario(3, constants.fees.multisignature * 3),
-		'minimum_not_reached': new shared.multisigScenario(4), //4 members 2 min signatures required
-		'regular': new shared.multisigScenario(3), //3 members 2 min signatures required
-		'max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 2 min signatures required 
-		'max_signatures_max_min': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 16 min signatures required
-		'more_than_max_signatures': new shared.multisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) //17 members 2 min signatures required
+		'no_funds': new shared.MultisigScenario(3, 0),
+		'minimal_funds': new shared.MultisigScenario(3, constants.fees.multisignature * 3),
+		'minimum_not_reached': new shared.MultisigScenario(4), //4 members 2 min signatures required
+		'regular': new shared.MultisigScenario(3), //3 members 2 min signatures required
+		'max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 2 min signatures required 
+		'max_signatures_max_min': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 16 min signatures required
+		'more_than_max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) //17 members 2 min signatures required
 	};
 
 	var transaction, signature;
@@ -31,19 +31,18 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 	before(function () {
 		//Crediting accounts
-		return node.Promise.all(Object.keys(scenarios).map(function (key) {
-			if (key === 'no_funds') {
+		return node.Promise.all(Object.keys(scenarios).map(function (type) {
+			if (type === 'no_funds') {
 				return;
 			}
-			return creditAccountPromise(scenarios[key].account.address, scenarios[key].amount).then(function (res) {
+			return creditAccountPromise(scenarios[type].account.address, scenarios[type].amount).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('transactionId').that.is.not.empty;
 				transactionsToWaitFor.push(res.transactionId);
 			});
-		}))
-			.then(function () {
-				return waitForConfirmations(transactionsToWaitFor);
-			});
+		})).then(function () {
+			return waitForConfirmations(transactionsToWaitFor);
+		});
 	});
 
 	describe('schema validations', function () {

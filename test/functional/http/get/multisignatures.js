@@ -11,7 +11,7 @@ var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirma
 
 describe('GET /api/multisignatures/', function () {
 
-	var scenario = new shared.multisigScenario(3);
+	var scenario = new shared.MultisigScenario(3);
 	var transaction;
 	var transactionsToWaitFor = [];
 
