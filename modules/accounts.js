@@ -79,6 +79,7 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
  * @param {function} cb - Callback function.
  */
 Accounts.prototype.getAccount = function (filter, fields, cb) {
+	// TODO: Find a better hack, this one is not good
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
 		delete filter.publicKey;
@@ -107,6 +108,7 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
  * @returns {setImmediateCallback} Errors.
  * @returns {function()} Call to logic.account.get().
  */
+// TODO: Remove this bad boy, replace with only get :D
 Accounts.prototype.setAccountAndGet = function (data, cb) {
 	var address = data.address || null;
 	var err;
@@ -131,12 +133,14 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		}
 	}
 
-	library.logic.account.set(address, data, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		return library.logic.account.get({address: address}, cb);
-	});
+	return library.logic.account.get({address: address}, cb);
+	// TODO: Refactor for use in memory maybe
+	// library.logic.account.set(address, data, function (err) {
+	// 	if (err) {
+	// 		return setImmediate(cb, err);
+	// 	}
+	// 	return library.logic.account.get({address: address}, cb);
+	// });
 };
 
 /**
@@ -148,6 +152,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
  * @returns {function} calls to logic.account.merge().
  * @todo improve publicKey validation try/catch
  */
+// TODO: Remove this
 Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 	var address = data.address || null;
 	var err;
@@ -309,14 +314,11 @@ Accounts.prototype.shared = {
 				return setImmediate(cb, null, {
 					account: {
 						address: account.address,
-						unconfirmedBalance: account.u_balance,
+						unconfirmedBalance: account.u_balance, //TODO: Need to set this in memory
 						balance: account.balance,
 						publicKey: account.publicKey,
-						unconfirmedSignature: account.u_secondSignature,
-						secondSignature: account.secondSignature,
 						secondPublicKey: account.secondPublicKey,
-						multisignatures: account.multisignatures || [],
-						u_multisignatures: account.u_multisignatures || []
+						multisignatures: account.multisignatures || []
 					}
 				});
 			});

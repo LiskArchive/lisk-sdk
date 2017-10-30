@@ -69,7 +69,7 @@ function Delegates (cb, scope) {
 	);
 
 	setImmediate(cb, null, self);
-}	
+}
 
 /**
  * Gets slot time and keypair.
@@ -83,6 +83,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 	var currentSlot = slot;
 	var lastSlot = slots.getLastSlot(currentSlot);
 
+	//TODO: Figure out why this is snakecase, seems nice but doesn't match code standards
 	for (; currentSlot < lastSlot; currentSlot += 1) {
 		var delegate_pos = currentSlot % slots.delegates;
 		var delegate_id = __private.delegatesList[delegate_pos];
@@ -240,7 +241,7 @@ __private.toggleForgingStatus = function (publicKey, secretKey, cb) {
 			return setImmediate(cb, err);
 		}
 
-		if (account && account.isDelegate) {
+		if (account && account.username) {
 			var forgingStatus;
 
 			if (actionEnable) {
@@ -291,6 +292,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			return setImmediate(cb, 'Account not found');
 		}
 
+		// TODO: Snake case. logic for u_ must change
 		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
 		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
 		var additions = 0, removals = 0;
@@ -323,12 +325,13 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				return setImmediate(cb, 'Failed to remove vote, account has not voted for this delegate');
 			}
 
-			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
+			// TODO: Easy logic change, just need to evaluate if username is present from DB
+			modules.accounts.getAccount({ publicKey: publicKey }, function (err, account) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
 
-				if (!account) {
+				if (!account.username) {
 					return setImmediate(cb, 'Delegate not found');
 				}
 
@@ -393,7 +396,7 @@ __private.loadDelegates = function (cb) {
 				return setImmediate(seriesCb, ['Account with public key:', keypair.publicKey.toString('hex'), 'not found'].join(' '));
 			}
 
-			if (account.isDelegate) {
+			if (account.username) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 				library.logger.info(['Forging enabled on account:', account.address].join(' '));
 			} else {
@@ -434,8 +437,9 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		throw 'Missing query argument';
 	}
 	modules.accounts.getAccounts({
-		isDelegate: 1,
-		sort: { 'vote': -1, 'publicKey': 1 }
+		// TODO: Will need to be upgraded if JSON-SQL is updated with HEAD
+		username: { $isnot: null },
+		sort: { 'votes': -1, 'publicKey': 1 }
 	}, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks'], function (err, delegates) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -654,8 +658,8 @@ Delegates.prototype.internal = {
 			if (req.body.publicKey) {
 				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.body.publicKey]});
 			} else {
-				var delegates_cnt = _.keys(__private.keypairs).length;
-				return setImmediate(cb, null, {enabled: delegates_cnt > 0, delegates: _.keys(__private.keypairs)});
+				var delegates_count = _.keys(__private.keypairs).length;
+				return setImmediate(cb, null, {enabled: delegates_count > 0, delegates: _.keys(__private.keypairs)});
 			}
 		});
 	},

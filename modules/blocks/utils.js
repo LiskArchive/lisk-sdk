@@ -124,7 +124,7 @@ Utils.prototype.loadBlocksPart = function (filter, cb) {
 /**
  * Loads full normalized last block from database
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method loadLastBlock

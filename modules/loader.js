@@ -309,7 +309,18 @@ __private.loadBlockChain = function () {
 	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
 	var verify = Boolean(library.config.loading.verifyOnLoading);
 
+	// TODO: Refactor this code to verify all signatures, then apply all balances.
 	function load (count) {
+		modules.blocks.utils.loadLastBlock(function (err, block) {
+			if (err) {
+				return reload(count, err || 'Failed to load last block');
+			} else {
+				__private.lastBlock = block;
+				library.logger.info('Blockchain ready');
+				library.bus.message('blockchainReady');
+			}
+		});
+		/*
 		verify = true;
 		__private.total = count;
 		async.series({
@@ -369,6 +380,7 @@ __private.loadBlockChain = function () {
 				library.bus.message('blockchainReady');
 			}
 		});
+		*/
 	}
 
 	function reload (count, message) {
@@ -482,8 +494,6 @@ __private.loadBlockChain = function () {
 
 		function updateMemAccounts (t) {
 			var promises = [
-				t.none(sql.updateMemAccounts),
-				t.query(sql.getOrphanedMemAccounts),
 				t.query(sql.getDelegates)
 			];
 
@@ -491,13 +501,7 @@ __private.loadBlockChain = function () {
 		}
 
 		library.db.task(updateMemAccounts).then(function (res) {
-			var updateMemAccounts      = res[0];
-			var getOrphanedMemAccounts = res[1];
-			var getDelegates           = res[2];
-
-			if (getOrphanedMemAccounts.length > 0) {
-				return reload(count, 'Detected orphaned blocks in mem_accounts');
-			}
+			var getDelegates           = res[0];
 
 			if (getDelegates.length === 0) {
 				return reload(count, 'No delegates found');
