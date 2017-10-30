@@ -81,32 +81,6 @@ export const checkOptions = options => {
 };
 
 /**
- * @method trimObj
- * @param obj
- *
- * @return trimmed object
- */
-export const trimObj = obj => {
-	const isArray = Array.isArray(obj);
-	if (!isArray && typeof obj !== 'object') {
-		return Number.isInteger(obj) ? obj.toString() : obj;
-	}
-
-	const trim = value =>
-		typeof value === 'string' ? value.trim() : trimObj(value);
-
-	return isArray
-		? obj.map(trim)
-		: Object.entries(obj).reduce((accumulator, [key, value]) => {
-				const trimmedKey = trim(key);
-				const trimmedValue = trim(value);
-				return Object.assign({}, accumulator, {
-					[trimmedKey]: trimmedValue,
-				});
-			}, {});
-};
-
-/**
  * @method toQueryString
  * @param obj
  *
@@ -122,17 +96,4 @@ export const toQueryString = obj => {
 	);
 
 	return parts.join('&');
-};
-
-/**
- * @method serialiseHTTPData
- * @param data
- *
- * @return serialisedData string
- */
-
-export const serialiseHTTPData = data => {
-	const trimmed = trimObj(data);
-	const queryString = toQueryString(trimmed);
-	return `?${queryString}`;
 };

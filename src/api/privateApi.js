@@ -176,9 +176,10 @@ export function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
 	const url =
 		method === GET
-			? `${getFullURL.call(
+			? `${getFullURL.call(this)}/api/${requestType}?${utils.toQueryString.call(
 					this,
-				)}/api/${requestType}${utils.serialiseHTTPData.call(this, options)}`
+					options,
+				)}`
 			: `${getFullURL.call(this)}/api/${requestType}`;
 
 	return {
