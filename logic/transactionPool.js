@@ -686,9 +686,10 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 		function setAccountAndGet (waterCb) {
 			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
 		},
+		// TODO: Determine if we need this. Need to refactor for setAccountAndGet response
 		function getRequester (sender, waterCb) {
-			var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
-
+			//var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
+			var multisignatures = false; // Also hack.
 			if (multisignatures) {
 				transaction.signatures = transaction.signatures || [];
 			}
@@ -706,6 +707,11 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 			}
 		},
 		function processTransaction (sender, requester, waterCb) {
+			// This is a hack, it should be in the setAccountAndGet function.
+			if (!sender) {
+				sender = { address: transaction.senderId || modules.accounts.generateAddressByPublicKey(transaction.senderPublicKey) , publicKey: transaction.senderPublicKey, balance: 0 };
+				console.log(sender);
+			}
 			library.logic.transaction.process(transaction, sender, requester, function (err) {
 				if (err) {
 					return setImmediate(waterCb, err);

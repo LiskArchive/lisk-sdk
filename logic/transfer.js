@@ -107,21 +107,22 @@ Transfer.prototype.getBytes = function (transaction) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.apply = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
-			balance: transaction.amount,
-			u_balance: transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
-	});
+	return setImmediate(cb);
+	// modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	// 	if (err) {
+	// 		return setImmediate(cb, err);
+	// 	}
+	//
+	// 	modules.accounts.mergeAccountAndGet({
+	// 		address: transaction.recipientId,
+	// 		balance: transaction.amount,
+	// 		u_balance: transaction.amount,
+	// 		blockId: block.id,
+	// 		round: slots.calcRound(block.height)
+	// 	}, function (err) {
+	// 		return setImmediate(cb, err);
+	// 	});
+	// });
 };
 
 /**
@@ -137,21 +138,22 @@ Transfer.prototype.apply = function (transaction, block, sender, cb) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
-			balance: -transaction.amount,
-			u_balance: -transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
-	});
+	return setImmediate(cb);
+	// modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	// 	if (err) {
+	// 		return setImmediate(cb, err);
+	// 	}
+	//
+	// 	modules.accounts.mergeAccountAndGet({
+	// 		address: transaction.recipientId,
+	// 		balance: -transaction.amount,
+	// 		u_balance: -transaction.amount,
+	// 		blockId: block.id,
+	// 		round: slots.calcRound(block.height)
+	// 	}, function (err) {
+	// 		return setImmediate(cb, err);
+	// 	});
+	// });
 };
 
 /**
@@ -176,7 +178,7 @@ Transfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 
 
 /**
- * @typedef {Object} transfer 
+ * @typedef {Object} transfer
  * @property {string} data
  */
 Transfer.prototype.schema = {
@@ -222,7 +224,7 @@ Transfer.prototype.dbTable = 'transfer';
 
 Transfer.prototype.dbFields = [
 	'data',
-	'transactionId'
+	'transaction_id'
 ];
 
 /**
@@ -270,7 +272,7 @@ Transfer.prototype.dbSave = function (transaction) {
 			fields: this.dbFields,
 			values: {
 				data: data,
-				transactionId: transaction.id
+				transaction_id: transaction.id
 			}
 		};
 	}
@@ -282,7 +284,7 @@ Transfer.prototype.dbSave = function (transaction) {
  * Checks sender multisignatures and transaction signatures.
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
+ * @return {boolean} True if transaction signatures greather than
  * sender multimin or there are not sender multisignatures.
  */
 Transfer.prototype.ready = function (transaction, sender) {

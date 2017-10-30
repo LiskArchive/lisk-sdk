@@ -57,7 +57,7 @@ Vote.prototype.calculateFee = function (transaction, sender) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|function} returns error if invalid field | 
+ * @returns {setImmediateCallback|function} returns error if invalid field |
  * calls checkConfirmedDelegates.
  */
 Vote.prototype.verify = function (transaction, sender, cb) {
@@ -130,7 +130,7 @@ Vote.prototype.verifyVote = function (vote, cb) {
  * @implements {modules.delegates.checkConfirmedDelegates}
  * @param {transaction} transaction
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
+ * @return {setImmediateCallback} cb, err(if transaction id is not in
  * exceptions votes list)
  */
 Vote.prototype.checkConfirmedDelegates = function (transaction, cb) {
@@ -150,7 +150,7 @@ Vote.prototype.checkConfirmedDelegates = function (transaction, cb) {
  * @implements {modules.delegates.checkUnconfirmedDelegates}
  * @param {Object} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
+ * @return {setImmediateCallback} cb, err(if transaction id is not in
  * exceptions votes list)
  */
 Vote.prototype.checkUnconfirmedDelegates = function (transaction, cb) {
@@ -225,7 +225,7 @@ Vote.prototype.apply = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
+ * Calls Diff.reverse to change asset.votes signs and merges account to
  * sender address with inverted votes as delegates.
  * @implements {Diff}
  * @implements {scope.account.merge}
@@ -278,7 +278,7 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
+ * Calls Diff.reverse to change asset.votes signs and merges account to
  * sender address with inverted votes as unconfirmed delegates.
  * @implements {Diff}
  * @implements {scope.account.merge}
@@ -355,8 +355,9 @@ Vote.prototype.dbRead = function (raw) {
 Vote.prototype.dbTable = 'votes';
 
 Vote.prototype.dbFields = [
-	'votes',
-	'transactionId'
+	'transaction_id',
+	'public_key',
+	'votes'
 ];
 
 /**
@@ -369,8 +370,9 @@ Vote.prototype.dbSave = function (transaction) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
-			transactionId: transaction.id
+			transaction_id: transaction.id,
+			public_key: transaction.senderPublicKey,
+			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null
 		}
 	};
 };
@@ -379,7 +381,7 @@ Vote.prototype.dbSave = function (transaction) {
  * Checks sender multisignatures and transaction signatures.
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
+ * @return {boolean} True if transaction signatures greather than
  * sender multimin or there are not sender multisignatures.
  */
 Vote.prototype.ready = function (transaction, sender) {

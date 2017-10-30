@@ -279,7 +279,8 @@ Transaction.prototype.checkConfirmed = function (transaction, cb) {
  * @returns {Object} With exceeded boolean and error: address, balance
  */
 Transaction.prototype.checkBalance = function (amount, balance, transaction, sender) {
-	var exceededBalance = new bignum(sender[balance].toString()).lessThan(amount);
+	console.log('tx logic: ' + JSON.stringify(sender));
+	var exceededBalance = new bignum(sender.balance.toString()).lessThan(amount);
 	var exceeded = (transaction.blockId !== this.scope.genesisblock.block.id && exceededBalance);
 
 	return {
@@ -423,30 +424,32 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 	}
 
 	// Determine multisignatures from sender or transaction asset
-	var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
-	if (multisignatures.length === 0) {
-		if (transaction.asset && transaction.asset.multisignature && transaction.asset.multisignature.keysgroup) {
-
-			for (var i = 0; i < transaction.asset.multisignature.keysgroup.length; i++) {
-				var key = transaction.asset.multisignature.keysgroup[i];
-
-				if (!key || typeof key !== 'string') {
-					return setImmediate(cb, 'Invalid member in keysgroup');
-				}
-
-				multisignatures.push(key.slice(1));
-			}
-		}
-	}
-
-	// Check requester public key
-	if (transaction.requesterPublicKey) {
-		multisignatures.push(transaction.senderPublicKey);
-
-		if (!Array.isArray(sender.multisignatures) || sender.multisignatures.indexOf(transaction.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Account does not belong to multisignature group');
-		}
-	}
+	// TODO: Refactor for new schema
+	// var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
+	var multisignatures = [];
+	// if (multisignatures.length === 0) {
+	// 	if (transaction.asset && transaction.asset.multisignature && transaction.asset.multisignature.keysgroup) {
+	//
+	// 		for (var i = 0; i < transaction.asset.multisignature.keysgroup.length; i++) {
+	// 			var key = transaction.asset.multisignature.keysgroup[i];
+	//
+	// 			if (!key || typeof key !== 'string') {
+	// 				return setImmediate(cb, 'Invalid member in keysgroup');
+	// 			}
+	//
+	// 			multisignatures.push(key.slice(1));
+	// 		}
+	// 	}
+	// }
+	//
+	// // Check requester public key
+	// if (transaction.requesterPublicKey) {
+	// 	multisignatures.push(transaction.senderPublicKey);
+	//
+	// 	if (!Array.isArray(sender.multisignatures) || sender.multisignatures.indexOf(transaction.requesterPublicKey) < 0) {
+	// 		return setImmediate(cb, 'Account does not belong to multisignature group');
+	// 	}
+	// }
 
 	// Verify signature
 	try {
@@ -670,32 +673,35 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
 	amount = amount.toNumber();
 
 	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: slots.calcRound(block.height)});
-	this.scope.account.merge(sender.address, {
-		balance: -amount,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err, sender) {
+	// TODO: Should be ok to remove
+	// this.scope.account.merge(sender.address, {
+	// 	balance: -amount,
+	// 	blockId: block.id,
+	// 	round: slots.calcRound(block.height)
+	// }, function (err, sender) {
+	// 	if (err) {
+	// 		return setImmediate(cb, err);
+	// 	}
+	// }.bind(this));
+
+	/**
+	 * calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
+	 * DApp, InTransfer or OutTransfer.
+	 */
+	__private.types[transaction.type].apply.call(this, transaction, block, sender, function (err) {
 		if (err) {
-			return setImmediate(cb, err);
+			this.scope.account.merge(sender.address, {
+				balance: amount,
+				blockId: block.id,
+				round: slots.calcRound(block.height)
+			}, function (err) {
+				return setImmediate(cb, err);
+			});
+		} else {
+			return setImmediate(cb);
 		}
-		/**
-		 * calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
-		 * DApp, InTransfer or OutTransfer.
-		 */
-		__private.types[transaction.type].apply.call(this, transaction, block, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {
-					balance: amount,
-					blockId: block.id,
-					round: slots.calcRound(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
 	}.bind(this));
+
 };
 
 /**
@@ -715,29 +721,35 @@ Transaction.prototype.undo = function (transaction, block, sender, cb) {
 	    amount = amount.plus(transaction.fee.toString()).toNumber();
 
 	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height)});
-	this.scope.account.merge(sender.address, {
-		balance: amount,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
 
-		__private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {
-					balance: -amount,
-					blockId: block.id,
-					round: slots.calcRound(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
-	}.bind(this));
+	// TODO: Should be done in memory
+	// this.scope.account.merge(sender.address, {
+	// 	balance: amount,
+	// 	blockId: block.id,
+	// 	round: slots.calcRound(block.height)
+	// }, function (err, sender) {
+	// 	if (err) {
+	// 		return setImmediate(cb, err);
+	// 	}
+	//  * Types were here *
+	// }.bind(this));
+
+	// TODO: Should be done in memory
+	// __private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
+	// 	if (err) {
+	// 		this.scope.account.merge(sender.address, {
+	// 			balance: -amount,
+	// 			blockId: block.id,
+	// 			round: slots.calcRound(block.height)
+	// 		}, function (err) {
+	// 			return setImmediate(cb, err);
+	// 		});
+	// 	} else {
+	// 		return setImmediate(cb);
+	// 	}
+	// }.bind(this));
+
+	return setImmediate(cb);
 };
 
 /**
@@ -770,21 +782,23 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
 
 	amount = amount.toNumber();
 
-	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
-	}.bind(this));
+	return setImmediate(cb);
+	// TODO: Do this stuff in memory instead
+	// this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
+	// 	if (err) {
+	// 		return setImmediate(cb, err);
+	// 	}
+	//
+	// 	__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
+	// 		if (err) {
+	// 			this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
+	// 				return setImmediate(cb, err2 || err);
+	// 			});
+	// 		} else {
+	// 			return setImmediate(cb);
+	// 		}
+	// 	}.bind(this));
+	// }.bind(this));
 };
 
 /**
@@ -803,38 +817,42 @@ Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	var amount = new bignum(transaction.amount.toString());
 	    amount = amount.plus(transaction.fee.toString()).toNumber();
 
-	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
+	return setImmediate(cb);
 
-		__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
-	}.bind(this));
+	// TODO: Remove this probably
+	//
+	// this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
+	// 	if (err) {
+	// 		return setImmediate(cb, err);
+	// 	}
+	//
+	// 	__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
+	// 		if (err) {
+	// 			this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
+	// 				return setImmediate(cb, err2 || err);
+	// 			});
+	// 		} else {
+	// 			return setImmediate(cb);
+	// 		}
+	// 	}.bind(this));
+	// }.bind(this));
 };
 
-Transaction.prototype.dbTable = 'trs';
+Transaction.prototype.dbTable = 'transactions';
 
 Transaction.prototype.dbFields = [
-	'id',
-	'blockId',
+	'transaction_id',
+	'block_id',
 	'type',
 	'timestamp',
-	'senderPublicKey',
-	'requesterPublicKey',
-	'senderId',
-	'recipientId',
+	'sender_public_key',
+	'requester_public_key',
+	'sender_address',
+	'recipient_address',
 	'amount',
 	'fee',
 	'signature',
-	'signSignature',
+	'second_signature',
 	'signatures'
 ];
 
@@ -866,18 +884,18 @@ Transaction.prototype.dbSave = function (transaction) {
 			table: this.dbTable,
 			fields: this.dbFields,
 			values: {
-				id: transaction.id,
-				blockId: transaction.blockId,
+				transaction_id: transaction.id,
+				block_id: transaction.blockId,
 				type: transaction.type,
 				timestamp: transaction.timestamp,
-				senderPublicKey: senderPublicKey,
-				requesterPublicKey: requesterPublicKey,
-				senderId: transaction.senderId,
-				recipientId: transaction.recipientId || null,
+				sender_public_key: senderPublicKey,
+				requester_public_key: requesterPublicKey,
+				sender_address: transaction.senderId,
+				recipient_address: transaction.recipientId || null,
 				amount: transaction.amount,
 				fee: transaction.fee,
 				signature: signature,
-				signSignature: signSignature,
+				second_signature: signSignature,
 				signatures: transaction.signatures ? transaction.signatures.join(',') : null,
 			}
 		}

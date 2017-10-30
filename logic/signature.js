@@ -220,19 +220,21 @@ Signature.prototype.dbRead = function (raw) {
 		return null;
 	} else {
 		var signature = {
-			transactionId: raw.t_id,
-			publicKey: raw.s_publicKey
+			transaction_id: raw.t_id,
+			second_public_key: raw.s_secondPublicKey,
+			public_key: raw.s_publicKey
 		};
 
 		return {signature: signature};
 	}
 };
 
-Signature.prototype.dbTable = 'signatures';
+Signature.prototype.dbTable = 'second_signature';
 
 Signature.prototype.dbFields = [
-	'transactionId',
-	'publicKey'
+	'transaction_id',
+	'second_public_key',
+	'public_key'
 ];
 
 /**
@@ -254,8 +256,9 @@ Signature.prototype.dbSave = function (transaction) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			transactionId: transaction.id,
-			publicKey: publicKey
+			transaction_id: transaction.id,
+			second_public_key: transaction.asset.signature.publicKey,
+			public_key: publicKey
 		}
 	};
 };

@@ -144,7 +144,7 @@ InTransfer.prototype.apply = function (transaction, block, sender, cb) {
 
 /**
  * Calls getGenesis with dappid to obtain authorId.
- * Calls mergeAccountAndGet with authorId as address and unconfirmed 
+ * Calls mergeAccountAndGet with authorId as address and unconfirmed
  * transaction amount and balance both negatives.
  * @implements {shared.getGenesis}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -235,7 +235,7 @@ InTransfer.prototype.dbRead = function (raw) {
 		return null;
 	} else {
 		var inTransfer = {
-			dappId: raw.in_dappId
+			dapp_id: raw.in_dappId
 		};
 
 		return {inTransfer: inTransfer};
@@ -245,12 +245,12 @@ InTransfer.prototype.dbRead = function (raw) {
 InTransfer.prototype.dbTable = 'intransfer';
 
 InTransfer.prototype.dbFields = [
-	'dappId',
-	'transactionId'
+	'dapp_id',
+	'transaction_id'
 ];
 
 /**
- * Creates db operation object to 'intransfer' table based on 
+ * Creates db operation object to 'intransfer' table based on
  * inTransfer data.
  * @param {transaction} transaction
  * @return {Object[]} table, fields, values.
@@ -260,8 +260,8 @@ InTransfer.prototype.dbSave = function (transaction) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			dappId: transaction.asset.inTransfer.dappId,
-			transactionId: transaction.id
+			dapp_id: transaction.asset.inTransfer.dappId,
+			transaction_id: transaction.id
 		}
 	};
 };
@@ -279,7 +279,7 @@ InTransfer.prototype.afterSave = function (transaction, cb) {
  * Checks sender multisignatures and transaction signatures.
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
+ * @return {boolean} True if transaction signatures greather than
  * sender multimin or there are not sender multisignatures.
  */
 InTransfer.prototype.ready = function (transaction, sender) {

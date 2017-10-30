@@ -277,8 +277,8 @@ OutTransfer.prototype.dbRead = function (raw) {
 		return null;
 	} else {
 		var outTransfer = {
-			dappId: raw.ot_dappId,
-			transactionId: raw.ot_outTransactionId
+			dapp_id: raw.ot_dappId,
+			transaction_id: raw.ot_outTransactionId
 		};
 
 		return {outTransfer: outTransfer};
@@ -288,9 +288,9 @@ OutTransfer.prototype.dbRead = function (raw) {
 OutTransfer.prototype.dbTable = 'outtransfer';
 
 OutTransfer.prototype.dbFields = [
-	'dappId',
-	'outTransactionId',
-	'transactionId'
+	'dapp_id',
+	'out_transaction_id',
+	'transaction_id'
 ];
 
 /**
@@ -304,9 +304,9 @@ OutTransfer.prototype.dbSave = function (transaction) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			dappId: transaction.asset.outTransfer.dappId,
-			outTransactionId: transaction.asset.outTransfer.transactionId,
-			transactionId: transaction.id
+			dapp_id: transaction.asset.outTransfer.dappId,
+			out_transaction_id: transaction.asset.outTransfer.transactionId,
+			transaction_id: transaction.id
 		}
 	};
 };

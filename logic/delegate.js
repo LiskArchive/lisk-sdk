@@ -57,7 +57,7 @@ Delegate.prototype.verify = function (transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	if (sender.isDelegate) {
+	if (sender.username) {
 		return setImmediate(cb, 'Account is already a delegate');
 	}
 
@@ -152,6 +152,7 @@ Delegate.prototype.getBytes = function (transaction) {
  * @todo delete extra parameter block.
  */
 Delegate.prototype.apply = function (transaction, block, sender, cb) {
+	//TODO: Needs to be removed, if no impact to transactions
 	var data = {
 		address: sender.address,
 		u_isDelegate: 0,
@@ -173,6 +174,7 @@ Delegate.prototype.apply = function (transaction, block, sender, cb) {
  * @todo delete extra parameter block.
  */
 Delegate.prototype.undo = function (transaction, block, sender, cb) {
+	//TODO: Needs to be removed, if no impact to transactions
 	var data = {
 		address: sender.address,
 		u_isDelegate: 1,
@@ -193,6 +195,7 @@ Delegate.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+	//TODO: Needs to be refactored to apply in memory
 	var data = {
 		address: sender.address,
 		u_isDelegate: 1,
@@ -213,6 +216,7 @@ Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+	//TODO: Needs to be removed, Undo unconfirmed should just delete the object
 	var data = {
 		address: sender.address,
 		u_isDelegate: 0,
@@ -276,9 +280,9 @@ Delegate.prototype.dbRead = function (raw) {
 Delegate.prototype.dbTable = 'delegates';
 
 Delegate.prototype.dbFields = [
-	'tx_id',
+	'transaction_id',
 	'name',
-	'pk',
+	'public_key',
 	'address'
 ];
 
@@ -292,9 +296,9 @@ Delegate.prototype.dbSave = function (transaction) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			tx_id: transaction.id,
+			transaction_id: transaction.id,
 			name: transaction.asset.delegate.username,
-			pk: Buffer.from(transaction.senderPublicKey, 'hex'),
+			public_key: Buffer.from(transaction.senderPublicKey, 'hex'),
 			address: transaction.senderId
 		}
 	};
