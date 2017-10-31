@@ -150,9 +150,9 @@ __private.transactionInPool = function (id) {
 		pool.unverified.transactions[id],
 		pool.verified.pending.transactions[id],
 		pool.verified.ready.transactions[id]
-	].filter(function (inList) {
-		return inList !== undefined;
-	}).length > 0;
+	].some(function (index) {
+		return typeof(index) === 'number';
+	});
 };
 
 /**
