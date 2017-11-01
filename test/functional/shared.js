@@ -6,8 +6,7 @@ var sendTransactionPromise = require('../common/apiHelpers').sendTransactionProm
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
 var getPendingMultisignaturesPromise = require('../common/apiHelpers').getPendingMultisignaturesPromise;
-var getBlocksToWaitPromise = require('../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
 
 var tests = [
 	{describe: 'null',              args: null},
