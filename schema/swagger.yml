@@ -1788,13 +1788,6 @@ definitions:
 
 # Response Code Templates
 
-  ResponseCode204:
-    type: object
-    properties:
-      error:
-        type: string
-        example: No data returned
-
   ResponseCode400:
     type: object
     properties:
@@ -1808,36 +1801,6 @@ definitions:
       error:
         type: string
         example: Request limit exceeded. Please try again later.
-# Response Headers Template
-  HeadersTemplate:
-    type: object
-    properties:
-      X-Rate-Limit-Limit:
-        description: The number of allowed requests in the current period
-        type: integer
-      X-Rate-Limit-Remaining:
-        description: The number of remaining requests in the current period
-        type: integer
-      X-Rate-Limit-Reset:
-        description: The number of seconds left in the current period
-        type: integer
-# Begin list of Examples not implemented yet
-# This will be used for Multisignatures registration transactions
-  UnconfirmedMultisignaturesAssets:
-    type: object
-    properties:
-      keysgroup:
-        type: array
-        items:
-          example: [ '+2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079','+4cf1e9cd3339cf5465f6ba084b9714e51d144c82350e5340c552938812be7673' ]
-      min:
-        type: integer
-        example: 2
-      lifetime:
-        type: integer
-        example: 72
-
-
 # Added by API Auto Mocking Plugin
 host: virtserver.swaggerhub.com
 basePath: /LiskHQ/Lisk/1.0.18
