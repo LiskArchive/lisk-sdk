@@ -308,7 +308,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 				.then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					badTransactions.push(transaction);
+					// TODO: Enable when transaction pool order is fixed
+					//badTransactions.push(transaction);
 				})
 				.then(function (res) {
 					// Transaction with same info but different ID (due to timeOffSet parameter)
@@ -319,7 +320,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 				.then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					goodTransactions.push(transaction);
+					// TODO: Enable when transaction pool order is fixed
+					//goodTransactions.push(transaction);
 				});
 		});
 	});
@@ -435,7 +437,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 				.then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					badTransactionsEnforcement.push(transaction);
+					// TODO: Enable when transaction pool order is fixed
+					//badTransactionsEnforcement.push(transaction);
 				})
 				.then(function (res) {
 					// Transaction with same info but different ID (due to timeOffSet parameter)
@@ -446,7 +449,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 				.then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					goodTransactionsEnforcement.push(transaction);
+					// TODO: Enable when transaction pool order is fixed
+					//goodTransactionsEnforcement.push(transaction);
 				});
 		});
 	});
