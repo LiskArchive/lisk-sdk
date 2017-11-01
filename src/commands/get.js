@@ -25,12 +25,18 @@ const description = `Gets information from the blockchain. Types available: acco
 	- get block 5510510593472232540
 `;
 
-export const actionCreator = () => async ({ type, input }) => {
+export const actionCreator = () => async ({
+	type,
+	input,
+	options: { testnet },
+}) => {
 	if (!COMMAND_TYPES.includes(type)) {
 		throw new Error('Unsupported type.');
 	}
 
-	return query.handlers[deAlias(type)](input).then(processQueryResult(type));
+	return query.handlers[deAlias(type)](input, { testnet }).then(
+		processQueryResult(type),
+	);
 };
 
 const get = createCommand({

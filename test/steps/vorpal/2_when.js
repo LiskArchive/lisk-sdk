@@ -157,16 +157,16 @@ export function theActionIsCalledWithTheRecipientTheMessageAndTheOptions() {
 	return returnValue.catch(e => e);
 }
 
-export function theActionIsCalledWithTheTypeAndTheInputs() {
-	const { action, type, inputs } = this.test.ctx;
-	const returnValue = action({ type, inputs });
+export function theActionIsCalledWithTheTypeTheInputsAndTheOptions() {
+	const { action, type, inputs, options } = this.test.ctx;
+	const returnValue = action({ type, inputs, options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
 }
 
-export function theActionIsCalledWithTheTypeAndTheInput() {
-	const { action, type, input } = this.test.ctx;
-	const returnValue = action({ type, input });
+export function theActionIsCalledWithTheTypeTheInputAndTheOptions() {
+	const { action, type, input, options } = this.test.ctx;
+	const returnValue = action({ type, input, options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
 }
