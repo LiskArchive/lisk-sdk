@@ -45,8 +45,8 @@ function Chain (logger, block, transaction, db, genesisblock, bus, balancesSeque
  * Save genesis block to database
  *
  * @async
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 Chain.prototype.saveGenesisBlock = function (cb) {
@@ -76,10 +76,10 @@ Chain.prototype.saveGenesisBlock = function (cb) {
  *
  * @async
  * @param  {Object}   block Full normalized block
- * @param  {Function} cb Callback function
+ * @param  {function} cb Callback function
  * @return {Function|afterSave} cb If SQL transaction was OK - returns safterSave execution,
  *                                 if not returns callback function from params (through setImmediate)
- * @return {String}   cb.err Error if occurred
+ * @return {string}   cb.err Error if occurred
  */
 Chain.prototype.saveBlock = function (block, cb) {
 	// Prepare and execute SQL transaction
@@ -115,8 +115,8 @@ Chain.prototype.saveBlock = function (block, cb) {
  * @async
  * @method afterSave
  * @param  {Object}   block Full normalized block
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 __private.afterSave = function (block, cb) {
@@ -190,8 +190,8 @@ __private.promiseTransactions = function (t, block, blockPromises) {
  * @async
  * @method deleteBlock
  * @param  {number}   blockId ID of block to delete
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err String if SQL error occurred, null if success
  */
 Chain.prototype.deleteBlock = function (blockId, cb) {
@@ -212,8 +212,8 @@ Chain.prototype.deleteBlock = function (blockId, cb) {
  * @async
  * @method deleteAfterBlock
  * @param  {number}   blockId ID of block to begin with
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err SQL error
  * @return {Object}   cb.res SQL response
  */
@@ -234,8 +234,8 @@ Chain.prototype.deleteAfterBlock = function (blockId, cb) {
  * @async
  * @method applyGenesisBlock
  * @param  {Object}   block Full normalized genesis block
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 Chain.prototype.applyGenesisBlock = function (block, cb) {
@@ -288,8 +288,8 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
  * @param  {Object}   block Block object
  * @param  {Object}   transaction Transaction object
  * @param  {Object}   sender Sender account
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 __private.applyTransaction = function (block, transaction, sender, cb) {
@@ -325,8 +325,8 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
  * @emits  SIGTERM
  * @param  {Object}   block Full normalized block
  * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 Chain.prototype.applyBlock = function (block, saveBlock, cb) {
@@ -491,7 +491,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 /**
  * Broadcast reduced block to increase network performance.
  * @param {Object} reducedBlock reduced block
- * @param {Number} blockId
+ * @param {number} blockId
  * @param {boolean} broadcast Indicator that block needs to be broadcasted
  */
 Chain.prototype.broadcastReducedBlock = function (reducedBlock, blockId, broadcast) {
@@ -505,8 +505,8 @@ Chain.prototype.broadcastReducedBlock = function (reducedBlock, blockId, broadca
  * @private
  * @async
  * @method popLastBlock
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error
  * @return {Object}   cb.obj New last block
  */
@@ -530,12 +530,12 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 							if (err) {
 								return setImmediate(cb, err);
 							}
-							// Undoing confirmed tx - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
+							// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
 							// WARNING: DB_WRITE
 							modules.transactions.undo(transaction, oldLastBlock, sender, cb);
 						});
 					}, function (cb) {
-						// Undoing unconfirmed tx - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
+						// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
 						// WARNING: DB_WRITE
 						modules.transactions.undoUnconfirmed(transaction, cb);
 					}, function (cb) {
@@ -573,8 +573,8 @@ __private.popLastBlock = function (oldLastBlock, cb) {
  * @public
  * @async
  * @method deleteLastBlock
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.obj New last block
  */
@@ -604,8 +604,8 @@ Chain.prototype.deleteLastBlock = function (cb) {
  * @private
  * @async
  * @method recoverChain
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
+ * @param  {function} cb Callback function
+ * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
 Chain.prototype.recoverChain = function (cb) {

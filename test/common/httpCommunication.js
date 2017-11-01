@@ -7,8 +7,11 @@ var httpCommunication = {
 		var request = node.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
-		request.expect('Content-Type', /json/);
-		request.expect(200);
+		request.expect(function (response) {
+			if (response.statusCode !== 204 && (!response.headers['content-type'] || response.headers['content-type'].indexOf('json') === -1)) {
+				return new Error('Unexpected content-type!');
+			}
+		});
 
 		if (options.params) {
 			request.send(options.params);
@@ -43,42 +46,6 @@ var httpCommunication = {
 	// Put to the given path
 	put: function (path, params, done) {
 		return this.abstractRequest({verb: 'PUT', path: path, params: params}, done);
-	},
-
-	// Adds peers to local node
-	addPeers: function (numOfPeers, ip, cb) {
-		var i = 0;
-
-		node.async.whilst(function () {
-			return i < numOfPeers;
-		}, function (next) {
-
-			var request = node.popsicle.get({
-				url: node.baseUrl + '/peer/height',
-				headers: node.generatePeerHeaders(ip, 5000)
-			});
-
-			request.use(node.popsicle.plugins.parse(['json']));
-
-			request.then(function (res) {
-				if (res.status !== 200) {
-					return next(['Received bad response code', res.status, res.url].join(' '));
-				} else {
-					i++;
-					next();
-				}
-			});
-
-			request.catch(function (err) {
-				return next(err);
-			});
-
-		}, function (err) {
-			// Wait for peer to be swept to db
-			setTimeout(function () {
-				return cb(err, node.generatePeerHeaders(ip, 5000));
-			}, 3000);
-		});
 	}
 };
 

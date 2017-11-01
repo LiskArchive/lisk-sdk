@@ -28,7 +28,7 @@ node.chai.use(require('chai-bignumber')(node.bignum));
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
 node.Promise = require('bluebird');
-var randomString = require('randomstring');
+node.randomString = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
 
@@ -42,16 +42,18 @@ node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
-node.nonce = randomString.generate(16);
+node.nonce = node.randomString.generate(16);
 
 // Transaction fees
 node.fees = {
 	voteFee: node.constants.fees.vote,
 	transactionFee: node.constants.fees.send,
-	secondPasswordFee: node.constants.fees.secondsignature,
+	secondPasswordFee: node.constants.fees.secondSignature,
 	delegateRegistrationFee: node.constants.fees.delegate,
 	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappRegistrationFee: node.constants.fees.dapp,
+	dappRegistrationFee: node.constants.fees.dappRegistration,
+	dappDepositFee: node.constants.fees.dappDeposit,
+	dappWithdrawalFee: node.constants.fees.dappWithdrawal,
 	dataFee: node.constants.fees.data
 };
 
@@ -124,7 +126,7 @@ node.randomLISK = function () {
 
 // Returns current block height
 node.getHeight = function (cb) {
-	var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+	var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 	request.use(node.popsicle.plugins.parse(['json']));
 
@@ -189,7 +191,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 
 	node.async.doWhilst(
 		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/blocks/getHeight');
+			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
 
 			request.use(node.popsicle.plugins.parse(['json']));
 
@@ -227,7 +229,7 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 node.generatePeerHeaders = function (ip, port, nonce) {
 	port = port || 9999;
 	ip = ip || '127.0.0.1';
-	nonce = nonce || randomString.generate(16);
+	nonce = nonce || node.randomString.generate(16);
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
 	var version = node.version;
@@ -239,8 +241,10 @@ node.generatePeerHeaders = function (ip, port, nonce) {
 		os: os,
 		ip: ip,
 		port: port,
+		httpPort: +node.config.httpPort,
 		version: version,
-		nonce: nonce
+		nonce: nonce,
+		status: 2
 	};
 };
 
@@ -260,19 +264,19 @@ node.expectedFee = function (amount) {
 };
 
 // Returns the expected fee for the given amount with data property
-node.expectedFeeForTrsWithData = function (amount) {
+node.expectedFeeForTransactionWithData = function (amount) {
 	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
 };
 
 // Returns a random username of 16 characters
 node.randomUsername = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = node.randomString.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = node.randomString.generate({
 		length: node.randomNumber(1, 15),
 		charset: custom
 	});
@@ -282,13 +286,13 @@ node.randomUsername = function () {
 
 // Returns a random delegate name of 20 characters
 node.randomDelegateName = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = node.randomString.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = node.randomString.generate({
 		length: node.randomNumber(1, 19),
 		charset: custom
 	});
@@ -298,13 +302,13 @@ node.randomDelegateName = function () {
 
 // Returns a random capitialized username of 16 characters
 node.randomCapitalUsername = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = node.randomString.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'uppercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = node.randomString.generate({
 		length: node.randomNumber(1, 15),
 		charset: custom
 	});
@@ -316,7 +320,7 @@ node.randomCapitalUsername = function () {
 node.randomApplicationName = function () {
 	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	return randomString.generate({
+	return node.randomString.generate({
 		length: node.randomNumber(1, 32),
 		charset: custom
 	});
@@ -379,6 +383,9 @@ var currentAppScope;
 
 // Init whole application inside tests
 node.initApplication = function (cb, initScope) {
+
+	initScope.waitForGenesisBlock = initScope.waitForGenesisBlock !== false;
+
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
@@ -411,17 +418,18 @@ node.initApplication = function (cb, initScope) {
 
 		var modulesInit = {
 			accounts: '../modules/accounts.js',
-			transactions: '../modules/transactions.js',
 			blocks: '../modules/blocks.js',
-			signatures: '../modules/signatures.js',
-			transport: '../modules/transport.js',
-			loader: '../modules/loader.js',
-			system: '../modules/system.js',
-			peers: '../modules/peers.js',
-			delegates: '../modules/delegates.js',
-			multisignatures: '../modules/multisignatures.js',
 			dapps: '../modules/dapps.js',
-			// cache: '../modules/cache.js'
+			delegates: '../modules/delegates.js',
+			loader: '../modules/loader.js',
+			multisignatures: '../modules/multisignatures.js',
+			node: '../modules/node.js',
+			peers: '../modules/peers.js',
+			signatures: '../modules/signatures.js',
+			system: '../modules/system.js',
+			transactions: '../modules/transactions.js',
+			transport: '../modules/transport.js',
+			voters: '../modules/voters.js',
 		};
 
 		// Init limited application layer
@@ -535,9 +543,10 @@ node.initApplication = function (cb, initScope) {
 				transport(transportModuleMock);
 				cb();
 			}],
-			logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
+			logic: ['db', 'bus', 'schema', 'network', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
 				var Block = require('../logic/block.js');
+				var Multisignature = require('../logic/multisignature.js');
 				var Account = require('../logic/account.js');
 				var Peers = require('../logic/peers.js');
 
@@ -573,6 +582,9 @@ node.initApplication = function (cb, initScope) {
 					}],
 					peers: ['logger', function (scope, cb) {
 						new Peers(scope.logger, cb);
+					}],
+					multisignature: ['schema', 'transaction', 'logger', function (scope, cb) {
+						cb(null, new Multisignature(scope.schema, scope.network, scope.transaction, scope.logger));
 					}]
 				}, cb);
 			}],
@@ -601,10 +613,18 @@ node.initApplication = function (cb, initScope) {
 			}]
 		}, function (err, scope) {
 			// Overwrite onBlockchainReady function to prevent automatic forging
-			scope.modules.delegates.onBlockchainReady = function () {};
 			scope.rewiredModules = rewiredModules;
+
+			scope.modules.delegates.onBlockchainReady = function () {
+				// Wait for genesis block's transactions to be applied into mem_accounts
+				if (initScope.waitForGenesisBlock) {
+					return cb(err, scope);
+				}
+			};
 			currentAppScope = scope;
-			cb(err, scope);
+			if (!initScope.waitForGenesisBlock || initScope.bus) {
+				return cb(err, scope);
+			}
 		});
 	});
 };

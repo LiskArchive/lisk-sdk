@@ -1,0 +1,10 @@
+'use strict';
+
+module.exports = {
+	OK: 200,
+	EMPTY_RESOURCES_OK: 200,
+	NO_CONTENT: 204,
+	INTERNAL_SERVER_ERROR: 500,
+	BAD_REQUEST: 400,
+	TOO_MANY_REQUESTS: 429
+};

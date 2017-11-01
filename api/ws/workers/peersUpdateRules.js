@@ -25,7 +25,7 @@ function PeersUpdateRules (slaveWAMPServer) {
 /**
  * @param {Object} peer
  * @param {string} connectionId
- * @param {Function} cb
+ * @param {function} cb
  */
 PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 	try {
@@ -48,7 +48,7 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 /**
  * @param {Object} peer
  * @param {string} connectionId
- * @param {Function} cb
+ * @param {function} cb
  */
 PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
 	try {
@@ -69,7 +69,7 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
  * @param {number} code
  * @param {Object} peer
  * @param {string} connectionId
- * @param {Function} cb
+ * @param {function} cb
  */
 PeersUpdateRules.prototype.block = function (code, peer, connectionId, cb) {
 	return setImmediate(cb, new PeerUpdateError(code, failureCodes.errorMessages[code]));

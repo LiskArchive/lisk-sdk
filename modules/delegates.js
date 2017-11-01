@@ -315,14 +315,6 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				return setImmediate(cb, 'Invalid public key');
 			}
 
-			if (math === '+' && (delegates != null && delegates.indexOf(publicKey) !== -1)) {
-				return setImmediate(cb, 'Failed to add vote, account has already voted for this delegate');
-			}
-
-			if (math === '-' && (delegates === null || delegates.indexOf(publicKey) === -1)) {
-				return setImmediate(cb, 'Failed to remove vote, account has not voted for this delegate');
-			}
-
 			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
 				if (err) {
 					return setImmediate(cb, err);
@@ -330,6 +322,14 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 
 				if (!account) {
 					return setImmediate(cb, 'Delegate not found');
+				}
+
+				if (math === '+' && (delegates != null && delegates.indexOf(publicKey) !== -1)) {
+					return setImmediate(cb, 'Failed to add vote, delegate "' + account.username + '" already voted for');
+				}
+
+				if (math === '-' && (delegates === null || delegates.indexOf(publicKey) === -1)) {
+					return setImmediate(cb, 'Failed to remove vote, delegate "' + account.username + '" was not voted for');
 				}
 
 				return setImmediate(cb);
@@ -579,9 +579,9 @@ Delegates.prototype.onBind = function (scope) {
  * @public
  * @method onRoundChanged
  * @listens module:pg-notify~event:roundChanged
- * @param {object} data Data received from postgres
- * @param {object} data.round Current round
- * @param {object} data.list Delegates list used for slot calculations
+ * @param {Object} data Data received from postgres
+ * @param {Object} data.round Current round
+ * @param {Object} data.list Delegates list used for slot calculations
  */
 Delegates.prototype.onRoundChanged = function (data) {
 	__private.delegatesList = data.list;

@@ -58,7 +58,7 @@ if (typeof gc !== 'undefined') {
 }
 
 /**
- * @property {object} - The default list of configuration options. Can be updated by CLI.
+ * @property {Object} - The default list of configuration options. Can be updated by CLI.
  * @default 'config.json'
  */
 var appConfig = AppConfig(require('./package.json'));
@@ -70,9 +70,9 @@ process.env.TOP = appConfig.topAccounts;
  * The config object to handle lisk modules and lisk api.
  * It loads `modules` and `api` folders content.
  * Also contains db configuration from config.json.
- * @property {object} db - Config values for database.
- * @property {object} modules - `modules` folder content.
- * @property {object} api - `api/http` folder content.
+ * @property {Object} db - Config values for database.
+ * @property {Object} modules - `modules` folder content.
+ * @property {Object} api - `api/http` folder content.
  */
 var config = {
 	db: appConfig.db,
@@ -80,17 +80,19 @@ var config = {
 	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		accounts: './modules/accounts.js',
-		transactions: './modules/transactions.js',
 		blocks: './modules/blocks.js',
-		signatures: './modules/signatures.js',
-		transport: './modules/transport.js',
-		loader: './modules/loader.js',
-		system: './modules/system.js',
-		peers: './modules/peers.js',
-		delegates: './modules/delegates.js',
-		multisignatures: './modules/multisignatures.js',
+		cache: './modules/cache.js',
 		dapps: './modules/dapps.js',
-		cache: './modules/cache.js'
+		delegates: './modules/delegates.js',
+		loader: './modules/loader.js',
+		multisignatures: './modules/multisignatures.js',
+		node: './modules/node.js',
+		peers: './modules/peers.js',
+		system: './modules/system.js',
+		signatures: './modules/signatures.js',
+		transactions: './modules/transactions.js',
+		transport: './modules/transport.js',
+		voters: './modules/voters'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -99,9 +101,11 @@ var config = {
 		delegates: { http: './api/http/delegates.js' },
 		loader: { http: './api/http/loader.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
+		node: { http: './api/http/node.js' },
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
+		voters: { http: './api/http/voters.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
@@ -109,7 +113,7 @@ var config = {
 /**
  * Logger holder so we can log with custom functionality.
  * The Object is initialized here and pass to others as parameter.
- * @property {object} - Logger instance.
+ * @property {Object} - Logger instance.
  */
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel,
 	filename: appConfig.logFileName });
@@ -123,7 +127,7 @@ try {
 
 /**
  * Creates the express server and loads all the Modules and logic.
- * @property {object} - Domain instance.
+ * @property {Object} - Domain instance.
  */
 var d = require('domain').create();
 
@@ -183,7 +187,7 @@ d.run(function () {
 		/**
 		 * Once config is completed, creates app, http & https servers & sockets with express.
 		 * @method network
-		 * @param {object} scope - The results from current execution,
+		 * @param {Object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with created Object:
 		 * `{express, app, server, io, https, https_io}`.
@@ -316,7 +320,7 @@ d.run(function () {
 		 * Once config, genesisblock, logger, build and network are completed,
 		 * adds configuration to `network.app`.
 		 * @method connect
-		 * @param {object} scope - The results from current execution,
+		 * @param {Object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
@@ -428,7 +432,7 @@ d.run(function () {
 		 * Once db, bus, schema and genesisblock are completed,
 		 * loads transaction, block, account and peers from logic folder.
 		 * @method logic
-		 * @param {object} scope - The results from current execution,
+		 * @param {Object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
@@ -478,7 +482,7 @@ d.run(function () {
 		 * dbSequence, balancesSequence, db and logic are completed,
 		 * loads modules from `modules` folder using `config.modules`.
 		 * @method modules
-		 * @param {object} scope - The results from current execution,
+		 * @param {Object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
@@ -512,7 +516,7 @@ d.run(function () {
 		 * Loads api from `api` folder using `config.api`, once modules, logger and
 		 * network are completed.
 		 * @method api
-		 * @param {object} scope - The results from current execution,
+		 * @param {Object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {function} cb - Callback function.
 		 */
@@ -545,7 +549,7 @@ d.run(function () {
 		 * Once 'ready' is completed, binds and listens for connections on the
 		 * specified host and port for `scope.network.server`.
 		 * @method listen
-		 * @param {object} scope - The results from current execution,
+		 * @param {Object} scope - The results from current execution,
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
 		 */

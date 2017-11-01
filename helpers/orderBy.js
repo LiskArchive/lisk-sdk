@@ -4,7 +4,7 @@
  * Validates sort options, methods and fields.
  * @memberof module:helpers
  * @function
- * @param {array} orderBy
+ * @param {Array} orderBy
  * @param {string} options
  * @return {Object} error | {sortField, sortMethod}.
  */
@@ -76,5 +76,30 @@ function OrderBy (orderBy, options) {
 		sortMethod: sortMethod
 	};
 }
+
+/**
+ * Converts orderBy queries from string format like "field:asc"
+ * to format accepted by "json-sql" library: {field: 1}.
+ * Ascending sort method number equivalent is 1.
+ * Descending sort method number equivalent is -1.
+ * @param {string} sortQuery
+ * @param {Array} sortableFields
+ * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
+ */
+OrderBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
+	var sortQueryMatched = typeof sortQuery !== 'string' ? null : sortQuery.match(/^([a-zA-Z0-9]+):(asc|desc)$/);
+	if (!sortQueryMatched || sortableFields.indexOf(sortQueryMatched[1]) === -1) {
+		return {};
+	}
+	var sortField = sortQueryMatched[1];
+	var sortMethodsToNumbersMap = {
+		asc: 1,
+		desc: -1
+	};
+	var result = {};
+	var sortMethod = sortQueryMatched[2];
+	result[sortField] = sortMethodsToNumbersMap[sortMethod];
+	return result;
+};
 
 module.exports = OrderBy;

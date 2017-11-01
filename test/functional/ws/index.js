@@ -1,5 +1,14 @@
-require('./transport');
-require('./transport.blocks');
-require('./transport.client');
-require('./transport.handshake');
-require('./transport.transactions');
+'use strict';
+
+var parallelTests = require('../../common/parallelTests').parallelTests;
+
+var pathFiles = [
+	'./transport',
+	'./transport.blocks',
+	'./transport.client',
+	'./transport.handshake',
+	'./transport.transactions',
+	'./transport.transactions.stress',
+];
+
+parallelTests(pathFiles, 'test/functional/ws/');
