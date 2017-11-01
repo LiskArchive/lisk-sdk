@@ -15,6 +15,20 @@
  */
 import { processQueryResult } from '../../../src/utils/helpers';
 
+export function theQueryInstanceSendsARequestUsingTheEndpointAndTheParameters() {
+	const { queryInstance, endpoint, parameters } = this.test.ctx;
+	const returnValue = queryInstance.sendRequest(endpoint, parameters);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theQueryInstanceSendsARequestUsingTheEndpointTheParametersAndTheOptions() {
+	const { queryInstance, endpoint, parameters, options } = this.test.ctx;
+	const returnValue = queryInstance.sendRequest(endpoint, parameters, options);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function processQueryResultIsCalledWithTheTypeThenTheResult() {
 	const { type, result } = this.test.ctx;
 	const returnValue = processQueryResult(type)(result);

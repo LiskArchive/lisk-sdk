@@ -19,27 +19,43 @@ class Query {
 	constructor() {
 		this.client = liskAPIInstance;
 		this.handlers = {
-			account: account => this.getAccount(account),
-			block: block => this.getBlock(block),
-			delegate: delegate => this.getDelegate(delegate),
-			transaction: transaction => this.getTransaction(transaction),
+			account: (account, options) => this.getAccount(account, options),
+			block: (block, options) => this.getBlock(block, options),
+			delegate: (delegate, options) => this.getDelegate(delegate, options),
+			transaction: (transaction, options) =>
+				this.getTransaction(transaction, options),
 		};
 	}
 
-	getBlock(input) {
-		return this.client.sendRequest('blocks/get', { id: input });
+	sendRequest(endpoint, parameters, { testnet } = {}) {
+		const originalTestnetSetting = this.client.testnet;
+		const overrideTestnetSetting =
+			typeof testnet === 'boolean' && this.client.testnet !== testnet;
+		const reset = result => {
+			if (overrideTestnetSetting)
+				this.client.setTestnet(originalTestnetSetting);
+			return result;
+		};
+
+		if (overrideTestnetSetting) this.client.setTestnet(testnet);
+
+		return this.client.sendRequest(endpoint, parameters).then(reset, reset);
 	}
 
-	getAccount(input) {
-		return this.client.sendRequest('accounts', { address: input });
+	getBlock(input, options) {
+		return this.sendRequest('blocks/get', { id: input }, options);
 	}
 
-	getTransaction(input) {
-		return this.client.sendRequest('transactions/get', { id: input });
+	getAccount(input, options) {
+		return this.sendRequest('accounts', { address: input }, options);
 	}
 
-	getDelegate(input) {
-		return this.client.sendRequest('delegates/get', { username: input });
+	getTransaction(input, options) {
+		return this.sendRequest('transactions/get', { id: input }, options);
+	}
+
+	getDelegate(input, options) {
+		return this.sendRequest('delegates/get', { username: input }, options);
 	}
 }
 
