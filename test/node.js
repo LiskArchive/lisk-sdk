@@ -428,7 +428,8 @@ node.initApplication = function (cb, initScope) {
 			signatures: '../modules/signatures.js',
 			system: '../modules/system.js',
 			transactions: '../modules/transactions.js',
-			transport: '../modules/transport.js'
+			transport: '../modules/transport.js',
+			voters: '../modules/voters.js',
 		};
 
 		// Init limited application layer

@@ -91,7 +91,8 @@ var config = {
 		system: './modules/system.js',
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
-		transport: './modules/transport.js'
+		transport: './modules/transport.js',
+		voters: './modules/voters'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -104,6 +105,7 @@ var config = {
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
+		voters: { http: './api/http/voters.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
