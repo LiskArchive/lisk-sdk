@@ -37,6 +37,8 @@ node.randomString = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
 
+node.config.root = process.cwd();
+
 require('colors');
 
 // Node configuration
@@ -445,7 +447,7 @@ node.initApplication = function (cb, initScope) {
 			},
 			network: function (cb) {
 				// Init with empty function
-				cb(null, {io: {sockets: {emit: function () {}}}});
+				cb(null, {io: {sockets: {emit: function () {}}}, app: require('express')()});
 			},
 			webSocket: ['config', 'logger', 'network', function (scope, cb) {
 				// Init with empty functions
@@ -487,7 +489,7 @@ node.initApplication = function (cb, initScope) {
 				cb(null, sequence);
 			}],
 
-			swagger: ['connect', 'modules', 'logger', 'cache', function (scope, cb) {
+			swagger: ['network', 'modules', 'logger', function (scope, cb) {
 				swagger(scope.network.app, scope.config, scope.logger, scope, cb);
 			}],
 

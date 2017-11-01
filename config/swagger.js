@@ -39,7 +39,7 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		startWithWarnings: true
 	  };
 
-	  SwaggerRunner.create(swaggerConfig, function(err, runner) {
+	  SwaggerRunner.create(swaggerConfig, function (err, runner) {
 		
 		if (err) {
 			// Some error occurred in configuring the swagger
