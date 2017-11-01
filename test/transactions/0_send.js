@@ -13,7 +13,6 @@
  *
  */
 import send from '../../src/transactions/0_send';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -25,10 +24,6 @@ describe('#send transaction', () => {
 	const secondSecret = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const secondPublicKey =
-		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
-	const emptyPublicKey =
-		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 	const amount = '1000';
 	const sendFee = (0.1 * fixedPoint).toString();
 	const sendWithDataFee = (0.2 * fixedPoint).toString();
@@ -43,7 +38,7 @@ describe('#send transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('without second secret', () => {
+	describe('with first secret', () => {
 		describe('without data', () => {
 			beforeEach(() => {
 				sendTransaction = send({
@@ -73,78 +68,69 @@ describe('#send transaction', () => {
 				getTimeWithOffsetStub.calledWithExactly(offset).should.be.true();
 			});
 
-			describe('returned send transaction', () => {
-				it('should be an object', () => {
-					sendTransaction.should.be.type('object');
-				});
+			it('should be an object', () => {
+				sendTransaction.should.be.type('object');
+			});
 
-				it('should have id string', () => {
-					sendTransaction.should.have.property('id').and.be.type('string');
-				});
+			it('should have id string', () => {
+				sendTransaction.should.have.property('id').and.be.type('string');
+			});
 
-				it('should have type number equal to 0', () => {
-					sendTransaction.should.have
-						.property('type')
-						.and.be.type('number')
-						.and.equal(0);
-				});
+			it('should have type number equal to 0', () => {
+				sendTransaction.should.have
+					.property('type')
+					.and.be.type('number')
+					.and.equal(0);
+			});
 
-				it('should have amount string equal to provided amount', () => {
-					sendTransaction.should.have
-						.property('amount')
-						.and.be.type('string')
-						.and.equal(amount);
-				});
+			it('should have amount string equal to provided amount', () => {
+				sendTransaction.should.have
+					.property('amount')
+					.and.be.type('string')
+					.and.equal(amount);
+			});
 
-				it('should have fee string equal to send fee', () => {
-					sendTransaction.should.have
-						.property('fee')
-						.and.be.type('string')
-						.and.equal(sendFee);
-				});
+			it('should have fee string equal to send fee', () => {
+				sendTransaction.should.have
+					.property('fee')
+					.and.be.type('string')
+					.and.equal(sendFee);
+			});
 
-				it('should have recipientId string equal to provided recipient id', () => {
-					sendTransaction.should.have
-						.property('recipientId')
-						.and.be.type('string')
-						.and.equal(recipientId);
-				});
+			it('should have recipientId string equal to provided recipient id', () => {
+				sendTransaction.should.have
+					.property('recipientId')
+					.and.be.type('string')
+					.and.equal(recipientId);
+			});
 
-				it('should have senderPublicKey hex string equal to sender public key', () => {
-					sendTransaction.should.have
-						.property('senderPublicKey')
-						.and.be.hexString()
-						.and.equal(publicKey);
-				});
+			it('should have senderPublicKey hex string equal to sender public key', () => {
+				sendTransaction.should.have
+					.property('senderPublicKey')
+					.and.be.hexString()
+					.and.equal(publicKey);
+			});
 
-				it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-					sendTransaction.should.have
-						.property('timestamp')
-						.and.be.type('number')
-						.and.equal(timeWithOffset);
-				});
+			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
+				sendTransaction.should.have
+					.property('timestamp')
+					.and.be.type('number')
+					.and.equal(timeWithOffset);
+			});
 
-				it('should have signature hex string', () => {
-					sendTransaction.should.have.property('signature').and.be.hexString();
-				});
+			it('should have signature hex string', () => {
+				sendTransaction.should.have.property('signature').and.be.hexString();
+			});
 
-				it('should be signed correctly', () => {
-					const result = cryptoModule.verifyTransaction(sendTransaction);
-					result.should.be.ok();
-				});
+			it('should have an empty asset object', () => {
+				sendTransaction.should.have
+					.property('asset')
+					.and.be.type('object')
+					.and.be.empty();
+			});
 
-				it('should not be signed correctly if modified', () => {
-					sendTransaction.amount = 100;
-					const result = cryptoModule.verifyTransaction(sendTransaction);
-					result.should.be.not.ok();
-				});
-
-				it('should have an empty asset object', () => {
-					sendTransaction.should.have
-						.property('asset')
-						.and.be.type('object')
-						.and.be.empty();
-				});
+			it('should not have the second signature property', () => {
+				sendTransaction.should.not.have.property('signSignature');
 			});
 		});
 
@@ -189,7 +175,7 @@ describe('#send transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			sendTransaction = send({
 				recipientId,
@@ -199,17 +185,7 @@ describe('#send transaction', () => {
 			});
 		});
 
-		it('should create a send transaction', () => {
-			const sendTransactionWithoutSecondSecret = send({
-				recipientId,
-				amount,
-				secret,
-			});
-			sendTransaction.should.be.ok();
-			sendTransaction.should.not.be.equal(sendTransactionWithoutSecondSecret);
-		});
-
-		it('should create send transaction with second signature and data', () => {
+		it('should create a send transaction with data property', () => {
 			sendTransaction = send({
 				recipientId,
 				amount,
@@ -217,47 +193,12 @@ describe('#send transaction', () => {
 				secondSecret,
 				data: testData,
 			});
-			sendTransaction.should.be.ok();
+
+			sendTransaction.asset.should.have.property('data');
 		});
 
-		describe('returned send transaction', () => {
-			it('should have second signature hex string', () => {
-				sendTransaction.should.have
-					.property('signSignature')
-					.and.be.hexString();
-			});
-
-			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(
-					sendTransaction,
-					secondPublicKey,
-				);
-				result.should.be.ok();
-			});
-
-			it('should be second signed correctly if second signature is an empty string', () => {
-				sendTransaction = send({
-					recipientId,
-					amount,
-					secret,
-					secondSecret: '',
-					testData,
-				});
-				const result = cryptoModule.verifyTransaction(
-					sendTransaction,
-					emptyPublicKey,
-				);
-				result.should.be.ok();
-			});
-
-			it('should not be second signed correctly if modified', () => {
-				sendTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					sendTransaction,
-					secondPublicKey,
-				);
-				result.should.not.be.ok();
-			});
+		it('should have the second signature property as hex string', () => {
+			sendTransaction.should.have.property('signSignature').and.be.hexString();
 		});
 	});
 });

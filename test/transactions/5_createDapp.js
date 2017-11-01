@@ -13,7 +13,6 @@
  *
  */
 import createDapp from '../../src/transactions/5_createDapp';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -23,8 +22,6 @@ describe('#createDapp transaction', () => {
 	const secondSecret = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const secondPublicKey =
-		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultOptions = {
 		category: 0,
 		name: 'Lisk Guestbook',
@@ -54,7 +51,7 @@ describe('#createDapp transaction', () => {
 		options = Object.assign({}, defaultOptions);
 	});
 
-	describe('without second secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			createDappTransaction = createDapp({ secret, options });
 		});
@@ -181,15 +178,8 @@ describe('#createDapp transaction', () => {
 					.and.be.hexString();
 			});
 
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(createDappTransaction);
-				result.should.be.ok();
-			});
-
-			it('should not be signed correctly if modified', () => {
-				createDappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(createDappTransaction);
-				result.should.be.not.ok();
+			it('should not have the second signature property', () => {
+				createDappTransaction.should.not.have.property('signSignature');
 			});
 
 			it('should have asset', () => {
@@ -255,45 +245,15 @@ describe('#createDapp transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			createDappTransaction = createDapp({ secret, secondSecret, options });
 		});
 
-		it('should create a create dapp transaction with a second secret', () => {
-			const createDappTransactionWithoutSecondSecret = createDapp({
-				secret,
-				options,
-			});
-			createDappTransaction.should.be.ok();
-			createDappTransaction.should.not.be.equal(
-				createDappTransactionWithoutSecondSecret,
-			);
-		});
-
-		describe('returned create dapp transaction', () => {
-			it('should have second signature hex string', () => {
-				createDappTransaction.should.have
-					.property('signSignature')
-					.and.be.hexString();
-			});
-
-			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(
-					createDappTransaction,
-					secondPublicKey,
-				);
-				result.should.be.ok();
-			});
-
-			it('should not be second signed correctly if modified', () => {
-				createDappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					createDappTransaction,
-					secondPublicKey,
-				);
-				result.should.not.be.ok();
-			});
+		it('should have the second signature property as hex string', () => {
+			createDappTransaction.should.have
+				.property('signSignature')
+				.and.be.hexString();
 		});
 	});
 });

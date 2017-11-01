@@ -13,7 +13,6 @@
  *
  */
 import registerSecondPassphrase from '../../src/transactions/1_registerSecondPassphrase';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -114,21 +113,6 @@ describe('#registerSecondPassphrase transaction', () => {
 			registerSecondPassphraseTransaction.should.have
 				.property('signature')
 				.and.be.hexString();
-		});
-
-		it('should be signed correctly', () => {
-			const result = cryptoModule.verifyTransaction(
-				registerSecondPassphraseTransaction,
-			);
-			result.should.be.ok();
-		});
-
-		it('should not be signed correctly if modified', () => {
-			registerSecondPassphraseTransaction.amount = 100;
-			const result = cryptoModule.verifyTransaction(
-				registerSecondPassphraseTransaction,
-			);
-			result.should.be.not.ok();
 		});
 
 		it('should have asset object', () => {
