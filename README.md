@@ -85,6 +85,15 @@ Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for c
 
     `npm install -g bower grunt-cli pm2`
 
+
+**Special note about NPM 5**
+
+Due to an issue with NPM 5.4.x and higher, node-sodium cannot be built. Therefore it is recommended to fixate the local NPM version at `v5.3.x`
+
+- All Systems - This may require sudo depending on your environment:
+
+  `npm install -g npm@5.3.0`
+
 ### Install PostgreSQL (version 9.6.2):
 
 **NOTE:** Database user requires privileges to `CREATE EXTENSION pgcrypto`.
