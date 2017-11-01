@@ -66,6 +66,17 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 			});
 
+			it('with string should fail', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction.asset.dapp.category = '0';
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type integer but found type string');
+					badTransactions.push(transaction);
+				});
+			});
+
 			it('with integer less than minimum should fail', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
 				transaction.asset.dapp.category = -1;
@@ -114,6 +125,17 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 			});
 
+			it('with integer should fail', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction.asset.dapp.description = 0;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					badTransactions.push(transaction);
+				});
+			});
+
 			it('with empty string should be ok', function () {
 				var application = node.randomApplication();
 				application.description = '';
@@ -154,6 +176,17 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with integer should fail', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction.asset.dapp.icon = 0;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					badTransactions.push(transaction);
 				});
 			});
 
@@ -199,6 +232,18 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 			});
 
+			it('with integer should fail', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction.asset.dapp.link = 0;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					badTransactions.push(transaction);
+				});
+			});
+
+
 			it('with invalid extension type should fail', function () {
 				var application = node.randomApplication();
 				application.link += '.invalid';
@@ -222,6 +267,17 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.match(/Missing required property: name$/);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with integer should fail', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction.asset.dapp.name = 0;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -264,6 +320,17 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with integer should fail', function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction.asset.dapp.tags = 0;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.not.ok;
+					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer');
+					badTransactions.push(transaction);
 				});
 			});
 
