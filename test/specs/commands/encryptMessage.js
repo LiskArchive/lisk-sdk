@@ -72,8 +72,8 @@ describe('encrypt message command', () => {
 															},
 														);
 														Given(
-															'the passphrase and message can be retrieved from their sources',
-															given.thePassphraseAndMessageCanBeRetrievedFromTheirSources,
+															'the passphrase can be retrieved from its source',
+															given.thePassphraseCanBeRetrievedFromItsSource,
 															() => {
 																When(
 																	'the action is called with the recipient, the message and the options',

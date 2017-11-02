@@ -267,6 +267,11 @@ export function tearDownCommandSet() {
 	restoreEnvVariable(NON_INTERACTIVE_MODE).call(this);
 }
 
+export function setUpCommandSignMessage() {
+	setUpCryptoStubs();
+	setUpInputStubs();
+}
+
 export function setUpUtilConfig() {
 	setUpEnvVariable(EXEC_FILE_CHILD).call(this);
 	setUpEnvVariable(LISKY_CONFIG_DIR).call(this);
