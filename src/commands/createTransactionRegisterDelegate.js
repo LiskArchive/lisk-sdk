@@ -22,11 +22,11 @@ import { createCommand } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
-const description = `Creates a transaction which will register a delegate for an existing account if broadcast to the network.
+const description = `CCreates a transaction which will register an existing account as a delegate candidate if broadcast to the network.
 
 	Examples:
-	- create transaction register delegate
-	- create transaction 2
+	- create transaction register delegate username
+	- create transaction 2 username
 `;
 
 const createDelegate = username => ([passphrase, secondPassphrase]) =>
