@@ -48,7 +48,7 @@ describe('GET /api/peers', function () {
 				var params = 'ip=' + ip;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['ip'], 'Object didn\'t pass validation for format ip: invalid');
+					shared.expectParameterResponse(res, ['ip'], 'Object didn\'t pass validation for format ip: invalid');
 					done();
 				});
 			});
@@ -89,7 +89,7 @@ describe('GET /api/peers', function () {
 				var params = 'port=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['port'], 'Value 0 is less than minimum 1');
+					shared.expectParameterResponse(res, ['port'], 'Value 0 is less than minimum 1');
 					done();
 				});
 			});
@@ -99,7 +99,7 @@ describe('GET /api/peers', function () {
 				var params = 'port=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['port'], 'Value 65536 is greater than maximum 65535');
+					shared.expectParameterResponse(res, ['port'], 'Value 65536 is greater than maximum 65535');
 					done();
 				});
 			});
@@ -130,7 +130,7 @@ describe('GET /api/peers', function () {
 				var params = 'httpPort=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['httpPort'], 'Value 0 is less than minimum 1');
+					shared.expectParameterResponse(res, ['httpPort'], 'Value 0 is less than minimum 1');
 					done();
 				});
 			});
@@ -140,7 +140,7 @@ describe('GET /api/peers', function () {
 				var params = 'httpPort=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['httpPort'], 'Value 65536 is greater than maximum 65535');
+					shared.expectParameterResponse(res, ['httpPort'], 'Value 65536 is greater than maximum 65535');
 					done();
 				});
 			});
@@ -192,7 +192,7 @@ describe('GET /api/peers', function () {
 				var params = 'state=' + state;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['state'], 'Value 3 is greater than maximum 2');
+					shared.expectParameterResponse(res, ['state'], 'Value 3 is greater than maximum 2');
 					done();
 				});
 			});
@@ -223,7 +223,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 9999.999.999');
+					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 9999.999.999');
 					done();
 				});
 			});
@@ -233,7 +233,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.9999.999');
+					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.9999.999');
 					done();
 				});
 			});
@@ -243,7 +243,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.999.9999');
+					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.999.9999');
 					done();
 				});
 			});
@@ -253,7 +253,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.999.999ab');
+					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.999.999ab');
 					done();
 				});
 			});
@@ -284,7 +284,7 @@ describe('GET /api/peers', function () {
 				var params = 'broadhash=' + broadhash;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['broadhash'], 'Object didn\'t pass validation for format hex: invalid');
+					shared.expectParameterResponse(res, ['broadhash'], 'Object didn\'t pass validation for format hex: invalid');
 					done();
 				});
 			});
@@ -346,7 +346,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['limit'], 'Expected type integer but found type string');
+					shared.expectParameterResponse(res, ['limit'], 'Expected type integer but found type string');
 					done();
 				});
 			});
@@ -356,7 +356,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['limit'], 'Value -1 is less than minimum 1');
+					shared.expectParameterResponse(res, ['limit'], 'Value -1 is less than minimum 1');
 					done();
 				});
 			});
@@ -366,7 +366,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['limit'], 'Value 0 is less than minimum 1');
+					shared.expectParameterResponse(res, ['limit'], 'Value 0 is less than minimum 1');
 					done();
 				});
 			});
@@ -398,7 +398,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['limit'], 'Value 101 is greater than maximum 100');
+					shared.expectParameterResponse(res, ['limit'], 'Value 101 is greater than maximum 100');
 					done();
 				});
 			});
@@ -411,7 +411,7 @@ describe('GET /api/peers', function () {
 				var params = 'offset=' + offset;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['offset'], 'Expected type integer but found type string');
+					shared.expectParameterResponse(res, ['offset'], 'Expected type integer but found type string');
 					done();
 				});
 			});
@@ -421,7 +421,7 @@ describe('GET /api/peers', function () {
 				var params = 'offset=' + offset;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.validateParameterResponse(res, ['offset'], 'Value -1 is less than minimum 0');
+					shared.expectParameterResponse(res, ['offset'], 'Value -1 is less than minimum 0');
 					done();
 				});
 			});
