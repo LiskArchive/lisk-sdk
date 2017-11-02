@@ -36,6 +36,10 @@ var liskFormats = {
 		return /^[0-9]+$/g.test(str);
 	}, 
 
+	additionalData: function (str) {
+		return Buffer.from(str).length <= 64;
+	},
+
 	address: function (str) {
 		if (str.length === 0) {
 			return true;

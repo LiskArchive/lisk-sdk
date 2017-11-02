@@ -189,6 +189,7 @@ Transfer.prototype.schema = {
 	properties: {
 		data: {
 			type: 'string',
+			format: 'additionalData',
 			minLength: 1,
 			maxLength: 64
 		}

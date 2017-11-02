@@ -5,6 +5,33 @@ var validator = new Z_schema();
 var expect = node.expect;
 
 describe('schema - custom formats', function () {
+
+	describe('additionalData', function () {
+		var schema = {
+			format: 'additionalData'
+		};
+
+		it('should return false if string is longer than maxLength (either chars or bytes)', function () {
+			var invalidData = [];
+			invalidData.push(node.randomString.generate(63) + '现');
+			invalidData.push(node.randomString.generate(64 + 1));
+
+			invalidData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(false);
+			});
+		});
+
+		it('should return true if string is between minLength and maxLength', function () {
+			var validData = [];
+			validData.push(node.randomString.generate(1));
+			validData.push(node.randomString.generate(64));
+
+			validData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(true);
+			});
+		});
+	});
+
 	describe('hex', function () {
 		var schema = {
 			format: 'hex'
