@@ -4,7 +4,6 @@ var _ = require('lodash');
 var scClient = require('socketcluster-client');
 
 var node = require('../../../node.js');
-var shared = require('../../shared');
 var http = require('../../../common/httpCommunication.js');
 var peersSortFields = require('../../../../sql/peers').sortFields;
 var wsServer = require('../../../common/wsServer');
@@ -40,7 +39,7 @@ describe('GET /api/peers', function () {
 	});
 
 	describe('GET /api/peers', function () {
-		
+
 		describe('ip', function () {
 
 			it('using invalid ip should fail', function (done) {
@@ -48,7 +47,7 @@ describe('GET /api/peers', function () {
 				var params = 'ip=' + ip;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['ip'], 'Object didn\'t pass validation for format ip: invalid');
+					node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format ip: invalid');
 					done();
 				});
 			});
@@ -89,7 +88,7 @@ describe('GET /api/peers', function () {
 				var params = 'port=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['port'], 'Value 0 is less than minimum 1');
+					node.expect(res.body).to.have.property('message').to.equal('Value 0 is less than minimum 1');
 					done();
 				});
 			});
@@ -99,7 +98,7 @@ describe('GET /api/peers', function () {
 				var params = 'port=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['port'], 'Value 65536 is greater than maximum 65535');
+					node.expect(res.body).to.have.property('message').to.equal('Value 65536 is greater than maximum 65535');
 					done();
 				});
 			});
@@ -130,7 +129,7 @@ describe('GET /api/peers', function () {
 				var params = 'httpPort=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['httpPort'], 'Value 0 is less than minimum 1');
+					node.expect(res.body).to.have.property('message').to.equal('Value 0 is less than minimum 1');
 					done();
 				});
 			});
@@ -140,7 +139,7 @@ describe('GET /api/peers', function () {
 				var params = 'httpPort=' + port;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['httpPort'], 'Value 65536 is greater than maximum 65535');
+					node.expect(res.body).to.have.property('message').to.equal('Value 65536 is greater than maximum 65535');
 					done();
 				});
 			});
@@ -192,7 +191,7 @@ describe('GET /api/peers', function () {
 				var params = 'state=' + state;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['state'], 'Value 3 is greater than maximum 2');
+					node.expect(res.body).to.have.property('message').to.equal('Value 3 is greater than maximum 2');
 					done();
 				});
 			});
@@ -223,7 +222,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 9999.999.999');
+					node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 9999.999.999');
 					done();
 				});
 			});
@@ -233,7 +232,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.9999.999');
+					node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 999.9999.999');
 					done();
 				});
 			});
@@ -243,7 +242,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.999.9999');
+					node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 999.999.9999');
 					done();
 				});
 			});
@@ -253,7 +252,7 @@ describe('GET /api/peers', function () {
 				var params = 'version=' + version;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['version'], 'Object didn\'t pass validation for format version: 999.999.999ab');
+					node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format version: 999.999.999ab');
 					done();
 				});
 			});
@@ -284,7 +283,7 @@ describe('GET /api/peers', function () {
 				var params = 'broadhash=' + broadhash;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['broadhash'], 'Object didn\'t pass validation for format hex: invalid');
+					node.expect(res.body).to.have.property('message').to.equal('Object didn\'t pass validation for format hex: invalid');
 					done();
 				});
 			});
@@ -346,7 +345,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['limit'], 'Expected type integer but found type string');
+					node.expect(res.body).to.have.property('message').to.equal('Expected type integer but found type string');
 					done();
 				});
 			});
@@ -356,7 +355,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['limit'], 'Value -1 is less than minimum 1');
+					node.expect(res.body).to.have.property('message').to.equal('Value -1 is less than minimum 1');
 					done();
 				});
 			});
@@ -366,7 +365,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['limit'], 'Value 0 is less than minimum 1');
+					node.expect(res.body).to.have.property('message').to.equal('Value 0 is less than minimum 1');
 					done();
 				});
 			});
@@ -398,7 +397,7 @@ describe('GET /api/peers', function () {
 				var params = 'limit=' + limit;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['limit'], 'Value 101 is greater than maximum 100');
+					node.expect(res.body).to.have.property('message').to.equal('Value 101 is greater than maximum 100');
 					done();
 				});
 			});
@@ -411,7 +410,7 @@ describe('GET /api/peers', function () {
 				var params = 'offset=' + offset;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['offset'], 'Expected type integer but found type string');
+					node.expect(res.body).to.have.property('message').to.equal('Expected type integer but found type string');
 					done();
 				});
 			});
@@ -421,7 +420,7 @@ describe('GET /api/peers', function () {
 				var params = 'offset=' + offset;
 
 				http.get('/api/peers?' + params, function (err, res) {
-					shared.expectParameterResponse(res, ['offset'], 'Value -1 is less than minimum 0');
+					node.expect(res.body).to.have.property('message').to.equal('Value -1 is less than minimum 0');
 					done();
 				});
 			});
@@ -441,7 +440,7 @@ describe('GET /api/peers', function () {
 
 			describe('when query is malformed', function () {
 
-				var invalidParams = 'httpPort="invalidValue"';
+				var invalidParams = 'port="invalidValue"';
 
 				it('should return http code = 400', function (done) {
 					http.get('/api/peers?' + invalidParams, function (err, res) {

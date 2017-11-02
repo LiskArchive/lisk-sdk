@@ -1,7 +1,6 @@
 'use strict';
 
 var node = require('../node');
-var _ = require('lodash');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
@@ -197,15 +196,10 @@ function MultisigScenario (size, amount) {
 	this.amount = amount || 100000000000;
 }
 
-function expectParameterResponse (res, paramNames, message) {
-	node.expect(res.body).to.have.property('message').to.equal(message);
-}
-
 module.exports = {
 	tests: tests,
 	confirmationPhase: confirmationPhase,
 	invalidTransactions: invalidTransactions,
-	MultisigScenario: MultisigScenario,
 	invalidAssets: invalidAssets,
-	expectParameterResponse: expectParameterResponse
+	MultisigScenario: MultisigScenario
 };
