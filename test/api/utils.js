@@ -33,40 +33,6 @@ describe('api utils module', () => {
 			.resolves(Object.assign({}, sendRequestResult));
 	});
 
-	describe('#trimObj', () => {
-		const { trimObj } = utils;
-
-		it('should not trim strings', () => {
-			const str = '  string ';
-			const trimmedString = trimObj(str);
-			trimmedString.should.be.equal(str);
-		});
-
-		it('should convert integers to strings', () => {
-			const trimmedInteger = trimObj(123);
-			trimmedInteger.should.be.eql('123');
-		});
-
-		it('should convert nested integers to strings', () => {
-			const trimmedObject = trimObj({ myObj: 2 });
-			trimmedObject.should.be.eql({ myObj: '2' });
-		});
-
-		it('should remove whitespace from keys and values', () => {
-			const trimmedObject = trimObj({ '  my_Obj ': '  my val ' });
-			trimmedObject.should.be.eql({ my_Obj: 'my val' }); // eslint-disable-line camelcase
-		});
-
-		it('should trim each member of an array', () => {
-			const trimmedArray = trimObj([
-				'  string ',
-				{ ' key  ': ' value   ' },
-				['  array item '],
-			]);
-			trimmedArray.should.be.eql(['string', { key: 'value' }, ['array item']]);
-		});
-	});
-
 	describe('#toQueryString', () => {
 		const { toQueryString } = utils;
 
@@ -123,26 +89,6 @@ describe('api utils module', () => {
 		it('should return the options if they are all ok', () => {
 			const result = checkOptions(Object.assign({}, goodOptions));
 			result.should.be.eql(goodOptions);
-		});
-	});
-
-	describe('#serialiseHTTPData', () => {
-		const { serialiseHTTPData } = utils;
-		const queryStringData = 'key%2F1=value%20%252&key3=4';
-
-		let data;
-		let serialisedData;
-
-		beforeEach(() => {
-			data = {
-				' key/1 ': '  value %2',
-				key3: 4,
-			};
-			serialisedData = serialiseHTTPData(data);
-		});
-
-		it('should trim, escape, and prepend a question mark to the query string', () => {
-			serialisedData.should.equal(`?${queryStringData}`);
 		});
 	});
 
