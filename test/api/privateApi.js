@@ -132,7 +132,7 @@ describe('privateApi module', () => {
 		});
 
 		it('should get the URL prefix', () => {
-			getURLPrefixStub.calledOn(LSK).should.be.true();
+			getURLPrefixStub.should.be.calledOn(LSK);
 		});
 
 		it('should add the prefix to the node URL and the port', () => {
@@ -225,7 +225,7 @@ describe('privateApi module', () => {
 
 		it('should get nodes', () => {
 			getRandomNode.call(LSK);
-			getNodesStub.calledOn(LSK).should.be.true();
+			getNodesStub.should.be.calledOn(LSK);
 		});
 
 		it('should return a node', () => {
@@ -295,7 +295,7 @@ describe('privateApi module', () => {
 
 				it('should call getRandomNode', () => {
 					selectNewNode.call(LSK);
-					getRandomNodeStub.calledOn(LSK).should.be.true();
+					getRandomNodeStub.should.be.calledOn(LSK);
 				});
 
 				it('should return a random node', () => {
@@ -331,7 +331,7 @@ describe('privateApi module', () => {
 
 				it('should call getRandomNode', () => {
 					selectNewNode.call(LSK);
-					getRandomNodeStub.calledOn(LSK).should.be.true();
+					getRandomNodeStub.should.be.calledOn(LSK);
 				});
 
 				it('should return a random node', () => {
@@ -387,7 +387,7 @@ describe('privateApi module', () => {
 
 			it('should get nodes', () => {
 				hasAvailableNodes.call(LSK);
-				getNodesStub.calledOn(LSK).should.be.true();
+				getNodesStub.should.be.calledOn(LSK);
 			});
 
 			it('should return false without nodes left', () => {
@@ -519,9 +519,11 @@ describe('privateApi module', () => {
 
 		it('should create a request object', () => {
 			createRequestObjectStub.calledOn(LSK).should.be.true();
-			createRequestObjectStub
-				.calledWithExactly(defaultMethod, defaultEndpoint, options)
-				.should.be.true();
+			createRequestObjectStub.should.be.calledWithExactly(
+				defaultMethod,
+				defaultEndpoint,
+				options,
+			);
 		});
 
 		it('should return the result of a popsicle request', () => {
@@ -591,9 +593,11 @@ describe('privateApi module', () => {
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
 				.then(returnValue => {
 					returnValue.should.be.eql(sendRequestResult);
-					sendRequestStub
-						.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions)
-						.should.be.true();
+					sendRequestStub.should.be.calledWithExactly(
+						defaultMethod,
+						defaultEndpoint,
+						expectedOptions,
+					);
 				});
 		});
 
@@ -603,9 +607,11 @@ describe('privateApi module', () => {
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
 				.then(returnValue => {
 					returnValue.should.be.eql(sendRequestResult);
-					sendRequestStub
-						.calledWithExactly(defaultMethod, defaultEndpoint, expectedOptions)
-						.should.be.true();
+					sendRequestStub.should.be.calledWithExactly(
+						defaultMethod,
+						defaultEndpoint,
+						expectedOptions,
+					);
 				});
 		});
 	});
@@ -659,7 +665,7 @@ describe('privateApi module', () => {
 				return handleSendRequestFailures
 					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						banActiveNodeSpy.calledOn(LSK).should.be.true();
+						banActiveNodeSpy.should.be.calledOn(LSK);
 					});
 			});
 
@@ -668,7 +674,7 @@ describe('privateApi module', () => {
 				return handleSendRequestFailures
 					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						banActiveNodeSpy.calledOn(LSK).should.be.false();
+						banActiveNodeSpy.should.not.be.calledOn(LSK);
 					});
 			});
 
@@ -676,7 +682,7 @@ describe('privateApi module', () => {
 				return handleSendRequestFailures
 					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						setNodeSpy.calledOnce.should.be.true();
+						setNodeSpy.should.be.calledOnce();
 					});
 			});
 
@@ -684,9 +690,11 @@ describe('privateApi module', () => {
 				return handleSendRequestFailures
 					.call(LSK, defaultMethod, defaultEndpoint, options, error)
 					.then(() => {
-						sendRequestStub
-							.calledWithExactly(defaultMethod, defaultEndpoint, options)
-							.should.be.true();
+						sendRequestStub.should.be.calledWithExactly(
+							defaultMethod,
+							defaultEndpoint,
+							options,
+						);
 					});
 			});
 

@@ -15,6 +15,7 @@
 import 'babel-polyfill';
 import should from 'should';
 import sinon from 'sinon';
+import 'should-sinon';
 import naclFactory from 'js-nacl';
 
 process.env.NODE_ENV = 'test';
