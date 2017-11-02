@@ -13,7 +13,6 @@
  *
  */
 import transferOutOfDapp from '../../src/transactions/7_transferOutOfDapp';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -26,8 +25,6 @@ describe('#transferOutOfDapp', () => {
 	const secondSecret = 'secondSecret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const secondPublicKey =
-		'8b509500d5950122b3e446189b4312805515c8e7814a409e09ac5c21935564af';
 	const amount = (10 * fixedPoint).toString();
 	const sendFee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
@@ -42,7 +39,7 @@ describe('#transferOutOfDapp', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with one secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			transferOutOfDappTransaction = transferOutOfDapp({
 				dappId,
@@ -132,19 +129,8 @@ describe('#transferOutOfDapp', () => {
 					.and.be.hexString();
 			});
 
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(
-					transferOutOfDappTransaction,
-				);
-				result.should.be.ok();
-			});
-
-			it('should not be signed correctly if modified', () => {
-				transferOutOfDappTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					transferOutOfDappTransaction,
-				);
-				result.should.be.not.ok();
+			it('should not have the second signature property', () => {
+				transferOutOfDappTransaction.should.not.have.property('signSignature');
 			});
 
 			it('should have an asset object', () => {
@@ -170,7 +156,7 @@ describe('#transferOutOfDapp', () => {
 			});
 		});
 
-		describe('with second secret', () => {
+		describe('with first and second secret', () => {
 			beforeEach(() => {
 				transferOutOfDappTransaction = transferOutOfDapp({
 					dappId,
@@ -182,45 +168,10 @@ describe('#transferOutOfDapp', () => {
 				});
 			});
 
-			it('should create a transfer out of dapp transaction with a second secret', () => {
-				const transferOutOfDappTransactionWithoutSecondSecret = transferOutOfDapp(
-					{
-						dappId,
-						transactionId,
-						recipientId,
-						amount,
-						secret,
-					},
-				);
-				transferOutOfDappTransaction.should.be.ok();
-				transferOutOfDappTransaction.should.not.be.equal(
-					transferOutOfDappTransactionWithoutSecondSecret,
-				);
-			});
-
-			describe('returned transfer out of dapp transaction', () => {
-				it('should have second signature hex string', () => {
-					transferOutOfDappTransaction.should.have
-						.property('signSignature')
-						.and.be.hexString();
-				});
-
-				it('should be second signed correctly', () => {
-					const result = cryptoModule.verifyTransaction(
-						transferOutOfDappTransaction,
-						secondPublicKey,
-					);
-					result.should.be.ok();
-				});
-
-				it('should not be second signed correctly if modified', () => {
-					transferOutOfDappTransaction.amount = 100;
-					const result = cryptoModule.verifyTransaction(
-						transferOutOfDappTransaction,
-						secondPublicKey,
-					);
-					result.should.not.be.ok();
-				});
+			it('should have the second signature property as hex string', () => {
+				transferOutOfDappTransaction.should.have
+					.property('signSignature')
+					.and.be.hexString();
 			});
 		});
 	});
