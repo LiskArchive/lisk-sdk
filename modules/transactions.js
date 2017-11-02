@@ -423,13 +423,13 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 
 /**
  * Adds a transaction to pool list. It will be processed later by processPool worker.
- * @implements {transactionPool.addToUnverified}
+ * @implements {transactionPool.add}
  * @param {transaction} transaction
  * @param {boolean} broadcast
  * @param {function} cb - Callback function.
  */
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	return __private.transactionPool.addToUnverified(transaction, broadcast, cb);
+	return __private.transactionPool.add(transaction, broadcast, cb);
 };
 
 /**
@@ -552,10 +552,10 @@ Transactions.prototype.receiveTransactions = function (transactions, broadcast, 
 /**
  * Fills pool.
  * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.fillPool
+ * @return {function} Calls transactionPool.processPool
  */
-Transactions.prototype.fillPool = function (cb) {
-	return __private.transactionPool.fillPool(cb);
+Transactions.prototype.processPool = function (cb) {
+	return __private.transactionPool.processPool(cb);
 };
 
 /**

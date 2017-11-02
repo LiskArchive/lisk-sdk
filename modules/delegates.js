@@ -591,7 +591,7 @@ Delegates.prototype.onRoundChanged = function (data) {
 
 /**
  * Loads delegates.
- * @implements module:transactions#Transactions~fillPool
+ * @implements module:transactions#Transactions~processPool
  */
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
@@ -607,7 +607,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 			async.waterfall([
 				__private.forge,
-				modules.transactions.fillPool
+				modules.transactions.processPool
 			], function () {
 				return setImmediate(cb);
 			});
