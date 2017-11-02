@@ -95,6 +95,19 @@ export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheA
 	return returnValue.should.be.fulfilledWith(expectedObject);
 }
 
+export function theSignatureShouldBeReturned() {
+	const { returnValue, signature } = this.test.ctx;
+	return returnValue.should.be.eql(signature);
+}
+
+export function liskJSCryptoShouldBeUsedToSignTheMessage() {
+	const { message, passphrase } = this.test.ctx;
+	return lisk.crypto.signMessageWithPassphrase.should.be.calledWithExactly(
+		message,
+		passphrase,
+	);
+}
+
 export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
 	const { keys: { publicKey } } = this.test.ctx;
 	return lisk.crypto.getAddressFromPublicKey.should.be.calledWithExactly(

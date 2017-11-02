@@ -147,6 +147,33 @@ describe('Crypto class', () => {
 					);
 				});
 				Given('a message "Hello Lisker"', given.aMessage, () => {
+					describe('#signMessage', () => {
+						describe('Given the message under the passphrase has signature "H+9koLx4AZoEupc1z5TBQDaDkI9KQu1QDPXWXxzVvhaXGDi/2BD0qypVJu596CrZ+XHuUAdx2wLZgyN/ZfqfAQ=="', () => {
+							beforeEach(given.theMessageUnderThePassphraseHasSignature);
+							describe('When no error occurs attempting to sign the message using the passphrase', () => {
+								beforeEach(
+									when.noErrorOccursAttemptingToSignTheMessageUsingThePassphrase,
+								);
+								it(
+									'Then lisk-js crypto should be used to sign the message',
+									then.liskJSCryptoShouldBeUsedToSignTheMessage,
+								);
+								it(
+									'Then the signature should be returned',
+									then.theSignatureShouldBeReturned,
+								);
+							});
+							describe('When an error occurs attempting to sign the message using the passphrase', () => {
+								beforeEach(
+									when.anErrorOccursAttemptingToSignTheMessageUsingThePassphrase,
+								);
+								it(
+									'Then the error response should be handled',
+									then.theErrorResponseShouldBeHandled,
+								);
+							});
+						});
+					});
 					Given(
 						'a recipient passphrase "polar save winner any focus slide runway ghost finish invite regret laugh" with private key "08595f178e7470ad2cbe054b29f60311a0f808be969cde6c274819580a428dcd31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25" and public key "31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25"',
 						given.aRecipientPassphraseWithPrivateKeyAndPublicKey,

@@ -98,12 +98,13 @@ function setUpLiskJSAPIStubs() {
 
 const setUpLiskJSCryptoStubs = () => {
 	[
-		'getKeys',
-		'encryptPassphraseWithPassword',
-		'decryptPassphraseWithPassword',
 		'encryptMessageWithPassphrase',
 		'decryptMessageWithPassphrase',
+		'encryptPassphraseWithPassword',
+		'decryptPassphraseWithPassword',
+		'getKeys',
 		'getAddressFromPublicKey',
+		'signMessageWithPassphrase',
 	].forEach(methodName => sandbox.stub(lisk.crypto, methodName));
 };
 
@@ -115,6 +116,7 @@ const setUpCryptoStubs = () => {
 		'decryptPassphrase',
 		'getKeys',
 		'getAddressFromPublicKey',
+		'signMessage',
 	].forEach(methodName => sandbox.stub(cryptoInstance, methodName));
 };
 

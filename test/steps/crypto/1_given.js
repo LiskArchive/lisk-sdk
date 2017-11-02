@@ -18,6 +18,11 @@ import cryptoInstance from '../../../src/utils/cryptoModule';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
 
+export function theMessageUnderThePassphraseHasSignature() {
+	const signature = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.signature = signature;
+}
+
 export function aCryptoInstance() {
 	this.test.ctx.cryptoInstance = cryptoInstance;
 }
@@ -34,6 +39,7 @@ export function aCryptoInstanceHasBeenInitialised() {
 		'decryptPassphrase',
 		'getKeys',
 		'getAddressFromPublicKey',
+		'signMessage',
 	].forEach(methodName => cryptoInstance[methodName].returns(cryptoResult));
 
 	this.test.ctx.cryptoResult = cryptoResult;
