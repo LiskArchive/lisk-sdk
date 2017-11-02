@@ -20,7 +20,7 @@ import cryptoModule from '../crypto';
 import { SEND_FEE, DATA_FEE } from '../constants';
 import {
 	prepareTransaction,
-	checkRecipientIdAndRecipientPublicKey,
+	getAddressAndPublicKeyFromRecipientData,
 } from './utils';
 import { getTimeWithOffset } from './utils/time';
 
@@ -47,7 +47,7 @@ export default function send({
 	data,
 	timeOffset,
 }) {
-	const { address, publicKey } = checkRecipientIdAndRecipientPublicKey({
+	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({
 		recipientId,
 		recipientPublicKey,
 	});

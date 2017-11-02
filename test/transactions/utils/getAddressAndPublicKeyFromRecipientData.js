@@ -12,38 +12,38 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { checkRecipientIdAndRecipientPublicKey } from '../../../src/transactions/utils';
+import { getAddressAndPublicKeyFromRecipientData } from '../../../src/transactions/utils';
 
-describe('#checkRecipientIdAndRecipientPublicKey', () => {
+describe('#getAddressAndPublicKeyFromRecipientData', () => {
 	const recipientId = '18160565574430594874L';
 	const recipientPublicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const malformedRecipientPublicKey =
+	const recipientPublicKeyThatDoesNotMatchRecipientId =
 		'12345a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 
-	describe('it should check if a given recipientId and recipientPublicKey match', () => {
+	describe('When both recipientPublicKey and an address are given', () => {
 		it('when they match, it should return the address and publicKey', () => {
-			checkRecipientIdAndRecipientPublicKey({
+			getAddressAndPublicKeyFromRecipientData({
 				recipientId,
 				recipientPublicKey,
 			}).should.be.eql({ address: recipientId, publicKey: recipientPublicKey });
 		});
 
 		it('when they do not match, it should throw', () => {
-			checkRecipientIdAndRecipientPublicKey
+			getAddressAndPublicKeyFromRecipientData
 				.bind(null, {
 					recipientId,
-					recipientPublicKey: malformedRecipientPublicKey,
+					recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
 				})
 				.should.throw(
-					'RecipientId and recipientPublicKey do not match. Please check.',
+					'Could not create transaction: recipientId does not match recipientPublicKey.',
 				);
 		});
 	});
 
 	describe('When a recipientPublicKey and no address is given', () => {
 		it('it should return the address and the publicKey', () => {
-			checkRecipientIdAndRecipientPublicKey({
+			getAddressAndPublicKeyFromRecipientData({
 				recipientPublicKey,
 			}).should.be.eql({ address: recipientId, publicKey: recipientPublicKey });
 		});
@@ -51,7 +51,7 @@ describe('#checkRecipientIdAndRecipientPublicKey', () => {
 
 	describe('When an address is given but no publicKey', () => {
 		it('it should return the address and null for the publicKey', () => {
-			checkRecipientIdAndRecipientPublicKey({ recipientId }).should.be.eql({
+			getAddressAndPublicKeyFromRecipientData({ recipientId }).should.be.eql({
 				address: recipientId,
 				publicKey: null,
 			});

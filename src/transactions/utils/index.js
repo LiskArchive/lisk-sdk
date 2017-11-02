@@ -13,8 +13,8 @@
  *
  */
 export {
-	default as checkRecipientIdAndRecipientPublicKey,
-} from './checkRecipientIdAndRecipientPublicKey';
+	default as getAddressAndPublicKeyFromRecipientData,
+} from './getAddressAndPublicKeyFromRecipientData';
 export { default as getTransactionBytes } from './getTransactionBytes';
 export { default as getTransactionHash } from './getTransactionHash';
 export { default as prepareTransaction } from './prepareTransaction';

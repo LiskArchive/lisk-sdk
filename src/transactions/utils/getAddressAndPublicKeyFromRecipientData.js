@@ -15,14 +15,14 @@
 import crypto from '../../crypto';
 
 /**
-* @method checkRecipientIdAndRecipientPublicKey
+* @method getAddressAndPublicKeyFromRecipientData
 * @param {String} recipientId
 * @param {String} recipientPublicKey
 *
 * @return {String}
 */
 
-export default function checkRecipientIdAndRecipientPublicKey({
+export default function getAddressAndPublicKeyFromRecipientData({
 	recipientId,
 	recipientPublicKey,
 }) {
@@ -34,11 +34,11 @@ export default function checkRecipientIdAndRecipientPublicKey({
 			return { address: recipientId, publicKey: recipientPublicKey };
 		}
 		throw new Error(
-			'RecipientId and recipientPublicKey do not match. Please check.',
+			'Could not create transaction: recipientId does not match recipientPublicKey.',
 		);
 	}
 
-	if (recipientId === undefined && recipientPublicKey) {
+	if (!recipientId && recipientPublicKey) {
 		const addressFromPublicKey = crypto.getAddressFromPublicKey(
 			recipientPublicKey,
 		);
