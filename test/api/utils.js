@@ -148,41 +148,38 @@ describe('api utils module', () => {
 		describe('returned function', () => {
 			it('should call the provided getData function on the provided value and options', () => {
 				return returnedFunction.call(LSK, value, options).then(() => {
-					getDataFnStub.calledWithExactly(value, options).should.be.true();
+					getDataFnStub.should.be.calledWithExactly(value, options);
 				});
 			});
 
 			it('should construct request data using the provided data and options', () => {
 				return returnedFunction.call(LSK, value, options).then(() => {
-					constructRequestDataStub
-						.calledWithExactly(getDataFnResult, options)
-						.should.be.true();
+					constructRequestDataStub.should.be.calledWithExactly(
+						getDataFnResult,
+						options,
+					);
 				});
 			});
 
 			it('should send a request with the constructed data and a callback if options are provided', () => {
 				return returnedFunction.call(LSK, value, options, callback).then(() => {
-					sendRequestStub
-						.calledWithExactly(
-							defaultMethod,
-							defaultEndpoint,
-							constructRequestDataResult,
-							callback,
-						)
-						.should.be.true();
+					sendRequestStub.should.be.calledWithExactly(
+						defaultMethod,
+						defaultEndpoint,
+						constructRequestDataResult,
+						callback,
+					);
 				});
 			});
 
 			it('should send a request with the constructed data and a callback if options are not provided', () => {
 				return returnedFunction.call(LSK, value, callback).then(() => {
-					sendRequestStub
-						.calledWithExactly(
-							defaultMethod,
-							defaultEndpoint,
-							constructRequestDataResult,
-							callback,
-						)
-						.should.be.true();
+					sendRequestStub.should.be.calledWithExactly(
+						defaultMethod,
+						defaultEndpoint,
+						constructRequestDataResult,
+						callback,
+					);
 				});
 			});
 
@@ -269,7 +266,7 @@ describe('api utils module', () => {
 
 		it('should call the callback with the result if callback is a function', () => {
 			optionallyCallCallback(spy, result);
-			spy.calledWithExactly(result).should.be.true();
+			spy.should.be.calledWithExactly(result);
 		});
 	});
 });

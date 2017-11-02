@@ -46,7 +46,7 @@ describe('#getTransactionHash', () => {
 	});
 
 	it('should get transaction bytes', () => {
-		transactionBytesStub.calledWithExactly(transaction).should.be.true();
+		transactionBytesStub.should.be.calledWithExactly(transaction);
 	});
 
 	it('should return a hash for a transaction object as a Buffer', () => {

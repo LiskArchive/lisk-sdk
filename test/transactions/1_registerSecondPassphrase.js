@@ -13,7 +13,6 @@
  *
  */
 import registerSecondPassphrase from '../../src/transactions/1_registerSecondPassphrase';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -48,14 +47,14 @@ describe('#registerSecondPassphrase transaction', () => {
 	});
 
 	it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-		getTimeWithOffsetStub.calledWithExactly(undefined).should.be.true();
+		getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 	});
 
 	it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 		const offset = -10;
 		registerSecondPassphrase({ secret, secondSecret, timeOffset: offset });
 
-		getTimeWithOffsetStub.calledWithExactly(offset).should.be.true();
+		getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 	});
 
 	describe('returned register second passphrase transaction', () => {
@@ -114,21 +113,6 @@ describe('#registerSecondPassphrase transaction', () => {
 			registerSecondPassphraseTransaction.should.have
 				.property('signature')
 				.and.be.hexString();
-		});
-
-		it('should be signed correctly', () => {
-			const result = cryptoModule.verifyTransaction(
-				registerSecondPassphraseTransaction,
-			);
-			result.should.be.ok();
-		});
-
-		it('should not be signed correctly if modified', () => {
-			registerSecondPassphraseTransaction.amount = 100;
-			const result = cryptoModule.verifyTransaction(
-				registerSecondPassphraseTransaction,
-			);
-			result.should.be.not.ok();
 		});
 
 		it('should have asset object', () => {

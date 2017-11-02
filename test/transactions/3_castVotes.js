@@ -13,7 +13,6 @@
  *
  */
 import castVotes from '../../src/transactions/3_castVotes';
-import cryptoModule from '../../src/crypto';
 
 const time = require('../../src/transactions/utils/time');
 
@@ -23,8 +22,6 @@ describe('#castVotes transaction', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const publicKeys = [`+${publicKey}`];
-	const secondPublicKey =
-		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
 
@@ -37,7 +34,7 @@ describe('#castVotes transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('without second secret', () => {
+	describe('with first secret', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({ secret, delegates: publicKeys });
 		});
@@ -47,14 +44,14 @@ describe('#castVotes transaction', () => {
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			getTimeWithOffsetStub.calledWithExactly(undefined).should.be.true();
+			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			castVotes({ secret, delegates: publicKeys, timeOffset: offset });
 
-			getTimeWithOffsetStub.calledWithExactly(offset).should.be.true();
+			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		describe('returned cast votes transaction', () => {
@@ -114,15 +111,8 @@ describe('#castVotes transaction', () => {
 					.and.be.hexString();
 			});
 
-			it('should be signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(castVotesTransaction);
-				result.should.be.ok();
-			});
-
-			it('should not be signed correctly if modified', () => {
-				castVotesTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(castVotesTransaction);
-				result.should.be.not.ok();
+			it('should not have the second signature property', () => {
+				castVotesTransaction.should.not.have.property('signSignature');
 			});
 
 			it('should have asset', () => {
@@ -159,7 +149,7 @@ describe('#castVotes transaction', () => {
 		});
 	});
 
-	describe('with second secret', () => {
+	describe('with first and second secret', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({
 				secret,
@@ -168,40 +158,10 @@ describe('#castVotes transaction', () => {
 			});
 		});
 
-		it('should create a vote transaction with a second secret', () => {
-			const castVotesTransactionWithoutSecondSecret = castVotes({
-				secret,
-				delegates: publicKeys,
-			});
-			castVotesTransaction.should.be.ok();
-			castVotesTransaction.should.not.be.equal(
-				castVotesTransactionWithoutSecondSecret,
-			);
-		});
-
-		describe('returned cast votes transaction', () => {
-			it('should have second signature hex string', () => {
-				castVotesTransaction.should.have
-					.property('signSignature')
-					.and.be.hexString();
-			});
-
-			it('should be second signed correctly', () => {
-				const result = cryptoModule.verifyTransaction(
-					castVotesTransaction,
-					secondPublicKey,
-				);
-				result.should.be.ok();
-			});
-
-			it('should not be second signed correctly if modified', () => {
-				castVotesTransaction.amount = 100;
-				const result = cryptoModule.verifyTransaction(
-					castVotesTransaction,
-					secondPublicKey,
-				);
-				result.should.not.be.ok();
-			});
+		it('should have the second signature property as hex string', () => {
+			castVotesTransaction.should.have
+				.property('signSignature')
+				.and.be.hexString();
 		});
 	});
 });
