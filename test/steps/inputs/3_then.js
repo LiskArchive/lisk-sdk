@@ -19,6 +19,10 @@ import {
 	hasAncestorWithTitleMatching,
 } from '../utils';
 
+export function itShouldNotGetTheSecondPassphrase() {
+	return (input.getPassphrase).should.not.be.calledTwice();
+}
+
 export function itShouldGetThePasswordUsingTheSource() {
 	const { options } = this.test.ctx;
 	const firstCallArgs = input.getPassphrase.firstCall.args;

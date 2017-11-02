@@ -23,6 +23,13 @@ import {
 	getFirstQuotedString,
 } from '../utils';
 
+export function theActionIsCalledWithTheDelegateUsernameAndTheOptions() {
+	const { action, delegateUsername: username, options } = this.test.ctx;
+	const returnValue = action({ username, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalledWithTheIVAndTheOptions() {
 	const { action, cipherAndIv: { iv }, options } = this.test.ctx;
 	const returnValue = action({ iv, options });
