@@ -6,6 +6,7 @@ var faker = require('faker');
 
 var maximumString = node.randomString.generate(64);
 var maximumStringPlus1 = node.randomString.generate(64 + 1);
+var overflowedString = node.randomString.generate(63) + '现';
 
 var testCases = [
 	{ describe: 'null', args: null, result: true },
@@ -35,7 +36,8 @@ var testCases = [
 	{ describe: 'phone number', args: faker.phone.phoneNumber(), result: true },
 	{ describe: 'iban', args: faker.finance.iban(), result: true },
 	{ describe: 'maximum chars', args: maximumString, result: true },
-	{ describe: 'maximum chars + 1', args: maximumStringPlus1, result: false }
+	{ describe: 'maximum chars + 1', args: maximumStringPlus1, result: false },
+	{ describe: 'overflowed string', args: overflowedString, result: false }
 ];
 
 module.exports = {
