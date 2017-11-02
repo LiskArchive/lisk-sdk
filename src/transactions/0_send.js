@@ -18,13 +18,17 @@
  */
 import cryptoModule from '../crypto';
 import { SEND_FEE, DATA_FEE } from '../constants';
-import { prepareTransaction } from './utils';
+import {
+	prepareTransaction,
+	getAddressAndPublicKeyFromRecipientData,
+} from './utils';
 import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method createTransaction
  * @param {Object} Object - Object
  * @param {String} Object.recipientId
+ * @param {String} Object.recipientPublicKey
  * @param {String} Object.amount
  * @param {String} Object.secret
  * @param {String} Object.secondSecret
@@ -36,19 +40,25 @@ import { getTimeWithOffset } from './utils/time';
 
 export default function send({
 	recipientId,
+	recipientPublicKey,
 	amount,
 	secret,
 	secondSecret,
 	data,
 	timeOffset,
 }) {
+	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({
+		recipientId,
+		recipientPublicKey,
+	});
 	const keys = cryptoModule.getKeys(secret);
 	const fee = data ? SEND_FEE + DATA_FEE : SEND_FEE;
 	const transaction = {
 		type: 0,
 		amount: amount.toString(),
 		fee: fee.toString(),
-		recipientId,
+		recipientId: address,
+		recipientPublicKey: publicKey,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {},
