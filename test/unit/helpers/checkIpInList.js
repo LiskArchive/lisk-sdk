@@ -9,15 +9,22 @@ var checkIpInList = require('../../../helpers/checkIpInList');
 
 describe('checkIpInList', function () {
 
-	it('should return list because returnListIsEmpty is not a boolean', function () {
+	describe('when returnListIsEmpty is not a boolean', function () {
+		it('should set returnListIsEmpty = true');
 		expect(checkIpInList([], '', 'not a boolean')).to.eq(true);
 	});
 
-	it('return true since the ip list is and returns returnListIsEmpty as false', function () {
+	describe('when list is not an array', function () {
+		it('should return returnListIsEmpty');
 		expect(checkIpInList([], '', false)).to.eq(false);
 	});
 
-	it('return true to finding a subnet', function () {
+	describe('when list is an empty array', function () {
+		it('should return returnListIsEmpty');
+		expect(checkIpInList([], '', false)).to.eq(false);
+	});
+
+	it('should return true to finding a subnet', function () {
 		var ipmock = sinon.mock(ip);
 
 		ipmock.expects('isV4Format').once().withArgs('127.0.0.1').returns(true);
@@ -33,7 +40,7 @@ describe('checkIpInList', function () {
 		ipmock.verify();
 	});
 
-	it('return false because no subnet was found', function () {
+	it('should return false because no subnet was found', function () {
 		var ipmock = sinon.mock(ip);
 
 		ipmock.expects('isV4Format').once().withArgs('127.0.0.1').returns(true);
@@ -49,7 +56,7 @@ describe('checkIpInList', function () {
 		ipmock.verify();
 	});
 
-	it('return true to finding a subnet on V6Format', function () {
+	it('should return true to finding a subnet on V6Format', function () {
 		var ipmock = sinon.mock(ip);
 
 		ipmock.expects('isV4Format').once().withArgs('127.0.0.1').returns(false);
@@ -65,7 +72,7 @@ describe('checkIpInList', function () {
 		ipmock.verify();
 	});
 
-	it('returns true one record fails the others passes', function () {
+	it('should return true one record fails the others passes', function () {
 		var ipmock = sinon.mock(ip);
 
 		ipmock.expects('isV4Format').once().withArgs('127.0.0.1').returns(true);
