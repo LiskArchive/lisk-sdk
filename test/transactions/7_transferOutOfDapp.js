@@ -55,7 +55,7 @@ describe('#transferOutOfDapp', () => {
 		});
 
 		it('should use time.getTimeWithOffset to get the time for the timestamp', () => {
-			getTimeWithOffsetStub.calledWithExactly(undefined).should.be.true();
+			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -68,7 +68,7 @@ describe('#transferOutOfDapp', () => {
 				timeOffset: offset,
 			});
 
-			getTimeWithOffsetStub.calledWithExactly(offset).should.be.true();
+			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		describe('returned out of dapp transfer transaction object', () => {

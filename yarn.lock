@@ -4371,6 +4371,10 @@ should-format@^3.0.2:
     should-type "^1.3.0"
     should-type-adaptors "^1.0.1"
 
+should-sinon@=0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/should-sinon/-/should-sinon-0.0.6.tgz#be041a7c928f44ac9ccf5dc042d032618ce29f84"
+
 should-type-adaptors@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/should-type-adaptors/-/should-type-adaptors-1.0.1.tgz#efe5553cdf68cff66e5c5f51b712dc351c77beaa"
