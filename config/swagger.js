@@ -36,14 +36,22 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		swagger: swagger,
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
-		startWithWarnings: true
+		startWithWarnings: false
 	  };
 
 	  SwaggerRunner.create(swaggerConfig, function (err, runner) {
 		
 		if (err) {
 			// Some error occurred in configuring the swagger
-			cb('Swagger Runner Error : ' + err);
+			if (err.validationErrors) {
+				logger.error('Swagger Validation Errors:');
+				logger.error(err.validationErrors);
+			}
+			if (err.validationWarnings) {
+				logger.error('Swagger Validation Warnings:');
+				logger.error(err.validationWarnings);
+			}
+			cb(err);
 			return;
 		}
 
@@ -62,7 +70,7 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		app.swaggerRunner = runner;
 
 		// Successfully mounted the swagger runner
-		cb(null, { swaggerRunner: runner });
+		cb(null, {swaggerRunner: runner});
 	});
 }
 
