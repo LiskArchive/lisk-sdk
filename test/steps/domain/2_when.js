@@ -22,3 +22,10 @@ export function deAliasIsCalledOnTheType() {
 	const returnValue = deAlias(type);
 	this.test.ctx.returnValue = returnValue;
 }
+
+export function theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions() {
+	const { action, lifetime, keysgroup, minimum, options } = this.test.ctx;
+	const returnValue = action({ lifetime, keysgroup, minimum, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}

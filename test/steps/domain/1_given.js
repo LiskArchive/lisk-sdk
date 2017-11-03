@@ -16,7 +16,23 @@
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
+	getFirstNumber,
 } from '../utils';
+
+export function aKeysgroupWithKeys() {
+	const keys = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.keysgroup = keys;
+}
+
+export function aLifetimeOfHours() {
+	const lifetime = getFirstNumber(this.test.parent.title);
+	this.test.ctx.lifetime = lifetime;
+}
+
+export function aMinimumOfSignatures() {
+	const minimum = getFirstNumber(this.test.parent.title);
+	this.test.ctx.minimum = minimum;
+}
 
 export function anAlias() {
 	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);
