@@ -9,6 +9,7 @@ var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
 var orderBy = require('../helpers/orderBy.js');
 var BlockReward = require('../logic/blockReward.js');
+var Bignum = require('../helpers/bignum.js');
 
 // Private fields
 var self, library, modules, __private = {};
@@ -358,16 +359,30 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: Boolean,
 			immutable: true
+		},
+		{
+			name: 'approval',
+			type: 'integer',
+			dependentFields: [
+				'vote'
+			],
+			computedField: true
+		},
+		{
+			name: 'productivity',
+			type: 'integer',
+			dependentFields: [
+				'producedBlocks',
+				'missedBlocks',
+				'rank'
+			],
+			computedField: true
 		}
 	];
 
-	this.computedFields = [{
-		name: 'approval',
-		type: 'integer'
-	}, {
-		name: 'productivity',
-		type: 'integer'
-	}];
+	this.computedFields = this.model.filter(function (field) {
+		return field.computedField;
+	});
 
 	// Obtains fields from model
 	this.fields = this.model.map(function (field) {
@@ -384,6 +399,8 @@ function Account (db, schema, logger, cb) {
 		if (_tmp.expression || field.alias) {
 			_tmp.alias = field.alias || field.name;
 		}
+
+		_tmp.computedField = field.computedField || false;
 
 		return _tmp;
 	});
@@ -572,17 +589,28 @@ Account.prototype.get = function (filter, fields, cb) {
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
 Account.prototype.getAll = function (filter, fields, cb) {
-	var defaultFields = false;
 	if (typeof(fields) === 'function') {
-		defaultFields = true;
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
 		});
 	}
 
+	var fieldsAddedForComputation = [];
+	this.computedFields.forEach(function (field) {
+		if (fields.indexOf(field.name) !== -1) {
+			field.dependentFields.forEach(function (dependentField) {
+				if (fields.indexOf(dependentField) == -1) {
+					// Add the dependent field to the fields array if it's required.
+					fieldsAddedForComputation.push(dependentField);
+					fields.push(dependentField);
+				}
+			});
+		}
+	});
+
 	var realFields = this.fields.filter(function (field) {
-		return fields.indexOf(field.alias || field.field) !== -1;
+		return !field.computedField && fields.indexOf(field.alias || field.field) !== -1;
 	});
 
 	var realConv = {};
@@ -664,20 +692,32 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		}
 	});
 
+	var self = this;
+
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
 		var lastBlock = modules.blocks.lastBlock.get();
 		// If the last block height is undefined, it means it's a genesis block with height = 1
-		var totalSupply = __private.blockReward.calcSupply(lastBlock.height || 0);
+		// look for aconstant for total suppply
+		var totalSupply = lastBlock.height ? __private.blockReward.calcSupply(lastBlock.height) : 0;
 
-		if (defaultFields || fields.includes('approval')) {
-			rows.map(function (accountRow) {
-				accountRow.approval = __private.calculateApproval(accountRow.vote, totalSupply);
+		if (fields.indexOf('approval') !== -1) {
+			rows.forEach(function (accountRow) {
+				accountRow.approval = self.calculateApproval(accountRow.vote, totalSupply);
 			});
 		}
 
-		if (defaultFields || fields.includes('productivity')) {
-			rows.map(function (accountRow) {
-				accountRow.productivity = __private.calculateProductivity(accountRow.producedBlocks, accountRow.missedblocks, accountRow.rank);
+		if (fields.indexOf('productivity') !== -1) {
+			rows.forEach(function (accountRow) {
+				accountRow.productivity = self.calculateProductivity(accountRow.producedBlocks, accountRow.missedBlocks);
+			});
+		}
+
+		if (fieldsAddedForComputation.length > 0) {
+			// Remove the fields which were only added for computation
+			rows.forEach(function (accountRow) {
+				fieldsAddedForComputation.forEach(function (field) {
+					delete accountRow[field];
+				});
 			});
 		}
 
@@ -688,18 +728,21 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	});
 };
 
-
-__private.calculateApproval = function (votersBalance, totalSupply) {
-	var approval = (votersBalance / totalSupply) * 100;
-	return Math.round(approval * 1e2) / 1e2;
+Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
+	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
+	var votersBalanceBignum = new Bignum(votersBalance || 0);
+	var totalSupplyBignum =  new Bignum(totalSupply);
+	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupply)).times(100).round(2);
+	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
 };
 
-__private.calculateProductivity = function (producedBlocks, missedBlocks, rank) {
-	var outsider = rank + 1 > slots.delegates;
-	var percent = 100 - (missedBlocks / ((producedBlocks + missedBlocks) / 100));
-	percent = Math.abs(percent) || 0;
-	return (!outsider) ? Math.round(percent * 0e2) / 1e2 : 0;
+Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks) {
+	var producedBlocksBignum = new Bignum(producedBlocks || 0);
+	var missedBlocksBignum = new Bignum(missedBlocks || 0);
+	var percent = producedBlocksBignum.dividedBy(producedBlocksBignum.plus(missedBlocksBignum)).times(100).round(2);
+	return !(percent.isNaN()) ? percent.toNumber() : 0;
 };
+
 /**
  * Sets fields for specific address in mem_accounts table.
  * @param {address} address
