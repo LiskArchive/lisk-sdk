@@ -87,6 +87,16 @@ paths:
 definitions:
   Fees:
     type: object
+    required:
+      - send
+      - vote
+      - secondSignature
+      - delegate
+      - multisignature
+      - dappRegistration
+      - dappWithdrawal
+      - dappDeposit
+      - data
     properties:
       send:
         type: string
@@ -112,6 +122,9 @@ definitions:
       dappDeposit:
         type: string
         example: 10000000
+      data:
+          type: string
+          example: 10000000
 
   # State Related Models
   NodeConstants:
@@ -121,6 +134,7 @@ definitions:
     - milestone
     - nethash
     - reward
+    - nonce
     - supply
     - build
     - commit
@@ -129,9 +143,10 @@ definitions:
     properties:
       epoch:
         type: string
+        format: date-time
         example: '2016-05-24T17:00:00.000Z'
       milestone:
-        type: string
+        type: integer
         example: 1081560729258
       build:
         type: string
@@ -139,6 +154,8 @@ definitions:
       commit:
         type: string
         example: 7199d4b67c3575d5f99d1c29436a02977eeb01a7
+        minLength: 40
+        maxLength: 40
       version:
         type: string
         example: v0.8.0
@@ -150,7 +167,12 @@ definitions:
         example: '10575384500000000'
       reward:
         type: string
-        example: 500000000
+        example: '500000000'
+      nonce:
+        type: string
+        example: cJmXK66xxz644d67
+        minLength: 16
+        maxLength: 16
       fees:
         $ref: '#/definitions/Fees'
   NodeStatus:
@@ -168,15 +190,20 @@ definitions:
       height:
         type: integer
         example: 123
+        minimum: 1
       networkHeight:
         type: integer
         example: 123
       consensus:
         type: integer
         example: 95
+        minimum: 0
+        maximum: 100
       broadhash:
         type: string
         example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        minLength: 64
+        maxLength: 64
 
 # Response Code Templates
   ResponseCode429:
