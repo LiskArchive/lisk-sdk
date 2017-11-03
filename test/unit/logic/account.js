@@ -4,6 +4,7 @@ var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
+var constants = require('../../../helpers/constants.js');
 
 var crypto = require('crypto');
 var async = require('async');
@@ -45,7 +46,9 @@ var validAccount = {
 	vote: '10000000000000000',
 	producedBlocks: '0',
 	missedBlocks: '0',
-	virgin: 1
+	virgin: 1,
+	approval: 100,
+	productivity: 0
 };
 
 // TODO:
@@ -164,6 +167,55 @@ describe('account', function () {
 		});
 	});
 
+	describe('calculateApproval', function () {
+
+		it('when voterBalance = 0 and totalSupply = 0, it should return 0', function () {
+			expect(account.calculateApproval(0, 0)).to.equal(0);
+		});
+
+		it('when voterBalance = totalSupply, it should return 100', function () {
+			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+			var votersBalance = totalSupply;
+			expect(account.calculateApproval(votersBalance, totalSupply)).to.equal(100);
+		});
+
+		it('when voterBalance = 50 and total supply = 100, it should return 50', function () {
+			expect(account.calculateApproval(50, 100)).to.equal(50);
+		});
+
+		it('with random values, it should return approval b/w 0 and 100', function () {
+			// So total supply is never 0.
+			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+			var votersBalance = Math.floor(Math.random() * totalSupply);
+			expect(account.calculateApproval(votersBalance, totalSupply)).to.be.least(0).and.be.at.most(100);
+		});
+	});
+
+	describe('calculateProductivity', function () {
+
+		it('when missedBlocks = 0 and producedBlocks = 0, it should return 0', function () {
+			expect(account.calculateProductivity(0, 0)).to.equal(0);
+		});
+
+		it('when missedBlocks = producedBlocks, it should return 50', function () {
+			var producedBlocks = Math.floor(Math.random() * 1000000000);
+			var missedBlocks = producedBlocks;
+			expect(account.calculateProductivity(producedBlocks, missedBlocks)).to.equal(50);
+		});
+
+		it('when missedBlocks = 5 and producedBlocks = 15, it should return 75', function () {
+			var missedBlocks = 5;
+			var producedBlocks = 15;
+			expect(account.calculateProductivity(producedBlocks, missedBlocks)).to.equal(75);
+		});
+
+		it('with random values, it should return approval b/w 0 and 100', function () {
+			var missedBlocks = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+			var producedBlocks = Math.floor(Math.random() * missedBlocks);
+			expect(account.calculateProductivity(producedBlocks, missedBlocks)).to.be.least(0).and.be.at.most(100);
+		});
+	});
+
 	describe('getAll', function () {
 
 		var allAccounts;
@@ -186,6 +238,50 @@ describe('account', function () {
 				expect(res[0].username).to.equal(validAccount.username);
 				expect(res[0].address).to.equal(validAccount.address);
 				expect(Object.keys(res[0])).to.include('address', 'username');
+				done();
+			});
+		});
+
+		it('should only get requested fields for account', function (done) {
+			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
+			account.get({address: validAccount.address}, requestedFields, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.be.an('object');
+				expect(Object.keys(res)).to.eql(requestedFields);
+				done();
+			});
+		});
+
+		it('should get rows with only productivity field', function (done) {
+			account.getAll({}, ['productivity'], function (err, res) {
+				expect(err).to.not.exist;
+				res.forEach(function (row) {
+					expect(row).to.have.property('productivity').that.is.a('Number').to.be.at.least(0).and.at.most(100);
+					expect(Object.keys(row)).to.have.length(1);
+				});
+				done();
+			});
+		});
+
+		it('should get rows with only approval field', function (done) {
+			account.getAll({}, ['approval'], function (err, res) {
+				expect(err).to.not.exist;
+				res.forEach(function (row) {
+					expect(row).to.have.property('approval').that.is.a('Number').to.be.at.least(0).and.at.most(100);
+					expect(Object.keys(row)).to.have.length(1);
+				});
+				done();
+			});
+		});
+
+		it('should not remove dependent fields if they were requested as well', function (done) {
+			account.getAll({}, ['approval', 'vote'], function (err, res) {
+				expect(err).to.not.exist;
+				res.forEach(function (row) {
+					expect(row).to.have.property('approval').that.is.a('Number').to.be.at.least(0).and.at.most(100);
+					expect(row).to.have.property('vote').that.is.a('String');
+					expect(Object.keys(row)).to.have.length(2);
+				});
 				done();
 			});
 		});
