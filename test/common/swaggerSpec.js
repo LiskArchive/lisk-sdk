@@ -5,6 +5,9 @@ var refsResolved = false;
 var swaggerHelper = require('../../helpers/swagger');
 var validator = swaggerHelper.getValidator();
 
+// Make sure no additional attributes are passed in response
+validator.options.assumeAdditional = true;
+
 // Extend Chai assertion with a new method validResponse
 // to facilitate the validation of swagger response body
 // e.g. res.body.should.be.validResponse
@@ -86,6 +89,8 @@ function SwaggerTestSpec (method, apiPath, responseCode) {
 SwaggerTestSpec.prototype.makeRequest = function (parameters){
 	var query = {};
 	var post = {};
+	var headers = {'Accept': 'application/json'};
+	var formData = false;
 	var self = this;
 	var callPath = self.path;
 
@@ -96,9 +101,14 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters){
 			if(p.in === 'query') {
 				query[param] = parameters[param];
 			} else if (p.in === 'body') {
-				post = parameters[param];
+				post[param] = parameters[param];
 			} else if (p.in === 'path') {
 				callPath = callPath.replace('{' + param + '}', parameters[param]);
+			} else if (p.in === 'formData') {
+				post[param] = parameters[param];
+				formData = true;
+			} else if (p.in === 'header') {
+				headers[param] = parameters[param];
 			}
 		});
 
@@ -112,10 +122,16 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters){
 			req = req.get(apiSpec.basePath + callPath);
 		}
 
-		req = req.set('Accept', 'application/json')
-			.query(query);
+		_.each(_.keys(headers), function (header){
+			req.set(header, headers[header]);
+		});
+
+		req = req.query(query);
 
 		if (self.method === 'post' || self.method === 'put') {
+			if (formData) {
+				req.type('form');
+			}
 			req = req.send(post);
 		}
 

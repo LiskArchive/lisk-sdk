@@ -37,8 +37,6 @@ function getValidator () {
 		validator.constructor.registerFormat(formatName, ZSchema.formatsCache[formatName]);
 	});
 
-	validator.options.assumeAdditional = true;
-
 	return validator;
 }
 
