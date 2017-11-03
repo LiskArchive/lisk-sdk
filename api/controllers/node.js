@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 // Private Fields
 var modules;
 
@@ -17,7 +19,9 @@ function NodeController (scope) {
 NodeController.getConstants = function (req, res) {
 	modules.node.shared.getConstants(null, function (err, data){
 
-		// Typecast required integer/bignum attributes while sending data in API
+		data = _.cloneDeep(data);
+
+		//Typecast required integer or bignum attributes while sending data in API
 		data.supply = data.supply.toString();
 		data.reward = data.reward.toString();
 		data.fees.dappDeposit = data.fees.dappDeposit.toString();
@@ -36,6 +40,8 @@ NodeController.getConstants = function (req, res) {
 
 NodeController.getStatus = function (req, res) {
 	modules.node.shared.getStatus(null, function (err, data){
+
+		data = _.cloneDeep(data);
 
 		// Check if attributes are null, then set it to 0
 		// as per schema defined for these attributes in swagger
