@@ -100,46 +100,46 @@ definitions:
     properties:
       send:
         type: string
-        example: 10000000
+        example: '10000000'
       vote:
         type: string
-        example: 100000000
+        example: '100000000'
       secondSignature:
         type: string
-        example: 500000000
+        example: '500000000'
       delegate:
         type: string
-        example: 2500000000
+        example: '2500000000'
       multisignature:
         type: string
-        example: 500000000
+        example: '500000000'
       dappRegistration:
         type: string
-        example: 2500000000
+        example: '2500000000'
       dappWithdrawal:
         type: string
-        example: 10000000
+        example: '10000000'
       dappDeposit:
         type: string
-        example: 10000000
+        example: '10000000'
       data:
-          type: string
-          example: 10000000
+        type: string
+        example: '10000000'
 
   # State Related Models
   NodeConstants:
     type: object
     required:
-    - epoch
-    - milestone
-    - nethash
-    - reward
-    - nonce
-    - supply
-    - build
-    - commit
-    - version
-    - fees
+      - epoch
+      - milestone
+      - nethash
+      - reward
+      - nonce
+      - supply
+      - build
+      - commit
+      - version
+      - fees
     properties:
       epoch:
         type: string
@@ -150,7 +150,7 @@ definitions:
         example: 1
       build:
         type: string
-        example: "v09:54:35 12/04/2017\n"
+        example: 'v09:54:35 12/04/2017'
       commit:
         type: string
         example: 7199d4b67c3575d5f99d1c29436a02977eeb01a7
@@ -158,6 +158,7 @@ definitions:
         maxLength: 40
       version:
         type: string
+        format: version
         example: v0.8.0
       nethash:
         type: string
@@ -178,11 +179,11 @@ definitions:
   NodeStatus:
     type: object
     required:
-    - syncing
-    - height
-    - networkHeight
-    - consensus
-    - broadhash
+      - syncing
+      - height
+      - networkHeight
+      - consensus
+      - broadhash
     properties:
       syncing:
         type: boolean
