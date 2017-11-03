@@ -226,7 +226,7 @@ Accounts.prototype.shared = {
 					return setImmediate(cb, new ApiError(err, apiCodes.BAD_REQUEST));
 				}
 				accounts = _.map(accounts, function (account) {
-					var delegate = null;
+					var delegate = {};
 
 					// Only create delegate properties if account has a username
 					if (account.username) {

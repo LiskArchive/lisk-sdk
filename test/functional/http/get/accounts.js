@@ -309,5 +309,13 @@ describe('GET /api/accounts', function () {
 				validateDelegateFields(res, node.eAccount);
 			});
 		});
+
+		it('should return empty delgate property for a non delegate account', function () {
+			return getAccountsPromise('address=' + node.gAccount.address).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				validateAccountFields(res, node.gAccount);
+				node.expect(res.body.accounts[0].delegate).to.eql({});
+			});
+		});
 	});
 });
