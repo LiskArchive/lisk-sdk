@@ -77,6 +77,7 @@ process.env.TOP = appConfig.topAccounts;
 var config = {
 	db: appConfig.db,
 	cache: appConfig.redis,
+	pool: appConfig.transactions.pool,
 	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		accounts: './modules/accounts.js',
@@ -436,6 +437,7 @@ d.run(function () {
 		 */
 		logic: ['db', 'bus', 'schema', 'genesisblock', function (scope, cb) {
 			var Transaction = require('./logic/transaction.js');
+			var TransactionPool = require('./logic/transactions/pool.js');
 			var Block = require('./logic/block.js');
 			var Account = require('./logic/account.js');
 			var Peers = require('./logic/peers.js');
@@ -466,6 +468,9 @@ d.run(function () {
 				}],
 				transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
 					new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
+				}],
+				transactionPool: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', 'transaction', function (scope, cb) {
+					new TransactionPool(scope.bus, scope.ed, scope.transaction, scope.account, scope.logger, config.pool, cb);
 				}],
 				block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 					new Block(scope.ed, scope.schema, scope.transaction, cb);
