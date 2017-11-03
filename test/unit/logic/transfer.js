@@ -12,6 +12,7 @@ var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var transactionTypes = require('../../../helpers/transactionTypes');
+var constants = require('../../../helpers/constants.js');
 
 var modulesLoader = require('../../common/modulesLoader');
 var Transfer = require('../../../logic/transfer.js');
@@ -355,8 +356,8 @@ describe('transfer', function () {
 			}).to.throw('Failed to validate transfer schema: Expected type string but found type undefined');
 		});
 
-		it('should throw error if data field length is greater than 64 characters', function () {
-			var invalidString = node.randomString.generate(64 + 1);
+		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength +  ' characters', function () {
+			var invalidString = node.randomString.generate(constants.additionalData.maxLength + 1);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString
@@ -367,8 +368,8 @@ describe('transfer', function () {
 			}).to.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
 		});
 
-		it('should throw error if data field length is greater than 64 bytes', function () {
-			var invalidString = node.randomString.generate(63) + '现';
+		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength + ' bytes', function () {
+			var invalidString = node.randomString.generate(constants.additionalData.maxLength - 1) + '现';
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString

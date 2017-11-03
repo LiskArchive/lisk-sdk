@@ -4,6 +4,7 @@ var faker = require('faker');
 var difference = require('lodash').difference;
 
 var node = require('../node');
+var constants = require('../../helpers/constants');
 
 var arrays = [
 	{
@@ -202,7 +203,7 @@ var additionalDataValidCases = [
 		expectation: 'string'
 	},
 	{
-		input: node.randomString.generate(64),
+		input: node.randomString.generate(constants.additionalData.maxLength),
 		description: 'maximum chars',
 		expectation: 'string'
 	},	
@@ -210,12 +211,12 @@ var additionalDataValidCases = [
 
 var additionalDataInvalidCases = [
 	{
-		input: node.randomString.generate(63) + '现',
+		input: node.randomString.generate(constants.additionalData.maxLength - 1) + '现',
 		description: 'overflowed string',
 		expectation: 'string'
 	},
 	{
-		input: node.randomString.generate(65),
+		input: node.randomString.generate(constants.additionalData.maxLength + 1),
 		description: 'maximum chars + 1',
 		expectation: 'string'
 	}

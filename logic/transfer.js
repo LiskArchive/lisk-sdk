@@ -63,10 +63,6 @@ Transfer.prototype.verify = function (transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	if (transaction.asset && transaction.asset.data && Buffer.from(transaction.asset.data, 'utf8').length > Transfer.prototype.schema.properties.data.maxLength) {
-		return setImmediate(cb, 'Additional data length is bigger than maximum(' + Transfer.prototype.schema.properties.data.maxLength + ')');
-	}
-
 	return setImmediate(cb, null, transaction);
 };
 
@@ -190,8 +186,8 @@ Transfer.prototype.schema = {
 		data: {
 			type: 'string',
 			format: 'additionalData',
-			minLength: 1,
-			maxLength: 64
+			minLength: constants.additionalData.minLength,
+			maxLength: constants.additionalData.maxLength
 		}
 	}
 };
