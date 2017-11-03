@@ -1,10 +1,13 @@
+'use strict';
+
 var jsonRefs = require('json-refs');
 var YAML = require('js-yaml');
 var path = require('path');
 var fs = require('fs');
+var Promise = require('bluebird');
+
 var ZSchema = require('./z_schema');
 var SwayHelpers = require('sway/lib/helpers');
-var Promise = require('bluebird');
 
 // Used as private member to cache the spec resolution process
 var resolvedSwaggerSpec = null;

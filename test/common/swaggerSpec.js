@@ -1,8 +1,12 @@
-var node = require('../node');
-var apiSpec = node.swaggerDef;
+'use strict';
+
 var _ = require('lodash');
-var refsResolved = false;
+
+var node = require('../node');
 var swaggerHelper = require('../../helpers/swagger');
+
+var apiSpec = node.swaggerDef;
+var refsResolved = false;
 var validator = swaggerHelper.getValidator();
 
 // Make sure no additional attributes are passed in response
@@ -11,8 +15,8 @@ validator.options.assumeAdditional = true;
 // Extend Chai assertion with a new method validResponse
 // to facilitate the validation of swagger response body
 // e.g. res.body.should.be.validResponse
-node.chai.use(function (_chai, utils) {
-	_chai.Assertion.addMethod('validResponse', function (responsePath) {
+node.chai.use(function (chai, utils) {
+	chai.Assertion.addMethod('validResponse', function (responsePath) {
 		var result = validator.validate(utils.flag(this,'object'), apiSpec, {schemaPath: responsePath});
 		var errorDetail = '';
 
@@ -34,9 +38,9 @@ node.chai.use(function (_chai, utils) {
  * > new SwaggerTestSpec('GET', '/node/status', 200)
  * > new SwaggerTestSpec('GET /node/status 200')
  *
- * @param {String} method - HTTP method e.g. GET, PUT, POST
- * @param {String} [apiPath] - API endpoint excluding the base path
- * @param {Integer} [responseCode] - Expected status code from endpoint
+ * @param {string} method - HTTP method e.g. GET, PUT, POST
+ * @param {string} [apiPath] - API endpoint excluding the base path
+ * @param {number} [responseCode] - Expected status code from endpoint
  * @constructor
  */
 function SwaggerTestSpec (method, apiPath, responseCode) {
@@ -159,7 +163,6 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters){
 
 			it('should match the response schema defined in swagger spec', function () {
 				res.body.should.be.validResponse(self.responseSpecPath);
-				//validator.validate(res.body, apiSpec, {schemaPath: self.responseSpecPath}).should.be.true;
 			});
 		});
 
@@ -177,9 +180,9 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters){
  * Can be called with three parameters or only with one in a string form
  * > ('GET', '/node/status', 200)
  * > ('GET /node/status 200')
- * @param {String} method - HTTP method e.g. GET, PUT, POST
- * @param {String} [path] - API endpoint excluding the base path
- * @param {Integer} [responseCode] - Expected status code from endpoint
+ * @param {string} method - HTTP method e.g. GET, PUT, POST
+ * @param {string} [path] - API endpoint excluding the base path
+ * @param {number} [responseCode] - Expected status code from endpoint
  * @return {SwaggerTestSpec}
  */
 module.exports = function (method, path, responseCode) {
