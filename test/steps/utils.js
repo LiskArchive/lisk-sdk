@@ -82,6 +82,7 @@ export const getActionCreator = actionName => ({
 	'encrypt message': encryptMessage.actionCreator,
 	'encrypt passphrase': encryptPassphrase.actionCreator,
 	'create transaction register delegate': createTransactionRegisterDelegate.actionCreator,
+	'create transaction create multisignature account': createTransactionCreateMultisignatureAccount.actionCreator,
 	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
 	env: env.actionCreator,
 	get: get.actionCreator,
