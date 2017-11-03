@@ -46,12 +46,18 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndT
 	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);
 }
 
-export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumOfSignatures() {
+export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
 	const { passphrase, secondPassphrase, keysgroup, lifetime, minimum } = this.test.ctx;
-	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, secondPassphrase, keysgroup, lifetime, minimum);
+	const publicKeysWithPlus = keysgroup.map((publicKey) => {
+		return `+${publicKey}`;
+	});
+	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, secondPassphrase, publicKeysWithPlus, lifetime, minimum);
 }
 
-export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumOfSignatures() {
+export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
 	const { passphrase, keysgroup, lifetime, minimum } = this.test.ctx;
-	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, null, keysgroup, lifetime, minimum);
+	const publicKeysWithPlus = keysgroup.map((publicKey) => {
+		return `+${publicKey}`;
+	});
+	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, null, publicKeysWithPlus, lifetime, minimum);
 }
