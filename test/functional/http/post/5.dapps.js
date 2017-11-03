@@ -474,7 +474,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 	describe('unconfirmed state', function () {
 
 		it('duplicate submission identical app should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicate);
+			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicate, -1);
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
@@ -485,7 +485,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				})
 				.then(function (res) {
 					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicate, 1);
+					transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicate);
 
 					return sendTransactionPromise(transaction);
 				})

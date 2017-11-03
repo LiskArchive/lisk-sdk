@@ -1,7 +1,7 @@
 'use strict';
 
 var node = require('../node');
-var fixtures = require('./fixtures');
+var typesRepresentatives = require('../common/typesRepresentatives');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
@@ -100,9 +100,9 @@ function invalidAssets (account, option, badTransactions) {
 
 	describe('using invalid asset values', function () {
 
-		fixtures.testCases.forEach(function (test) {
-			it('using ' + test.describe + ' should fail', function () {
-				transaction.asset = test.args;
+		typesRepresentatives.allTypes.forEach(function (test) {
+			it('using ' + test.description + ' should fail', function () {
+				transaction.asset = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
@@ -125,9 +125,9 @@ function invalidAssets (account, option, badTransactions) {
 
 	describe('using invalid asset.' + option + ' values', function () {
 
-		fixtures.testCases.forEach(function (test) {
-			it('using ' + test.describe + ' should fail', function () {
-				transaction.asset[option] = test.args;
+		typesRepresentatives.allTypes.forEach(function (test) {
+			it('using ' + test.description + ' should fail', function () {
+				transaction.asset[option] = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;

@@ -2,27 +2,28 @@
 
 var node = require('../../../node');
 var shared = require('../../shared');
-var fixtures = require('../../fixtures');
+var typesRepresentatives = require('../../../common/typesRepresentatives');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
 describe('POST /api/transactions (type 0) transfer funds', function () {
-
+	
+	var transaction;
+	var goodTransaction = node.randomTransaction();
 	var badTransactions = [];
 	var goodTransactions = [];
-
-	var account = node.randomAccount();
-	var goodTransaction = node.randomTransaction();
 	// Low-frills deep copy
 	var cloneGoodTransaction = JSON.parse(JSON.stringify(goodTransaction));
-	var transaction;
+	
+	var account = node.randomAccount();
+	var accountOffset = node.randomAccount();
 
 	describe('schema validations', function () {
-
-		fixtures.testCases.forEach(function (test) {
-			it('using ' + test.describe + ' should fail', function () {
-				return sendTransactionPromise(test.args).then(function (res) {
+		
+		typesRepresentatives.allTypes.forEach(function (test) {
+			it('using ' + test.description + ' should fail', function () {
+				return sendTransactionPromise(test.input).then(function (res) {
 					node.expect(res).to.have.property('success').to.not.be.ok;
 					node.expect(res).to.have.property('message').that.is.not.empty;
 				});
@@ -128,43 +129,52 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 		describe('with offset', function () {
 			
-			it('using 1 should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password, null, null, 1);
+			it('using -1 should be ok', function () {
+				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, -1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					goodTransactions.push(transaction);
+					// TODO: Enable when transaction pool order is fixed
+					//goodTransactions.push(transaction);
+				});
+			});
+
+			it('using 1 should be ok', function () {
+				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					// TODO: Enable when transaction pool order is fixed
+					//goodTransactions.push(transaction);
 				});
 			});
 			
 			it('using future timestamp should fail', function () {
-				transaction = node.lisk.transaction.createTransaction(account.address, 1, node.gAccount.password, null, null, 1000);
+				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1000);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('message').to.equal('Invalid transaction timestamp. Timestamp is in the future');
-					badTransactions.push(transaction);
+					// TODO: Enable when transaction pool order is fixed
+					//badTransactions.push(transaction);
 				});
 			});
 		});
 
 		describe('with additional data field', function () {
 
-			fixtures.testCases.forEach(function (test, i) {
-				if (test.result === true ) {
-					it('using ' + test.describe + ' should be ok', function () {
-						transaction = node.lisk.transaction.createTransaction(account.address, i + 1, node.gAccount.password, null, test.args);
+			describe('invalid cases', function () {
 
-						return sendTransactionPromise(transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
-							node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-							goodTransactions.push(transaction);
-						});
-					});
-				} else {
-					it('using ' + test.describe + ' should fail', function () {
-						transaction = node.lisk.transaction.createTransaction(account.address, i + 1, node.gAccount.password, null, test.args);
+				var invalidCases = typesRepresentatives.additionalDataInvalidCases
+					.concat(typesRepresentatives.nonStrings);
+
+				invalidCases.forEach(function (test) {
+					it('using ' + test.description + ' should fail', function () {
+						var accountAdditionalData = node.randomAccount();
+						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password);
+						transaction.asset.data = test.input;
 
 						return sendTransactionPromise(transaction).then(function (res) {
 							node.expect(res).to.have.property('success').to.be.not.ok;
@@ -172,7 +182,26 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 							badTransactions.push(transaction);
 						});
 					});
-				}
+				});
+			});
+
+			describe('valid cases', function () {
+
+				var validCases = typesRepresentatives.additionalDataValidCases
+					.concat(typesRepresentatives.strings);
+					
+				validCases.forEach(function (test) {
+					it('using ' + test.description + ' should be ok', function () {
+						var accountAdditionalData = node.randomAccount();
+						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password, null, test.input);
+						
+						return sendTransactionPromise(transaction).then(function (res) {
+							node.expect(res).to.have.property('success').to.be.ok;
+							node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+							goodTransactions.push(transaction);
+						});
+					});
+				});
 			});
 		});
 	});

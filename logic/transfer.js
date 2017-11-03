@@ -208,10 +208,6 @@ Transfer.prototype.objectNormalize = function (transaction) {
 		return transaction;
 	}
 
-	if (transaction.asset.data === null || typeof transaction.asset.data === 'undefined') {
-		delete transaction.asset.data;
-	}
-
 	var report = library.schema.validate(transaction.asset, Transfer.prototype.schema);
 
 	if (!report) {
