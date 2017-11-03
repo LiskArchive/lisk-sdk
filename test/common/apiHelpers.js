@@ -177,24 +177,6 @@ function getBlocks (params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function getBlocksToWaitPromise () {
-	var count = 0;
-
-	return getUnconfirmedTransactionsPromise()
-		.then(function (res) {
-			count += res.count;
-			return getQueuedTransactionsPromise();
-		})
-		.then(function (res) {
-			count += res.count;
-			return getMultisignaturesTransactionsPromise();
-		})
-		.then(function (res) {
-			count += res.count;
-			return Math.ceil(count / constants.maxTxsPerBlock);
-		});
-}
-
 function waitForConfirmations (transactions, limitHeight) {
 	limitHeight = limitHeight || 10;
 
@@ -313,7 +295,6 @@ module.exports = {
 	getBalance: getBalance,
 	getPublicKeyPromise: getPublicKeyPromise,
 	getBlocksPromise: getBlocksPromise,
-	getBlocksToWaitPromise: getBlocksToWaitPromise,
 	waitForConfirmations: waitForConfirmations,
 	getDappPromise: getDappPromise,
 	getDappsPromise: getDappsPromise,
