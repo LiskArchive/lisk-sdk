@@ -6,15 +6,12 @@ var node = {};
 var Promise = require('bluebird');
 var rewire  = require('rewire');
 var sinon   = require('sinon');
-var fs		= require('fs');
-var path = require('path');
-var YAML = require('js-yaml');
-var swaggerDef = YAML.safeLoad(fs.readFileSync(path.join(__dirname, '../schema/swagger.yml')).toString());
 
 // Application specific
 var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
 var swagger = require('../config/swagger');
+var swaggerHelper = require('../helpers/swagger');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -26,10 +23,11 @@ node.transactionTypes = require('../helpers/transactionTypes.js');
 node._ = require('lodash');
 node.async = require('async');
 node.popsicle = require('popsicle');
-node.expect = require('chai').expect;
 node.chai = require('chai');
 node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
+node.expect = node.chai.expect;
+node.should = node.chai.should();
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
 node.Promise = require('bluebird');
@@ -105,7 +103,7 @@ node.gAccount = {
 	key: 'elephant tree paris dragon chair galaxy',
 };
 
-node.swaggerDef = swaggerDef;
+node.swaggerDef = swaggerHelper.getSwaggerSpec();;
 
 // Optional logging
 if (process.env.SILENT === 'true') {

@@ -2,7 +2,7 @@ var jsonRefs = require('json-refs');
 var YAML = require('js-yaml');
 var path = require('path');
 var fs = require('fs');
-var	ZSchema = require('./z_schema');
+var ZSchema = require('./z_schema');
 var SwayHelpers = require('sway/lib/helpers');
 var Promise = require('bluebird');
 

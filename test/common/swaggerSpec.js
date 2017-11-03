@@ -1,6 +1,6 @@
 var node = require('../node');
 var apiSpec = node.swaggerDef;
-var	_ = require('lodash');
+var _ = require('lodash');
 var refsResolved = false;
 var swaggerHelper = require('../../helpers/swagger');
 var validator = swaggerHelper.getValidator();
