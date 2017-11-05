@@ -589,9 +589,7 @@ Account.prototype.get = function (filter, fields, cb) {
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
 Account.prototype.getAll = function (filter, fields, cb) {
-	var defaultFields = false;
 	if (typeof fields === 'function') {
-		defaultFields = true;
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
@@ -652,9 +650,8 @@ Account.prototype.getAll = function (filter, fields, cb) {
 			filter['a.address'] = {
 				$upper: ['a.address', filter.address]
 			};
-		}
-		// If we want to get addresses by id
-		if (Array.isArray('filter.address')) {
+		} else {
+			// If we want to get addresses by id
 			filter['a.address'] = filter.address;
 		}
 		delete filter.address;
