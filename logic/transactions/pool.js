@@ -279,18 +279,8 @@ __private.verifyTransaction = function (transaction, sender, waterCb) {
 __private.verifyTransactionTypeInPool = function (transaction, sender, waterCb) {
 	var senderTransactions = _.filter(pool.verified.ready.transactions, {'senderPublicKey': transaction.senderPublicKey});
 
-	if (senderTransactions.length > 0) {
-		if (transaction.type === transactionTypes.SIGNATURE) {
-			senderTransactions.forEach(function (transactionReady) {
-				self.delete(transactionReady.id);
-			});
-		}
-		if (transaction.type === transactionTypes.VOTE) {
-	
-		}
-		if (transaction.type === transactionTypes.MULTI) {
-			return setImmediate(waterCb, null, transaction, sender);
-		}
+	if (senderTransactions.length > 0 && transaction.type !== transactionTypes.SEND) {
+		return setImmediate(waterCb, 'Transaction type already in pool for sender', transaction, sender);
 	}
 
 	return setImmediate(waterCb, null, transaction, sender);

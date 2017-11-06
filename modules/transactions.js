@@ -42,22 +42,12 @@ function Transactions (cb, scope) {
 		balancesSequence: scope.balancesSequence,
 		logic: {
 			transaction: scope.logic.transaction,
+			transactionPool: scope.logic.transactionPool,
 		},
 		genesisblock: scope.genesisblock
 	};
 
 	self = this;
-
-	__private.transactionPool = new TransactionPool(
-		scope.config.transactions.pool.storageLimit,
-		scope.config.transactions.pool.processInterval,
-		scope.config.transactions.pool.expiryInterval,
-		scope.logic.transaction,
-		scope.logic.account,
-		scope.bus,
-		scope.logger,
-		scope.ed
-	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
 		transactionTypes.SEND, new Transfer(library.logger, library.schema)
@@ -353,7 +343,7 @@ __private.getPooledTransactions = function (method, req, cb) {
  * @return {boolean} False if transaction not in pool.
  */
 Transactions.prototype.transactionInPool = function (id) {
-	var transaction = __private.transactionPool.get(id);
+	var transaction = library.logic.transactionPool.get(id);
 	return transaction.status === 'Transaction not in pool' ? false : true;
 };
 
@@ -364,7 +354,7 @@ Transactions.prototype.transactionInPool = function (id) {
  * @return {transaction|undefined} Calls transactionPool.getMultisignatureTransaction
  */
 Transactions.prototype.getMultisignatureTransaction = function (id) {
-	var transaction = __private.transactionPool.get(id);
+	var transaction = library.logic.transactionPool.get(id);
 	return transaction.status === 'pending' ? transaction.transaction : undefined;
 };
 
@@ -375,7 +365,7 @@ Transactions.prototype.getMultisignatureTransaction = function (id) {
  * @return {transaction[]}
  */
 Transactions.prototype.getUnconfirmedTransactionList = function (limit) {
-	return __private.transactionPool.getReady(limit);
+	return library.logic.transactionPool.getReady(limit);
 };
 
 /**
@@ -386,7 +376,7 @@ Transactions.prototype.getUnconfirmedTransactionList = function (limit) {
  * @return {transaction[]}
  */
 Transactions.prototype.getQueuedTransactionList = function (reverse, limit) {
-	return __private.transactionPool.getAll('unverified', {reverse: reverse, limit: limit});
+	return library.logic.transactionPool.getAll('unverified', {reverse: reverse, limit: limit});
 };
 
 /**
@@ -397,7 +387,7 @@ Transactions.prototype.getQueuedTransactionList = function (reverse, limit) {
  * @return {function} Calls transactionPool.getQueuedTransactionList
  */
 Transactions.prototype.getMultisignatureTransactionList = function (reverse, limit) {
-	return __private.transactionPool.getAll('pending', {reverse: reverse, limit: limit});
+	return library.logic.transactionPool.getAll('pending', {reverse: reverse, limit: limit});
 };
 
 /**
@@ -408,7 +398,7 @@ Transactions.prototype.getMultisignatureTransactionList = function (reverse, lim
  * @return {function} ready + pending + unverified
  */
 Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
-	return __private.transactionPool.getMergedTransactionList(reverse, limit);
+	return library.logic.transactionPool.getMergedTransactionList(reverse, limit);
 };
 
 /**
@@ -418,18 +408,40 @@ Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
  * @return {function} Calls transactionPool.removeUnconfirmedTransaction
  */
 Transactions.prototype.removeUnconfirmedTransaction = function (id) {
-	return __private.transactionPool.delete(id);
+	return library.logic.transactionPool.delete(id);
 };
 
 /**
- * Adds a transaction to pool list. It will be processed later by processPool worker.
- * @implements {transactionPool.add}
+ * Removes transactions from pool lists if they are present and rechecks pool balance 
+ * for sender.
+ * @implements {transactionPool.sanitazeTransactions}
+ * @param {string} id
+ * @return {function} Calls transactionPool.sanitazeTransactions
+ */
+Transactions.prototype.sanitizeTransactionPool = function (transactions) {
+	return library.logic.transactionPool.sanitizeTransactions(transactions);
+};
+
+/**
+ * Adds a transaction to pool list if pass all validations.
+ * @implements {transactionPool.addFromPublic}
  * @param {transaction} transaction
  * @param {boolean} broadcast
  * @param {function} cb - Callback function.
  */
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	return __private.transactionPool.add(transaction, broadcast, cb);
+	return library.logic.transactionPool.addFromPublic(transaction, broadcast, cb);
+};
+
+/**
+ * Adds a transaction to pool list. It will be processed later by processPool worker.
+ * @implements {transactionPool.addFromPeer}
+ * @param {transaction} transactions
+ * @param {boolean} broadcast
+ * @param {function} cb - Callback function.
+ */
+Transactions.prototype.processPeerTransactions = function (transactions, broadcast, cb) {
+	return library.logic.transactionPool.addFromPeer(transactions, broadcast, cb);
 };
 
 /**
@@ -546,7 +558,7 @@ Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
  * @return {function} Calls transactionPool.receiveTransactions
  */
 Transactions.prototype.receiveTransactions = function (transactions, broadcast, cb) {
-	return __private.transactionPool.receiveTransactions(transactions, broadcast, cb);
+	return library.logic.transactionPool.receiveTransactions(transactions, broadcast, cb);
 };
 
 /**
@@ -555,7 +567,7 @@ Transactions.prototype.receiveTransactions = function (transactions, broadcast, 
  * @return {function} Calls transactionPool.processPool
  */
 Transactions.prototype.processPool = function (cb) {
-	return __private.transactionPool.processPool(cb);
+	return library.logic.transactionPool.processPool(cb);
 };
 
 /**
@@ -579,7 +591,7 @@ Transactions.prototype.onBind = function (scope) {
 		transport: scope.transport
 	};
 
-	__private.transactionPool.bind(
+	library.logic.transactionPool.bind(
 		scope.accounts,
 		scope.transactions,
 		scope.loader
@@ -654,9 +666,9 @@ Transactions.prototype.shared = {
 		library.db.query(sql.count).then(function (transactionsCount) {
 			return setImmediate(cb, null, {
 				confirmed: transactionsCount[0].count,
-				multisignature: __private.transactionPool.multisignature.transactions.length,
-				unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
-				queued: __private.transactionPool.queued.transactions.length
+				multisignature: library.logic.transactionPool.multisignature.transactions.length,
+				unconfirmed: library.logic.transactionPool.unconfirmed.transactions.length,
+				queued: library.logic.transactionPool.queued.transactions.length
 			});
 		}, function (err) {
 			return setImmediate(cb, 'Unable to count transactions');
