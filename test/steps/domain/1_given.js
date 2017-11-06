@@ -16,7 +16,38 @@
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
+	getFirstNumber,
 } from '../utils';
+
+export function aKeysgroupWithKeys() {
+	const keysgroup = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.keysgroup = keysgroup;
+}
+
+export function aLifetimeOfHoursAsNotANumber() {
+	const lifetime = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.lifetime = lifetime;
+}
+
+export function aLifetimeOfHours() {
+	let lifetime;
+	try {
+		lifetime = getFirstNumber(this.test.parent.title);
+	} catch (e) {
+		lifetime = getFirstQuotedString(this.test.parent.title);
+	}
+	this.test.ctx.lifetime = lifetime;
+}
+
+export function aMinimumOfSignatures() {
+	let minimum;
+	try {
+		minimum = getFirstNumber(this.test.parent.title);
+	} catch (e) {
+		minimum = getFirstQuotedString(this.test.parent.title);
+	}
+	this.test.ctx.minimum = minimum;
+}
 
 export function anAlias() {
 	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);

@@ -45,3 +45,19 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndT
 	const { passphrase, delegateUsername } = this.test.ctx;
 	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);
 }
+
+export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
+	const { passphrase, secondPassphrase, keysgroup, lifetime, minimum } = this.test.ctx;
+	const publicKeysWithPlus = keysgroup.map((publicKey) => {
+		return `+${publicKey}`;
+	});
+	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, secondPassphrase, publicKeysWithPlus, lifetime, minimum);
+}
+
+export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
+	const { passphrase, keysgroup, lifetime, minimum } = this.test.ctx;
+	const publicKeysWithPlus = keysgroup.map((publicKey) => {
+		return `+${publicKey}`;
+	});
+	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, null, publicKeysWithPlus, lifetime, minimum);
+}
