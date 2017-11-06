@@ -21,9 +21,8 @@ import {
 	signAndPrintMessage,
 	encryptMessageWithSecret,
 	decryptMessageWithSecret,
-	signTransaction,
-	multiSignTransaction,
-	verifyTransaction,
+	signData,
+	verifyData,
 	encryptPassphraseWithPassword,
 	decryptPassphraseWithPassword,
 } from '../../src/crypto/sign';
@@ -31,7 +30,6 @@ import {
 const convert = require('../../src/crypto/convert');
 const keys = require('../../src/crypto/keys');
 const hash = require('../../src/crypto/hash');
-const getTransactionHash = require('../../src/transactions/utils/getTransactionHash');
 
 const makeInvalid = str => {
 	const char = str[0] === '0' ? '1' : '0';
@@ -81,17 +79,16 @@ ${defaultSignature}
 ${defaultSecondSignature}
 -----END LISK SIGNED MESSAGE-----
 `.trim();
-	const defaultTransactionSignature =
-		'bb3f2d12d098c59a0af03bb1157eeb7bc7141b21cea57861c4eac72a7c55f122b5befb1391c3f8509b562fa748fdc7359f6e6051526d979915157c5bcba34e01';
+	const defaultData = Buffer.from('This is some data');
+	const defaultDataSignature =
+		'b8704e11c4d9fad9960c7b6a69dcf48c1bede5b74ed8974cd005d9a407deef618dd800fe69ceed1fd52bb1e0881e71aec137c35b90eda9afe93716a5652ee009';
 	const defaultPassword = 'myTotal53cr3t%&';
 
 	let defaultSignedMessage;
 	let defaultDoubleSignedMessage;
 	let defaultEncryptedMessageWithNonce;
-	let defaultTransaction;
 
 	let getRawPrivateAndPublicKeyFromSecretStub;
-	let getTransactionHashStub;
 	let hashStub;
 
 	beforeEach(() => {
@@ -111,15 +108,6 @@ ${defaultSecondSignature}
 			encryptedMessage:
 				'299390b9cbb92fe6a43daece2ceaecbacd01c7c03cfdba51d693b5c0e2b65c634115',
 			nonce: 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66',
-		};
-		defaultTransaction = {
-			type: 0,
-			amount: 1000,
-			recipientId: '58191285901858109L',
-			timestamp: 141738,
-			asset: {},
-			id: '13987348420913138422',
-			senderPublicKey: defaultPublicKey,
 		};
 		sandbox
 			.stub(convert, 'convertPrivateKeyEd2Curve')
@@ -153,14 +141,6 @@ ${defaultSecondSignature}
 				publicKey: Buffer.from(defaultSecondPublicKey, 'hex'),
 			});
 
-		getTransactionHashStub = sandbox
-			.stub(getTransactionHash, 'default')
-			.returns(
-				Buffer.from(
-					'c62214460d66eeb1d9db3fb708e31040d2629fbdb6c93887c5eb0f3243912f91',
-					'hex',
-				),
-			);
 		hashStub = sandbox
 			.stub(hash, 'default')
 			.returns(
@@ -347,166 +327,35 @@ ${defaultSecondSignature}
 		});
 	});
 
-	describe('#signTransaction', () => {
-		let transaction;
+	describe('#signData', () => {
 		let signature;
 
 		beforeEach(() => {
-			transaction = Object.assign({}, defaultTransaction);
-			signature = signTransaction(transaction, defaultSecret);
+			signature = signData(defaultData, defaultSecret);
 		});
 
 		it('should sign a transaction', () => {
-			signature.should.be.equal(defaultTransactionSignature);
+			signature.should.be.equal(defaultDataSignature);
 		});
 	});
 
-	describe('#multiSignTransaction', () => {
-		let multiSignatureTransaction;
-		let multiSignature;
-
-		beforeEach(() => {
-			multiSignatureTransaction = {
-				type: 0,
-				amount: 1000,
-				recipientId: '58191285901858109L',
-				timestamp: 141738,
-				asset: {},
-				senderPublicKey:
-					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				signature:
-					'618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
-				signSignature:
-					'508a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
-				id: '13987348420913138422',
-			};
-			getTransactionHashStub.returns(
-				Buffer.from(
-					'd43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760',
-					'hex',
-				),
+	describe('#verifyData', () => {
+		it('should return false for an invalid signature', () => {
+			const verification = verifyData(
+				defaultData,
+				makeInvalid(defaultDataSignature),
+				defaultPublicKey,
 			);
-			multiSignature = multiSignTransaction(
-				multiSignatureTransaction,
-				defaultSecret,
+			verification.should.be.false();
+		});
+
+		it('should return true for a valid signature', () => {
+			const verification = verifyData(
+				defaultData,
+				defaultDataSignature,
+				defaultPublicKey,
 			);
-		});
-
-		it('should remove the signature and second signature before getting transaction bytes', () => {
-			getTransactionHashStub.args[0].should.not.have.property('signature');
-			getTransactionHashStub.args[0].should.not.have.property('signSignature');
-		});
-
-		it('should signTransaction a multisignature transaction', () => {
-			const expectedMultiSignature =
-				'4b3b6041de1aa1727861f319fcd427561953268cf6f90d577ef38b872ad3dafb3215e734c2c957eff96de58c20b14ae00708487f229ceb2776cc7e85a1623e05';
-			multiSignature.should.be.eql(expectedMultiSignature);
-		});
-	});
-
-	describe('#verifyTransaction', () => {
-		let transaction;
-
-		describe('with a single signed transaction', () => {
-			beforeEach(() => {
-				transaction = Object.assign({}, defaultTransaction, {
-					signature:
-						'bb3f2d12d098c59a0af03bb1157eeb7bc7141b21cea57861c4eac72a7c55f122b5befb1391c3f8509b562fa748fdc7359f6e6051526d979915157c5bcba34e01',
-				});
-			});
-
-			it('should remove the signature before getting transaction hash', () => {
-				verifyTransaction(transaction);
-				getTransactionHashStub.args[0].should.not.have.property('signature');
-			});
-
-			it('should return false for an invalid signature', () => {
-				transaction.amount = 20;
-				getTransactionHashStub.returns(
-					Buffer.from(
-						'9027723fef54358948e47094002f1e9890fb3455dd85724c147a5065d5fd8f59',
-						'hex',
-					),
-				);
-				const verification = verifyTransaction(transaction);
-				verification.should.be.false();
-			});
-
-			it('should return true for a valid signature', () => {
-				const verification = verifyTransaction(transaction);
-				verification.should.be.true();
-			});
-		});
-
-		describe('with a second signed transaction', () => {
-			beforeEach(() => {
-				transaction = Object.assign({}, defaultTransaction, {
-					signature:
-						'bb3f2d12d098c59a0af03bb1157eeb7bc7141b21cea57861c4eac72a7c55f122b5befb1391c3f8509b562fa748fdc7359f6e6051526d979915157c5bcba34e01',
-					signSignature:
-						'897090248c0ecdad749d869ddeae59e5029bdbe4806da92d82d6eb7142b624011f4302941db184a2e70bd29a6adac5ce0b4cf780af893db2f504375bdef6850b',
-				});
-				getTransactionHashStub
-					.onFirstCall()
-					.returns(
-						Buffer.from(
-							'951bb4580dcb6a412de28844e0e06439c5c51dfea2a16730fd94ff20e355f1bd',
-							'hex',
-						),
-					);
-			});
-
-			it('should throw if attempting to verify without a secondPublicKey', () => {
-				verifyTransaction
-					.bind(null, transaction)
-					.should.throw('Cannot verify signSignature without secondPublicKey.');
-			});
-
-			it('should remove the second signature before getting the first transaction hash', () => {
-				verifyTransaction(transaction, defaultSecondPublicKey);
-				getTransactionHashStub.args[0].should.not.have.property(
-					'signSignature',
-				);
-			});
-
-			it('should remove the first signature before getting the second transaction hash', () => {
-				verifyTransaction(transaction, defaultSecondPublicKey);
-				getTransactionHashStub.args[1].should.not.have.property('signature');
-			});
-
-			it('should return false for an invalid second signature', () => {
-				transaction.signSignature = makeInvalid(transaction.signSignature);
-				const verification = verifyTransaction(
-					transaction,
-					defaultSecondPublicKey,
-				);
-				verification.should.be.false();
-			});
-
-			it('should return false for an invalid first signature', () => {
-				transaction.signature = makeInvalid(transaction.signature);
-				getTransactionHashStub
-					.onFirstCall()
-					.returns(
-						Buffer.from(
-							'aef147521619556572f204585332aac247dc2b024cb975518d847e4587bab756',
-							'hex',
-						),
-					);
-				const verification = verifyTransaction(
-					transaction,
-					defaultSecondPublicKey,
-				);
-				verification.should.be.false();
-			});
-
-			it('should return true for a valid signature', () => {
-				const verification = verifyTransaction(
-					transaction,
-					defaultSecondPublicKey,
-				);
-				verification.should.be.true();
-			});
+			verification.should.be.true();
 		});
 	});
 

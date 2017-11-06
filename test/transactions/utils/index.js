@@ -19,6 +19,9 @@ import {
 	getTransactionHash,
 	getTransactionId,
 	prepareTransaction,
+	signTransaction,
+	multiSignTransaction,
+	verifyTransaction,
 } from '../../../src/transactions/utils';
 
 describe('transaction utils', () => {
@@ -45,6 +48,18 @@ describe('transaction utils', () => {
 
 		it('should have prepareTransaction', () => {
 			prepareTransaction.should.be.type('function');
+		});
+
+		it('should have signTransaction', () => {
+			signTransaction.should.be.type('function');
+		});
+
+		it('should have multiSignTransaction', () => {
+			multiSignTransaction.should.be.type('function');
+		});
+
+		it('should have verifyTransaction', () => {
+			verifyTransaction.should.be.type('function');
 		});
 	});
 });

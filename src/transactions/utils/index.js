@@ -19,4 +19,9 @@ export { default as getTransactionBytes } from './getTransactionBytes';
 export { default as getTransactionHash } from './getTransactionHash';
 export { default as getTransactionId } from './getTransactionId';
 export { default as prepareTransaction } from './prepareTransaction';
+export {
+	signTransaction,
+	multiSignTransaction,
+	verifyTransaction,
+} from './signAndVerify';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';

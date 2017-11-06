@@ -20,7 +20,6 @@ import {
 	convertPublicKeyEd2Curve,
 } from './convert';
 import hash from './hash';
-import { getTransactionHash } from '../transactions/utils';
 import { getRawPrivateAndPublicKeyFromSecret } from './keys';
 
 const createHeader = text => `-----${text}-----`;
@@ -221,86 +220,33 @@ export function signAndPrintMessage(message, secret, secondSecret) {
 }
 
 /**
- * @method signTransaction
- * @param transaction Object
+ * @method signData
+ * @param data Buffer
  * @param secret string
  *
  * @return {string}
  */
 
-export function signTransaction(transaction, secret) {
+export function signData(data, secret) {
 	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
-	const transactionHash = getTransactionHash(transaction);
-	const signature = naclInstance.crypto_sign_detached(
-		transactionHash,
-		privateKey,
-	);
+	const signature = naclInstance.crypto_sign_detached(data, privateKey);
 	return bufferToHex(signature);
 }
 
 /**
- * @method multiSignTransaction
- * @param transaction Object
- * @param secret string
- *
- * @return {string}
- */
-
-export function multiSignTransaction(transaction, secret) {
-	const transactionToSign = Object.assign({}, transaction);
-	delete transactionToSign.signature;
-	delete transactionToSign.signSignature;
-
-	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
-	const transactionHash = getTransactionHash(transactionToSign);
-	const signature = naclInstance.crypto_sign_detached(
-		transactionHash,
-		privateKey,
-	);
-
-	return bufferToHex(signature);
-}
-
-/**
- * @method verifyTransaction
- * @param transaction Object
+ * @method verifyData
+ * @param data Buffer
  * @param secondPublicKey
  *
  * @return {boolean}
  */
 
-export function verifyTransaction(transaction, secondPublicKey) {
-	const secondSignaturePresent = !!transaction.signSignature;
-	if (secondSignaturePresent && !secondPublicKey) {
-		throw new Error('Cannot verify signSignature without secondPublicKey.');
-	}
-
-	const transactionWithoutSignature = Object.assign({}, transaction);
-
-	if (secondSignaturePresent) {
-		delete transactionWithoutSignature.signSignature;
-	} else {
-		delete transactionWithoutSignature.signature;
-	}
-
-	const transactionHash = getTransactionHash(transactionWithoutSignature);
-
-	const publicKey = secondSignaturePresent
-		? secondPublicKey
-		: transaction.senderPublicKey;
-	const signature = secondSignaturePresent
-		? transaction.signSignature
-		: transaction.signature;
-
-	const verified = naclInstance.crypto_sign_verify_detached(
+export function verifyData(data, signature, publicKey) {
+	return naclInstance.crypto_sign_verify_detached(
 		hexToBuffer(signature),
-		transactionHash,
+		data,
 		hexToBuffer(publicKey),
 	);
-
-	return secondSignaturePresent
-		? verified && verifyTransaction(transactionWithoutSignature)
-		: verified;
 }
 
 /**
