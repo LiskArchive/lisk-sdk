@@ -348,6 +348,4 @@ $$;
   left join transfer tf
   ON        (((
                                           tf."transaction_id")::text = (t.transaction_id)::text)));
-
-  COMMIT;
 END;
