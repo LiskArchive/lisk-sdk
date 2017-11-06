@@ -1,16 +1,14 @@
 'use strict';
 
 var node = require('../../../node.js');
-
+var apiCodes = require('../../../../helpers/apiCodes');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var getDappPromise = require('../../../common/apiHelpers').getDappPromise;
 var getDappsPromise = require('../../../common/apiHelpers').getDappsPromise;
-var getDappsCategoriesPromise = require('../../../common/apiHelpers').getDappsCategoriesPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
-describe('GET /api/dapps', function () {	
-	
+describe('GET /api/dapps', function () {
+
 	var transactionsToWaitFor = [];
 
 	var account = node.randomAccount();
@@ -18,145 +16,115 @@ describe('GET /api/dapps', function () {
 	dapp1.category = 1;
 	var dapp2 = node.randomApplication();
 	dapp2.category = 2;
-	
+	var registeredDappsAmount = 2;
+
 	before(function () {
 		return creditAccountPromise(account.address, 1000 * node.normalizer)
 			.then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.be.true;
 				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-				
+
 				transactionsToWaitFor.push(res.transactionId);
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				transactionsToWaitFor = [];
-				
+
 				var transaction1 = node.lisk.dapp.createDapp(account.password, null, dapp1);
 				var transaction2 = node.lisk.dapp.createDapp(account.password, null, dapp2);
 				var promises = [];
 				promises.push(sendTransactionPromise(transaction1));
 				promises.push(sendTransactionPromise(transaction2));
-				
+
 				return node.Promise.all(promises);
 			})
 			.then(function (results) {
 				results.forEach(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('success').to.be.true;
 					node.expect(res).to.have.property('transactionId').that.is.not.empty;
 					transactionsToWaitFor.push(res.transactionId);
 				});
-				
+
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
 
-	describe('/get?id=', function () {
+	describe('/', function () {
 
-		it('using empty string should fail', function () {
-			return getDappPromise('').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').that.is.equal('String is too short (0 chars), minimum 1: #/id');
-			});
-		});
-
-		it('using null should fail', function () {
-			return getDappPromise(null).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').that.is.equal('Object didn\'t pass validation for format id: null: #/id');
-			});
-		});
-
-		it('using non-numeric id should fail', function () {
-			var dappId = 'ABCDEFGHIJKLMNOPQRST';
-
-			return getDappPromise(dappId).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').that.is.equal('Object didn\'t pass validation for format id: ' + dappId + ': #/id');
-			});
-		});
-
-		it('using id with length > 20 should fail', function () {
-			return getDappPromise('012345678901234567890').then(function (res) {
-				node.expect(res).to.have.property('success').to.not.be.ok;
-				node.expect(res).to.have.property('error').that.is.equal('String is too long (21 chars), maximum 20: #/id');
-			});
-		});
-
-		it('using unknown id should fail', function () {
-			var dappId = '8713095156789756398';
-
-			return getDappPromise(dappId).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').that.is.equal('Application not found');
-			});
-		});
-
-		it('using known ids should be ok', function () {
-			node.Promise.map(transactionsToWaitFor, function (transaction) {
-				return getDappPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapp').that.is.an('object').not.empty;
-				});
+		it('should return all results', function () {
+			return getDappsPromise([]).then(function (res) {
+				node.expect(res).to.have.property('status').equal(apiCodes.OK);
+				node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.length.at.least(registeredDappsAmount);
 			});
 		});
 	});
 
 	describe('?', function () {
 
-		describe('type', function () {
+		describe('transactionId=', function () {
 
-			it('using no integer should fail', function () {
+			it('using empty string should return all results', function () {
 				var params = [
-					'type='
+					'transactionId='
 				];
-
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Expected type integer but found type string: #/type');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').equal('String is too short (0 chars), minimum 1');
 				});
 			});
 
-			it('using non-numeric should fail', function () {
+			it('using null should fail', function () {
 				var params = [
-					'type=' + 'A'
+					'transactionId=' + null
 				];
-
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Expected type integer but found type string: #/type');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').equal('Object didn\'t pass validation for format id: null');
 				});
 			});
 
-			it('using -1 should fail', function () {
+			it('using non-numeric id should fail', function () {
+				var dappId = 'ABCDEFGHIJKLMNOPQRST';
 				var params = [
-					'type=' + '-1'
+					'transactionId=' + dappId
 				];
-
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Value -1 is less than minimum 0: #/type');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').equal('Object didn\'t pass validation for format id: ' + dappId);
 				});
 			});
 
-			it('using 0 should be ok', function () {
+			it('using id with length > 20 should fail', function () {
+				var dappId = '012345678901234567890';
 				var params = [
-					'type=' + '0'
+					'transactionId=' + dappId
 				];
-
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').equal('String is too long (21 chars), maximum 20');
 				});
 			});
 
-			it('using 1 should be ok', function () {
+			it('using unknown id should return an empty array', function () {
+				var dappId = '8713095156789756398';
 				var params = [
-					'type=' + '1'
+					'transactionId=' + dappId
 				];
-
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').to.be.an('array').and.to.be.empty;
+				});
+			});
+
+			it('using known ids should be ok', function () {
+				return node.Promise.map(transactionsToWaitFor, function (transaction) {
+					var params = [
+						'transactionId=' + transaction
+					];
+					return getDappsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').equal(apiCodes.OK);
+						node.expect(res).to.have.nested.property('body.dapps.0.transactionId').equal(transaction);
+					});
 				});
 			});
 		});
@@ -169,8 +137,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('String is too short (0 chars), minimum 1: #/name');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').that.is.equal('String is too short (0 chars), minimum 1');
 				});
 			});
 
@@ -180,8 +148,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('String is too long (33 chars), maximum 32: #/name');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').that.is.equal('String is too long (33 chars), maximum 32');
 				});
 			});
 
@@ -191,8 +159,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success');
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf(0);
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').to.be.an('array').and.to.be.empty;
 				});
 			});
 
@@ -202,9 +170,9 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success');
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf(1);
-					node.expect(res.dapps[0].name).to.equal(dapp1.name);
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.lengthOf(1);
+					node.expect(res.body.dapps[0].name).to.equal(dapp1.name);
 
 				});
 			});
@@ -215,117 +183,9 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success');
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf(1);
-					node.expect(res.dapps[0].name).to.equal(dapp2.name);
-				});
-			});
-		});
-
-		describe('category=', function () {
-
-			it('using integer should fail', function () {
-				var params = [
-					'category=' + 0
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Expected type string but found type integer: #/category');
-				});
-			});
-
-			it('using registered category from dapp1 should be ok', function () {
-				var params = [
-					'category=' + 'Entertainment'
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success');
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf.at.least(1);
-					node.expect(res.dapps[0].category).to.equal(node.dappCategories['Entertainment']);
-				});
-			});
-
-			it('using registered category from dapp2 should be ok', function () {
-				var params = [
-					'category=' + 'Finance'
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success');
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf.at.least(1);
-					node.expect(res.dapps[0].category).to.equal(node.dappCategories['Finance']);
-				});
-			});
-
-			it('using string "Unknown"', function () {
-				var params = [
-					'category=' + 'Unknown'
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Invalid application category');
-				});
-			});
-		});
-
-		describe('link=', function () {
-
-			it('using integer should fail', function () {
-				var params = [
-					'link=' + 0
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Expected type string but found type integer: #/link');
-				});
-			});
-
-			it('using string length < 1 should fail', function () {
-				var params = [
-					'link='
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('String is too short (0 chars), minimum 1: #/link');
-				});
-			});
-
-			it('using string length > 2000 should fail', function () {
-				var params = [
-					'link=' + 'https://github.com/MaxKK/xxxxxx/archive/master.zip'.repeat(40) + '1'
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('String is too long (2001 chars), maximum 2000: #/link');
-				});
-			});
-
-			it('using registered string should be ok', function () {
-				var params = [
-					'link=' + dapp1.link
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf(1);
-					node.expect(res.dapps[0].link).to.equal(dapp1.link);
-				});
-			});
-
-			it('using unregistered string should be ok', function () {
-				var params = [
-					'link=' + 'https://github.com/MaxKK/xxxxxx/archive/master.zip'
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf(0);
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.lengthOf(1);
+					node.expect(res.body.dapps[0].name).to.equal(dapp2.name);
 				});
 			});
 		});
@@ -338,8 +198,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Value 0 is less than minimum 1: #/limit');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').that.is.equal('Value 0 is less than minimum 1');
 				});
 			});
 
@@ -349,8 +209,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Value 101 is greater than maximum 100: #/limit');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').that.is.equal('Value 101 is greater than maximum 100');
 				});
 			});
 
@@ -360,9 +220,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
-					node.expect(res.dapps).to.have.length.at.most(1);
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.length.at.most(1);
 				});
 			});
 
@@ -372,9 +231,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
-					node.expect(res.dapps).to.have.length.at.most(100);
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.length.at.most(100);
 				});
 			});
 		});
@@ -388,8 +246,8 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').that.is.equal('Value -1 is less than minimum 0: #/offset');
+					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
+					node.expect(res).to.have.nested.property('body.message').that.is.equal('Value -1 is less than minimum 0');
 				});
 			});
 
@@ -400,8 +258,9 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf(1);
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					console.log(res.body.dapps[0].name, dapp1.name, dapp2.name);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.lengthOf(1);
 				});
 			});
 
@@ -412,8 +271,29 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array').and.has.lengthOf(1);
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					console.log(res.body.dapps[0].name, dapp1.name, dapp2.name);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.lengthOf(1);
+				});
+			});
+		});
+
+		describe('offset=', function () {
+
+			it('using offset 0 should return different result than offset 1', function () {
+				var paramsOffsetZero = [
+					'offset=' + 0
+				];
+				var paramsOffsetOne = [
+					'offset=' + 1
+				];
+				return node.Promise.all([
+					getDappsPromise(paramsOffsetZero),
+					getDappsPromise(paramsOffsetOne)
+				]).then(function (results) {
+					node.expect(results).to.have.nested.property('0.body.dapps.0.name');
+					node.expect(results).to.have.nested.property('1.body.dapps.0.name');
+					node.expect(results[0].body.dapps[0].name).not.to.equal(results[1].body.dapps[0].name);
 				});
 			});
 		});
@@ -426,72 +306,68 @@ describe('GET /api/dapps', function () {
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').to.equal('Invalid sort field');
+					node.expect(res).to.have.property('status').equal(apiCodes.INTERNAL_SERVER_ERROR);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid sort field');
 				});
 			});
 
-			it('using "category:asc" should be ok', function () {
+			it('using "category:unknown" should return result in ascending order', function () {
 				var params = [
-					'orderBy=' + 'category:asc'
+					'orderBy=' + 'name:unknown'
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
-					node.expect(node._(res.dapps).map('category').sort().value()).eql(node._.map(res.dapps, 'category'));
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
+					node.expect(node._(res.body.dapps).map('name').sort().value()).eql(node._.map(res.body.dapps, 'name'));
 				});
 			});
 
-			it('using "category:desc" should be ok', function () {
+			it('using "name:asc" should return result in ascending order', function () {
 				var params = [
-					'orderBy=' + 'category:desc'
+					'orderBy=' + 'name:asc'
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
-					node.expect(node._(res.dapps).map('category').sort().reverse().value()).eql(node._.map(res.dapps, 'category'));
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
+					node.expect(node._(res.body.dapps).map('name').sort().value()).eql(node._.map(res.body.dapps, 'name'));
 				});
 			});
 
-			it('using "category:unknown" should be ok', function () {
+			it('using "category:desc" should return result in descending order', function () {
 				var params = [
-					'orderBy=' + 'category:unknown'
+					'orderBy=' + 'name:desc'
 				];
 
 				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
-					node.expect(node._(res.dapps).map('category').sort().value()).eql(node._.map(res.dapps, 'category'));
-				});
-			});
-
-			it('using "type:asc" should be ok', function () {
-				var params = [
-					'orderBy=' + 'type:asc'
-				];
-
-				return getDappsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('dapps').that.is.an('array');
-					node.expect(node._(res.dapps).map('type').sort().value()).eql(node._.map(res.dapps, 'type'));
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
+					node.expect(node._(res.body.dapps).map('name').sort().reverse().value()).eql(node._.map(res.body.dapps, 'name'));
 				});
 			});
 		});
-	});
 
-	describe('/categories', function () {
+		describe('unknown=', function () {
 
-		it('should be ok', function () {
-			var params = [];
-			
-			return getDappsCategoriesPromise(params).then(function (res){
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('categories').that.is.an('object');
-				for (var i in node.dappCategories) {
-					node.expect(res.categories[i]).to.equal(node.dappCategories[i]);
-				}
+			it('using empty string should return all results', function () {
+				var params = [
+					'unknown='
+				];
+				return getDappsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.length.at.least(registeredDappsAmount);
+				});
+			});
+
+			it('using "unknown" should return all results', function () {
+				var params = [
+					'unknown=unknown'
+				];
+				return getDappsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.length.at.least(registeredDappsAmount);
+				});
 			});
 		});
 	});
