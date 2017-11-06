@@ -12,20 +12,20 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 	var goodTransactions = [];
 
 	var account = node.randomAccount();
-	var goodTransaction = node.randomTx();
+	var goodTransaction = node.randomTransaction();
 	// Low-frills deep copy
 	var cloneGoodTransaction = JSON.parse(JSON.stringify(goodTransaction));
 	var transaction;
 
 	describe('schema validations', function () {
 
-		shared.invalidTxs();
+		shared.invalidTransactions();
 	});
 
 	describe('transaction processing', function () {
 
 		it('mutating data used to build the transaction id should fail', function () {
-			transaction = node.randomTx();
+			transaction = node.randomTransaction();
 			transaction.timestamp += 1;
 
 			return sendTransactionPromise(transaction).then(function (res) {

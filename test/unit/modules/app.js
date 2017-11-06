@@ -1,22 +1,18 @@
 'use strict';
 
-var chai = require('chai');
-var cluster = require('cluster');
-var crypto = require('crypto');
-
 var constants = require('../../../helpers/constants');
 var config = require('../../config.json');
 
 describe('app', function () {
 
-	var app;
-
 	before(function (done) {
 		// Run the app on a different than default port
-		process.argv.push('-p');
-		process.argv.push(config.port += 1);
-		process.argv.push('-h');
-		process.argv.push(config.httpPort += 1);
+		process.argv.splice(2 ,0,'--');
+		process.argv.splice(2,0,(config.httpPort += 1).toString());
+		process.argv.splice(2,0,'-h');
+		process.argv.splice(2,0,(config.port += 1).toString());
+		process.argv.splice(2,0,'-p');
+
 		require('../../../app');
 		// Wait for modules to be initialized
 		setTimeout(done, 5000);

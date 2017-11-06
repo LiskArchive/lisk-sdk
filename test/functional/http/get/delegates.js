@@ -9,7 +9,7 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var registerDelegatePromise = require('../../../common/apiHelpers').registerDelegatePromise;
 var getDelegatesPromise = require('../../../common/apiHelpers').getDelegatesPromise;
 var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
-var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
+var getDelegateVotersPromise = require('../../../common/apiHelpers').getDelegateVotersPromise;
 var getForgingStatusPromise = require('../../../common/apiHelpers').getForgingStatusPromise;
 var searchDelegatesPromise = require('../../../common/apiHelpers').searchDelegatesPromise;
 var putForgingDelegatePromise = require('../../../common/apiHelpers').putForgingDelegatePromise;
@@ -438,7 +438,7 @@ describe('GET /api/delegates', function () {
 				'publicKey='
 			];
 
-			return getVotersPromise(params).then(function (res) {
+			return getDelegateVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('accounts').that.is.an('array').that.is.empty;
 			});
@@ -449,7 +449,7 @@ describe('GET /api/delegates', function () {
 				'publicKey=' + 'notAPublicKey'
 			];
 
-			return getVotersPromise(params).then(function (res) {
+			return getDelegateVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -460,7 +460,7 @@ describe('GET /api/delegates', function () {
 				'publicKey=' + node.eAccount.publicKey
 			];
 
-			return getVotersPromise(params).then(function (res) {
+			return getDelegateVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
 				node.expect(res).to.have.property('accounts').that.is.an('array');
 				var flag = 0;

@@ -111,7 +111,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 1 - second secret', function () {
 
-			it('with valid params and duplicate submission should be ok but just last transaction will be confirmed', function () {
+			it('with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
 				transaction = node.lisk.signature.createSignature(accountDuplicate.password, 'secondpassword');
 
 				return sendTransactionPromise(transaction).then(function (res) {

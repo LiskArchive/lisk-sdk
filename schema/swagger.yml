@@ -1,0 +1,191 @@
+swagger: '2.0'
+info:
+  description: Lisk API Documentation 
+  version: "1.0.19"
+  title: Lisk API Documentation 
+  # Get account information by specified criteria
+  contact:
+    email: isabella@lightcurve.io
+
+  license:
+    name: GPL v3.0
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+# all paths will be relative to the basePath specified
+# basePath: /v1
+
+# tags are used for organizing operations
+tags:
+- name: Accounts
+  description: Account related API calls
+- name: Blocks
+  description: Block related API calls
+- name: Dapps
+  description: Dapps related API calls
+- name: Delegates
+  description: Delegates related API calls
+- name: Delegates (Private)
+  description: Private API calls only avaiable to localhost/Whitelist
+- name: Node 
+  description: Node related API calls
+- name: Peers
+  description: Peers related API Calls
+- name: Queue
+  description: Queue related API calls
+- name: Signatures
+  description: Signatures related API calls
+- name: Transactions
+  description: Transactions related API calls
+- name: Votes
+  description: Votes related API calls
+
+schemes:
+  - https
+paths:
+  # Node
+  /node/constants:
+    x-swagger-router-controller: node
+    get:
+      tags:
+      - Node
+      summary: requests Constants data
+      operationId: getConstants
+      description:
+        This API call returns all current constants data on the system
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Node constants
+          schema:
+            $ref: '#/definitions/NodeConstants'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ResponseCode429'
+  /node/status:
+    x-swagger-router-controller: node
+    get:
+      tags:
+      - Node
+      summary: requests Status data
+      operationId: getStatus
+      description:
+        This API call returns all current constants data on the system
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Node constants
+          schema:
+            $ref: '#/definitions/NodeStatus'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ResponseCode429'
+
+definitions:
+  Fees:
+    type: object
+    properties:
+      send:
+        type: string
+        example: 10000000
+      vote:
+        type: string
+        example: 100000000
+      secondSignature:
+        type: string
+        example: 500000000
+      delegate:
+        type: string
+        example: 2500000000
+      multisignature:
+        type: string
+        example: 500000000
+      dappRegistration:
+        type: string
+        example: 2500000000
+      dappWithdrawal:
+        type: string
+        example: 10000000
+      dappDeposit:
+        type: string
+        example: 10000000
+
+  # State Related Models
+  NodeConstants:
+    type: object
+    required:
+    - epoch
+    - milestone
+    - nethash
+    - reward
+    - supply
+    - build
+    - commit
+    - version
+    - fees
+    properties:
+      epoch:
+        type: string
+        example: '2016-05-24T17:00:00.000Z'
+      milestone:
+        type: string
+        example: 1081560729258
+      build:
+        type: string
+        example: "v09:54:35 12/04/2017\n"
+      commit:
+        type: string
+        example: 7199d4b67c3575d5f99d1c29436a02977eeb01a7
+      version:
+        type: string
+        example: v0.8.0
+      nethash:
+        type: string
+        example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511
+      supply:
+        type: string
+        example: '10575384500000000'
+      reward:
+        type: string
+        example: 500000000
+      fees:
+        $ref: '#/definitions/Fees'
+  NodeStatus:
+    type: object
+    required:
+    - syncing
+    - height
+    - networkHeight
+    - consensus
+    - broadhash
+    properties:
+      syncing:
+        type: boolean
+        example: false
+      height:
+        type: integer
+        example: 123
+      networkHeight:
+        type: integer
+        example: 123
+      consensus:
+        type: integer
+        example: 95
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+
+# Response Code Templates
+  ResponseCode429:
+    type: object
+    properties:
+      error:
+        type: string
+        example: Request limit exceeded. Please try again later.
+
+# Added by API Auto Mocking Plugin
+host: virtserver.swaggerhub.com
+basePath: /LiskHQ/Lisk/1.0.18
