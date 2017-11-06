@@ -20,13 +20,23 @@ import {
 } from '../utils';
 
 export function aKeysgroupWithKeys() {
-	const keys = getQuotedStrings(this.test.parent.title);
-	this.test.ctx.keysgroup = keys;
+	const keysgroup = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.keysgroup = keysgroup;
+}
+
+export function aLifetimeOfHoursAsNotANumber() {
+	const lifetime = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.lifetime = lifetime;
 }
 
 export function aLifetimeOfHours() {
 	const lifetime = getFirstNumber(this.test.parent.title);
 	this.test.ctx.lifetime = lifetime;
+}
+
+export function aMinimumOfSignaturesAsNotANumber() {
+	const minimum = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.minimum = minimum;
 }
 
 export function aMinimumOfSignatures() {

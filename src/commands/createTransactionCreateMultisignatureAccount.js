@@ -32,7 +32,7 @@ const description = `Creates a transaction which will register a multisignature 
 	- create transaction 4 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa
 `;
 
-const createMultisignatureAccount = (keysgroup, lifetime, minimum) =>
+const createMultisignatureAccount = (lifetime, minimum, keysgroup) =>
 	([passphrase, secondPassphrase]) =>
 		transactions.createMultisignature(
 			passphrase,
@@ -55,12 +55,16 @@ export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, op
 			throw new Error(`${e} ${publicKey}`);
 		}
 		if (publicKey.length !== 64) {
-			throw new Error(`Public key ${publicKey} length differs from the expected 64 characters for a public key.`);
+			throw new Error(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
 		}
 		return `+${publicKey}`;
 	});
-	const transactionLifetime = Number(lifetime);
-	const transactionMinimumConfirmations = Number(minimum);
+	const transactionLifetime = parseInt(lifetime, 10);
+	const transactionMinimumConfirmations = parseInt(minimum, 10);
+
+	if (isNaN(transactionLifetime) || isNaN(transactionMinimumConfirmations)) {
+		throw new Error('Transaction lifetime and minimum confirmations inputs must be numbers.');
+	}
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
@@ -77,9 +81,9 @@ export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, op
 			),
 		)
 		.then(createMultisignatureAccount(
-			publicKeysWithPlus,
 			transactionLifetime,
 			transactionMinimumConfirmations,
+			publicKeysWithPlus,
 		));
 };
 
