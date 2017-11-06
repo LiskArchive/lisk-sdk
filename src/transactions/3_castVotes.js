@@ -18,8 +18,7 @@
  */
 import cryptoModule from '../crypto';
 import { VOTE_FEE } from '../constants';
-import { prepareTransaction } from './utils';
-import { getTimeWithOffset } from './utils/time';
+import { prepareTransaction, getTimeWithOffset } from './utils';
 
 /**
  * @method castVotes

@@ -19,8 +19,7 @@
  */
 import cryptoModule from '../crypto';
 import { IN_TRANSFER_FEE } from '../constants';
-import { prepareTransaction } from './utils';
-import { getTimeWithOffset } from './utils/time';
+import { prepareTransaction, getTimeWithOffset } from './utils';
 
 /**
  * @method transferIntoDapp

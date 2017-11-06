@@ -21,8 +21,8 @@ import { TRANSFER_FEE, DATA_FEE } from '../constants';
 import {
 	prepareTransaction,
 	getAddressAndPublicKeyFromRecipientData,
+	getTimeWithOffset,
 } from './utils';
-import { getTimeWithOffset } from './utils/time';
 
 /**
  * @method transfer
