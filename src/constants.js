@@ -21,7 +21,7 @@
  */
 
 export const FIXED_POINT = 10 ** 8;
-export const SEND_FEE = 0.1 * FIXED_POINT;
+export const TRANSFER_FEE = 0.1 * FIXED_POINT;
 export const DATA_FEE = 0.1 * FIXED_POINT;
 export const IN_TRANSFER_FEE = 0.1 * FIXED_POINT;
 export const OUT_TRANSFER_FEE = 0.1 * FIXED_POINT;

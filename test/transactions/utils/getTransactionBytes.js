@@ -13,7 +13,7 @@
  *
  */
 import getTransactionBytes, {
-	getAssetDataForSendTransaction,
+	getAssetDataForTransferTransaction,
 	getAssetDataForRegisterSecondSignatureTransaction,
 	getAssetDataForRegisterDelegateTransaction,
 	getAssetDataForCastVotesTransaction,
@@ -403,11 +403,11 @@ describe('getTransactionBytes functions', () => {
 		});
 	});
 
-	describe('#getAssetDataForSendTransaction', () => {
+	describe('#getAssetDataForTransferTransaction', () => {
 		const defaultEmptyBuffer = Buffer.alloc(0);
 		it('should return Buffer for data asset', () => {
 			const expectedBuffer = Buffer.from('my data input', 'utf8');
-			const assetDataBuffer = getAssetDataForSendTransaction({
+			const assetDataBuffer = getAssetDataForTransferTransaction({
 				data: 'my data input',
 			});
 
@@ -415,7 +415,7 @@ describe('getTransactionBytes functions', () => {
 		});
 
 		it('should return empty Buffer for no asset data', () => {
-			const assetDataBuffer = getAssetDataForSendTransaction({});
+			const assetDataBuffer = getAssetDataForTransferTransaction({});
 			assetDataBuffer.should.be.eql(defaultEmptyBuffer);
 		});
 	});

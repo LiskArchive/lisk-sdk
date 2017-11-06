@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import send from '../../src/transactions/0_send';
+import transfer from '../../src/transactions/0_transfer';
 
 const time = require('../../src/transactions/utils/time');
 
-describe('#send transaction', () => {
+describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const recipientId = '58191285901858109L';
 	const testData = 'data';
@@ -25,12 +25,12 @@ describe('#send transaction', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
-	const sendFee = (0.1 * fixedPoint).toString();
-	const sendWithDataFee = (0.2 * fixedPoint).toString();
+	const transferFee = (0.1 * fixedPoint).toString();
+	const transferWithDataFee = (0.2 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
-	let sendTransaction;
+	let transferTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
@@ -41,15 +41,15 @@ describe('#send transaction', () => {
 	describe('with first secret', () => {
 		describe('without data', () => {
 			beforeEach(() => {
-				sendTransaction = send({
+				transferTransaction = transfer({
 					recipientId,
 					amount,
 					secret,
 				});
 			});
 
-			it('should create a send transaction', () => {
-				sendTransaction.should.be.ok();
+			it('should create a transfer transaction', () => {
+				transferTransaction.should.be.ok();
 			});
 
 			it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -58,7 +58,7 @@ describe('#send transaction', () => {
 
 			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 				const offset = -10;
-				send({
+				transfer({
 					recipientId,
 					amount,
 					secret,
@@ -69,74 +69,76 @@ describe('#send transaction', () => {
 			});
 
 			it('should be an object', () => {
-				sendTransaction.should.be.type('object');
+				transferTransaction.should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				sendTransaction.should.have.property('id').and.be.type('string');
+				transferTransaction.should.have.property('id').and.be.type('string');
 			});
 
 			it('should have type number equal to 0', () => {
-				sendTransaction.should.have
+				transferTransaction.should.have
 					.property('type')
 					.and.be.type('number')
 					.and.equal(0);
 			});
 
 			it('should have amount string equal to provided amount', () => {
-				sendTransaction.should.have
+				transferTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
 					.and.equal(amount);
 			});
 
-			it('should have fee string equal to send fee', () => {
-				sendTransaction.should.have
+			it('should have fee string equal to transfer fee', () => {
+				transferTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal(sendFee);
+					.and.equal(transferFee);
 			});
 
 			it('should have recipientId string equal to provided recipient id', () => {
-				sendTransaction.should.have
+				transferTransaction.should.have
 					.property('recipientId')
 					.and.be.type('string')
 					.and.equal(recipientId);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				sendTransaction.should.have
+				transferTransaction.should.have
 					.property('senderPublicKey')
 					.and.be.hexString()
 					.and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				sendTransaction.should.have
+				transferTransaction.should.have
 					.property('timestamp')
 					.and.be.type('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				sendTransaction.should.have.property('signature').and.be.hexString();
+				transferTransaction.should.have
+					.property('signature')
+					.and.be.hexString();
 			});
 
 			it('should have an empty asset object', () => {
-				sendTransaction.should.have
+				transferTransaction.should.have
 					.property('asset')
 					.and.be.type('object')
 					.and.be.empty();
 			});
 
 			it('should not have the second signature property', () => {
-				sendTransaction.should.not.have.property('signSignature');
+				transferTransaction.should.not.have.property('signSignature');
 			});
 		});
 
 		describe('with data', () => {
 			beforeEach(() => {
-				sendTransaction = send({
+				transferTransaction = transfer({
 					recipientId,
 					amount,
 					secret,
@@ -145,7 +147,7 @@ describe('#send transaction', () => {
 			});
 
 			it('should handle invalid (non-utf8 string) data', () => {
-				send
+				transfer
 					.bind(null, {
 						recipientId,
 						amount,
@@ -157,16 +159,16 @@ describe('#send transaction', () => {
 					);
 			});
 
-			it('should have fee string equal to send with data fee', () => {
-				sendTransaction.should.have
+			it('should have fee string equal to transfer with data fee', () => {
+				transferTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal(sendWithDataFee);
+					.and.equal(transferWithDataFee);
 			});
 
 			describe('data asset', () => {
 				it('should be a string equal to provided data', () => {
-					sendTransaction.asset.should.have
+					transferTransaction.asset.should.have
 						.property('data')
 						.and.be.type('string')
 						.and.equal(testData);
@@ -177,7 +179,7 @@ describe('#send transaction', () => {
 
 	describe('with first and second secret', () => {
 		beforeEach(() => {
-			sendTransaction = send({
+			transferTransaction = transfer({
 				recipientId,
 				amount,
 				secret,
@@ -185,8 +187,8 @@ describe('#send transaction', () => {
 			});
 		});
 
-		it('should create a send transaction with data property', () => {
-			sendTransaction = send({
+		it('should create a transfer transaction with data property', () => {
+			transferTransaction = transfer({
 				recipientId,
 				amount,
 				secret,
@@ -194,11 +196,13 @@ describe('#send transaction', () => {
 				data: testData,
 			});
 
-			sendTransaction.asset.should.have.property('data');
+			transferTransaction.asset.should.have.property('data');
 		});
 
 		it('should have the second signature property as hex string', () => {
-			sendTransaction.should.have.property('signSignature').and.be.hexString();
+			transferTransaction.should.have
+				.property('signSignature')
+				.and.be.hexString();
 		});
 	});
 });

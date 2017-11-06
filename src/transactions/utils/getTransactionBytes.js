@@ -49,12 +49,12 @@ export function checkRequiredFields(requiredFields, data) {
 }
 
 /**
- * @method getAssetDataForSendTransaction
+ * @method getAssetDataForTransferTransaction
  * @param {Object} transactionAsset
  * @return {Buffer}
  */
 
-export function getAssetDataForSendTransaction({ data }) {
+export function getAssetDataForTransferTransaction({ data }) {
 	return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 }
 
@@ -181,7 +181,7 @@ export function getAssetDataForTransferOutOfDappTransaction({ outTransfer }) {
 
 export function getAssetBytes(transaction) {
 	const assetDataGetters = {
-		0: getAssetDataForSendTransaction,
+		0: getAssetDataForTransferTransaction,
 		1: getAssetDataForRegisterSecondSignatureTransaction,
 		2: getAssetDataForRegisterDelegateTransaction,
 		3: getAssetDataForCastVotesTransaction,
