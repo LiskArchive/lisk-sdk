@@ -30,17 +30,22 @@ export function aLifetimeOfHoursAsNotANumber() {
 }
 
 export function aLifetimeOfHours() {
-	const lifetime = getFirstNumber(this.test.parent.title);
+	let lifetime;
+	try {
+		lifetime = getFirstNumber(this.test.parent.title);
+	} catch (e) {
+		lifetime = getFirstQuotedString(this.test.parent.title);
+	}
 	this.test.ctx.lifetime = lifetime;
 }
 
-export function aMinimumOfSignaturesAsNotANumber() {
-	const minimum = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.minimum = minimum;
-}
-
 export function aMinimumOfSignatures() {
-	const minimum = getFirstNumber(this.test.parent.title);
+	let minimum;
+	try {
+		minimum = getFirstNumber(this.test.parent.title);
+	} catch (e) {
+		minimum = getFirstQuotedString(this.test.parent.title);
+	}
 	this.test.ctx.minimum = minimum;
 }
 

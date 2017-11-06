@@ -31,7 +31,7 @@ describe('create transaction create multisignature account', () => {
 				describe('Given a Lisk object that can create transactions', () => {
 					beforeEach(given.aLiskObjectThatCanCreateTransactions);
 					describe('Given a lifetime of "NaN" hours', () => {
-						beforeEach(given.aLifetimeOfHoursAsNotANumber);
+						beforeEach(given.aLifetimeOfHours);
 						describe('Given a minimum of 2 signatures', () => {
 							beforeEach(given.aMinimumOfSignatures);
 							describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
@@ -49,7 +49,7 @@ describe('create transaction create multisignature account', () => {
 					describe('Given a lifetime of 24 hours', () => {
 						beforeEach(given.aLifetimeOfHours);
 						describe('Given a minimum of "NaN" signatures', () => {
-							beforeEach(given.aMinimumOfSignaturesAsNotANumber);
+							beforeEach(given.aMinimumOfSignatures);
 							describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
 								beforeEach(given.aKeysgroupWithKeys);
 								describe('Given an empty options object', () => {
