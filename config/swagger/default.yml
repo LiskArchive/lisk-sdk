@@ -48,9 +48,6 @@ swagger:
       name: swagger_security
       securityHandlersModule: helpers/swagger_security_handlers
 
-    _custom_param_formats:
-      name: custom_param_formats
-
     # pipe for all swagger-node controllers
     swagger_controllers:
       - onError: _json_error_handler
@@ -60,6 +57,5 @@ swagger:
       - _swagger_security
       - _swagger_validate
       - express_compatibility
-      - _custom_param_formats
       - _router
 
