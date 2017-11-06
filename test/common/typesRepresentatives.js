@@ -1,6 +1,10 @@
 'use strict';
 
+var faker = require('faker');
 var difference = require('lodash').difference;
+
+var node = require('../node');
+var constants = require('../../helpers/constants');
 
 var arrays = [
 	{
@@ -141,6 +145,11 @@ var nonEmptyStrings = [
 		input: '!@#$%^&*()\\}{;\'"<>?/',
 		description: 'special characters',
 		expectation: 'string'
+	},
+	{
+		input: faker.random.alphaNumeric(),
+		description: 'alphanumeric',
+		expectation: 'string'
 	}
 ];
 
@@ -148,6 +157,67 @@ var emptyString = [
 	{
 		input: '',
 		description: 'empty string',
+		expectation: 'string'
+	}
+];
+
+var additionalDataValidCases = [
+	{
+		input: faker.internet.email(),
+		description: 'email',
+		expectation: 'string'
+	},
+	{
+		input: faker.internet.url(),
+		description: 'URL',
+		expectation: 'string'
+	},
+	{
+		input: faker.internet.ip(),
+		description: 'IP',
+		expectation: 'string'
+	},
+	{
+		input: faker.internet.mac(),
+		description: 'MAC',
+		expectation: 'string'
+	},
+	{
+		input: faker.random.image(),
+		description: 'image',
+		expectation: 'string'
+	},
+	{
+		input: faker.random.uuid(),
+		description: 'uuid',
+		expectation: 'string'
+	},
+	{
+		input: faker.phone.phoneNumber(),
+		description: 'phone number',
+		expectation: 'string'
+	},
+	{
+		input: faker.finance.iban(),
+		description: 'iban',
+		expectation: 'string'
+	},
+	{
+		input: node.randomString.generate(constants.additionalData.maxLength),
+		description: 'maximum chars',
+		expectation: 'string'
+	},	
+];
+
+var additionalDataInvalidCases = [
+	{
+		input: node.randomString.generate(constants.additionalData.maxLength - 1) + '现',
+		description: 'overflowed string',
+		expectation: 'string'
+	},
+	{
+		input: node.randomString.generate(constants.additionalData.maxLength + 1),
+		description: 'maximum chars + 1',
 		expectation: 'string'
 	}
 ];
@@ -187,5 +257,7 @@ module.exports = {
 	nonEmptyStrings: nonEmptyStrings,
 	nonNonEmptyStrings: difference(allTypes, nonEmptyStrings),
 	emptyString: emptyString,
-	nonEmptyString: difference(allTypes, emptyString)
+	nonEmptyString: difference(allTypes, emptyString),
+	additionalDataValidCases: additionalDataValidCases,
+	additionalDataInvalidCases: additionalDataInvalidCases
 };
