@@ -45,7 +45,7 @@ const defaultAppId = '1234213';
 const defaultDelegateUsername = 'MyDelegateUsername';
 
 describe('#getTransactionBytes', () => {
-	describe('send transaction, type 0', () => {
+	describe('transfer transaction, type 0', () => {
 		let defaultTransaction;
 
 		beforeEach(() => {
@@ -63,7 +63,7 @@ describe('#getTransactionBytes', () => {
 			};
 		});
 
-		it('should return Buffer of type 0 (send LSK) transaction', () => {
+		it('should return Buffer of type 0 (transfer LSK) transaction', () => {
 			const expectedBuffer = Buffer.from(
 				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
 				'base64',
@@ -73,7 +73,7 @@ describe('#getTransactionBytes', () => {
 			transactionBytes.should.be.eql(expectedBuffer);
 		});
 
-		it('should return Buffer of type 0 (send LSK) with data', () => {
+		it('should return Buffer of type 0 (transfer LSK) with data', () => {
 			defaultTransaction.asset.data = 'Hello Lisk! Some data in here!...';
 			const expectedBuffer = Buffer.from(
 				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABIZWxsbyBMaXNrISBTb21lIGRhdGEgaW4gaGVyZSEuLi5hilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
@@ -105,7 +105,7 @@ describe('#getTransactionBytes', () => {
 			transactionBytes.should.be.eql(expectedBuffer);
 		});
 
-		it('should return Buffer from multisignature type 0 (send LSK) transaction', () => {
+		it('should return Buffer from multisignature type 0 (transfer LSK) transaction', () => {
 			const multiSignatureTransaction = {
 				type: 0,
 				amount: 1000,
@@ -129,7 +129,7 @@ describe('#getTransactionBytes', () => {
 			transactionBytes.should.be.eql(expectedBuffer);
 		});
 
-		it('should return Buffer of type 0 (send LSK) with additional properties', () => {
+		it('should return Buffer of type 0 (transfer LSK) with additional properties', () => {
 			defaultTransaction.skip = false;
 			const expectedBuffer = Buffer.from(
 				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
@@ -674,7 +674,7 @@ describe('getTransactionBytes functions', () => {
 				id: defaultTransactionId,
 			};
 		});
-		it('should throw on too many data in send asset', () => {
+		it('should throw on too many data in transfer asset', () => {
 			defaultTransaction.asset.data = new Array(maxDataLength + 1)
 				.fill('1')
 				.join('');

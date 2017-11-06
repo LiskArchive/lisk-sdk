@@ -859,7 +859,7 @@ describe('Lisk API module', () => {
 		});
 
 		describe('#transferLSK', () => {
-			it('should send testnet LSK', () => {
+			it('should transfer testnet LSK', () => {
 				const recipientId = '10279923186189318946L';
 				const options = {
 					recipientId,
