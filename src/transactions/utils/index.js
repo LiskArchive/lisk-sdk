@@ -17,5 +17,6 @@ export {
 } from './getAddressAndPublicKeyFromRecipientData';
 export { default as getTransactionBytes } from './getTransactionBytes';
 export { default as getTransactionHash } from './getTransactionHash';
+export { default as getTransactionId } from './getTransactionId';
 export { default as prepareTransaction } from './prepareTransaction';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';

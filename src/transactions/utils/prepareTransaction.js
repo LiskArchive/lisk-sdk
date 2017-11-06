@@ -13,6 +13,7 @@
  *
  */
 import cryptoModule from '../../crypto';
+import getTransactionId from './getTransactionId';
 
 const secondSignTransaction = (transactionObject, secondSecret) =>
 	Object.assign({}, transactionObject, {
@@ -33,7 +34,7 @@ const prepareTransaction = (transaction, secret, secondSecret) => {
 			: singleSignedTransaction;
 
 	const transactionWithId = Object.assign({}, signedTransaction, {
-		id: cryptoModule.getId(signedTransaction),
+		id: getTransactionId(signedTransaction),
 	});
 
 	return transactionWithId;

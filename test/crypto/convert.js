@@ -19,13 +19,11 @@ import {
 	toAddress,
 	getAddressFromPublicKey,
 	getAddress,
-	getId,
 	convertPublicKeyEd2Curve,
 	convertPrivateKeyEd2Curve,
 } from '../../src/crypto/convert';
 
 const hash = require('../../src/crypto/hash');
-const utils = require('../../src/transactions/utils');
 
 describe('convert', () => {
 	// keys for secret 'secret';
@@ -48,20 +46,10 @@ describe('convert', () => {
 	const defaultAddress = '18160565574430594874L';
 	const defaultBuffer = Buffer.from('\xe5\xe4\xf6');
 	const defaultHex = 'c3a5c3a4c3b6';
-	const defaultTransactionId = '13987348420913138422';
-	const defaultTransactionHash = Buffer.from(
-		'f60a26da470b1dc233fd526ed7306c1d84836f9e2ecee82c9ec47319e0910474',
-		'hex',
-	);
 	const defaultStringWithMoreThanEightCharacters = '0123456789';
 	const defaultFirstEightCharactersReversed = '76543210';
 	const defaultDataForBuffer = 'Hello!';
 	const defaultAddressFromBuffer = '79600447942433L';
-	const defaultAmount = 1000;
-	const defaultTimestamp = 141738;
-	const defaultRecipientId = '58191285901858109L';
-	const defaultSignature =
-		'618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a';
 
 	describe('#bufferToHex', () => {
 		it('should create a hex string from a Buffer', () => {
@@ -123,28 +111,6 @@ describe('convert', () => {
 		it('should generate address from publicKey', () => {
 			const address = getAddress(defaultPublicKey);
 			address.should.be.equal(defaultAddress);
-		});
-	});
-
-	describe('#getId', () => {
-		beforeEach(() => {
-			sandbox.stub(hash, 'default').returns(defaultTransactionHash);
-			sandbox.stub(utils, 'getTransactionBytes');
-		});
-
-		it('should return an id of 13987348420913138422 for a transaction', () => {
-			const transaction = {
-				type: 0,
-				amount: defaultAmount,
-				recipientId: defaultRecipientId,
-				timestamp: defaultTimestamp,
-				asset: {},
-				senderPublicKey: defaultPublicKey,
-				signature: defaultSignature,
-			};
-			const id = getId(transaction);
-
-			id.should.be.equal(defaultTransactionId);
 		});
 	});
 
