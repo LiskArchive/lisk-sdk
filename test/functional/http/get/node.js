@@ -22,8 +22,8 @@ describe('GET /node', function () {
 		});
 
 
-		it('should return a result containing milestone that is a number <= 4', function () {
-			constantsResponse.milestone.should.at.most(4);
+		it('should return a result containing milestone that is a number <= 500000000', function () {
+			parseInt(constantsResponse.milestone).should.at.most(500000000);
 		});
 
 		it('should return a result containing reward that is a number <= 500000000', function () {

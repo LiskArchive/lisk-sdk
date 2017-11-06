@@ -23,6 +23,7 @@ NodeController.getConstants = function (req, res) {
 
 		//Typecast required integer or bignum attributes while sending data in API
 		data.supply = data.supply.toString();
+		data.milestone = data.milestone.toString();
 		data.reward = data.reward.toString();
 		data.fees.dappDeposit = data.fees.dappDeposit.toString();
 		data.fees.dappWithdrawal = data.fees.dappWithdrawal.toString();

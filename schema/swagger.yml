@@ -146,8 +146,8 @@ definitions:
         format: date-time
         example: '2016-05-24T17:00:00.000Z'
       milestone:
-        type: integer
-        example: 1
+        type: string
+        example: '500000000'
       build:
         type: string
         example: 'v09:54:35 12/04/2017'
