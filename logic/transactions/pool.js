@@ -143,97 +143,246 @@ __private.getAllPoolTransactionsByFilter = function (filter) {
 
 /**
  * Returns true if the id is present in at least one of the pool lists transactions.
+ * @private
  * @param {string} id
  * @return {boolean}
  */
 __private.transactionInPool = function (id) {
 	return [
+		pool.verified.ready.transactions[id],
 		pool.unverified.transactions[id],
-		pool.verified.pending.transactions[id],
-		pool.verified.ready.transactions[id]
+		pool.verified.pending.transactions[id]
 	].some(function (index) {
-		return typeof(index) === 'number';
+		return typeof(index) === 'object';
 	});
+};
+
+/**
+ * Checks if pool is ready to receive a new transaction and the incoming
+ * transaction was not already processed by pool.
+ * @private
+ * @implements {__private.countTransactionsPool}
+ * @implements {__private.transactionInPool}
+ * @param {Object} transaction
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb, transaction
+ */
+__private.checkPoolAvailability = function (transaction, waterCb) {
+	if (__private.countTransactionsPool() >= self.poolStorageTransactionsLimit) {
+		return setImmediate(waterCb, 'Transaction pool is full');
+	}
+	if (pool.invalid.transactions[transaction.id] !== undefined) {
+		return setImmediate(waterCb, 'Transaction is already processed as invalid: ' + transaction.id);
+	}
+	if (__private.transactionInPool(transaction.id)) {
+		return setImmediate(waterCb, 'Transaction is already in pool: ' + transaction.id);
+	}
+	return setImmediate(waterCb, null, transaction);
+};
+
+/**
+ * Obtains sender from accounts table, if address does not exists,
+ * returns a default account object.
+ * @private
+ * @implements {modules.accounts.setAccountAndGet}
+ * @param {Object} transaction
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb, transaction, sender
+ */
+__private.setAccountAndGet = function (transaction, waterCb) {
+	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, cb) {
+		return setImmediate(waterCb, err, transaction, cb);
+	});
+};
+
+/**
+ * Obtains requester from accounts table
+ * @private
+ * @implements {modules.accounts.getAccount}
+ * @param {Object} transaction
+ * @param {Object} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb, transaction, sender, requester
+ */
+__private.getRequester = function (transaction, sender, waterCb) {
+	var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
+
+	if (multisignatures) {
+		transaction.signatures = transaction.signatures || [];
+	}
+
+	if (sender && transaction.requesterPublicKey && multisignatures) {
+		modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
+			if (!requester) {
+				return setImmediate(waterCb, 'Requester not found');
+			} else {
+				return setImmediate(waterCb, null, transaction, sender, requester);
+			}
+		});
+	} else {
+		return setImmediate(waterCb, null, transaction, sender, null);
+	}
+};
+
+/**
+ * Process transaction.
+ * @private
+ * @implements {library.logic.transaction.process}
+ * @implements {__private.addInvalid}
+ * @param {Object} transaction
+ * @param {Object} sender
+ * @param {Object} requester
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb, transaction, sender
+ */
+__private.processTransaction = function (transaction, sender, requester, waterCb) {
+	library.logic.transaction.process(transaction, sender, requester, function (err) {
+		if (err) {
+			__private.addInvalid(transaction.id);
+			return setImmediate(waterCb, err);
+		} 
+		return setImmediate(waterCb, null, transaction, sender);
+	});
+};
+
+/**
+ * Normalizes transaction.
+ * @private
+ * @implements {library.logic.transaction.objectNormalize}
+ * @implements {__private.addInvalid}
+ * @param {Object} transaction
+ * @param {Object} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb, transaction, sender
+ */
+__private.normalizeTransaction = function (transaction, sender, waterCb) {
+	try {
+		transaction = library.logic.transaction.objectNormalize(transaction);
+		return setImmediate(waterCb, null, transaction, sender);
+	} catch (err) {
+		__private.addInvalid(transaction.id);
+		return setImmediate(waterCb, err, null);
+	}
+};
+
+/**
+ * Verifyes transaction.
+ * @private
+ * @implements {library.logic.transaction.verify}
+ * @implements {__private.addInvalid}
+ * @param {Object} transaction
+ * @param {Object} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb, transaction, sender
+ */
+__private.verifyTransaction = function (transaction, sender, waterCb) {
+	library.logic.transaction.verify(transaction, sender, function (err) {
+		if (err) {
+			__private.addInvalid(transaction.id);
+			return setImmediate(waterCb, err);
+		} else {
+			return setImmediate(waterCb, null, transaction, sender);
+		}
+	});
+};
+
+/**
+ * Adds transaction to verify pending or ready.
+ * @private
+ * @implements {__private.addToPoolList}
+ * @implements {__private.addReadyCheckBroadcast}
+ * @param {Object} transaction
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+__private.moveToVerified = function (transaction, cb) {
+	var receiveAtToTime = transaction.receivedAt.getTime();
+	var timestampToTime = slots.getRealTime(transaction.timestamp);
+	if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures) || receiveAtToTime < timestampToTime) {
+		__private.addToPoolList(transaction, pool.verified.pending, cb);
+	} else {
+		__private.addReadyCheckBroadcast(transaction, cb);
+	}
+};
+
+/**
+ * Adds transactions to verified pool list.
+ * Checks if transaction is in pool, pool limit, performs basic transaction validations
+ * and advanced transaction validations: verify and check balance.
+ * @private
+ * @implements {__private.checkPoolAvailability}
+ * @implements {__private.setAccountAndGet}
+ * @implements {__private.getAccount}
+ * @implements {__private.processTransaction}
+ * @implements {__private.normalizeTransaction}
+ * @implements {__private.verifyTransaction}
+ * @implements {__private.moveToVerified}
+ * @param {Transaction} transaction
+ * @param {boolean} broadcast
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+__private.addToVerified = function (transaction, broadcast, cb) {
+	transaction.receivedAt = new Date();
+	async.waterfall([
+		async.apply(__private.checkPoolAvailability, transaction),
+		__private.setAccountAndGet,
+		__private.getRequester,
+		__private.processTransaction,
+		__private.normalizeTransaction,
+		__private.verifyTransaction,
+		function checkBalance (transaction, sender, waterCb) {
+			self.checkBalance(transaction, sender, function (err, balance) {
+				if (err) {
+					return setImmediate(waterCb, err);
+				}
+				return __private.moveToVerified(transaction, waterCb);
+			});
+		}
+	], function (err) {
+		return setImmediate(cb, err);
+	});
+
 };
 
 /**
  * Adds transactions to unverified pool list.
  * Checks if transaction is in pool, pool limit and performs basic transaction validations.
- * @implements {__private.countTransactionsPool}
- * @implements {__private.transactionInPool}
+ * @private
+ * @implements {__private.checkPoolAvailability}
+ * @implements {__private.setAccountAndGet}
+ * @implements {__private.getAccount}
+ * @implements {__private.processTransaction}
+ * @implements {__private.normalizeTransaction}
  * @param {Transaction} transaction
  * @param {boolean} broadcast
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
 __private.addToUnverified = function (transaction, broadcast, cb) {
-	if (__private.countTransactionsPool() >= self.poolStorageTransactionsLimit) {
-		return setImmediate(cb, 'Transaction pool is full');
-	}
-	if (pool.invalid.transactions[transaction.id] !== undefined) {
-		return setImmediate(cb, 'Transaction is already processed as invalid: ' + transaction.id);
-	}
-	if (__private.transactionInPool(transaction.id)) {
-		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
-	} else {
-		async.waterfall([
-			function setAccountAndGet (waterCb) {
-				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
-			},
-			function getRequester (sender, waterCb) {
-				var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
-	
-				if (multisignatures) {
-					transaction.signatures = transaction.signatures || [];
-				}
-	
-				if (sender && transaction.requesterPublicKey && multisignatures) {
-					modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
-						if (!requester) {
-							return setImmediate(waterCb, 'Requester not found');
-						} else {
-							return setImmediate(waterCb, null, sender, requester);
-						}
-					});
-				} else {
-					return setImmediate(waterCb, null, sender, null);
-				}
-			},
-			function processTransaction (sender, requester, waterCb) {
-				library.logic.transaction.process(transaction, sender, requester, function (err) {
-					if (err) {
-						__private.addInvalid(transaction.id);
-						return setImmediate(waterCb, err);
-					} else {
-						return setImmediate(waterCb, null, sender);
-					}
-				});
-			},
-			function normalizeTransaction (sender, waterCb) {
-				try {
-					transaction = library.logic.transaction.objectNormalize(transaction);
-					return setImmediate(waterCb, null, sender);
-				} catch (err) {
-					__private.addInvalid(transaction.id);
-					return setImmediate(waterCb, err);
-				}
+	async.waterfall([
+		async.apply(__private.checkPoolAvailability, transaction),
+		__private.setAccountAndGet,
+		__private.getRequester,
+		__private.processTransaction,
+		__private.normalizeTransaction
+	], function (err, transaction, sender) {
+		if (!err) {
+			if (broadcast) {
+				transaction.broadcast = true;
 			}
-		], function (err, sender) {
-			if (!err) {
-				if (broadcast) {
-					transaction.broadcast = true;
-				}
-				transaction.receivedAt = new Date();
-				pool.unverified.transactions[transaction.id] = transaction;
-				pool.unverified.count++;
-			}
-			return setImmediate(cb, err, sender);
-		});
-	}
+			transaction.receivedAt = new Date();
+			pool.unverified.transactions[transaction.id] = transaction;
+			pool.unverified.count++;
+		}
+		return setImmediate(cb, err, transaction);
+	});
+
 };
 
 /**
  * Adds transactions to pool list without checks.
+ * @private
  * @param {transaction} transaction
  * @param {Object} poolList
  * @param {function} cb - Callback function.
@@ -247,6 +396,7 @@ __private.addToPoolList = function (transaction, poolList, cb) {
 
 /**
  * Adds transactions to pool list without checks.
+ * @private
  * @param {transaction} transaction
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
@@ -281,6 +431,7 @@ __private.createSignature = function (transaction, secret, cb) {
 
 /**
  * Adds transaction id to invalid pool list.
+ * @private
  * @param {string} id
  */
 __private.addInvalid = function (id) {
@@ -290,6 +441,7 @@ __private.addInvalid = function (id) {
 
 /**
  * Deletes id from pool list.
+ * @private
  * @param {string} id
  * @param {Object} poolList
  * @return {boolean} true if transaction id is on the list and was deleted
@@ -307,6 +459,7 @@ __private.delete = function (id, poolList) {
 
 /**
  * Sums unverified, verified.pending and verified.ready counters.
+ * @private
  * @return {Number} Total = unverified + pending + ready
  */
 __private.countTransactionsPool = function () {
@@ -557,6 +710,18 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 };
 
 /**
+ * Validates a transaction and adds it to the verified pool list.
+ * @implements {__private.addToVerified}
+ * @param {transaction} transaction
+ * @param {boolean} broadcast
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb
+ */
+TransactionPool.prototype.addFromPublic = function (transaction, broadcast, cb) {
+	__private.addToVerified(transaction, broadcast, cb);
+};
+
+/**
  * Adds transactions to unverified pool list.
  * @implements {__private.addToUnverified}
  * @param {transaction} transactions
@@ -564,7 +729,7 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-TransactionPool.prototype.add = function (transactions, broadcast, cb) {
+TransactionPool.prototype.addFromPeer = function (transactions, broadcast, cb) {
 	if (!Array.isArray(transactions)) {
 		transactions = [transactions];
 	}
@@ -652,12 +817,26 @@ TransactionPool.prototype.delete = function (id) {
 };
 
 /**
+ * Deletes transactions from pool lists and rechecks balance for ready transactions
+ * @implements {__private.delete}
+ * @param {string} id transaction id
+ * @return {Array} names of cleared lists
+ */
+TransactionPool.prototype.sanitizeTransactions = function (transactions) {
+	transactions.forEach(function (transaction) {
+		self.delete(transaction.id);
+	});
+};
+
+/**
  * Pulls transactions from unverified, perform verifications and if successful
  * push to either verified.pending (when transaction is multisign or timestamp is in 
  * future) or verified.ready otherwise.
  * @implements {__private.delete}
- * @implements {processVerifyTransaction}
- * @implements {removeUnconfirmedTransaction}
+ * @implements {__private.processUnverifiedTransaction}
+ * @implements {self.checkBalance}
+ * @implements {__private.moveToVerified}
+ * @implements {__private.addReadyCheckBroadcast}
  * @param {function} cb
  * @return {setImmediateCallback} err | cb
  */
@@ -680,13 +859,7 @@ TransactionPool.prototype.processPool = function (cb) {
 							library.logger.error('Failed to check balance transaction: ' + transaction.id, err);
 							return setImmediate(eachSeriesCb);
 						}
-						var receiveAtToTime = transaction.receivedAt.getTime();
-						var timestampToTime = slots.getRealTime(transaction.timestamp);
-						if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures) || receiveAtToTime < timestampToTime) {
-							__private.addToPoolList(transaction, pool.verified.pending, eachSeriesCb);
-						} else {
-							__private.addReadyCheckBroadcast(transaction, eachSeriesCb);
-						}
+						return __private.moveToVerified(transaction, eachSeriesCb);
 					});
 				});
 			}, function (err) {
