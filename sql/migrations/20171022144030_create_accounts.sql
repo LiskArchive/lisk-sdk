@@ -14,8 +14,7 @@ CREATE TABLE "public".accounts (address varchar(22) NOT NULL,
   public_key_transaction_id varchar(20),
   balance bigint DEFAULT 0 NOT NULL,
   CONSTRAINT pk_accounts PRIMARY KEY (address),
-	CONSTRAINT idx_accounts_public_key UNIQUE (public_key),
-	CONSTRAINT idx_accounts_transaction_id UNIQUE (transaction_id)
+	CONSTRAINT idx_accounts_public_key UNIQUE (public_key)
 );
 
 
