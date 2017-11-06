@@ -143,7 +143,7 @@ AND t."senderPublicKey" = ma."publicKey";
 /* Populates multisignatures member FROM blockchain */
 INSERT INTO "public".multisignatures_member(transaction_id, public_key, master_public_key)
 SELECT mma."transaction_id",
-  ENCODE(substring(regexp_split_to_table(ms.keysgroup, E ','), 'hex') FROM 2 FOR 64),
+  ENCODE(substring(regexp_split_to_table(ms.keysgroup, E ',') FROM 2 FOR 64),  'hex'),
   mma.public_key
 FROM multisignatures ms, multisignatures_master mma
 WHERE mma."transaction_id" = ms."transactionId";
