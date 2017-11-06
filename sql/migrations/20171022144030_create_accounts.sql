@@ -1,5 +1,11 @@
 BEGIN;
 
+DO language plpgsql $$
+BEGIN
+	RAISE NOTICE 'Accounts table migration, please wait...';
+END
+$$;
+
 DROP TABLE IF EXISTS accounts CASCADE;
 
 CREATE TABLE "public".accounts (address varchar(22) NOT NULL,
@@ -67,7 +73,5 @@ CREATE
     RAISE WARNING 'Reverting change of secondPublicKey from % to %', ENCODE(OLD."secondPublicKey", 'hex'), ENCODE(NEW."secondPublicKey", 'hex'); NEW."secondPublicKey" = OLD."secondPublicKey";
     END IF; RETURN NEW;
     END $function$ ;
-
-COMMIT;
 
 END;

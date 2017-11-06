@@ -1,5 +1,12 @@
 BEGIN;
 
+DO language plpgsql $$
+BEGIN
+	RAISE NOTICE 'Transactions table migration, please wait...';
+END
+$$;
+
+
  /* Rename all columns for new schema */
 ALTER TABLE trs RENAME TO transactions;
 ALTER TABLE transactions RENAME id TO "transaction_id";
@@ -30,6 +37,8 @@ BEGIN
 END $function$;
 
 -- Create trigger that will execute 'on_transaction_delete' function before deletion of transaction
+DROP TRIGGER on_transaction_delete on transactions;
+
 CREATE CONSTRAINT TRIGGER on_transaction_delete
 	AFTER DELETE ON transactions
 	DEFERRABLE INITIALLY DEFERRED
@@ -61,6 +70,8 @@ CREATE OR REPLACE FUNCTION public.on_transaction_insert()
 	END $function$;
 
 -- Create trigger that will execute 'on_transaction_insert' function after insertion of transaction
+DROP TRIGGER on_transaction_insert on transactions;
+
 CREATE TRIGGER on_transaction_insert
 	AFTER INSERT ON transactions
 	FOR EACH ROW

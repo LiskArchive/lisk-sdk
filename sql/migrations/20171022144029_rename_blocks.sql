@@ -1,5 +1,11 @@
 BEGIN;
 
+DO language plpgsql $$
+BEGIN
+	RAISE NOTICE 'Blocks table migration, please wait...';
+END
+$$;
+
 /* Migrate blocks table */ /* Rename all columns for new schema */
 ALTER TABLE blocks RENAME id TO "block_id";
 
@@ -92,7 +98,7 @@ CREATE OR REPLACE FUNCTION public.calculate_supply_test(height_start integer, he
 
 
 CREATE OR REPLACE FUNCTION public.get_block_rewards() RETURNS block_rewards LANGUAGE PLPGSQL IMMUTABLE AS $function$
-	DECLARE res block_rewards; 
+	DECLARE res block_rewards;
 		supply bigint = 10000000000000000;
 		start int = 1451520;
 		distance bigint = 3000000;
@@ -104,8 +110,5 @@ CREATE OR REPLACE FUNCTION public.get_block_rewards() RETURNS block_rewards LANG
 		res.milestones = milestones;
 		RETURN res;
 	END $function$ ;
-
-
-COMMIT;
 
 END;

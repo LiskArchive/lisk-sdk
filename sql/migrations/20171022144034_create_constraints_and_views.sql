@@ -1,6 +1,13 @@
+BEGIN;
+
+DO language plpgsql $$
 BEGIN
-  ;
-  /* Create new indexes */
+	RAISE NOTICE 'Recreating views and indexes, please wait...';
+END
+$$;
+
+
+	  /* Create new indexes */
   -- accounts indexes
   CREATE INDEX idx_accounts_transaction_id
   ON "public".accounts

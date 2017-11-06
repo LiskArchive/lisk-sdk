@@ -1,5 +1,12 @@
 BEGIN;
 
+DO language plpgsql $$
+BEGIN
+	RAISE NOTICE 'Accounts relations migration, please wait...';
+END
+$$;
+
+
 --Apply transactions into new table, to populate new accounts table
 INSERT INTO "public".accounts(address, public_key, balance)
 SELECT

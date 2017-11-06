@@ -1,5 +1,10 @@
 BEGIN;
 
+DO language plpgsql $$
+BEGIN
+	RAISE NOTICE 'Recreating database functions, please wait...';
+END
+$$;
 
 DROP FUNCTION getdelegateslist();
 DROP TRIGGER block_insert_delete ON blocks;
