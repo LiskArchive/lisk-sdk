@@ -7,7 +7,7 @@
 		"test": "nyc mocha test --recursive",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test --recursive\" --initial",
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
-		"cover": "mkdir -p coverage && nyc report --reporter=lcov > coverage/lcov",
+		"cover": "nyc report --reporter=lcov",
 		"eslint": "grunt eslint",
 		"prettier": "prettier --single-quote --trailing-comma=all --use-tabs --write \"browsertest/{setup,runTests}.js\" \"{cypress/integration,src,test}/**/*.js\"",
 		"serve:browsertest": "http-server browsertest",
