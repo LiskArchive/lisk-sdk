@@ -103,7 +103,6 @@ var config = {
 		delegates: { http: './api/http/delegates.js' },
 		loader: { http: './api/http/loader.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
-		node: { http: './api/http/node.js' },
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
