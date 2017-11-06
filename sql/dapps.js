@@ -1,7 +1,7 @@
 'use strict';
 
 var DappsSql = {
-	sortFields: ['type', 'name', 'category', 'link'],
+	sortFields: ['name'],
 
 	countByTransactionId: 'SELECT COUNT(*)::int AS "count" FROM dapps WHERE "transactionId" = ${id}',
 
