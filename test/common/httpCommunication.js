@@ -7,7 +7,11 @@ var httpCommunication = {
 		var request = node.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
-		request.expect('Content-Type', /json/);
+		request.expect(function (response) {
+			if (response.statusCode !== 204 && (!response.headers['content-type'] || response.headers['content-type'].indexOf('json') === -1)) {
+				return new Error('Unexpected content-type!');
+			}
+		});
 
 		if (options.params) {
 			request.send(options.params);

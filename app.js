@@ -41,6 +41,7 @@ var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var z_schema = require('./helpers/z_schema.js');
+var swagger = require('./config/swagger');
 
 process.stdin.resume();
 
@@ -75,6 +76,7 @@ process.env.TOP = appConfig.topAccounts;
  * @property {Object} api - `api/http` folder content.
  */
 var config = {
+	root: path.dirname(__filename),
 	db: appConfig.db,
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
@@ -91,7 +93,8 @@ var config = {
 		system: './modules/system.js',
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
-		transport: './modules/transport.js'
+		transport: './modules/transport.js',
+		voters: './modules/voters'
 	},
 	api: {
 		accounts: { http: './api/http/accounts.js' },
@@ -104,6 +107,7 @@ var config = {
 		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
+		voters: { http: './api/http/voters.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
@@ -378,6 +382,10 @@ d.run(function () {
 			scope.network.app.use(httpApi.middleware.applyAPIAccessRules.bind(null, scope.config));
 
 			cb();
+		}],
+
+		swagger: ['connect', 'modules', 'logger', 'cache', function (scope, cb) {
+			swagger(scope.network.app, config, scope.logger, scope, cb);
 		}],
 
 		ed: function (cb) {

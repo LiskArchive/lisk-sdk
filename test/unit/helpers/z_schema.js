@@ -87,4 +87,26 @@ describe('schema - custom formats', function () {
 			expect(validator.validate(validSignature, schema)).to.equal(true);
 		});
 	});
+
+	describe('ipOrFQDN', function () {
+		var schema = {
+			format: 'ipOrFQDN'
+		};
+
+		it('should return false if value is not an IP or not a FQDN', function () {
+			var invalidData = ['192.168', 'alpha-', 'apha_server', 'alpha.server.'];
+
+			invalidData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(false);
+			});			
+		});
+
+		it('should return true if value is an IP or a valid FQDN', function () {
+			var validData = ['192.168.0.1', '127.0.0.1', 'localhost', 'app.server', 'alpha.server.com', '8.8.8.8'];
+
+			validData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(true);
+			});			
+		});
+	});
 });

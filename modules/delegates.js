@@ -317,15 +317,6 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				return setImmediate(cb, 'Invalid public key');
 			}
 
-			if (math === '+' && (delegates != null && delegates.indexOf(publicKey) !== -1)) {
-				return setImmediate(cb, 'Failed to add vote, account has already voted for this delegate');
-			}
-
-			if (math === '-' && (delegates === null || delegates.indexOf(publicKey) === -1)) {
-				return setImmediate(cb, 'Failed to remove vote, account has not voted for this delegate');
-			}
-
-			// TODO: Easy logic change, just need to evaluate if username is present from DB
 			modules.accounts.getAccount({ publicKey: publicKey }, function (err, account) {
 				if (err) {
 					return setImmediate(cb, err);
@@ -333,6 +324,14 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 
 				if (!account.username) {
 					return setImmediate(cb, 'Delegate not found');
+				}
+
+				if (math === '+' && (delegates != null && delegates.indexOf(publicKey) !== -1)) {
+					return setImmediate(cb, 'Failed to add vote, delegate "' + account.username + '" already voted for');
+				}
+
+				if (math === '-' && (delegates === null || delegates.indexOf(publicKey) === -1)) {
+					return setImmediate(cb, 'Failed to remove vote, delegate "' + account.username + '" was not voted for');
 				}
 
 				return setImmediate(cb);

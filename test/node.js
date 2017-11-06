@@ -6,10 +6,15 @@ var node = {};
 var Promise = require('bluebird');
 var rewire  = require('rewire');
 var sinon   = require('sinon');
+var fs		= require('fs');
+var path = require('path');
+var YAML = require('js-yaml');
+var swaggerDef = YAML.safeLoad(fs.readFileSync(path.join(__dirname, '../schema/swagger.yml')).toString());
 
 // Application specific
 var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
+var swagger = require('../config/swagger');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -17,7 +22,7 @@ node.config = require('../config.json');
 node.constants = require('../helpers/constants.js');
 node.dappCategories = require('../helpers/dappCategories.js');
 node.dappTypes = require('../helpers/dappTypes.js');
-node.txTypes = require('../helpers/transactionTypes.js');
+node.transactionTypes = require('../helpers/transactionTypes.js');
 node._ = require('lodash');
 node.async = require('async');
 node.popsicle = require('popsicle');
@@ -31,6 +36,8 @@ node.Promise = require('bluebird');
 node.randomString = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
+
+node.config.root = process.cwd();
 
 require('colors');
 
@@ -97,6 +104,8 @@ node.gAccount = {
 	encryptedSecret: 'ddbb37d465228d52a78ad13555e609750ec30e8f5912a1b8fbdb091f50e269cbcc3875dad032115e828976f0c7f5ed71ce925e16974233152149e902b48cec51d93c2e40a6c95de75c1c5a2c369e6d24',
 	key: 'elephant tree paris dragon chair galaxy',
 };
+
+node.swaggerDef = swaggerDef;
 
 // Optional logging
 if (process.env.SILENT === 'true') {
@@ -357,18 +366,8 @@ node.randomAccount = function () {
 	return account;
 };
 
-// Returns an extended random account
-node.randomTxAccount = function () {
-	return node._.defaults(node.randomAccount(), {
-		sentAmount:'',
-		paidFee: '',
-		totalPaidFee: '',
-		transactions: []
-	});
-};
-
 // Returns an random basic transaction to send 1 LSK from genesis account to a random account
-node.randomTx = function (offset) {
+node.randomTransaction = function (offset) {
 	var randomAccount = node.randomAccount();
 
 	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password, offset);
@@ -428,7 +427,8 @@ node.initApplication = function (cb, initScope) {
 			signatures: '../modules/signatures.js',
 			system: '../modules/system.js',
 			transactions: '../modules/transactions.js',
-			transport: '../modules/transport.js'
+			transport: '../modules/transport.js',
+			voters: '../modules/voters.js',
 		};
 
 		// Init limited application layer
@@ -447,7 +447,7 @@ node.initApplication = function (cb, initScope) {
 			},
 			network: function (cb) {
 				// Init with empty function
-				cb(null, {io: {sockets: {emit: function () {}}}});
+				cb(null, {io: {sockets: {emit: function () {}}}, app: require('express')()});
 			},
 			webSocket: ['config', 'logger', 'network', function (scope, cb) {
 				// Init with empty functions
@@ -488,6 +488,11 @@ node.initApplication = function (cb, initScope) {
 				});
 				cb(null, sequence);
 			}],
+
+			swagger: ['network', 'modules', 'logger', function (scope, cb) {
+				swagger(scope.network.app, scope.config, scope.logger, scope, cb);
+			}],
+
 			ed: function (cb) {
 				cb(null, require('../helpers/ed.js'));
 			},
