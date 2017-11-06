@@ -38,9 +38,9 @@ describe('create transaction create multisignature account', () => {
 								beforeEach(given.aKeysgroupWithKeys);
 								describe('Given an empty options object', () => {
 									beforeEach(given.anEmptyOptionsObject);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Transaction lifetime and minimum confirmations inputs must be numbers."', then.itShouldRejectWithMessage);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
+										it('Then it should reject with message "Lifetime must be a number."', then.itShouldRejectWithMessage);
 									});
 								});
 							});
@@ -54,9 +54,9 @@ describe('create transaction create multisignature account', () => {
 								beforeEach(given.aKeysgroupWithKeys);
 								describe('Given an empty options object', () => {
 									beforeEach(given.anEmptyOptionsObject);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Transaction lifetime and minimum confirmations inputs must be numbers."', then.itShouldRejectWithMessage);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
+										it('Then it should reject with message "Minimum confirmations must be a number."', then.itShouldRejectWithMessage);
 									});
 								});
 							});
@@ -67,8 +67,8 @@ describe('create transaction create multisignature account', () => {
 								beforeEach(given.aKeysgroupWithKeys);
 								describe('Given an empty options object', () => {
 									beforeEach(given.anEmptyOptionsObject);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 										it('Then it should reject with message "TypeError: Invalid hex string +215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca"', then.itShouldRejectWithMessage);
 									});
 								});
@@ -77,8 +77,8 @@ describe('create transaction create multisignature account', () => {
 								beforeEach(given.aKeysgroupWithKeys);
 								describe('Given an empty options object', () => {
 									beforeEach(given.anEmptyOptionsObject);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 										it('Then it should reject with message "Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b length differs from the expected 64 hex characters for a public key."', then.itShouldRejectWithMessage);
 									});
 								});
@@ -87,15 +87,15 @@ describe('create transaction create multisignature account', () => {
 								beforeEach(given.aKeysgroupWithKeys);
 								describe('Given an options object with passphrase set to unknown source "xxx"', () => {
 									beforeEach(given.anOptionsObjectWithPassphraseSetToUnknownSource);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 										it('Then it should reject with message "Unknown passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 									});
 								});
 								describe('Given an options object with second passphrase set to unknown source "xxx"', () => {
 									beforeEach(given.anOptionsObjectWithSecondPassphraseSetToUnknownSource);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 										it('Then it should reject with message "Unknown second passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 									});
 								});
@@ -103,8 +103,8 @@ describe('create transaction create multisignature account', () => {
 									beforeEach(given.anEmptyOptionsObject);
 									describe('Given the passphrase is provided via the prompt', () => {
 										beforeEach(given.thePassphraseIsProvidedViaThePrompt);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 											it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 											it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 											it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
@@ -119,8 +119,8 @@ describe('create transaction create multisignature account', () => {
 									beforeEach(given.anOptionsObjectWithPassphraseSetTo);
 									describe('Given the passphrase is provided via stdin', () => {
 										beforeEach(given.thePassphraseIsProvidedViaStdIn);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 											it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
 											it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
 											it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
@@ -134,8 +134,8 @@ describe('create transaction create multisignature account', () => {
 									beforeEach(given.anOptionsObjectWithPassphraseSetTo);
 									describe('Given the passphrase is provided via stdin', () => {
 										beforeEach(given.thePassphraseIsProvidedViaStdIn);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 											it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 											it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 											it('Then it should get the passphrase using the passphrase source', then.itShouldGetThePassphraseUsingThePassphraseSource);
@@ -153,8 +153,8 @@ describe('create transaction create multisignature account', () => {
 											beforeEach(given.thePassphraseIsProvidedViaThePrompt);
 											describe('Given the second passphrase is provided via stdin', () => {
 												beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
-												describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-													beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+												describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+													beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 													it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 													it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
 													it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
@@ -170,8 +170,8 @@ describe('create transaction create multisignature account', () => {
 										beforeEach(given.anOptionsObjectWithSecondPassphraseSetTo);
 										describe('Given the passphrase is provided via the prompt', () => {
 											beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
-											describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-												beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+											describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+												beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 												it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
 												it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
 												it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
@@ -184,8 +184,8 @@ describe('create transaction create multisignature account', () => {
 									});
 									describe('Given an options object with passphrase set to "file:/path/to/my/passphrase.txt" and second passphrase set to "file:/path/to/my/secondPassphrase.txt"', () => {
 										beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 											it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
 											it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
 											it('Then it should get the passphrase using the passphrase source', then.itShouldGetThePassphraseUsingThePassphraseSource);
@@ -200,8 +200,8 @@ describe('create transaction create multisignature account', () => {
 											beforeEach(given.thePassphraseIsProvidedViaStdIn);
 											describe('Given the second passphrase is provided via stdin', () => {
 												beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
-												describe('When the action is called with the keysgroup, the lifetime, the minimum of signatures and the options', () => {
-													beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions);
+												describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+													beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
 													it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
 													it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
 													it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);

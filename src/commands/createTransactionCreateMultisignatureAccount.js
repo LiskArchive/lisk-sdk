@@ -62,8 +62,11 @@ export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, op
 	const transactionLifetime = parseInt(lifetime, 10);
 	const transactionMinimumConfirmations = parseInt(minimum, 10);
 
-	if (isNaN(transactionLifetime) || isNaN(transactionMinimumConfirmations)) {
-		throw new Error('Transaction lifetime and minimum confirmations inputs must be numbers.');
+	if (isNaN(transactionLifetime)) {
+		throw new Error('Lifetime must be a number.');
+	}
+	if (isNaN(transactionMinimumConfirmations)) {
+		throw new Error('Minimum confirmations must be a number.');
 	}
 
 	return getStdIn({

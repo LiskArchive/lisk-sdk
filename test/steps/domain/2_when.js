@@ -23,7 +23,7 @@ export function deAliasIsCalledOnTheType() {
 	this.test.ctx.returnValue = returnValue;
 }
 
-export function theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumOfSignaturesAndTheOptions() {
+export function theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions() {
 	const { action, lifetime, keysgroup, minimum, options } = this.test.ctx;
 	const returnValue = action({ lifetime: lifetime.toString(), keysgroup, minimum: minimum.toString(), options });
 	this.test.ctx.returnValue = returnValue;
