@@ -26,6 +26,7 @@ var ip = require('ip');
  */
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
+var constants = require('./constants');
 
 var liskFormats = {
 	id: function (str) {
@@ -35,6 +36,10 @@ var liskFormats = {
 	
 		return /^[0-9]+$/g.test(str);
 	}, 
+
+	additionalData: function (str) {
+		return Buffer.from(str).length <= constants.additionalData.maxLength;
+	},
 
 	address: function (str) {
 		if (str.length === 0) {

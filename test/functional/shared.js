@@ -1,33 +1,13 @@
 'use strict';
 
 var node = require('../node');
+var typesRepresentatives = require('../common/typesRepresentatives');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
 var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
 var getPendingMultisignaturesPromise = require('../common/apiHelpers').getPendingMultisignaturesPromise;
 var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
-
-var tests = [
-	{describe: 'null',              args: null},
-	{describe: 'undefined',         args: undefined},
-	{describe: 'NaN',               args: NaN},
-	{describe: 'Infinity',          args: Infinity},
-	{describe: '0 integer',         args: 0},
-	{describe: 'negative integer',  args: -1},
-	{describe: 'float',             args: 1.2},
-	{describe: 'negative float',    args: -1.2},
-	{describe: 'empty string',      args: ''},
-	{describe: '0 as string',       args: '0'},
-	{describe: 'regular string',    args: String('abc')},
-	{describe: 'uppercase string',  args: String('ABC')},
-	{describe: 'invalid chars',     args: String('/')},
-	{describe: 'date',              args: new Date()},
-	{describe: 'true boolean',      args: true},
-	{describe: 'false boolean',     args: false},
-	{describe: 'empty array',       args: []},
-	{describe: 'empty object',      args: {}}
-];
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
 
@@ -94,18 +74,6 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	});
 };
 
-function invalidTransactions () {
-
-	tests.forEach(function (test) {
-		it('using ' + test.describe + ' should fail', function () {
-			return sendTransactionPromise(test.args).then(function (res) {
-				node.expect(res).to.have.property('success').to.not.be.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
-			});
-		});
-	});
-};
-
 function invalidAssets (account, option, badTransactions) {
 
 	var transaction;
@@ -132,9 +100,9 @@ function invalidAssets (account, option, badTransactions) {
 
 	describe('using invalid asset values', function () {
 
-		tests.forEach(function (test) {
-			it('using ' + test.describe + ' should fail', function () {
-				transaction.asset = test.args;
+		typesRepresentatives.allTypes.forEach(function (test) {
+			it('using ' + test.description + ' should fail', function () {
+				transaction.asset = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
@@ -157,9 +125,9 @@ function invalidAssets (account, option, badTransactions) {
 
 	describe('using invalid asset.' + option + ' values', function () {
 
-		tests.forEach(function (test) {
-			it('using ' + test.describe + ' should fail', function () {
-				transaction.asset[option] = test.args;
+		typesRepresentatives.allTypes.forEach(function (test) {
+			it('using ' + test.description + ' should fail', function () {
+				transaction.asset[option] = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
@@ -197,9 +165,7 @@ function MultisigScenario (size, amount) {
 }
 
 module.exports = {
-	tests: tests,
 	confirmationPhase: confirmationPhase,
-	invalidTransactions: invalidTransactions,
 	invalidAssets: invalidAssets,
 	MultisigScenario: MultisigScenario
 };

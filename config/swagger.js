@@ -5,6 +5,9 @@ var path = require('path');
 var fs = require('fs');
 var YAML = require('js-yaml');
 
+// Its necessary to require this file to extend swagger validator with our custom formats
+var validator = require('../helpers/swagger').getValidator();
+
 /**
  * Configure swagger node runner with the app.
  * It loads swagger specification and map every thing with an active express app
