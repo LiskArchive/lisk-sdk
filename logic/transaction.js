@@ -663,6 +663,7 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
 
 	// Check confirmed sender balance
 	var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
+	// TODO: check if this is done by pool in all the scenarios
 	var senderBalance = this.checkBalance(amount, 'balance', transaction, sender);
 
 	if (senderBalance.exceeded) {

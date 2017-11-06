@@ -20,8 +20,8 @@ var testAccounts = [
 			isDelegate: 1,
 			address: '2737453412992791987L',
 			publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-			balance: 5300000000000000,
-			u_balance: 5300000000000000
+			balance: 500000000000000,
+			u_balance: 500000000000000
 		},
 		secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
 		secret2: 'monitor connect vague chuckle advice message crash glance horror pear opera hedgehog'
@@ -31,8 +31,8 @@ var testAccounts = [
 			isDelegate: 0,
 			address: '2896019180726908125L',
 			publicKey: '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-			balance: 0,
-			u_balance: 0
+			balance: 1000,
+			u_balance: 1000
 		},
 		secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
 	},{
@@ -41,8 +41,8 @@ var testAccounts = [
 			isDelegate: 0,
 			address: '15240249857307028085L',
 			publicKey: '181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c',
-			balance: 3500000000000000,
-			u_balance: 3500000000000000
+			balance: 300000000000000,
+			u_balance: 300000000000000
 		},
 		secret: 'song gather until exercise explain utility walk choice garbage cross route develop',
 	},{
@@ -51,8 +51,8 @@ var testAccounts = [
 			isDelegate: 0,
 			address: '13898484363564790288L',
 			publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8',
-			balance: 3500000000000000,
-			u_balance: 3500000000000000
+			balance: 300000000000000,
+			u_balance: 300000000000000
 		},
 		secret: 'island pizza tilt scrap spend guilt one guitar range narrow rough hotel',
 	}
@@ -192,21 +192,7 @@ describe('transactionPool', function () {
 			// Wait for genesisBlock transaction being applied
 			node.initApplication(function (err, scope) {
 				// Init transaction logic
-				transactionPool = new TransactionPool(
-					modulesLoader.scope.config.transactions.pool.storageLimit,
-					modulesLoader.scope.config.transactions.pool.processInterval,
-					modulesLoader.scope.config.transactions.pool.expiryInterval,
-					scope.logic.transaction,
-					scope.logic.account,
-					modulesLoader.scope.bus,
-					modulesLoader.scope.logger,
-					modulesLoader.scope.ed
-				);
-				transactionPool.bind(
-					scope.modules.accounts,
-					null,
-					scope.modules.loader
-				);
+				transactionPool = scope.logic.transactionPool;
 				library = scope;
 				logger = scope.logger;
 				done();
