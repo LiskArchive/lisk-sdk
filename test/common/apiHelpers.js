@@ -273,6 +273,10 @@ var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
 var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
 var getNextForgersPromise = node.Promise.promisify(getNextForgers);
 var getAccountsPromise = node.Promise.promisify(getAccounts);
+var getBlocksPromise = node.Promise.promisify(getBlocks);
+var getDappPromise = node.Promise.promisify(getDapp);
+var getDappsPromise = node.Promise.promisify(getDapps);
+var getDappsCategoriesPromise = node.Promise.promisify(getDappsCategories);
 
 module.exports = {
 	getTransactionPromise: getTransactionPromise,
@@ -304,6 +308,10 @@ module.exports = {
 	getNextForgersPromise: getNextForgersPromise,
 	getAccounts: getAccounts,
 	getAccountsPromise: getAccountsPromise,
+	getBlocksPromise: getBlocksPromise,
 	getBlocksToWaitPromise: getBlocksToWaitPromise,
 	waitForConfirmations: waitForConfirmations,
+	getDappPromise: getDappPromise,
+	getDappsPromise: getDappsPromise,
+	getDappsCategoriesPromise: getDappsCategoriesPromise
 };
