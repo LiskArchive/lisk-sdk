@@ -16,39 +16,39 @@ SELECT
 FROM mem_accounts mem;
 
 --UPDATE all accounts with first transaction
-UPDATE "public".accounts AS a set transaction_id = t.id
+UPDATE "public".accounts AS a set transaction_id = t.transaction_id
 FROM(
-  SELECT t."id", t."recipientId"
-  FROM transactions AS t group by t."recipientId", t."id"
+  SELECT t."transaction_id", t."recipient_address"
+  FROM transactions AS t group by t."recipient_address", t."transaction_id"
 ) AS t
-WHERE UPPER(t."recipientId") = a."address";
+WHERE UPPER(t."recipient_address") = a."address";
 
 --UPDATE genesis transaction ID
-UPDATE "public".accounts AS a set transaction_id = t.id
+UPDATE "public".accounts AS a set transaction_id = t.transaction_id
 FROM(
-  SELECT t."id", t."senderId"
+  SELECT t."transaction_id", t."sender_address"
   FROM transactions AS t WHERE t.type = '2'
-  group by t."recipientId", t."id"
+  group by t."recipient_address", t."transaction_id"
 ) AS t
-WHERE UPPER(t."senderId") = a."address"
+WHERE UPPER(t."sender_address") = a."address"
 AND a.transaction_id IS NULL;
 
 --UPDATE all acounts with publickeys
-UPDATE "public".accounts AS a set public_key_transaction_id = t.id
+UPDATE "public".accounts AS a set public_key_transaction_id = t.transaction_id
 FROM(
-  SELECT t."id", t."senderPublicKey"
-  FROM transactions AS t group by t."senderPublicKey", t."id"
+  SELECT t."transaction_id", t."sender_public_key"
+  FROM transactions AS t group by t."sender_public_key", t."transaction_id"
 ) AS t
-WHERE t."senderPublicKey" = a."public_key";
+WHERE t."sender_public_key" = a."public_key";
 
 --UPDATE all acounts with transaction ids
-UPDATE "public".accounts AS a set transaction_id = t.id
+UPDATE "public".accounts AS a set transaction_id = t.transaction_id
 FROM(
-  SELECT t."id", t."recipientId"
+  SELECT t."transaction_id", t."recipient_address"
   FROM transactions AS t
-	group by t."recipientId", t."id"
+	group by t."recipient_address", t."transaction_id"
 ) AS t
-WHERE t."recipientId" = a."address";
+WHERE t."recipient_address" = a."address";
 
 /* RENAME rounds_rewards columns */
 ALTER TABLE rounds_rewards RENAME "pk" to "public_key";
@@ -125,25 +125,27 @@ CREATE TABLE "public".multisignatures_master(transaction_id varchar(20) NOT NULL
   CONSTRAINT pk_multisignatures_master PRIMARY KEY(public_key));
 
 
-CREATE TABLE "public".multisignatures_member(transaction_id varchar(20) NOT NULL,
-  public_key text NOT NULL, --I need to be bytea master_public_key bytea NOT NULL,
+CREATE TABLE "public".multisignatures_member(
+	transaction_id varchar(20) NOT NULL,
+  public_key BYTEA NOT NULL, --I need to be bytea master_public_key bytea NOT NULL,
+	master_public_key BYTEA NOT NULL,
   CONSTRAINT pk_multisignature_members UNIQUE(master_public_key,
     public_key));
 
 /* Populates multisignatures master table FROM blockchain */
 INSERT INTO "public".multisignatures_master(transaction_id, public_key, minimum, lifetime)
-SELECT t."id",
-t."senderPublicKey",
+SELECT t."transaction_id",
+t."sender_public_key",
 ma."multimin",
 ma."multilifetime"
-FROM mem_accounts ma, trs t
+FROM mem_accounts ma, transactions t
 WHERE t."type" = 4
-AND t."senderPublicKey" = ma."publicKey";
+AND t."sender_public_key" = ma."publicKey";
 
 /* Populates multisignatures member FROM blockchain */
 INSERT INTO "public".multisignatures_member(transaction_id, public_key, master_public_key)
 SELECT mma."transaction_id",
-  ENCODE(substring(regexp_split_to_table(ms.keysgroup, E ',') FROM 2 FOR 64),  'hex'),
+  DECODE(substring(regexp_split_to_table(ms.keysgroup, E',') from 2 for 64), 'hex'),
   mma.public_key
 FROM multisignatures ms, multisignatures_master mma
 WHERE mma."transaction_id" = ms."transactionId";
