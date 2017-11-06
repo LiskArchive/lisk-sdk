@@ -20,7 +20,7 @@ import {
 	OUT_TRANSFER_FEE,
 	MULTISIGNATURE_FEE,
 	SIGNATURE_FEE,
-	SEND_FEE,
+	TRANSFER_FEE,
 	VOTE_FEE,
 	DATA_FEE,
 	EPOCH_TIME,
@@ -57,8 +57,8 @@ describe('constants', () => {
 		SIGNATURE_FEE.should.be.an.integer();
 	});
 
-	it('SEND_FEE should be an integer', () => {
-		SEND_FEE.should.be.an.integer();
+	it('TRANSFER_FEE should be an integer', () => {
+		TRANSFER_FEE.should.be.an.integer();
 	});
 
 	it('VOTE_FEE should be an integer', () => {

@@ -26,7 +26,7 @@ describe('#transferOutOfDapp', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = (10 * fixedPoint).toString();
-	const sendFee = (0.1 * fixedPoint).toString();
+	const transferFee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
 
@@ -100,7 +100,7 @@ describe('#transferOutOfDapp', () => {
 				transferOutOfDappTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal(sendFee);
+					.and.equal(transferFee);
 			});
 
 			it('should have recipientId equal to provided recipientId', () => {

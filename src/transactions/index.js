@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import send from './0_send';
+import transfer from './0_transfer';
 import registerSecondPassphrase from './1_registerSecondPassphrase';
 import registerDelegate from './2_registerDelegate';
 import castVotes from './3_castVotes';
@@ -22,7 +22,7 @@ import transferIntoDapp from './6_transferIntoDapp';
 import transferOutOfDapp from './7_transferOutOfDapp';
 
 export default {
-	send,
+	transfer,
 	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,

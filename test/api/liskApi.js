@@ -858,8 +858,8 @@ describe('Lisk API module', () => {
 			});
 		});
 
-		describe('#sendLSK', () => {
-			it('should send testnet LSK', () => {
+		describe('#transferLSK', () => {
+			it('should transfer testnet LSK', () => {
 				const recipientId = '10279923186189318946L';
 				const options = {
 					recipientId,
@@ -868,7 +868,7 @@ describe('Lisk API module', () => {
 					secondSecret: defaultSecondSecret,
 				};
 
-				LSK.sendLSK(
+				LSK.transferLSK(
 					recipientId,
 					defaultAmount,
 					defaultSecret,

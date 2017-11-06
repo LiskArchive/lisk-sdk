@@ -221,7 +221,7 @@ export default class LiskAPI {
 	}
 
 	/**
-	 * @method sendLSK
+	 * @method transferLSK
 	 * @param recipientId
 	 * @param amount
 	 * @param secret
@@ -231,7 +231,7 @@ export default class LiskAPI {
 	 * @return {Object}
 	 */
 
-	sendLSK(recipientId, amount, secret, secondSecret, callback) {
+	transferLSK(recipientId, amount, secret, secondSecret, callback) {
 		return this.sendRequest(
 			POST,
 			'transactions',
