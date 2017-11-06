@@ -4,22 +4,6 @@ describe('dapps', function () {
 
 	describe('__private', function () {
 
-		describe('get', function () {
-
-			it('should call library.db.query with valid params');
-
-			it('should call callback with an error when dapp not found');
-
-			it('should call callback with a dapp record when exists in db');
-
-			describe('when db query fails', function () {
-
-				it('should call callback with the DApp#get error');
-				
-				it('should call the logger.error with error stack');
-			});
-		});
-
 		describe('list', function () {
 
 			describe('when filter.transactionId exists', function () {

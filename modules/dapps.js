@@ -89,27 +89,6 @@ function DApps (cb, scope) {
 
 // Private methods
 /**
- * Gets record from `dapps` table based on id
- * @private
- * @implements {library.db.query}
- * @param {string} id
- * @param {function} cb
- * @return {setImmediateCallback} error description | row data
- */
-__private.get = function (id, cb) {
-	library.db.query(sql.get, {id: id}).then(function (rows) {
-		if (rows.length === 0) {
-			return setImmediate(cb, 'Application not found');
-		} else {
-			return setImmediate(cb, null, rows[0]);
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'DApp#get error');
-	});
-};
-
-/**
  * Gets records from `dapps` table based on filter
  * @private
  * @implements {library.db.query}
