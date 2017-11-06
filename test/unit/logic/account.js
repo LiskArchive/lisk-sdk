@@ -13,8 +13,6 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var modulesLoader = require('../../common/modulesLoader');
-
 var validAccount = {
 	username: 'genesis_100',
 	isDelegate: 1,

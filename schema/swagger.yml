@@ -179,32 +179,36 @@ definitions:
   NodeStatus:
     type: object
     required:
-      - syncing
-      - height
-      - networkHeight
-      - consensus
       - broadhash
+      - consensus
+      - height
+      - loaded
+      - networkHeight
+      - syncing
     properties:
-      syncing:
-        type: boolean
-        example: false
-      height:
-        type: integer
-        example: 123
-        minimum: 1
-      networkHeight:
-        type: integer
-        example: 123
-      consensus:
-        type: integer
-        example: 95
-        minimum: 0
-        maximum: 100
       broadhash:
         type: string
         example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
         minLength: 64
         maxLength: 64
+      consensus:
+        type: integer
+        example: 95
+        minimum: 0
+        maximum: 100
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      loaded:
+        type: boolean
+        example: true
+      networkHeight:
+        type: integer
+        example: 123
+      syncing:
+        type: boolean
+        example: false
 
 # Response Code Templates
   ResponseCode429:

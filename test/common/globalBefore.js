@@ -61,7 +61,7 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 
 	baseUrl = baseUrl || 'http://' + config.address + ':' + config.httpPort;
 	(function fetchBlockchainStatus () {
-		popsicle.get(baseUrl + '/api/loader/status')
+		popsicle.get(baseUrl + '/api/node/status')
 			.then(function (res) {
 				retries -= 1;
 				res = JSON.parse(res.body);
@@ -70,7 +70,7 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 						fetchBlockchainStatus();
 					}, timeout);
 				}
-				else if (res.success && res.loaded) {
+				else if (res.loaded) {
 					return cb();
 				}
 				return cb('Failed to load blockchain');
