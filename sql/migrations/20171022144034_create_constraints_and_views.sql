@@ -9,12 +9,6 @@ $$;
 
 	  /* Create new indexes */
   -- accounts indexes
-  CREATE INDEX idx_accounts_transaction_id
-  ON "public".accounts
-               (
-                            public_key_transaction_id
-               );
-
   CREATE INDEX idx_accounts_public_key_transaction_id
   ON "public".accounts
                (
@@ -164,8 +158,6 @@ $$;
   DROP TABLE signatures CASCADE;
 
   DROP TABLE multisignatures CASCADE;
-
-  DROP TABLE trs CASCADE;
 
   DROP TABLE mem_accounts2delegates CASCADE;
 
