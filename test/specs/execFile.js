@@ -67,6 +67,18 @@ describe('execFile', () => {
 								it('Then it should exit with code 1', then.itShouldExitWithCode);
 							});
 						});
+						describe('Given the second child process exits with an error that cannot be trimmed', () => {
+							beforeEach(given.theSecondChildProcessExitsWithAnErrorThatCannotBeTrimmed);
+							describe('When execFile is called with the Lisky instance, the file path and the exit function', () => {
+								beforeEach(when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction);
+								it('Then it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
+								it('Then it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
+								it('Then it should not execute a third script in a separate child process', then.itShouldNotExecuteAThirdScriptInASeparateChildProcess);
+								it('Then the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
+								it('Then the Lisky instance should log the second child process error second', then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond);
+								it('Then it should exit with code 1', then.itShouldExitWithCode);
+							});
+						});
 						describe('Given the second child process outputs "Something went wrong" to stderr', () => {
 							beforeEach(given.theSecondChildProcessOutputsToStdErr);
 							describe('When execFile is called with the Lisky instance, the file path and the exit function', () => {
