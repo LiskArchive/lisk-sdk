@@ -19,6 +19,16 @@ import {
 	getTransactionCreatorFunctionNameByType,
 } from '../utils';
 
+export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase() {
+	const { passphrase, secondPassphrase, address, amount } = this.test.ctx;
+	return (transactions.createTransaction).should.be.calledWithExactly(address, amount, passphrase, secondPassphrase);
+}
+
+export function itShouldCreateATransferTransactionUsingTheAddressTheAmountAndThePassphrase() {
+	const { passphrase, address, amount } = this.test.ctx;
+	return (transactions.createTransaction).should.be.calledWithExactly(address, amount, passphrase, null);
+}
+
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const { transactionsObject } = this.test.ctx;
 	const transactionType = getNumbers(this.test.title)[0];

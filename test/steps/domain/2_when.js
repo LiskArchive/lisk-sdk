@@ -15,7 +15,16 @@
  */
 import {
 	deAlias,
+	checkAddress,
+	checkAmount,
 } from '../../../src/utils/helpers';
+
+export function checkAmountIsCalledOnTheAmount() {
+	const { amount } = this.test.ctx;
+	const returnValue = checkAmount(amount);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
 
 export function deAliasIsCalledOnTheType() {
 	const { type } = this.test.ctx;
@@ -28,4 +37,11 @@ export function theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSi
 	const returnValue = action({ lifetime: lifetime.toString(), keysgroup, minimum: minimum.toString(), options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
+}
+
+export function checkAddressIsCalledOnTheAddress() {
+	const { address } = this.test.ctx;
+	const returnValue = checkAddress(address);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
 }

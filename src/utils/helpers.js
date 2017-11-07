@@ -16,6 +16,12 @@
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 
+const regExpAddress = /^\d{1,21}[L|l]$/;
+const regExpAmount = /^\d+(\.\d{1,8})?$/;
+
+export const checkAddress = address => address.match(regExpAddress);
+export const checkAmount = amount => amount.match(regExpAmount);
+
 export const deAlias = type => (
 	type === 'address'
 		? 'account'

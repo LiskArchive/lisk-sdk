@@ -19,6 +19,45 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('utils helpers', () => {
+	describe('#checkAddress', () => {
+		describe('Given an address "13356260975429434553L"', () => {
+			beforeEach(given.anAddress);
+			describe('When check address is called on the address', () => {
+				beforeEach(when.checkAddressIsCalledOnTheAddress);
+				it('Should return the address', then.itShouldReturnAnArrayWithTheAddress);
+			});
+		});
+		describe('Given an address "abcedf"', () => {
+			beforeEach(given.anAddress);
+			describe('When check address is called on the address', () => {
+				beforeEach(when.checkAddressIsCalledOnTheAddress);
+				it('Should return null', then.itShouldReturnNull);
+			});
+		});
+	});
+	describe('#checkAmount', () => {
+		describe('Given an amount "100.123"', () => {
+			beforeEach(given.anAmount);
+			describe('When check amount is called on the amount', () => {
+				beforeEach(when.checkAmountIsCalledOnTheAmount);
+				it('Should return the address', then.itShouldReturnAnArrayWithTheAmount);
+			});
+		});
+		describe('Given an amount "abcedf"', () => {
+			beforeEach(given.anAmount);
+			describe('When check address is called on the address', () => {
+				beforeEach(when.checkAmountIsCalledOnTheAmount);
+				it('Should return null', then.itShouldReturnNull);
+			});
+		});
+		describe('Given an amount "10.0001000001"', () => {
+			beforeEach(given.anAmount);
+			describe('When check address is called on the address', () => {
+				beforeEach(when.checkAmountIsCalledOnTheAmount);
+				it('Should return null', then.itShouldReturnNull);
+			});
+		});
+	});
 	describe('#deAlias', () => {
 		describe('Given a type "address" with alias "account"', () => {
 			beforeEach(given.aTypeWithAlias);
