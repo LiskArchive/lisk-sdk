@@ -14,7 +14,7 @@
  */
 import {
 	getPrivateAndPublicKeyFromSecret,
-	getRawPrivateAndPublicKeyFromSecret,
+	getPrivateAndPublicKeyBytesFromSecret,
 	getKeys,
 	getAddressAndPublicKeyFromSecret,
 } from '../../src/crypto/keys';
@@ -50,11 +50,11 @@ describe('keys', () => {
 			.returns(Buffer.from(defaultSecretHash, 'hex'));
 	});
 
-	describe('#getRawPrivateAndPublicKeyFromSecret', () => {
+	describe('#getPrivateAndPublicKeyBytesFromSecret', () => {
 		let keyPair;
 
 		beforeEach(() => {
-			keyPair = getRawPrivateAndPublicKeyFromSecret(defaultSecret);
+			keyPair = getPrivateAndPublicKeyBytesFromSecret(defaultSecret);
 		});
 
 		it('should create buffer publicKey', () => {

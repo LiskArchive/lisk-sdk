@@ -16,13 +16,13 @@ import { bufferToHex, getAddress } from './convert';
 import hash from './hash';
 
 /**
- * @method getRawPrivateAndPublicKeyFromSecret
+ * @method getPrivateAndPublicKeyBytesFromSecret
  * @param secret
  *
  * @return {object}
  */
 
-export function getRawPrivateAndPublicKeyFromSecret(secret) {
+export function getPrivateAndPublicKeyBytesFromSecret(secret) {
 	const hashed = hash(secret, 'utf8');
 
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(hashed);
@@ -41,7 +41,9 @@ export function getRawPrivateAndPublicKeyFromSecret(secret) {
  */
 
 export function getPrivateAndPublicKeyFromSecret(secret) {
-	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
+	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromSecret(
+		secret,
+	);
 
 	return {
 		privateKey: bufferToHex(privateKey),

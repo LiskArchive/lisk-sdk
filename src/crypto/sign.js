@@ -20,7 +20,7 @@ import {
 	convertPublicKeyEd2Curve,
 } from './convert';
 import hash from './hash';
-import { getRawPrivateAndPublicKeyFromSecret } from './keys';
+import { getPrivateAndPublicKeyBytesFromSecret } from './keys';
 
 const createHeader = text => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
@@ -41,7 +41,9 @@ const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 
 export function signMessageWithSecret(message, secret) {
 	const msgBytes = Buffer.from(message, 'utf8');
-	const { privateKey, publicKey } = getRawPrivateAndPublicKeyFromSecret(secret);
+	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromSecret(
+		secret,
+	);
 	const signature = naclInstance.crypto_sign_detached(msgBytes, privateKey);
 
 	return {
@@ -92,8 +94,10 @@ export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
 
 export function signMessageWithTwoSecrets(message, secret, secondSecret) {
 	const msgBytes = Buffer.from(message, 'utf8');
-	const keypairBytes = getRawPrivateAndPublicKeyFromSecret(secret);
-	const secondKeypairBytes = getRawPrivateAndPublicKeyFromSecret(secondSecret);
+	const keypairBytes = getPrivateAndPublicKeyBytesFromSecret(secret);
+	const secondKeypairBytes = getPrivateAndPublicKeyBytesFromSecret(
+		secondSecret,
+	);
 
 	const signature = naclInstance.crypto_sign_detached(
 		msgBytes,
@@ -228,7 +232,7 @@ export function signAndPrintMessage(message, secret, secondSecret) {
  */
 
 export function signData(data, secret) {
-	const { privateKey } = getRawPrivateAndPublicKeyFromSecret(secret);
+	const { privateKey } = getPrivateAndPublicKeyBytesFromSecret(secret);
 	const signature = naclInstance.crypto_sign_detached(data, privateKey);
 	return bufferToHex(signature);
 }
@@ -259,7 +263,7 @@ export function verifyData(data, signature, publicKey) {
  */
 
 export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
-	const senderPrivateKeyBytes = getRawPrivateAndPublicKeyFromSecret(secret)
+	const senderPrivateKeyBytes = getPrivateAndPublicKeyBytesFromSecret(secret)
 		.privateKey;
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
@@ -299,7 +303,7 @@ export function decryptMessageWithSecret(
 	secret,
 	senderPublicKey,
 ) {
-	const recipientPrivateKeyBytes = getRawPrivateAndPublicKeyFromSecret(secret)
+	const recipientPrivateKeyBytes = getPrivateAndPublicKeyBytesFromSecret(secret)
 		.privateKey;
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(
 		recipientPrivateKeyBytes,
