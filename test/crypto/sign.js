@@ -88,7 +88,7 @@ ${defaultSecondSignature}
 	let defaultDoubleSignedMessage;
 	let defaultEncryptedMessageWithNonce;
 
-	let getRawPrivateAndPublicKeyFromSecretStub;
+	let getPrivateAndPublicKeyBytesFromSecretStub;
 	let hashStub;
 
 	beforeEach(() => {
@@ -126,15 +126,15 @@ ${defaultSecondSignature}
 				),
 			);
 
-		getRawPrivateAndPublicKeyFromSecretStub = sandbox.stub(
+		getPrivateAndPublicKeyBytesFromSecretStub = sandbox.stub(
 			keys,
-			'getRawPrivateAndPublicKeyFromSecret',
+			'getPrivateAndPublicKeyBytesFromSecret',
 		);
-		getRawPrivateAndPublicKeyFromSecretStub.withArgs(defaultSecret).returns({
+		getPrivateAndPublicKeyBytesFromSecretStub.withArgs(defaultSecret).returns({
 			privateKey: Buffer.from(defaultPrivateKey, 'hex'),
 			publicKey: Buffer.from(defaultPublicKey, 'hex'),
 		});
-		getRawPrivateAndPublicKeyFromSecretStub
+		getPrivateAndPublicKeyBytesFromSecretStub
 			.withArgs(defaultSecondSecret)
 			.returns({
 				privateKey: Buffer.from(defaultSecondPrivateKey, 'hex'),
