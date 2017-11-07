@@ -26,61 +26,71 @@ describe('bignum helper', function () {
 		describe('when type of opts = string', function () {
 
 			describe('when opts != mpint"', function () {
+
 				it('should return "Unsupported Buffer Representation"', function () {
 					expect(testbignum.toBuffer('notmpint')).to.equal('Unsupported Buffer representation');
 				});
 			});
 
 			describe('when opts = mpint', function () {
-				it('should return a buffer equal to BUFFER_SEED_MPINT', function () {
+
+				it('should return a buffer = BUFFER_SEED_MPINT', function () {
 					standardExpect(testbignum.toBuffer('mpint'), BUFFER_SEED_MPINT);
 				});
 			});
 
 			describe('when Bignumber is a negative number', function () {
+
 				it('should throw error with "Converting negative numbers to Buffers not supported yet"', function () {
 					expect(
-						function (){new bignum('-' + SEED).toBuffer({size:16,endian:'big'});}
+						function () {
+							new bignum('-' + SEED).toBuffer({size: 16, endian: 'big'});
+						}
 					).to.throw(
 						Error,
-						/Converting negative numbers to Buffers not supported yet/
-					);
+						/Converting negative numbers to Buffers not supported yet/);
 				});
 			});
 
 			describe('when opts = undefined', function () {
-				it('should return a buffer equal to BUFFER_SEED', function () {
+
+				it('should return a buffer = BUFFER_SEED', function () {
 					standardExpect(testbignum.toBuffer(null), BUFFER_SEED);
 				});
 			});
 
 			describe('when passed opts.size = 1 and opts.endian = big', function () {
-				it('should return a buffer equal to BUFFER_SEED', function () {
-					standardExpect(testbignum.toBuffer({size:1,endian:'big'}), BUFFER_SEED);
+
+				it('should return a buffer = BUFFER_SEED', function () {
+					standardExpect(testbignum.toBuffer({size: 1, endian: 'big'}), BUFFER_SEED);
 				});
 			});
 
 			describe('when passed opts.size = 2 and opts.endian = little', function () {
-				it('should return a buffer equal to BUFFER_SEED_SIZE_TWO', function () {
-					standardExpect(testbignum.toBuffer({size:2,endian:'little'}), BUFFER_SEED_SIZE_TWO);
+
+				it('should return a buffer = BUFFER_SEED_SIZE_TWO', function () {
+					standardExpect(testbignum.toBuffer({size: 2, endian: 'little'}), BUFFER_SEED_SIZE_TWO);
 				});
 			});
 
 			describe('when passed only opts.size', function () {
-				it('should return a buffer equal to BUFFER_SEED', function () {
-					standardExpect(testbignum.toBuffer({size:1}), BUFFER_SEED);
+
+				it('should return a buffer = BUFFER_SEED', function () {
+					standardExpect(testbignum.toBuffer({size: 1}), BUFFER_SEED);
 				});
 			});
 
 			describe('when passed only opts.endian = big', function () {
-				it('should return a buffer equal to BUFFER_SEED', function () {
-					standardExpect(testbignum.toBuffer({endian:'big'}), BUFFER_SEED);
+
+				it('should return a buffer = BUFFER_SEED', function () {
+					standardExpect(testbignum.toBuffer({endian: 'big'}), BUFFER_SEED);
 				});
 			});
 
 			describe('when passed only opts.endian = little', function () {
-				it('should return a buffer equal to BUFFER_SEED', function () {
-					standardExpect(testbignum.toBuffer({endian:'little'}), BUFFER_SEED);
+
+				it('should return a buffer = BUFFER_SEED', function () {
+					standardExpect(testbignum.toBuffer({endian: 'little'}), BUFFER_SEED);
 				});
 			});
 		});
@@ -90,24 +100,29 @@ describe('bignum helper', function () {
 
 		function standardExpect (result) {
 			expect(result.eq(new bignum(SEED))).to.be.true;
-		};
+		}
 
 		describe('when passed a buffer with opts = undefined', function () {
-			it('should return a bignum equal to BUFFER_SEED', function () {
+
+			it('should return a bignum = BUFFER_SEED', function () {
 				standardExpect(bignum.fromBuffer(BUFFER_SEED));
 			});
 		});
 
 		describe('when passed a buffer with opts = {}', function () {
-			it('should return a bignum equal to BUFFER_SEED', function () {
+
+			it('should return a bignum = BUFFER_SEED', function () {
 				standardExpect(bignum.fromBuffer(BUFFER_SEED));
 			});
 		});
 
 		describe('when passed a buffer not divisible by the size option', function () {
+
 			it('should return error = "Buffer length (14) must be a multiple of size (3)"', function () {
 				expect(
-					function (){bignum.fromBuffer(BUFFER_SEED, {size:3, endian:'big'});}
+					function () {
+						bignum.fromBuffer(BUFFER_SEED, {size: 3, endian: 'big'});
+					}
 				).to.throw(
 					Error,
 					'Buffer length (14) must be a multiple of size (3)'
@@ -116,26 +131,30 @@ describe('bignum helper', function () {
 		});
 
 		describe('when passed a buffer opts.size = 2 and opts.endian = little', function () {
-			it('should return a bignum equal to BUFFER_SEED', function () {
-				standardExpect(bignum.fromBuffer(BUFFER_SEED_SIZE_TWO, {size:2,endian:'little'}));
+
+			it('should return a bignum = BUFFER_SEED', function () {
+				standardExpect(bignum.fromBuffer(BUFFER_SEED_SIZE_TWO, {size: 2, endian: 'little'}));
 			});
 		});
 
 		describe('when passed a buffer with size = 2 and endian = big', function () {
-			it('should return a bignum equal to BUFFER_SEED', function () {
-				standardExpect(bignum.fromBuffer(BUFFER_SEED, {size:2,endian:'big'}));
+
+			it('should return a bignum = BUFFER_SEED', function () {
+				standardExpect(bignum.fromBuffer(BUFFER_SEED, {size: 2, endian: 'big'}));
 			});
 		});
 
 		describe('when passed a buffer with size = 2', function () {
-			it('should return a bignum equal to BUFFER_SEED', function () {
-				standardExpect(bignum.fromBuffer(BUFFER_SEED, {size:2}));
+
+			it('should return a bignum = BUFFER_SEED', function () {
+				standardExpect(bignum.fromBuffer(BUFFER_SEED, {size: 2}));
 			});
 		});
 
 		describe('when passed a buffer with endian = big', function () {
-			it('should return a bignum equal to BUFFER_SEED', function () {
-				standardExpect(bignum.fromBuffer(BUFFER_SEED, {endian:'big'}));
+
+			it('should return a bignum = BUFFER_SEED', function () {
+				standardExpect(bignum.fromBuffer(BUFFER_SEED, {endian: 'big'}));
 			});
 		});
 	});

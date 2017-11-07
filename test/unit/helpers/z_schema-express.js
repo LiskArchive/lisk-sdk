@@ -1,8 +1,6 @@
 'use strict';
 
-var chai = require('chai');
 var expect = require('chai').expect;
-var sinon = require('sinon');
 
 var z_schema_express = require('../../../helpers/z_schema-express');
 
@@ -12,7 +10,7 @@ describe('z_schema.express', function () {
 
 		it('should return true', function () {
 			var z_schema = {
-				'validate' : function (value, schema, cb) {
+				'validate': function (value, schema, cb) {
 					cb(null, true);
 				}
 			};
@@ -30,7 +28,7 @@ describe('z_schema.express', function () {
 					}
 				);
 			};
-			z_schema_express (z_schema)(req, {}, reqcb);
+			z_schema_express(z_schema)(req, {}, reqcb);
 		});
 	});
 

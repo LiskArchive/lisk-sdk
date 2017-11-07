@@ -1,6 +1,5 @@
 'use strict';
 
-var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var redis = require('redis');
@@ -29,15 +28,18 @@ describe('cache', function () {
 
 	var mockedRedis;
 
-	beforeEach( function () {
+	beforeEach(function () {
 		mockedRedis = sinon.mock(redis);
 	});
 
-	afterEach( function () {
+	afterEach(function () {
 		mockedRedis.verify();
 	});
+
 	describe('when cacheEnabled = false', function () {
+
 		it('should call callback with error = null');
+
 		it('should call callback with result = { cacheEnabled: cacheEnabled, client: null }', function () {
 			mockedRedis.expects('createClient').never();
 			cache.connect(false, {}, {}, function (err, result) {
@@ -61,13 +63,16 @@ describe('cache', function () {
 		});
 	});
 
-
 	it('should call redis.createClient with config');
 
 	describe('when redis.createClient succeeds', function () {
+
 		it('should call logger.info with "App connected with redis server"');
+
 		it('should call callback with error = null');
+
 		it('should call callback with result = { cacheEnabled: cacheEnabled, client: client }');
+
 		mockedRedis.expects('createClient').once().withArgs(sinon.match.any).returns(mockRedisClientReady);
 		cache.connect(true, {}, mockedLogger, function (err, result) {
 			expect(result.cacheEnabled).to.eq( true );
@@ -76,9 +81,13 @@ describe('cache', function () {
 	});
 
 	describe('when redis.createClient fails', function () {
+
 		it('should call logger.info with "App connected with redis server"');
+
 		it('should call callback with error = null');
+
 		it('should call callback with result = { cacheEnabled: cacheEnabled, client: null }');
+
 		// note that this cannot be integrated with the declared scope mock client.
 		// This is because both ready and error are called by the client under Test
 		// so test results will not pass.

@@ -1,6 +1,5 @@
 'use strict';
 
-var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
 
@@ -18,21 +17,28 @@ describe('Router', function () {
 		var middleware = {'check': 'OK'};
 
 		beforeEach(function () {
-			router = {'use': function (stuff) {}};
+			router = {
+				'use': function (stuff) {
+				}
+			};
 			expressMock = sinon.mock(express);
 			httpApiMock = sinon.mock(httpApi);
 			expressMock.expects('Router').once().returns(router);
-	  });
+		});
 
-	  afterEach(function () {
+		afterEach(function () {
 			httpApiMock.restore();
 			expressMock.restore();
 			expressMock.verify();
-	  });
+		});
+
 		describe('when route has no space', function () {
+
 			it('should throw "Invalid map config"', function () {
 				expect(
-					function () {Router().attachMiddlwareForUrls({}, ['fail']);}
+					function () {
+						Router().attachMiddlwareForUrls({}, ['fail']);
+					}
 				).to.throw(
 					Error,
 					/Invalid map config/
@@ -41,6 +47,7 @@ describe('Router', function () {
 		});
 
 		describe('when route verb is not get or post or put', function () {
+
 			it('should throw "Invalid map config"', function () {
 				expect(
 					function () {
@@ -85,17 +92,20 @@ describe('Router', function () {
 		var router;
 
 		beforeEach(function () {
-			router = {'use': function (stuff) {}};
+			router = {
+				'use': function (stuff) {
+				}
+			};
 			expressMock = sinon.mock(express);
 			httpApiMock = sinon.mock(httpApi);
 			expressMock.expects('Router').once().returns(router);
-	  });
+		});
 
-	  afterEach(function () {
+		afterEach(function () {
 			httpApiMock.restore();
 			expressMock.restore();
 			expressMock.verify();
-	  });
+		});
 
 		describe('when route has no space', function () {
 
@@ -148,7 +158,7 @@ describe('Router', function () {
 				cb(req, {}, null);
 			};
 
-			Router().map(root, {'get get/url':'getRootLevelIdentifier'});
+			Router().map(root, {'get get/url': 'getRootLevelIdentifier'});
 		});
 
 		it('should pass with http verb of put', function () {
@@ -174,7 +184,7 @@ describe('Router', function () {
 				cb(req, {}, null);
 			};
 
-			Router().map(root, {'put put/url':'putRootLevelIdentifier'});
+			Router().map(root, {'put put/url': 'putRootLevelIdentifier'});
 		});
 
 		it('should pass with http verb of post', function () {
@@ -200,7 +210,7 @@ describe('Router', function () {
 				cb(req, {}, null);
 			};
 
-			Router().map(root, {'post post/url':'postRootLevelIdentifier'});
+			Router().map(root, {'post post/url': 'postRootLevelIdentifier'});
 		});
 	});
 });
