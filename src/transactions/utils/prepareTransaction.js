@@ -12,19 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../crypto';
+import { signTransaction } from './signAndVerify';
+import getTransactionId from './getTransactionId';
 
 const secondSignTransaction = (transactionObject, secondSecret) =>
 	Object.assign({}, transactionObject, {
-		signSignature: cryptoModule.signTransaction(
-			transactionObject,
-			secondSecret,
-		),
+		signSignature: signTransaction(transactionObject, secondSecret),
 	});
 
 const prepareTransaction = (transaction, secret, secondSecret) => {
 	const singleSignedTransaction = Object.assign({}, transaction, {
-		signature: cryptoModule.signTransaction(transaction, secret),
+		signature: signTransaction(transaction, secret),
 	});
 
 	const signedTransaction =
@@ -33,7 +31,7 @@ const prepareTransaction = (transaction, secret, secondSecret) => {
 			: singleSignedTransaction;
 
 	const transactionWithId = Object.assign({}, signedTransaction, {
-		id: cryptoModule.getId(signedTransaction),
+		id: getTransactionId(signedTransaction),
 	});
 
 	return transactionWithId;

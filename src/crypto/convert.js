@@ -15,7 +15,6 @@
 import bignum from 'browserify-bignum';
 import ed2curve from 'ed2curve';
 import hash from './hash';
-import { getTransactionBytes } from '../transactions/utils';
 
 /**
  * @method bufferToHex
@@ -88,26 +87,6 @@ export function getAddressFromPublicKey(publicKey) {
 
 export function getAddress(publicKey) {
 	return getAddressFromPublicKey(publicKey);
-}
-
-/**
- * @method getId
- * @param transaction Object
- *
- * @return {string}
- */
-
-export function getId(transaction) {
-	const transactionBytes = getTransactionBytes(transaction);
-	const transactionHash = hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const firstEntriesToNumber = bignum.fromBuffer(
-		bufferFromFirstEntriesReversed,
-	);
-
-	return firstEntriesToNumber.toString();
 }
 
 /**
