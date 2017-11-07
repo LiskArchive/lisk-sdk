@@ -194,6 +194,7 @@ Accounts.prototype.onBind = function (scope) {
 	__private.assetTypes[transactionTypes.VOTE].bind(
 		scope.delegates
 	);
+
 	library.logic.account.bind(modules.blocks);
 };
 /**
