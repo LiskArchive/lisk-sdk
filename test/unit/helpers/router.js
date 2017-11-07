@@ -98,6 +98,7 @@ describe('Router', function () {
 	  });
 
 		describe('when route has no space', function () {
+
 			it('should throw "Invalid map config"', function () {
 				expect(
 					function () {
@@ -111,6 +112,7 @@ describe('Router', function () {
 		});
 
 		describe('when route verb is not get or post or put', function () {
+
 			it('should throw "Invalid map config"', function () {
 				expect(
 					function () {

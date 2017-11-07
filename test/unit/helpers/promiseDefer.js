@@ -22,12 +22,14 @@ describe('PromiseDefer', function () {
 	});
 
 	it('should resolve', function (done) {
+
 		expect(promiseDefer.promise.isFulfilled()).to.be.false;
 		promiseDefer.resolve({message: RESOLVED, done: done});
 		expect(promiseDefer.promise.isFulfilled()).to.be.true;
 	});
 
 	it('should reject', function (done) {
+
 		expect(promiseDefer.promise.isRejected()).to.be.false;
 		promiseDefer.reject({message: REJECTED, done: done});
 		expect(promiseDefer.promise.isRejected()).to.be.true;
