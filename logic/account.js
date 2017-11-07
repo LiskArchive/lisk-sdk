@@ -729,7 +729,7 @@ Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
 	var votersBalanceBignum = new Bignum(votersBalance || 0);
 	var totalSupplyBignum =  new Bignum(totalSupply);
-	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupply)).times(100).round(2);
+	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupplyBignum)).times(100).round(2);
 	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
 };
 
