@@ -502,7 +502,12 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 
 		modules.system.update(function () {
 			if (!__private.broadcaster.maxRelays(block)) {
-				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
+				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {
+					api: '/blocks',
+					data: {block: block},
+					method: 'POST',
+					immediate: true
+				});
 			}
 			library.network.io.sockets.emit('blocks/change', block);
 		});
@@ -518,7 +523,12 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
  */
 Transport.prototype.onMessage = function (msg, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
-		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST', immediate: true});
+		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {
+			api: '/dapp/message',
+			data: msg,
+			method: 'POST',
+			immediate: true
+		});
 	}
 };
 
