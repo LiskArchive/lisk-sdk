@@ -13,15 +13,17 @@ def buildDependency() {
   try {
     sh '''#!/bin/bash
 
+    # Build submodules
+    git submodule init
+    git submodule update
+
     # Install Deps
     npm install
 
     # Install Nodejs
     tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
 
-    # Build submodules
-    git submodule init
-    git submodule update
+    # Build Lisk-UI
     cd public/
     npm install
     bower install
@@ -36,6 +38,7 @@ def buildDependency() {
 def startLisk() {
   try {
     sh '''#!/bin/bash
+    cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
     cd test/lisk-js/; npm install; cd ../..
     cp test/config.json test/genesisBlock.json .
     export NODE_ENV=test
@@ -186,6 +189,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         '''
       }
       },
+      "Functional Multisignatures - 2" : {
+        node('node-01'){
+        sh '''
+        export TEST=test/api/multisignature.with.other.transactions.js TEST_TYPE='FUNC'
+        cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+        npm run jenkins
+        '''
+      }
+      },
       "Functional Signatures" : {
         node('node-01'){
         sh '''
@@ -283,6 +295,15 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
         npm run jenkins
         '''
+      }
+      },
+      "Functional - Multisignature 3": {
+         node('node-03'){
+         sh '''
+         export TEST=test/functional/multisignature.js TEST_TYPE='FUNC'
+         cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+         npm run jenkins
+         '''
       }
       },
       "Functional Peer - Votes" : {

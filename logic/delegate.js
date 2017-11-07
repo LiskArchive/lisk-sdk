@@ -1,20 +1,25 @@
 'use strict';
 
+var async = require('async');
 var constants = require('../helpers/constants.js');
+var exceptions = require('../helpers/exceptions.js');
 
 // Private fields
-var modules, library;
+var modules, library, self;
 
 /**
  * Initializes library.
  * @memberof module:delegates
  * @class
  * @classdesc Main delegate logic.
+ * @param {logger} logger
  * @param {ZSchema} schema
  */
-function Delegate (schema) {
+function Delegate (logger, schema) {
+	self = this;
 	library = {
 		schema: schema,
+		logger: logger
 	};
 }
 
@@ -115,18 +120,8 @@ Delegate.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Username can only contain alphanumeric characters with the exception of !@$&_.');
 	}
 
-	modules.accounts.getAccount({
-		username: username
-	}, function (err, account) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		if (account) {
-			return setImmediate(cb, 'Username already exists');
-		}
-
-		return setImmediate(cb, null, trs);
+	self.checkConfirmed(trs, function (err) {
+		return setImmediate(cb, err, trs);
 	});
 };
 
@@ -165,6 +160,67 @@ Delegate.prototype.getBytes = function (trs) {
 };
 
 /**
+ * Calls cb with error when account already exists
+ * @param {transaction} trs
+ * @param {string} username - username key to search for (username / u_username)
+ * @param {string} isDelegate - isDelegate key to search for (isDelegate / u_isDelegate)
+ * @param {function} cb
+ */
+Delegate.prototype.checkDuplicates = function (trs, username, isDelegate, cb) {
+	async.parallel({
+		duplicatedDelegate: function (eachCb) {
+			var query = {};
+			query[isDelegate] = 1;
+			query.publicKey = trs.senderPublicKey;
+			return modules.accounts.getAccount(query, [username], eachCb);
+		},
+		duplicatedUsername: function (eachCb) {
+			var query = {};
+			query[username] = trs.asset.delegate.username;
+			return modules.accounts.getAccount(query, [username], eachCb);
+		}
+	}, function (err, res) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		if (res.duplicatedDelegate) {
+			return setImmediate(cb, 'Account is already a delegate');
+		}
+		if (res.duplicatedUsername) {
+			return setImmediate(cb, 'Username ' + trs.asset.delegate.username + ' already exists');
+		}
+		return setImmediate(cb);
+	});
+};
+
+/**
+ * Checks if confirmed delegate is already registered
+ * @param {transaction} trs
+ * @param {function} cb
+ */
+Delegate.prototype.checkConfirmed = function (trs, cb) {
+	self.checkDuplicates(trs, 'username', 'isDelegate', function (err) {
+		if (err && exceptions.delegates.indexOf(trs.id) > -1) {
+			library.logger.debug(err);
+			library.logger.debug(JSON.stringify(trs));
+			err = null;
+		}
+		return setImmediate(cb, err, trs);
+	});
+};
+
+/**
+ * Checks if unconfirmed delegate is already registered
+ * @param {transaction} trs
+ * @param {function} cb
+ */
+Delegate.prototype.checkUnconfirmed = function (trs, cb) {
+	self.checkDuplicates(trs, 'u_username', 'u_isDelegate', function (err) {
+		return setImmediate(cb, err, trs);
+	});
+};
+
+/**
  * Checks trs delegate and calls modules.accounts.setAccountAndGet() with username.
  * @implements module:accounts#Accounts~setAccountAndGet
  * @param {transaction} trs
@@ -174,6 +230,7 @@ Delegate.prototype.getBytes = function (trs) {
  */
 Delegate.prototype.apply = function (trs, block, sender, cb) {
 	var data = {
+		publicKey: trs.senderPublicKey,
 		address: sender.address,
 		u_isDelegate: 0,
 		isDelegate: 1,
@@ -185,7 +242,14 @@ Delegate.prototype.apply = function (trs, block, sender, cb) {
 		data.username = trs.asset.delegate.username;
 	}
 
-	modules.accounts.setAccountAndGet(data, cb);
+	async.series([
+		function (seriesCb) {
+			self.checkConfirmed(trs, seriesCb);
+		},
+		function (seriesCb) {
+			modules.accounts.setAccountAndGet(data, seriesCb);
+		}
+	], cb);
 };
 
 /**
@@ -221,6 +285,7 @@ Delegate.prototype.undo = function (trs, block, sender, cb) {
  */
 Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 	var data = {
+		publicKey: trs.senderPublicKey,
 		address: sender.address,
 		u_isDelegate: 1,
 		isDelegate: 0
@@ -231,7 +296,14 @@ Delegate.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		data.u_username = trs.asset.delegate.username;
 	}
 
-	modules.accounts.setAccountAndGet(data, cb);
+	async.series([
+		function (seriesCb) {
+			self.checkUnconfirmed(trs, seriesCb);
+		},
+		function (seriesCb) {
+			modules.accounts.setAccountAndGet(data, seriesCb);
+		}
+	], cb);
 };
 
 /**

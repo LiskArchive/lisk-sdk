@@ -471,7 +471,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	}
 
 	// Determine multisignatures from sender or transaction asset
-	var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
+	var multisignatures = sender.multisignatures || [];
 	if (multisignatures.length === 0) {
 		if (trs.asset && trs.asset.multisignature && trs.asset.multisignature.keysgroup) {
 

@@ -2,6 +2,7 @@
 
 var node = require('./../node.js');
 var modulesLoader = require('./../common/initModule.js').modulesLoader;
+var stripTransactionsResults = require('./../common/helpers.js').stripTransactionsResults;
 var genesisDelegates = require('../genesisDelegates.json');
 
 function openAccount (params, done) {
@@ -28,12 +29,31 @@ function putDelegates (params, done) {
 	});
 }
 
-describe('PUT /api/accounts/delegates without funds', function () {
-	var account;
+var account;
+var validParams;
 
-	beforeEach(function (done) {
+function enrichRandomAccount (cb) {
+	account = node.randomAccount();
+	validParams = {
+		secret: account.password,
+		username: account.username
+	};
+	sendLISK({
+		secret: node.gAccount.password,
+		amount: node.LISK,
+		recipientId: account.address
+	}, function (err, res) {
+		node.expect(res.body).to.have.property('success').to.be.ok;
+		node.expect(res.body).to.have.property('transactionId');
+		node.expect(res.body.transactionId).to.be.not.empty;
+		node.onNewBlock(cb);
+	});
+}
+
+describe('PUT /api/accounts/delegates without funds', function () {
+
+	beforeEach(function () {
 		account = node.randomAccount();
-		done();
 	});
 
 	it('when upvoting should fail', function (done) {
@@ -60,11 +80,11 @@ describe('PUT /api/accounts/delegates without funds', function () {
 });
 
 describe('PUT /api/delegates without funds', function () {
+
 	var account;
 
-	beforeEach(function (done) {
+	beforeEach(function () {
 		account = node.randomAccount();
-		done();
 	});
 
 	it('using valid parameters should fail', function (done) {
@@ -80,26 +100,10 @@ describe('PUT /api/delegates without funds', function () {
 });
 
 describe('PUT /api/accounts/delegates with funds', function () {
-	var account = node.randomAccount();
 
-	before(function (done) {
-		sendLISK({
-			secret: node.gAccount.password,
-			amount: node.LISK,
-			recipientId: account.address
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId');
-			node.expect(res.body.transactionId).to.be.not.empty;
-			done();
-		});
-	});
+	before(enrichRandomAccount);
 
-	beforeEach(function (done) {
-		node.onNewBlock(function (err) {
-			done();
-		});
-	});
+	beforeEach(node.onNewBlock);
 
 	it('when upvoting same delegate multiple times should fail', function (done) {
 		var votedDelegate = Array.apply(null, Array(2)).map(function () { return '+' + node.eAccount.publicKey;});
@@ -252,29 +256,13 @@ describe('PUT /api/accounts/delegates with funds', function () {
 });
 
 describe('PUT /api/delegates with funds', function () {
-	var account, validParams;
 
-	beforeEach(function (done) {
-		account = node.randomAccount();
-		validParams = {
-			secret: account.password,
-			username: account.username
-		};
-		done();
-	});
+	beforeEach(enrichRandomAccount);
 
-	beforeEach(function (done) {
-		sendLISK({
-			secret: node.gAccount.password,
-			amount: node.LISK,
-			recipientId: account.address
-		}, function (err, res) {
+	it('using valid params should be ok', function (done) {
+		putDelegates(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactionId');
-			node.expect(res.body.transactionId).to.be.not.empty;
-			node.onNewBlock(function (err) {
-				done();
-			});
+			done();
 		});
 	});
 
@@ -344,15 +332,15 @@ describe('PUT /api/delegates with funds', function () {
 		});
 	});
 
-	it('using same account twice should fail', function (done) {
+	it('using same account twice in two different blocks should fail', function (done) {
 		putDelegates(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 
-			node.onNewBlock(function (err) {
+			node.onNewBlock(function () {
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
+					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
 					done();
 				});
 			});
@@ -364,13 +352,236 @@ describe('PUT /api/delegates with funds', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transaction').that.is.an('object');
 
-			node.onNewBlock(function (err) {
+			node.onNewBlock(function () {
 				validParams.username = validParams.username.toUpperCase();
 				putDelegates(validParams, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error');
+					node.expect(res.body).to.have.property('error').equal('Account is already a delegate');
 					done();
 				});
+			});
+		});
+	});
+});
+
+describe('PUT /api/delegates double registration', function () {
+
+	var strippedResults;
+	var firstTransactionId;
+	var secondTransactionId;
+
+	var sendTwice = function (sendSecond, cb) {
+		node.async.series({
+			first: function (cb) {
+				return putDelegates(validParams, cb);
+			},
+			second: sendSecond
+		}, function (err, res) {
+			node.expect(res).to.have.deep.property('first.body.success').to.be.true;
+			node.expect(res).to.have.deep.property('second.body.success').to.be.true;
+			firstTransactionId = res.first.body.transaction.id;
+			secondTransactionId = res.second.body.transaction.id;
+			cb();
+		});
+	};
+
+	var getConfirmations = function (cb) {
+		return function () {
+			node.onNewBlock(function () {
+				node.async.series([
+					function (cb) {
+						return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
+					},
+					function (cb) {
+						return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+					}
+				], function (err, results) {
+					strippedResults = stripTransactionsResults(results);
+					cb();
+				});
+			});
+		};
+	};
+
+	describe('using same account', function () {
+
+		describe('using same username', function () {
+
+			describe('with the same id', function () {
+
+				var firstResponse;
+				var secondResponse;
+
+				before(enrichRandomAccount);
+
+				before(function (done) {
+					node.async.series({
+						first: function (cb) {
+							return putDelegates(validParams, cb);
+						},
+						second: function (cb) {
+							return putDelegates(validParams, cb);
+						}
+					}, function (err, res) {
+						if (err) {
+							return done(err);
+						}
+						firstResponse = res.first.body;
+						secondResponse = res.second.body;
+						done();
+					});
+				});
+
+				it('first transaction should be ok', function () {
+					node.expect(firstResponse).to.have.property('transaction');
+				});
+
+				it('second transaction should fail', function () {
+					node.expect(secondResponse).to.have.property('error').equal('Transaction is already processed: ' + firstResponse.transaction.id);
+				});
+			});
+
+			describe('with different timestamp', function () {
+
+				before(enrichRandomAccount);
+
+				before(function (done) {
+					sendTwice(function (cb) {
+						setTimeout(function () {
+							return putDelegates(validParams, cb);
+						}, 1001);
+					}, getConfirmations(done));
+				});
+
+				it('should not confirm one transaction', function () {
+					node.expect(strippedResults.successFields).to.contain(false);
+					node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+				});
+
+				it('should confirm one transaction', function () {
+					node.expect(strippedResults.successFields).to.contain(true);
+					node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+					node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
+				});
+			});
+		});
+
+		describe('with different usernames', function () {
+
+			var differentUsernameParams;
+
+			before(enrichRandomAccount);
+
+			before(function (done) {
+				differentUsernameParams = {
+					secret: account.password,
+					username: node.randomUsername()
+				};
+				sendTwice(function (cb) {
+					return putDelegates(differentUsernameParams, cb);
+				}, getConfirmations(done));
+			});
+
+			it('should not confirm one transaction', function () {
+				node.expect(strippedResults.successFields).to.contain(false);
+				node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+			});
+
+			it('should confirm one transaction', function () {
+				node.expect(strippedResults.successFields).to.contain(true);
+				node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+				node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
+			});
+		});
+	});
+
+	describe('using two different accounts', function () {
+
+		var secondAccount;
+		var secondAccountValidParams;
+
+		var enrichSecondRandomAccount = function (cb) {
+			secondAccount = node.randomAccount();
+			secondAccountValidParams = {
+				secret: secondAccount.password,
+				username: secondAccount.username
+			};
+			sendLISK({
+				secret: node.gAccount.password,
+				amount: node.LISK,
+				recipientId: secondAccount.address
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId');
+				node.expect(res.body.transactionId).to.be.not.empty;
+				cb();
+			});
+		};
+
+		before(function (done) {
+			enrichSecondRandomAccount(function () {
+				enrichRandomAccount(done);
+			});
+		});
+
+		describe('using same username', function () {
+
+			before(function (done) {
+				secondAccountValidParams.username = validParams.username;
+				sendTwice(function (cb) {
+					return putDelegates(secondAccountValidParams, cb);
+				}, getConfirmations(done));
+			});
+
+			it('should not confirm one transaction', function () {
+				node.expect(strippedResults.successFields).to.contain(false);
+				node.expect(strippedResults.errorFields).to.have.lengthOf(1).and.to.contain('Transaction not found');
+			});
+
+			it('should confirm one transaction', function () {
+				node.expect(strippedResults.successFields).to.contain(true);
+				node.expect(strippedResults.transactionsIds).to.have.lengthOf(1);
+				node.expect([firstTransactionId, secondTransactionId]).and.to.contain(strippedResults.transactionsIds[0]);
+			});
+		});
+
+		describe('using different usernames', function () {
+
+			var firstConfirmedTransaction;
+			var secondConfirmedTransaction;
+
+			before(function (done) {
+				enrichSecondRandomAccount(function () {
+					enrichRandomAccount(done);
+				});
+			});
+
+			before(function (done) {
+				sendTwice(function (cb) {
+					return putDelegates(secondAccountValidParams, cb);
+				}, function () {
+					node.onNewBlock(function () {
+						node.async.series({
+							firstConfirmedTransaction: function (cb) {
+								return node.get('/api/transactions/get?id=' + firstTransactionId, cb);
+							},
+							secondConfirmedTransaction: function (cb) {
+								return node.get('/api/transactions/get?id=' + secondTransactionId, cb);
+							}
+						}, function (err, res) {
+							firstConfirmedTransaction = res.firstConfirmedTransaction.body;
+							secondConfirmedTransaction = res.secondConfirmedTransaction.body;
+							done();
+						});
+					});
+				});
+			});
+
+			it('should successfully confirm both transactions', function () {
+				node.expect(firstConfirmedTransaction).to.have.deep.property('success').to.be.true;
+				node.expect(firstConfirmedTransaction).to.have.deep.property('transaction.id').to.be.equal(firstTransactionId);
+				node.expect(secondConfirmedTransaction).to.have.deep.property('success').to.be.true;
+				node.expect(secondConfirmedTransaction).to.have.deep.property('transaction.id').to.be.equal(secondTransactionId);
 			});
 		});
 	});
