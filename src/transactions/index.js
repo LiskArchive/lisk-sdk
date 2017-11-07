@@ -20,6 +20,7 @@ import registerMultisignature from './4_registerMultisignatureAccount';
 import createDapp from './5_createDapp';
 import transferIntoDapp from './6_transferIntoDapp';
 import transferOutOfDapp from './7_transferOutOfDapp';
+import * as utils from './utils';
 
 export default {
 	transfer,
@@ -30,4 +31,5 @@ export default {
 	createDapp,
 	transferIntoDapp,
 	transferOutOfDapp,
+	utils,
 };

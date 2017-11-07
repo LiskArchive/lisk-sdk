@@ -32,4 +32,4 @@ naclFactory.instantiate(nacl => {
 	naclInstance = nacl;
 });
 
-export { crypto, transaction, api, time, Mnemonic };
+export default { crypto, transaction, api, time, Mnemonic };
