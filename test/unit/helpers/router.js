@@ -1,6 +1,5 @@
 'use strict';
 
-var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
 
@@ -18,37 +17,50 @@ describe('Router', function () {
 		var middleware = {'check': 'OK'};
 
 		beforeEach(function () {
-			router = {'use': function (stuff) {}};
+			router = {
+				'use': function (stuff) {
+				}
+			};
 			expressMock = sinon.mock(express);
 			httpApiMock = sinon.mock(httpApi);
 			expressMock.expects('Router').once().returns(router);
-	  });
+		});
 
-	  afterEach(function () {
+		afterEach(function () {
 			httpApiMock.restore();
 			expressMock.restore();
 			expressMock.verify();
-	  });
-
-		it('fails because route needs a space', function () {
-			expect(
-				function () {Router().attachMiddlwareForUrls({}, ['fail']);}
-			).to.throw(
-				Error,
-				/Invalid map config/
-			);
 		});
 
-		it('fails because route verb is not get or post or put', function () {
-			expect(
-				function () {Router().attachMiddlwareForUrls({}, ['nonhttpverb url']);}
-			).to.throw(
-				Error,
-				/Invalid map config/
-			);
+		describe('when route has no space', function () {
+
+			it('should throw "Invalid map config"', function () {
+				expect(
+					function () {
+						Router().attachMiddlwareForUrls({}, ['fail']);
+					}
+				).to.throw(
+					Error,
+					/Invalid map config/
+				);
+			});
 		});
 
-		it('passes with http verb of get', function () {
+		describe('when route verb is not get or post or put', function () {
+
+			it('should throw "Invalid map config"', function () {
+				expect(
+					function () {
+						Router().attachMiddlwareForUrls({}, ['nonhttpverb url']);
+					}
+				).to.throw(
+					Error,
+					/Invalid map config/
+				);
+			});
+		});
+
+		it('should pass with http verb of get', function () {
 			router['get'] = function (url, mw) {
 				expect(url).to.equal('get/url');
 				expect(mw).to.eql(middleware);
@@ -56,7 +68,7 @@ describe('Router', function () {
 			Router().attachMiddlwareForUrls(middleware, ['get get/url']);
 		});
 
-		it('passes with http verb of put', function () {
+		it('should pass with http verb of put', function () {
 			router['put'] = function (url, mw) {
 				expect(url).to.equal('put/url');
 				expect(mw).to.eql(middleware);
@@ -64,7 +76,7 @@ describe('Router', function () {
 			Router().attachMiddlwareForUrls(middleware, ['put put/url']);
 		});
 
-		it('passes with http verb of post', function () {
+		it('should pass with http verb of post', function () {
 			router['post'] = function (url, mw) {
 				expect(url).to.equal('post/url');
 				expect(mw).to.eql(middleware);
@@ -80,37 +92,50 @@ describe('Router', function () {
 		var router;
 
 		beforeEach(function () {
-			router = {'use': function (stuff) {}};
+			router = {
+				'use': function (stuff) {
+				}
+			};
 			expressMock = sinon.mock(express);
 			httpApiMock = sinon.mock(httpApi);
 			expressMock.expects('Router').once().returns(router);
-	  });
+		});
 
-	  afterEach(function () {
+		afterEach(function () {
 			httpApiMock.restore();
 			expressMock.restore();
 			expressMock.verify();
-	  });
-
-		it('fails because route needs a space', function () {
-			expect(
-				function () {Router().map({}, [{'fail': 'value'}]);}
-			).to.throw(
-				Error,
-				/Invalid map config/
-			);
 		});
 
-		it('fails because route verb is not get or post or put', function () {
-			expect(
-				function () {Router().map({}, [{'nonhttpverb url': 'value'}]);}
-			).to.throw(
-				Error,
-				/Invalid map config/
-			);
+		describe('when route has no space', function () {
+
+			it('should throw "Invalid map config"', function () {
+				expect(
+					function () {
+						Router().map({}, [{'fail': 'value'}]);
+					}
+				).to.throw(
+					Error,
+					/Invalid map config/
+				);
+			});
 		});
 
-		it('passes with http verb of get', function () {
+		describe('when route verb is not get or post or put', function () {
+
+			it('should throw "Invalid map config"', function () {
+				expect(
+					function () {
+						Router().map({}, [{'nonhttpverb url': 'value'}]);
+					}
+				).to.throw(
+					Error,
+					/Invalid map config/
+				);
+			});
+		});
+
+		it('should pass with http verb of get', function () {
 
 			var req = {
 				'ip': '127.0.0.1',
@@ -133,10 +158,10 @@ describe('Router', function () {
 				cb(req, {}, null);
 			};
 
-			Router().map(root, {'get get/url':'getRootLevelIdentifier'});
+			Router().map(root, {'get get/url': 'getRootLevelIdentifier'});
 		});
 
-		it('passes with http verb of put', function () {
+		it('should pass with http verb of put', function () {
 
 			var req = {
 				'ip': '127.0.0.2',
@@ -159,10 +184,10 @@ describe('Router', function () {
 				cb(req, {}, null);
 			};
 
-			Router().map(root, {'put put/url':'putRootLevelIdentifier'});
+			Router().map(root, {'put put/url': 'putRootLevelIdentifier'});
 		});
 
-		it('passes with http verb of post', function () {
+		it('should pass with http verb of post', function () {
 
 			var req = {
 				'ip': '127.0.0.3',
@@ -185,7 +210,7 @@ describe('Router', function () {
 				cb(req, {}, null);
 			};
 
-			Router().map(root, {'post post/url':'postRootLevelIdentifier'});
+			Router().map(root, {'post post/url': 'postRootLevelIdentifier'});
 		});
 	});
 });
