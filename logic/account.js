@@ -183,7 +183,7 @@ function Account (db, schema, logger, cb) {
 				required: true,
 				type: 'integer',
 				minimum: 0,
-				maximum: constants.totalAMount
+				maximum: constants.totalAmount
 			},
 			conv: Number,
 			expression: '("u_balance")::bigint'
