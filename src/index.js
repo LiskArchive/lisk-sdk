@@ -24,7 +24,6 @@ import api from './api/liskApi';
 import crypto from './crypto';
 import * as time from './transactions/utils/time';
 import transaction from './transactions';
-import * as utils from './transactions/utils';
 
 global.naclFactory = naclFactory;
 
@@ -33,4 +32,4 @@ naclFactory.instantiate(nacl => {
 	naclInstance = nacl;
 });
 
-export { crypto, transaction, api, time, Mnemonic, utils };
+export default { crypto, transaction, api, time, Mnemonic };
