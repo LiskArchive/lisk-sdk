@@ -42,22 +42,22 @@ describe('inserts', function () {
 
 	describe('validate the template function', function () {
 
-		describe('when concatinates  = false with a single argument', function () {
+		describe('when concatenates  = false with a single argument', function () {
 			var rinserts = new inserts({table: 'atable', fields: ['id']}, [], false);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id") VALUES (${id})');
 		});
 
-		describe('when concatinates = true with a single argument', function () {
+		describe('when concatenates = true with a single argument', function () {
 			var rinserts = new inserts({table: 'atable', fields: ['id']}, [], true);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id") VALUES $1');
 		});
 
-		describe('when concatinates = false with multiple argument', function () {
+		describe('when concatenates = false with multiple argument', function () {
 			var rinserts = new inserts({table: 'atable', fields: ['id', 'another']}, [], false);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id","another") VALUES (${id},${another})');
 		});
 
-		describe('when concatinates = true with multiple argument', function () {
+		describe('when concatenates = true with multiple argument', function () {
 			var rinserts = new inserts({table: 'atable', fields: ['id', 'another']}, [], true);
 			expect(rinserts.template()).to.equal('INSERT INTO "atable"("id","another") VALUES $1');
 		});

@@ -47,16 +47,20 @@ describe('cache', function () {
 		});
 	});
 
-	it('deletes the password if it is null', function () {
-		var config = {password: null};
-		expect(config).to.have.property('password');
-		mockedRedis.expects('createClient').once().withArgs(sinon.match.any).returns(mockRedisClientReady);
-		cache.connect(true, config, mockedLogger, function (err, result) {
-			expect(result.cacheEnabled).to.eq( true );
-			expect(result.client).to.eql(mockRedisClientReady);
-			expect(config).to.not.have.property('password');
+	describe('when password = null',function () {
+
+		it('should delete the password', function () {
+			var config = {password: null};
+			expect(config).to.have.property('password');
+			mockedRedis.expects('createClient').once().withArgs(sinon.match.any).returns(mockRedisClientReady);
+			cache.connect(true, config, mockedLogger, function (err, result) {
+				expect(result.cacheEnabled).to.eq( true );
+				expect(result.client).to.eql(mockRedisClientReady);
+				expect(config).to.not.have.property('password');
+			});
 		});
 	});
+
 
 	it('should call redis.createClient with config');
 
