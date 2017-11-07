@@ -35,7 +35,7 @@ describe('GET /node', function () {
 		});
 
 		it('should return a result containing version = "0.0.0a"', function () {
-			constantsResponse.should.have.property('version').equal('0.0.0a');
+			constantsResponse.should.have.property('version').equal('0.0.1');
 		});
 
 		it('should return a result containing fees.send = 10000000', function () {
