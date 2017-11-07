@@ -7,6 +7,7 @@ var git = require('../../../helpers/git');
 var childProcess = require('child_process');
 
 describe('git', function () {
+
 	describe('getLastCommit', function () {
 
 		it('should call childProcess.spawnSync');
@@ -31,6 +32,7 @@ describe('git', function () {
 		});
 
 		describe('when childProcess.spawnSync does not have an error', function () {
+
 			var standardOut = 'standard out';
 			beforeEach(function () {
 				sinon.stub(childProcess, 'spawnSync').callsFake(function (name, anArray) {
@@ -46,6 +48,7 @@ describe('git', function () {
 			});
 
 			it('should validate the message to standard out', function () {
+
 				expect(git.getLastCommit()).to.equal(standardOut);
 			});
 		});
