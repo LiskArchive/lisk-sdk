@@ -183,7 +183,7 @@ describe('account', function () {
 			expect(account.calculateApproval(50, 100)).to.equal(50);
 		});
 
-		it('with random values, it should return approval b/w 0 and 100', function () {
+		it('with random values, it should return approval between 0 and 100', function () {
 			// So total supply is never 0.
 			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			var votersBalance = Math.floor(Math.random() * totalSupply);
@@ -209,7 +209,7 @@ describe('account', function () {
 			expect(account.calculateProductivity(producedBlocks, missedBlocks)).to.equal(75);
 		});
 
-		it('with random values, it should return approval b/w 0 and 100', function () {
+		it('with random values, it should return approval between 0 and 100', function () {
 			var missedBlocks = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			var producedBlocks = Math.floor(Math.random() * missedBlocks);
 			expect(account.calculateProductivity(producedBlocks, missedBlocks)).to.be.least(0).and.be.at.most(100);
@@ -232,7 +232,7 @@ describe('account', function () {
 				'username',
 				'non-existent-field'
 			];
-			account.getAll({address: validAccount.address }, fields, function (err, res) {
+			account.getAll({address: validAccount.address}, fields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
@@ -274,7 +274,7 @@ describe('account', function () {
 			});
 		});
 
-		it('should not remove dependent fields if they were requested as well', function (done) {
+		it('should not remove dependent fields if they were requested', function (done) {
 			account.getAll({}, ['approval', 'vote'], function (err, res) {
 				expect(err).to.not.exist;
 				res.forEach(function (row) {
