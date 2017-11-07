@@ -446,6 +446,7 @@ Account.prototype.bind = function (blocks) {
 		blocks: blocks,
 	};
 };
+
 /**
  * Creates memory tables related to accounts:
  * - mem_accounts
@@ -725,6 +726,12 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	});
 };
 
+/**
+ * Calculates productivity of a delegate account.
+ * @param {String} votersBalance
+ * @param {String} totalSupply
+ * @returns {Number}
+ */
 Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
 	var votersBalanceBignum = new Bignum(votersBalance || 0);
@@ -733,6 +740,12 @@ Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
 	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
 };
 
+/**
+ * Calculates productivity of a delegate account.
+ * @param {String} producedBlocks
+ * @param {String} missedBlocks
+ * @returns {Number}
+ */
 Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks) {
 	var producedBlocksBignum = new Bignum(producedBlocks || 0);
 	var missedBlocksBignum = new Bignum(missedBlocks || 0);
