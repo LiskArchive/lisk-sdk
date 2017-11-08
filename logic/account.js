@@ -7,9 +7,12 @@ var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
+var orderBy = require('../helpers/orderBy.js');
+var BlockReward = require('../logic/blockReward.js');
+var Bignum = require('../helpers/bignum.js');
 
 // Private fields
-var self, library, __private = {};
+var self, library, modules, __private = {};
 
 /**
  * Main account logic.
@@ -27,6 +30,8 @@ function Account (db, schema, logger, cb) {
 		db: db,
 		schema: schema,
 	};
+
+	__private.blockReward = new BlockReward();
 
 	self = this;
 	library = {
@@ -60,8 +65,8 @@ function Account (db, schema, logger, cb) {
 	 * @property {string} blockId
 	 * @property {boolean} nameexist
 	 * @property {boolean} u_nameexist
-	 * @property {number} producedblocks - Between -1 and 1.
-	 * @property {number} missedblocks - Between -1 and 1.
+	 * @property {number} producedblocks
+	 * @property {number} missedblocks
 	 * @property {number} fees
 	 * @property {number} rewards
 	 * @property {boolean} virgin
@@ -135,7 +140,7 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: String,
 			immutable: true,
-			expression: 'UPPER("address")'
+			expression: 'UPPER(a.address)'
 		},
 		{
 			name: 'publicKey',
@@ -182,15 +187,6 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: Number,
 			expression: '("u_balance")::bigint'
-		},
-		{
-			name: 'vote',
-			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
-			conv: Number,
-			expression: '("vote")::bigint'
 		},
 		{
 			name: 'rate',
@@ -308,33 +304,22 @@ function Account (db, schema, logger, cb) {
 			conv: Boolean
 		},
 		{
-			name: 'producedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
-		},
-		{
-			name: 'missedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
-		},
-		{
 			name: 'fees',
 			type: 'BigInt',
 			filter: {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '("fees")::bigint'
+			expression: '(a."fees")::bigint'
+		},
+		{
+			name: 'rank',
+			type: 'BigInt',
+			filter: {
+				type: 'integer'
+			},
+			conv: Number,
+			expression: '(d."rank")::bigint'
 		},
 		{
 			name: 'rewards',
@@ -343,7 +328,28 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '("rewards")::bigint'
+			expression: '(d."rewards")::bigint'
+		},
+		{
+			name: 'vote',
+			type: 'BigInt',
+			filter: {
+				type: 'integer'
+			},
+			conv: Number,
+			expression: '(d."voters_balance")::bigint'
+		},
+		{
+			name: 'producedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(d."blocks_forged_cnt")::bigint'
+		},
+		{
+			name: 'missedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(d."blocks_missed_cnt")::bigint'
 		},
 		{
 			name: 'virgin',
@@ -353,8 +359,30 @@ function Account (db, schema, logger, cb) {
 			},
 			conv: Boolean,
 			immutable: true
+		},
+		{
+			name: 'approval',
+			type: 'integer',
+			dependentFields: [
+				'vote'
+			],
+			computedField: true
+		},
+		{
+			name: 'productivity',
+			type: 'integer',
+			dependentFields: [
+				'producedBlocks',
+				'missedBlocks',
+				'rank'
+			],
+			computedField: true
 		}
 	];
+
+	this.computedFields = this.model.filter(function (field) {
+		return field.computedField;
+	});
 
 	// Obtains fields from model
 	this.fields = this.model.map(function (field) {
@@ -371,6 +399,8 @@ function Account (db, schema, logger, cb) {
 		if (_tmp.expression || field.alias) {
 			_tmp.alias = field.alias || field.name;
 		}
+
+		_tmp.computedField = field.computedField || false;
 
 		return _tmp;
 	});
@@ -405,6 +435,17 @@ function Account (db, schema, logger, cb) {
 
 	return setImmediate(cb, null, this);
 }
+
+// Public methods
+/**
+ * Binds input parameters to private variables modules.
+ * @param {Blocks} blocks
+ */
+Account.prototype.bind = function (blocks) {
+	modules = {
+		blocks: blocks,
+	};
+};
 
 /**
  * Creates memory tables related to accounts:
@@ -549,15 +590,28 @@ Account.prototype.get = function (filter, fields, cb) {
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
 Account.prototype.getAll = function (filter, fields, cb) {
-	if (typeof(fields) === 'function') {
+	if (typeof fields === 'function') {
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
 		});
 	}
 
+	var fieldsAddedForComputation = [];
+	this.computedFields.forEach(function (field) {
+		if (fields.indexOf(field.name) !== -1) {
+			field.dependentFields.forEach(function (dependentField) {
+				if (fields.indexOf(dependentField) == -1) {
+					// Add the dependent field to the fields array if it's required.
+					fieldsAddedForComputation.push(dependentField);
+					fields.push(dependentField);
+				}
+			});
+		}
+	});
+
 	var realFields = this.fields.filter(function (field) {
-		return fields.indexOf(field.alias || field.field) !== -1;
+		return !field.computedField && fields.indexOf(field.alias || field.field) !== -1;
 	});
 
 	var realConv = {};
@@ -567,27 +621,40 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		}
 	}.bind(this));
 
+	var DEFAULT_LIMIT = constants.activeDelegates;
 	var limit, offset, sort;
 
-	if (filter.limit > 0) {
-		limit = filter.limit;
-	}
-	delete filter.limit;
 
 	if (filter.offset > 0) {
 		offset = filter.offset;
 	}
 	delete filter.offset;
 
+	if (filter.limit > 0) {
+		limit = filter.limit;
+	}
+
+	// Assigning a default value if none is present.
+	if (!limit) {
+		limit = DEFAULT_LIMIT;
+	}
+
+	delete filter.limit;
+
 	if (filter.sort) {
-		sort = filter.sort;
+		sort = orderBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance']);
 	}
 	delete filter.sort;
 
-	if (typeof filter.address === 'string') {
-		filter['a.address'] = {
-			$upper: ['a.address', filter.address]
-		};
+	if (filter.address) {
+		if (typeof filter.address === 'string') {
+			filter['a.address'] = {
+				$upper: ['a.address', filter.address]
+			};
+		} else {
+			// If we want to get addresses by id
+			filter['a.address'] = filter.address;
+		}
 		delete filter.address;
 	}
 
@@ -609,17 +676,81 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		limit: limit,
 		offset: offset,
 		sort: sort,
-		alias: 'a',
 		condition: filter,
-		fields: realFields
+		fields: realFields,
+		alias: 'a',
+		join: {
+			delegates: {
+				type: 'left',
+				on: {
+					'a.address': 'd.address'
+				},
+				alias: 'd'
+			}
+		}
 	});
 
+	var self = this;
+
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
+		var lastBlock = modules.blocks.lastBlock.get();
+		// If the last block height is undefined, it means it's a genesis block with height = 1
+		// look for aconstant for total suppply
+		var totalSupply = lastBlock.height ? __private.blockReward.calcSupply(lastBlock.height) : 0;
+
+		if (fields.indexOf('approval') !== -1) {
+			rows.forEach(function (accountRow) {
+				accountRow.approval = self.calculateApproval(accountRow.vote, totalSupply);
+			});
+		}
+
+		if (fields.indexOf('productivity') !== -1) {
+			rows.forEach(function (accountRow) {
+				accountRow.productivity = self.calculateProductivity(accountRow.producedBlocks, accountRow.missedBlocks);
+			});
+		}
+
+		if (fieldsAddedForComputation.length > 0) {
+			// Remove the fields which were only added for computation
+			rows.forEach(function (accountRow) {
+				fieldsAddedForComputation.forEach(function (field) {
+					delete accountRow[field];
+				});
+			});
+		}
+
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Account#getAll error');
 	});
+};
+
+/**
+ * Calculates productivity of a delegate account.
+ * @param {String} votersBalance
+ * @param {String} totalSupply
+ * @returns {Number}
+ */
+Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
+	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
+	var votersBalanceBignum = new Bignum(votersBalance || 0);
+	var totalSupplyBignum =  new Bignum(totalSupply);
+	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupplyBignum)).times(100).round(2);
+	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
+};
+
+/**
+ * Calculates productivity of a delegate account.
+ * @param {String} producedBlocks
+ * @param {String} missedBlocks
+ * @returns {Number}
+ */
+Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks) {
+	var producedBlocksBignum = new Bignum(producedBlocks || 0);
+	var missedBlocksBignum = new Bignum(missedBlocks || 0);
+	var percent = producedBlocksBignum.dividedBy(producedBlocksBignum.plus(missedBlocksBignum)).times(100).round(2);
+	return !(percent.isNaN()) ? percent.toNumber() : 0;
 };
 
 /**
@@ -680,7 +811,6 @@ Account.prototype.merge = function (address, diff, cb) {
 					break;
 				case Number:
 					if (isNaN(trueValue) || trueValue === Infinity) {
-						console.log(diff);
 						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
 					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
