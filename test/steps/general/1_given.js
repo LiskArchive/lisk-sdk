@@ -28,7 +28,7 @@ export function aNonEmptyObject() {
 	};
 }
 
-export function aDeeperNestedObject() {
+export function aDeeplyNestedObject() {
 	this.test.ctx.testObject = {
 		root: 'value',
 		nested: {

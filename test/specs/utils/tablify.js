@@ -42,12 +42,12 @@ describe('tablify util', () => {
 			it('Then the returned table should have a row with the object’s nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedValues);
 		});
 	});
-	describe('Given a deeper nested object', () => {
-		beforeEach(given.aDeeperNestedObject);
+	describe('Given a deeply nested object', () => {
+		beforeEach(given.aDeeplyNestedObject);
 		describe('When the object is tablified', () => {
 			beforeEach(when.theObjectIsTablified);
-			it('Then the returned table should have a head with the object’s nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectDeepNestedKeys);
-			it('Then the returned table should have a row with the object’s nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectDeepNestedValues);
+			it('Then the returned table should have a head with the object’s deeply nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys);
+			it('Then the returned table should have a row with the object’s deeply nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues);
 		});
 	});
 	describe('Given an array of objects with the same keys', () => {
