@@ -12,6 +12,7 @@ var scClient = require('socketcluster-client');
 var testConfig = require('../../config.json');
 var ws = require('../../common/wsCommunication');
 var wsServer = require('../../common/wsServer');
+var WSClient = require('../../common/wsClient');
 
 describe('handshake', function () {
 
@@ -87,63 +88,57 @@ describe('handshake', function () {
 
 		describe('should fail with INVALID_HEADERS code and description', function () {
 
-			it('without headers', function (done) {
-				delete validClientSocketOptions.query;
-				connect();
-				expectDisconnect(this, function (code) {
+			it('without headers', function () {
+				return new WSClient(null, {disconnect: function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
-					done();
-				});
+				}});
 			});
 
-			it('with empty headers', function (done) {
-				validClientSocketOptions.query = {};
-				connect();
-				expectDisconnect(this, function (code, description) {
+			it('with empty headers', function () {
+				return new WSClient({}, {disconnect: function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property');
-					done();
-				});
+				}}).start();
 			});
 
-			it('without port', function (done) {
-				delete validClientSocketOptions.query.port;
-				connect();
-				expectDisconnect(this, function (code, description) {
+			it('without port', function () {
+				var headers = _.clone(frozenHeaders);
+				delete headers.port;
+
+				return new WSClient(headers, {disconnect: function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Expected type integer but found type not-a-number');
-					done();
-				});
+				}}).start();
 			});
 
-			it('without height', function (done) {
-				delete validClientSocketOptions.query.height;
-				connect();
-				expectDisconnect(this, function (code, description) {
+			it('without height', function () {
+				var headers = _.clone(frozenHeaders);
+				delete headers.height;
+
+				return new WSClient(headers, {disconnect: function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('#/height: Expected type integer but found type not-a-number');
-					done();
-				});
+				}}).start();
 			});
 
-			it('without version', function (done) {
-				delete validClientSocketOptions.query.version;
-				connect();
-				expectDisconnect(this, function (code, description) {
+			it('without version', function () {
+				var headers = _.clone(frozenHeaders);
+				delete headers.version;
+
+				return new WSClient(headers, {disconnect: function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property: version');
-					done();
-				});
+				}}).start();
 			});
 
-			it('without nethash', function (done) {
-				delete validClientSocketOptions.query.nethash;
-				connect();
-				expectDisconnect(this, function (code, description) {
+			it('without nethash', function () {
+				var headers = _.clone(frozenHeaders);
+				delete headers.nethash;
+
+				return new WSClient(headers, {disconnect: function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property: nethash');
-					done();
-				});
+				}}).start();
 			});
 		});
 	});

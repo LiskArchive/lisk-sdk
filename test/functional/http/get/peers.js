@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var node = require('../../../node.js');
-var WSServer = require('../../../common/wsServer');
+var WSServer = require('../../../common/wsServerMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 
 describe('GET /api/peers', function () {

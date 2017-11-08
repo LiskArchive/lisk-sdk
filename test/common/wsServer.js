@@ -1,83 +1,67 @@
 'use strict';
 
-var scClient = require('socketcluster-client');
+var randomstring = require('randomstring');
+var sinon = require('sinon');
+var WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var WAMPServer = require('wamp-socket-cluster/WAMPServer');
+var SocketCluster = require('socketcluster').SocketCluster;
+
 var testConfig = require('../config.json');
-var node = require('../node.js');
-var ChildProcess = require('child_process');
-var path = require('path');
-var Promise = require('bluebird');
 
-function WSClient (headers) {
+var wsServer = {
+	validNonce: randomstring.generate(16),
+	testSocketCluster: null,
+	testWampServer: null,
 
-	this.headers = headers;
+	start: function () {
+		if (this.testSocketCluster) {
+			throw new Error('SocketCluster instance is already running');
+		}
+		this.testSocketCluster = new SocketCluster(this.options);
+	},
 
-	this.validClientSocketOptions = {
-		protocol: 'http',
-		hostname: '127.0.0.1',
-		port: testConfig.port,
-		query: headers
-	};
-	this.client = null;
+	stop: function () {
+		if (!this.testSocketCluster) {
+			throw new Error('No SocketCluster instance running');
+		}
+		this.testSocketCluster.killWorkers();
+		this.testSocketCluster.killBrokers();
+		this.testSocketCluster = null;
+	},
 
-	this.callback = function (err, data) {};
-}
+	// Invoked by each worker
+	run: function (worker) {
+		console.log('run invoked');
+		var scServer = worker.scServer;
+		this.testWampServer = new WAMPServer();
+		this.testWampServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
+		scServer.on('connection', function (socket) {
+			this.testWampServer.upgradeToWAMP(socket);
+			socket.emit('accepted');
+		}.bind(this));
+	},
 
-WSClient.prototype.start = function () {
-	return new Promise(function (resolve, reject) {
-		this.client = scClient.connect(this.validClientSocketOptions);
-		this.client.on('connect', resolve);
-		this.client.on('error', reject);
-	}.bind(this));
+	necessaryRPCEndpoints: {
+		status: sinon.stub().callsArgWith(1, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash}),
+		list: sinon.stub().callsArgWith(1, {peers: []}),
+		blocks:  sinon.stub().callsArgWith(1, {blocks: []}),
+		getSignatures:  sinon.stub().callsArgWith(1, {signatures: []}),
+		getTransactions:  sinon.stub().callsArgWith(1, {transactions: []}),
+		updateMyself:  sinon.stub().callsArgWith(1, null),
+		postTransactions: sinon.stub().callsArgWith(1, null),
+		postSignatures: sinon.stub().callsArgWith(1, null),
+		postBlock: sinon.stub().callsArgWith(1, sinon.stub().callsArg(1)),
+		blocksCommon: sinon.stub().callsArgWith(1, {success: true, common: null})
+	},
+
+	options: {
+		workers: 1,
+		port: 9999,
+		wsEngine: 'uws',
+		appName: 'testWSServer',
+		secretKey: 'liskSecretKey',
+		workerController: __dirname + '/wsServer.js'
+	}
 };
 
-WSClient.prototype.stop = function () {
-	this.client.disconnect();
-};
-
-function WSServer () {
-	this.masterProcess = null;
-	this.client = null;
-	this.port = Math.floor(Math.random() * 9999);
-}
-
-WSServer.prototype.start = function () {
-	var self = this;
-
-	return new Promise(function (resolve, reject) {
-		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'wsServerProcess.js'), self.port], {
-			cwd: __dirname,
-			detached: true,
-			stdio: 'inherit',
-			env: process.env
-		});
-
-		self.masterProcess.on('error', function () {
-			self.stop();
-			reject();
-		});
-
-		setTimeout(function () {
-			var headers = node.generatePeerHeaders();
-			headers.ip = '127.0.0.1';
-			headers.port = self.port;
-			headers.version = '0.0.' + Math.floor(Math.random() * 10);
-
-			self.client = new WSClient(headers);
-			self.client.start().then(function () {
-				resolve();
-			});
-		}, 1000);
-	});
-};
-
-WSServer.prototype.getHeaders  = function () {
-	return this.client.headers;
-};
-
-WSServer.prototype.stop = function () {
-	this.client.stop();
-	this.masterProcess.kill();
-};
-
-//module.exports = wsServer;
-module.exports = WSServer;
+module.exports = wsServer;
