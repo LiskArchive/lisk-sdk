@@ -19,7 +19,7 @@ import {
 } from '../utils';
 
 export function theSecondChildProcessExitsWithAnErrorThatCannotBeTrimmed() {
-	const error = [{ error: 'myError' }];
+	const error = new Error('myError');
 	this.test.ctx.secondChildError = error;
 	childProcess.exec.onSecondCall().callsArgWith(1, error, null, null);
 }
