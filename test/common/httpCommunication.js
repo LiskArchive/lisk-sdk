@@ -25,6 +25,7 @@ var httpCommunication = {
 
 		if (done) {
 			request.end(function (err, res) {
+				node.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
 				node.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
 				done(err, res);
 			});
