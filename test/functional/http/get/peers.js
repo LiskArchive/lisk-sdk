@@ -4,6 +4,7 @@ var _ = require('lodash');
 var node = require('../../../node.js');
 var WSServer = require('../../../common/wsServerMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/apiHelpers');
 
 describe('GET /api/peers', function () {
 
@@ -29,22 +30,22 @@ describe('GET /api/peers', function () {
 
 	var paramSet = {
 		ip: {
-			valid: ['192.168.99.1'], invalid: ['invalid', '1278.0.0.2']
+			valid: ['192.168.99.1'], invalid: ['invalid', '1278.0.0.2'], checkResponse: true
 		},
 		wsPort: {
-			valid: [65535, 4508], invalid: [0, 65536]
+			valid: [65535, 4508], invalid: [0, 65536], checkResponse: true
 		},
 		httpPort: {
-			valid: [65535, 4508], invalid: [0, 65536]
+			valid: [65535, 4508], invalid: [0, 65536], checkResponse: true
 		},
 		state: {
-			valid: [0, 1, 2], invalid: [-1, 3]
+			valid: [0, 1, 2], invalid: [-1, 3], checkResponse: true
 		},
 		version: {
-			valid: ['999.999.999a'], invalid: ['9999.999.999ab']
+			valid: ['999.999.999a'], invalid: ['9999.999.999ab'], checkResponse: true
 		},
 		broadhash: {
-			valid: [node.config.nethash], invalid: ['invalid']
+			valid: [node.config.nethash], invalid: ['invalid'], checkResponse: true
 		},
 		limit: {
 			valid: [1, 100], invalid: [-1, 0]
@@ -68,7 +69,9 @@ describe('GET /api/peers', function () {
 				it('using invalid value ' + param + '=' + val, function () {
 					var params = {};
 					params[param] = val;
-					return peersEndpoint.makeRequest(params, 400);
+					return peersEndpoint.makeRequest(params, 400).then(function (res) {
+						apiHelpers.expectSwaggerParamError(res, param);
+					});
 				});
 			});
 
@@ -78,7 +81,13 @@ describe('GET /api/peers', function () {
 				it('using valid value ' + param + '=' + val, function () {
 					var params = {};
 					params[param] = val;
-					return peersEndpoint.makeRequest(params, 200);
+					return peersEndpoint.makeRequest(params, 200).then(function (res) {
+						if(paramSet[param].checkResponse) {
+							res.body.peers.forEach(function (peer) {
+								peer[param].should.be.eql(val);
+							});
+						}
+					});
 				});
 			});
 		});
