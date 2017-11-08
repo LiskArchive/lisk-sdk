@@ -28,6 +28,23 @@ export function aNonEmptyObject() {
 	};
 }
 
+export function aDeeplyNestedObject() {
+	this.test.ctx.testObject = {
+		root: 'value',
+		nested: {
+			object: 'values',
+			testing: 123,
+			nullValue: null,
+			asset: {
+				publicKey: 'aPublicKeyString',
+				keys: {
+					more: 'publicKeys',
+				},
+			},
+		},
+	};
+}
+
 export function aNestedObject() {
 	this.test.ctx.testObject = {
 		root: 'value',

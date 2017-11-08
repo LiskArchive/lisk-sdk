@@ -97,9 +97,21 @@ export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
 	return (returnValue.options).should.have.property('head').eql(keys);
 }
 
+export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys() {
+	const { returnValue } = this.test.ctx;
+	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue', 'nested.asset.publicKey', 'nested.asset.keys.more'];
+	return (returnValue.options).should.have.property('head').eql(keys);
+}
+
 export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
 	const { returnValue } = this.test.ctx;
 	const values = ['value', 'values', 123, null];
+	return (returnValue[0]).should.eql(values);
+}
+
+export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues() {
+	const { returnValue } = this.test.ctx;
+	const values = ['value', 'values', 123, null, 'aPublicKeyString', 'publicKeys'];
 	return (returnValue[0]).should.eql(values);
 }
 
