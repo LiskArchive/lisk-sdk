@@ -33,17 +33,18 @@ const reduceKeys = (keys, row) => {
 };
 
 const getKeys = data => Object.entries(data).map(([parentKey, value]) => (
-	Object(value) === value
+	Object.prototype.toString.call(value) === '[object Object]'
 		? getKeys(value).reduce((nestedKeys, childKey) => [...nestedKeys, `${parentKey}.${childKey}`], [])
 		: [parentKey]
-));
+))
+	.reduce((flattenedKeys, keysToBeFlattened) => [...flattenedKeys, ...keysToBeFlattened], []);
 
 const tablify = (data) => {
 	const dataIsArray = Array.isArray(data);
 	const head = dataIsArray
 		? data.reduce(reduceKeys, [])
-		: getKeys(data)
-			.reduce((flattenedKeys, keysToBeFlattened) => [...flattenedKeys, ...keysToBeFlattened], []);
+		: getKeys(data);
+
 	const table = new Table({ head });
 
 	if (dataIsArray) {
