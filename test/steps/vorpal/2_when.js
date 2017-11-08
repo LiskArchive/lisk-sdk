@@ -147,6 +147,25 @@ export function theCreatedCommandIsCalledWithTheVorpalInstance() {
 	this.test.ctx.returnValue = createdCommand(vorpal);
 }
 
+export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix() {
+	const {
+		command,
+		autocompleteList: autocomplete,
+		description,
+		actionCreator,
+		optionsList: options,
+		prefix: errorPrefix,
+	} = this.test.ctx;
+	this.test.ctx.createdCommand = createCommand({
+		command,
+		autocomplete,
+		description,
+		actionCreator,
+		options,
+		errorPrefix,
+	});
+}
+
 export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheAliasTheActionCreatorTheOptionsListAndThePrefix() {
 	const {
 		command,
