@@ -1,6 +1,7 @@
 'use strict';
 
 var constants = require('../helpers/constants.js');
+var transactionTypes = require('../helpers/transactionTypes.js');
 
 module.exports = {
 	getTransactions: {
@@ -22,7 +23,7 @@ module.exports = {
 			type: {
 				type: 'integer',
 				minimum: 0,
-				maximum: 10
+				maximum: Object.keys(transactionTypes).length
 			},
 			ownerPublicKey: {
 				type: 'string',
