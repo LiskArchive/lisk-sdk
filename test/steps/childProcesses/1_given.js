@@ -18,6 +18,12 @@ import {
 	getFirstQuotedString,
 } from '../utils';
 
+export function theSecondChildProcessExitsWithAnErrorThatCannotBeTrimmed() {
+	const error = new Error('myError');
+	this.test.ctx.secondChildError = error;
+	childProcess.exec.onSecondCall().callsArgWith(1, error, null, null);
+}
+
 export function theSecondChildProcessExitsWithError() {
 	const error = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.secondChildError = error;
