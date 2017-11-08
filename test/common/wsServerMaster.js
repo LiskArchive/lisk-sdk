@@ -6,12 +6,23 @@ var Promise = require('bluebird');
 var node = require('../node.js');
 var WSClient = require('./wsClient');
 
+/**
+ * WSServerMaster
+ * Create a socket server master instance with the support to spawn multiple processes
+ *
+ * @constructor
+ */
 function WSServerMaster () {
 	this.masterProcess = null;
 	this.client = null;
 	this.port = Math.floor(Math.random() * 9999);
 }
 
+/**
+ * Start the socket server instance. It will start the server as well an instance of the client.
+ *
+ * @return {Promise}
+ */
 WSServerMaster.prototype.start = function () {
 	var self = this;
 
@@ -42,10 +53,18 @@ WSServerMaster.prototype.start = function () {
 	});
 };
 
+/**
+ * Get headers related to server to be used in client
+ *
+ * @return {object}
+ */
 WSServerMaster.prototype.getHeaders  = function () {
 	return this.client.headers;
 };
 
+/**
+ * Stop the server
+ */
 WSServerMaster.prototype.stop = function () {
 	this.client.stop();
 	this.masterProcess.kill();

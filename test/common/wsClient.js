@@ -4,6 +4,14 @@ var scClient = require('socketcluster-client');
 var testConfig = require('../config.json');
 var Promise = require('bluebird');
 
+/**
+ * WSClient
+ * Create a web socket client to be connected to server
+ *
+ * @param {object} headers - headers object to be passed a query param to client
+ * @param {object} handlers - object containing callback handlers for native socket client
+ * @constructor
+ */
 function WSClient (headers, handlers) {
 
 	var handlers = handlers || {};
@@ -28,6 +36,11 @@ function WSClient (headers, handlers) {
 	this.getHandlers = function () { return handlers; };
 }
 
+/**
+ * Start the client and register the handlers
+ *
+ * @return {Promise}
+ */
 WSClient.prototype.start = function () {
 	var self = this;
 
@@ -54,6 +67,9 @@ WSClient.prototype.start = function () {
 	}).timeout(2000, 'Timeout: Can\'t connect.');
 };
 
+/**
+ * Stop the web socket client
+ */
 WSClient.prototype.stop = function () {
 	this.client.disconnect();
 };
