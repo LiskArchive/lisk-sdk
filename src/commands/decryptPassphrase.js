@@ -15,15 +15,8 @@
  */
 import cryptoModule from '../utils/cryptoModule';
 import { createCommand } from '../utils/helpers';
-import {
-	getStdIn,
-	getPassphrase,
-	getFirstLineFromString,
-	getData,
-} from '../utils/input';
+import getInputsFromSources, { getFirstLineFromString } from '../utils/input';
 import commonOptions from '../utils/options';
-
-const PASSWORD_DISPLAY_NAME = 'your password';
 
 const description = `Decrypt your secret passphrase using a password. You need the initialisation vector (IV) output at the time of encryption.
 
@@ -39,8 +32,11 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 		- --passphrase stdin (takes the first line only)
 `;
 
-const handleInput = iv => ([cipher, password]) =>
-	cryptoModule.decryptPassphrase({ cipher, iv }, password);
+const handlePasswordAndPassphrase = (iv, passphrase) => ({ password, data }) =>
+	cryptoModule.decryptPassphrase({
+		cipher: passphrase || getFirstLineFromString(data),
+		iv,
+	}, password);
 
 export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 	const passphraseSource = options.passphrase;
@@ -50,17 +46,15 @@ export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 		throw new Error('No encrypted passphrase was provided.');
 	}
 
-	return getStdIn({
-		passphraseIsRequired: passwordSource === 'stdin',
-		dataIsRequired: passphraseSource === 'stdin',
+	return getInputsFromSources(vorpal, {
+		password: {
+			source: passwordSource,
+		},
+		data: passphrase ? null : {
+			source: passphraseSource,
+		},
 	})
-		.then(stdIn => Promise.all([
-			getData(passphrase, passphraseSource, getFirstLineFromString(stdIn.data)),
-			getPassphrase(vorpal, passwordSource, stdIn.passphrase, {
-				displayName: PASSWORD_DISPLAY_NAME,
-			}),
-		]))
-		.then(handleInput(iv));
+		.then(handlePasswordAndPassphrase(iv, passphrase));
 };
 
 const decryptPassphrase = createCommand({

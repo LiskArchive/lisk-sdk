@@ -32,96 +32,64 @@ describe('create transaction register second passphrase command', () => {
 					beforeEach(given.aSecondPassphrase);
 					describe('Given a Lisk object that can create transactions', () => {
 						beforeEach(given.aLiskObjectThatCanCreateTransactions);
-						describe('Given an options object with passphrase set to unknown source "xxx"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToUnknownSource);
-							describe('When the action is called with the options', () => {
-								beforeEach(when.theActionIsCalledWithTheOptions);
-								it('Then it should reject with message "Unknown passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
-							});
-						});
-						describe('Given an options object with second passphrase set to unknown source "xxx"', () => {
-							beforeEach(given.anOptionsObjectWithSecondPassphraseSetToUnknownSource);
-							describe('When the action is called with the options', () => {
-								beforeEach(when.theActionIsCalledWithTheOptions);
-								it('Then it should reject with message "Unknown second passphrase source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
-							});
-						});
 						describe('Given an empty options object', () => {
 							beforeEach(given.anEmptyOptionsObject);
-							describe('Given the passphrase and the second passphrase are provided via the prompt', () => {
-								beforeEach(given.thePassphraseAndTheSecondPassphraseAreProvidedViaThePrompt);
+							describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
+								beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
-									it('Then it should get the passphrase using the vorpal instance', then.itShouldGetThePassphraseUsingTheVorpalInstance);
-									it('Then it should get the passphrase with a repeated prompt', then.itShouldGetThePassphraseWithARepeatedPrompt);
-									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
-									it('Then it should get the second passphrase using the vorpal instance', then.itShouldGetTheSecondPassphraseUsingTheVorpalInstance);
-									it('Then it should get the second passphrase with a repeated prompt', then.itShouldGetTheSecondPassphraseWithARepeatedPrompt);
+									it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+								});
+							});
+							describe('Given the passphrase and second passphrase can be retrieved from their sources', () => {
+								beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
+								describe('When the action is called with the options', () => {
+									beforeEach(when.theActionIsCalledWithTheOptions);
+									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+									it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
 						});
-						describe('Given an options object with passphrase set to "stdin"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetTo);
-							describe('Given the passphrase is provided via stdin', () => {
-								beforeEach(given.thePassphraseIsProvidedViaStdIn);
-								describe('Given the second passphrase is provided via the prompt', () => {
-									beforeEach(given.theSecondPassphraseIsProvidedViaThePrompt);
-									describe('When the action is called with the options', () => {
-										beforeEach(when.theActionIsCalledWithTheOptions);
-										it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
-										it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
-										it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
-										it('Then it should get the second passphrase using the vorpal instance', then.itShouldGetTheSecondPassphraseUsingTheVorpalInstance);
-										it('Then it should get the second passphrase with a repeated prompt', then.itShouldGetTheSecondPassphraseWithARepeatedPrompt);
-										it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
-										it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
-									});
-								});
-							});
-						});
-						describe('Given an options object with passphrase set to "stdin" and second passphrase set to "stdin"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
-							describe('Given the passphrase and the second passphrase are provided via stdin', () => {
-								beforeEach(given.thePassphraseAndTheSecondPassphraseAreProvidedViaStdIn);
+						describe('Given an options object with second passphrase set to "secondPassphraseSource"', () => {
+							beforeEach(given.anOptionsObjectWithSecondPassphraseSetTo);
+							describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
+								beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
-									it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
-									it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);
-									it('Then it should get the second passphrase using the second passphrase from stdin', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn);
+									it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+								});
+							});
+							describe('Given the passphrase and second passphrase can be retrieved from their sources', () => {
+								beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
+								describe('When the action is called with the options', () => {
+									beforeEach(when.theActionIsCalledWithTheOptions);
+									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+									it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
 							});
 						});
-						describe('Given an options object with passphrase set to "stdin" and second passphrase set to "file:/path/to/my/password.txt"', () => {
+						describe('Given an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"', () => {
 							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
-							describe('Given the passphrase is provided via stdin', () => {
-								beforeEach(given.thePassphraseIsProvidedViaStdIn);
+							describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
+								beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the passphrase from stdin', then.itShouldGetThePassphraseFromStdIn);
-									it('Then it should get the passphrase using the passphrase from stdin', then.itShouldGetThePassphraseUsingThePassphraseFromStdIn);
-									it('Then it should not get the second passphrase from stdin', then.itShouldNotGetTheSecondPassphraseFromStdIn);
-									it('Then it should get the second passphrase using the second passphrase source', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseSource);
-									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
-									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+									it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
 							});
-						});
-						describe('Given an options object with passphrase set to "file:/path/to/my/password.txt" and second passphrase set to "stdin"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
-							describe('Given the second passphrase is provided via stdin', () => {
-								beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
+							describe('Given the passphrase and second passphrase can be retrieved from their sources', () => {
+								beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should not get the passphrase from stdin', then.itShouldNotGetThePassphraseFromStdIn);
-									it('Then it should get the passphrase from the passphrase source', then.itShouldGetThePassphraseUsingThePassphraseSource);
-									it('Then it should get the second passphrase from stdin', then.itShouldGetTheSecondPassphraseFromStdIn);
-									it('Then it should get the second passphrase using the second passphrase from stdin', then.itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn);
+									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+									it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
 									it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 								});
