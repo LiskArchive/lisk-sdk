@@ -2,7 +2,6 @@
 
 var Router = require('../../helpers/router');
 var httpApi = require('../../helpers/httpApi');
-var schema = require('../../schema/dapps');
 
 /**
  * Binds api with modules and creates common url.
