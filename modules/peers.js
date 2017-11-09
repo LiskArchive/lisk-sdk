@@ -421,7 +421,13 @@ Peers.prototype.acceptable = function (peers) {
 
 /**
  * Gets peers list and calculated consensus.
- * @param {Object} options - Constains limit, broadhash.
+ * @param {Object} options
+ * @param {number} options.limit[=constants.maxPeers] - maximum number of peers to get
+ * @param {string} options.broadhash[=null] - broadhash to match peers by
+ * @param {Array} options.allowedStates[=[2]] - allowed peer states
+ * @param {number} options.attempt[=undefined] - if 0: return peers with equal options.broadhash
+ *                                               if 1: return peers with different options.broadhash
+ *                                               if not specified: return peers regardless of options.broadhash
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | peers, consensus
  */
@@ -429,9 +435,9 @@ Peers.prototype.list = function (options, cb) {
 	options.limit = options.limit || constants.maxPeers;
 	options.broadhash = options.broadhash || modules.system.getBroadhash();
 	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
-	options.attempts = ['matched broadhash', 'unmatched broadhash'];
-	options.attempt = 0;
 	options.matched = 0;
+	var attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
+	var attempts = options.attempt ? [options.attempt] : [0, 1];
 
 	function randomList (options, peers, cb) {
 		// Get full peers list (random)
@@ -439,15 +445,16 @@ Peers.prototype.list = function (options, cb) {
 			var accepted, found, matched, picked;
 
 			found = peersList.length;
+			var attempt = attempts.pop();
 			// Apply filters
 			peersList = peersList.filter(function (peer) {
 				if (options.broadhash) {
 					// Skip banned and disconnected peers (state 0 and 1)
 					return options.allowedStates.indexOf(peer.state) !== -1 && (
 						// Matched broadhash when attempt 0
-						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
+						attempt === 0 ? (peer.broadhash === options.broadhash) :
 						// Unmatched broadhash when attempt 1
-						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
+						attempt === 1 ? (peer.broadhash !== options.broadhash) : false
 					);
 				} else {
 					// Skip banned and disconnected peers (state 0 and 1)
@@ -459,7 +466,7 @@ Peers.prototype.list = function (options, cb) {
 			peersList = peersList.slice(0, options.limit);
 			picked = peersList.length;
 			accepted = self.acceptable(peers.concat(peersList));
-			library.logger.debug('Listing peers', {attempt: options.attempts[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
+			library.logger.debug('Listing peers', {attempt: attemptsDescriptions[attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
 			return setImmediate(cb, null, accepted);
 		});
 	}
@@ -472,8 +479,7 @@ Peers.prototype.list = function (options, cb) {
 		function (peers, waterCb) {
 			options.matched = peers.length;
 			options.limit -= peers.length;
-			++options.attempt;
-			if (options.limit > 0) {
+			if (attempts.length && options.limit > 0) {
 				// Unmatched broadhash
 				return randomList(options, peers, waterCb);
 			} else {
