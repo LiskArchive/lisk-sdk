@@ -212,7 +212,7 @@ DApps.prototype.isLoaded = function () {
  */
 DApps.prototype.shared = {
 
-	list: function (req, cb) {
+	getDapps: function (req, cb) {
 		library.schema.validate(req.body, schema.list, function (err) {
 			if (err) {
 				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));

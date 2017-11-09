@@ -22,7 +22,7 @@ function DappsHttpApi (dappsModule, app) {
 	var router = new Router();
 
 	router.map(dappsModule.shared, {
-		'get /': 'list'
+		'get /': 'getDapps'
 	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/dapps', app, router, dappsModule.isLoaded);
