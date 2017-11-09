@@ -15,18 +15,18 @@
  */
 import {
 	deAlias,
-	verifyAddress,
-	verifyAmount,
+	validateAddress,
+	validateAmount,
 } from '../../../src/utils/helpers';
 
-export function verifyAmountIsCalledOnTheAmount() {
+export function validateAmountIsCalledOnTheAmount() {
 	const { amount } = this.test.ctx;
 	try {
-		const returnValue = verifyAmount(amount);
+		const returnValue = validateAmount(amount);
 		this.test.ctx.returnValue = returnValue;
 		return returnValue;
 	} catch (error) {
-		const testFunction = verifyAmount.bind(null, amount);
+		const testFunction = validateAmount.bind(null, amount);
 		this.test.ctx.testFunction = testFunction;
 		return testFunction;
 	}
@@ -38,14 +38,14 @@ export function deAliasIsCalledOnTheType() {
 	this.test.ctx.returnValue = returnValue;
 }
 
-export function verifyAddressIsCalledOnTheAddress() {
+export function validateAddressIsCalledOnTheAddress() {
 	const { address } = this.test.ctx;
 	try {
-		const returnValue = verifyAddress(address);
+		const returnValue = validateAddress(address);
 		this.test.ctx.returnValue = returnValue;
 		return returnValue;
 	} catch (error) {
-		const testFunction = verifyAddress.bind(null, address);
+		const testFunction = validateAddress.bind(null, address);
 		this.test.ctx.testFunction = testFunction;
 		return testFunction;
 	}

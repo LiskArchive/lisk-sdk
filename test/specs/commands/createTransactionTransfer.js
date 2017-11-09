@@ -54,14 +54,14 @@ describe('create transaction transfer', () => {
 									beforeEach(given.anAmount);
 									describe('When the action is called with the amount, the address and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
-										it('Then it should reject with message "Transfer amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
+										it('Then it should reject with message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
 									});
 								});
 								describe('Given an amount "100,5"', () => {
 									beforeEach(given.anAmount);
 									describe('When the action is called with the amount, the address and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
-										it('Then it should reject with message "Transfer amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
+										it('Then it should reject with message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
 									});
 								});
 								describe('Given an address "1234567890LL"', () => {

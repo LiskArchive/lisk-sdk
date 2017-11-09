@@ -20,8 +20,8 @@ import {
 } from '../utils/input';
 import {
 	createCommand,
-	verifyAddress,
-	verifyAmount,
+	validateAddress,
+	validateAmount,
 } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
@@ -42,9 +42,9 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 		'second-passphrase': secondPassphraseSource,
 	} = options;
 
-	verifyAmount(amount);
+	validateAmount(amount);
 
-	verifyAddress(address);
+	validateAddress(address);
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
