@@ -14,38 +14,22 @@
  *
  */
 import {
-	setUpFsStubs,
-	setUpEnvVariable,
 	restoreEnvVariable,
-} from '../../steps/utils';
-import * as given from '../../steps/1_given';
-import * as when from '../../steps/2_when';
-import * as then from '../../steps/3_then';
+	setUpEnvVariable,
+	setUpFsStubs,
+} from '../../../steps/utils';
+import * as given from '../../../steps/1_given';
+import * as when from '../../../steps/2_when';
+import * as then from '../../../steps/3_then';
 
 const ENV_VARIABLE = 'TEST_PASSPHRASE';
 
-describe('input utils', () => {
+describe('input utils utils', () => {
 	before(setUpEnvVariable(ENV_VARIABLE));
 	beforeEach(() => {
 		setUpFsStubs();
 	});
 	afterEach(restoreEnvVariable(ENV_VARIABLE));
-	describe('#getFirstLineFromString', () => {
-		describe('Given there is no string available', () => {
-			beforeEach(given.thereIsNoStringAvailable);
-			describe('When getFirstLineFromString is called on the string', () => {
-				beforeEach(when.getFirstLineFromStringIsCalledOnTheString);
-				it('Then it should return null', then.itShouldReturnNull);
-			});
-		});
-		describe('Given there is a string "This is some text\nthat spans\nmultiple lines"', () => {
-			beforeEach(given.thereIsAString);
-			describe('When getFirstLineFromString is called on the string', () => {
-				beforeEach(when.getFirstLineFromStringIsCalledOnTheString);
-				it('Then it should return string "This is some text"', then.itShouldReturnString);
-			});
-		});
-	});
 	describe('#splitSource', () => {
 		describe('Given a source without delimiter "someSource"', () => {
 			beforeEach(given.aSourceWithoutDelimiter);
@@ -76,10 +60,6 @@ describe('input utils', () => {
 	describe('Given a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', () => {
 		beforeEach(given.aPassphrase);
 		describe('#getPassphrase', () => {
-			describe('When getPassphrase is passed a passphrase directly', () => {
-				beforeEach(when.getPassphraseIsPassedAPassphraseDirectly);
-				it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
-			});
 			describe('Given the passphrase is provided as plaintext', () => {
 				beforeEach(given.thePassphraseIsProvidedAsPlaintext);
 				describe('When getPassphrase is passed a source but no passphrase', () => {
@@ -244,31 +224,17 @@ describe('input utils', () => {
 		describe('Given some data "This is some text\nthat spans\nmultiple lines"', () => {
 			beforeEach(given.someData);
 			describe('#getData', () => {
-				describe('Given no data is provided', () => {
-					beforeEach(given.noDataIsProvided);
-					describe('When getData is called', () => {
-						beforeEach(when.getDataIsCalled);
+				describe('Given no data source is provided', () => {
+					beforeEach(given.noDataSourceIsProvided);
+					describe('When getData is called with the source', () => {
+						beforeEach(when.getDataIsCalledWithTheSource);
 						it('Then it should reject with message "No data was provided."', then.itShouldRejectWithMessage);
-					});
-				});
-				describe('Given data is provided via stdin', () => {
-					beforeEach(given.dataIsProvidedViaStdIn);
-					describe('When getData is called', () => {
-						beforeEach(when.getDataIsCalled);
-						it('Then it should resolve to the data as a string', then.itShouldResolveToTheDataAsAString);
-					});
-				});
-				describe('Given data is provided as an argument', () => {
-					beforeEach(given.dataIsProvidedAsAnArgument);
-					describe('When getData is called', () => {
-						beforeEach(when.getDataIsCalled);
-						it('Then it should resolve to the data as a string', then.itShouldResolveToTheDataAsAString);
 					});
 				});
 				describe('Given data is provided via an unknown source', () => {
 					beforeEach(given.dataIsProvidedViaAnUnknownSource);
-					describe('When getData is called', () => {
-						beforeEach(when.getDataIsCalled);
+					describe('When getData is called with the source', () => {
+						beforeEach(when.getDataIsCalledWithTheSource);
 						it('Then it should reject with message "Unknown data source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 					});
 				});
@@ -278,8 +244,8 @@ describe('input utils', () => {
 						beforeEach(given.theFileDoesNotExist);
 						describe('Given data is provided via a file source', () => {
 							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called', () => {
-								beforeEach(when.getDataIsCalled);
+							describe('When getData is called with the source', () => {
+								beforeEach(when.getDataIsCalledWithTheSource);
 								it('Then it should reject with message "File at /path/to/the/data.txt does not exist."', then.itShouldRejectWithMessage);
 							});
 						});
@@ -288,8 +254,8 @@ describe('input utils', () => {
 						beforeEach(given.theFileCannotBeRead);
 						describe('Given data is provided via a file source', () => {
 							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called', () => {
-								beforeEach(when.getDataIsCalled);
+							describe('When getData is called with the source', () => {
+								beforeEach(when.getDataIsCalledWithTheSource);
 								it('Then it should reject with message "File at /path/to/the/data.txt could not be read."', then.itShouldRejectWithMessage);
 							});
 						});
@@ -298,8 +264,8 @@ describe('input utils', () => {
 						beforeEach(given.anUnknownErrorOccursWhenReadingTheFile);
 						describe('Given data is provided via a file source', () => {
 							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called', () => {
-								beforeEach(when.getDataIsCalled);
+							describe('When getData is called with the source', () => {
+								beforeEach(when.getDataIsCalledWithTheSource);
 								it('Then it should reject with message "Unknown error"', then.itShouldRejectWithMessage);
 							});
 						});
@@ -308,8 +274,8 @@ describe('input utils', () => {
 						beforeEach(given.theFileCanBeRead);
 						describe('Given data is provided via a file source', () => {
 							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called', () => {
-								beforeEach(when.getDataIsCalled);
+							describe('When getData is called with the source', () => {
+								beforeEach(when.getDataIsCalledWithTheSource);
 								it('Then it should resolve to the data as a string', then.itShouldResolveToTheDataAsAString);
 							});
 						});
@@ -330,32 +296,52 @@ describe('input utils', () => {
 				});
 			});
 			describe('#getStdIn', () => {
-				describe('Given neither the passphrase nor the data is provided via stdin', () => {
-					beforeEach(given.neitherThePassphraseNorTheDataIsProvidedViaStdIn);
-					describe('When getStdIn is called with the relevant options', () => {
-						beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-						it('Then it should return an empty object', then.itShouldReturnAnEmptyObject);
-					});
-				});
-				describe('Given the passphrase is provided via stdin', () => {
-					beforeEach(given.thePassphraseIsProvidedViaStdIn);
-					describe('When getStdIn is called with the relevant options', () => {
-						beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-						it('Then it should return an object with the passphrase', then.itShouldReturnAnObjectWithThePassphrase);
-					});
-				});
-				describe('Given the data is provided via stdin', () => {
-					beforeEach(given.theDataIsProvidedViaStdIn);
-					describe('When getStdIn is called with the relevant options', () => {
-						beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-						it('Then it should return an object with the data', then.itShouldReturnAnObjectWithTheData);
-					});
-				});
-				describe('Given both the passphrase and the data are provided via stdin', () => {
-					beforeEach(given.bothThePassphraseAndTheDataAreProvidedViaStdIn);
-					describe('When getStdIn is called with the relevant options', () => {
-						beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-						it('Then it should return an object with the passphrase and the data', then.itShouldReturnAnObjectWithThePassphraseAndTheData);
+				describe('Given a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', () => {
+					beforeEach(given.aSecondPassphrase);
+					describe('Given a password "testing 123"', () => {
+						beforeEach(given.aPassword);
+						describe('Given nothing is provided via stdin', () => {
+							beforeEach(given.nothingIsProvidedViaStdIn);
+							describe('When getStdIn is called with the relevant options', () => {
+								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
+								it('Then it should return an empty object', then.itShouldReturnAnEmptyObject);
+							});
+						});
+						describe('Given the passphrase is provided via stdin', () => {
+							beforeEach(given.thePassphraseIsProvidedViaStdIn);
+							describe('When getStdIn is called with the relevant options', () => {
+								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
+								it('Then it should return an object with the passphrase', then.itShouldReturnAnObjectWithThePassphrase);
+							});
+						});
+						describe('Given the second passphrase is provided via stdin', () => {
+							beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
+							describe('When getStdIn is called with the relevant options', () => {
+								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
+								it('Then it should return an object with the second passphrase', then.itShouldReturnAnObjectWithTheSecondPassphrase);
+							});
+						});
+						describe('Given the password is provided via stdin', () => {
+							beforeEach(given.thePasswordIsProvidedViaStdIn);
+							describe('When getStdIn is called with the relevant options', () => {
+								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
+								it('Then it should return an object with the password', then.itShouldReturnAnObjectWithThePassword);
+							});
+						});
+						describe('Given the data is provided via stdin', () => {
+							beforeEach(given.theDataIsProvidedViaStdIn);
+							describe('When getStdIn is called with the relevant options', () => {
+								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
+								it('Then it should return an object with the data', then.itShouldReturnAnObjectWithTheData);
+							});
+						});
+						describe('Given the passphrase, the second passphrase, the password and the data are provided via stdin', () => {
+							beforeEach(given.thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn);
+							describe('When getStdIn is called with the relevant options', () => {
+								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
+								it('Then it should return an object with the passphrase, the second passphrase, the password and the data', then.itShouldReturnAnObjectWithThePassphraseTheSecondPassphraseThePasswordAndTheData);
+							});
+						});
 					});
 				});
 			});
