@@ -26,7 +26,7 @@ swagger:
       controllersDirs: [ api/controllers ]
 
     _swagger_validate:
-      name: swagger_validator
+      name: lisk_params_validator
 
     # For more detail options https://github.com/theganyo/swagger-node-runner/releases/tag/v0.6.0
     _swagger_params_parser:

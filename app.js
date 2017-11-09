@@ -102,7 +102,6 @@ var config = {
 		dapps: { http: './api/http/dapps.js' },
 		delegates: { http: './api/http/delegates.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
-		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
 		voters: { http: './api/http/voters.js' },

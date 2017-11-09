@@ -230,6 +230,17 @@ function getDappsCategories (params, cb) {
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
+/**
+ * Validate if the validation response contains error for a specific param
+ *
+ * @param {object} res - Response object got from server
+ * @param {string} param - Param name to check
+ */
+function expectSwaggerParamError (res, param) {
+	res.body.message.should.be.eql('Validation errors');
+	res.body.errors.map(function (p) { return p.name; }).should.contain(param);
+}
+
 var getTransactionPromise = node.Promise.promisify(getTransaction);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
@@ -298,5 +309,6 @@ module.exports = {
 	waitForConfirmations: waitForConfirmations,
 	getDappPromise: getDappPromise,
 	getDappsPromise: getDappsPromise,
-	getDappsCategoriesPromise: getDappsCategoriesPromise
+	getDappsCategoriesPromise: getDappsCategoriesPromise,
+	expectSwaggerParamError: expectSwaggerParamError
 };
