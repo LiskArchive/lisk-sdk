@@ -466,7 +466,11 @@ describe('GET /api/voters', function () {
 						];
 						return getVotersPromise(params).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('balance').map('balance').value()).to.be.eql(_.map(res.body.voters, 'balance'));
+							node.expect(_(res.body.voters.map(function (account) {
+								return Number(account.balance);
+							})).sortBy().value()).to.be.eql(_.map(res.body.voters, function (account) {
+								return Number(account.balance);
+							}));
 						});
 					});
 
@@ -477,7 +481,11 @@ describe('GET /api/voters', function () {
 						];
 						return getVotersPromise(params).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('balance').reverse().map('balance').value()).to.be.eql(_.map(res.body.voters, 'balance'));
+							node.expect(_(res.body.voters.map(function (account) {
+								return Number(account.balance);
+							})).sortBy().reverse().value()).to.be.eql(_.map(res.body.voters, function (account) {
+								return Number(account.balance);
+							}));
 						});
 					});
 				});
