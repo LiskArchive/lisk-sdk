@@ -15,7 +15,6 @@ var httpApi = require('../../helpers/httpApi');
  * @param {Object} dappsModule - Module dapps instance.
  * @param {scope} app - Network app.
  */
-// Constructor
 function DappsHttpApi (dappsModule, app) {
 
 	var router = new Router();
