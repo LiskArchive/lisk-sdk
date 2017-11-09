@@ -88,7 +88,7 @@ function sendTransaction (transaction, cb) {
 }
 
 function sendSignature (signature, transaction, cb) {
-	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpCallbackHelper.bind(null, cb));
+	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function creditAccount (address, amount, cb) {

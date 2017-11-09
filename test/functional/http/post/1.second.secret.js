@@ -343,7 +343,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 					signature = node.lisk.multisignature.signTransaction(pendingMultisignatures[0], accountNoFunds.password);
 
 					return sendSignaturePromise(signature, pendingMultisignatures[0]).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
+						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 					});
 				});
 			});

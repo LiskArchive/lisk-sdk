@@ -1,6 +1,7 @@
 'use strict';
 
-var constants = require('../helpers/constants.js');
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var Signature = require('../logic/signature.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
@@ -26,8 +27,8 @@ function Signatures (cb, scope) {
 		ed: scope.ed,
 		balancesSequence: scope.balancesSequence,
 		logic: {
-			transaction: scope.logic.transaction,
-		},
+			transaction: scope.logic.transaction
+		}
 	};
 	self = this;
 
@@ -75,14 +76,15 @@ Signatures.prototype.onBind = function (scope) {
  * @see {@link http://apidocjs.com/}
  */
 Signatures.prototype.shared = {
-	getFee: function (req, cb) {
-		var fee = constants.fees.secondSignature;
-
-		return setImmediate(cb, null, {fee: fee});
-	},
-
 	postSignatures: function (req, cb) {
-		return modules.transport.shared.postSignatures(req.body, cb);
+		return modules.transport.shared.postSignatures(req.body, function (err, res) {
+			if (res.success === false) {
+				var errorCode = res.message === 'Invalid signatures body' ? apiCodes.BAD_REQUEST : apiCodes.INTERNAL_SERVER_ERROR;
+				return setImmediate(cb, new ApiError(res.message, errorCode));
+			} else {
+				return setImmediate(cb, null, {status: 'Signature Accepted'});
+			}
+		});
 	}
 };
 
