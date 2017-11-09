@@ -631,7 +631,7 @@ Peers.prototype.shared = {
 	/**
 	 * Utility method to get peers
 	 *
-	 * @param {object} parameters - Object of all parameters
+	 * @param {Object} parameters - Object of all parameters
 	 * @param {string} parameters.ip - IP of the peer
 	 * @param {string} parameters.port - WS Port of the peer
 	 * @param {string} parameters.httpPort - Web Socket Port of the peer

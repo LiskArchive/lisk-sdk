@@ -34,7 +34,7 @@ describe('GET /node', function () {
 			constantsResponse.supply.should.be.equal('10000000000000000');
 		});
 
-		it('should return a result containing version = "0.0.0a"', function () {
+		it('should return a result containing version = "0.0.1"', function () {
 			constantsResponse.should.have.property('version').equal('0.0.1');
 		});
 

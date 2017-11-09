@@ -33,7 +33,7 @@ PeersController.getPeers = function (req, res) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v, k) {
+	filters = _.pickBy(filters, function (v) {
 		return !(v === undefined || v === null);
 	});
 

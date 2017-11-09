@@ -162,7 +162,7 @@ parameters:
   wsPort:
     name: wsPort
     in: query
-    description: wsPort for the node or delegate
+    description: Web socket port for the node or delegate
     type: integer
     format: int32
     minimum: 1
@@ -175,7 +175,7 @@ parameters:
   version:
     name: version
     in: query
-    description: Version of the lisk
+    description: Lisk version run by node
     type: string
     format: version
     minLength: 5

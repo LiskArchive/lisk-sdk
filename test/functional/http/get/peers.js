@@ -123,17 +123,19 @@ describe('GET /api/peers', function () {
 				});
 		});
 
-		it('using sort = "version:asc" should be ok', function () {
+		it('using sort = "version:asc" should return results in ascending order by version', function () {
 			return peersEndpoint.makeRequest({sort: 'version:asc'}, 200)
 				.then(function (res) {
-					_.orderBy(_.clone(res.body.peers), ['version'], ['asc']).should.be.eql(res.body.peers);
+					var versions = _(res.body.peers).map('version').value();
+					_.clone(versions).sort().should.be.eql(versions);
 				});
 		});
 
-		it('using sort = "version:desc" should be ok', function () {
+		it('using sort = "version:desc" should return results in descending order by version', function () {
 			return peersEndpoint.makeRequest({sort: 'version:desc'}, 200)
 				.then(function (res) {
-					_.orderBy(_.clone(res.body.peers), ['version'], ['desc']).should.be.eql(res.body.peers);
+					var versions = _(res.body.peers).map('version').value();
+					_.clone(versions).sort().reverse().should.be.eql(versions);
 				});
 		});
 

@@ -19,7 +19,7 @@ function WSServerMaster () {
 }
 
 /**
- * Start the socket server instance. It will start the server as well an instance of the client.
+ * Start the socket server master instance. It will start the server and an instance of the client.
  *
  * @return {Promise}
  */
