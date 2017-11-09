@@ -46,6 +46,11 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndT
 	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);
 }
 
+export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheSecondPassphraseAndTheDelegateUsername() {
+	const { passphrase, secondPassphrase, delegateUsername } = this.test.ctx;
+	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, secondPassphrase);
+}
+
 export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
 	const { passphrase, secondPassphrase, keysgroup, lifetime, minimum } = this.test.ctx;
 	const publicKeysWithPlus = keysgroup.map((publicKey) => {

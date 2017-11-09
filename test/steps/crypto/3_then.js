@@ -163,6 +163,29 @@ export function itShouldReturnAnObjectWithThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({
 		passphrase,
+		secondPassphrase: null,
+		password: null,
+		data: null,
+	});
+}
+
+export function itShouldReturnAnObjectWithTheSecondPassphrase() {
+	const { returnValue, secondPassphrase } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith({
+		passphrase: null,
+		secondPassphrase,
+		password: null,
+		data: null,
+	});
+}
+
+export function itShouldReturnAnObjectWithThePassword() {
+	const { returnValue, password } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith({
+		passphrase: null,
+		secondPassphrase: null,
+		password,
+		data: null,
 	});
 }
 
@@ -170,14 +193,18 @@ export function itShouldReturnAnObjectWithTheData() {
 	const { returnValue, data } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({
 		passphrase: null,
+		secondPassphrase: null,
+		password: null,
 		data,
 	});
 }
 
-export function itShouldReturnAnObjectWithThePassphraseAndTheData() {
-	const { returnValue, passphrase, data } = this.test.ctx;
+export function itShouldReturnAnObjectWithThePassphraseTheSecondPassphraseThePasswordAndTheData() {
+	const { returnValue, passphrase, secondPassphrase, password, data } = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({
 		passphrase,
+		secondPassphrase,
+		password,
 		data,
 	});
 }

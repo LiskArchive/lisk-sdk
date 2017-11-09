@@ -59,6 +59,11 @@ export function theProcessShouldExitWithErrorCode() {
 	return (process.exit).should.be.calledWithExactly(errorCode);
 }
 
+export function itShouldRejectWithTheErrorMessage() {
+	const { returnValue, errorMessage } = this.test.ctx;
+	return (returnValue).should.be.rejectedWith(errorMessage);
+}
+
 export function itShouldRejectWithMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);

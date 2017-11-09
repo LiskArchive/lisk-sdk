@@ -30,6 +30,7 @@ import * as set from '../../src/commands/set';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
 import * as input from '../../src/utils/input';
+import * as inputUtils from '../../src/utils/input/utils';
 import * as print from '../../src/utils/print';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
@@ -130,11 +131,16 @@ export const setUpHelperStubs = () => {
 };
 
 export const setUpInputStubs = () => {
+	sandbox.stub(input, 'default').resolves({});
+};
+
+export const setUpInputUtilsStubs = () => {
 	[
 		'getStdIn',
 		'getData',
 		'getPassphrase',
-	].forEach(methodName => sandbox.stub(input, methodName).resolves({}));
+	].forEach(methodName => sandbox.stub(inputUtils, methodName));
+	inputUtils.getStdIn.resolves({});
 };
 
 export function setUpPrintStubs() {
