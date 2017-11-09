@@ -36,7 +36,7 @@ function AccountsHttpApi (accountsModule, app) {
 	});
 
 	if (process.env.TOP && process.env.TOP.toUpperCase() === 'TRUE') {
-		router.get('/top', httpApi.middleware.sanitize('query', schema.top, {}, accountsModule.internal.top));
+		router.get('/top', httpApi.middleware.sanitize('query', schema.top, accountsModule.internal.top));
 	}
 
 	httpApi.registerEndpoint('/api/accounts', app, router, accountsModule.isLoaded);

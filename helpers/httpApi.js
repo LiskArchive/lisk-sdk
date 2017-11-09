@@ -83,19 +83,17 @@ var middleware = {
 	 * Uses req.sanitize for particular endpoint.
 	 * @param {string} property
 	 * @param {Object} schema
-	 * @param {Object} options
 	 * @param {function} cb
 	 * @return {function} Sanitize middleware.
 	 */
-	sanitize: function (property, schema, options, cb) {
+	sanitize: function (property, schema, cb) {
 		//ToDo: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
-		var responseHandler = options.responseWithCode ? respondWithCode : respond;
 		return function (req, res, next) {
 			req.sanitize(req[property], schema, function (err, report, sanitized) {
 				if (!report.isValid) {
 					return res.json({success: false, error: report.issues});
 				}
-				return cb(sanitized, responseHandler.bind(null, res));
+				return cb(sanitized, respond.bind(null, res));
 			});
 		};
 	},
