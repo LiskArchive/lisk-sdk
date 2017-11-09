@@ -96,6 +96,10 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
  * Calls peers.list function to get peers.
  * @implements {modules.peers.list}
  * @param {Object} params
+ * @param {number} params.limit[=self.config.peerLimit] - maximum number of peers to get
+ * @param {string} params.broadhash[=null] - broadhash to match peers with
+ * @param {boolean} params.matchBroadhash[=false] - if true: get only peers with broadhash equal to params.broadhash
+ * @param {boolean} params.unmatchBroadhash[=false] - if true: get only peers with broadhash different than params.broadhash
  * @param {function} cb
  * @return {setImmediateCallback} err | peers
  */
