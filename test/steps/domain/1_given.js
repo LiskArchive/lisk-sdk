@@ -23,6 +23,10 @@ export function anAmount() {
 	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
 }
 
+export function anInvalidAmount() {
+	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
+}
+
 export function aKeysgroupWithKeys() {
 	const keysgroup = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.keysgroup = keysgroup;

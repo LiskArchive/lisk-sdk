@@ -15,15 +15,21 @@
  */
 import {
 	deAlias,
-	checkAddress,
-	checkAmount,
+	verifyAddress,
+	verifyAmount,
 } from '../../../src/utils/helpers';
 
-export function checkAmountIsCalledOnTheAmount() {
+export function verifyAmountIsCalledOnTheAmount() {
 	const { amount } = this.test.ctx;
-	const returnValue = checkAmount(amount);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
+	try {
+		const returnValue = verifyAmount(amount);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = verifyAmount.bind(null, amount);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
 }
 
 export function deAliasIsCalledOnTheType() {
@@ -32,16 +38,15 @@ export function deAliasIsCalledOnTheType() {
 	this.test.ctx.returnValue = returnValue;
 }
 
-export function theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions() {
-	const { action, lifetime, keysgroup, minimum, options } = this.test.ctx;
-	const returnValue = action({ lifetime: lifetime.toString(), keysgroup, minimum: minimum.toString(), options });
-	this.test.ctx.returnValue = returnValue;
-	return returnValue.catch(e => e);
-}
-
-export function checkAddressIsCalledOnTheAddress() {
+export function verifyAddressIsCalledOnTheAddress() {
 	const { address } = this.test.ctx;
-	const returnValue = checkAddress(address);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
+	try {
+		const returnValue = verifyAddress(address);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = verifyAddress.bind(null, address);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
 }

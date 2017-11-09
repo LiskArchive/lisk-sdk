@@ -19,42 +19,42 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('utils helpers', () => {
-	describe('#checkAddress', () => {
+	describe('#verifyAddress', () => {
 		describe('Given an address "13356260975429434553L"', () => {
 			beforeEach(given.anAddress);
-			describe('When check address is called on the address', () => {
-				beforeEach(when.checkAddressIsCalledOnTheAddress);
-				it('Should return the address', then.itShouldReturnAnArrayWithTheAddress);
+			describe('When verifyAddress is called on the address', () => {
+				beforeEach(when.verifyAddressIsCalledOnTheAddress);
+				it('Then it should return true', then.itShouldReturnTrue);
 			});
 		});
-		describe('Given an address "abcedf"', () => {
+		describe('Given an address "1234567890LL"', () => {
 			beforeEach(given.anAddress);
-			describe('When check address is called on the address', () => {
-				beforeEach(when.checkAddressIsCalledOnTheAddress);
-				it('Should return null', then.itShouldReturnNull);
+			describe('When verifyAddress is called on the address', () => {
+				beforeEach(when.verifyAddressIsCalledOnTheAddress);
+				it('Then it should throw error "1234567890LL is not a valid address."', then.itShouldThrowError);
 			});
 		});
 	});
-	describe('#checkAmount', () => {
+	describe('#verifyAmount', () => {
 		describe('Given an amount "100.123"', () => {
 			beforeEach(given.anAmount);
-			describe('When check amount is called on the amount', () => {
-				beforeEach(when.checkAmountIsCalledOnTheAmount);
-				it('Should return the address', then.itShouldReturnAnArrayWithTheAmount);
+			describe('When verifyAmount is called on the amount', () => {
+				beforeEach(when.verifyAmountIsCalledOnTheAmount);
+				it('Then it should return true', then.itShouldReturnTrue);
 			});
 		});
-		describe('Given an amount "abcedf"', () => {
-			beforeEach(given.anAmount);
-			describe('When check address is called on the address', () => {
-				beforeEach(when.checkAmountIsCalledOnTheAmount);
-				it('Should return null', then.itShouldReturnNull);
+		describe('Given an invalid amount "abcedf"', () => {
+			beforeEach(given.anInvalidAmount);
+			describe('When verifyAmount is called on the address', () => {
+				beforeEach(when.verifyAmountIsCalledOnTheAmount);
+				it('Then it should throw the error "Transfer amount must be a number with no more than 8 decimal places."', then.itShouldThrowError);
 			});
 		});
-		describe('Given an amount "10.0001000001"', () => {
-			beforeEach(given.anAmount);
-			describe('When check address is called on the address', () => {
-				beforeEach(when.checkAmountIsCalledOnTheAmount);
-				it('Should return null', then.itShouldReturnNull);
+		describe('Given an invalid amount "10.0001000001"', () => {
+			beforeEach(given.anInvalidAmount);
+			describe('When verifyAmount is called on the address', () => {
+				beforeEach(when.verifyAmountIsCalledOnTheAmount);
+				it('Then it should throw the error "Transfer amount must be a number with no more than 8 decimal places."', then.itShouldThrowError);
 			});
 		});
 	});

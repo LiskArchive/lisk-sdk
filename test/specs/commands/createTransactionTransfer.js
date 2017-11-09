@@ -54,21 +54,21 @@ describe('create transaction transfer', () => {
 									beforeEach(given.anAmount);
 									describe('When the action is called with the amount, the address and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
-										it('Then it should reject with message "Amount to send must be a number with maximum 8 decimal places."', then.itShouldRejectWithMessage);
+										it('Then it should reject with message "Transfer amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
 									});
 								});
 								describe('Given an amount "100,5"', () => {
 									beforeEach(given.anAmount);
 									describe('When the action is called with the amount, the address and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
-										it('Then it should reject with message "Amount to send must be a number with maximum 8 decimal places."', then.itShouldRejectWithMessage);
+										it('Then it should reject with message "Transfer amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
 									});
 								});
-								describe('Given an address "2"', () => {
+								describe('Given an address "1234567890LL"', () => {
 									beforeEach(given.anAddress);
 									describe('When the action is called with the amount, the address and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
-										it('Then it should reject with message "Not a valid recipient address."', then.itShouldRejectWithMessage);
+										it('Then it should reject with message "1234567890LL is not a valid address."', then.itShouldRejectWithMessage);
 									});
 								});
 								describe('When the action is called with the amount, the address and the options', () => {

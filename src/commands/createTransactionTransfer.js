@@ -20,13 +20,13 @@ import {
 } from '../utils/input';
 import {
 	createCommand,
-	checkAddress,
-	checkAmount,
+	verifyAddress,
+	verifyAmount,
 } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
-const description = `Creates a transaction which will transfer a defined amount if broadcast to the network.
+const description = `Creates a transaction which will transfer the specified amount to an address if broadcast to the network.
 
 	Examples:
 	- create transaction transfer 100 13356260975429434553L
@@ -42,17 +42,9 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 		'second-passphrase': secondPassphraseSource,
 	} = options;
 
-	const transferAmount = checkAmount(amount);
+	verifyAmount(amount);
 
-	if (!transferAmount) {
-		throw new Error('Amount to send must be a number with maximum 8 decimal places.');
-	}
-
-	const recipientAddress = checkAddress(address);
-
-	if (!recipientAddress) {
-		throw new Error('Not a valid recipient address.');
-	}
+	verifyAddress(address);
 
 	return getStdIn({
 		passphraseIsRequired: passphraseSource === 'stdin',
@@ -68,7 +60,7 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 				.then(secondPassphrase => [passphrase, secondPassphrase]),
 			),
 		)
-		.then(createTransfer(transferAmount[0], recipientAddress[0]));
+		.then(createTransfer(amount, address));
 };
 
 const createTransactionTransfer = createCommand({

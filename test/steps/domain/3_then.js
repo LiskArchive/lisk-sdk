@@ -32,13 +32,3 @@ export function itShouldReturnTheType() {
 	const { returnValue, type } = this.test.ctx;
 	return (returnValue).should.be.equal(type);
 }
-
-export function itShouldReturnAnArrayWithTheAddress() {
-	const { returnValue, address } = this.test.ctx;
-	return (returnValue[0]).should.be.equal(address);
-}
-
-export function itShouldReturnAnArrayWithTheAmount() {
-	const { returnValue, amount } = this.test.ctx;
-	return (returnValue[0]).should.be.equal(amount);
-}

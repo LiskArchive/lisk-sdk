@@ -19,8 +19,18 @@ import { printResult } from '../utils/print';
 const regExpAddress = /^\d{1,21}[L|l]$/;
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
 
-export const checkAddress = address => address.match(regExpAddress);
-export const checkAmount = amount => amount.match(regExpAmount);
+export const verifyAddress = (address) => {
+	if (!address.match(regExpAddress)) {
+		throw new Error(`${address} is not a valid address.`);
+	}
+	return true;
+};
+export const verifyAmount = (amount) => {
+	if (!amount.match(regExpAmount)) {
+		throw new Error('Transfer amount must be a number with no more than 8 decimal places.');
+	}
+	return true;
+};
 
 export const deAlias = type => (
 	type === 'address'
