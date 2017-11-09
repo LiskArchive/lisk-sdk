@@ -7,6 +7,7 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
+var getAccountsPromise = require('../../../common/apiHelpers').getAccountsPromise;
 
 describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
@@ -14,28 +15,27 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 	var transactionsToWaitFor = [];
 	var badTransactions = [];
 	var goodTransactions = [];
-	var badTransactionsEnforcement = [];
-	var goodTransactionsEnforcement = [];
 
 	var account = node.randomAccount();
-	var accountNoFunds = node.randomAccount();
 	var accountMinimalFunds = node.randomAccount();
 
 	// Crediting accounts
 	before(function () {
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.dappRegistration, node.gAccount.password);
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.dappRegistration));
+		promises.push(sendTransactionPromise(transaction1));
+		promises.push(sendTransactionPromise(transaction2));
 
 		return node.Promise.all(promises)
 			.then(function (results) {
 				results.forEach(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.not.empty;
-					transactionsToWaitFor.push(res.transactionId);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 				});
-			})
-			.then(function () {
+
+				transactionsToWaitFor.push(transaction1.id, transaction2.id);
+
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
@@ -44,12 +44,22 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				node.expect(res).to.have.property('success').to.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-				node.guestbookDapp.id = res.transactionId;
-				transactionsToWaitFor.push(res.transactionId);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				
+				node.guestbookDapp.id = transaction.id;
+				transactionsToWaitFor.push(node.guestbookDapp.id);
+				transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, node.blockDataDapp);
+
+				return sendTransactionPromise(transaction);
 			})
-			.then(function () {
+			.then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+
+				node.blockDataDapp.id = transaction.id;
+				transactionsToWaitFor.push(node.blockDataDapp.id);
+				
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
@@ -65,8 +75,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				delete transaction.asset.inTransfer.dappId;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Missing required property: dappId');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Missing required property: dappId');
 					badTransactions.push(transaction);
 				});
 			});
@@ -76,8 +86,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction.asset.inTransfer.dappId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type integer');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -87,8 +97,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction.asset.inTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number');
 					badTransactions.push(transaction);
 				});
 			});
@@ -98,8 +108,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction.asset.inTransfer.dappId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type array');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type array');
 					badTransactions.push(transaction);
 				});
 			});
@@ -109,40 +119,115 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction.asset.inTransfer.dappId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object');
 					badTransactions.push(transaction);
 				});
 			});
 
-			it('with correct data should be ok', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, 1, node.gAccount.password);
+			it('invalid dapp id should fail', function () {
+				var invalidDappId = '1L';
+				transaction = node.lisk.transfer.createInTransfer(invalidDappId, 1, node.gAccount.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Object didn\'t pass validation for format id: ' + invalidDappId);
+					badTransactions.push(transaction);
+				});
+			});
+		});
+
+		describe('amount', function () {
+
+			it('using < 0 should fail', function () {
+				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, -1, node.gAccount.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('using > balance should fail', function () {				
+				return getAccountsPromise('address=' + account.address)
+					.then(function (res) {
+						node.expect(res.body).to.have.nested.property('data').to.have.lengthOf(1);
+						
+						var balance = res.body.data[0].balance;
+						var amount = new node.bignum(balance).plus('1').toNumber();
+						transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, amount, account.password);
+
+						return sendTransactionPromise(transaction);
+					})
+					.then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(400);
+						node.expect(res).to.have.nested.property('body.message').to.match(/^Account does not have enough LSK: /);
+						badTransactions.push(transaction);
+					});
+			});
+		});
+	});
+
+	describe('transactions processing', function () {
+
+		it('invented dapp id should fail', function () {
+			var inventedDappId  = '1';
+			transaction = node.lisk.transfer.createInTransfer(inventedDappId, 1, node.gAccount.password);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + inventedDappId);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('using unrelated transaction id as dapp id should fail', function () {
+			transaction = node.lisk.transfer.createInTransfer(transactionsToWaitFor[0], 1, node.gAccount.password);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + transactionsToWaitFor[0]);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('with correct data should be ok', function () {
+			transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, 10 * node.normalizer, node.gAccount.password);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				goodTransactions.push(transaction);
+			});
+		});
+
+		describe('from the author itself', function (){
+
+			it('with minimal funds should fail', function () {
+				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.id, 1, accountMinimalFunds.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.match(/^Account does not have enough LSK: /);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with enough funds should be ok', function () {
+				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, 10 * node.normalizer, account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
 		});
 	});
 
-	describe('transactions processing', function () {
-	});
-
-	describe('unconfirmed state', function () {
-	});
-
 	describe('confirmation', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
-	});
-
-	describe('validation', function () {
-	});
-
-	describe('confirm validation', function () {
-
-		shared.confirmationPhase(goodTransactionsEnforcement, badTransactionsEnforcement);
 	});
 });
