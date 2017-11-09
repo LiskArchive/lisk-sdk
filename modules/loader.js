@@ -186,7 +186,7 @@ __private.loadSignatures = function (cb) {
 							signature: s,
 							transaction: signature.transaction
 						}, function (err) {
-							return setImmediate(eachSeriesCb);
+							return setImmediate(eachSeriesCb, err);
 						});
 					}, eachSeriesCb);
 				}, cb);
