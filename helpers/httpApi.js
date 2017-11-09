@@ -217,6 +217,7 @@ function respondWithCode (res, err, response) {
 		return res.status(isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK).json(response);
 	}
 }
+
 /**
  * Register router in express app using default middleware.
  * @param {string} route
