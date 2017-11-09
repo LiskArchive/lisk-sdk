@@ -139,17 +139,6 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					//goodTransactions.push(transaction);
 				});
 			});
-
-			it('using 1 should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1);
-
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
-					// TODO: Enable when transaction pool order is fixed
-					//goodTransactions.push(transaction);
-				});
-			});
 			
 			it('using future timestamp should fail', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1000);

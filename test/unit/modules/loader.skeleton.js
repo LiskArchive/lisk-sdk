@@ -270,47 +270,4 @@ describe('loader', function () {
 
 		it('should call callback with result = undefined');
 	});
-
-	describe('internal', function () {
-
-		describe('statusPing', function () {
-
-			it('should call modules.blocks.lastBlock.isFresh');
-
-			it('should return modules.blocks.lastBlock.isFresh result');
-		});
-	});
-
-	describe('shared', function () {
-
-		describe('status', function () {
-
-			it('should call callback with error = null');
-
-			it('should call callback with result containing loaded = __private.loaded');
-
-			it('should call callback with result containing now = __private.lastBlock.height');
-
-			it('should call callback with result containing blocksCount = __private.total');
-		});
-
-		describe('sync', function () {
-
-			it('should call callback with error = null');
-
-			it('should call callback with result containing blocks = __private.blocksToSync');
-
-			it('should call modules.blocks.lastBlock.get');
-
-			it('should call callback with result containing height = modules.blocks.lastBlock.get result');
-
-			it('should call modules.system.getBroadhash');
-
-			it('should call callback with result containing broadhash = modules.system.getBroadhash result');
-
-			it('should call modules.peers.getConsensus');
-
-			it('should call callback with result containing consensus = modules.peers.getConsensus result');
-		});
-	});
 });

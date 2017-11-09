@@ -67,6 +67,7 @@ Node.prototype.shared = {
 				broadhash: modules.system.getBroadhash(),
 				consensus: modules.peers.getConsensus() || null,
 				height: modules.blocks.lastBlock.get().height,
+				loaded: modules.loader.loaded(),
 				networkHeight: network.height,
 				syncing: modules.loader.syncing()
 			});
