@@ -100,7 +100,7 @@ paths:
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
 
   # Node
   /node/constants:
@@ -116,13 +116,22 @@ paths:
       - application/json
       responses:
         200:
-          description: Node constants
+          description: Node constants response
           schema:
-            $ref: '#/definitions/NodeConstants'
+            allOf:
+            - $ref: '#/definitions/AbstractResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/NodeConstants'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpeted error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /node/status:
     x-swagger-router-controller: node
     get:
@@ -136,13 +145,21 @@ paths:
       - application/json
       responses:
         200:
-          description: Node constants
+          description: Node Status Response
           schema:
-            $ref: '#/definitions/NodeStatus'
+            allOf:
+            - $ref: '#/definitions/AbstractResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/NodeStatus'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpeted error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
 
 parameters:
   ip:
@@ -399,8 +416,36 @@ definitions:
         type: boolean
         example: false
 
-# Response Code Templates
-  ResponseCode429:
+  AbstractResponse:
+    type: object
+    required:
+      - meta
+      - data
+      - links
+    properties:
+      meta:
+        type: object
+        description: Additional information related to the data associated in response
+        example: {limit: 10, page: 1}
+      data:
+        type: object
+        description: Actual data which processed in response
+      links:
+        type: object
+        description: Additional Links to the entities associated in response
+        example: {"self": "http://[domain]/[basePath]?page[number]=3&page[size]=1"}
+
+  UnexpectedError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  RequestLimitError:
     type: object
     properties:
       error:

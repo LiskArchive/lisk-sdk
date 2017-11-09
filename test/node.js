@@ -141,7 +141,7 @@ node.getHeight = function (cb) {
 		if (res.status !== 200) {
 			return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
 		} else {
-			return setImmediate(cb, null, res.body.height);
+			return setImmediate(cb, null, res.body.data.height);
 		}
 	});
 
@@ -207,10 +207,10 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
+				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
 
-				if (target === res.body.height) {
-					height = res.body.height;
+				if (target === res.body.data.height) {
+					height = res.body.data.height;
 				}
 
 				setTimeout(cb, 1000);
