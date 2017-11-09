@@ -35,28 +35,52 @@ export const splitSource = (source) => {
 	};
 };
 
-export const getStdIn = ({ dataIsRequired, passphraseIsRequired } = {}) =>
+export const getStdIn = ({
+	passphraseIsRequired,
+	secondPassphraseIsRequired,
+	passwordIsRequired,
+	dataIsRequired,
+} = {}) =>
 	new Promise((resolve) => {
-		if (!dataIsRequired && !passphraseIsRequired) return resolve({});
+		if (!(
+			passphraseIsRequired
+			|| secondPassphraseIsRequired
+			|| passwordIsRequired
+			|| dataIsRequired
+		)) {
+			return resolve({});
+		}
 
 		const lines = [];
 		const rl = readline.createInterface({ input: process.stdin });
 
-		const handleLine = line => (
-			dataIsRequired
-				? lines.push(line)
-				: resolve({ passphrase: line }) || rl.close()
-		);
 		const handleClose = () => {
-			const dataLines = passphraseIsRequired ? lines.slice(1) : lines;
+			const passphraseIndex = 0;
+			const passphrase = passphraseIsRequired ? lines[passphraseIndex] : null;
+
+			const secondPassphraseIndex = passphraseIndex + (passphrase !== null);
+			const secondPassphrase = secondPassphraseIsRequired
+				? lines[secondPassphraseIndex]
+				: null;
+
+			const passwordIndex = secondPassphraseIndex + (secondPassphrase !== null);
+			const password = passwordIsRequired
+				? lines[passwordIndex]
+				: null;
+
+			const dataStartIndex = passwordIndex + (password !== null);
+			const dataLines = lines.slice(dataStartIndex);
+
 			return resolve({
-				data: dataLines.join('\n'),
-				passphrase: passphraseIsRequired ? lines[0] : null,
+				passphrase,
+				secondPassphrase,
+				password,
+				data: dataLines.length ? dataLines.join('\n') : null,
 			});
 		};
 
 		return rl
-			.on('line', handleLine)
+			.on('line', line => lines.push(line))
 			.on('close', handleClose);
 	});
 
@@ -75,7 +99,7 @@ export const getPassphraseFromPrompt = (vorpal, { displayName, shouldRepeat }) =
 		vorpal.ui.parent = vorpal;
 	}
 
-	const handleSecondPassphrase = passphrase => vorpal.activeCommand.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
+	const handlePassphraseRepeat = passphrase => vorpal.activeCommand.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
 		.then(({ passphrase: passphraseRepeat }) => {
 			if (passphrase !== passphraseRepeat) {
 				throw new Error(getPassphraseVerificationFailError(displayName));
@@ -83,14 +107,14 @@ export const getPassphraseFromPrompt = (vorpal, { displayName, shouldRepeat }) =
 			return passphrase;
 		});
 
-	const handleFirstPassphrase = ({ passphrase }) => (
+	const handlePassphrase = ({ passphrase }) => (
 		shouldRepeat
-			? handleSecondPassphrase(passphrase)
+			? handlePassphraseRepeat(passphrase)
 			: passphrase
 	);
 
 	return vorpal.activeCommand.prompt(createPromptOptions(`Please enter ${displayName}: `))
-		.then(handleFirstPassphrase);
+		.then(handlePassphrase);
 };
 
 export const getPassphraseFromEnvVariable = async (key, displayName) => {
@@ -144,26 +168,27 @@ export const getPassphraseFromSource = async (source, { displayName }) => {
 	}
 };
 
-export const getPassphrase = async (
-	vorpal, passphraseSource, passphrase, options,
-) => {
+export const getPassphrase = async (vorpal, passphraseSource, options) => {
 	const optionsWithDefaults = Object.assign({ displayName: 'your secret passphrase' }, options);
-	if (passphrase) return passphrase;
-	if (!passphraseSource) return getPassphraseFromPrompt(vorpal, optionsWithDefaults);
-	return getPassphraseFromSource(passphraseSource, optionsWithDefaults);
+	return passphraseSource
+		? getPassphraseFromSource(passphraseSource, optionsWithDefaults)
+		: getPassphraseFromPrompt(vorpal, optionsWithDefaults);
 };
 
-export const getFirstLineFromString = multilineString => (
-	typeof multilineString === 'string'
-		? multilineString.split(/[\r\n]+/)[0]
-		: null
-);
+export const handleReadFileErrors = path => (error) => {
+	const { message } = error;
+	if (message.match(/ENOENT/)) {
+		throw new Error(getFileDoesNotExistError(path));
+	}
+	if (message.match(/EACCES/)) {
+		throw new Error(getFileUnreadableError(path));
+	}
+	throw error;
+};
 
 export const getDataFromFile = async path => fs.readFileSync(path, 'utf8');
 
-export const getData = async (arg, source, data) => {
-	if (arg) return arg;
-	if (typeof data === 'string') return data;
+export const getData = async (source) => {
 	if (!source) {
 		throw new Error(ERROR_DATA_MISSING);
 	}
@@ -175,14 +200,5 @@ export const getData = async (arg, source, data) => {
 	}
 
 	return getDataFromFile(path)
-		.catch((error) => {
-			const { message } = error;
-			if (message.match(/ENOENT/)) {
-				throw new Error(getFileDoesNotExistError(path));
-			}
-			if (message.match(/EACCES/)) {
-				throw new Error(getFileUnreadableError(path));
-			}
-			throw error;
-		});
+		.catch(handleReadFileErrors(path));
 };
