@@ -108,7 +108,6 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 	params.broadhash = params.broadhash || null;
 	params.matchBroadhash = params.matchBroadhash || false;
 	params.unmatchBroadhash = params.unmatchBroadhash || false;
-	params.normalized = false;
 
 	var originalLimit = params.limit;
 
