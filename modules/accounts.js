@@ -11,7 +11,6 @@ var extend = require('extend');
 var schema = require('../schema/accounts.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Vote = require('../logic/vote.js');
-var _ = require('lodash');
 
 // Private fields
 var modules, library, self, __private = {};
@@ -226,7 +225,7 @@ Accounts.prototype.shared = {
 				if (err) {
 					return setImmediate(cb, new ApiError(err, apiCodes.BAD_REQUEST));
 				}
-				accounts = _.map(accounts, function (account) {
+				accounts = accounts.map(function (account) {
 					var delegate = {};
 
 					// Only create delegate properties if account has a username

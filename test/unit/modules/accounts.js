@@ -84,7 +84,7 @@ describe('accounts', function () {
 			expect(accounts.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
-		// ToDo: Design a throwable test
+		// TODO: Design a throwable test
 		it.skip('should throw error for invalid publicKey', function () {
 			var invalidPublicKey = 'invalidPublicKey';
 

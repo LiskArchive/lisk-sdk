@@ -82,7 +82,7 @@ function OrderBy (orderBy, options) {
  * to format accepted by "json-sql" library: {field: 1}.
  * Ascending sort method number equivalent is 1.
  * Descending sort method number equivalent is -1.
- * If only field is sepcified in sortQuery, sortOrder will be ascending.
+ * If only field is specified in sortQuery, sortOrder will be ascending.
  * @param {string} sortQuery - sortField|sortField:sortOrder
  * @param {Array} sortableFields
  * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field

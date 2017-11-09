@@ -695,7 +695,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
 		var lastBlock = modules.blocks.lastBlock.get();
 		// If the last block height is undefined, it means it's a genesis block with height = 1
-		// look for aconstant for total suppply
+		// look for a constant for total supply
 		var totalSupply = lastBlock.height ? __private.blockReward.calcSupply(lastBlock.height) : 0;
 
 		if (fields.indexOf('approval') !== -1) {
