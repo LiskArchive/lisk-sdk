@@ -437,7 +437,7 @@ Peers.prototype.list = function (options, cb) {
 	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	options.matched = 0;
 	var attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
-	var attempts = options.attempt ? [options.attempt] : [0, 1];
+	var attempts = options.attempt ? [options.attempt] : [1, 0];
 
 	function randomList (options, peers, cb) {
 		// Get full peers list (random)
