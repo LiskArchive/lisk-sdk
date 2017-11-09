@@ -9,17 +9,6 @@ var DappsSql = {
 
 	getExisting: 'SELECT "name", "link" FROM dapps WHERE ("name" = ${name} OR "link" = ${link}) AND "transactionId" != ${transactionId}',
 
-	search: function (params) {
-		return [
-			'SELECT "transactionId", "name", "description", "tags", "link", "type", "category", "icon"',
-			'FROM dapps WHERE to_tsvector("name" || \' \' || "description" || \' \' || "tags") @@ to_tsquery(${q})',
-      (params.category ? 'AND "category" = ${category}' : ''),
-			'LIMIT ${limit}'
-		].filter(Boolean).join(' ');
-	},
-
-	getByIds: 'SELECT "name", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps WHERE "transactionId" IN ($1:csv)',
-
     // Need to fix "or" or "and" in query
 	list: function (params) {
 		return [
@@ -28,9 +17,7 @@ var DappsSql = {
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
 		].filter(Boolean).join(' ');
-	},
-
-	getGenesis: 'SELECT b."height" AS "height", b."id" AS "id", t."senderId" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = ${id}',
+	}
 };
 
 module.exports = DappsSql;
