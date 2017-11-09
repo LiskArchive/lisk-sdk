@@ -476,7 +476,6 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 	// Keep the oldest block, or if both have same age, keep block with lower id
 	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
 		library.logger.info('Last block stands');
-		modules.transport.broadcastBlock({broadhash: modules.system.getBroadhash(), unmatchBroadhash: true}, lastBlock);
 		return setImmediate(cb); // Discard received block
 	} else {
 		library.logger.info('Last block and parent loses');
@@ -541,6 +540,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 	// Keep the oldest block, or if both have same age, keep block with lower id
 	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
 		library.logger.info('Last block stands');
+		modules.transport.broadcastBlock({broadhash: modules.system.getBroadhash(), unmatchBroadhash: true}, lastBlock);
 		return setImmediate(cb); // Discard received block
 	} else {
 		library.logger.info('Last block loses');
