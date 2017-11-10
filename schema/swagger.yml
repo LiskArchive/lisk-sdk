@@ -81,18 +81,32 @@ paths:
         200:
           description: Peers List
           schema:
-            type: object
-            properties:
-              peers:
-                type: array
-                items:
-                  $ref: '#/definitions/Peer'
-              totalReturned:
-                type: integer
-                example: 1
-              totalCount:
-                type: integer
-                example: 100
+            allOf:
+            - $ref: '#/definitions/AbstractResponse'
+            - properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Peer'
+                meta:
+                  type: object
+                  required:
+                    - offset
+                    - limit
+                    - total
+                  properties:
+                    offset:
+                      description: Offset value for the resultset
+                      type: integer
+                      example: 0
+                    limit:
+                      description: Limit applied to the resultset
+                      type: integer
+                      example: 100
+                    total:
+                      description: Total number of peers available
+                      type: integer
+                      example: 100
         400:
           description: Malformed query or parameters
           schema:
@@ -101,6 +115,10 @@ paths:
           description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpeted error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
 
   # Node
   /node/constants:
@@ -226,6 +244,7 @@ parameters:
     format: int32
     minimum: 1
     maximum: 100
+    default: 10
   offset:
     name: offset
     in: query
@@ -233,6 +252,7 @@ parameters:
     type: integer
     format: int32
     minimum: 0
+    default: 0
 
 definitions:
   Peer:
@@ -426,14 +446,11 @@ definitions:
       meta:
         type: object
         description: Additional information related to the data associated in response
-        example: {limit: 10, page: 1}
       data:
-        type: object
         description: Actual data which processed in response
       links:
         type: object
         description: Additional Links to the entities associated in response
-        example: {"self": "http://[domain]/[basePath]?page[number]=3&page[size]=1"}
 
   UnexpectedError:
     type: object
