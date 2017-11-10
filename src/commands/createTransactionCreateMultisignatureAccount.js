@@ -13,12 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getStdIn,
-	getPassphrase,
-	getFirstLineFromString,
-} from '../utils/input';
 import { createCommand } from '../utils/helpers';
+import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
@@ -33,7 +29,7 @@ const description = `Creates a transaction which will register a multisignature 
 `;
 
 const createMultisignatureAccount = (lifetime, minimum, keysgroup) =>
-	([passphrase, secondPassphrase]) =>
+	({ passphrase, secondPassphrase }) =>
 		transactions.createMultisignature(
 			passphrase,
 			secondPassphrase,
@@ -51,8 +47,8 @@ export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, op
 	const publicKeysWithPlus = keysgroup.map((publicKey) => {
 		try {
 			Buffer.from(publicKey, 'hex').toString('hex');
-		} catch (e) {
-			throw new Error(`${e} ${publicKey}`);
+		} catch (error) {
+			throw new Error(`Error processing public key ${publicKey}: ${error.message}.`);
 		}
 		if (publicKey.length !== 64) {
 			throw new Error(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
@@ -69,20 +65,16 @@ export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, op
 		throw new Error('Minimum confirmations must be a number.');
 	}
 
-	return getStdIn({
-		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: secondPassphraseSource === 'stdin',
+	return getInputsFromSources(vorpal, {
+		passphrase: {
+			source: passphraseSource,
+			repeatPrompt: true,
+		},
+		secondPassphrase: !secondPassphraseSource ? null : {
+			source: secondPassphraseSource,
+			repeatPrompt: true,
+		},
 	})
-		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true })
-			.then(passphrase => (secondPassphraseSource ? getPassphrase(
-				vorpal,
-				secondPassphraseSource,
-				getFirstLineFromString(stdIn.data),
-				{ shouldRepeat: true, displayName: 'your second secret passphrase' },
-			) : Promise.resolve(null))
-				.then(secondPassphrase => [passphrase, secondPassphrase]),
-			),
-		)
 		.then(createMultisignatureAccount(
 			transactionLifetime,
 			transactionMinimumConfirmations,

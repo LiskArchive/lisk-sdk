@@ -15,11 +15,7 @@
  */
 import cryptoModule from '../utils/cryptoModule';
 import { createCommand } from '../utils/helpers';
-import {
-	getStdIn,
-	getPassphrase,
-	getData,
-} from '../utils/input';
+import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 
 const description = `Encrypt a message for a given recipient public key using your secret passphrase.
@@ -27,8 +23,8 @@ const description = `Encrypt a message for a given recipient public key using yo
 	Example: encrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
 `;
 
-const handlePassphraseAndMessage = recipient => ([passphrase, message]) =>
-	cryptoModule.encryptMessage(message, passphrase, recipient);
+const handlePassphraseAndMessage = (recipient, message) => ({ passphrase, data }) =>
+	cryptoModule.encryptMessage(message || data, passphrase, recipient);
 
 export const actionCreator = vorpal => async ({ recipient, message, options }) => {
 	const messageSource = options.message;
@@ -38,15 +34,16 @@ export const actionCreator = vorpal => async ({ recipient, message, options }) =
 		throw new Error('No message was provided.');
 	}
 
-	return getStdIn({
-		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: messageSource === 'stdin',
+	return getInputsFromSources(vorpal, {
+		passphrase: {
+			source: passphraseSource,
+			repeatPrompt: true,
+		},
+		data: message ? null : {
+			source: messageSource,
+		},
 	})
-		.then(stdIn => Promise.all([
-			getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true }),
-			getData(message, messageSource, stdIn.data),
-		]))
-		.then(handlePassphraseAndMessage(recipient));
+		.then(handlePassphraseAndMessage(recipient, message));
 };
 
 const encryptMessage = createCommand({

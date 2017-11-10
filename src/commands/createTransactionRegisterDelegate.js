@@ -13,12 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getStdIn,
-	getPassphrase,
-	getFirstLineFromString,
-} from '../utils/input';
 import { createCommand } from '../utils/helpers';
+import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
@@ -29,7 +25,7 @@ const description = `Creates a transaction which will register an existing accou
 	- create transaction 2 username
 `;
 
-const createDelegate = username => ([passphrase, secondPassphrase]) =>
+const createDelegate = username => ({ passphrase, secondPassphrase }) =>
 	transactions.createDelegate(passphrase, username, secondPassphrase);
 
 export const actionCreator = vorpal => async ({ username, options }) => {
@@ -38,20 +34,16 @@ export const actionCreator = vorpal => async ({ username, options }) => {
 		'second-passphrase': secondPassphraseSource,
 	} = options;
 
-	return getStdIn({
-		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: secondPassphraseSource === 'stdin',
+	return getInputsFromSources(vorpal, {
+		passphrase: {
+			source: passphraseSource,
+			repeatPrompt: true,
+		},
+		secondPassphrase: !secondPassphraseSource ? null : {
+			source: secondPassphraseSource,
+			repeatPrompt: true,
+		},
 	})
-		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true })
-			.then(passphrase => (secondPassphraseSource ? getPassphrase(
-				vorpal,
-				secondPassphraseSource,
-				getFirstLineFromString(stdIn.data),
-				{ shouldRepeat: true, displayName: 'your second secret passphrase' },
-			) : Promise.resolve(null))
-				.then(secondPassphrase => [passphrase, secondPassphrase]),
-			),
-		)
 		.then(createDelegate(username));
 };
 

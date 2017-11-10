@@ -15,14 +15,8 @@
  */
 import cryptoModule from '../utils/cryptoModule';
 import { createCommand } from '../utils/helpers';
-import {
-	getStdIn,
-	getPassphrase,
-	getFirstLineFromString,
-} from '../utils/input';
+import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
-
-const PASSWORD_DISPLAY_NAME = 'your password';
 
 const description = `Encrypt your secret passphrase under a password.
 
@@ -34,7 +28,7 @@ const outputPublicKeyOption = [
 	'Includes the public key in the output. This option is provided for the convenience of node operators.',
 ];
 
-const handleInput = outputPublicKey => ([passphrase, password]) => {
+const handleInput = outputPublicKey => ({ passphrase, password }) => {
 	const cipherAndIv = cryptoModule.encryptPassphrase(passphrase, password);
 	return outputPublicKey
 		? Object.assign({}, cipherAndIv, {
@@ -50,20 +44,16 @@ export const actionCreator = vorpal => async ({ options }) => {
 		'output-public-key': outputPublicKey,
 	} = options;
 
-	return getStdIn({
-		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: passwordSource === 'stdin',
+	return getInputsFromSources(vorpal, {
+		passphrase: {
+			source: passphraseSource,
+			repeatPrompt: true,
+		},
+		password: {
+			source: passwordSource,
+			repeatPrompt: true,
+		},
 	})
-		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true })
-			.then(passphrase => getPassphrase(
-				vorpal,
-				passwordSource,
-				getFirstLineFromString(stdIn.data),
-				{ displayName: PASSWORD_DISPLAY_NAME, shouldRepeat: true },
-			)
-				.then(password => [passphrase, password]),
-			),
-		)
 		.then(handleInput(outputPublicKey));
 };
 

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as inputUtils from '../../../src/utils/input';
+import * as inputUtils from '../../../src/utils/input/utils';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
@@ -46,6 +46,22 @@ export function theOptionsObjectHasKeySetToBoolean() {
 	const key = getFirstQuotedString(this.test.parent.title);
 	const value = getFirstBoolean(this.test.parent.title);
 	this.test.ctx.options[key] = value;
+}
+
+export function theOptionsObjectHasAField() {
+	const field = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.options[field] = {};
+}
+
+export function theOptionsObjectHasAFieldWithKeySetToString() {
+	const [field, key, value] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.options[field] = { [key]: value };
+}
+
+export function theOptionsObjectHasAFieldWithKeySetToBoolean() {
+	const [field, key] = getQuotedStrings(this.test.parent.title);
+	const value = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options[field] = { [key]: value };
 }
 
 export function anOptionsObjectWithOutputPublicKeySetToBoolean() {
@@ -157,6 +173,8 @@ export function anOptionsObjectWithPrettySetTo() {
 	this.test.ctx.options = { pretty };
 }
 
-export function anEmptyOptionsObject() {
+export function anOptionsObject() {
 	this.test.ctx.options = {};
 }
+
+export const anEmptyOptionsObject = anOptionsObject;

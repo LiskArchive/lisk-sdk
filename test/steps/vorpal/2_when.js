@@ -17,7 +17,7 @@ import {
 	wrapActionCreator,
 	createCommand,
 } from '../../../src/utils/helpers';
-import * as inputUtils from '../../../src/utils/input';
+import * as inputUtils from '../../../src/utils/input/utils';
 import execFile from '../../../src/execFile';
 import {
 	getFirstQuotedString,
@@ -40,7 +40,9 @@ export function theActionIsCalledWithTheIVAndTheOptions() {
 export function theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions() {
 	const { action, cipherAndIv: { cipher: passphrase, iv }, options } = this.test.ctx;
 
-	inputUtils.getData.onFirstCall().resolves(passphrase);
+	if (typeof inputUtils.getData.resolves === 'function') {
+		inputUtils.getData.onFirstCall().resolves(passphrase);
+	}
 
 	const returnValue = action({ iv, passphrase, options });
 	this.test.ctx.returnValue = returnValue;

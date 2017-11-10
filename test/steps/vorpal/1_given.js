@@ -86,7 +86,7 @@ export function aVorpalInstance() {
 	this.test.ctx.vorpal = vorpal;
 }
 
-export function thereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
+export function aVorpalInstanceWithAnActiveCommandThatCanLog() {
 	this.test.ctx.vorpal = {
 		activeCommand: {
 			log: sandbox.spy(),
@@ -95,11 +95,10 @@ export function thereIsAVorpalInstanceWithAnActiveCommandThatCanLog() {
 }
 
 export function aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt() {
-	const { passphrase } = this.test.ctx;
 	this.test.ctx.vorpal = {
 		ui: {},
 		activeCommand: {
-			prompt: sandbox.stub().resolves({ passphrase }),
+			prompt: sandbox.stub(),
 		},
 	};
 }

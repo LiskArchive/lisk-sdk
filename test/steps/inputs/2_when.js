@@ -13,7 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as inputUtils from '../../../src/utils/input';
+import getInputsFromSources, { getFirstLineFromString } from '../../../src/utils/input/';
+import * as inputUtils from '../../../src/utils/input/utils';
+
+export function getInputsFromSourcesIsCalledWithTheVorpalInstanceAndTheOptions() {
+	const { vorpal, options } = this.test.ctx;
+	const returnValue = getInputsFromSources(vorpal, options);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
 
 export function theSourceIsSplit() {
 	const { source } = this.test.ctx;
@@ -34,10 +42,12 @@ export function getPassphraseFromPromptIsCalled() {
 }
 
 export function getStdInIsCalledWithTheRelevantOptions() {
-	const { passphraseIsRequired, dataIsRequired } = this.test.ctx;
-	const options = (passphraseIsRequired || dataIsRequired)
+	const { passphraseIsRequired, secondPassphraseIsRequired, passwordIsRequired, dataIsRequired } = this.test.ctx;
+	const options = (passphraseIsRequired || secondPassphraseIsRequired || passwordIsRequired || dataIsRequired)
 		? {
 			passphraseIsRequired,
+			secondPassphraseIsRequired,
+			passwordIsRequired,
 			dataIsRequired,
 		}
 		: undefined;
@@ -79,14 +89,6 @@ export function getPassphraseFromSourceIsCalledWithTheRelevantSource() {
 	return returnValue.catch(e => e);
 }
 
-export function getPassphraseIsPassedAPassphraseDirectly() {
-	const { passphrase } = this.test.ctx;
-	const returnValue = inputUtils.getPassphrase(null, null, passphrase);
-
-	this.test.ctx.returnValue = returnValue;
-	return returnValue.catch(e => e);
-}
-
 export function getPassphraseIsPassedASourceButNoPassphrase() {
 	const { passphraseSource } = this.test.ctx;
 	const returnValue = inputUtils.getPassphrase(null, passphraseSource);
@@ -105,7 +107,7 @@ export function getPassphraseIsPassedNeitherASourceNorAPassphrase() {
 
 export function getFirstLineFromStringIsCalledOnTheString() {
 	const { testString } = this.test.ctx;
-	this.test.ctx.returnValue = inputUtils.getFirstLineFromString(testString);
+	this.test.ctx.returnValue = getFirstLineFromString(testString);
 }
 
 export function getDataFromFileIsCalledWithThePath() {
@@ -116,9 +118,9 @@ export function getDataFromFileIsCalledWithThePath() {
 	return returnValue.catch(e => e);
 }
 
-export function getDataIsCalled() {
-	const { argData, sourceData, stdInData } = this.test.ctx;
-	const returnValue = inputUtils.getData(argData, sourceData, stdInData);
+export function getDataIsCalledWithTheSource() {
+	const { sourceData } = this.test.ctx;
+	const returnValue = inputUtils.getData(sourceData);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);

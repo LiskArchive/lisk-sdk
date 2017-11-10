@@ -15,11 +15,7 @@
  */
 import cryptoModule from '../utils/cryptoModule';
 import { createCommand } from '../utils/helpers';
-import {
-	getStdIn,
-	getPassphrase,
-	getData,
-} from '../utils/input';
+import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 
 const description = `Decrypt an encrypted message from a given sender public key for a known nonce using your secret passphrase.
@@ -27,8 +23,8 @@ const description = `Decrypt an encrypted message from a given sender public key
 	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
 
-const handlePassphrase = (nonce, senderPublicKey) => ([passphrase, data]) =>
-	cryptoModule.decryptMessage(data, nonce, passphrase, senderPublicKey);
+const handlePassphrase = (nonce, senderPublicKey, message) => ({ passphrase, data }) =>
+	cryptoModule.decryptMessage(message || data, nonce, passphrase, senderPublicKey);
 
 export const actionCreator = vorpal => async ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;
@@ -38,15 +34,15 @@ export const actionCreator = vorpal => async ({ message, nonce, senderPublicKey,
 		throw new Error('No message was provided.');
 	}
 
-	return getStdIn({
-		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: messageSource === 'stdin',
+	return getInputsFromSources(vorpal, {
+		passphrase: {
+			source: passphraseSource,
+		},
+		data: message ? null : {
+			source: messageSource,
+		},
 	})
-		.then(stdIn => Promise.all([
-			getPassphrase(vorpal, options.passphrase, stdIn.passphrase),
-			getData(message, messageSource, stdIn.data),
-		]))
-		.then(handlePassphrase(nonce, senderPublicKey));
+		.then(handlePassphrase(nonce, senderPublicKey, message));
 };
 
 const decryptMessage = createCommand({

@@ -23,8 +23,8 @@ describe('print utils', () => {
 		setUpHelperStubs();
 	});
 	describe('#printResult', () => {
-		describe('Given there is a Vorpal instance with an active command that can log', () => {
-			beforeEach(given.thereIsAVorpalInstanceWithAnActiveCommandThatCanLog);
+		describe('Given a Vorpal instance with an active command that can log', () => {
+			beforeEach(given.aVorpalInstanceWithAnActiveCommandThatCanLog);
 			describe('Given there is a result to print', () => {
 				beforeEach(given.thereIsAResultToPrint);
 				describe('Given a config with json set to true', () => {

@@ -14,7 +14,8 @@
  *
  */
 import readline from 'readline';
-import * as inputUtils from '../../../src/utils/input';
+import getInputsFromSources from '../../../src/utils/input';
+import * as inputUtils from '../../../src/utils/input/utils';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
@@ -22,10 +23,104 @@ import {
 	hasAncestorWithTitleMatching,
 } from '../utils';
 
-export function theSecondPassphraseIsProvidedViaStdIn() {
+export function anErrorOccursRetrievingTheInputsFromTheirSources() {
+	const errorMessage = getFirstQuotedString(this.test.parent.title);
+	getInputsFromSources.rejects(new Error(errorMessage));
+	this.test.ctx.errorMessage = errorMessage;
+}
+
+export function thePassphraseIsAvailableFromTheSource() {
+	const { passphrase } = this.test.ctx;
+	inputUtils.getPassphrase.resolves(passphrase);
+}
+
+export function theSecondPassphraseIsAvailableFromTheSource() {
+	const { secondPassphrase } = this.test.ctx;
+	inputUtils.getPassphrase.resolves(secondPassphrase);
+}
+
+export function thePasswordIsAvailableFromTheSource() {
+	const { password } = this.test.ctx;
+	if (hasAncestorWithTitleMatching(this.test, /multiple options integration/)) {
+		inputUtils.getPassphrase.onSecondCall().resolves(password);
+	} else {
+		inputUtils.getPassphrase.resolves(password);
+	}
+}
+
+export function theDataIsAvailableFromTheSource() {
+	const { data } = this.test.ctx;
+	inputUtils.getData.resolves(data);
+}
+
+export function thePassphraseCanBeRetrievedFromItsSource() {
+	const { passphrase } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase,
+		secondPassphrase: null,
+		password: null,
+		data: null,
+	});
+}
+
+export function thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ passphrase, data: secondPassphrase });
-	inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
+	getInputsFromSources.resolves({
+		passphrase,
+		secondPassphrase,
+		password: null,
+		data: null,
+	});
+}
+
+export function thePasswordAndEncryptedPassphraseCanBeRetrievedFromTheirSources() {
+	const { password, cipherAndIv: { cipher } } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase: null,
+		password,
+		data: cipher,
+	});
+}
+
+export function theEncryptedPassphraseCanBeRetrievedFromItsSource() {
+	const { cipherAndIv: { cipher } } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase: null,
+		password: null,
+		data: cipher,
+	});
+}
+
+export function thePasswordCanBeRetrievedFromItsSource() {
+	const { password } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase: null,
+		password,
+		data: null,
+	});
+}
+
+export function thePassphraseAndPasswordCanBeRetrievedFromTheirSources() {
+	const { passphrase, password } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase,
+		secondPassphrase: null,
+		password,
+		data: null,
+	});
+}
+
+export function thePassphraseAndMessageCanBeRetrievedFromTheirSources() {
+	const { passphrase, message } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase,
+		secondPassphrase: null,
+		password: null,
+		data: message,
+	});
 }
 
 export function thePassphraseAndTheSecondPassphraseAreProvidedViaStdIn() {
@@ -46,16 +141,17 @@ export function thePassphraseAndThePasswordAreProvidedViaStdIn() {
 }
 
 export function thePasswordIsProvidedViaStdIn() {
-	const { password, stdInInputs = [] } = this.test.ctx;
-	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
-	const key = isDecryptPassphraseAction
-		? 'passphrase'
-		: 'data';
+	const { password } = this.test.ctx;
 
-	inputUtils.getStdIn.resolves({ [key]: password });
-	inputUtils.getPassphrase.resolves(password);
+	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(password));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ password });
+	}
+	if (typeof inputUtils.getPassphrase.resolves === 'function') {
+		inputUtils.getPassphrase.resolves(password);
+	}
 
-	this.test.ctx.stdInInputs = [...stdInInputs, 'password'];
+	this.test.ctx.passwordIsRequired = true;
 }
 
 export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
@@ -162,7 +258,7 @@ export function someData() {
 	this.test.ctx.data = getFirstQuotedString(this.test.parent.title);
 }
 
-export function neitherThePassphraseNorTheDataIsProvidedViaStdIn() {
+export function nothingIsProvidedViaStdIn() {
 	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(''));
 }
 
@@ -205,23 +301,48 @@ export function thePassphraseIsProvidedViaStdIn() {
 	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase'];
 }
 
-export function theDataIsProvidedViaStdIn() {
-	const { data, stdInInputs = [] } = this.test.ctx;
+export function theSecondPassphraseIsProvidedViaStdIn() {
+	const { secondPassphrase } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(data));
+	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(secondPassphrase));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ secondPassphrase });
+	}
 
-	this.test.ctx.dataIsRequired = true;
-	this.test.ctx.stdInInputs = [...stdInInputs, 'data'];
+	this.test.ctx.secondPassphraseIsRequired = true;
 }
 
-export function bothThePassphraseAndTheDataAreProvidedViaStdIn() {
-	const { passphrase, data, stdInInputs = [] } = this.test.ctx;
+export function theDataIsProvidedViaStdIn() {
+	const { data } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(`${passphrase}\n${data}`));
+	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(data));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ data });
+	}
+
+	this.test.ctx.dataIsRequired = true;
+}
+
+export function theSecondPassphraseAndTheDataAreProvidedViaStdIn() {
+	const { secondPassphrase, data } = this.test.ctx;
+
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ secondPassphrase, data });
+	}
+
+	this.test.ctx.secondPassphraseIsRequired = true;
+	this.test.ctx.dataIsRequired = true;
+}
+
+export function thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn() {
+	const { passphrase, secondPassphrase, password, data } = this.test.ctx;
+
+	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(`${passphrase}\n${secondPassphrase}\n${password}\n${data}`));
 
 	this.test.ctx.passphraseIsRequired = true;
+	this.test.ctx.secondPassphraseIsRequired = true;
+	this.test.ctx.passwordIsRequired = true;
 	this.test.ctx.dataIsRequired = true;
-	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'data'];
 }
 
 export function thePassphraseIsStoredInEnvironmentalVariable() {
@@ -268,7 +389,7 @@ export function aDataFilePath() {
 	this.test.ctx.filePath = filePath;
 }
 
-export function noDataIsProvided() {}
+export function noDataSourceIsProvided() {}
 
 export function dataIsProvidedViaStdIn() {
 	const { data, stdInInputs = [] } = this.test.ctx;

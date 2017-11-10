@@ -15,7 +15,7 @@
  */
 import lisk from 'lisk-js';
 import cryptoInstance from '../../../src/utils/cryptoModule';
-import * as inputUtils from '../../../src/utils/input';
+import * as inputUtils from '../../../src/utils/input/utils';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
@@ -76,7 +76,7 @@ export function anEncryptedMessage() {
 export function aPassphrase() {
 	const passphrase = getFirstQuotedString(this.test.parent.title);
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
+		inputUtils.getPassphrase.resolves(passphrase);
 	}
 	this.test.ctx.passphrase = passphrase;
 }
