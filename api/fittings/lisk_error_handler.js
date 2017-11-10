@@ -13,8 +13,6 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		var err = context.error;
 
-		debug('exec: %s', context.error.message);
-
 		if (!context.statusCode || context.statusCode < 400) {
 			if (context.response && context.response.statusCode && context.response.statusCode >= 400) {
 				context.statusCode = context.response.statusCode;
@@ -26,17 +24,23 @@ module.exports = function create (fittingDef, bagpipes) {
 			}
 		}
 
-		if (context.statusCode === 500 && !fittingDef.handle500Errors) {
-			return next(err);
+		debug('exec: %s', context.error.message);
+		debug('status: %s', context.statusCode);
+
+		if (context.statusCode === 500) {
+			if(!fittingDef.handle500Errors) {
+				return next(err);
+			}
+
+			err = {
+				message: 'An unexpected error seems to have occurred. You can try again or contact us if problem persist.'
+			};
 		}
 
 		context.headers['Content-Type'] = 'application/json';
-		var errorObject = {
-			message: 'An unexpected error seems to have occurred. You can try again or contact us if problem persist.'
-		};
-		context.headers['Content-Type'] = 'application/json';
+		Object.defineProperty(err, 'message', { enumerable: true }); // include message property in response
 		delete(context.error);
+		next(null, JSON.stringify(err));
 
-		next(null, errorObject);
 	};
 };
