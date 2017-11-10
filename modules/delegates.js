@@ -66,6 +66,7 @@ function Delegates (cb, scope) {
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
 		transactionTypes.DELEGATE,
 		new Delegate(
+			scope.logger,
 			scope.schema
 		)
 	);
