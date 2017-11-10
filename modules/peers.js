@@ -628,14 +628,27 @@ Peers.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Peers.prototype.shared = {
-	getPeers: function (req, cb) {
-		library.schema.validate(req.body, schema.getPeers, function (err) {
-			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
-			}
-			req.body.normalized = true;
-			return setImmediate(cb, null, {peers: __private.getByFilter(req.body)});
-		});
+	/**
+	 * Utility method to get peers
+	 *
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.ip - IP of the peer
+	 * @param {string} parameters.port - WS Port of the peer
+	 * @param {string} parameters.httpPort - Web Socket Port of the peer
+	 * @param {string} parameters.os - OS of the peer
+	 * @param {string} parameters.version - Version the peer is running
+	 * @param {int} parameters.state - Peer State
+	 * @param {int} parameters.height - Current peer height
+	 * @param {string} parameters.broadhash - Peer broadhash
+	 * @param {int} parameters.limit - Per page limit
+	 * @param {int} parameters.offset - Page start from
+	 * @param {string} parameters.orderBy - Sort key
+	 * @param {function} cb - Callback function
+	 * @return {Array.<Object>}
+	 */
+	getPeers: function (parameters, cb) {
+		parameters.normalized = true;
+		return setImmediate(cb, null, __private.getByFilter(parameters));
 	}
 };
 

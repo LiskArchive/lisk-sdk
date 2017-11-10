@@ -7,7 +7,6 @@ var pathFiles = [
 	'./blocks',
 	'./dapps',
 	'./delegates',
-	'./loader',
 	'./multisignatures',
 	'./node',
 	'./peers',

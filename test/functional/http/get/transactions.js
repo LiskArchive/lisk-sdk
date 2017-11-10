@@ -736,12 +736,26 @@ describe('GET /api/transactions', function () {
 		});
 
 		describe('count', function () {
-			it('should be count of the transactions with response', function () {
+			it('should return count of the transactions with response', function () {
 				return getTransactionsPromise({}).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					node.expect(res).to.have.nested.property('body.count').that.is.a('string');
 				});
+			});
+		});
+	});
+
+	describe('/count', function () {
+
+		it('should be ok', function () {
+			return getCountPromise('transactions').then(function (res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('confirmed').that.is.an('number');
+				node.expect(res).to.have.property('unconfirmed').that.is.an('number');
+				node.expect(res).to.have.property('unprocessed').that.is.an('number');
+				node.expect(res).to.have.property('unsigned').that.is.an('number');
+				node.expect(res).to.have.property('total').that.is.an('number');
 			});
 		});
 	});
