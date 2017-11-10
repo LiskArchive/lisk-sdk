@@ -768,7 +768,7 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getQueuedTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(false);
+				node.expect(res).to.have.property('success').to.equal(false);
 				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
@@ -784,7 +784,7 @@ describe('GET /api/transactions', function () {
 				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 				return getQueuedTransactionPromise(transaction.id).then(function (result) {
-					node.expect(result).to.have.property('success').to.be.equal(true);
+					node.expect(result).to.have.property('success').to.equal(true);
 					node.expect(result).to.have.property('transaction').that.is.an('object');
 					node.expect(result.transaction.id).to.equal(transaction.id);
 				});
@@ -796,7 +796,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getQueuedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(true);
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});
@@ -807,7 +807,7 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getMultisignaturesTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(false);
+				node.expect(res).to.have.property('success').to.equal(false);
 				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
@@ -817,7 +817,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getMultisignaturesTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(true);
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});
@@ -845,7 +845,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getUnconfirmedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(true);
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});

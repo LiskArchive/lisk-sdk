@@ -243,7 +243,7 @@ describe('Rounds-related SQL triggers', function () {
 						expect(account.balance).to.be.below(0);
 					} else if (account.isDelegate) {
 						// Delegates accounts should have balances of 0
-						expect(account.balance).to.be.equal(0);
+						expect(account.balance).to.equal(0);
 					} else {
 						// Other accounts (with funds) should have positive balance
 						expect(account.balance).to.be.above(0);
