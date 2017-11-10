@@ -45,7 +45,7 @@ var validAccount = {
 	virgin: 1
 };
 
-describe('account', function () {
+describe('accounts', function () {
 
 	var accounts;
 	var accountLogic;
@@ -69,7 +69,7 @@ describe('account', function () {
 		node.appCleanup(done);
 	});
 
-	describe('Accounts', function () {
+	describe('constructor', function () {
 
 		it('should throw with no params', function () {
 			expect(function () {
@@ -84,6 +84,7 @@ describe('account', function () {
 			expect(accounts.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
+		// TODO: Design a throwable test
 		it.skip('should throw error for invalid publicKey', function () {
 			var invalidPublicKey = 'invalidPublicKey';
 
@@ -158,234 +159,64 @@ describe('account', function () {
 
 	describe('shared', function () {
 
-		describe('getBalance', function () {
+		describe('getAccounts', function () {
 
 			it('should throw if parameter doesnt have correct schema', function (done) {
-				accounts.shared.getBalance({
+				accounts.shared.getAccounts({
 					body: {
 						address: 5
 					}
 				}, function (err, res){
-					expect(err).to.equal('Expected type string but found type integer');
+					expect(err).to.have.property('message').that.is.equal('Expected type string but found type integer');
 					done();
 				});
 			});
 
-			it('should get 0 balance for new account', function (done) {
-				accounts.shared.getBalance({
+			it('should return empty accounts array when account does not exist', function (done) {
+				accounts.shared.getAccounts({
 					body: {
 						address: node.randomAccount().address
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(res).to.be.an('object');
-					expect(res.balance).equal('0');
-					expect(res.unconfirmedBalance).equal('0');
-					done();
-				});
-			});
-
-			it('should return balance for existing account', function (done) {
-				accounts.shared.getBalance({
-					body: {
-						address: node.gAccount.address
-					}
-				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(Number.isInteger(Number(res.balance))).to.be.ok;
-					expect(Number.isInteger(Number(res.unconfirmedBalance))).to.be.ok;
-					done();
-				});
-			});
-		});
-
-		describe('getPublickey', function () {
-
-			it('should throw if parameter doesnt have correct schema', function (done) {
-				accounts.shared.getPublickey({
-					body: {
-						address: 5
-					}
-				}, function (err, res){
-					expect(err).to.equal('Expected type string but found type integer');
-					done();
-				});
-			});
-
-			it('should return error if account does not exist', function (done) {
-				accounts.shared.getPublickey({
-					body: {
-						address: node.randomAccount().address
-					}
-				}, function (err, res){
-					expect(err).to.equal('Account not found');
-					done();
-				});
-			});
-
-			it('should return publicKey for an existing account', function (done) {
-				accounts.shared.getPublickey({
-					body: {
-						address: validAccount.address
-					}
-				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res.publicKey).to.equal(validAccount.publicKey);
-					done();
-				});
-			});
-		});
-
-		describe('getDelegates', function () {
-
-			it('should throw if parameter doesn\'t have correct schema', function (done) {
-				accounts.shared.getPublickey({
-					body: {
-						address: 5
-					}
-				}, function (err, res){
-					expect(err).to.equal('Expected type string but found type integer');
-					done();
-				});
-			});
-
-			it('should return error if account does not exist', function (done) {
-				accounts.shared.getDelegates({
-					body: {
-						address: node.randomAccount().address
-					}
-				}, function (err, res){
-					expect(err).to.equal('Account not found');
-					done();
-				});
-			});
-
-			it('should return empty array of an account which dont have any delegate', function (done) {
-				accounts.shared.getDelegates({
-					body: {
-						address: node.eAccount.address
-					}
-				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res.delegates).to.be.an('array').which.is.eql([]);
-					done();
-				});
-			});
-
-			it('should return delegates of an account', function (done) {
-				accounts.shared.getDelegates({
-					body: {
-						address: node.gAccount.address
-					}
-				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res.delegates).to.be.an('array');
-					done();
-				});
-			});
-		});
-
-		describe('getDelegatesFee', function () {
-
-			it('should return the correct fee for delegate', function (done) {
-				accounts.shared.getDelegatesFee({}, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res.fee).to.equal(constants.fees.delegate);
-					done();
-				});
-			});
-		});
-
-		describe('getAccount', function () {
-
-			it('should throw if parameter doesnt have correct schema', function (done) {
-				accounts.shared.getAccount({
-					body: {
-						address: 5
-					}
-				}, function (err, res){
-					expect(err).to.equal('Expected type string but found type integer');
-					done();
-				});
-			});
-
-			it('should return error if account does not exist', function (done) {
-				accounts.shared.getAccount({
-					body: {
-						address: node.randomAccount().address
-					}
-				}, function (err, res){
-					expect(err).to.equal('Account not found');
-					done();
-				});
-			});
-
-			it('should return error if neither publicKey nor address are supplied', function (done) {
-				accounts.shared.getAccount({
-					body: {
-					}
-				}, function (err, res){
-					expect(err).to.equal('Missing required property: address or publicKey');
-					done();
-				});
-			});
-
-			it('should return error if publicKey does not match address supplied', function (done) {
-				accounts.shared.getAccount({
-					body: {
-						publicKey: validAccount.publicKey,
-						address: node.randomAccount().address
-					}
-				}, function (err, res){
-					expect(err).to.equal('Account publicKey does not match address');
+					expect(res).to.have.property('accounts').to.be.an('array').which.has.length(0);
 					done();
 				});
 			});
 
 			it('should return account using publicKey', function (done) {
-				accounts.shared.getAccount({
+				accounts.shared.getAccounts({
 					body: {
 						publicKey: validAccount.publicKey
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(res).to.be.an('object');
+					expect(res).to.have.property('accounts').to.be.an('array');
 					done();
 				});
 			});
 
 			it('should return account using address', function (done) {
-				accounts.shared.getAccount({
+				accounts.shared.getAccounts({
 					body: {
 						address: validAccount.address
 					}
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(res).to.be.an('object');
-					done();
-				});
-			});
-		});
-	});
-
-	describe('internal', function () {
-
-		describe('top', function () {
-
-			var allAccounts;
-			before(function (done) {
-				accounts.getAccounts({}, function (err, res) {
-					expect(err).to.not.exist;
-					allAccounts = res;
+					expect(res).to.have.property('accounts').to.be.an('array');
 					done();
 				});
 			});
 
 			it('should return top 10 accounts ordered by descending balance', function (done) {
 				var limit = 10;
+				var sort = 'balance:desc';
 
-				accounts.internal.top({
-					limit: limit
+				accounts.shared.getAccounts({
+					body: {
+						limit: limit,
+						sort: sort
+					}
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
@@ -399,10 +230,14 @@ describe('account', function () {
 			it('should return accounts in the range 10 to 20 ordered by descending balance', function (done) {
 				var limit = 10;
 				var offset = 10;
+				var sort = 'balance:desc';
 
-				accounts.internal.top({
-					limit: limit,
-					offset: offset
+				accounts.shared.getAccounts({
+					body: {
+						limit: limit,
+						offset: offset,
+						sort: sort 
+					}
 				}, function (err, res) {
 					expect(err).to.not.exist;
 					expect(res.accounts).to.have.length(10);
