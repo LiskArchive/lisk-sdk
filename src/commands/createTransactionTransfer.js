@@ -13,11 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getStdIn,
-	getPassphrase,
-	getFirstLineFromString,
-} from '../utils/input';
+import getInputsFromSources from '../utils/input';
 import {
 	createCommand,
 	validateAddress,
@@ -33,7 +29,7 @@ const description = `Creates a transaction which will transfer the specified amo
 	- create transaction 0 100 13356260975429434553L
 `;
 
-const createTransfer = (amount, address) => ([passphrase, secondPassphrase]) =>
+const createTransfer = (amount, address) => ({ passphrase, secondPassphrase }) =>
 	transactions.createTransaction(address, amount, passphrase, secondPassphrase);
 
 export const actionCreator = vorpal => async ({ amount, address, options }) => {
@@ -46,20 +42,16 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 
 	validateAddress(address);
 
-	return getStdIn({
-		passphraseIsRequired: passphraseSource === 'stdin',
-		dataIsRequired: secondPassphraseSource === 'stdin',
+	return getInputsFromSources(vorpal, {
+		passphrase: {
+			source: passphraseSource,
+			repeatPrompt: true,
+		},
+		secondPassphrase: !secondPassphraseSource ? null : {
+			source: secondPassphraseSource,
+			repeatPrompt: true,
+		},
 	})
-		.then(stdIn => getPassphrase(vorpal, passphraseSource, stdIn.passphrase, { shouldRepeat: true })
-			.then(passphrase => (secondPassphraseSource ? getPassphrase(
-				vorpal,
-				secondPassphraseSource,
-				getFirstLineFromString(stdIn.data),
-				{ shouldRepeat: true, displayName: 'your second secret passphrase' },
-			) : Promise.resolve(null))
-				.then(secondPassphrase => [passphrase, secondPassphrase]),
-			),
-		)
 		.then(createTransfer(amount, address));
 };
 
