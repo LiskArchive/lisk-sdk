@@ -241,6 +241,7 @@ describe('blocks/verify', function () {
 			scope.modules.transactions.onBind(scope.modules);
 			scope.modules.blocks.chain.onBind(scope.modules);
 			scope.modules.transport.onBind(scope.modules);
+			scope.modules.accounts.onBind(scope.modules);
 			accounts = scope.modules.accounts;
 			blocksVerify = scope.modules.blocks.verify;
 			blockLogic = scope.logic.block;

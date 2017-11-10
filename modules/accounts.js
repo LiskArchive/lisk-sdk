@@ -2,8 +2,11 @@
 
 var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
+var slots = require('../helpers/slots.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var extend = require('extend');
 var schema = require('../schema/accounts.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -183,14 +186,15 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
  */
 Accounts.prototype.onBind = function (scope) {
 	modules = {
-		delegates: scope.delegates,
-		accounts: scope.accounts,
 		transactions: scope.transactions,
+		blocks: scope.blocks
 	};
 
 	__private.assetTypes[transactionTypes.VOTE].bind(
 		scope.delegates
 	);
+
+	library.logic.account.bind(modules.blocks);
 };
 /**
  * Checks if modules is loaded.
@@ -202,112 +206,43 @@ Accounts.prototype.isLoaded = function () {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
+ * Public methods, accessible via API
  */
 Accounts.prototype.shared = {
-
-	getBalance: function (req, cb) {
-		library.schema.validate(req.body, schema.getBalance, function (err) {
+	/**
+	 * Search accounts based on the query parameter passed.
+	 * @param {Request} req
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallbackObject}
+	 */
+	getAccounts: function (req, cb) {
+		library.schema.validate(req.body, schema.getAccounts, function (err) {
 			if (err) {
-				return setImmediate(cb, err[0].message);
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
 
-			self.getAccount({ address: req.body.address }, function (err, account) {
+			library.logic.account.getAll(req.body, function (err, accounts) {
 				if (err) {
-					return setImmediate(cb, err);
+					return setImmediate(cb, new ApiError(err, apiCodes.BAD_REQUEST));
 				}
+				accounts = accounts.map(function (account) {
+					var delegate = {};
 
-				var balance = account ? account.balance : '0';
-				var unconfirmedBalance = account ? account.u_balance : '0';
+					// Only create delegate properties if account has a username
+					if (account.username) {
+						delegate = {
+							username: account.username,
+							vote: account.vote,
+							rewards: account.rewards,
+							producedBlocks: account.producedBlocks,
+							missedBlocks: account.missedBlocks,
+							rank: account.rank,
+							approval: account.approval,
+							productivity: account.productivity
+						};
+					}
 
-				return setImmediate(cb, null, {balance: balance, unconfirmedBalance: unconfirmedBalance});
-			});
-		});
-	},
-
-	getPublickey: function (req, cb) {
-		library.schema.validate(req.body, schema.getPublicKey, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account || !account.publicKey) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				return setImmediate(cb, null, {publicKey: account.publicKey});
-			});
-		});
-	},
-
-	getDelegates: function (req, cb) {
-		library.schema.validate(req.body, schema.getDelegates, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				if (account.delegates) {
-					modules.delegates.getDelegates(req.body, function (err, res) {
-						var delegates = res.delegates.filter(function (delegate) {
-							return account.delegates.indexOf(delegate.publicKey) !== -1;
-						});
-
-						return setImmediate(cb, null, {delegates: delegates});
-					});
-				} else {
-					return setImmediate(cb, null, {delegates: []});
-				}
-			});
-		});
-	},
-
-	getDelegatesFee: function (req, cb) {
-		return setImmediate(cb, null, {fee: constants.fees.delegate});
-	},
-
-	getAccount: function (req, cb) {
-		library.schema.validate(req.body, schema.getAccount, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			if (!req.body.address && !req.body.publicKey) {
-				return setImmediate(cb, 'Missing required property: address or publicKey');
-			}
-
-			// self.getAccount can accept publicKey as argument, but we also compare here
-			// if account publicKey match address (when both are supplied)
-			var address = req.body.publicKey ? self.generateAddressByPublicKey(req.body.publicKey) : req.body.address;
-			if (req.body.address && req.body.publicKey && address !== req.body.address) {
-				return setImmediate(cb, 'Account publicKey does not match address');
-			}
-
-			self.getAccount({ address: address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				return setImmediate(cb, null, {
-					account: {
+					return {
 						address: account.address,
 						unconfirmedBalance: account.u_balance,
 						balance: account.balance,
@@ -315,44 +250,16 @@ Accounts.prototype.shared = {
 						unconfirmedSignature: account.u_secondSignature,
 						secondSignature: account.secondSignature,
 						secondPublicKey: account.secondPublicKey,
-						multisignatures: account.multisignatures || [],
-						u_multisignatures: account.u_multisignatures || []
-					}
+						delegate: delegate
+					};
+				});
+
+				return setImmediate(cb, null, {
+					accounts: accounts
 				});
 			});
 		});
 	}
-};
-
-// Internal API
-/**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-Accounts.prototype.internal = {
-	top: function (query, cb) {
-		self.getAccounts({
-			sort: {
-				balance: -1
-			},
-			offset: query.offset,
-			limit: (query.limit || 100)
-		}, function (err, raw) {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			var accounts = raw.map(function (account) {
-				return {
-					address: account.address,
-					balance: account.balance,
-					publicKey: account.publicKey
-				};
-			});
-
-			return setImmediate(cb, null, {success: true, accounts: accounts});
-		});
-	},
 };
 
 // Export

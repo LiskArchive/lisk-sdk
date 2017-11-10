@@ -51,8 +51,7 @@ var getVotersForDelegates = function (delegate, cb) {
 };
 
 var populateVoters = function (sort, addresses, cb) {
-	var sortQuery = OrderBy.sortQueryToJsonSqlFormat(sort, ['address', 'balance', 'username', 'publicKey', 'secondPublicKey']);
-	modules.accounts.getAccounts({address: {$in: addresses}, sort: sortQuery}, ['address', 'balance', 'username', 'publicKey', 'secondPublicKey'], cb);
+	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'username', 'publicKey', 'secondPublicKey'], cb);
 };
 
 /**
