@@ -13,8 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import childProcess from 'child_process';
-import fs from 'fs';
 import * as createAccount from '../../src/commands/createAccount';
 import * as createTransactionRegisterDelegate from '../../src/commands/createTransactionRegisterDelegate';
 import * as createTransactionCreateMultisignatureAccount from '../../src/commands/createTransactionCreateMultisignatureAccount';
@@ -27,11 +25,6 @@ import * as env from '../../src/commands/env';
 import * as get from '../../src/commands/get';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
-import * as fsUtils from '../../src/utils/fs';
-import * as helpers from '../../src/utils/helpers';
-import * as input from '../../src/utils/input';
-import * as inputUtils from '../../src/utils/input/utils';
-import * as print from '../../src/utils/print';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
 
@@ -90,73 +83,6 @@ export const getActionCreator = actionName => ({
 	list: list.actionCreator,
 	set: set.actionCreator,
 })[actionName];
-
-export const setUpChildProcessStubs = () => {
-	sandbox.stub(childProcess, 'exec');
-};
-
-export const setUpFsStubs = () => {
-	[
-		'accessSync',
-		'existsSync',
-		'mkdirSync',
-		'readFileSync',
-		'createReadStream',
-	].forEach(methodName => sandbox.stub(fs, methodName));
-	[
-		'readJsonSync',
-		'writeJsonSync',
-	].forEach(methodName => sandbox.stub(fsUtils, methodName));
-};
-
-export const setUpConsoleStubs = () => {
-	[
-		'info',
-		'warn',
-		'error',
-	].forEach(methodName => sandbox.stub(console, methodName));
-};
-
-export const setUpProcessStubs = () => {
-	sandbox.stub(process, 'exit');
-};
-
-export const setUpHelperStubs = () => {
-	[
-		'createErrorHandler',
-		'deAlias',
-		'shouldUseJsonOutput',
-		'shouldUsePrettyOutput',
-	].forEach(methodName => sandbox.stub(helpers, methodName));
-};
-
-export const setUpInputStubs = () => {
-	sandbox.stub(input, 'default').resolves({});
-};
-
-export const setUpInputUtilsStubs = () => {
-	[
-		'getStdIn',
-		'getData',
-		'getPassphrase',
-	].forEach(methodName => sandbox.stub(inputUtils, methodName));
-	inputUtils.getStdIn.resolves({});
-};
-
-export function setUpPrintStubs() {
-	const printFunction = sandbox.spy();
-	sandbox.stub(print, 'printResult').returns(printFunction);
-	this.test.ctx.printFunction = printFunction;
-}
-
-export const setUpEnvVariable = variable => function setUpEnv() {
-	this.test.ctx.initialEnvVariableValue = process.env[variable];
-};
-
-export const restoreEnvVariable = variable => function restoreEnv() {
-	const { initialEnvVariableValue } = this.test.ctx;
-	if (typeof initialEnvVariableValue !== 'undefined') process.env[variable] = initialEnvVariableValue;
-};
 
 export const createFakeInterface = value => ({
 	on: ((type, callback) => {
