@@ -137,7 +137,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//goodTransactions.push(transaction);
+					// goodTransactions.push(transaction);
 				});
 			});
 
@@ -148,7 +148,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//goodTransactions.push(transaction);
+					// goodTransactions.push(transaction);
 				});
 			});
 			
@@ -159,7 +159,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					node.expect(res).to.have.property('status').to.equal(400);
 					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction timestamp. Timestamp is in the future');
 					// TODO: Enable when transaction pool order is fixed
-					//badTransactions.push(transaction);
+					// badTransactions.push(transaction);
 				});
 			});
 		});
