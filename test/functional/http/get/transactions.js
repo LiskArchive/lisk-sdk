@@ -116,7 +116,7 @@ describe('GET /api/transactions', function () {
 
 		describe('with wrong input', function () {
 
-			it('using valid array-like parameters should be fail', function () {
+			it('using valid array-like parameters should fail', function () {
 				var limit = 10;
 				var offset = 0;
 				var orderBy = 'amount:asc';
