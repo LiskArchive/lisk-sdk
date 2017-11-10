@@ -37,6 +37,7 @@ node.chai.use(function (chai, utils) {
  * Can be called with three parameters or only with one in a string form
  * > new SwaggerTestSpec('GET', '/node/status', 200)
  * > new SwaggerTestSpec('GET /node/status 200')
+ * > new SwaggerTestSpec('GET /node/status')
  *
  * @param {string} method - HTTP method e.g. GET, PUT, POST
  * @param {string} [apiPath] - API endpoint excluding the base path
@@ -55,19 +56,23 @@ function SwaggerTestSpec (method, apiPath, responseCode) {
 
 		this.path = _.trim(specParam[1]);
 		this.method = _.trim(specParam[0]).toLowerCase();
-		this.responseCode = parseInt(specParam[2]);
+
+		if(specParam.length === 3) {
+			this.responseCode = parseInt(specParam[2]);
+		}
 	} else {
 		throw 'SwaggerTestSpec was created with invalid params';
 	}
 
-	this.spec = apiSpec.paths[this.path][this.method];
-	this.responseSpecPath = ['paths', this.path, this.method, 'responses', this.responseCode, 'schema'].join('.');
-	this.responseSpec = this.spec.responses[this.responseCode];
-
-	this.describe = this.method.toUpperCase() + ' ' + apiSpec.basePath + this.path;
-	this.it = 'should respond with status code ' + this.responseCode;
-
 	var self = this;
+
+	this.getResponseSpec = function (statusCode) {
+		return self.spec.responses[statusCode];
+	};
+
+	this.getResponseSpecPath = function (statusCode) {
+		return ['paths', self.path, self.method, 'responses', statusCode, 'schema'].join('.');
+	};
 
 	this.resolveJSONRefs = function () {
 		if (refsResolved) {
@@ -82,15 +87,24 @@ function SwaggerTestSpec (method, apiPath, responseCode) {
 			self.responseSpec = self.spec.responses[self.responseCode];
 		});
 	};
+
+	this.spec = apiSpec.paths[this.path][this.method];
+	this.responseSpecPath = this.getResponseSpecPath(this.responseCode, 'schema');
+	this.responseSpec = this.getResponseSpec(this.responseCode);
+
+	this.describe = this.method.toUpperCase() + ' ' + apiSpec.basePath + this.path;
+	this.it = 'should respond with status code ' + this.responseCode;
+
 }
 
 /**
  * Perform the actual HTTP call with the spec of current instance
  *
  * @param {Object} [parameters] - JSON object of all parameters, including query, post
+ * @param {int} [responseCode] - Expected Response code. Will override what was used in constructor
  * @return {*|Promise<any>}
  */
-SwaggerTestSpec.prototype.makeRequest = function (parameters){
+SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 	var query = {};
 	var post = {};
 	var headers = {'Accept': 'application/json'};
@@ -152,24 +166,16 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters){
 
 		node.debug('> Response:'.grey, JSON.stringify(res.body));
 
-		describe(self.describe, function () {
-			it('should response with status code ' + self.responseCode, function () {
-				res.statusCode.should.be.eql(self.responseCode);
-			});
+		var expectedResponseCode = responseCode || self.responseCode;
 
-			it('should response json content type ', function () {
-				res.headers['content-type'].should.match(/json/);
-			});
-
-			it('should match the response schema defined in swagger spec', function () {
-				res.body.should.be.validResponse(self.responseSpecPath);
-			});
-		});
-
+		res.statusCode.should.be.eql(expectedResponseCode);
+		res.headers['content-type'].should.match(/json/);
+		res.body.should.be.validResponse(self.getResponseSpecPath(expectedResponseCode));
+		
 		return res;
 	})
 		.catch(function (eror){
-			console.log(validator.getLastErrors());
+			node.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
 			throw eror;
 		});
 };
@@ -180,6 +186,8 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters){
  * Can be called with three parameters or only with one in a string form
  * > ('GET', '/node/status', 200)
  * > ('GET /node/status 200')
+ * > ('GET /node/status')
+ *
  * @param {string} method - HTTP method e.g. GET, PUT, POST
  * @param {string} [path] - API endpoint excluding the base path
  * @param {number} [responseCode] - Expected status code from endpoint

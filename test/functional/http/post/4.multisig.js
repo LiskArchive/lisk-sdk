@@ -2,6 +2,7 @@
 
 var node = require('../../../node');
 var shared = require('../../shared');
+var apiCodes = require('../../../../helpers/apiCodes');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -278,7 +279,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0].password);
 
 				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 					pendingMultisignatures.push(scenarios.minimum_not_reached.transaction);
 				});
 			});
@@ -287,8 +289,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0].password);
 
 				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Error processing signature: Permission to sign transaction denied');
+					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.INTERNAL_SERVER_ERROR);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Permission to sign transaction denied');
 				});
 			});
 
@@ -296,8 +298,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, node.randomAccount().password);
 
 				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Error processing signature: Failed to verify signature');
+					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.INTERNAL_SERVER_ERROR);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Failed to verify signature');
 				});
 			});
 
@@ -306,7 +308,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
 					return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
+						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 					});
 				})).then(function () {
 					goodTransactions.push(scenarios.regular.transaction);
@@ -317,8 +320,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, scenarios.regular.members[0].password);
 
 				return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.equal('Error processing signature: Permission to sign transaction denied');
+					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.INTERNAL_SERVER_ERROR);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Permission to sign transaction denied');
 				});
 			});
 
@@ -327,7 +330,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures.transaction, member.password);
 
 					return sendSignaturePromise(signature, scenarios.max_signatures.transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
+						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 					});
 				})).then(function () {
 					goodTransactions.push(scenarios.max_signatures.transaction);
@@ -339,9 +343,10 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures_max_min.transaction, member.password);
 
 					return sendSignaturePromise(signature, scenarios.max_signatures_max_min.transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
+						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 					});
-				})).then(function (res) {
+				})).then(function () {
 					goodTransactions.push(scenarios.max_signatures_max_min.transaction);
 				});
 			});
@@ -404,7 +409,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
 						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
+							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 						});
 					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.regular.transaction);
@@ -416,7 +422,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures_max_min.transaction, member.password);
 
 						return sendSignaturePromise(signature, scenarios.max_signatures_max_min.transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
+							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 						});
 					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.max_signatures_max_min.transaction);
@@ -444,7 +451,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
 						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
+							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 						});
 					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.regular.transaction);
@@ -472,7 +480,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
 						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
+							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 						});
 					})).then(function (res) {
 						goodTransactionsEnforcement.push(scenarios.regular.transaction);
@@ -500,7 +509,8 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
 
 						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
+							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 						});
 					})).then(function () {
 						goodTransactionsEnforcement.push(scenarios.regular.transaction);

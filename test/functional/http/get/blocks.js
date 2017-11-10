@@ -1,7 +1,6 @@
 'use strict';
 
 var node = require('../../../node.js');
-var http = require('../../../common/httpCommunication.js');
 var modulesLoader = require('../../../common/modulesLoader');
 
 var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;

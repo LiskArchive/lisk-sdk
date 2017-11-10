@@ -89,7 +89,7 @@ function sendTransaction (transaction, cb) {
 }
 
 function sendSignature (signature, transaction, cb) {
-	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpCallbackHelper.bind(null, cb));
+	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function creditAccount (address, amount, cb) {
@@ -178,24 +178,6 @@ function getBlocks (params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function getBlocksToWaitPromise () {
-	var count = 0;
-
-	return getUnconfirmedTransactionsPromise()
-		.then(function (res) {
-			count += res.count;
-			return getQueuedTransactionsPromise();
-		})
-		.then(function (res) {
-			count += res.count;
-			return getMultisignaturesTransactionsPromise();
-		})
-		.then(function (res) {
-			count += res.count;
-			return Math.ceil(count / constants.maxTxsPerBlock);
-		});
-}
-
 function waitForConfirmations (transactions, limitHeight) {
 	limitHeight = limitHeight || 10;
 
@@ -246,6 +228,17 @@ function getDappsCategories (params, cb) {
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
+}
+
+/**
+ * Validate if the validation response contains error for a specific param
+ *
+ * @param {object} res - Response object got from server
+ * @param {string} param - Param name to check
+ */
+function expectSwaggerParamError (res, param) {
+	res.body.message.should.be.eql('Validation errors');
+	res.body.errors.map(function (p) { return p.name; }).should.contain(param);
 }
 
 var getTransactionByIdPromise = node.Promise.promisify(getTransactionById);
@@ -313,9 +306,9 @@ module.exports = {
 	getBalance: getBalance,
 	getPublicKeyPromise: getPublicKeyPromise,
 	getBlocksPromise: getBlocksPromise,
-	getBlocksToWaitPromise: getBlocksToWaitPromise,
 	waitForConfirmations: waitForConfirmations,
 	getDappPromise: getDappPromise,
 	getDappsPromise: getDappsPromise,
-	getDappsCategoriesPromise: getDappsCategoriesPromise
+	getDappsCategoriesPromise: getDappsCategoriesPromise,
+	expectSwaggerParamError: expectSwaggerParamError
 };

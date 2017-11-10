@@ -746,6 +746,19 @@ describe('GET /api/transactions', function () {
 		});
 	});
 
+	describe('/count', function () {
+		it('should be ok', function () {
+			return getCountPromise('transactions').then(function (res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('confirmed').that.is.an('number');
+				node.expect(res).to.have.property('unconfirmed').that.is.an('number');
+				node.expect(res).to.have.property('unprocessed').that.is.an('number');
+				node.expect(res).to.have.property('unsigned').that.is.an('number');
+				node.expect(res).to.have.property('total').that.is.an('number');
+			});
+		});
+	});
+
 	describe('/queued/get?id=', function () {
 
 		it('using unknown id should be ok', function () {
