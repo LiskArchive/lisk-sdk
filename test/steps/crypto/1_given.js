@@ -167,13 +167,13 @@ export function aRecipientPassphraseWithPrivateKeyAndPublicKey() {
 }
 
 export function anEncryptedMessageWithANonce() {
-	const [encryptedMessage, nonce] = getQuotedStrings(this.test.parent.title);
-	const encryptedMessageWithNonce = {
-		encryptedMessage,
+	const [cipher, nonce] = getQuotedStrings(this.test.parent.title);
+	const cipherAndNonce = {
+		cipher,
 		nonce,
 	};
 
-	lisk.crypto.encryptMessageWithSecret.returns(encryptedMessageWithNonce);
+	lisk.crypto.encryptMessageWithSecret.returns(cipherAndNonce);
 
-	this.test.ctx.encryptedMessageWithNonce = encryptedMessageWithNonce;
+	this.test.ctx.cipherAndNonce = cipherAndNonce;
 }

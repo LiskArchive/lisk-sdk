@@ -36,7 +36,8 @@ const handlePasswordAndPassphrase = (iv, passphrase) => ({ password, data }) =>
 	cryptoModule.decryptPassphrase({
 		cipher: passphrase || getFirstLineFromString(data),
 		iv,
-	}, password);
+		password,
+	});
 
 export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 	const passphraseSource = options.passphrase;
