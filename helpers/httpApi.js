@@ -87,6 +87,7 @@ var middleware = {
 	 * @return {function} Sanitize middleware.
 	 */
 	sanitize: function (property, schema, cb) {
+		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
 		return function (req, res, next) {
 			req.sanitize(req[property], schema, function (err, report, sanitized) {
 				if (!report.isValid) {
@@ -214,6 +215,7 @@ function respondWithCode (res, err, response) {
 		return res.status(isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK).json(response);
 	}
 }
+
 /**
  * Register router in express app using default middleware.
  * @param {string} route
