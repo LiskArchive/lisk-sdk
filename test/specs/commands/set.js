@@ -14,23 +14,14 @@
  *
  */
 import os from 'os';
-import {
-	setUpFsStubs,
-	setUpEnvVariable,
-	restoreEnvVariable,
-} from '../../steps/utils';
+import { setUpCommandSet, tearDownCommandSet } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-const ENV_VARIABLE = 'NON_INTERACTIVE_MODE';
-
 describe('set command', () => {
-	before(setUpEnvVariable(ENV_VARIABLE));
-	beforeEach(() => {
-		setUpFsStubs();
-	});
-	afterEach(restoreEnvVariable(ENV_VARIABLE));
+	beforeEach(setUpCommandSet);
+	afterEach(tearDownCommandSet);
 	describe('Given a config', () => {
 		beforeEach(given.aConfig);
 		describe(`Given a directory path "${os.homedir()}/.lisky"`, () => {

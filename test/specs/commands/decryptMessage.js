@@ -13,15 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpInputStubs } from '../../steps/utils';
+import { setUpCommandDecryptMessage } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('decrypt message command', () => {
-	beforeEach(() => {
-		setUpInputStubs();
-	});
+	beforeEach(setUpCommandDecryptMessage);
 	describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
 		beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
 		describe('Given a crypto instance has been initialised', () => {

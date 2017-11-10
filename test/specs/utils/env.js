@@ -14,25 +14,13 @@
  *
  */
 import os from 'os';
-
-import {
-	setUpFsStubs,
-	setUpConsoleStubs,
-	setUpProcessStubs,
-} from '../../steps/utils';
+import { setUpUtilEnv } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-const CONFIG_PATH = '../../../src/utils/env';
-
 describe('env util', () => {
-	beforeEach(() => {
-		setUpFsStubs();
-		setUpConsoleStubs();
-		setUpProcessStubs();
-		delete require.cache[require.resolve(CONFIG_PATH)];
-	});
+	beforeEach(setUpUtilEnv);
 	describe('Given a default config', () => {
 		beforeEach(given.aDefaultConfig);
 		describe(`Given a directory path "${os.homedir()}/.lisky"`, () => {

@@ -13,15 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpHelperStubs } from '../../steps/utils';
+import { setUpUtilPrint } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('print utils', () => {
-	beforeEach(() => {
-		setUpHelperStubs();
-	});
+	beforeEach(setUpUtilPrint);
 	describe('#printResult', () => {
 		describe('Given a Vorpal instance with an active command that can log', () => {
 			beforeEach(given.aVorpalInstanceWithAnActiveCommandThatCanLog);

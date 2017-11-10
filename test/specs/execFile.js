@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	setUpChildProcessStubs,
-	setUpFsStubs,
-} from '../steps/utils';
+import { setUpExecFile } from '../steps/setup';
 import * as given from '../steps/1_given';
 import * as when from '../steps/2_when';
 import * as then from '../steps/3_then';
@@ -34,10 +31,7 @@ list blocks 100 200
 `;
 
 describe('execFile', () => {
-	beforeEach(() => {
-		setUpFsStubs();
-		setUpChildProcessStubs();
-	});
+	beforeEach(setUpExecFile);
 	describe('Given a Lisky instance', () => {
 		beforeEach(given.aLiskyInstance);
 		describe('Given a file path "/path/to/script.lisky"', () => {
