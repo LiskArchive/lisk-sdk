@@ -87,7 +87,7 @@ var middleware = {
 	 * @return {function} Sanitize middleware.
 	 */
 	sanitize: function (property, schema, cb) {
-		//ToDo: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
+		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
 		return function (req, res, next) {
 			req.sanitize(req[property], schema, function (err, report, sanitized) {
 				if (!report.isValid) {
