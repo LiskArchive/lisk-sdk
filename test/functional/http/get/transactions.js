@@ -191,7 +191,6 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-
 			it('using completely invalid fields should fail', function () {
 				var params = [
 					'blockId=invalid',
@@ -736,6 +735,7 @@ describe('GET /api/transactions', function () {
 		});
 
 		describe('count', function () {
+
 			it('should return count of the transactions with response', function () {
 				return getTransactionsPromise({}).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

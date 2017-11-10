@@ -655,7 +655,6 @@ Transactions.prototype.shared = {
 
 	postTransactions: function (req, cb) {
 		return modules.transport.shared.postTransactions(req.body, function (err, res) {
-
 			function mapOldResponseStructureToNew (res, cb) {
 				var error = null;
 				var response = null;
