@@ -22,7 +22,7 @@ import * as decryptMessage from '../../src/commands/decryptMessage';
 import * as decryptPassphrase from '../../src/commands/decryptPassphrase';
 import * as encryptMessage from '../../src/commands/encryptMessage';
 import * as encryptPassphrase from '../../src/commands/encryptPassphrase';
-import * as env from '../../src/commands/env';
+import * as config from '../../src/commands/config';
 import * as get from '../../src/commands/get';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
@@ -80,7 +80,7 @@ export const getActionCreator = actionName => ({
 	'create transaction create multisignature account': createTransactionCreateMultisignatureAccount.actionCreator,
 	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
 	'create transaction transfer': createTransactionTransfer.actionCreator,
-	env: env.actionCreator,
+	config: config.actionCreator,
 	get: get.actionCreator,
 	list: list.actionCreator,
 	set: set.actionCreator,

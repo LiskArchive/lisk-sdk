@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from './env';
+import config from './config';
 import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 

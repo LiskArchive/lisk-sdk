@@ -14,6 +14,6 @@
  *
  */
 import lisk from 'lisk-js';
-import config from './env';
+import config from './config';
 
 export default lisk.api(config.liskJS);

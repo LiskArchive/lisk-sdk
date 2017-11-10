@@ -13,21 +13,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../utils/env';
+import currentConfig from '../utils/config';
 import { createCommand } from '../utils/helpers';
 
-const description = `Print environmental configuration.
+const description = `Show current configuration.
 
-	Example: env
+	Example: config
 `;
 
-export const actionCreator = () => async () => Promise.resolve(config);
+export const actionCreator = () => async () => Promise.resolve(currentConfig);
 
-const env = createCommand({
-	command: 'env',
+const config = createCommand({
+	command: 'config',
+	alias: 'env',
 	description,
 	actionCreator,
-	errorPrefix: 'Could not get env',
+	errorPrefix: 'Could not get config',
 });
 
-export default env;
+export default config;

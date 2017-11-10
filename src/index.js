@@ -18,7 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import vorpal from 'vorpal';
 import { version } from '../package.json';
-import config from './utils/env';
+import config from './utils/config';
 
 const name = config.name || 'lisky';
 const lisky = vorpal();

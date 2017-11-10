@@ -21,9 +21,9 @@ export function theConfigIsLoaded() {
 	const isSpy = fs.readFileSync.restore;
 	if (isSpy) fs.readFileSync.restore();
 
-	const envPath = '../../../src/utils/env';
+	const configPath = '../../../src/utils/config';
 	// eslint-disable-next-line global-require, import/no-dynamic-require
-	this.test.ctx.config = require(envPath).default;
+	this.test.ctx.config = require(configPath).default;
 
 	if (isSpy) sandbox.stub(fs, 'readFileSync');
 }

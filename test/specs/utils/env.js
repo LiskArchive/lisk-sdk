@@ -19,7 +19,7 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('env util', () => {
+describe('config util', () => {
 	beforeEach(setUpUtilEnv);
 	describe('Given a default config', () => {
 		beforeEach(given.aDefaultConfig);
