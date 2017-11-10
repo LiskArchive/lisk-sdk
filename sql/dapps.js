@@ -9,7 +9,7 @@ var DappsSql = {
 
 	getExisting: 'SELECT "name", "link" FROM dapps WHERE ("name" = ${name} OR "link" = ${link}) AND "transactionId" != ${transactionId}',
 
-    // Need to fix "or" or "and" in query
+	// Need to fix "or" or "and" in query
 	list: function (params) {
 		return [
 			'SELECT "name", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
