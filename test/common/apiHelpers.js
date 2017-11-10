@@ -294,5 +294,6 @@ module.exports = {
 	getPublicKeyPromise: getPublicKeyPromise,
 	getBlocksPromise: getBlocksPromise,
 	waitForConfirmations: waitForConfirmations,
-	getDappsPromise: getDappsPromise
+	getDappsPromise: getDappsPromise,
+	expectSwaggerParamError: expectSwaggerParamError
 };
