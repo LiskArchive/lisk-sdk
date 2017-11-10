@@ -25,7 +25,7 @@ module.exports = function create (fittingDef, bagpipes) {
 				links: {}
 			};
 		} else if (_.isObject(context.input)) {
-			if (Object.keys(context.input).sort === ['data', 'links', 'meta']) {
+			if (Object.keys(context.input).sort() === ['data', 'links', 'meta']) {
 				output = context.input;
 			} else {
 				output = {
