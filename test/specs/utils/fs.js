@@ -13,11 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpUtilFs } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('fs module', () => {
+	beforeEach(setUpUtilFs);
 	describe('#readJsonSync', () => {
 		describe('Given there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"', () => {
 			beforeEach(given.thereIsAFileWithUtf8EncodedJSONContentsAtPath);

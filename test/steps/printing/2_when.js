@@ -19,29 +19,6 @@ import {
 } from '../../../src/utils/helpers';
 import { printResult } from '../../../src/utils/print';
 import tablify from '../../../src/utils/tablify';
-import {
-	getQuotedStrings,
-} from '../utils';
-
-const tablifyToSpy = require('../../../src/utils/tablify');
-
-export function theUserExecutesTheCommand() {
-	const { vorpal, command } = this.test.ctx;
-	sandbox.spy(tablifyToSpy, 'default');
-	const returnValue = vorpal.exec(command);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
-}
-
-export function theUserExecutesTheCommandWithOptions() {
-	const { vorpal, command } = this.test.ctx;
-	sandbox.spy(JSON, 'stringify');
-	this.test.ctx.commandOptions = getQuotedStrings(this.test.parent.title);
-	const commandWithOptions = `${command} ${this.test.ctx.commandOptions.join(' ')}`;
-	const returnValue = vorpal.exec(commandWithOptions);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
-}
 
 export function theResultIsPrinted() {
 	const { vorpal, result, options } = this.test.ctx;

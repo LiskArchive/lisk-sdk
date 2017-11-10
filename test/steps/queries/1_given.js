@@ -38,10 +38,11 @@ export function aQueryInstanceHasBeenInitialised() {
 		some: 'result',
 		testing: 123,
 	};
-	sandbox.stub(queryInstance, 'getAccount').resolves({ account: queryResult });
-	sandbox.stub(queryInstance, 'getBlock').resolves({ block: queryResult });
-	sandbox.stub(queryInstance, 'getDelegate').resolves({ delegate: queryResult });
-	sandbox.stub(queryInstance, 'getTransaction').resolves({ transaction: queryResult });
+
+	queryInstance.getAccount.resolves({ account: queryResult });
+	queryInstance.getBlock.resolves({ block: queryResult });
+	queryInstance.getDelegate.resolves({ delegate: queryResult });
+	queryInstance.getTransaction.resolves({ transaction: queryResult });
 
 	this.test.ctx.queryResult = queryResult;
 	this.test.ctx.queryInstance = queryInstance;

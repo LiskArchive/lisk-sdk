@@ -13,11 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpUtilCrypto } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Crypto class', () => {
+	beforeEach(setUpUtilCrypto);
 	describe('Given a crypto instance', () => {
 		beforeEach(given.aCryptoInstance);
 		it('Then the crypto instance should have name "Crypto"', then.theCryptoInstanceShouldHaveName);

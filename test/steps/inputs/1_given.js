@@ -143,7 +143,7 @@ export function thePassphraseAndThePasswordAreProvidedViaStdIn() {
 export function thePasswordIsProvidedViaStdIn() {
 	const { password } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(password));
+	readline.createInterface.returns(createFakeInterface(password));
 	if (typeof inputUtils.getStdIn.resolves === 'function') {
 		inputUtils.getStdIn.resolves({ password });
 	}
@@ -259,13 +259,13 @@ export function someData() {
 }
 
 export function nothingIsProvidedViaStdIn() {
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(''));
+	readline.createInterface.returns(createFakeInterface(''));
 }
 
 export function thePasswordAndTheEncryptedPassphraseAreProvidedViaStdIn() {
 	const { password, cipherAndIv: { cipher }, stdInInputs = [] } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(`${password}\n${cipher}`));
+	readline.createInterface.returns(createFakeInterface(`${password}\n${cipher}`));
 	if (typeof inputUtils.getStdIn.resolves === 'function') {
 		inputUtils.getStdIn.resolves({ passphrase: password, data: cipher });
 	}
@@ -280,7 +280,7 @@ export function thePasswordAndTheEncryptedPassphraseAreProvidedViaStdIn() {
 export function theEncryptedPassphraseIsProvidedViaStdIn() {
 	const { cipherAndIv: { cipher }, stdInInputs = [] } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(cipher));
+	readline.createInterface.returns(createFakeInterface(cipher));
 	if (typeof inputUtils.getStdIn.resolves === 'function') {
 		inputUtils.getStdIn.resolves({ data: cipher });
 	}
@@ -292,7 +292,7 @@ export function theEncryptedPassphraseIsProvidedViaStdIn() {
 export function thePassphraseIsProvidedViaStdIn() {
 	const { passphrase, stdInInputs = [] } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(passphrase));
+	readline.createInterface.returns(createFakeInterface(passphrase));
 	if (typeof inputUtils.getStdIn.resolves === 'function') {
 		inputUtils.getStdIn.resolves({ passphrase });
 	}
@@ -304,7 +304,7 @@ export function thePassphraseIsProvidedViaStdIn() {
 export function theSecondPassphraseIsProvidedViaStdIn() {
 	const { secondPassphrase } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(secondPassphrase));
+	readline.createInterface.returns(createFakeInterface(secondPassphrase));
 	if (typeof inputUtils.getStdIn.resolves === 'function') {
 		inputUtils.getStdIn.resolves({ secondPassphrase });
 	}
@@ -315,7 +315,7 @@ export function theSecondPassphraseIsProvidedViaStdIn() {
 export function theDataIsProvidedViaStdIn() {
 	const { data } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(data));
+	readline.createInterface.returns(createFakeInterface(data));
 	if (typeof inputUtils.getStdIn.resolves === 'function') {
 		inputUtils.getStdIn.resolves({ data });
 	}
@@ -337,7 +337,7 @@ export function theSecondPassphraseAndTheDataAreProvidedViaStdIn() {
 export function thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn() {
 	const { passphrase, secondPassphrase, password, data } = this.test.ctx;
 
-	sandbox.stub(readline, 'createInterface').returns(createFakeInterface(`${passphrase}\n${secondPassphrase}\n${password}\n${data}`));
+	readline.createInterface.returns(createFakeInterface(`${passphrase}\n${secondPassphrase}\n${password}\n${data}`));
 
 	this.test.ctx.passphraseIsRequired = true;
 	this.test.ctx.secondPassphraseIsRequired = true;

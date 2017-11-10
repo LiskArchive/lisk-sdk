@@ -28,5 +28,5 @@ export function anInvalidMnemonicPassphrase() {
 
 export function thePassphraseIsGeneratedByTheCreateMnemonicPassphraseFunction() {
 	const { passphrase } = this.test.ctx;
-	sandbox.stub(mnemonicInstance, 'createMnemonicPassphrase').returns(passphrase);
+	mnemonicInstance.createMnemonicPassphrase.returns(passphrase);
 }
