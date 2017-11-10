@@ -668,6 +668,7 @@ Transactions.prototype.shared = {
 						status: 'Transaction(s) accepted'
 					};
 				}
+
 				return setImmediate(cb, error, response);
 			}
 
