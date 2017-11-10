@@ -328,7 +328,7 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-			it('using one senderId should be return transactions', function () {
+			it('using one senderId should return transactions', function () {
 				var params = [
 					'senderId=' + node.gAccount.address,
 				];
@@ -344,7 +344,7 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-			it('using multiple senderId should be return transactions', function () {
+			it('using multiple senderId should return transactions', function () {
 				var params = [
 					'senderId=' + node.gAccount.address,
 					'senderId=' + node.eAccount.address
@@ -374,7 +374,7 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-			it('using one recipientId should be return transactions', function () {
+			it('using one recipientId should return transactions', function () {
 				var params = [
 					'recipientId=' + node.gAccount.address,
 				];
@@ -390,7 +390,7 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-			it('using multiple recipientId should be return transactions', function () {
+			it('using multiple recipientId should return transactions', function () {
 				var params = [
 					'recipientId=' + node.gAccount.address,
 					'recipientId=' + node.eAccount.address
