@@ -253,6 +253,7 @@ describe('GET /api/transactions', function () {
 				var params = [
 					'id=' + undefined
 				];
+
 				return getTransactionsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
 					node.expect(res).to.have.nested.property('body.message');
@@ -322,6 +323,7 @@ describe('GET /api/transactions', function () {
 				var params = [
 					'senderId=' + undefined
 				];
+
 				return getTransactionsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
 					node.expect(res).to.have.nested.property('body.message');
@@ -368,6 +370,7 @@ describe('GET /api/transactions', function () {
 				var params = [
 					'recipientId=' + undefined
 				];
+
 				return getTransactionsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
 					node.expect(res).to.have.nested.property('body.message');
@@ -564,6 +567,7 @@ describe('GET /api/transactions', function () {
 					params = [
 						'orderBy=' + sortField
 					];
+
 					return getTransactionsPromise(params).then(function (res) {
 						node.expect(res).to.have.property('status').to.equal(200);
 						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
