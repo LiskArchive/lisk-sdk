@@ -17,10 +17,9 @@ function NodeController (scope) {
 }
 
 NodeController.getConstants = function (context, next) {
-	modules.node.shared.getConstants(null, function (err, data){
+	modules.node.shared.getConstants(null, function (err, data) {
 		try {
-
-			if(err) { return next(err); }
+			if (err) { return next(err); }
 
 			data = _.cloneDeep(data);
 
@@ -47,9 +46,9 @@ NodeController.getConstants = function (context, next) {
 };
 
 NodeController.getStatus = function (context, next) {
-	modules.node.shared.getStatus(null, function (err, data){
+	modules.node.shared.getStatus(null, function (err, data) {
 		try {
-			if(err) { return next(err); }
+			if (err) { return next(err); }
 
 			data = _.cloneDeep(data);
 
