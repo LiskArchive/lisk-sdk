@@ -41,6 +41,5 @@ module.exports = function create (fittingDef, bagpipes) {
 		Object.defineProperty(err, 'message', { enumerable: true }); // include message property in response
 		delete(context.error);
 		next(null, JSON.stringify(err));
-
 	};
 };

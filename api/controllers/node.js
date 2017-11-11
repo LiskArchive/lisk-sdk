@@ -13,7 +13,7 @@ var modules;
  * @param {scope} scope - App instance.
  */
 function NodeController (scope) {
-	modules = scope.modules; 
+	modules = scope.modules;
 }
 
 NodeController.getConstants = function (context, next) {
