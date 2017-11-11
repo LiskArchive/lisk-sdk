@@ -23,7 +23,7 @@ NodeController.getConstants = function (context, next) {
 
 			data = _.cloneDeep(data);
 
-			// Typecast required integer or bignum attributes while sending data in API
+			// Perform required typecasts for integer or bignum attributes when returning a response to the API
 			data.supply = data.supply.toString();
 			data.milestone = data.milestone.toString();
 			data.reward = data.reward.toString();
