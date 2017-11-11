@@ -29,8 +29,10 @@ var queryFilesCommands = {};
  * @private
  * @param {Object} pgp - pg promise
  * @param {Object} db - pg connection
+ * @param {Object} logger instance
  */
-function Migrator (pgp, db) {
+function Migrator (pgp, db, logger) {
+	var self = this;
 
 	/**
 	 * Gets one record from `migrations` trable
@@ -117,47 +119,41 @@ function Migrator (pgp, db) {
 	};
 
 	/**
-	 * Creates and execute a db query for each pending migration.
+	 * Creates and execute a db query for each pending migration, insert migration to database.
 	 * @method
 	 * @param {Array} pendingMigrations 
-	 * @param {function} waterCb - Callback function
-	 * @return {function} waterCb with error | appliedMigrations
+	 * @param {function} cb - Callback function
+	 * @return {function} cb with error
 	 */
-	this.applyPendingMigrations = function (pendingMigrations, waterCb) {
-		var appliedMigrations = [];
-
-
+	this.applyPendingMigrations = function (pendingMigrations, cb) {
 		async.eachSeries(pendingMigrations, function (file, eachCb) {
 			if (!queryFilesCommands[file.path]) {
 				queryFilesCommands[file.path] = new pgp.QueryFile(file.path, {minify: true});
 			}
+			logger.info('Performing database migration: ' + file.id.toString() + ' - ' + file.name + '...');
 			db.query(queryFilesCommands[file.path]).then(function () {
-				appliedMigrations.push(file);
-				return eachCb();
+				self.insertAppliedMigration(file, eachCb);
 			}).catch(function (err) {
 				return eachCb(err);
 			});
 		}, function (err) {
-			return waterCb(err, appliedMigrations);
+			return cb(err);
 		});
 	};
 
 	/**
-	 * Inserts into `migrations` table the previous applied migrations.
+	 * Inserts into `migrations` table the previous applied migration.
 	 * @method
-	 * @param {Array} appliedMigrations 
-	 * @param {function} waterCb - Callback function
-	 * @return {function} waterCb with error
+	 * @param {Object} file - migration file details
+	 * @param {function} cb - Callback function
+	 * @return {function} cb with error
 	 */
-	this.insertAppliedMigrations = function (appliedMigrations, waterCb) {
-		async.eachSeries(appliedMigrations, function (file, eachCb) {
-			db.query('INSERT INTO migrations(id, name) VALUES($1, $2) ON CONFLICT DO NOTHING', [file.id.toString(), file.name]).then(function () {
-				return eachCb();
-			}).catch(function (err) {
-				return eachCb(err);
-			});
-		}, function (err) {
-			return waterCb(err);
+	this.insertAppliedMigration = function (file, cb) {
+		db.query('INSERT INTO migrations(id, name) VALUES($1, $2)', [file.id.toString(), file.name]).then(function () {
+			logger.info('Database migration applied: ' + file.id.toString() + ' - ' + file.name);
+			return cb();
+		}).catch(function (err) {
+			return cb(err);
 		});
 	};
 
@@ -217,16 +213,19 @@ module.exports.connect = function (config, logger, cb) {
 	pgp.end();
 	db = pgp(config);
 
-	var migrator = new Migrator(pgp, db);
+	var migrator = new Migrator(pgp, db, logger);
 
 	async.waterfall([
 		migrator.checkMigrations,
 		migrator.getLastMigration,
 		migrator.readPendingMigrations,
 		migrator.applyPendingMigrations,
-		migrator.insertAppliedMigrations,
 		migrator.applyRuntimeQueryFile
 	], function (err) {
+		if (err) {
+			logger.fatal('Database migrations failed, stopping application...', err);
+			process.exit(0);
+		}
 		return cb(err, db);
 	});
 };
