@@ -78,7 +78,7 @@ __private.list = function (filter, cb) {
 	var params = {};
 	var where = [];
 	var allowedFieldsMap = {
-		id:									 '"t_id" = ${id}',
+		id:                  '"t_id" = ${id}',
 		blockId:             '"t_blockId" = ${blockId}',
 		fromHeight:          '"b_height" >= ${fromHeight}',
 		toHeight:            '"b_height" <= ${toHeight}',
@@ -655,7 +655,6 @@ Transactions.prototype.shared = {
 
 	postTransactions: function (req, cb) {
 		return modules.transport.shared.postTransactions(req.body, function (err, res) {
-
 			function mapOldResponseStructureToNew (res, cb) {
 				var error = null;
 				var response = null;
@@ -669,6 +668,7 @@ Transactions.prototype.shared = {
 						status: 'Transaction(s) accepted'
 					};
 				}
+
 				return setImmediate(cb, error, response);
 			}
 

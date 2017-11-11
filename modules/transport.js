@@ -561,7 +561,6 @@ Transport.prototype.shared = {
 
 	postTransactions: function (query, cb) {
 		library.schema.validate(query, schema.transactions, function (err) {
-
 			if (err) {
 				return setImmediate(cb, null, {success: false, message: err});
 			}

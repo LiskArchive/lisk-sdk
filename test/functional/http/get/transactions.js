@@ -116,7 +116,7 @@ describe('GET /api/transactions', function () {
 
 		describe('with wrong input', function () {
 
-			it('using valid array-like parameters should be fail', function () {
+			it('using valid array-like parameters should fail', function () {
 				var limit = 10;
 				var offset = 0;
 				var orderBy = 'amount:asc';
@@ -191,7 +191,6 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-
 			it('using completely invalid fields should fail', function () {
 				var params = [
 					'blockId=invalid',
@@ -254,6 +253,7 @@ describe('GET /api/transactions', function () {
 				var params = [
 					'id=' + undefined
 				];
+
 				return getTransactionsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
 					node.expect(res).to.have.nested.property('body.message');
@@ -323,13 +323,14 @@ describe('GET /api/transactions', function () {
 				var params = [
 					'senderId=' + undefined
 				];
+
 				return getTransactionsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
 					node.expect(res).to.have.nested.property('body.message');
 				});
 			});
 
-			it('using one senderId should be return transactions', function () {
+			it('using one senderId should return transactions', function () {
 				var params = [
 					'senderId=' + node.gAccount.address,
 				];
@@ -345,7 +346,7 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-			it('using multiple senderId should be return transactions', function () {
+			it('using multiple senderId should return transactions', function () {
 				var params = [
 					'senderId=' + node.gAccount.address,
 					'senderId=' + node.eAccount.address
@@ -369,13 +370,14 @@ describe('GET /api/transactions', function () {
 				var params = [
 					'recipientId=' + undefined
 				];
+
 				return getTransactionsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
 					node.expect(res).to.have.nested.property('body.message');
 				});
 			});
 
-			it('using one recipientId should be return transactions', function () {
+			it('using one recipientId should return transactions', function () {
 				var params = [
 					'recipientId=' + node.gAccount.address,
 				];
@@ -391,7 +393,7 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-			it('using multiple recipientId should be return transactions', function () {
+			it('using multiple recipientId should return transactions', function () {
 				var params = [
 					'recipientId=' + node.gAccount.address,
 					'recipientId=' + node.eAccount.address
@@ -565,6 +567,7 @@ describe('GET /api/transactions', function () {
 					params = [
 						'orderBy=' + sortField
 					];
+
 					return getTransactionsPromise(params).then(function (res) {
 						node.expect(res).to.have.property('status').to.equal(200);
 						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
@@ -736,7 +739,8 @@ describe('GET /api/transactions', function () {
 		});
 
 		describe('count', function () {
-			it('should be count of the transactions with response', function () {
+
+			it('should return count of the transactions with response', function () {
 				return getTransactionsPromise({}).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
@@ -747,6 +751,7 @@ describe('GET /api/transactions', function () {
 	});
 
 	describe('/count', function () {
+
 		it('should be ok', function () {
 			return getCountPromise('transactions').then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
@@ -763,7 +768,7 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getQueuedTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(false);
+				node.expect(res).to.have.property('success').to.equal(false);
 				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
@@ -779,7 +784,7 @@ describe('GET /api/transactions', function () {
 				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 				return getQueuedTransactionPromise(transaction.id).then(function (result) {
-					node.expect(result).to.have.property('success').to.be.equal(true);
+					node.expect(result).to.have.property('success').to.equal(true);
 					node.expect(result).to.have.property('transaction').that.is.an('object');
 					node.expect(result.transaction.id).to.equal(transaction.id);
 				});
@@ -791,7 +796,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getQueuedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(true);
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});
@@ -802,7 +807,7 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getMultisignaturesTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(false);
+				node.expect(res).to.have.property('success').to.equal(false);
 				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
@@ -812,7 +817,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getMultisignaturesTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(true);
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});
@@ -840,7 +845,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getUnconfirmedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.equal(true);
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});

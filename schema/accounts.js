@@ -1,47 +1,10 @@
 'use strict';
 
+var constants = require('../helpers/constants.js');
+
 module.exports = {
-	getBalance: {
-		id: 'accounts.getBalance',
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			}
-		},
-		required: ['address']
-	},
-	getPublicKey: {
-		id: 'accounts.getPublickey',
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			}
-		},
-		required: ['address']
-	},
-	getDelegates: {
-		id: 'accounts.getDelegates',
-		type: 'object',
-		properties: {
-			address: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22
-			}
-		},
-		required: ['address']
-	},
-	getAccount: {
-		id: 'accounts.getAccount',
+	getAccounts: {
+		id: 'accounts.getAccounts',
 		type: 'object',
 		properties: {
 			address: {
@@ -53,17 +16,24 @@ module.exports = {
 			publicKey: {
 				type: 'string',
 				format: 'publicKey'
-			}
-		}
-	},
-	top: {
-		id: 'accounts.top',
-		type: 'object',
-		properties: {
+			},
+			secondPublicKey: {
+				type: 'string',
+				format: 'publicKey'
+			},
+			username: {
+				type: 'string',
+				format: 'username',
+				minLength: 1,
+				maxLength: 20
+			},
+			orderBy: {
+				type: 'string'
+			},
 			limit: {
 				type: 'integer',
-				minimum: 0,
-				maximum: 100
+				minimum: 1,
+				maximum: constants.activeDelegates
 			},
 			offset: {
 				type: 'integer',

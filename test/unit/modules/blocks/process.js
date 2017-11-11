@@ -122,7 +122,7 @@ describe('blocks/process', function () {
 				}
 
 				blocks.lastBlock.set(loadedBlock);
-				expect(loadedBlock.height).to.be.equal(2);
+				expect(loadedBlock.height).to.equal(2);
 				done();
 			});
 		});
@@ -134,7 +134,7 @@ describe('blocks/process', function () {
 				}
 
 				blocks.lastBlock.set(loadedBlock);
-				expect(loadedBlock.height).to.be.equal(3);
+				expect(loadedBlock.height).to.equal(3);
 				done();
 			});
 		});

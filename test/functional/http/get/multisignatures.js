@@ -16,7 +16,7 @@ describe('GET /api/multisignatures/', function () {
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		//Crediting accounts
+		// Crediting accounts
 		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, node.gAccount.password);
 		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
@@ -25,7 +25,6 @@ describe('GET /api/multisignatures/', function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
-				// This is a global transaction
 				transaction = node.lisk.multisignature.createMultisignature(scenario.account.password, null, scenario.keysgroup, 1, 2);
 				return sendTransactionPromise(transaction);
 			})
