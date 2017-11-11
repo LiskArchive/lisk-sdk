@@ -33,7 +33,7 @@ module.exports = function create (fittingDef, bagpipes) {
 			}
 
 			err = {
-				message: 'An unexpected error seems to have occurred. You can try again or contact us if problem persist.'
+				message: 'An unexpected error occurred while handling this request'
 			};
 		}
 
