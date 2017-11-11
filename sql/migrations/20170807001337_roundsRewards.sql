@@ -3,10 +3,6 @@
  * Create table 'rounds_exceptions', calculate rewards & populate it, set triggers
  */
 
--- Perform garbage-collect on 'blocks' table, update statistics for query planner
--- Need to be executed to keep high migration performance if migration is performed right after restore from snapshot
-VACUUM(FULL, ANALYZE) blocks;
-
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS rounds_exceptions (
