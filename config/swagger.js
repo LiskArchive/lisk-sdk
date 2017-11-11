@@ -40,10 +40,10 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
 		startWithWarnings: false
-	  };
+	};
 
-	  SwaggerRunner.create(swaggerConfig, function (err, runner) {
-		
+		SwaggerRunner.create(swaggerConfig, function (err, runner) {
+
 		if (err) {
 			// Some error occurred in configuring the swagger
 			if (err.validationErrors) {
@@ -69,8 +69,8 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 				logger.error(validationResponse.errors[0].errors);
 			}
 		});
-				
-		// install middleware
+
+		// Install middleware
 		swaggerExpress.register(app);
 
 		// To be used in test cases or getting configuration runtime
