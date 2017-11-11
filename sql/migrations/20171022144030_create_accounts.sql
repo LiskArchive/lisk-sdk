@@ -30,9 +30,9 @@ CREATE OR REPLACE FUNCTION protect_accounts_balance() RETURNS TRIGGER LANGUAGE P
 		SELECT TRUE INTO result FROM transactions WHERE block_id = genesis_block_id AND type = 0 AND sender_address = NEW.address GROUP BY sender_address;
 
 		IF result IS NOT TRUE THEN
-			RAISE check_violation USING MESSAGE = 'Transaction invalid - account balance cannot go negative';
+			RAISE check_violation USING MESSAGE = 'Check violation - account balance cannot go negative';
 		END IF;
-	RETURN NULL;
+	RETURN NEW;
 END $$;
 
 -- Create trigger that will execute 'protect_accounts_balance' function before update of account if update will result with negative balance
