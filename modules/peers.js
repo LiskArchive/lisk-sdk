@@ -649,6 +649,10 @@ Peers.prototype.shared = {
 	getPeers: function (parameters, cb) {
 		parameters.normalized = true;
 		return setImmediate(cb, null, __private.getByFilter(parameters));
+	},
+
+	getPeersCount: function () {
+		return library.logic.peers.list(true).length;
 	}
 };
 

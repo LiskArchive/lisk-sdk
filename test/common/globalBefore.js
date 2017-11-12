@@ -65,12 +65,12 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 			.then(function (res) {
 				retries -= 1;
 				res = JSON.parse(res.body);
-				if (!res.loaded && retries >= 0) {
+				if (!res.data.loaded && retries >= 0) {
 					return setTimeout(function () {
 						fetchBlockchainStatus();
 					}, timeout);
 				}
-				else if (res.loaded) {
+				else if (res.data.loaded) {
 					return cb();
 				}
 				return cb('Failed to load blockchain');

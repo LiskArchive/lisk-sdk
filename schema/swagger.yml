@@ -1,22 +1,21 @@
 swagger: '2.0'
+
 info:
-  description: Lisk API Documentation 
-  version: "1.0.19"
-  title: Lisk API Documentation 
-  # Get account information by specified criteria
+  description: Lisk API Documentation
+  title: Lisk API Documentation
+  version: '1.0.19'
   contact:
     email: isabella@lightcurve.io
-
   license:
     name: GPL v3.0
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-# all paths will be relative to the basePath specified
+# All paths relative to specified basePath
 # basePath: /v1
 
 basePath: /api
 
-# tags are used for organizing operations
+# Tags for organizing operations
 tags:
 - name: Accounts
   description: Account related API calls
@@ -27,8 +26,8 @@ tags:
 - name: Delegates
   description: Delegates related API calls
 - name: Delegates (Private)
-  description: Private API calls only avaiable to localhost/Whitelist
-- name: Node 
+  description: Private API calls only available to localhost/whitelist
+- name: Node
   description: Node related API calls
 - name: Peers
   description: Peers related API Calls
@@ -50,10 +49,9 @@ paths:
     get:
       tags:
       - Peers
-      summary: requests Peers data
+      summary: Requests peers data
       operationId: getPeers
-      description:
-        This API call returns Peers related data
+      description: Returns peers related data
       produces:
         - application/json
       parameters:
@@ -79,20 +77,34 @@ paths:
             - version:desc
       responses:
         200:
-          description: Peers List
+          description: Peers list
           schema:
-            type: object
-            properties:
-              peers:
-                type: array
-                items:
-                  $ref: '#/definitions/Peer'
-              totalReturned:
-                type: integer
-                example: 1
-              totalCount:
-                type: integer
-                example: 100
+            allOf:
+            - $ref: '#/definitions/AbstractResponse'
+            - properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Peer'
+                meta:
+                  type: object
+                  required:
+                    - offset
+                    - limit
+                    - total
+                  properties:
+                    offset:
+                      description: Offset value for the resultset
+                      type: integer
+                      example: 0
+                    limit:
+                      description: Limit applied to the resultset
+                      type: integer
+                      example: 100
+                    total:
+                      description: Total number of peers available
+                      type: integer
+                      example: 100
         400:
           description: Malformed query or parameters
           schema:
@@ -100,7 +112,11 @@ paths:
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
 
   # Node
   /node/constants:
@@ -108,41 +124,56 @@ paths:
     get:
       tags:
       - Node
-      summary: requests Constants data
+      summary: Requests constants data
       operationId: getConstants
-      description:
-        This API call returns all current constants data on the system
+      description: Returns all current constants data on the system
       produces:
       - application/json
       responses:
         200:
-          description: Node constants
+          description: Node constants response
           schema:
-            $ref: '#/definitions/NodeConstants'
+            allOf:
+            - $ref: '#/definitions/AbstractResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/NodeConstants'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /node/status:
     x-swagger-router-controller: node
     get:
       tags:
       - Node
-      summary: requests Status data
+      summary: Requests status data
       operationId: getStatus
-      description:
-        This API call returns all current constants data on the system
+      description: Returns all current constants data on the system
       produces:
       - application/json
       responses:
         200:
-          description: Node constants
+          description: Node status response
           schema:
-            $ref: '#/definitions/NodeStatus'
+            allOf:
+            - $ref: '#/definitions/AbstractResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/NodeStatus'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
 
 parameters:
   ip:
@@ -183,7 +214,7 @@ parameters:
   state:
     name: state
     in: query
-    description: Current state fo the network
+    description: Current state of the network
     type: integer
     format: int32
     minimum: 0
@@ -209,13 +240,15 @@ parameters:
     format: int32
     minimum: 1
     maximum: 100
+    default: 10
   offset:
     name: offset
     in: query
-    description: Sepcify offset for the result set
+    description: Specify offset for the result set
     type: integer
     format: int32
     minimum: 0
+    default: 0
 
 definitions:
   Peer:
@@ -365,6 +398,7 @@ definitions:
         maxLength: 16
       fees:
         $ref: '#/definitions/Fees'
+
   NodeStatus:
     type: object
     required:
@@ -399,8 +433,33 @@ definitions:
         type: boolean
         example: false
 
-# Response Code Templates
-  ResponseCode429:
+  AbstractResponse:
+    type: object
+    required:
+      - meta
+      - data
+      - links
+    properties:
+      meta:
+        type: object
+        description: Additional information related to the data associated in response
+      data:
+        description: Actual data which processed in response
+      links:
+        type: object
+        description: Additional links to the entities associated in response
+
+  UnexpectedError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  RequestLimitError:
     type: object
     properties:
       error:
@@ -409,21 +468,20 @@ definitions:
 
   ParamErrorResponse:
     type: object
-    description: The response generated in case of parameters validation
+    description: Response generated in case of parameters validation
     required:
       - message
       - errors
     properties:
       message:
         type: string
-        description: A message stating some valdiation error occured
-        example: Validation Errors
+        description: Message stating some valdiation error occurred
+        example: Validation errors
       errors:
         type: array
-        description: An array of individual parameter errors
+        description: Array of individual parameter errors
         items:
           $ref: '#/definitions/ParamError'
-
 
   ParamError:
     type: object
@@ -436,7 +494,7 @@ definitions:
     properties:
       code:
         type: string
-        description: A valid error code explaining error
+        description: Valid error code explaining error
         example: INVALID_REQUEST_PARAMETER
       name:
         type: string
@@ -448,8 +506,8 @@ definitions:
         example: query
       message:
         type: string
-        description: A detailed message explaining the error
-        example: Invalid parameter (offset) Value failed JSON Schema validation
+        description: Detailed message explaining the error
+        example: Invalid parameter (offset) value failed JSON schema validation
       errors:
         type: array
         description: Array of individual validation error for a particular param
@@ -465,11 +523,11 @@ definitions:
     properties:
       code:
         type: string
-        description: A valid error code explaining error
+        description: Valid error code explaining error
         example: MINIMUM
       message:
         type: string
-        description: A detailed message explaining the error
+        description: Detailed message explaining error
         example: Value -1 is less than minimum 0
       description:
         type: string

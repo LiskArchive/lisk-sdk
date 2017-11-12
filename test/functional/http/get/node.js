@@ -13,7 +13,7 @@ describe('GET /node', function () {
 		before(function () {
 			return endPoint.makeRequest()
 				.then(function (response) {
-					constantsResponse = response.body;
+					constantsResponse = response.body.data;
 				});
 		});
 

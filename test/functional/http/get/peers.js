@@ -6,7 +6,7 @@ var WSServer = require('../../../common/wsServerMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
 
-describe('GET /api/peers', function () {
+describe('GET /peers', function () {
 
 	var peersEndpoint = new swaggerEndpoint('GET /peers');
 	var wsServer1;
@@ -83,7 +83,7 @@ describe('GET /api/peers', function () {
 					params[param] = val;
 					return peersEndpoint.makeRequest(params, 200).then(function (res) {
 						if(paramSet[param].checkResponse) {
-							res.body.peers.forEach(function (peer) {
+							res.body.data.forEach(function (peer) {
 								peer[param].should.be.eql(val);
 							});
 						}
@@ -98,35 +98,35 @@ describe('GET /api/peers', function () {
 		it('using httpPort = 4000 should return the result', function () {
 			return peersEndpoint.makeRequest({httpPort: validHeaders.httpPort}, 200)
 				.then(function (res) {
-					res.body.peers[0].httpPort.should.be.eql(node.config.httpPort);
+					res.body.data[0].httpPort.should.be.eql(node.config.httpPort);
 				});
 		});
 
 		it('using state = 2 should return the result', function () {
 			return peersEndpoint.makeRequest({state: validHeaders.status}, 200)
 				.then(function (res) {
-					res.body.peers[0].state.should.be.eql(2);
+					res.body.data[0].state.should.be.eql(2);
 				});
 		});
 
 		it('using version = "0.0.0a" should return the result', function () {
 			return peersEndpoint.makeRequest({version: validHeaders.version}, 200)
 				.then(function (res) {
-					res.body.peers[0].version.should.be.eql(validHeaders.version);
+					res.body.data[0].version.should.be.eql(validHeaders.version);
 				});
 		});
 
 		it('using valid broadhash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d" should return the result', function () {
 			return peersEndpoint.makeRequest({broadhash: validHeaders.broadhash}, 200)
 				.then(function (res) {
-					res.body.peers[0].broadhash.should.be.eql(validHeaders.broadhash);
+					res.body.data[0].broadhash.should.be.eql(validHeaders.broadhash);
 				});
 		});
 
 		it('using sort = "version:asc" should return results in ascending order by version', function () {
 			return peersEndpoint.makeRequest({sort: 'version:asc'}, 200)
 				.then(function (res) {
-					var versions = _(res.body.peers).map('version').value();
+					var versions = _(res.body.data).map('version').value();
 					_.clone(versions).sort().should.be.eql(versions);
 				});
 		});
@@ -134,7 +134,7 @@ describe('GET /api/peers', function () {
 		it('using sort = "version:desc" should return results in descending order by version', function () {
 			return peersEndpoint.makeRequest({sort: 'version:desc'}, 200)
 				.then(function (res) {
-					var versions = _(res.body.peers).map('version').value();
+					var versions = _(res.body.data).map('version').value();
 					_.clone(versions).sort().reverse().should.be.eql(versions);
 				});
 		});
@@ -145,14 +145,14 @@ describe('GET /api/peers', function () {
 
 			return peersEndpoint.makeRequest({limit: limit}, 200)
 				.then(function (res) {
-					res.body.peers.length.should.be.at.most(limit);
-					firstObject = res.body.peers[0];
+					res.body.data.length.should.be.at.most(limit);
+					firstObject = res.body.data[0];
 
 					return peersEndpoint.makeRequest({limit: limit, offset: 1}, 200);
 				})
 				.then(function (res) {
-					res.body.peers.length.should.be.at.most(limit);
-					res.body.peers[0].should.not.equal(firstObject);
+					res.body.data.length.should.be.at.most(limit);
+					res.body.data[0].should.not.equal(firstObject);
 				});
 		});
 	});
