@@ -10,12 +10,12 @@ info:
     name: GPL v3.0
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-# all paths will be relative to the basePath specified
+# All paths relative to specified basePath
 # basePath: /v1
 
 basePath: /api
 
-# tags are used for organizing operations
+# Tags for organizing operations
 tags:
 - name: Accounts
   description: Account related API calls
