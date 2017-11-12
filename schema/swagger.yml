@@ -26,7 +26,7 @@ tags:
 - name: Delegates
   description: Delegates related API calls
 - name: Delegates (Private)
-  description: Private API calls only avaiable to localhost/Whitelist
+  description: Private API calls only available to localhost/whitelist
 - name: Node
   description: Node related API calls
 - name: Peers
