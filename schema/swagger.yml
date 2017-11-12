@@ -51,8 +51,7 @@ paths:
       - Peers
       summary: requests Peers data
       operationId: getPeers
-      description:
-        This API call returns Peers related data
+      description: Returns peers related data
       produces:
         - application/json
       parameters:
@@ -127,8 +126,7 @@ paths:
       - Node
       summary: requests Constants data
       operationId: getConstants
-      description:
-        This API call returns all current constants data on the system
+      description: Returns all current constants data on the system
       produces:
       - application/json
       responses:
@@ -156,8 +154,7 @@ paths:
       - Node
       summary: requests Status data
       operationId: getStatus
-      description:
-        This API call returns all current constants data on the system
+      description: Returns all current constants data on the system
       produces:
       - application/json
       responses:
@@ -471,18 +468,18 @@ definitions:
 
   ParamErrorResponse:
     type: object
-    description: The response generated in case of parameters validation
+    description: Response generated in case of parameters validation
     required:
       - message
       - errors
     properties:
       message:
         type: string
-        description: A message stating some valdiation error occured
         example: Validation Errors
+        description: Message stating some valdiation error occurred
       errors:
         type: array
-        description: An array of individual parameter errors
+        description: Array of individual parameter errors
         items:
           $ref: '#/definitions/ParamError'
 
@@ -497,7 +494,7 @@ definitions:
     properties:
       code:
         type: string
-        description: A valid error code explaining error
+        description: Valid error code explaining error
         example: INVALID_REQUEST_PARAMETER
       name:
         type: string
@@ -509,7 +506,7 @@ definitions:
         example: query
       message:
         type: string
-        description: A detailed message explaining the error
+        description: Detailed message explaining error
         example: Invalid parameter (offset) Value failed JSON Schema validation
       errors:
         type: array
@@ -526,11 +523,11 @@ definitions:
     properties:
       code:
         type: string
-        description: A valid error code explaining error
+        description: Valid error code explaining error
         example: MINIMUM
       message:
         type: string
-        description: A detailed message explaining the error
+        description: Detailed message explaining error
         example: Value -1 is less than minimum 0
       description:
         type: string
