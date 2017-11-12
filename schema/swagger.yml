@@ -1,12 +1,12 @@
 swagger: '2.0'
+
 info:
-  description: Lisk API Documentation 
-  version: "1.0.19"
-  title: Lisk API Documentation 
   # Get account information by specified criteria
+  description: Lisk API Documentation
+  title: Lisk API Documentation
+  version: '1.0.19'
   contact:
     email: isabella@lightcurve.io
-
   license:
     name: GPL v3.0
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -28,7 +28,7 @@ tags:
   description: Delegates related API calls
 - name: Delegates (Private)
   description: Private API calls only avaiable to localhost/Whitelist
-- name: Node 
+- name: Node
   description: Node related API calls
 - name: Peers
   description: Peers related API Calls
@@ -402,6 +402,7 @@ definitions:
         maxLength: 16
       fees:
         $ref: '#/definitions/Fees'
+
   NodeStatus:
     type: object
     required:
@@ -485,7 +486,6 @@ definitions:
         description: An array of individual parameter errors
         items:
           $ref: '#/definitions/ParamError'
-
 
   ParamError:
     type: object
