@@ -1,7 +1,6 @@
 swagger: '2.0'
 
 info:
-  # Get account information by specified criteria
   description: Lisk API Documentation
   title: Lisk API Documentation
   version: '1.0.19'
