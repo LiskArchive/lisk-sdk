@@ -114,7 +114,7 @@ paths:
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpeted error
+          description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -143,7 +143,7 @@ paths:
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpeted error
+          description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -171,7 +171,7 @@ paths:
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpeted error
+          description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -214,7 +214,7 @@ parameters:
   state:
     name: state
     in: query
-    description: Current state fo the network
+    description: Current state of the network
     type: integer
     format: int32
     minimum: 0
@@ -244,7 +244,7 @@ parameters:
   offset:
     name: offset
     in: query
-    description: Sepcify offset for the result set
+    description: Specify offset for the result set
     type: integer
     format: int32
     minimum: 0
