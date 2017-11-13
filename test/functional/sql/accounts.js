@@ -41,10 +41,10 @@ describe('SQL triggers related to accounts', function () {
 		var accounts = {};
 		_.each(rows, function (row) {
 			accounts[row.address] = {
-				tx_id: row.tx_id,
-				pk: row.pk ? row.pk.toString('hex') : null,
-				pk_tx_id: row.pk_tx_id,
-				second_pk: row.second_pk ? row.second_pk.toString('hex') : null,
+				transaction_id: row.transaction_id,
+				public_key: row.public_key ? row.public_key.toString('hex') : null,
+				public_key_transaction_id: row.public_key_transaction_id,
+				second_public_key: row.second_public_key ? row.second_public_key.toString('hex') : null,
 				address: row.address,
 				balance: row.balance
 			};
@@ -65,10 +65,16 @@ describe('SQL triggers related to accounts', function () {
 	}
 
 	function getSignatureByTxId (id) {
-		return library.db.query('SELECT * FROM signatures WHERE "transactionId" = ${id}', {id: id}).then(function (rows) {
+		return library.db.query('SELECT * FROM second_signature WHERE transaction_id = ${id}', {id: id}).then(function (rows) {
 			return rows;
 		});
 	}
+
+    function getTransactionsByIds (ids) {
+        return library.db.query('SELECT * FROM transactions WHERE transaction_id IN (${ids:csv})', {ids: ids}).then(function (rows) {
+            return rows;
+        });
+    }
 
 	function getExpectedAccounts(transactions) {
 		var expected = {};
@@ -77,10 +83,10 @@ describe('SQL triggers related to accounts', function () {
 			if (tx.recipientId) {
 				if (!expected[tx.recipientId]) {
 					expected[tx.recipientId] = {
-						tx_id: tx.id,
-						pk: null,
-						pk_tx_id: null,
-						second_pk: null,
+						transaction_id: tx.id,
+						public_key: null,
+						public_key_transaction_id: null,
+						second_public_key: null,
 						address: tx.recipientId,
 						balance: tx.amount
 					}
@@ -92,17 +98,17 @@ describe('SQL triggers related to accounts', function () {
 			// Update sender
 			if (!expected[tx.senderId]) {
 				expected[tx.senderId] = {
-					tx_id: tx.id,
-					pk: tx.senderPublicKey,
-					pk_tx_id: tx.id,
-					second_pk: null,
+					transaction_id: tx.id,
+					public_key: tx.senderPublicKey,
+					public_key_transaction_id: tx.id,
+					second_public_key: null,
 					address: tx.senderId,
 					balance: new bignum(0).minus(tx.amount).minus(tx.fee).toString()
 				};
 			} else {
-				if (!expected[tx.senderId].pk) {
-					expected[tx.senderId].pk = tx.senderPublicKey;
-					expected[tx.senderId].pk_tx_id = tx.id;
+				if (!expected[tx.senderId].public_key) {
+					expected[tx.senderId].public_key = tx.senderPublicKey;
+					expected[tx.senderId].public_key_transaction_id = tx.id;
 				}
 				expected[tx.senderId].balance = new bignum(expected[tx.senderId].balance).minus(tx.amount).minus(tx.fee).toString();
 			}
@@ -119,17 +125,17 @@ describe('SQL triggers related to accounts', function () {
 			return library.rewiredModules.delegates.__get__('__private.delegatesList')[(slot + offset) % slots.delegates];
 		}
 
-		var transactionPool = library.rewiredModules.transactions.__get__('__private.transactionPool');
+		var transactionPool = library.logic.transactionPool;
 		var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
 
 		node.async.series([
-			transactionPool.fillPool,
+			transactionPool.processPool,
 			function (seriesCb) {
 				var last_block = library.modules.blocks.lastBlock.get();
 				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				var delegate = getNextForger();
 				var keypair = keypairs[delegate];
-				//node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+				//node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate public_key: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 					if (err) { return seriesCb(err); }
 					last_block = library.modules.blocks.lastBlock.get();
@@ -266,14 +272,14 @@ describe('SQL triggers related to accounts', function () {
 								expect(recipient.address).to.be.equal(tx.recipientId);
 							});
 
-							it('should set tx_id', function () {
-								expect(recipient.tx_id).to.be.equal(tx.id);
+							it('should set transaction_id', function () {
+								expect(recipient.transaction_id).to.be.equal(tx.id);
 							});
 
-							it('should not set pk, pk_tx_id, second_pk', function () {
-								expect(recipient.pk).to.be.null;
-								expect(recipient.pk_tx_id).to.be.null;
-								expect(recipient.second_pk).to.be.null;
+							it('should not set public_key, public_key_transaction_id, second_public_key', function () {
+								expect(recipient.public_key).to.be.null;
+								expect(recipient.public_key_transaction_id).to.be.null;
+								expect(recipient.second_public_key).to.be.null;
 							});
 
 							it('should credit balance', function () {
@@ -329,15 +335,15 @@ describe('SQL triggers related to accounts', function () {
 								expect(recipient.address).to.be.equal(tx.recipientId);
 							});
 
-							it('should not modify tx_id', function () {
-								expect(recipient.tx_id).to.not.be.equal(tx.id);
-								expect(recipient.tx_id).to.be.equal(recipient_before.tx_id);
+							it('should not modify transaction_id', function () {
+								expect(recipient.transaction_id).to.not.be.equal(tx.id);
+								expect(recipient.transaction_id).to.be.equal(recipient_before.transaction_id);
 							});
 
-							it('should not set pk, pk_tx_id, second_pk', function () {
-								expect(recipient.pk).to.be.null;
-								expect(recipient.pk_tx_id).to.be.null;
-								expect(recipient.second_pk).to.be.null;
+							it('should not set public_key, public_key_transaction_id, second_public_key', function () {
+								expect(recipient.public_key).to.be.null;
+								expect(recipient.public_key_transaction_id).to.be.null;
+								expect(recipient.second_public_key).to.be.null;
 							});
 
 							it('should credit balance', function () {
@@ -381,14 +387,14 @@ describe('SQL triggers related to accounts', function () {
 								expect(account_before.balance).to.equal(account.balance);
 							});
 
-							it('should not modify tx_id', function () {
-								expect(account.tx_id).to.not.be.equal(tx.id);
-								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							it('should not modify transaction_id', function () {
+								expect(account.transaction_id).to.not.be.equal(tx.id);
+								expect(account.transaction_id).to.be.equal(account_before.transaction_id);
 							});
 
-							it('should not modify pk_tx_id', function () {
-								expect(account.pk_tx_id).to.not.be.equal(tx.id);
-								expect(account.pk_tx_id).to.be.equal(account_before.pk_tx_id);
+							it('should not modify public_key_transaction_id', function () {
+								expect(account.public_key_transaction_id).to.not.be.equal(tx.id);
+								expect(account.public_key_transaction_id).to.be.equal(account_before.public_key_transaction_id);
 							});
 						});
 					}); // END: non-virgin account to self
@@ -422,8 +428,8 @@ describe('SQL triggers related to accounts', function () {
 								});
 							});
 
-							it('should not modify tx_id', function () {
-								expect(sender_before.tx_id).to.equal(sender.tx_id);
+							it('should not modify transaction_id', function () {
+								expect(sender_before.transaction_id).to.equal(sender.transaction_id);
 							});
 
 							it('should substract balance', function () {
@@ -431,13 +437,13 @@ describe('SQL triggers related to accounts', function () {
 								expect(sender_before.balance).to.equal(sender.balance);
 							});
 
-							it('should set pk, pk_tx_id', function () {
-								expect(sender.pk).to.equal(tx.senderPublicKey);
-								expect(sender.pk_tx_id).to.equal(tx.id);
+							it('should set public_key, public_key_transaction_id', function () {
+								expect(sender.public_key).to.equal(tx.senderPublicKey);
+								expect(sender.public_key_transaction_id).to.equal(tx.id);
 							});
 
-							it('should not set second_pk', function () {
-								expect(sender.second_pk).to.be.null;
+							it('should not set second_public_key', function () {
+								expect(sender.second_public_key).to.be.null;
 							});
 						});
 
@@ -455,14 +461,14 @@ describe('SQL triggers related to accounts', function () {
 								expect(recipient.address).to.be.equal(tx.recipientId);
 							});
 
-							it('should set tx_id', function () {
-								expect(recipient.tx_id).to.be.equal(tx.id);
+							it('should set transaction_id', function () {
+								expect(recipient.transaction_id).to.be.equal(tx.id);
 							});
 
-							it('should not set pk, pk_tx_id, second_pk', function () {
-								expect(recipient.pk).to.be.null;
-								expect(recipient.pk_tx_id).to.be.null;
-								expect(recipient.second_pk).to.be.null;
+							it('should not set public_key, public_key_transaction_id, second_public_key', function () {
+								expect(recipient.public_key).to.be.null;
+								expect(recipient.public_key_transaction_id).to.be.null;
+								expect(recipient.second_public_key).to.be.null;
 							});
 
 							it('should credit balance', function () {
@@ -517,28 +523,58 @@ describe('SQL triggers related to accounts', function () {
 								expect(account.balance).to.equal(expected);
 							});
 
-							it('should not modify tx_id', function () {
-								expect(account.tx_id).to.not.be.equal(tx.id);
-								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							it('should not modify transaction_id', function () {
+								expect(account.transaction_id).to.not.be.equal(tx.id);
+								expect(account.transaction_id).to.be.equal(account_before.transaction_id);
 							});
 
-							it('should set pk, pk_tx_id', function () {
-								expect(account.pk).to.be.equal(tx.senderPublicKey);
-								expect(account.pk_tx_id).to.be.equal(tx.id);
+							it('should set public_key, public_key_transaction_id', function () {
+								expect(account.public_key).to.be.equal(tx.senderPublicKey);
+								expect(account.public_key_transaction_id).to.be.equal(tx.id);
 							});
 						});
 					}); // END: virgin account to self
 
-					describe ('delete block with transaction that issued pk creation', function () {
+					describe ('delete block with transaction that issued public_key creation', function () {
 						var account_before;
 
 						before(function () {
 							return getAccountByAddress(last_random_account.address).then(function (accounts) {
 								account_before = accounts[last_random_account.address];
-							}).then (function () {
-								return deleteLastBlockPromise();
 							});
 						});
+
+                        describe('after delete last block', function () {
+                            var last_block, new_last_block;
+
+                            before(function () {
+                                last_block = library.modules.blocks.lastBlock.get();
+                                return deleteLastBlockPromise().then(function () {
+                                    new_last_block = library.modules.blocks.lastBlock.get();
+								})
+                            });
+
+                            it('last block ID should be different', function () {
+								expect(last_block.id).to.not.equal(new_last_block.id);
+                            });
+
+                            it('last block height should be lower by 1', function () {
+                                expect(last_block.height).to.equal(new_last_block.height+1);
+                            });
+
+                            it('all transactions included in last block should be deleted', function() {
+                            	var txs_ids = [];
+
+                                _.each(last_block.transactions, function(tx) {
+									txs_ids.push(tx.id);
+								});
+
+                                return getTransactionsByIds(txs_ids).then(function (rows) {
+                                	expect(rows).to.be.an('array');
+                                	expect(rows.length).to.equal(0);
+								});
+							})
+                        });
 
 						describe('account', function () {
 							var account;
@@ -554,16 +590,16 @@ describe('SQL triggers related to accounts', function () {
 								expect(account_before.balance).to.equal(account.balance);
 							});
 
-							it('should set pk, pk_tx_id to NULL', function () {
-								expect(account.pk).to.be.an('null');
-								expect(account.pk_tx_id).to.be.an('null');
+							it('should set public_key, public_key_transaction_id to NULL', function () {
+								expect(account.public_key).to.be.an('null');
+								expect(account.public_key_transaction_id).to.be.an('null');
 							});
 
-							it('should not modify tx_id', function () {
-								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							it('should not modify transaction_id', function () {
+								expect(account.transaction_id).to.be.equal(account_before.transaction_id);
 							});
 						});
-					}); // END: delete blocks with transaction that issued pk creation
+					}); // END: delete blocks with transaction that issued public_key creation
 				}); // END: type 0 - TRANSFER
 
 				describe('type 1 - SIGNATURE', function () {
@@ -614,27 +650,23 @@ describe('SQL triggers related to accounts', function () {
 								expect(account.balance).to.equal(expected);
 							});
 
-							it('should not modify tx_id', function () {
-								expect(account.tx_id).to.not.be.equal(tx.id);
-								expect(account.tx_id).to.be.equal(account_before.tx_id);
+							it('should not modify transaction_id', function () {
+								expect(account.transaction_id).to.not.be.equal(tx.id);
+								expect(account.transaction_id).to.be.equal(account_before.transaction_id);
 							});
 
-							it('should set pk, pk_tx_id', function () {
-								expect(account.pk).to.be.equal(tx.senderPublicKey);
-								expect(account.pk_tx_id).to.be.equal(tx.id);
+							it('should set public_key, public_key_transaction_id', function () {
+								expect(account.public_key).to.be.equal(tx.senderPublicKey);
+								expect(account.public_key_transaction_id).to.be.equal(tx.id);
 							});
 
 							it('should insert transaction id and signature to signature table', function () {
 								return getSignatureByTxId(tx.id).then(function (signatures) {
 									expect(signatures.length).to.equal(1);
 									var sig = signatures[0];
-									expect(sig.transactionId).to.equal(tx.id);
-									expect(sig.publicKey.toString('hex')).to.equal(last_random_account.secondPublicKey);
+									expect(sig.transaction_id).to.equal(tx.id);
+									expect(sig.second_public_key.toString('hex')).to.equal(last_random_account.secondPublicKey);
 								});
-							});
-
-							it.skip('should set second_pk', function () {
-								expect(account.second_pk).to.equal(last_random_account.secondPublicKey);
 							});
 						});
 					}); // END: from virgin account
