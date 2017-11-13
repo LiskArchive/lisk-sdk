@@ -226,7 +226,7 @@ describe('BlockRewardsSQL @slow', function () {
 				done('Should not pass');
 			}).catch(function (err) {
 				expect(err).to.be.an('error');
-				expect(err.message).to.contain('function calcblockreward(bigint) does not exist');
+				expect(err.message).to.contain('function calculate_block_reward(bigint) does not exist');
 				done();
 			});
 		});
@@ -341,7 +341,7 @@ describe('BlockRewardsSQL @slow', function () {
 				done('Should not pass');
 			}).catch(function (err) {
 				expect(err).to.be.an('error');
-				expect(err.message).to.contain('function calcsupply(bigint) does not exist');
+				expect(err.message).to.contain('function calculate_supply(bigint) does not exist');
 				done();
 			});
 		});
