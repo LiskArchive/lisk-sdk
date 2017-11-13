@@ -432,62 +432,28 @@ Delegates.prototype.generateDelegateList = function (cb) {
  * @todo OrderBy does not affects data? What is the impact?.
  */
 Delegates.prototype.getDelegates = function (query, cb) {
-	if (!query) {
-		throw 'Missing query argument';
+	if (!_.isObject(query)) {
+		throw 'Wrong type of getDelegates query parameter';
 	}
 	if (query.search) {
 		query.username = {$like: '%' + query.search + '%'};
 		delete query.search;
 	}
-	query.limit = query.limit || constants.activeDelegates;
-	if (query.limit > constants.activeDelegates) {
-		query.limit = constants.activeDelegates;
-	}
-	var getAccountQuery = _.assign({}, query, {sort: {username: 1}});
-	modules.accounts.getAccounts(getAccountQuery, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks', 'secondPublicKey'], function (err, delegates) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		var limit = query.limit || constants.activeDelegates;
-		var offset = query.offset || 0;
-		var active = query.active;
-
-		var count = delegates.length;
-		var length = Math.min(limit, count);
-		var realLimit = Math.min(offset + limit, count);
-
-		var lastBlock   = modules.blocks.lastBlock.get(),
-		    totalSupply = __private.blockReward.calcSupply(lastBlock.height);
-
-		for (var i = 0; i < delegates.length; i++) {
-			// TODO: 'rate' property is deprecated and need to be removed after transitional period
-			delegates[i].rate = i + 1;
-			delegates[i].rank = i + 1;
-			delegates[i].approval = (delegates[i].vote / totalSupply) * 100;
-			delegates[i].approval = Math.round(delegates[i].approval * 1e2) / 1e2;
-
-			var percent = 100 - (delegates[i].missedblocks / ((delegates[i].producedblocks + delegates[i].missedblocks) / 100));
-			percent = Math.abs(percent) || 0;
-
-			var outsider = i + 1 > slots.delegates;
-			delegates[i].productivity = (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0;
-		}
-
-		var orderBy = OrderBy(query.sort, {quoteField: false});
-
-		if (orderBy.error) {
-			return setImmediate(cb, orderBy.error);
-		}
-
-		return setImmediate(cb, null, {
-			delegates: delegates,
-			sortField: orderBy.sortField,
-			sortMethod: orderBy.sortMethod,
-			count: count,
-			offset: offset,
-			limit: realLimit
-		});
+	query.isDelegate = 1;
+	modules.accounts.getAccounts(query, [
+		'username',
+		'address',
+		'publicKey',
+		'vote',
+		'rewards',
+		'producedBlocks',
+		'missedBlocks',
+		'secondPublicKey',
+		'rank',
+		'approval',
+		'productivity'
+	], function (err, delegates) {
+		return setImmediate(cb, err, delegates);
 	});
 };
 
@@ -775,43 +741,11 @@ Delegates.prototype.shared = {
 			if (err) {
 				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
-
-			modules.delegates.getDelegates(req.body, function (err, data) {
+			modules.delegates.getDelegates(req.body, function (err, delegates) {
 				if (err) {
 					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 				}
-
-				function compareNumber (a, b) {
-					var sorta = parseFloat(a[data.sortField]);
-					var sortb = parseFloat(b[data.sortField]);
-					if (data.sortMethod === 'ASC') {
-						return sorta - sortb;
-					} else {
-				 	return sortb - sorta;
-					}
-				}
-
-				function compareString (a, b) {
-					var sorta = a[data.sortField];
-					var sortb = b[data.sortField];
-					if (data.sortMethod === 'ASC') {
-					  return sorta.localeCompare(sortb);
-					} else {
-					  return sortb.localeCompare(sorta);
-					}
-				}
-
-				if (data.sortField) {
-					// TODO: 'rate' property is deprecated and need to be removed after transitional period
-					if (['approval', 'productivity', 'rate', 'rank', 'vote'].indexOf(data.sortField) > -1) {
-						data.delegates = data.delegates.sort(compareNumber);
-					} else if (['username', 'address', 'publicKey'].indexOf(data.sortField) > -1) {
-						data.delegates = data.delegates.sort(compareString);
-					} else {
-						return setImmediate(cb, new ApiError('Invalid sort field', apiCodes.BAD_REQUEST));
-					}
-				}
-				return setImmediate(cb, null, {delegates: data.delegates, count: data.count});
+				return setImmediate(cb, null, {delegates: delegates, count: delegates.length});
 			});
 		});
 	}
