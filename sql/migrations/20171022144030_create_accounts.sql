@@ -26,11 +26,17 @@ CREATE OR REPLACE FUNCTION protect_accounts_balance() RETURNS TRIGGER LANGUAGE P
 	BEGIN
 		-- Get genesis block id
 		SELECT block_id INTO genesis_block_id FROM blocks WHERE height = 1 LIMIT 1;
+
+		-- Skip check if there is no genesis block in database (for case of deleting genesis block)
+		IF genesis_block_id IS NULL THEN
+		    RETURN NEW;
+		END IF;
+
 		-- Return TRUE if address belongs to sender of type 0 transaction that was included in genesis block
 		SELECT TRUE INTO result FROM transactions WHERE block_id = genesis_block_id AND type = 0 AND sender_address = NEW.address GROUP BY sender_address;
 
 		IF result IS NOT TRUE THEN
-			RAISE check_violation USING MESSAGE = 'Check violation - account balance cannot go negative';
+			RAISE check_violation USING MESSAGE = 'Check violation - account balance cannot go negative, address: ' || NEW.address || ', balance: ' || NEW.balance;
 		END IF;
 	RETURN NEW;
 END $$;
