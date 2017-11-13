@@ -76,9 +76,9 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 			if (!multisignatureTransaction) {
 				return setImmediate(cb, 'Transaction not found');
 			}
-
+			// We should do one unified get at the beginning of the process
 			modules.accounts.getAccount({
-				address: multisignatureTransaction.senderId
+				publicKey: multisignatureTransaction.senderPublicKey
 			}, function (err, sender) {
 				if (err) {
 					return setImmediate(cb, err);
@@ -135,6 +135,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 
 			var verify = false;
 			var multisignatures = account.multisignatures;
+			// TODO: Compare the incoming publickey against the senderId multisignatures list here.
 
 			if (multisignatureTransaction.requesterPublicKey) {
 				multisignatures.push(multisignatureTransaction.senderPublicKey);
@@ -150,6 +151,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 				return setImmediate(cb, 'Signature already exists');
 			}
 
+			// TODO: Refactor this to query multisignatures_list using the incoming publicKey, saves resources
 			try {
 				for (var i = 0; i < multisignatures.length && !verify; i++) {
 					verify = library.logic.transaction.verifySignature(multisignatureTransaction, multisignatures[i], transaction.signature);
