@@ -68,7 +68,7 @@ module.exports = {
 			limit: {
 				type: 'number',
 				minimum: 1,
-				maximum: 101
+				maximum: constants.activeDelegates
 			},
 			offset: {
 				type: 'number',
