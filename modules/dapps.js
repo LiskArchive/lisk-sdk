@@ -228,5 +228,26 @@ DApps.prototype.shared = {
 	}
 };
 
+// Shared API
+shared.getGenesis = function (req, cb) {
+	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
+		if (rows.length === 0) {
+			return setImmediate(cb, 'Application genesis block not found');
+		} else {
+			var row = rows[0];
+
+			return setImmediate(cb, null, {
+				pointId: row.id,
+				pointHeight: row.height,
+				authorId: row.authorId,
+				dappid: req.dappid
+			});
+		}
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'DApp#getGenesis error');
+	});
+};
+
 // Export
 module.exports = DApps;

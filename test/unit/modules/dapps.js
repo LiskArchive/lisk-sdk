@@ -182,4 +182,39 @@ describe('dapps', function () {
 			});
 		});
 	});
+	
+	describe('shared.getGenesis', function () {
+
+		it('should call db.query with sql.getGenesis query');
+
+		it('should call db.query with dappid');
+
+		describe('when db.query fails', function () {
+
+			it('should call callback with the DApp#getGenesis error');
+
+			it('should call the logger.error with error stack');
+		});
+
+		describe('when db.query succeeds', function () {
+
+			describe('and returns no results', function () {
+
+				it('should call callback with an error');
+			});
+
+			describe('and returns results', function () {
+
+				it('should call callback with error = null');
+
+				it('should call callback with result containing pointId');
+
+				it('should call callback with result containing pointHeight');
+
+				it('should call callback with result containing authorId');
+
+				it('should call callback with result containing dappid');
+			});
+		});
+	});
 });
