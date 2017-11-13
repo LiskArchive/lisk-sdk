@@ -162,6 +162,11 @@ export function setUpCommandCreateAccount() {
 	setUpMnemonicStubs();
 }
 
+export function setUpCommandCreateTransactionTransfer() {
+	setUpTransactionsStubs();
+	setUpInputStubs();
+}
+
 export function setUpCommandCreateTransactionCreateMultisignatureAccount() {
 	setUpTransactionsStubs();
 	setUpInputStubs();
