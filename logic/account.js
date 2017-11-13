@@ -642,8 +642,9 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	delete filter.limit;
 
 	if (filter.sort) {
-		sort = orderBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance']);
+		sort = orderBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance', 'rank', 'missedBlocks']);
 	}
+
 	delete filter.sort;
 
 	if (filter.address) {
