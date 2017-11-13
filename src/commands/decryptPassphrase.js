@@ -32,7 +32,7 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 		- --passphrase stdin (takes the first line only)
 `;
 
-const handlePasswordAndPassphrase = (iv, passphrase) => ({ password, data }) =>
+const processInputs = (iv, passphrase) => ({ password, data }) =>
 	cryptoModule.decryptPassphrase({
 		cipher: passphrase || getFirstLineFromString(data),
 		iv,
@@ -55,7 +55,7 @@ export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 			source: passphraseSource,
 		},
 	})
-		.then(handlePasswordAndPassphrase(iv, passphrase));
+		.then(processInputs(iv, passphrase));
 };
 
 const decryptPassphrase = createCommand({

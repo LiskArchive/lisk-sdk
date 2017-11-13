@@ -23,7 +23,7 @@ const description = `Decrypt an encrypted message from a given sender public key
 	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
 
-const handlePassphrase = (nonce, senderPublicKey, message) => ({ passphrase, data }) =>
+const processInputs = (nonce, senderPublicKey, message) => ({ passphrase, data }) =>
 	cryptoModule.decryptMessage({
 		cipher: message || data,
 		nonce,
@@ -47,7 +47,7 @@ export const actionCreator = vorpal => async ({ message, nonce, senderPublicKey,
 			source: messageSource,
 		},
 	})
-		.then(handlePassphrase(nonce, senderPublicKey, message));
+		.then(processInputs(nonce, senderPublicKey, message));
 };
 
 const decryptMessage = createCommand({
