@@ -64,7 +64,7 @@ const createTransactionTransfer = createCommand({
 		commonOptions.passphrase,
 		commonOptions.secondPassphrase,
 	],
-	errorPrefix: 'Could not create transfer transaction',
+	errorPrefix: 'Could not create "transfer" transaction',
 });
 
 export default createTransactionTransfer;

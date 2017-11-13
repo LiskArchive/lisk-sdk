@@ -58,7 +58,7 @@ const createTransactionRegisterSecondPassphrase = createCommand({
 		commonOptions.passphrase,
 		commonOptions.secondPassphrase,
 	],
-	errorPrefix: 'Could not create register second passphrase transaction',
+	errorPrefix: 'Could not create "register second passphrase" transaction',
 });
 
 export default createTransactionRegisterSecondPassphrase;
