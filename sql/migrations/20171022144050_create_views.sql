@@ -20,6 +20,8 @@ $$;
                   d.voters_count        AS voters,
                   d.blocks_forged_count AS "producedBlocks",
                   d.blocks_missed_count AS "missedBlocks",
+                  ((CASE WHEN mma.public_key IS NULL then 0
+                        WHEN mma.public_key IS NOT NULL then 1 END))       AS "multisignatures",
                   mma.lifetime          AS multilifetime,
                   mma.minimum           AS multimin
   FROM            ((((accounts a
@@ -28,7 +30,8 @@ $$;
   LEFT JOIN       second_signature ss ON (( ss."public_key" = a.public_key))));
 
 CREATE VIEW "public".multisignatures_list AS
-SELECT DISTINCT mme.public_key AS "memberPublicKey",
+SELECT DISTINCT mma.transaction_id AS "transaction_id",
+                mme.public_key AS "memberPublicKey",
                 mme.master_public_key AS "masterPublicKey",
                 mma.lifetime          AS multilifetime,
                 mma.minimum           AS multimin
