@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpInputUtilsStubs } from '../../../steps/utils';
+import { setUpUtilInput } from '../../../steps/setup';
 import * as given from '../../../steps/1_given';
 import * as when from '../../../steps/2_when';
 import * as then from '../../../steps/3_then';
@@ -36,9 +36,7 @@ describe('input utils', () => {
 		});
 	});
 	describe('#getInputsFromSource', () => {
-		beforeEach(() => {
-			setUpInputUtilsStubs();
-		});
+		beforeEach(setUpUtilInput);
 		describe('Given a Vorpal instance with an active command that can log', () => {
 			beforeEach(given.aVorpalInstanceWithAnActiveCommandThatCanLog);
 			describe('Given a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', () => {

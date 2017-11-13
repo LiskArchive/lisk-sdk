@@ -13,11 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpCommandGet } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('get command', () => {
+	beforeEach(setUpCommandGet);
 	describe('Given a query instance has been initialised', () => {
 		beforeEach(given.aQueryInstanceHasBeenInitialised);
 		describe('Given an action "get"', () => {

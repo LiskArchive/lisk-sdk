@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpPrintStubs } from '../../steps/utils';
+import { setUpUtilWrapActionCreator } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
@@ -170,7 +170,7 @@ describe('utils helpers', () => {
 		});
 	});
 	describe('#wrapActionCreator', () => {
-		beforeEach(setUpPrintStubs);
+		beforeEach(setUpUtilWrapActionCreator);
 		describe('Given a Vorpal instance', () => {
 			beforeEach(given.aVorpalInstance);
 			describe('Given an options object with JSON set to true', () => {

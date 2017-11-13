@@ -14,9 +14,11 @@
  *
  */
 import fs from 'fs';
+import readline from 'readline';
 import * as fsUtils from '../../../src/utils/fs';
 import {
 	getFirstQuotedString,
+	createFakeInterface,
 	createStreamStub,
 } from '../utils';
 
@@ -38,8 +40,8 @@ export function thereIsAFileWithUtf8EncodedJSONContentsAtPath() {
 		version: 1,
 	};
 
-	sandbox.stub(JSON, 'parse').returns(parsedFileContents);
-	sandbox.stub(fs, 'readFileSync').returns(fileContents);
+	JSON.parse.returns(parsedFileContents);
+	fs.readFileSync.returns(fileContents);
 
 	this.test.ctx.filePath = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.fileContents = fileContents;
@@ -62,8 +64,7 @@ export function thereIsAnObjectThatShouldBeWrittenToPath() {
 	};
 	const stringifiedObject = '{\n\t"lisk": "js",\n\t"version": 1\n}';
 
-	sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
-	sandbox.stub(fs, 'writeFileSync');
+	JSON.stringify.returns(stringifiedObject);
 
 	this.test.ctx.filePath = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.objectToWrite = objectToWrite;
@@ -136,6 +137,9 @@ export function theFileCanBeRead() {
 	const { fileContents } = this.test.ctx;
 	const streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(fileContents)));
 
+	if (typeof readline.createInterface.returns === 'function') {
+		readline.createInterface.returns(createFakeInterface(fileContents));
+	}
 	fs.createReadStream.returns(streamStub);
 	fs.readFileSync.returns(fileContents);
 }

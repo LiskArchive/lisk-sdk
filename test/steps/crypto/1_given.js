@@ -22,15 +22,6 @@ import {
 } from '../utils';
 
 export function aCryptoInstance() {
-	[
-		'getKeys',
-		'encryptPassphraseWithPassword',
-		'decryptPassphraseWithPassword',
-		'encryptMessageWithSecret',
-		'decryptMessageWithSecret',
-		'getAddressFromPublicKey',
-	].forEach(methodName => sandbox.stub(lisk.crypto, methodName));
-
 	this.test.ctx.cryptoInstance = cryptoInstance;
 }
 
@@ -47,9 +38,7 @@ export function aCryptoInstanceHasBeenInitialised() {
 		'decryptPassphrase',
 		'getKeys',
 		'getAddressFromPublicKey',
-	].forEach((methodName) => {
-		sandbox.stub(cryptoInstance, methodName).returns(cryptoResult);
-	});
+	].forEach(methodName => cryptoInstance[methodName].returns(cryptoResult));
 
 	this.test.ctx.cryptoResult = cryptoResult;
 	this.test.ctx.cryptoInstance = cryptoInstance;
@@ -104,9 +93,25 @@ export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
 		publicKey,
 	};
 
-	lisk.crypto.getKeys.returns(keys);
-	lisk.crypto.decryptPassphraseWithPassword.returns(passphrase);
-	lisk.crypto.getAddressFromPublicKey.returns(address);
+	if (typeof lisk.crypto.getKeys.returns === 'function') {
+		lisk.crypto.getKeys.returns(keys);
+	}
+	if (typeof lisk.crypto.decryptPassphraseWithPassword.returns === 'function') {
+		lisk.crypto.decryptPassphraseWithPassword.returns(passphrase);
+	}
+	if (typeof lisk.crypto.getAddressFromPublicKey.returns === 'function') {
+		lisk.crypto.getAddressFromPublicKey.returns(address);
+	}
+
+	if (typeof cryptoInstance.getKeys.returns === 'function') {
+		cryptoInstance.getKeys.returns(keys);
+	}
+	if (typeof cryptoInstance.decryptPassphrase.returns === 'function') {
+		cryptoInstance.decryptPassphrase.returns({ passphrase });
+	}
+	if (typeof cryptoInstance.getAddressFromPublicKey.returns === 'function') {
+		cryptoInstance.getAddressFromPublicKey.returns({ address });
+	}
 
 	this.test.ctx.passphrase = passphrase;
 	this.test.ctx.keys = keys;

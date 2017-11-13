@@ -34,7 +34,7 @@ export function aLiskObjectThatCanCreateTransactions() {
 		'createDelegate',
 		'createVote',
 	].forEach((methodName) => {
-		sandbox.stub(transactions, methodName).returns(createdTransaction);
+		transactions[methodName].returns(createdTransaction);
 	});
 
 	this.test.ctx.createdTransaction = createdTransaction;

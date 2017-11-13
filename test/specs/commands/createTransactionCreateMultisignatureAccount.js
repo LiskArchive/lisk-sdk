@@ -13,15 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpInputStubs } from '../../steps/utils';
+import { setUpCommandCreateTransactionCreateMultisignatureAccount } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('create transaction create multisignature account', () => {
-	beforeEach(() => {
-		setUpInputStubs();
-	});
+describe('create transaction create multisignature account command', () => {
+	beforeEach(setUpCommandCreateTransactionCreateMultisignatureAccount);
 	describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
 		beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
 		describe('Given an action "create transaction create multisignature account"', () => {

@@ -13,11 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	restoreEnvVariable,
-	setUpEnvVariable,
-	setUpFsStubs,
-} from '../../../steps/utils';
+import { setUpUtilInputUtils, tearDownUtilInputUtils } from '../../../steps/setup';
 import * as given from '../../../steps/1_given';
 import * as when from '../../../steps/2_when';
 import * as then from '../../../steps/3_then';
@@ -25,11 +21,8 @@ import * as then from '../../../steps/3_then';
 const ENV_VARIABLE = 'TEST_PASSPHRASE';
 
 describe('input utils utils', () => {
-	before(setUpEnvVariable(ENV_VARIABLE));
-	beforeEach(() => {
-		setUpFsStubs();
-	});
-	afterEach(restoreEnvVariable(ENV_VARIABLE));
+	beforeEach(setUpUtilInputUtils);
+	afterEach(tearDownUtilInputUtils);
 	describe('#splitSource', () => {
 		describe('Given a source without delimiter "someSource"', () => {
 			beforeEach(given.aSourceWithoutDelimiter);
