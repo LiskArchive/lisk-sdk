@@ -52,7 +52,8 @@ var DelegatesSql = {
 
   getVoters: 'SELECT ARRAY_AGG("transaction_id") AS "accountIds" FROM delegates WHERE "public_key" = ${publicKey}',
 
-  getVotes: 'SELECT ARRAY_AGG(ENCODE(v.delegate_public_key, \'hex\')) AS "delegates" FROM (SELECT DISTINCT ON (delegate_public_key) voter_address, delegate_public_key, type FROM votes_details WHERE voter_address = ${senderId} ORDER BY delegate_public_key, timestamp DESC) v WHERE v.type = \'add\''
+  // TODO: Use me to get votes in 1.1.0
+  //getVotes: 'SELECT ARRAY_AGG(ENCODE(v.delegate_public_key, \'hex\')) AS "delegates" FROM (SELECT DISTINCT ON (delegate_public_key) voter_address, delegate_public_key, type FROM votes_details WHERE voter_address = ${senderId} ORDER BY delegate_public_key, timestamp DESC) v WHERE v.type = \'add\''
 };
 
 module.exports = DelegatesSql;
