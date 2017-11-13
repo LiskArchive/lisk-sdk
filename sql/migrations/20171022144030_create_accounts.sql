@@ -17,6 +17,7 @@ CREATE TABLE "public".accounts (address varchar(22) NOT NULL,
 	CONSTRAINT idx_accounts_public_key UNIQUE (public_key)
 );
 
+DROP FUNCTION public.validatemembalances();
 
 CREATE OR REPLACE FUNCTION public.public_key_rollback() RETURNS TRIGGER LANGUAGE PLPGSQL AS $function$
 	BEGIN
@@ -28,8 +29,6 @@ CREATE OR REPLACE FUNCTION public.public_key_rollback() RETURNS TRIGGER LANGUAGE
 	BEFORE UPDATE ON accounts
 	FOR EACH ROW WHEN (OLD.public_key_transaction_id IS NOT NULL AND NEW.public_key_transaction_id IS NULL)
 	EXECUTE PROCEDURE public_key_rollback();
-
-DROP FUNCTION public.validatemembalances();
 
 CREATE FUNCTION public.validate_accounts_balances() RETURNS TABLE(address VARCHAR(22), public_key TEXT, delegate VARCHAR(20), blockchain BIGINT, memory BIGINT, diff BIGINT) LANGUAGE PLPGSQL AS $$
 BEGIN
@@ -51,8 +50,7 @@ BEGIN
         WHERE a.balance <> m.balance;
 END $$;
 
-CREATE
-        OR REPLACE FUNCTION public.revert_mem_account() RETURNS TRIGGER LANGUAGE PLPGSQL AS $function$ BEGIN IF NEW."address" <> OLD."address" THEN
+CREATE OR REPLACE FUNCTION public.revert_mem_account() RETURNS TRIGGER LANGUAGE PLPGSQL AS $function$ BEGIN IF NEW."address" <> OLD."address" THEN
     RAISE WARNING 'Reverting change of address from % to %', OLD."address", NEW."address"; NEW."address" = OLD."address";
     END IF; IF NEW."u_username" <> OLD."u_username"
         AND OLD."u_username" IS NOT NULL THEN
@@ -71,6 +69,6 @@ CREATE
         AND OLD."secondPublicKey" IS NOT NULL THEN
     RAISE WARNING 'Reverting change of secondPublicKey from % to %', ENCODE(OLD."secondPublicKey", 'hex'), ENCODE(NEW."secondPublicKey", 'hex'); NEW."secondPublicKey" = OLD."secondPublicKey";
     END IF; RETURN NEW;
-    END $function$ ;
+END $function$ ;
 
 END;

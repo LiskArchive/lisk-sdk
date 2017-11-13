@@ -8,33 +8,39 @@ $$;
 
 /* Migrate blocks table */ /* Rename all columns for new schema */
 ALTER TABLE blocks RENAME id TO "block_id";
-
 ALTER TABLE blocks RENAME "rowId" TO "row_id";
-
 ALTER TABLE blocks RENAME "previousBlock" TO "previous_block_id";
-
 ALTER TABLE blocks RENAME "numberOfTransactions" TO "total_transactions";
-
 ALTER TABLE blocks RENAME "totalAmount" TO "total_amount";
-
 ALTER TABLE blocks RENAME "totalFee" TO "total_fee";
-
 ALTER TABLE blocks RENAME "payloadLength" TO "payload_length";
-
 ALTER TABLE blocks RENAME "payloadHash" TO "payload_hash";
-
 ALTER TABLE blocks RENAME "generatorPublicKey" TO "generator_public_key";
-
 ALTER TABLE blocks RENAME "blockSignature" TO "signature";
+
+
+-- Blocks indexes/constraints
+ALTER SEQUENCE "public"."blocks_rowId_seq" RENAME TO "seq_blocks_row_id";
+ALTER INDEX "blocks_pkey" RENAME TO "idx_blocks_pkey";
+ALTER INDEX "blocks_height" RENAME TO "idx_blocks_height";
+ALTER INDEX "blocks_previousBlock" RENAME TO "idx_blocks_previous_block_id";
+ALTER INDEX "blocks_generator_public_key" RENAME TO "idx_blocks_generator_public_key";
+ALTER INDEX "blocks_reward" RENAME TO "idx_blocks_reward";
+ALTER INDEX "blocks_rounds" RENAME TO "idx_blocks_rounds";
+ALTER INDEX "blocks_timestamp" RENAME TO "idx_blocks_timestamp";
+ALTER INDEX "blocks_numberOfTransactions" RENAME TO "idx_blocks_total_transactions";
+ALTER INDEX "blocks_rowId" RENAME TO "idx_blocks_row_id";
+ALTER INDEX "blocks_totalAmount" RENAME TO "idx_blocks_total_amount";
+ALTER INDEX "blocks_totalFee" RENAME TO "idx_blocks_total_fee";
+ALTER TABLE "public".blocks DROP CONSTRAINT "blocks_previousBlock_fkey";
+
+ALTER TABLE "public".blocks ADD CONSTRAINT "fkey_blocks_previous_block_id_fkey" FOREIGN KEY ( "previous_block_id" ) REFERENCES "public".blocks( block_id ) ON  DELETE SET NULL;
 
 --Create new data type which will store block rewards info
 
 DROP FUNCTION IF EXISTS getblockrewards();
-
 DROP FUNCTION IF EXISTS calcblockreward();
-
 DROP FUNCTION IF EXISTS calcsupply();
-
 DROP FUNCTION IF EXISTS calcsupply_test();
 
 DROP TYPE blockRewards;
