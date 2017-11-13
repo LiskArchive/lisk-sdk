@@ -19,10 +19,6 @@ import {
 	getFirstQuotedString,
 } from '../utils';
 
-export function itShouldNotGetTheKeysForThePassphrase() {
-	return (cryptoInstance.getKeys).should.not.be.called();
-}
-
 export function itShouldGetTheKeysForThePassphrase() {
 	const { passphrase } = this.test.ctx;
 	return (cryptoInstance.getKeys).should.be.calledWithExactly(passphrase);

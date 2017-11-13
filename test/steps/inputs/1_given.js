@@ -83,16 +83,6 @@ export function thePasswordAndEncryptedPassphraseCanBeRetrievedFromTheirSources(
 	});
 }
 
-export function theEncryptedPassphraseCanBeRetrievedFromItsSource() {
-	const { cipherAndIv: { cipher } } = this.test.ctx;
-	getInputsFromSources.resolves({
-		passphrase: null,
-		secondPassphrase: null,
-		password: null,
-		data: cipher,
-	});
-}
-
 export function thePasswordCanBeRetrievedFromItsSource() {
 	const { password } = this.test.ctx;
 	getInputsFromSources.resolves({
@@ -191,17 +181,6 @@ export function aPromptDisplayName() {
 	this.test.ctx.displayName = getFirstQuotedString(this.test.parent.title);
 }
 
-export function theSecondPassphraseIsProvidedViaThePrompt() {
-	const { secondPassphrase } = this.test.ctx;
-	this.test.ctx.vorpal.activeCommand.prompt.resolves({ secondPassphrase });
-}
-
-export function thePassphraseAndTheSecondPassphraseAreProvidedViaThePrompt() {
-	const { passphrase, secondPassphrase } = this.test.ctx;
-	this.test.ctx.vorpal.activeCommand.prompt.onFirstCall().resolves({ passphrase });
-	this.test.ctx.vorpal.activeCommand.prompt.onSecondCall().resolves({ passphrase: secondPassphrase });
-}
-
 export function thePassphraseIsProvidedViaThePrompt() {
 	const { vorpal, passphrase } = this.test.ctx;
 
@@ -211,26 +190,6 @@ export function thePassphraseIsProvidedViaThePrompt() {
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
 		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
 		this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.firstCall;
-	}
-}
-
-export function thePasswordIsProvidedViaThePrompt() {
-	const { vorpal, password, getPromptPassphraseCall, getGetPassphrasePassphraseCall } = this.test.ctx;
-
-	if (getPromptPassphraseCall) {
-		vorpal.activeCommand.prompt.onSecondCall().resolves({ password });
-	} else {
-		vorpal.activeCommand.prompt.resolves({ password });
-	}
-
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		if (getGetPassphrasePassphraseCall) {
-			inputUtils.getPassphrase.onSecondCall().resolves(password);
-			this.test.ctx.getGetPassphrasePasswordCall = () => inputUtils.getPassphrase.secondCall;
-		} else {
-			inputUtils.getPassphrase.resolves(password);
-			this.test.ctx.getGetPassphrasePasswordCall = () => inputUtils.getPassphrase.firstCall;
-		}
 	}
 }
 
@@ -260,33 +219,6 @@ export function someData() {
 
 export function nothingIsProvidedViaStdIn() {
 	readline.createInterface.returns(createFakeInterface(''));
-}
-
-export function thePasswordAndTheEncryptedPassphraseAreProvidedViaStdIn() {
-	const { password, cipherAndIv: { cipher }, stdInInputs = [] } = this.test.ctx;
-
-	readline.createInterface.returns(createFakeInterface(`${password}\n${cipher}`));
-	if (typeof inputUtils.getStdIn.resolves === 'function') {
-		inputUtils.getStdIn.resolves({ passphrase: password, data: cipher });
-	}
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.resolves(password);
-	}
-
-	this.test.ctx.dataIsRequired = true;
-	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase'];
-}
-
-export function theEncryptedPassphraseIsProvidedViaStdIn() {
-	const { cipherAndIv: { cipher }, stdInInputs = [] } = this.test.ctx;
-
-	readline.createInterface.returns(createFakeInterface(cipher));
-	if (typeof inputUtils.getStdIn.resolves === 'function') {
-		inputUtils.getStdIn.resolves({ data: cipher });
-	}
-
-	this.test.ctx.dataIsRequired = true;
-	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase'];
 }
 
 export function thePassphraseIsProvidedViaStdIn() {
@@ -390,17 +322,6 @@ export function aDataFilePath() {
 }
 
 export function noDataSourceIsProvided() {}
-
-export function dataIsProvidedViaStdIn() {
-	const { data, stdInInputs = [] } = this.test.ctx;
-	this.test.ctx.stdInData = data;
-	this.test.ctx.stdInInputs = [...stdInInputs, 'data'];
-}
-
-export function dataIsProvidedAsAnArgument() {
-	const { data } = this.test.ctx;
-	this.test.ctx.argData = data;
-}
 
 export function dataIsProvidedViaAnUnknownSource() {
 	this.test.ctx.sourceData = 'unknownSource';

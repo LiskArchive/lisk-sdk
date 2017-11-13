@@ -15,10 +15,7 @@
  */
 import getInputsFromSources from '../../../src/utils/input';
 import * as inputUtils from '../../../src/utils/input/utils';
-import {
-	getFirstQuotedString,
-	hasAncestorWithTitleMatching,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export async function itShouldResolveWithThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
@@ -148,11 +145,6 @@ export function itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithoutARep
 	});
 }
 
-export function itShouldGetTheInputsFromSourcesWithARepeatingPasswordPrompt() {
-	const firstCallArgs = getInputsFromSources.firstCall.args;
-	return (firstCallArgs[1]).should.have.property('repeatPrompt').have.property('password').be.true();
-}
-
 export function itShouldGetTheInputsFromSourcesWithoutARepeatingPassphrasePrompt() {
 	const repeatPromptArg = getInputsFromSources.firstCall.args[1];
 	return repeatPromptArg.repeatPrompt && repeatPromptArg.repeatPrompt.passphrase
@@ -199,50 +191,6 @@ export function itShouldNotGetTheData() {
 	return (inputUtils.getData).should.not.be.called();
 }
 
-export function itShouldGetThePasswordUsingTheSource() {
-	const { options } = this.test.ctx;
-	const firstCallArgs = inputUtils.getPassphrase.firstCall.args;
-	return (firstCallArgs[1]).should.equal(options.password);
-}
-
-export function itShouldGetTheEncryptedPassphraseUsingTheEncryptedPassphraseFromStdIn() {
-	const { cipherAndIv: { cipher } } = this.test.ctx;
-	const firstCallArgs = inputUtils.getData.firstCall.args;
-	return (firstCallArgs[2]).should.equal(cipher);
-}
-
-export function itShouldGetTheEncryptedPassphraseUsingThePassphraseArgument() {
-	const { cipherAndIv: { cipher: passphrase } } = this.test.ctx;
-	return (inputUtils.getData).should.be.calledWith(passphrase);
-}
-
-export function itShouldGetThePasswordUsingThePasswordFromStdIn() {
-	const { password } = this.test.ctx;
-	const isDecryptPassphraseAction = hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/);
-	const call = isDecryptPassphraseAction
-		? 'firstCall'
-		: 'secondCall';
-	const { args } = inputUtils.getPassphrase[call];
-	return (args[2]).should.equal(password);
-}
-
-export function itShouldGetThePasswordUsingThePasswordSource() {
-	const { options } = this.test.ctx;
-	const secondCallArgs = inputUtils.getPassphrase.secondCall.args;
-	return (secondCallArgs[1]).should.equal(options.password);
-}
-
-export function itShouldNotGetTheSecondPassphraseFromStdIn() {
-	const firstCallArgs = inputUtils.getStdIn.firstCall.args;
-	return (firstCallArgs[0]).should.have.property('secondPassphraseIsRequired').equal(false);
-}
-
-export function itShouldGetTheDataUsingTheMessageSource() {
-	const { options } = this.test.ctx;
-	const firstCallArgs = inputUtils.getData.firstCall.args;
-	return (firstCallArgs[1]).should.equal(options.message);
-}
-
 export function itShouldAskForTheSecondPassphraseFromStdIn() {
 	const firstCallArgs = inputUtils.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('secondPassphraseIsRequired').equal(true);
@@ -251,30 +199,6 @@ export function itShouldAskForTheSecondPassphraseFromStdIn() {
 export function itShouldAskForThePasswordFromStdIn() {
 	const firstCallArgs = inputUtils.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('passwordIsRequired').equal(true);
-}
-
-export function itShouldGetTheSecondPassphraseUsingTheSecondPassphraseFromStdIn() {
-	const { secondPassphrase } = this.test.ctx;
-	const secondCallArgs = inputUtils.getPassphrase.secondCall.args;
-	return (secondCallArgs[2]).should.equal(secondPassphrase);
-}
-
-export function itShouldGetThePassphraseUsingThePassphraseFromStdIn() {
-	const { passphrase } = this.test.ctx;
-	const firstCallArgs = inputUtils.getPassphrase.firstCall.args;
-	return (firstCallArgs[2]).should.equal(passphrase);
-}
-
-export function itShouldGetTheSecondPassphraseUsingTheSecondPassphraseSource() {
-	const { options } = this.test.ctx;
-	const secondCallArgs = inputUtils.getPassphrase.secondCall.args;
-	return (secondCallArgs[1]).should.equal(options['second-passphrase']);
-}
-
-export function itShouldGetThePassphraseUsingThePassphraseSource() {
-	const { options } = this.test.ctx;
-	const firstCallArgs = inputUtils.getPassphrase.firstCall.args;
-	return (firstCallArgs[1]).should.equal(options.passphrase);
 }
 
 export function itShouldGetTheSecondPassphraseWithASinglePrompt() {
@@ -307,21 +231,6 @@ export function itShouldGetThePasswordWithASinglePrompt() {
 	return (passwordArgs[2]).should.have.property('shouldRepeat').not.be.ok();
 }
 
-export function itShouldGetTheSecondPassphraseUsingTheVorpalInstance() {
-	const { vorpal } = this.test.ctx;
-	return (inputUtils.getPassphrase.secondCall).should.be.calledWith(vorpal);
-}
-
-export function itShouldGetThePassphraseUsingTheVorpalInstance() {
-	const { vorpal } = this.test.ctx;
-	return (inputUtils.getPassphrase.firstCall).should.be.calledWith(vorpal);
-}
-
-export function itShouldGetThePasswordUsingTheVorpalInstance() {
-	const { vorpal, getGetPassphrasePasswordCall } = this.test.ctx;
-	return (getGetPassphrasePasswordCall()).should.be.calledWith(vorpal);
-}
-
 export function itShouldNotAskForThePassphraseFromStdIn() {
 	const firstCallArgs = inputUtils.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('passphraseIsRequired').equal(false);
@@ -350,16 +259,6 @@ export function itShouldAskForTheDataFromStdIn() {
 export function itShouldAskForThePassphraseFromStdIn() {
 	const firstCallArgs = inputUtils.getStdIn.firstCall.args;
 	return (firstCallArgs[0]).should.have.property('passphraseIsRequired').equal(true);
-}
-
-export function itShouldNotAskForTheMessageFromStdIn() {
-	const firstCallArgs = inputUtils.getStdIn.firstCall.args;
-	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(false);
-}
-
-export function itShouldAskForTheMessageFromStdIn() {
-	const firstCallArgs = inputUtils.getStdIn.firstCall.args;
-	return (firstCallArgs[0]).should.have.property('dataIsRequired').equal(true);
 }
 
 export function theResultShouldHaveSourceType() {

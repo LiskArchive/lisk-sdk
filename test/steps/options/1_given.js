@@ -87,19 +87,6 @@ export function anOptionsObjectWithPasswordSetTo() {
 	this.test.ctx.options = { password: passwordSource };
 }
 
-export function anOptionsObjectWithPasswordSetToUnknownSource() {
-	const password = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		const error = new Error('Unknown password source type. Must be one of `file`, or `stdin`.');
-		if (hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/)) {
-			inputUtils.getPassphrase.onFirstCall().rejects(error);
-		} else {
-			inputUtils.getPassphrase.onSecondCall().rejects(error);
-		}
-	}
-	this.test.ctx.options = { password };
-}
-
 export function anOptionsObjectWithPassphraseSetToAndMessageSetTo() {
 	const { passphrase } = this.test.ctx;
 	const [passphraseSource, messageSource] = getQuotedStrings(this.test.parent.title);
@@ -112,22 +99,6 @@ export function anOptionsObjectWithPassphraseSetToAndMessageSetTo() {
 export function anOptionsObjectWithMessageSetTo() {
 	const message = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.options = { message };
-}
-
-export function anOptionsObjectWithMessageSetToUnknownSource() {
-	const message = getFirstQuotedString(this.test.parent.title);
-	inputUtils.getData.rejects(new Error('Unknown data source type. Must be one of `file`, or `stdin`.'));
-	this.test.ctx.options = { message };
-}
-
-export function anOptionsObjectWithEncryptedPassphraseSetTo() {
-	const { passphrase } = this.test.ctx;
-	const passphraseSource = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onSecondCall().resolves(passphrase);
-		this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.secondCall;
-	}
-	this.test.ctx.options = { passphrase: passphraseSource };
 }
 
 export function anOptionsObjectWithPassphraseSetTo() {
@@ -149,18 +120,6 @@ export function anOptionsObjectWithSecondPassphraseSetTo() {
 		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
 	}
 	this.test.ctx.options = { 'second-passphrase': secondPassphraseSource };
-}
-
-export function anOptionsObjectWithSecondPassphraseSetToUnknownSource() {
-	const secondPassphrase = getFirstQuotedString(this.test.parent.title);
-	inputUtils.getPassphrase.onSecondCall().rejects(new Error('Unknown second passphrase source type. Must be one of `file`, or `stdin`.'));
-	this.test.ctx.options = { 'second-passphrase': secondPassphrase };
-}
-
-export function anOptionsObjectWithPassphraseSetToUnknownSource() {
-	const passphrase = getFirstQuotedString(this.test.parent.title);
-	inputUtils.getPassphrase.onFirstCall().rejects(new Error('Unknown passphrase source type. Must be one of `file`, or `stdin`.'));
-	this.test.ctx.options = { passphrase };
 }
 
 export function anOptionsObjectWithJsonSetTo() {
