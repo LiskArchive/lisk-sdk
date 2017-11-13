@@ -211,53 +211,52 @@ Accounts.prototype.isLoaded = function () {
 Accounts.prototype.shared = {
 	/**
 	 * Search accounts based on the query parameter passed.
-	 * @param {Request} req
+	 * @param {Object} filters - Filters to fetch the accounts
+	 * @param {string} filters.address - Account address
+	 * @param {string} filters.publicKey - Publickey associated to account
+	 * @param {string} filters.username - Username associated to account
+	 * @param {string} filters.sort - Sorting key
+	 * @param {int} filters.limit - Number of accounts to limit the response
+	 * @param {int} filters.offset - Head start the response list
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getAccounts: function (req, cb) {
-		library.schema.validate(req.body, schema.getAccounts, function (err) {
+	getAccounts: function (filters, cb) {
+		library.logic.account.getAll(filters, function (err, accounts) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
+				return setImmediate(cb, err);
 			}
 
-			library.logic.account.getAll(req.body, function (err, accounts) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err, apiCodes.BAD_REQUEST));
-				}
-				accounts = accounts.map(function (account) {
-					var delegate = {};
+			accounts = accounts.map(function (account) {
+				var delegate = {};
 
-					// Only create delegate properties if account has a username
-					if (account.username) {
-						delegate = {
-							username: account.username,
-							vote: account.vote,
-							rewards: account.rewards,
-							producedBlocks: account.producedBlocks,
-							missedBlocks: account.missedBlocks,
-							rank: account.rank,
-							approval: account.approval,
-							productivity: account.productivity
-						};
-					}
-
-					return {
-						address: account.address,
-						unconfirmedBalance: account.u_balance,
-						balance: account.balance,
-						publicKey: account.publicKey,
-						unconfirmedSignature: account.u_secondSignature,
-						secondSignature: account.secondSignature,
-						secondPublicKey: account.secondPublicKey,
-						delegate: delegate
+				// Only create delegate properties if account has a username
+				if (account.username) {
+					delegate = {
+						username: account.username,
+						vote: account.vote,
+						rewards: account.rewards,
+						producedBlocks: account.producedBlocks,
+						missedBlocks: account.missedBlocks,
+						rank: account.rank,
+						approval: account.approval,
+						productivity: account.productivity
 					};
-				});
+				}
 
-				return setImmediate(cb, null, {
-					accounts: accounts
-				});
+				return {
+					address: account.address,
+					unconfirmedBalance: account.u_balance,
+					balance: account.balance,
+					publicKey: account.publicKey,
+					unconfirmedSignature: account.u_secondSignature,
+					secondSignature: account.secondSignature,
+					secondPublicKey: account.secondPublicKey,
+					delegate: delegate
+				};
 			});
+
+			return setImmediate(cb, null, accounts);
 		});
 	}
 };

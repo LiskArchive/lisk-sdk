@@ -44,6 +44,52 @@ schemes:
   - https
 
 paths:
+  /accounts:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: requests account data
+      operationId: getAccounts
+      description:
+        By passing in the appropriate options, you can search for
+        specified account in the system
+      produces:
+      - application/json
+      parameters:
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - name: sort
+          in: query
+          description: fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - balance:asc
+            - balance:desc
+          default: balance:asc
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/AccountsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpeted error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /peers:
     x-swagger-router-controller: peers
     get:
@@ -77,34 +123,9 @@ paths:
             - version:desc
       responses:
         200:
-          description: Peers list
+          description: List of peers
           schema:
-            allOf:
-            - $ref: '#/definitions/AbstractResponse'
-            - properties:
-                data:
-                  type: array
-                  items:
-                    $ref: '#/definitions/Peer'
-                meta:
-                  type: object
-                  required:
-                    - offset
-                    - limit
-                    - total
-                  properties:
-                    offset:
-                      description: Offset value for the resultset
-                      type: integer
-                      example: 0
-                    limit:
-                      description: Limit applied to the resultset
-                      type: integer
-                      example: 100
-                    total:
-                      description: Total number of peers available
-                      type: integer
-                      example: 100
+            $ref: '#/definitions/PeersResponse'
         400:
           description: Malformed query or parameters
           schema:
@@ -133,11 +154,7 @@ paths:
         200:
           description: Node constants response
           schema:
-            allOf:
-            - $ref: '#/definitions/AbstractResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/NodeConstants'
+            $ref: '#/definitions/NodeConstantsResponse'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
@@ -161,11 +178,7 @@ paths:
         200:
           description: Node status response
           schema:
-            allOf:
-            - $ref: '#/definitions/AbstractResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/NodeStatus'
+            $ref: '#/definitions/NodeStatusResponse'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
@@ -249,8 +262,129 @@ parameters:
     format: int32
     minimum: 0
     default: 0
+  address:
+    name: address
+    in: query
+    description: address to query
+    required: false
+    type: string
+    format: address
+    minLength: 2
+    maxLength: 22
+  publicKey:
+    name: publicKey
+    in: query
+    description: publicKey to query
+    type: string
+    format: publicKey
+  secondPublicKey:
+    name: secondPublicKey
+    in: query
+    description: publicKey to query
+    type: string
+    format: publicKey
+  username:
+    name: username
+    in: query
+    description: Delegate username to query
+    type: string
+    format: username
+    minLength: 1
+    maxLength: 20
 
 definitions:
+  NodeStatusResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        $ref: '#/definitions/NodeStatus'
+      meta:
+        type: object
+      links:
+        type: object
+
+  NodeConstantsResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        $ref: '#/definitions/NodeConstants'
+      meta:
+        type: object
+      links:
+        type: object
+
+  PeersResponse:
+    description: Peers Response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Peer'
+      meta:
+       type: object
+       required:
+         - offset
+         - limit
+         - total
+       properties:
+         offset:
+           description: Offset value for the resultset
+           type: integer
+           example: 0
+         limit:
+           description: Limit applied to the resultset
+           type: integer
+           example: 100
+         total:
+           description: Total number of peers available
+           type: integer
+           example: 100
+      links:
+        type: object
+
+  AccountsResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of accounts
+        type: array
+        items:
+          $ref: '#/definitions/AccountExtended'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for the resultset
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to the resultset
+            type: integer
+            example: 100
+      links:
+        type: object
+
+
   Peer:
     type: object
     required:
@@ -433,22 +567,6 @@ definitions:
         type: boolean
         example: false
 
-  AbstractResponse:
-    type: object
-    required:
-      - meta
-      - data
-      - links
-    properties:
-      meta:
-        type: object
-        description: Additional information related to the data associated in response
-      data:
-        description: Actual data which processed in response
-      links:
-        type: object
-        description: Additional links to the entities associated in response
-
   UnexpectedError:
     type: object
     required:
@@ -532,3 +650,67 @@ definitions:
       description:
         type: string
         description: Param description specified in schema
+
+  AccountExtended:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+      - unconfirmedBalance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+      unconfirmedBalance:
+        type: string
+        example: 0
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      delegate:
+        $ref: '#/definitions/Delegate'
+
+  Delegate:
+    type: object
+    required:
+      - username
+      - vote
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      vote:
+        type: string
+        example: 1081560729258
+      rewards:
+        type: string
+        example: 510000000
+      producedBlocks:
+        type: integer
+        example: 20131
+      missedBlocks:
+        type: integer
+        example: 427
+      rate:
+        type: integer
+        example: 91
+      approval:
+        type: number
+        example: 14.22
+      productivity:
+        type: number
+        example: 96.41
+      rank:
+        type: integer
+        example: 70
