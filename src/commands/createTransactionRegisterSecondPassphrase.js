@@ -25,7 +25,7 @@ const description = `Creates a transaction which will register a second passphra
 	- create transaction 1
 `;
 
-export const createSignature = ({
+export const processInputs = ({
 	passphrase,
 	secondPassphrase,
 }) => transactions.createSignature(passphrase, secondPassphrase);
@@ -46,7 +46,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 			repeatPrompt: true,
 		},
 	})
-		.then(createSignature);
+		.then(processInputs);
 };
 
 const createTransactionRegisterSecondPassphrase = createCommand({

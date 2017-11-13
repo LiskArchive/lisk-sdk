@@ -28,7 +28,7 @@ const description = `Creates a transaction which will register a multisignature 
 	- create transaction 4 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa
 `;
 
-const createMultisignatureAccount = (lifetime, minimum, keysgroup) =>
+const processInputs = (lifetime, minimum, keysgroup) =>
 	({ passphrase, secondPassphrase }) =>
 		transactions.createMultisignature(
 			passphrase,
@@ -75,7 +75,7 @@ export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, op
 			repeatPrompt: true,
 		},
 	})
-		.then(createMultisignatureAccount(
+		.then(processInputs(
 			transactionLifetime,
 			transactionMinimumConfirmations,
 			publicKeysWithPlus,

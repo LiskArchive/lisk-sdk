@@ -23,7 +23,7 @@ const description = `Encrypt a message for a given recipient public key using yo
 	Example: encrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
 `;
 
-const handlePassphraseAndMessage = (recipient, message) => ({ passphrase, data }) =>
+const processInputs = (recipient, message) => ({ passphrase, data }) =>
 	cryptoModule.encryptMessage({
 		message: message || data,
 		passphrase,
@@ -47,7 +47,7 @@ export const actionCreator = vorpal => async ({ recipient, message, options }) =
 			source: messageSource,
 		},
 	})
-		.then(handlePassphraseAndMessage(recipient, message));
+		.then(processInputs(recipient, message));
 };
 
 const encryptMessage = createCommand({

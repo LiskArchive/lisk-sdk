@@ -25,7 +25,7 @@ const description = `Creates a transaction which will register an existing accou
 	- create transaction 2 username
 `;
 
-const createDelegate = username => ({ passphrase, secondPassphrase }) =>
+const processInputs = username => ({ passphrase, secondPassphrase }) =>
 	transactions.createDelegate(passphrase, username, secondPassphrase);
 
 export const actionCreator = vorpal => async ({ username, options }) => {
@@ -44,7 +44,7 @@ export const actionCreator = vorpal => async ({ username, options }) => {
 			repeatPrompt: true,
 		},
 	})
-		.then(createDelegate(username));
+		.then(processInputs(username));
 };
 
 const createTransactionRegisterSecondPassphrase = createCommand({

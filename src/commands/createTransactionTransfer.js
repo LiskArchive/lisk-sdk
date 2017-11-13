@@ -29,7 +29,7 @@ const description = `Creates a transaction which will transfer the specified amo
 	- create transaction 0 100 13356260975429434553L
 `;
 
-const createTransfer = (amount, address) => ({ passphrase, secondPassphrase }) =>
+const processInputs = (amount, address) => ({ passphrase, secondPassphrase }) =>
 	transactions.createTransaction(address, amount, passphrase, secondPassphrase);
 
 export const actionCreator = vorpal => async ({ amount, address, options }) => {
@@ -52,7 +52,7 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 			repeatPrompt: true,
 		},
 	})
-		.then(createTransfer(amount, address));
+		.then(processInputs(amount, address));
 };
 
 const createTransactionTransfer = createCommand({

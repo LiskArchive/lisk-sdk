@@ -28,7 +28,7 @@ const outputPublicKeyOption = [
 	'Includes the public key in the output. This option is provided for the convenience of node operators.',
 ];
 
-const handleInput = outputPublicKey => ({ passphrase, password }) => {
+const processInputs = outputPublicKey => ({ passphrase, password }) => {
 	const cipherAndIv = cryptoModule.encryptPassphrase({ passphrase, password });
 	return outputPublicKey
 		? Object.assign({}, cipherAndIv, {
@@ -54,7 +54,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 			repeatPrompt: true,
 		},
 	})
-		.then(handleInput(outputPublicKey));
+		.then(processInputs(outputPublicKey));
 };
 
 const encryptPassphrase = createCommand({
