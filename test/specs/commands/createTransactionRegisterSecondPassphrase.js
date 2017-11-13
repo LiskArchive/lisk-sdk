@@ -20,7 +20,7 @@ import * as then from '../../steps/3_then';
 
 describe('create transaction register second passphrase command', () => {
 	beforeEach(setUpCommandCreateTransactionRegisterSecondPassphrase);
-	describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
+	describe('Given a vorpal instance with a UI and an active command that can prompt', () => {
 		beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
 		describe('Given an action "create transaction register second passphrase"', () => {
 			beforeEach(given.anAction);
@@ -43,7 +43,7 @@ describe('create transaction register second passphrase command', () => {
 								beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									it('Then it should get the inputs from sources using the vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 									it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
@@ -64,7 +64,7 @@ describe('create transaction register second passphrase command', () => {
 								beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									it('Then it should get the inputs from sources using the vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 									it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);
@@ -85,7 +85,7 @@ describe('create transaction register second passphrase command', () => {
 								beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
 								describe('When the action is called with the options', () => {
 									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									it('Then it should get the inputs from sources using the vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 									it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 									it('Then it should create a register second passphrase transaction using the passphrase and the second passphrase', then.itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase);

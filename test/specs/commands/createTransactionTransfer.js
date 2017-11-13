@@ -92,7 +92,7 @@ describe('create transaction transfer', () => {
 											it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 											it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 											it('Then it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
-											it('Then it should create a transfer transaction using the address, the amount and the Passphrase', then.itShouldCreateATransferTransactionUsingTheAddressTheAmountAndThePassphrase);
+											it('Then it should create a transfer transaction using the address, the amount and the passphrase', then.itShouldCreateATransferTransactionUsingTheAddressTheAmountAndThePassphrase);
 											it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
