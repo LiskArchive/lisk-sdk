@@ -22,6 +22,7 @@ AccountsController.getAccounts = function (context, next) {
 	var filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
+		secondPublicKey: params.secondPublicKey.value,
 		username: params.username.value,
 		limit: params.limit.value,
 		offset: params.offset.value,

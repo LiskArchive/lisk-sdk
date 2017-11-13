@@ -214,6 +214,7 @@ Accounts.prototype.shared = {
 	 * @param {Object} filters - Filters to fetch the accounts
 	 * @param {string} filters.address - Account address
 	 * @param {string} filters.publicKey - Publickey associated to account
+	 * @param {string} filters.secondPublicKey - SecondPublicKey associated to account
 	 * @param {string} filters.username - Username associated to account
 	 * @param {string} filters.sort - Sorting key
 	 * @param {int} filters.limit - Number of accounts to limit the response

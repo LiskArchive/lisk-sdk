@@ -2,8 +2,12 @@
 
 var _ = require('lodash');
 var node = require('../../../node.js');
+var constants = require('../../../../helpers/constants');
 
 var apiHelpers = require('../../../common/apiHelpers');
+var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -102,6 +106,44 @@ describe('GET /accounts', function () {
 			it('using known address and not matching publicKey should return empty result', function () {
 				return accountsEndpoint.makeRequest({publicKey: account.publicKey, address: node.gAccount.address}, 200).then(function (res) {
 					res.body.data.should.have.length(0);
+				});
+			});
+		});
+
+		describe.only('secondPublicKey', function () {
+
+			var spkAcccount = node.randomAccount();
+			var transaction = node.lisk.signature.createSignature(spkAcccount.password, spkAcccount.secondPassword);
+
+			before(function () {
+				return creditAccountPromise(spkAcccount.address, constants.fees.secondSignature).then(function (res) {
+					res.should.have.a.property('success').to.be.ok;
+
+					return waitForConfirmations([res.transactionId]);
+				}).then(function () {
+					return sendTransactionPromise(transaction);
+				}).then(function (res) {
+					res.should.have.a.property('success').to.be.ok;
+					res.transactionId.should.be.eql(transaction.id);
+					return waitForConfirmations([transaction.id]);
+				});
+			});
+
+			it('using known secondPublicKey should be ok', function () {
+				return accountsEndpoint.makeRequest({secondPublicKey: spkAcccount.secondPublicKey}, 200).then(function (res) {
+					res.body.data[0].secondPublicKey.should.be.eql(spkAcccount.secondPublicKey);
+				});
+			});
+
+			it('using unknown secondPublicKey should return empty result', function () {
+				return accountsEndpoint.makeRequest({secondPublicKey: account.secondPublicKey}, 200).then(function (res) {
+					res.body.data.should.have.length(0);
+				});
+			});
+
+			it('using invalid secondPublicKey should fail', function () {
+				return accountsEndpoint.makeRequest({secondPublicKey: 'invalidPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'secondPublicKey');
 				});
 			});
 		});
