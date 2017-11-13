@@ -658,36 +658,6 @@ Delegates.prototype.internal = {
  */
 Delegates.prototype.shared = {
 
-	getDelegate: function (req, cb) {
-		library.schema.validate(req.body, schema.getDelegate, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			modules.delegates.getDelegates(req.body, function (err, data) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				var delegate = _.find(data.delegates, function (delegate) {
-					if (req.body.publicKey) {
-						return delegate.publicKey === req.body.publicKey;
-					} else if (req.body.username) {
-						return delegate.username === req.body.username;
-					}
-
-					return false;
-				});
-
-				if (delegate) {
-					return setImmediate(cb, null, {delegate: delegate});
-				} else {
-					return setImmediate(cb, 'Delegate not found');
-				}
-			});
-		});
-	},
-
 	getForgers: function (req, cb) {
 		var currentBlock = modules.blocks.lastBlock.get();
 		var limit = req.body.limit || 10;
@@ -703,37 +673,6 @@ Delegates.prototype.shared = {
 		}
 
 		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
-	},
-
-	search: function (req, cb) {
-		library.schema.validate(req.body, schema.search, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			var orderBy = OrderBy(
-				req.body.orderBy, {
-					sortFields: sql.sortFields,
-					sortField: 'username'
-				}
-			);
-
-			if (orderBy.error) {
-				return setImmediate(cb, orderBy.error);
-			}
-
-			library.db.query(sql.search({
-				q: req.body.q,
-				limit: req.body.limit || 101,
-				sortField: orderBy.sortField,
-				sortMethod: orderBy.sortMethod
-			})).then(function (rows) {
-				return setImmediate(cb, null, {delegates: rows});
-			}).catch(function (err) {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Database search failed');
-			});
-		});
 	},
 
 	getDelegates: function (req, cb) {
