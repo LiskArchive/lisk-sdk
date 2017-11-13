@@ -27,7 +27,7 @@ describe('utils helpers', () => {
 				it('Then it should return true', then.itShouldReturnTrue);
 			});
 		});
-		describe('Given an address "1234567890LL"', () => {
+		describe('Given an invalid address "1234567890LL"', () => {
 			beforeEach(given.anAddress);
 			describe('When validateAddress is called on the address', () => {
 				beforeEach(when.validateAddressIsCalledOnTheAddress);

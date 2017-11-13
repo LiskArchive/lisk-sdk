@@ -34,15 +34,15 @@ describe('create transaction transfer', () => {
 						beforeEach(given.anEmptyOptionsObject);
 						describe('Given an address "13356260975429434553L"', () => {
 							beforeEach(given.anAddress);
-							describe('Given an amount "abc"', () => {
-								beforeEach(given.anAmount);
+							describe('Given an invalid amount "abc"', () => {
+								beforeEach(given.anInvalidAmount);
 								describe('When the action is called with the amount, the address and the options', () => {
 									beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
 									it('Then it should reject with message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
 								});
 							});
-							describe('Given an amount "100,5"', () => {
-								beforeEach(given.anAmount);
+							describe('Given an invalid amount "100,5"', () => {
+								beforeEach(given.anInvalidAmount);
 								describe('When the action is called with the amount, the address and the options', () => {
 									beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
 									it('Then it should reject with message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithMessage);
@@ -52,7 +52,7 @@ describe('create transaction transfer', () => {
 						describe('Given an amount "100.123"', () => {
 							beforeEach(given.anAmount);
 							describe('Given an invalid address "1234567890LL"', () => {
-								beforeEach(given.anInalidAddress);
+								beforeEach(given.anInvalidAddress);
 								describe('When the action is called with the amount, the address and the options', () => {
 									beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
 									it('Then it should reject with message "1234567890LL is not a valid address."', then.itShouldRejectWithMessage);
@@ -62,7 +62,7 @@ describe('create transaction transfer', () => {
 								beforeEach(given.anAddress);
 								describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
 									beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-									describe('When the action is called with the delegate username and the options', () => {
+									describe('When the action is called with the amount, the address and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheAmountTheAddressAndTheOptions);
 										it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 									});

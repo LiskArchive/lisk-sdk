@@ -97,7 +97,7 @@ export function aBlockID() {
 	this.test.ctx.blockID = getFirstQuotedString(this.test.parent.title);
 }
 
-export function anInalidAddress() {
+export function anInvalidAddress() {
 	this.test.ctx.address = getFirstQuotedString(this.test.parent.title);
 }
 
