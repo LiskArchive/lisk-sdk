@@ -29,7 +29,7 @@ import transactions from '../../src/utils/transactions';
 
 const NON_INTERACTIVE_MODE = 'NON_INTERACTIVE_MODE';
 const TEST_PASSPHRASE = 'TEST_PASSPHRASE';
-const CONFIG_PATH = '../../src/utils/env';
+const CONFIG_PATH = '../../src/utils/config';
 
 const setUpChildProcessStubs = () => {
 	sandbox.stub(childProcess, 'exec');

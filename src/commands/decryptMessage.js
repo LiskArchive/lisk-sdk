@@ -24,7 +24,12 @@ const description = `Decrypt an encrypted message from a given sender public key
 `;
 
 const handlePassphrase = (nonce, senderPublicKey, message) => ({ passphrase, data }) =>
-	cryptoModule.decryptMessage(message || data, nonce, passphrase, senderPublicKey);
+	cryptoModule.decryptMessage({
+		cipher: message || data,
+		nonce,
+		passphrase,
+		senderPublicKey,
+	});
 
 export const actionCreator = vorpal => async ({ message, nonce, senderPublicKey, options }) => {
 	const passphraseSource = options.passphrase;

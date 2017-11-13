@@ -15,7 +15,7 @@
  */
 import os from 'os';
 import { CONFIG_VARIABLES } from '../utils/constants';
-import config from '../utils/env';
+import config from '../utils/config';
 import { writeJsonSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 import liskAPIInstance from '../utils/api';

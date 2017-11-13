@@ -14,13 +14,11 @@
  *
  */
 import defaultConfig from '../../../defaultConfig.json';
-import * as env from '../../../src/utils/env';
+import * as currentConfig from '../../../src/utils/config';
 import {
 	getFirstBoolean,
 	getBooleans,
 } from '../utils';
-
-const envToStub = require('../../../src/utils/env');
 
 export function aConfig() {
 	const config = {
@@ -33,7 +31,7 @@ export function aConfig() {
 			ssl: true,
 		},
 	};
-	envToStub.default = config;
+	currentConfig.default = config;
 	this.test.ctx.config = config;
 }
 
@@ -45,7 +43,7 @@ export function aConfigWithJsonSetTo() {
 	const json = getFirstBoolean(this.test.parent.title);
 	const config = { json };
 
-	env.default = config;
+	currentConfig.default = config;
 	this.test.ctx.config = config;
 }
 
@@ -53,7 +51,7 @@ export function aConfigWithPrettySetTo() {
 	const pretty = getFirstBoolean(this.test.parent.title);
 	const config = { pretty };
 
-	env.default = config;
+	currentConfig.default = config;
 	this.test.ctx.config = config;
 }
 
@@ -61,6 +59,6 @@ export function aConfigWithJsonSetToAndPrettySetTo() {
 	const [json, pretty] = getBooleans(this.test.parent.title);
 	const config = { json, pretty };
 
-	env.default = config;
+	currentConfig.default = config;
 	this.test.ctx.config = config;
 }

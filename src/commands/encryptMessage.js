@@ -24,7 +24,11 @@ const description = `Encrypt a message for a given recipient public key using yo
 `;
 
 const handlePassphraseAndMessage = (recipient, message) => ({ passphrase, data }) =>
-	cryptoModule.encryptMessage(message || data, passphrase, recipient);
+	cryptoModule.encryptMessage({
+		message: message || data,
+		passphrase,
+		recipient,
+	});
 
 export const actionCreator = vorpal => async ({ recipient, message, options }) => {
 	const messageSource = options.message;

@@ -39,24 +39,24 @@ class Crypto {
 		});
 	}
 
-	encryptMessage(message, passphrase, recipient) {
+	encryptMessage({ message, passphrase, recipient }) {
 		return this.liskCrypto.encryptMessageWithSecret(message, passphrase, recipient);
 	}
 
-	decryptMessage(encryptedMessage, nonce, passphrase, senderPublicKey) {
+	decryptMessage({ cipher, nonce, passphrase, senderPublicKey }) {
 		return {
 			message: this.liskCrypto
-				.decryptMessageWithSecret(encryptedMessage, nonce, passphrase, senderPublicKey),
+				.decryptMessageWithSecret(cipher, nonce, passphrase, senderPublicKey),
 		};
 	}
 
-	encryptPassphrase(passphrase, password) {
+	encryptPassphrase({ passphrase, password }) {
 		return this.liskCrypto.encryptPassphraseWithPassword(passphrase, password);
 	}
 
-	decryptPassphrase(cipherAndIv, password) {
+	decryptPassphrase({ cipher, iv, password }) {
 		return {
-			passphrase: this.liskCrypto.decryptPassphraseWithPassword(cipherAndIv, password),
+			passphrase: this.liskCrypto.decryptPassphraseWithPassword({ cipher, iv }, password),
 		};
 	}
 

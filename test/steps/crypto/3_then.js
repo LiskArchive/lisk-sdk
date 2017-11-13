@@ -34,8 +34,8 @@ export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 }
 
 export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
-	const { cipherAndIv, password } = this.test.ctx;
-	return (cryptoInstance.decryptPassphrase).should.be.calledWithExactly(cipherAndIv, password);
+	const { cipherAndIv: { cipher, iv }, password } = this.test.ctx;
+	return (cryptoInstance.decryptPassphrase).should.be.calledWithExactly({ cipher, iv, password });
 }
 
 export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey() {
@@ -45,7 +45,7 @@ export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithT
 
 export function itShouldEncryptThePassphraseUsingThePassword() {
 	const { passphrase, password } = this.test.ctx;
-	return (cryptoInstance.encryptPassphrase).should.be.calledWithExactly(passphrase, password);
+	return (cryptoInstance.encryptPassphrase).should.be.calledWithExactly({ passphrase, password });
 }
 
 export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
@@ -55,7 +55,7 @@ export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
 
 export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
 	const { message, nonce, passphrase, senderPublicKey } = this.test.ctx;
-	return (cryptoInstance.decryptMessage).should.be.calledWithExactly(message, nonce, passphrase, senderPublicKey);
+	return (cryptoInstance.decryptMessage).should.be.calledWithExactly({ cipher: message, nonce, passphrase, senderPublicKey });
 }
 
 export function itShouldResolveToTheResultOfDecryptingTheMessage() {
@@ -65,7 +65,7 @@ export function itShouldResolveToTheResultOfDecryptingTheMessage() {
 
 export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
 	const { message, passphrase, recipient } = this.test.ctx;
-	return (cryptoInstance.encryptMessage).should.be.calledWithExactly(message, passphrase, recipient);
+	return (cryptoInstance.encryptMessage).should.be.calledWithExactly({ message, passphrase, recipient });
 }
 
 export function itShouldResolveToTheResultOfEncryptingTheMessage() {
@@ -140,13 +140,13 @@ export function liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
 }
 
 export function theEncryptedMessageAndNonceShouldBeReturned() {
-	const { returnValue, encryptedMessageWithNonce } = this.test.ctx;
-	return (returnValue).should.eql(encryptedMessageWithNonce);
+	const { returnValue, cipherAndNonce } = this.test.ctx;
+	return (returnValue).should.eql(cipherAndNonce);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
-	const { encryptedMessageWithNonce: { encryptedMessage, nonce }, recipientPassphrase, keys } = this.test.ctx;
-	return (lisk.crypto.decryptMessageWithSecret).should.be.calledWithExactly(encryptedMessage, nonce, recipientPassphrase, keys.publicKey);
+	const { cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys } = this.test.ctx;
+	return (lisk.crypto.decryptMessageWithSecret).should.be.calledWithExactly(cipher, nonce, recipientPassphrase, keys.publicKey);
 }
 
 export function theDecryptedMessageShouldBeReturned() {

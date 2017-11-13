@@ -29,7 +29,7 @@ const outputPublicKeyOption = [
 ];
 
 const handleInput = outputPublicKey => ({ passphrase, password }) => {
-	const cipherAndIv = cryptoModule.encryptPassphrase(passphrase, password);
+	const cipherAndIv = cryptoModule.encryptPassphrase({ passphrase, password });
 	return outputPublicKey
 		? Object.assign({}, cipherAndIv, {
 			publicKey: cryptoModule.getKeys(passphrase).publicKey,

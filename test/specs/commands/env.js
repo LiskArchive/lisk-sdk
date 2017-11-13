@@ -17,10 +17,10 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('env command', () => {
+describe('config command', () => {
 	describe('Given a config', () => {
 		beforeEach(given.aConfig);
-		describe('Given an action "env"', () => {
+		describe('Given an action "config"', () => {
 			beforeEach(given.anAction);
 			describe('When the action is called', () => {
 				beforeEach(when.theActionIsCalled);
