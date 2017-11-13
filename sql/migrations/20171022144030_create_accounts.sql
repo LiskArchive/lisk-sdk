@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS accounts CASCADE;
 CREATE TABLE "public".accounts (address varchar(22) NOT NULL,
 	transaction_id varchar(20),
   public_key bytea,
-  public_key_transaction_id varchar(20),
+  public_key_transaction_id VARCHAR(20) DEFAULT NULL REFERENCES trs(id) ON DELETE SET NULL,
   balance bigint DEFAULT 0 NOT NULL,
   CONSTRAINT pk_accounts PRIMARY KEY (address),
 	CONSTRAINT idx_accounts_public_key UNIQUE (public_key)
@@ -43,6 +43,7 @@ CREATE TRIGGER protect_accounts_balance
 
 CREATE OR REPLACE FUNCTION public.public_key_rollback() RETURNS TRIGGER LANGUAGE PLPGSQL AS $function$
 	BEGIN
+	RAISE NOTICE 'public_key_rollback';
 		NEW.public_key = NULL;
 		RETURN NEW;
 	END $function$ ;
