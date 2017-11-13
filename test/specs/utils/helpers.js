@@ -28,21 +28,21 @@ describe('utils helpers', () => {
 			});
 		});
 		describe('Given an invalid address "1234567890LL"', () => {
-			beforeEach(given.anAddress);
+			beforeEach(given.anInvalidAddress);
 			describe('When validateAddress is called on the address', () => {
 				beforeEach(when.validateAddressIsCalledOnTheAddress);
 				it('Then it should throw error "1234567890LL is not a valid address."', then.itShouldThrowError);
 			});
 		});
-		describe('Given an address "L"', () => {
-			beforeEach(given.anAddress);
+		describe('Given an invalid address "L"', () => {
+			beforeEach(given.anInvalidAddress);
 			describe('When validateAddress is called on the address', () => {
 				beforeEach(when.validateAddressIsCalledOnTheAddress);
 				it('Then it should throw error "L is not a valid address."', then.itShouldThrowError);
 			});
 		});
-		describe('Given an address "0123456789101112131415L"', () => {
-			beforeEach(given.anAddress);
+		describe('Given an invalid address "0123456789101112131415L"', () => {
+			beforeEach(given.anInvalidAddress);
 			describe('When validateAddress is called on the address', () => {
 				beforeEach(when.validateAddressIsCalledOnTheAddress);
 				it('Then it should throw error "0123456789101112131415L is not a valid address."', then.itShouldThrowError);

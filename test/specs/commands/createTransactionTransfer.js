@@ -115,7 +115,7 @@ describe('create transaction transfer', () => {
 												it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 												it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
-												it('Then it should create a transfer transaction using the address, the amount, the Passphrase and the second passphrase', then.itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase);
+												it('Then it should create a transfer transaction using the address, the amount, the passphrase and the second passphrase', then.itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase);
 												it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 											});
 										});
@@ -136,7 +136,7 @@ describe('create transaction transfer', () => {
 												it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 												it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
-												it('Then it should create a transfer transaction using the address, the amount, the Passphrase and the second passphrase', then.itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase);
+												it('Then it should create a transfer transaction using the address, the amount, the passphrase and the second passphrase', then.itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase);
 												it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 											});
 										});
