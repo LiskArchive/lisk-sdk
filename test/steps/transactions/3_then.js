@@ -46,11 +46,6 @@ export function itShouldResolveToTheCreatedTransaction() {
 	return (returnValue).should.be.fulfilledWith(createdTransaction);
 }
 
-export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheDelegateUsernameAndTheSecondPassphrase() {
-	const { passphrase, delegateUsername, secondPassphrase } = this.test.ctx;
-	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, secondPassphrase);
-}
-
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {
 	const { passphrase, delegateUsername } = this.test.ctx;
 	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);

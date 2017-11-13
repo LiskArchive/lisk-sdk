@@ -15,6 +15,6 @@
  */
 import liskAPIInstance from '../../../src/utils/api';
 
-export function aliskAPIInstance() {
+export function aLiskAPIInstance() {
 	this.test.ctx.liskAPIInstance = liskAPIInstance;
 }

@@ -32,11 +32,6 @@ export function aKeysgroupWithKeys() {
 	this.test.ctx.keysgroup = keysgroup;
 }
 
-export function aLifetimeOfHoursAsNotANumber() {
-	const lifetime = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.lifetime = lifetime;
-}
-
 export function aLifetimeOfHours() {
 	let lifetime;
 	try {
