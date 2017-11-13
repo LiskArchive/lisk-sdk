@@ -319,7 +319,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."rank")::bigint'
+			expression: '(d."rank")'
 		},
 		{
 			name: 'rewards',
