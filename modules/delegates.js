@@ -279,9 +279,20 @@ __private.toggleForgingStatus = function (publicKey, secretKey, cb) {
  */
 
 __private.checkDelegates = function (publicKey, votes, state, cb) {
-	library.db.query(sql.getVotes, { senderId: modules.accounts.generateAddressByPublicKey(publicKey) }).then(function (row) {
-   		// We get the delegates that the user has voted for here, if they have voted
-		var delegates = (row[0].delegates) ? row[0].delegates : [];
+	if (!Array.isArray(votes)) {
+		return setImmediate(cb, 'Votes must be an array');
+	}
+
+	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+
+		if (!account) {
+			return setImmediate(cb, 'Account not found');
+		}
+
+		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
 		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
 		var additions = 0, removals = 0;
 
@@ -339,9 +350,6 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				return setImmediate(cb);
 			}
 		});
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Failed to get voters for delegate: ' + publicKey);
 	});
 };
 
