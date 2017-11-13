@@ -15,33 +15,33 @@
  */
 import lisk from 'lisk-js';
 
-export function theliskAPIInstanceShouldBeALiskJSApiInstance() {
+export function theLiskAPIInstanceShouldBeALiskJSApiInstance() {
 	const { liskAPIInstance } = this.test.ctx;
 	return (liskAPIInstance).should.be.instanceOf(lisk.api);
 }
 
-export function theliskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
+export function theLiskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
 	const { blockId, liskAPIInstance } = this.test.ctx;
 	const route = 'blocks/get';
 	const options = { id: blockId };
 	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theliskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
+export function theLiskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress() {
 	const { address, liskAPIInstance } = this.test.ctx;
 	const route = 'accounts';
 	const options = { address };
 	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theliskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
+export function theLiskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID() {
 	const { transactionId, liskAPIInstance } = this.test.ctx;
 	const route = 'transactions/get';
 	const options = { id: transactionId };
 	return (liskAPIInstance.sendRequest).should.be.calledWithExactly(route, options);
 }
 
-export function theliskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
+export function theLiskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername() {
 	const { delegateUsername, liskAPIInstance } = this.test.ctx;
 	const route = 'delegates/get';
 	const options = { username: delegateUsername };
