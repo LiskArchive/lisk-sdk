@@ -537,7 +537,9 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					}, function (cb) {
 						// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
 						// WARNING: DB_WRITE
-						modules.transactions.undoUnconfirmed(transaction, cb);
+						// TODO: Refactor that function, async.series is not needed anymore
+						// modules.transactions.undoUnconfirmed(transaction, cb);
+						cb();
 					}, function (cb) {
 						return setImmediate(cb);
 					}
