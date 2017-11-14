@@ -206,20 +206,12 @@ Vote.prototype.getBytes = function (transaction) {
  * @todo delete unnecessary var parent = this
  */
 Vote.prototype.apply = function (transaction, block, sender, cb) {
+	// TODO: Remove this apply function. Stubbed out 
 	var parent = this;
 
 	async.series([
 		function (seriesCb) {
 			self.checkConfirmedDelegates(transaction, seriesCb);
-		},
-		function (seriesCb) {
-			parent.scope.account.merge(sender.address, {
-				delegates: transaction.asset.votes,
-				blockId: block.id,
-				round: slots.calcRound(block.height)
-			}, function (err) {
-				return setImmediate(cb, err);
-			});
 		}
 	], cb);
 };

@@ -179,8 +179,8 @@ function Account (db, schema, logger, cb) {
 			conv: Number
 		},
 		{
-			name: 'producedBlocks',
-			type: 'Number',
+			name: 'fees',
+			type: 'BigInt',
 			filter: {
 				type: 'integer'
 			},
