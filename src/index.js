@@ -18,8 +18,8 @@
  * @main lisk
  */
 import 'babel-polyfill';
-import Mnemonic from 'bitcore-mnemonic';
 import naclFactory from 'js-nacl';
+import Mnemonic from 'bip39';
 import api from './api/liskApi';
 import crypto from './crypto';
 import * as time from './transactions/utils/time';
