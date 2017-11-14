@@ -366,12 +366,20 @@ Vote.prototype.dbFields = [
  * @return {Object[]} table, fields, values.
  */
 Vote.prototype.dbSave = function (transaction) {
+`	var publicKey;
+
+	try {
+		publicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+	} catch (e) {
+		throw e;
+	}
+
 	return {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
 			transaction_id: transaction.id,
-			public_key: transaction.senderPublicKey,
+			public_key: publicKey,
 			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null
 		}
 	};
