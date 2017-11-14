@@ -113,19 +113,18 @@ describe('GET /accounts', function () {
 		describe.only('secondPublicKey', function () {
 
 			var spkAcccount = node.randomAccount();
-			var transaction = node.lisk.signature.createSignature(spkAcccount.password, spkAcccount.secondPassword);
+			var creditTransaction = node.lisk.transaction.createTransaction(spkAcccount.address, constants.fees.secondSignature, node.gAccount.password);
+			var signatureTransaction = node.lisk.signature.createSignature(spkAcccount.password, spkAcccount.secondPassword);
 
 			before(function () {
-				return creditAccountPromise(spkAcccount.address, constants.fees.secondSignature).then(function (res) {
-					res.should.have.a.property('success').to.be.ok;
-
-					return waitForConfirmations([res.transactionId]);
+				return sendTransactionPromise(creditTransaction).then(function (res) {
+					res.statusCode.should.be.eql(200);
+					return waitForConfirmations([creditTransaction.id]);
 				}).then(function () {
-					return sendTransactionPromise(transaction);
+					return sendTransactionPromise(signatureTransaction);
 				}).then(function (res) {
-					res.should.have.a.property('success').to.be.ok;
-					res.transactionId.should.be.eql(transaction.id);
-					return waitForConfirmations([transaction.id]);
+					res.statusCode.should.be.eql(200);
+					return waitForConfirmations([signatureTransaction.id]);
 				});
 			});
 
