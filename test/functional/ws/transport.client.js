@@ -13,6 +13,7 @@ var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 var transport = require('../../../api/ws/transport');
 var System = require('../../../modules/system');
 var node = require('../../node');
+var WSClient = require('../../common/wsClient');
 
 describe('ClientRPCStub', function () {
 
@@ -82,7 +83,7 @@ describe('ClientRPCStub', function () {
 		var validHeaders;
 
 		beforeEach(function () {
-			validHeaders = node.generatePeerHeaders();
+			validHeaders = WSClient.generatePeerHeaders();
 			System.setHeaders(validHeaders);
 		});
 

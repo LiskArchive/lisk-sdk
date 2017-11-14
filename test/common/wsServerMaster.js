@@ -43,7 +43,7 @@ WSServerMaster.prototype.start = function () {
 		});
 
 		setTimeout(function () {
-			var headers = node.generatePeerHeaders();
+			var headers = WSClient.generatePeerHeaders();
 			headers.ip = '127.0.0.1';
 			headers.port = self.port;
 			headers.httpPort = self.httpPort;

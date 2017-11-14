@@ -233,28 +233,6 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 	);
 };
 
-node.generatePeerHeaders = function (ip, port, nonce) {
-	port = port || 9999;
-	ip = ip || '127.0.0.1';
-	nonce = nonce || node.randomString.generate(16);
-	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
-	var version = node.version;
-
-	return {
-		broadhash: node.config.nethash,
-		height: 1,
-		nethash: node.config.nethash,
-		os: os,
-		ip: ip,
-		port: port,
-		httpPort: +node.config.httpPort,
-		version: version,
-		nonce: nonce,
-		status: 2
-	};
-};
-
 // Returns a random index for an array
 node.randomizeSelection = function (length) {
 	return Math.floor(Math.random() * length);
