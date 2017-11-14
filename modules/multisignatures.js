@@ -329,8 +329,8 @@ Multisignatures.prototype.shared = {
 							return setImmediate(cb, 'Sender not found');
 						}
 
-						var min = sender.u_multimin || sender.multimin;
-						var lifetime = sender.u_multilifetime || sender.multilifetime;
+						var min = sender.multimin || 0;
+						var lifetime = sender.multilifetime || 0;
 						var signatures = sender.u_multisignatures || [];
 
 						scope.pending.push({
