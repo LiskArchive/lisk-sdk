@@ -19,6 +19,52 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('utils helpers', () => {
+	describe('#validateLifetime', () => {
+		describe('Given a string lifetime of "1234567890" hours', () => {
+			beforeEach(given.aStringLifetimeOfHours);
+			describe('When validateLifetime is called on the lifetime', () => {
+				beforeEach(when.validateLifetimeIsCalledOnTheLifetime);
+				it('Then it should return true', then.itShouldReturnTrue);
+			});
+		});
+		describe('Given an invalid string lifetime of "123.4" hours', () => {
+			beforeEach(given.anInvalidStringLifetimeOfHours);
+			describe('When validateLifetime is called on the lifetime', () => {
+				beforeEach(when.validateLifetimeIsCalledOnTheLifetime);
+				it('Then it should throw error "Lifetime must be an integer."', then.itShouldThrowError);
+			});
+		});
+		describe('Given an invalid string lifetime of "NaN" hours', () => {
+			beforeEach(given.anInvalidStringLifetimeOfHours);
+			describe('When validateLifetime is called on the lifetime', () => {
+				beforeEach(when.validateLifetimeIsCalledOnTheLifetime);
+				it('Then it should throw error "Lifetime must be an integer."', then.itShouldThrowError);
+			});
+		});
+	});
+	describe('#validateMinimum', () => {
+		describe('Given a string minimum of "1234567890" signatures', () => {
+			beforeEach(given.aStringMinimumOfSignatures);
+			describe('When validateMinimum is called on the minimum', () => {
+				beforeEach(when.validateMinimumIsCalledOnTheMinimum);
+				it('Then it should return true', then.itShouldReturnTrue);
+			});
+		});
+		describe('Given an invalid string minimum of "123.4" signatures', () => {
+			beforeEach(given.anInvalidStringMinimumOfSignatures);
+			describe('When validateMinimum is called on the minimum', () => {
+				beforeEach(when.validateMinimumIsCalledOnTheMinimum);
+				it('Then it should throw error "Minimum number of signatures must be an integer."', then.itShouldThrowError);
+			});
+		});
+		describe('Given an invalid string minimum of "NaN" signatures', () => {
+			beforeEach(given.anInvalidStringMinimumOfSignatures);
+			describe('When validateMinimum is called on the minimum', () => {
+				beforeEach(when.validateMinimumIsCalledOnTheMinimum);
+				it('Then it should throw error "Minimum number of signatures must be an integer."', then.itShouldThrowError);
+			});
+		});
+	});
 	describe('#validateAddress', () => {
 		describe('Given an address "13356260975429434553L"', () => {
 			beforeEach(given.anAddress);

@@ -23,9 +23,7 @@ export function anAmount() {
 	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
 }
 
-export function anInvalidAmount() {
-	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
-}
+export const anInvalidAmount = anAmount;
 
 export function aKeysgroupWithKeys() {
 	const keysgroup = getQuotedStrings(this.test.parent.title);
@@ -42,6 +40,14 @@ export function aLifetimeOfHours() {
 	this.test.ctx.lifetime = lifetime;
 }
 
+export const anInvalidLifetimeOfHours = aLifetimeOfHours;
+
+export function aStringLifetimeOfHours() {
+	this.test.ctx.lifetime = getFirstQuotedString(this.test.parent.title);
+}
+
+export const anInvalidStringLifetimeOfHours = aStringLifetimeOfHours;
+
 export function aMinimumOfSignatures() {
 	let minimum;
 	try {
@@ -51,6 +57,14 @@ export function aMinimumOfSignatures() {
 	}
 	this.test.ctx.minimum = minimum;
 }
+
+export const anInvalidMinimumOfSignatures = aMinimumOfSignatures;
+
+export function aStringMinimumOfSignatures() {
+	this.test.ctx.minimum = getFirstQuotedString(this.test.parent.title);
+}
+
+export const anInvalidStringMinimumOfSignatures = aStringMinimumOfSignatures;
 
 export function anAlias() {
 	this.test.ctx.alias = getFirstQuotedString(this.test.parent.title);
@@ -92,13 +106,11 @@ export function aBlockID() {
 	this.test.ctx.blockID = getFirstQuotedString(this.test.parent.title);
 }
 
-export function anInvalidAddress() {
-	this.test.ctx.address = getFirstQuotedString(this.test.parent.title);
-}
-
 export function anAddress() {
 	this.test.ctx.address = getFirstQuotedString(this.test.parent.title);
 }
+
+export const anInvalidAddress = anAddress;
 
 export function aTransactionID() {
 	this.test.ctx.transactionId = getFirstQuotedString(this.test.parent.title);

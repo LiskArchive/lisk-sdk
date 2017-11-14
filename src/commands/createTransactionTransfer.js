@@ -39,7 +39,6 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 	} = options;
 
 	validateAmount(amount);
-
 	validateAddress(address);
 
 	return getInputsFromSources(vorpal, {
