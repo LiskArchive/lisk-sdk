@@ -21,8 +21,8 @@ var BlocksSql = {
     return [
       'WITH',
       'delegate AS (SELECT',
-        '1 FROM delegates d AND m."public_key" = DECODE(${generator_public_key}, \'hex\') LIMIT 1),',
-      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE pk = DECODE(${generator_public_key}, \'hex\')',
+        '1 FROM delegates d  where d."public_key" = DECODE(${generatorPublicKey}, \'hex\') LIMIT 1),',
+      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE public_key = DECODE(${generatorPublicKey}, \'hex\')',
           (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
           (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       ')',
