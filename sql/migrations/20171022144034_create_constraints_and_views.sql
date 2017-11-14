@@ -255,6 +255,7 @@ $$;
             t.fee                                   AS t_fee,
             encode(t.signature, 'hex'::text)        AS t_signature,
             encode(t.second_signature, 'hex'::text) AS "t_signSignature",
+            t."signatures" AS "t_signatures",
             (
             (
                      SELECT   (blocks.height + 1)
