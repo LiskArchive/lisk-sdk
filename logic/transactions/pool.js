@@ -246,26 +246,6 @@ __private.processTransaction = function (transaction, sender, requester, waterCb
 };
 
 /**
- * Normalizes transaction.
- * @private
- * @implements {library.logic.transaction.objectNormalize}
- * @implements {__private.addInvalid}
- * @param {Object} transaction
- * @param {Object} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error | cb, transaction, sender
- */
-__private.normalizeTransaction = function (transaction, sender, waterCb) {
-	try {
-		transaction = library.logic.transaction.objectNormalize(transaction);
-		return setImmediate(waterCb, null, transaction, sender);
-	} catch (err) {
-		__private.addInvalid(transaction.id);
-		return setImmediate(waterCb, err, null);
-	}
-};
-
-/**
  * Verifyes transaction.
  * @private
  * @implements {library.logic.transaction.verify}
@@ -284,6 +264,36 @@ __private.verifyTransaction = function (transaction, sender, waterCb) {
 			return setImmediate(waterCb, null, transaction, sender);
 		}
 	});
+};
+
+/**
+ * Verifies if transaction type is repeated into pool from same sender.
+ * @private
+ * @implements {library.logic.transaction.verify}
+ * @implements {__private.addInvalid}
+ * @param {Object} transaction
+ * @param {Object} sender
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} error | cb, transaction, sender
+ */
+__private.verifyTransactionTypeInPool = function (transaction, sender, waterCb) {
+	var senderTransactions = _.filter(pool.verified.ready.transactions, {'senderPublicKey': transaction.senderPublicKey});
+
+	if (senderTransactions.length > 0) {
+		if (transaction.type === transactionTypes.SIGNATURE) {
+			senderTransactions.forEach(function (transactionReady) {
+				self.delete(transactionReady.id);
+			});
+		}
+		if (transaction.type === transactionTypes.VOTE) {
+	
+		}
+		if (transaction.type === transactionTypes.MULTI) {
+			return setImmediate(waterCb, null, transaction, sender);
+		}
+	}
+
+	return setImmediate(waterCb, null, transaction, sender);
 };
 
 /**
@@ -314,7 +324,6 @@ __private.moveToVerified = function (transaction, cb) {
  * @implements {__private.setAccountAndGet}
  * @implements {__private.getAccount}
  * @implements {__private.processTransaction}
- * @implements {__private.normalizeTransaction}
  * @implements {__private.verifyTransaction}
  * @implements {__private.moveToVerified}
  * @param {Transaction} transaction
@@ -329,8 +338,8 @@ __private.addToVerified = function (transaction, broadcast, cb) {
 		__private.setAccountAndGet,
 		__private.getRequester,
 		__private.processTransaction,
-		__private.normalizeTransaction,
 		__private.verifyTransaction,
+		__private.verifyTransactionTypeInPool,
 		function checkBalance (transaction, sender, waterCb) {
 			self.checkBalance(transaction, sender, function (err, balance) {
 				if (err) {
@@ -353,7 +362,6 @@ __private.addToVerified = function (transaction, broadcast, cb) {
  * @implements {__private.setAccountAndGet}
  * @implements {__private.getAccount}
  * @implements {__private.processTransaction}
- * @implements {__private.normalizeTransaction}
  * @param {Transaction} transaction
  * @param {boolean} broadcast
  * @param {function} cb - Callback function.
@@ -364,8 +372,7 @@ __private.addToUnverified = function (transaction, broadcast, cb) {
 		async.apply(__private.checkPoolAvailability, transaction),
 		__private.setAccountAndGet,
 		__private.getRequester,
-		__private.processTransaction,
-		__private.normalizeTransaction
+		__private.processTransaction
 	], function (err, transaction, sender) {
 		if (!err) {
 			if (broadcast) {
@@ -517,30 +524,17 @@ __private.transactionTimeOut = function (transaction) {
 /**
  * Gets sender account, and verifies transaction.
  * @private
- * @implements {accounts.setAccountAndGet}
- * @implements {accounts.getAccount}
- * @implements {logic.transaction.process}
- * @implements {logic.transaction.verify}
+ * @implements {__private.setAccountAndGet}
+ * @implements {__private.verifyTransaction}
  * @param {transaction} transaction
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} errors | sender
  */
 __private.processUnverifiedTransaction = function (transaction, cb) {
 	async.waterfall([
-		function setAccountAndGet (waterCb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
-		},
-		function verifyTransaction (sender, waterCb) {
-			library.logic.transaction.verify(transaction, sender, function (err) {
-				if (err) {
-					__private.addInvalid(transaction.id);
-					return setImmediate(waterCb, err);
-				} else {
-					return setImmediate(waterCb, null, sender);
-				}
-			});
-		}
-	], function (err, sender) {
+		async.apply(__private.setAccountAndGet, transaction),
+		__private.verifyTransaction
+	], function (err, transaction, sender) {
 		return setImmediate(cb, err, sender);
 	});
 };
