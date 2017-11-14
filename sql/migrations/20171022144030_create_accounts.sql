@@ -17,7 +17,29 @@ CREATE TABLE "public".accounts (address varchar(22) NOT NULL,
 	CONSTRAINT idx_accounts_public_key UNIQUE (public_key)
 );
 
-DROP FUNCTION public.validatemembalances();
+-- Create function that protects 'accounts' table balances to go negative
+-- WARNING: That function allows send from all genesis addresses
+CREATE OR REPLACE FUNCTION protect_accounts_balance() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+	DECLARE
+		genesis_block_id VARCHAR(20);
+		result BOOL;
+	BEGIN
+		-- Get genesis block id
+		SELECT block_id INTO genesis_block_id FROM blocks WHERE height = 1 LIMIT 1;
+		-- Return TRUE if address belongs to sender of type 0 transaction that was included in genesis block
+		SELECT TRUE INTO result FROM transactions WHERE block_id = genesis_block_id AND type = 0 AND sender_address = NEW.address GROUP BY sender_address;
+
+		IF result IS NOT TRUE THEN
+			RAISE check_violation USING MESSAGE = 'Transaction invalid - account balance cannot go negative';
+		END IF;
+	RETURN NULL;
+END $$;
+
+-- Create trigger that will execute 'protect_accounts_balance' function before update of account if update will result with negative balance
+CREATE TRIGGER protect_accounts_balance
+	BEFORE UPDATE ON accounts
+	FOR EACH ROW WHEN (NEW.balance < 0)
+	EXECUTE PROCEDURE protect_accounts_balance();
 
 CREATE OR REPLACE FUNCTION public.public_key_rollback() RETURNS TRIGGER LANGUAGE PLPGSQL AS $function$
 	BEGIN
