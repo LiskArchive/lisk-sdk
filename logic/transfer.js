@@ -187,8 +187,9 @@ Transfer.prototype.schema = {
 	properties: {
 		data: {
 			type: 'string',
-			minLength: 1,
-			maxLength: 64
+			format: 'additionalData',
+			minLength: constants.additionalData.minLength,
+			maxLength: constants.additionalData.maxLength
 		}
 	}
 };
@@ -203,10 +204,6 @@ Transfer.prototype.objectNormalize = function (transaction) {
 
 	if (!transaction.asset) {
 		return transaction;
-	}
-
-	if (transaction.asset.data === null || typeof transaction.asset.data === 'undefined') {
-		delete transaction.asset.data;
 	}
 
 	var report = library.schema.validate(transaction.asset, Transfer.prototype.schema);

@@ -12,6 +12,11 @@ module.exports = {
 				minimum: 1,
 				maximum: 65535
 			},
+			httpPort: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 65535
+			},
 			os: {
 				type: 'string',
 				format: 'os',
@@ -42,7 +47,7 @@ module.exports = {
 				maxLength: 16
 			}
 		},
-		required: ['port', 'version', 'nonce', 'nethash', 'height']
+		required: ['port', 'httpPort', 'version', 'nonce', 'nethash', 'height', 'os']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',

@@ -6,15 +6,12 @@ var node = {};
 var Promise = require('bluebird');
 var rewire  = require('rewire');
 var sinon   = require('sinon');
-var fs		= require('fs');
-var path = require('path');
-var YAML = require('js-yaml');
-var swaggerDef = YAML.safeLoad(fs.readFileSync(path.join(__dirname, '../schema/swagger.yml')).toString());
 
 // Application specific
 var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
 var swagger = require('../config/swagger');
+var swaggerHelper = require('../helpers/swagger');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -26,10 +23,11 @@ node.transactionTypes = require('../helpers/transactionTypes.js');
 node._ = require('lodash');
 node.async = require('async');
 node.popsicle = require('popsicle');
-node.expect = require('chai').expect;
 node.chai = require('chai');
 node.chai.config.includeStack = true;
 node.chai.use(require('chai-bignumber')(node.bignum));
+node.expect = node.chai.expect;
+node.should = node.chai.should();
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
 node.Promise = require('bluebird');
@@ -105,7 +103,7 @@ node.gAccount = {
 	key: 'elephant tree paris dragon chair galaxy',
 };
 
-node.swaggerDef = swaggerDef;
+node.swaggerDef = swaggerHelper.getSwaggerSpec();;
 
 // Optional logging
 if (process.env.SILENT === 'true') {
@@ -143,7 +141,7 @@ node.getHeight = function (cb) {
 		if (res.status !== 200) {
 			return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
 		} else {
-			return setImmediate(cb, null, res.body.height);
+			return setImmediate(cb, null, res.body.data.height);
 		}
 	});
 
@@ -209,10 +207,10 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
+				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
 
-				if (target === res.body.height) {
-					height = res.body.height;
+				if (target === res.body.data.height) {
+					height = res.body.data.height;
 				}
 
 				setTimeout(cb, 1000);
@@ -233,28 +231,6 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 			}
 		}
 	);
-};
-
-node.generatePeerHeaders = function (ip, port, nonce) {
-	port = port || 9999;
-	ip = ip || '127.0.0.1';
-	nonce = nonce || node.randomString.generate(16);
-	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var os = operatingSystems[node.randomizeSelection(operatingSystems.length)];
-	var version = node.version;
-
-	return {
-		broadhash: node.config.nethash,
-		height: 1,
-		nethash: node.config.nethash,
-		os: os,
-		ip: ip,
-		port: port,
-		httpPort: +node.config.httpPort,
-		version: version,
-		nonce: nonce,
-		status: 2
-	};
 };
 
 // Returns a random index for an array

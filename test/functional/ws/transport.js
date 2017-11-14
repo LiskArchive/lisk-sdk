@@ -10,13 +10,14 @@ var randomPeer = require('../../common/objectStubs').randomPeer;
 var Rules = require('../../../api/ws/workers/rules');
 var testConfig = require('../../config.json');
 var wsServer = require('../../common/wsServer');
+var WSClient = require('../../common/wsClient');
 
 describe('RPC', function () {
 
 	var clientSocket;
 	var validClientSocketOptions;
 	var wampClient = new WAMPClient();
-	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
+	var frozenHeaders = WSClient.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
 
 	before(function (done) {
 		validClientSocketOptions = {

@@ -46,22 +46,22 @@ var TransactionsSql = {
 
 	getById: 'SELECT *, ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("a_recipientPublicKey", \'hex\') AS "a_recipientPublicKey" FROM transactions_list WHERE "t_id" = ${id}',
 
-	getTransferById: 'SELECT CONVERT_FROM(data, \'utf8\') AS "tf_data" FROM transfer WHERE "transaction_id" = ${id}',
+	getTransferByIds: 'SELECT "transaction_id", CONVERT_FROM(data, \'utf8\') AS "tf_data" FROM transfer WHERE "transaction_id" IN (${id:csv})',
 
-	getVotesById: 'SELECT votes AS "v_votes" FROM votes WHERE "transaction_id" = ${id}',
+	getVotesByIds: 'SELECT "transaction_id", votes AS "v_votes" FROM votes WHERE "transaction_id" IN (${id:csv})',
 
-	getDelegateById: 'SELECT name AS "d_username" FROM delegates WHERE "transaction_id" = ${id}',
+	getDelegateByIds: 'SELECT "transaction_id", name AS "d_username" FROM delegates WHERE "transaction_id" IN (${id:csv})',
 
-	getSignatureById: 'SELECT ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transaction_id" = ${id}',
+	getSignatureByIds: 'SELECT "transaction_id", ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM second_signature WHERE "transaction_id" IN (${id:csv})',
 
-// TODO: Add multisignatures member here - Covert old keysgroup and LEFT JOIN keysgroup AS "m_keysgroup"
-	getMultiById: 'SELECT minimum AS "m_min", lifetime AS "m_lifetime" FROM multisignatures_master WHERE "transaction_id" = ${id}',
+	getMultiByIds: 'SELECT "transaction_id", min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures_master WHERE "transaction_id" IN (${id:csv})',
 
-	getDappById: 'SELECT name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_link", type AS "dapp_type", category AS "dapp_category", icon AS "dapp_icon" FROM dapps WHERE "transaction_id" = ${id}',
+	getDappByIds: 'SELECT "transaction_id", name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_link", type AS "dapp_type", category AS "dapp_category", icon AS "dapp_icon" FROM dapps WHERE "transaction_id" IN (${id:csv})',
 
-	getInTransferById: 'SELECT "dapp_id" AS "in_dappId" FROM intransfer WHERE "transaction_id" = ${id}',
+	getInTransferByIds: 'SELECT "transaction_id", "dapp_id" AS "in_dapp_id" FROM intransfer WHERE "transaction_id" IN (${id:csv})',
 
-	getOutTransferById: 'SELECT "dapp_id" AS "ot_dappId", "out_transaction_id" AS "ot_outTransactionId" FROM outtransfer WHERE "transaction_id" = ${id}'
+	getOutTransferByIds: 'SELECT "transaction_id", "dapp_id" AS "ot_dapp_id", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transaction_id" IN (${id:csv})'
+
 };
 
 module.exports = TransactionsSql;

@@ -12,11 +12,12 @@ var scClient = require('socketcluster-client');
 var testConfig = require('../../config.json');
 var ws = require('../../common/wsCommunication');
 var wsServer = require('../../common/wsServer');
+var WSClient = require('../../common/wsClient');
 
 describe('handshake', function () {
 
 	var wsServerPort = 9999;
-	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
+	var frozenHeaders = WSClient.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;

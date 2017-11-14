@@ -324,7 +324,7 @@ describe('transaction', function () {
 		it('should return count of transaction in db with transaction id', function (done) {
 			transactionLogic.countById(validTransaction, function (err, count) {
 				expect(err).to.not.exist;
-				expect(count).to.be.equal(0);
+				expect(count).to.equal(0);
 				done();
 			});
 		});
@@ -406,7 +406,7 @@ describe('transaction', function () {
 
 		it('should return error sender is not supplied', function (done) {
 			transactionLogic.process(validTransaction, null, function (err, res) {
-				expect(err).to.be.equal('Missing sender');
+				expect(err).to.equal('Missing sender');
 				done();
 			});
 		});

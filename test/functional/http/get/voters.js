@@ -432,31 +432,6 @@ describe('GET /api/voters', function () {
 
 			describe('sort with any of required field (username)', function () {
 
-				describe('address', function () {
-
-					it('should return voters in ascending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=address:asc'
-						];
-						return getVotersPromise(params).then(function (res) {
-							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('address').map('address').value()).to.be.eql(_.map(res.body.voters, 'address'));
-						});
-					});
-
-					it('should return voters in descending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=address:desc'
-						];
-						return getVotersPromise(params).then(function (res) {
-							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('address').reverse().map('address').value()).to.be.eql(_.map(res.body.voters, 'address'));
-						});
-					});
-				});
-
 				describe('username', function () {
 
 					it('should return voters in ascending order', function () {
@@ -482,99 +457,35 @@ describe('GET /api/voters', function () {
 					});
 				});
 
-				describe('publicKey', function () {
+				describe('balance', function () {
 
 					it('should return voters in ascending order', function () {
 						var params = [
 							'username=' + validVotedDelegate.delegateName,
-							'sort=publicKey:asc'
+							'sort=balance:asc'
 						];
 						return getVotersPromise(params).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('publicKey').map('publicKey').value()).to.be.eql(_.map(res.body.voters, 'publicKey'));
+							node.expect(_(res.body.voters.map(function (account) {
+								return Number(account.balance);
+							})).sortBy().value()).to.be.eql(_.map(res.body.voters, function (account) {
+								return Number(account.balance);
+							}));
 						});
 					});
 
 					it('should return voters in descending order', function () {
 						var params = [
 							'username=' + validVotedDelegate.delegateName,
-							'sort=publicKey:desc'
+							'sort=balance:desc'
 						];
 						return getVotersPromise(params).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('publicKey').reverse().map('publicKey').value()).to.be.eql(_.map(res.body.voters, 'publicKey'));
-						});
-					});
-				});
-
-				describe('secondPublicKey', function () {
-
-					before(function () {
-						var extraVoterSecondSignatureTransaction = node.lisk.signature.createSignature(validExtraDelegateVoter.password, validExtraDelegateVoter.secondPassword, 1);
-						return sendTransactionPromise(extraVoterSecondSignatureTransaction)
-							.then(function () {
-								return waitForBlocksPromise(1);
-							});
-					});
-
-					it('should return voters in ascending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=secondPublicKey:asc'
-						];
-						return getVotersPromise(params).then(function (res) {
-							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).map('secondPublicKey').sort().value()).to.be.eql(_.map(res.body.voters, 'secondPublicKey'));
-						});
-					});
-
-					it('should return voters in descending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=secondPublicKey:desc'
-						];
-						return getVotersPromise(params).then(function (res) {
-							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).map('secondPublicKey').sort().reverse().value()).to.be.eql(_.map(res.body.voters, 'secondPublicKey'));
-						});
-					});
-
-					describe('when a delegate with secondPublicKey registered', function () {
-
-						it('using valid existing secondPublicKey of registered delegate should return the never voted result', function () {
-							var params = [
-								'secondPublicKey=' + validExtraDelegateVoter.secondPublicKey
-							];
-							return getVotersPromise(params).then(expectValidNotVotedDelegateResponse);
-						});
-
-						describe('when delegate with secondPublicKey was voted', function () {
-
-							before(function () {
-								var enrichExtraVoterTransaction = node.lisk.transaction.createTransaction(
-									validExtraVoter.address,
-									constants.fees.vote + node.randomLISK(),
-									node.gAccount.password
-								);
-								var voteForExtraVoter = node.lisk.vote.createVote(validExtraVoter.password, ['+' + validExtraDelegateVoter.publicKey]);
-								return sendTransactionPromise(enrichExtraVoterTransaction)
-									.then(function () {
-										return waitForConfirmations([enrichExtraVoterTransaction.id]);
-									})
-									.then(function (){
-										return sendTransactionPromise(voteForExtraVoter);
-									})
-									.then(function () {
-										return waitForConfirmations([voteForExtraVoter.id]);
-									});
-							});
-
-							it('using valid existing secondPublicKey of delegate should return the result', function () {
-								var params = [
-									'secondPublicKey=' + validExtraDelegateVoter.secondPublicKey
-								];
-								return getVotersPromise(params).then(expectValidVotedDelegateResponse);
-							});
+							node.expect(_(res.body.voters.map(function (account) {
+								return Number(account.balance);
+							})).sortBy().reverse().value()).to.be.eql(_.map(res.body.voters, function (account) {
+								return Number(account.balance);
+							}));
 						});
 					});
 				});
