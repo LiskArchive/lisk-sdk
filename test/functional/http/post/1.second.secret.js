@@ -30,7 +30,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
 		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, node.gAccount.password);
 		var transaction3 = node.lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, node.gAccount.password);
-		var transaction4 = node.lisk.transaction.createTransaction(accountDuplicate.address, constants.fees.secondSignature, node.gAccount.password);
+		var transaction4 = node.lisk.transaction.createTransaction(accountDuplicate.address, constants.fees.secondSignature * 2, node.gAccount.password); // Must have enough to accept and avoid balance failure
 
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
@@ -126,6 +126,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 					transaction = node.lisk.signature.createSignature(accountDuplicate.password, accountDuplicate.secondPassword);
 
 					return sendTransactionPromise(transaction).then(function (res) {
+						console.log(res);
 						node.expect(res).to.have.property('status').to.equal(200);
 						node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 						goodTransactions.push(transaction);
@@ -217,7 +218,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using correct second passphrase should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, account.secondPassword);
+				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 2, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

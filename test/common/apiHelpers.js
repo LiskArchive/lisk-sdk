@@ -64,7 +64,7 @@ function getTransactions (params, cb) {
 }
 
 function getUnconfirmedTransaction (transaction, cb) {
-	http.get('/api/transactions/unconfirmed/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
+	http.get('/api/transactions/unconfirmed/?id=' + transaction, httpCallbackHelper.bind(null, cb));
 }
 
 function getUnconfirmedTransactions (cb) {
