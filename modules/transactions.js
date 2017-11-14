@@ -425,12 +425,16 @@ Transactions.prototype.sanitizeTransactionPool = function (transactions) {
 /**
  * Adds a transaction to pool list if pass all validations.
  * @implements {transactionPool.addFromPublic}
+ * @param {string} caller peer or public
  * @param {transaction} transaction
  * @param {boolean} broadcast
  * @param {function} cb - Callback function.
  */
-Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	return library.logic.transactionPool.addFromPublic(transaction, broadcast, cb);
+Transactions.prototype.processUnconfirmedTransaction = function (caller, transaction, broadcast, cb) {
+	if (caller === 'public') {
+		return library.logic.transactionPool.addFromPublic(transaction, broadcast, cb);
+	}
+	return library.logic.transactionPool.addFromPeer(transaction, broadcast, cb);
 };
 
 /**
