@@ -5,8 +5,6 @@ var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var registerDelegatePromise = require('../../../common/apiHelpers').registerDelegatePromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('POST /api/transactions (type 3) votes', function () {
@@ -44,51 +42,65 @@ describe('POST /api/transactions (type 3) votes', function () {
 	var delegatesMaxVotesPerAccount = [];
 
 	before(function () {
+		var transactions = [];
+		var transaction1 = node.lisk.transaction.createTransaction(delegateAccount.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.vote, node.gAccount.password);
+		var transaction3 = node.lisk.transaction.createTransaction(node.eAccount.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction4 = node.lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction5 = node.lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction6 = node.lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, node.gAccount.password);
+		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5, transaction6);
+
 		var promises = [];
-		promises.push(creditAccountPromise(delegateAccount.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.vote));
-		promises.push(creditAccountPromise(node.eAccount.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountMaxVotesPerTransaction.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountMaxVotesPerAccount.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountDuplicates.address, constants.fees.vote * 4));
+		promises.push(sendTransactionPromise(transaction1));
+		promises.push(sendTransactionPromise(transaction2));
+		promises.push(sendTransactionPromise(transaction3));
+		promises.push(sendTransactionPromise(transaction4));
+		promises.push(sendTransactionPromise(transaction5));
+		promises.push(sendTransactionPromise(transaction6));
 
 		return node.Promise.all(promises)
 			.then(function (res) {
-				res.forEach(function (result) {
-					node.expect(result).to.have.property('success').to.be.ok;
-					node.expect(result).to.have.property('transactionId').that.is.not.empty;
-					transactionsToWaitFor.push(result.transactionId);
+				res.forEach(function (result, index) {
+					node.expect(result).to.have.property('status').to.equal(200);
+					node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					transactionsToWaitFor.push(transactions[index].id);
 				});
-			})
-			.then(function (res) {
+
+				var transactionsCreditMaxVotesPerTransaction = [];
 				var promisesCreditsMaxVotesPerTransaction = [];
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
 					var tempAccount = node.randomAccount();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
-					promisesCreditsMaxVotesPerTransaction.push(creditAccountPromise(tempAccount.address, constants.fees.delegate));
+					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, node.gAccount.password);
+					transactionsCreditMaxVotesPerTransaction.push(transaction);
+					promisesCreditsMaxVotesPerTransaction.push(sendTransactionPromise(transaction));
 				};
 
 				return node.Promise.all(promisesCreditsMaxVotesPerTransaction).then(function (results) {
-					results.forEach(function (result) {
-						node.expect(result).to.have.property('success').to.be.ok;
-						node.expect(result).to.have.property('transactionId').that.is.not.empty;
-						transactionsToWaitFor.push(result.transactionId);
+					results.forEach(function (result, index) {
+						node.expect(result).to.have.property('status').to.equal(200);
+						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						transactionsToWaitFor.push(transactionsCreditMaxVotesPerTransaction[index].id);
 					});
 				});
 			})
 			.then(function (res) {
+				var transactionsCreditMaxVotesPerAccount = [];
 				var promisesCreditsMaxVotesPerAccount = [];
 				for (var i = 0; i < constants.activeDelegates; i++) {
 					var tempAccount = node.randomAccount();
 					delegatesMaxVotesPerAccount.push(tempAccount);
-					promisesCreditsMaxVotesPerAccount.push(creditAccountPromise(tempAccount.address, constants.fees.delegate));
+					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, node.gAccount.password);
+					transactionsCreditMaxVotesPerAccount.push(transaction);
+					promisesCreditsMaxVotesPerAccount.push(sendTransactionPromise(transaction));
 				};
 
 				return node.Promise.all(promisesCreditsMaxVotesPerAccount).then(function (results) {
-					results.forEach(function (result) {
-						node.expect(result).to.have.property('success').to.be.ok;
-						node.expect(result).to.have.property('transactionId').that.is.not.empty;
-						transactionsToWaitFor.push(result.transactionId);
+					results.forEach(function (result, index) {
+						node.expect(result).to.have.property('status').to.equal(200);
+						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						transactionsToWaitFor.push(transactionsCreditMaxVotesPerAccount[index].id);
 					});
 				});
 			})
@@ -97,37 +109,44 @@ describe('POST /api/transactions (type 3) votes', function () {
 			})
 			.then(function (res) {
 				transactionsToWaitFor = [];
-				return registerDelegatePromise(delegateAccount).then(function (result) {
-					node.expect(result).to.have.property('success').to.be.ok;
-					node.expect(result).to.have.property('transactionId').that.is.not.empty;
-					transactionsToWaitFor.push(result.transactionId);
+				var transaction = node.lisk.delegate.createDelegate(delegateAccount.password, delegateAccount.username);
+				return sendTransactionPromise(transaction).then(function (result) {
+					node.expect(result).to.have.property('status').to.equal(200);
+					node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					transactionsToWaitFor.push(transaction.id);
 				});
 			})
 			.then(function (res) {
 				var promisesDelegatesMaxVotesPerTransaction = [];
+				var transactionsDelegateMaxForPerTransaction = [];
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
-					promisesDelegatesMaxVotesPerTransaction.push(registerDelegatePromise(delegatesMaxVotesPerTransaction[i]));
+					var transaction = node.lisk.delegate.createDelegate(delegatesMaxVotesPerTransaction[i].password, delegatesMaxVotesPerTransaction[i].username);
+					transactionsDelegateMaxForPerTransaction.push(transaction);
+					promisesDelegatesMaxVotesPerTransaction.push(sendTransactionPromise(transaction));
 				};
 
 				return node.Promise.all(promisesDelegatesMaxVotesPerTransaction).then(function (results) {
-					results.forEach(function (result) {
-						node.expect(result).to.have.property('success').to.be.ok;
-						node.expect(result).to.have.property('transactionId').that.is.not.empty;
-						transactionsToWaitFor.push(result.transactionId);
+					results.forEach(function (result, index) {
+						node.expect(result).to.have.property('status').to.equal(200);
+						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						transactionsToWaitFor.push(transactionsDelegateMaxForPerTransaction[index].id);
 					});
 				});
 			})
 			.then(function (res) {
+				var transactionsDelegateMaxVotesPerAccount = [];
 				var promisesDelegatesMaxVotesPerAccount = [];
 				for (var i = 0; i < constants.activeDelegates; i++) {
-					promisesDelegatesMaxVotesPerAccount.push(registerDelegatePromise(delegatesMaxVotesPerAccount[i]));
+					var transaction = node.lisk.delegate.createDelegate(delegatesMaxVotesPerAccount[i].password, delegatesMaxVotesPerAccount[i].username);
+					transactionsDelegateMaxVotesPerAccount.push(transaction);
+					promisesDelegatesMaxVotesPerAccount.push(sendTransactionPromise(transaction));
 				};
 
 				return node.Promise.all(promisesDelegatesMaxVotesPerAccount).then(function (results) {
-					results.forEach(function (result) {
-						node.expect(result).to.have.property('success').to.be.ok;
-						node.expect(result).to.have.property('transactionId').that.is.not.empty;
-						transactionsToWaitFor.push(result.transactionId);
+					results.forEach(function (result, index) {
+						node.expect(result).to.have.property('status').to.equal(200);
+						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						transactionsToWaitFor.push(transactionsDelegateMaxVotesPerAccount[index].id);
 					});
 				});
 			})
@@ -147,8 +166,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+L' + node.eAccount.publicKey.slice(0, -1)]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote format');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
 				badTransactions.push(transaction);
 			});
 		});
@@ -157,8 +176,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-1' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote length');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote length');
 				badTransactions.push(transaction);
 			});
 		});
@@ -167,8 +186,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['x' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote format');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
 				badTransactions.push(transaction);
 			});
 		});
@@ -177,8 +196,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, [node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote format');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
 				badTransactions.push(transaction);
 			});
 		});
@@ -187,8 +206,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, [null]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid vote at index 0 - Invalid vote type');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote type');
 				badTransactions.push(transaction);
 			});
 		});
@@ -198,8 +217,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.not.be.ok;
-				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
@@ -208,8 +227,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(accountMinimalFunds.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -218,8 +237,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Failed to remove vote, delegate "' + node.eAccount.delegateName + '" was not voted for');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Failed to remove vote, delegate "' + node.eAccount.delegateName + '" was not voted for');
 				badTransactions.push(transaction);
 			});
 		});
@@ -228,8 +247,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -238,8 +257,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+' + delegateAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -250,8 +269,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -262,8 +281,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33');
 				badTransactions.push(transaction);
 			});
 		});
@@ -291,8 +310,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			return node.Promise.all(promises)
 				.then(function (res) {
 					res.forEach(function (result) {
-						node.expect(result).to.have.property('success').to.be.ok;
-						node.expect(result).to.have.property('transactionId');
+						node.expect(result).to.have.property('status').to.equal(200);
+						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
 					goodTransactions.push(transaction1, transaction2, transaction3, transaction4);
 				});
@@ -306,8 +325,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					//badTransactions.push(transaction);
 				})
@@ -318,8 +337,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					//goodTransactions.push(transaction);
 				});
@@ -337,8 +356,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Failed to add vote, delegate "' + node.eAccount.delegateName + '" already voted for');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Failed to add vote, delegate "' + node.eAccount.delegateName + '" already voted for');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -347,8 +366,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -357,8 +376,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-' + delegateAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -367,8 +386,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Maximum number of ' + constants.activeDelegates + ' votes exceeded (1 too many)');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Maximum number of ' + constants.activeDelegates + ' votes exceeded (1 too many)');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -379,8 +398,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -391,8 +410,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long ('+ (constants.maxVotesPerTransaction + 1) + '), maximum ' + constants.maxVotesPerTransaction);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long ('+ (constants.maxVotesPerTransaction + 1) + '), maximum ' + constants.maxVotesPerTransaction);
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -420,8 +439,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			return node.Promise.all(promises)
 				.then(function (res) {
 					res.forEach(function (result) {
-						node.expect(result).to.have.property('success').to.be.ok;
-						node.expect(result).to.have.property('transactionId');
+						node.expect(result).to.have.property('status').to.equal(200);
+						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
 					goodTransactionsEnforcement.push(transaction1, transaction2, transaction3, transaction4);
 				});
@@ -435,8 +454,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					//badTransactionsEnforcement.push(transaction);
 				})
@@ -447,8 +466,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					//goodTransactionsEnforcement.push(transaction);
 				});

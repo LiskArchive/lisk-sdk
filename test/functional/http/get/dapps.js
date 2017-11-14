@@ -19,15 +19,13 @@ describe('GET /api/dapps', function () {
 	var registeredDappsAmount = 2;
 
 	before(function () {
-		return creditAccountPromise(account.address, 1000 * node.normalizer)
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		transactionsToWaitFor.push(transaction.id);
+		return sendTransactionPromise(transaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('success').to.be.true;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-
-				transactionsToWaitFor.push(res.transactionId);
+				node.expect(res).to.have.property('status').to.equal(200);
 				return waitForConfirmations(transactionsToWaitFor);
-			})
-			.then(function () {
+			}).then(function () {
 				transactionsToWaitFor = [];
 
 				var transaction1 = node.lisk.dapp.createDapp(account.password, null, dapp1);
@@ -36,15 +34,12 @@ describe('GET /api/dapps', function () {
 				promises.push(sendTransactionPromise(transaction1));
 				promises.push(sendTransactionPromise(transaction2));
 
+				transactionsToWaitFor.push(transaction1.id, transaction2.id);
 				return node.Promise.all(promises);
-			})
-			.then(function (results) {
+			}).then(function (results) {
 				results.forEach(function (res) {
-					node.expect(res).to.have.property('success').to.be.true;
-					node.expect(res).to.have.property('transactionId').that.is.not.empty;
-					transactionsToWaitFor.push(res.transactionId);
+					node.expect(res).to.have.property('status').to.equal(200);
 				});
-
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});

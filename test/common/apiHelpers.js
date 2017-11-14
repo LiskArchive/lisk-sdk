@@ -51,15 +51,16 @@ function httpResponseCallbackHelper (cb, err, res) {
 	cb(null, res);
 }
 
-function getTransaction (transaction, cb) {
-	http.get('/api/transactions/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
+function getTransactionById (transactionId, cb) {
+	// Get transactionById uses the same /api/transactions endpoint, this is just a helper function
+	http.get('/api/transactions?id=' + transactionId, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getTransactions (params, cb) {
 	var url = '/api/transactions';
 	url = paramsHelper(url, params);
 
-	http.get(url, httpCallbackHelper.bind(null, cb));
+	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getUnconfirmedTransaction (transaction, cb) {
@@ -94,7 +95,7 @@ function getPendingMultisignatures (params, cb) {
 }
 
 function sendTransaction (transaction, cb) {
-	http.post('/api/transactions', {transaction: transaction}, httpCallbackHelper.bind(null, cb));
+	http.post('/api/transactions', {transactions: [transaction]}, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function sendSignature (signature, transaction, cb) {
@@ -183,16 +184,15 @@ function waitForConfirmations (transactions, limitHeight) {
 	limitHeight = limitHeight || 10;
 
 	function checkConfirmations (transactions) {
-		return node.Promise.map(transactions, function (transaction) {
-			return getTransactionPromise(transaction);
-		})
-			.then(function (res) {
-				return node.Promise.each(res, function (result) {
-					if (result.success === false) {
-						throw Error(result.error);
-					}
-				});
+		return node.Promise.all(transactions.map(function (transactionId) {
+			return getTransactionByIdPromise(transactionId);
+		})).then(function (res) {
+			return node.Promise.each(res, function (result) {
+				if (result.body.transactions.length === 0) {
+					throw Error('Transaction not confirmed');
+				}
 			});
+		});
 	}
 
 	function waitUntilLimit (limit) {
@@ -232,7 +232,7 @@ function expectSwaggerParamError (res, param) {
 	res.body.errors.map(function (p) { return p.name; }).should.contain(param);
 }
 
-var getTransactionPromise = node.Promise.promisify(getTransaction);
+var getTransactionByIdPromise = node.Promise.promisify(getTransactionById);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
 var getQueuedTransactionsPromise = node.Promise.promisify(getQueuedTransactions);
@@ -259,7 +259,7 @@ var getBlocksPromise = node.Promise.promisify(getBlocks);
 var getDappsPromise = node.Promise.promisify(getDapps);
 
 module.exports = {
-	getTransactionPromise: getTransactionPromise,
+	getTransactionByIdPromise: getTransactionByIdPromise,
 	getTransactionsPromise: getTransactionsPromise,
 	getUnconfirmedTransactionPromise: getUnconfirmedTransactionPromise,
 	getUnconfirmedTransactionsPromise: getUnconfirmedTransactionsPromise,

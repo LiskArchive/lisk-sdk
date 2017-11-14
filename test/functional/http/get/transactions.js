@@ -1,10 +1,13 @@
 'use strict';
 
+var _ = require('lodash');
 var node = require('../../../node');
+var lisk = node.lisk;
 var transactionSortFields = require('../../../../sql/transactions').sortFields;
 var modulesLoader = require('../../../common/modulesLoader');
 var transactionTypes = require('../../../../helpers/transactionTypes');
 var genesisblock = require('../../../genesisBlock.json');
+var constants = require('../../../../helpers/constants');
 
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -32,20 +35,21 @@ describe('GET /api/transactions', function () {
 	before(function () {
 
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, maxAmount));
-		promises.push(creditAccountPromise(account2.address, minAmount));
 
-		return node.Promise.all(promises)
-			.then(function (results) {
-				results.forEach(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.not.empty;
-					transactionList.push(res.transactionId);
-				});
-			})
-			.then(function (res) {
-				return waitForConfirmations(transactionList);
+		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, node.gAccount.password);
+		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, node.gAccount.password);
+		promises.push(sendTransactionPromise(transaction1));
+		promises.push(sendTransactionPromise(transaction2));
+		return node.Promise.all(promises).then(function (results) {
+			results.forEach(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
+		}).then(function (res) {
+			transactionList.push(transaction1);
+			transactionList.push(transaction2);
+			return waitForConfirmations(_.map(transactionList, 'id'));
+		});
 	});
 
 	describe('from cache', function () {
@@ -85,10 +89,10 @@ describe('GET /api/transactions', function () {
 			];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(res);
+					node.expect(response).to.eql(res.body);
 				});
 			});
 		});
@@ -99,8 +103,8 @@ describe('GET /api/transactions', function () {
 			];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
 					node.expect(response).to.eql(null);
 				});
@@ -110,404 +114,638 @@ describe('GET /api/transactions', function () {
 
 	describe('?', function () {
 
-		it('using valid parameters should be ok', function () {
-			var limit = 10;
-			var offset = 0;
-			var orderBy = 'amount:asc';
+		describe('with wrong input', function () {
 
-			var params = [
-				'blockId=' + '1',
-				'senderId=' + node.gAccount.address,
-				'recipientId=' + account.address,
-				'limit=' + limit,
-				'offset=' + offset,
-				'orderBy=' + orderBy
-			];
+			it('using valid array-like parameters should fail', function () {
+				var limit = 10;
+				var offset = 0;
+				var orderBy = 'amount:asc';
 
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i + 1]) {
-						node.expect(res.transactions[i].amount).to.be.at.most(res.transactions[i + 1].amount);
-					}
-				}
+				var params = [
+					'blockId=' + '1',
+					'senderId=' + node.gAccount.address + ',' + account.address,
+					'recipientId=' + account.address + ',' + account2.address,
+					'senderPublicKey=' + node.gAccount.publicKey,
+					'recipientPublicKey=' + node.gAccount.publicKey + ',' + account.publicKey,
+					'limit=' + limit,
+					'offset=' + offset,
+					'orderBy=' + orderBy
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
 			});
-		});
 
-		it('using valid parameters with and/or should be ok', function () {
-			var limit = 10;
-			var offset = 0;
-			var orderBy = 'amount:asc';
+			it('using invalid field name should fail', function () {
+				var limit = 10;
+				var offset = 0;
+				var orderBy = 'amount:asc';
 
-			var params = [
-				'and:blockId=' + '1',
-				'or:senderId=' + node.gAccount.address,
-				'or:recipientId=' + account.address,
-				'limit=' + limit,
-				'offset=' + offset,
-				'orderBy=' + orderBy
-			];
+				var params = [
+					'blockId=' + '1',
+					'and:senderId=' + node.gAccount.address,
+					'whatever=' + account.address,
+					'limit=' + limit,
+					'offset=' + offset,
+					'orderBy=' + orderBy
+				];
 
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i + 1]) {
-						node.expect(res.transactions[i].amount).to.be.at.most(res.transactions[i + 1].amount);
-					}
-				}
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
 			});
-		});
 
-		it('using minAmount with and:maxAmount ordered by amount and limited should be ok', function () {
-			var limit = 10;
-			var offset = 0;
-			var orderBy = 'amount:asc';
+			it('using invalid condition should fail', function () {
+				var params = [
+					'whatever:senderId=' + node.gAccount.address
+				];
 
-			var params = [
-				'minAmount=' + minAmount,
-				'and:maxAmount=' + maxAmount,
-				'limit=' + limit,
-				'offset=' + offset,
-				'orderBy=' + orderBy
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res.transactions).to.have.length.within(2, limit);
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i + 1]) {
-						node.expect(res.transactions[i].amount).to.be.at.most(maxAmount);
-						node.expect(res.transactions[i].amount).to.be.at.least(minAmount);
-						node.expect(res.transactions[i].amount).to.be.at.most(res.transactions[i + 1].amount);
-					}
-				}
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
 			});
-		});
 
-		it('using valid parameters with/without and/or should be ok', function () {
-			var limit = 10;
-			var offset = 0;
-			var orderBy = 'amount:asc';
+			it('using invalid field name (x:z) should fail', function () {
+				var params = [
+					'and:senderId=' + node.gAccount.address
+				];
 
-			var params = [
-				'and:blockId=' + '1',
-				'or:senderId=' + node.gAccount.address,
-				'or:recipientId=' + account.address,
-				'fromHeight=' + 1,
-				'toHeight=' + 666,
-				'and:fromTimestamp=' + 0,
-				'and:minAmount=' + 0,
-				'limit=' + limit,
-				'offset=' + offset,
-				'orderBy=' + orderBy
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i + 1]) {
-						node.expect(res.transactions[i].amount).to.be.at.most(res.transactions[i + 1].amount);
-					}
-				}
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
 			});
-		});
 
-		it('using valid array-like parameters should be ok', function () {
-			var limit = 10;
-			var offset = 0;
-			var orderBy = 'amount:asc';
+			it('using empty parameter should fail', function () {
+				var params = [
+					'publicKey='
+				];
 
-			var params = [
-				'blockId=' + '1',
-				'or:senderIds=' + node.gAccount.address + ',' + account.address,
-				'or:recipientIds=' + account.address + ',' + account2.address,
-				'or:senderPublicKeys=' + node.gAccount.publicKey,
-				'or:recipientPublicKeys=' + node.gAccount.publicKey + ',' + account.publicKey,
-				'limit=' + limit,
-				'offset=' + offset,
-				'orderBy=' + orderBy
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res.transactions).to.have.length.within(transactionList.length, limit);
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i + 1]) {
-						node.expect(res.transactions[i].amount).to.be.at.most(res.transactions[i + 1].amount);
-					}
-				}
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
 			});
-		});
 
-		it('using one invalid field name with and/or should fail', function () {
-			var limit = 10;
-			var offset = 0;
-			var orderBy = 'amount:asc';
+			it('using completely invalid fields should fail', function () {
+				var params = [
+					'blockId=invalid',
+					'senderId=invalid',
+					'recipientId=invalid',
+					'limit=invalid',
+					'offset=invalid',
+					'orderBy=invalid'
+				];
 
-			var params = [
-				'and:blockId=' + '1',
-				'or:senderId=' + node.gAccount.address,
-				'or:whatever=' + account.address,
-				'limit=' + limit,
-				'offset=' + offset,
-				'orderBy=' + orderBy
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
 			});
-		});
 
-		it('using invalid condition should fail', function () {
-			var params = [
-				'whatever:senderId=' + node.gAccount.address
-			];
+			it('using partially invalid fields should fail', function () {
+				var params = [
+					'blockId=invalid',
+					'senderId=invalid',
+					'recipientId=' + account.address,
+					'limit=invalid',
+					'offset=invalid',
+					'orderBy=blockId:asc'
+				];
 
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
 			});
-		});
 
-		it('using invalid field name (x:y:z) should fail', function () {
-			var params = [
-				'or:whatever:senderId=' + node.gAccount.address
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using empty parameter should fail', function () {
-			var params = [
-				'and:publicKey='
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using type should be ok', function () {
-			var type = node.transactionTypes.SEND;
-			var params = [
-				'type=' + type
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i]) {
-						node.expect(res.transactions[i].type).to.equal(type);
-					}
-				}
-			});
 		});
 
 		it('using no params should be ok', function () {
 			var params = [];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array').not.empty;
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').not.empty;
 			});
 		});
 
-		it('using too small fromUnixTime should fail', function () {
-			var params = [
-				'fromUnixTime=1464109199'
-			];
+		describe('id', function () {
 
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using too small toUnixTime should fail', function () {
-			var params = [
-				'toUnixTime=1464109200'
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using limit > 1000 should fail', function () {
-			var limit = 1001;
-			var params = [
-				'limit=' + limit
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('ordered by ascending timestamp should be ok', function () {
-			var orderBy = 'timestamp:asc';
-			var params = [
-				'orderBy=' + orderBy
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-
-				var flag = 0;
-				for (var i = 0; i < res.transactions.length; i++) {
-					if (res.transactions[i + 1]) {
-						node.expect(res.transactions[i].timestamp).to.be.at.most(res.transactions[i + 1].timestamp);
-					}
-				}
-			});
-		});
-
-		it('using offset=1 should be ok', function () {
-			return getTransactionsPromise([]).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-
-				var offset = 1;
+			it('using valid id should be ok', function () {
+				var transactionInCheck = transactionList[0];
 				var params = [
-					'offset=' + offset
+					'id=' + transactionInCheck.id
 				];
 
-				return getTransactionsPromise(params).then(function (result) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactions').that.is.an('array');
-					
-					result.transactions.forEach(function (transaction){
-						node.expect(res.transactions[0].id).not.equal(transaction.id);
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').which.has.length(1);
+					node.expect(res.body.transactions[0].id).to.equal(transactionInCheck.id);
+				});
+			});
+
+			it('using invalid id should fail', function () {
+				var params = [
+					'id=' + undefined
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('should get transaction with asset for id', function () {
+				var transactionInCheck = genesisblock.transactions.find(function (trs) {
+					// Vote type transaction from genesisBlock
+					return trs.id === '9314232245035524467';
+				});
+
+				var params = [
+					'id=' + transactionInCheck.id
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					node.expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionTypes.VOTE);
+					node.expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionInCheck.type);
+					node.expect(res).to.have.nested.property('body.transactions[0].id').to.equal(transactionInCheck.id);
+					node.expect(res).to.have.nested.property('body.transactions[0].amount').to.equal(transactionInCheck.amount);
+					node.expect(res).to.have.nested.property('body.transactions[0].fee').to.equal(transactionInCheck.fee);
+					node.expect(res).to.have.nested.property('body.transactions[0].recipientId').to.equal(transactionInCheck.recipientId);
+					node.expect(res).to.have.nested.property('body.transactions[0].senderId').to.equal(transactionInCheck.senderId);
+					node.expect(res).to.have.nested.property('body.transactions[0].asset').to.eql(transactionInCheck.asset);
+				});
+			});
+		});
+
+		describe('type', function () {
+
+			it('using invalid type should fail', function () {
+				var type = 8;
+				var params = [
+					'type=' + type
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('using type should be ok', function () {
+				var type = node.transactionTypes.SEND;
+				var params = [
+					'type=' + type
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i]) {
+							node.expect(res.body.transactions[i].type).to.equal(type);
+						}
+					}
+				});
+			});
+		});
+
+		describe('senderId', function () {
+
+			it('using invalid senderId should fail', function () {
+				var params = [
+					'senderId=' + undefined
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('using one senderId should return transactions', function () {
+				var params = [
+					'senderId=' + node.gAccount.address,
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i + 1]) {
+							node.expect(res.body.transactions[i].senderId).to.equal(node.gAccount.address);
+						}
+					}
+				});
+			});
+
+			it('using multiple senderId should return transactions', function () {
+				var params = [
+					'senderId=' + node.gAccount.address,
+					'senderId=' + node.eAccount.address
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i + 1]) {
+							node.expect([node.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].senderId);
+						}
+					}
+				});
+			});
+		});
+
+		describe('recipientId', function () {
+
+			it('using invalid recipiendId should fail', function () {
+				var params = [
+					'recipientId=' + undefined
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('using one recipientId should return transactions', function () {
+				var params = [
+					'recipientId=' + node.gAccount.address,
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i + 1]) {
+							node.expect(res.body.transactions[i].recipientId).to.equal(node.gAccount.address);
+						}
+					}
+				});
+			});
+
+			it('using multiple recipientId should return transactions', function () {
+				var params = [
+					'recipientId=' + node.gAccount.address,
+					'recipientId=' + node.eAccount.address
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i + 1]) {
+							node.expect([node.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].recipientId);
+						}
+					}
+				});
+			});
+		});
+
+		describe('fromUnixTime', function () {
+
+			it('using too small fromUnixTime should fail', function () {
+				var params = [
+					'fromUnixTime=1464109199'
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('using valid fromUnixTime should return transactions', function () {
+				var params = [
+					'fromUnixTime=' + (constants.epochTime.getTime() / 1000 + 10).toString()
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+				});
+			});
+		});
+
+		describe('toUnixtime', function () {
+
+			it('using too small toUnixTime should fail', function () {
+				var params = [
+					'toUnixTime=1464109200'
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('should return transactions', function () {
+				var params = [
+					'toUnixTime=' + Math.floor(new Date().getTime() / 1000)
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+				});
+			});
+		});
+
+		describe('limit', function () {
+
+			it('using limit < 0 should fail', function () {
+				var limit = -1;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('using limit > 1000 should fail', function () {
+				var limit = 1001;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
+
+			it('using limit = 10 should return 10 transactions', function () {
+				var limit = 10;
+				var params = [
+					'limit=' + limit
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').to.have.length(10);
+				});
+			});
+		});
+
+		describe('orderBy', function () {
+
+			describe('amount', function () {
+
+				it('ordered by descending amount should be ok', function () {
+					var orderBy = 'amount:asc';
+					var params = [
+						'orderBy=' + orderBy
+					];
+
+					return getTransactionsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						node.expect(_(res.body.transactions).map('amount').sort().reverse().value()).to.eql(_(res.body.transactions).map('amount').value());
+					});
+				});
+
+				it('ordered by ascending timestamp should be ok', function () {
+					var orderBy = 'amount:asc';
+					var params = [
+						'orderBy=' + orderBy
+					];
+
+					return getTransactionsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						node.expect(_(res.body.transactions).map('amount').sort().value()).to.eql(_(res.body.transactions).map('amount').value());
+					});
+				});
+			});
+
+			describe('timestamp', function () {
+
+				it('ordered by descending timestamp should be ok', function () {
+					var orderBy = 'timestamp:asc';
+					var params = [
+						'orderBy=' + orderBy
+					];
+
+					return getTransactionsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						node.expect(_(res.body.transactions).map('timestamp').sort().reverse().value()).to.eql(_(res.body.transactions).map('timestamp').value());
+					});
+				});
+
+				it('ordered by ascending timestamp should be ok', function () {
+					var orderBy = 'timestamp:asc';
+					var params = [
+						'orderBy=' + orderBy
+					];
+
+					return getTransactionsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						node.expect(_(res.body.transactions).map('timestamp').sort().value()).to.eql(_(res.body.transactions).map('timestamp').value());
+					});
+				});
+			});
+
+			it('using orderBy with any of sort fields should not place NULLs first', function () {
+				var params;
+
+				return node.Promise.each(transactionSortFields, function (sortField) {
+					params = [
+						'orderBy=' + sortField
+					];
+
+					return getTransactionsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+
+						var dividedIndices = res.body.transactions.reduce(function (memo, peer, index) {
+							memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
+							return memo;
+						}, { notNullIndices: [], nullIndices: [] });
+
+						if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
+							var ascOrder = function (a, b) { return a - b; };
+							dividedIndices.notNullIndices.sort(ascOrder);
+							dividedIndices.nullIndices.sort(ascOrder);
+
+							node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+								.to.be.at.most(dividedIndices.nullIndices[0]);
+						}
 					});
 				});
 			});
 		});
 
-		it('using offset="one" should fail', function () {
-			var offset = 'one';
-			var params = [
-				'offset=' + offset
-			];
+		describe('offset', function () {
 
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using completely invalid fields should fail', function () {
-			var params = [
-				'blockId=invalid',
-				'senderId=invalid',
-				'recipientId=invalid',
-				'limit=invalid',
-				'offset=invalid',
-				'orderBy=invalid'
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using partially invalid fields should fail', function () {
-			var params = [
-				'blockId=invalid',
-				'senderId=invalid',
-				'recipientId=' + account.address,
-				'limit=invalid',
-				'offset=invalid',
-				'orderBy=blockId:asc'
-			];
-
-			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using orderBy with any of sort fields should not place NULLs first', function () {
-			var params;
-
-			return node.Promise.each(transactionSortFields, function (sortField) {
-				params = [
-					'orderBy=' + sortField
+			it('using offset="one" should fail', function () {
+				var offset = 'one';
+				var params = [
+					'offset=' + offset
 				];
+
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactions').that.is.an('array');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message');
+				});
+			});
 
-					var dividedIndices = res.transactions.reduce(function (memo, peer, index) {
-						memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
-						return memo;
-					}, { notNullIndices: [], nullIndices: [] });
+			it('using offset=1 should be ok', function () {
+				return getTransactionsPromise([]).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 
-					if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
-						var ascOrder = function (a, b) { return a - b; };
-						dividedIndices.notNullIndices.sort(ascOrder);
-						dividedIndices.nullIndices.sort(ascOrder);
+					var offset = 1;
+					var params = [
+						'offset=' + offset
+					];
 
-						node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
-							.to.be.at.most(dividedIndices.nullIndices[0]);
+					return getTransactionsPromise(params).then(function (result) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+
+						result.body.transactions.forEach(function (transaction){
+							node.expect(res.body.transactions[0].id).not.equal(transaction.id);
+						});
+					});
+				});
+			});
+		});
+
+		describe('minAmount', function () {
+
+			it('should get transactions with amount more than minAmount', function () {
+				var params = [
+					'minAmount=' + minAmount,
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						node.expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
 					}
 				});
 			});
 		});
-	});
 
-	describe('/get?id=', function () {
+		describe('maxAmount', function () {
 
-		it('using valid id should be ok', function () {
-			var transactionInCheck = transactionList[0];
+			it('using minAmount with maxAmount ordered by amount and limited should be ok', function () {
+				var params = [
+					'maxAmount=' + maxAmount,
+				];
 
-			return getTransactionPromise(transactionInCheck).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transaction').that.is.an('object');
-				node.expect(res.transaction.id).to.equal(transactionInCheck);
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						node.expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
+					}
+				});
 			});
 		});
 
-		it('using invalid id should fail', function () {
-			return getTransactionPromise(undefined).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
+		describe('minAmount & maxAmount & orderBy', function () {
+
+			it('using minAmount, maxAmount ordered by amount should return ordered transactions', function () {
+				var orderBy = 'amount:asc';
+
+				var params = [
+					'minAmount=' + minAmount,
+					'maxAmount=' + maxAmount,
+					'orderBy=' + orderBy
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i + 1]) {
+							node.expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
+							node.expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
+							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+						}
+					}
+				});
 			});
 		});
 
-		it('should get transaction with asset for id', function () {
-			var transactionInCheck = genesisblock.transactions.find(function (trs) {
-				return trs.id === '9314232245035524467';
+		describe('combination of query parameters', function () {
+
+			it('using valid parameters should be ok', function () {
+				var limit = 10;
+				var offset = 0;
+				var orderBy = 'amount:asc';
+
+				var params = [
+					'senderId=' + node.gAccount.address,
+					'recipientId=' + account.address,
+					'recipientId=' + account2.address,
+					'limit=' + limit,
+					'offset=' + offset,
+					'orderBy=' + orderBy
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					node.expect(res).to.have.nested.property('body.transactions').that.have.length.within(transactionList.length, limit);
+					for (var i = 0; i < res.body.transactions.length; i++) {
+						if (res.body.transactions[i + 1]) {
+							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+						}
+					}
+				});
 			});
 
-			return getTransactionPromise(transactionInCheck.id).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transaction').that.is.an('object');
-				node.expect(res.transaction.type).to.equal(transactionTypes.VOTE);
-				node.expect(res.transaction.type).to.equal(transactionInCheck.type);
-				node.expect(res.transaction.id).to.equal(transactionInCheck.id);
-				node.expect(res.transaction.amount).to.equal(transactionInCheck.amount);
-				node.expect(res.transaction.fee).to.equal(transactionInCheck.fee);
-				node.expect(res.transaction.recipientId).to.equal(transactionInCheck.recipientId);
-				node.expect(res.transaction.senderId).to.equal(transactionInCheck.senderId);
-				node.expect(res.transaction.asset).to.eql(transactionInCheck.asset);
+			it('using many valid parameters should be ok', function () {
+				var limit = 10;
+				var offset = 0;
+				var orderBy = 'amount:asc';
+
+				var params = [
+					'blockId=' + '1',
+					'senderId=' + node.gAccount.address,
+					'recipientId=' + account.address,
+					'fromHeight=' + 1,
+					'toHeight=' + 666,
+					'fromTimestamp=' + 0,
+					'minAmount=' + 0,
+					'limit=' + limit,
+					'offset=' + offset,
+					'orderBy=' + orderBy
+				];
+
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions');
+				});
+			});
+		});
+
+		describe('count', function () {
+
+			it('should return count of the transactions with response', function () {
+				return getTransactionsPromise({}).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					node.expect(res).to.have.nested.property('body.count').that.is.a('string');
+				});
 			});
 		});
 	});
@@ -530,7 +768,7 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getQueuedTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.false;
+				node.expect(res).to.have.property('success').to.equal(false);
 				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
@@ -542,13 +780,13 @@ describe('GET /api/transactions', function () {
 			var transaction = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-				return getQueuedTransactionPromise(res.transactionId).then(function (result) {
-					node.expect(result).to.have.property('success').to.be.ok;
+				return getQueuedTransactionPromise(transaction.id).then(function (result) {
+					node.expect(result).to.have.property('success').to.equal(true);
 					node.expect(result).to.have.property('transaction').that.is.an('object');
-					node.expect(result.transaction.id).to.equal(res.transactionId);
+					node.expect(result.transaction.id).to.equal(transaction.id);
 				});
 			});
 		});
@@ -558,7 +796,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getQueuedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});
@@ -569,7 +807,7 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getMultisignaturesTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.false;
+				node.expect(res).to.have.property('success').to.equal(false);
 				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
@@ -579,7 +817,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getMultisignaturesTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});
@@ -588,17 +826,17 @@ describe('GET /api/transactions', function () {
 
 	describe('/unconfirmed/get?id=', function () {
 
-		it('using valid id should be ok', function () {
-			var transactionId = transactionList[transactionList.length - 1].txId;
+		var unconfirmedTransaction;
 
+		before(function () {
+			unconfirmedTransaction = lisk.transaction.createTransaction(account.address, maxAmount, node.gAccount.password);
+			return sendTransactionPromise(unconfirmedTransaction);
+		});
+
+		it('using valid id should be ok', function () {
+			var transactionId = unconfirmedTransaction.id;
 			return getUnconfirmedTransactionPromise(transactionId).then(function (res) {
 				node.expect(res).to.have.property('success');
-				if (res.success && res.transaction != null) {
-					node.expect(res).to.have.property('transaction').that.is.an('object');
-					node.expect(res.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
-				} else {
-					node.expect(res).to.have.property('error');
-				}
 			});
 		});
 	});
@@ -607,7 +845,7 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getUnconfirmedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('success').to.equal(true);
 				node.expect(res).to.have.property('transactions').that.is.an('array');
 				node.expect(res).to.have.property('count').that.is.an('number');
 			});
