@@ -88,7 +88,7 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
 	modules = {
 		peers: peers,
 		transport: transport,
-		transactions: transactions,
+		transactions: transactions
 	};
 };
 
@@ -110,21 +110,19 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 	params.unmatchBroadhash = params.unmatchBroadhash || false;
 
 	var originalLimit = params.limit;
-
+	var skipConsensusCalculation = false;
 	if (params.broadhash && (params.matchBroadhash || params.unmatchBroadhash)) {
 		params.attempt = params.matchBroadhash ? 0 : 1;
+		skipConsensusCalculation= true;
 	}
-
 	modules.peers.list(params, function (err, peers, consensus) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-
-		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
+		if (self.consensus !== undefined && originalLimit === constants.maxPeers && !skipConsensusCalculation) {
 			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
-			self.consensus = consensus;
+			self.consensus = modules.peers.getConsensus(null, peers);
 		}
-
 		return setImmediate(cb, null, peers);
 	});
 };

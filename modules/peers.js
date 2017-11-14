@@ -287,6 +287,31 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
 };
 
 /**
+ * Calculates consensus for as a ratio active to matched peers.
+ * @param {Array<Peer>} matched - peers with same as system broadhash
+ * @param {Array<Peer>} active - active peers (with connected state)
+ * @returns {number|undefined} - return consensus or undefined if config.forging.force = true
+ */
+Peers.prototype.getConsensus = function (matched, active) {
+
+	if (library.config.forging.force) {
+		return undefined;
+	}
+
+	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED, normalized: false});
+	matched = matched || active.filter(function (peer) {
+		return peer.broadhash === modules.system.getBroadhash();
+	});
+
+	active = active.slice(0, constants.maxPeers);
+	matched = matched.slice(0, constants.maxPeers);
+
+	var consensus = Math.round(matched.length / active.length * 10000) / 100;
+	return isNaN(consensus) ? 0 : consensus;
+};
+
+
+/**
  * Sets peer state to active (2).
  * @param {peer} peer
  * @return {function} Calls peers.upsert
@@ -486,14 +511,7 @@ Peers.prototype.list = function (options, cb) {
 				return setImmediate(waterCb, null, peers);
 			}
 		}
-	], function (err, peers) {
-		// Calculate consensus
-		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-		consensus = isNaN(consensus) ? 0 : consensus;
-
-		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers, consensus);
-	});
+	], cb);
 };
 
 // Events
