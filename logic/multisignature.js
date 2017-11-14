@@ -130,7 +130,7 @@ Multisignature.prototype.verify = function (transaction, sender, cb) {
 		}
 	}
 
-	if (transaction.asset.multisignature.keysgroup.indexOf('+' + sender.publicKey) !== -1) {
+	if (transaction.asset.multisignature.keysgroup.indexOf('+' + transaction.senderPublicKey) !== -1) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Can not contain sender');
 	}
 
