@@ -28,17 +28,24 @@ describe('create transaction create multisignature account command', () => {
 				beforeEach(given.aPassphrase);
 				describe('Given a Lisk object that can create transactions', () => {
 					beforeEach(given.aLiskObjectThatCanCreateTransactions);
-					describe('Given a lifetime of "NaN" hours', () => {
-						beforeEach(given.aLifetimeOfHours);
-						describe('Given a minimum of 2 signatures', () => {
-							beforeEach(given.aMinimumOfSignatures);
-							describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
-								beforeEach(given.aKeysgroupWithKeys);
-								describe('Given an empty options object', () => {
-									beforeEach(given.anEmptyOptionsObject);
+					describe('Given a minimum of 2 signatures', () => {
+						beforeEach(given.aMinimumOfSignatures);
+						describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
+							beforeEach(given.aKeysgroupWithKeys);
+							describe('Given an empty options object', () => {
+								beforeEach(given.anEmptyOptionsObject);
+								describe('Given a lifetime of "NaN" hours', () => {
+									beforeEach(given.aLifetimeOfHours);
 									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Lifetime must be a number."', then.itShouldRejectWithMessage);
+										it('Then it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given a lifetime of 5.5 hours', () => {
+									beforeEach(given.aLifetimeOfHours);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
+										it('Then it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithMessage);
 									});
 								});
 							});
@@ -46,15 +53,22 @@ describe('create transaction create multisignature account command', () => {
 					});
 					describe('Given a lifetime of 24 hours', () => {
 						beforeEach(given.aLifetimeOfHours);
-						describe('Given a minimum of "NaN" signatures', () => {
-							beforeEach(given.aMinimumOfSignatures);
-							describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
-								beforeEach(given.aKeysgroupWithKeys);
-								describe('Given an empty options object', () => {
-									beforeEach(given.anEmptyOptionsObject);
+						describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
+							beforeEach(given.aKeysgroupWithKeys);
+							describe('Given an empty options object', () => {
+								beforeEach(given.anEmptyOptionsObject);
+								describe('Given a minimum of "NaN" signatures', () => {
+									beforeEach(given.aMinimumOfSignatures);
 									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
 										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Minimum confirmations must be a number."', then.itShouldRejectWithMessage);
+										it('Then it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given a minimum of 5.5 signatures', () => {
+									beforeEach(given.aMinimumOfSignatures);
+									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
+										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
+										it('Then it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithMessage);
 									});
 								});
 							});

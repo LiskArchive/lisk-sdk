@@ -13,7 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { createCommand } from '../utils/helpers';
+import {
+	createCommand,
+	validateLifetime,
+	validateMinimum,
+} from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
@@ -55,15 +59,12 @@ export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, op
 		}
 		return `+${publicKey}`;
 	});
+
+	validateLifetime(lifetime);
+	validateMinimum(minimum);
+
 	const transactionLifetime = parseInt(lifetime, 10);
 	const transactionMinimumConfirmations = parseInt(minimum, 10);
-
-	if (isNaN(transactionLifetime)) {
-		throw new Error('Lifetime must be a number.');
-	}
-	if (isNaN(transactionMinimumConfirmations)) {
-		throw new Error('Minimum confirmations must be a number.');
-	}
 
 	return getInputsFromSources(vorpal, {
 		passphrase: {
