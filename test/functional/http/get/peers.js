@@ -95,10 +95,10 @@ describe('GET /peers', function () {
 
 	describe('pass data from a real peer', function () {
 
-		it('using httpPort = 4000 should return the result', function () {
+		it('using a valid httpPort should return the result', function () {
 			return peersEndpoint.makeRequest({httpPort: validHeaders.httpPort}, 200)
 				.then(function (res) {
-					res.body.data[0].httpPort.should.be.eql(node.config.httpPort);
+					res.body.data[0].httpPort.should.be.eql(validHeaders.httpPort);
 				});
 		});
 
