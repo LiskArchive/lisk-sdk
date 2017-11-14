@@ -53,7 +53,7 @@ jspm_packages
 yuidoc
 
 # Distribution folders
-dist-browser
+dist-browser/*.js
 dist-node
 
 # Built test files
