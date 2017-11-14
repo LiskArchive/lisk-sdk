@@ -14,8 +14,11 @@ var WSClient = require('./wsClient');
  */
 function WSServerMaster () {
 	this.masterProcess = null;
+	this.ip = '127.0.0.1';
+	this.version = '0.0.' + (Math.floor(Math.random() * 10) + 1);
 	this.client = null;
-	this.port = Math.floor(Math.random() * 9999);
+	this.httpPort = Math.floor(Math.random() * 65535) + 1;
+	this.port = Math.floor(Math.random() * 65535) + 1;
 }
 
 /**
@@ -43,7 +46,8 @@ WSServerMaster.prototype.start = function () {
 			var headers = node.generatePeerHeaders();
 			headers.ip = '127.0.0.1';
 			headers.port = self.port;
-			headers.version = '0.0.' + Math.floor(Math.random() * 10);
+			headers.httpPort = self.httpPort;
+			headers.version = self.version;
 
 			self.client = new WSClient(headers);
 			self.client.start().then(function () {

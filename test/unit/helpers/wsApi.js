@@ -45,13 +45,9 @@ describe('handshake', function () {
 	describe('compatibility', function () {
 
 		beforeEach(function () {
-			validHeaders = {
-				port: 5000,
-				nethash: config.nethash,
-				version: minVersion,
-				nonce: validPeerNonce,
-				height: 1
-			};
+			validHeaders = node.generatePeerHeaders();
+			validHeaders.version = minVersion;
+			validHeaders.nonce = validPeerNonce;
 		});
 
 		it('should return an error when nonce is identical to server', function (done) {
@@ -84,13 +80,9 @@ describe('handshake', function () {
 
 	after(function () {
 
-		validHeaders = {
-			port: 5000,
-			nethash: config.nethash,
-			version: minVersion,
-			nonce: '0123456789ABCDEF',
-			height: 1
-		};
+		validHeaders = node.generatePeerHeaders();
+		validHeaders.version =  minVersion;
+		validHeaders.nonce = '0123456789ABCDEF';
 
 		describe('schema tests', function () {
 

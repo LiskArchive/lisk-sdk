@@ -12,6 +12,7 @@ var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 var transport = require('../../../api/ws/transport');
 var System = require('../../../modules/system');
+var node = require('../../node');
 
 describe('ClientRPCStub', function () {
 
@@ -81,13 +82,7 @@ describe('ClientRPCStub', function () {
 		var validHeaders;
 
 		beforeEach(function () {
-			validHeaders = {
-				port: 5000,
-				nethash: config.nethash,
-				version: minVersion,
-				nonce: randomstring.generate(16),
-				height: 1
-			};
+			validHeaders = node.generatePeerHeaders();
 			System.setHeaders(validHeaders);
 		});
 
