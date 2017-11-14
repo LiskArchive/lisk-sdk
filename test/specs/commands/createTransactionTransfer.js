@@ -18,7 +18,7 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('create transaction transfer', () => {
+describe('create transaction transfer command', () => {
 	beforeEach(setUpCommandCreateTransactionTransfer);
 	Given('a Vorpal instance with a UI and an active command that can prompt', given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt, () => {
 		Given('an action "create transaction transfer"', given.anAction, () => {
