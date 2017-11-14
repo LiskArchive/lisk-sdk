@@ -130,6 +130,25 @@ function Account (db, schema, logger, cb) {
 			expression: '("votes")::bigint'
 		},
 		{
+			name: 'voters',
+			type: 'BigInt',
+			filter: {
+				type: 'integer'
+			},
+			conv: Number,
+			expression: '("voters")::int'
+		},
+		{
+			name: 'delegates',
+			type: 'Text',
+			filter: {
+				type: 'array',
+				uniqueItems: true
+			},
+			conv: Array,
+			expression: '(SELECT ARRAY_AGG(ENCODE("delegate_public_key", \'hex\')) FROM votes_details WHERE "voter_address" = a."address")'
+		},
+		{
 			name: 'multisignatures',
 			type: 'Text',
 			filter: {
