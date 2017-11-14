@@ -226,7 +226,7 @@ describe('GET /api/delegates', function () {
 				];
 
 				return getDelegatesPromise(params).then(function (res) {
-					node.expect(res).to.have.property('message').equal('String is too short (0 chars), minimum 20');
+					node.expect(res).to.have.property('message').equal('String is too short (0 chars), minimum 1');
 				});
 			});
 
