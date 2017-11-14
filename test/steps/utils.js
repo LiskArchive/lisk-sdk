@@ -35,7 +35,7 @@ const BOOLEANS = {
 };
 
 const regExpQuotes = /"((.|\n|\s\S)+?)"/;
-const regExpNumbers = /\d+/;
+const regExpNumbers = /\d+(.\d+)?/;
 const regExpBooleans = /(true|false)/;
 
 export const getFirstQuotedString = title => title.match(regExpQuotes)[1];

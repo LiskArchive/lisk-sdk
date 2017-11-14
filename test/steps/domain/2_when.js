@@ -17,7 +17,35 @@ import {
 	deAlias,
 	validateAddress,
 	validateAmount,
+	validateLifetime,
+	validateMinimum,
 } from '../../../src/utils/helpers';
+
+export function validateLifetimeIsCalledOnTheLifetime() {
+	const { lifetime } = this.test.ctx;
+	try {
+		const returnValue = validateLifetime(lifetime);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = validateLifetime.bind(null, lifetime);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
+}
+
+export function validateMinimumIsCalledOnTheMinimum() {
+	const { minimum } = this.test.ctx;
+	try {
+		const returnValue = validateMinimum(minimum);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = validateMinimum.bind(null, minimum);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
+}
 
 export function validateAmountIsCalledOnTheAmount() {
 	const { amount } = this.test.ctx;

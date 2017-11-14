@@ -19,12 +19,32 @@ import { printResult } from '../utils/print';
 const regExpAddress = /^\d{1,21}[L|l]$/;
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
 
+const isStringInteger = (n) => {
+	const parsed = parseInt(n, 10);
+	return !isNaN(parsed) && parsed.toString() === n;
+};
+
+export const validateLifetime = (lifetime) => {
+	if (!isStringInteger(lifetime)) {
+		throw new Error('Lifetime must be an integer.');
+	}
+	return true;
+};
+
+export const validateMinimum = (minimum) => {
+	if (!isStringInteger(minimum)) {
+		throw new Error('Minimum number of signatures must be an integer.');
+	}
+	return true;
+};
+
 export const validateAddress = (address) => {
 	if (!address.match(regExpAddress)) {
 		throw new Error(`${address} is not a valid address.`);
 	}
 	return true;
 };
+
 export const validateAmount = (amount) => {
 	if (!amount.match(regExpAmount)) {
 		throw new Error('Amount must be a number with no more than 8 decimal places.');
