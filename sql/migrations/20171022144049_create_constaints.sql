@@ -2,7 +2,7 @@ BEGIN;
 
 DO language plpgsql $$
 BEGIN
-	RAISE NOTICE 'Dropping old tables, please wait...';
+	RAISE NOTICE 'Creating constraints tables, please wait...';
 END
 $$;
 

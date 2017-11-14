@@ -40,15 +40,15 @@ FOR EACH ROW EXECUTE PROCEDURE multisignatures_insert();
 
 /* Populates multisignatures master table FROM blockchain */
 INSERT INTO "public".multisignatures_master(transaction_id, public_key, minimum, lifetime, keysgroup)
-SELECT t."id",
-t."senderPublicKey",
+SELECT t."transaction_id",
+t."sender_public_key",
 ma."multimin",
 ma."multilifetime",
 ms."keysgroup"
-FROM mem_accounts ma, trs t, multisignatures ms
+FROM mem_accounts ma, transactions t, multisignatures ms
 WHERE t."type" = 4
-AND t."senderPublicKey" = ma."publicKey"
-AND ms."transactionId" = t."id";
+AND t."sender_public_key" = ma."publicKey"
+AND ms."transactionId" = t."transaction_id";
 
   -- Multisignatures indexes
   CREATE INDEX idx_multisignatures_master_transaction_id

@@ -2,7 +2,7 @@ BEGIN;
 
 DO language plpgsql $$
 BEGIN
-	RAISE NOTICE 'Accounts relations migration, please wait...';
+	RAISE NOTICE 'Votes migration, please wait...';
 END
 $$;
 
