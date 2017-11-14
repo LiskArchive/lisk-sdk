@@ -21,16 +21,16 @@ describe('GET /api/delegates', function () {
 	var validNotExistingPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
 
 	function expectValidDelegate (delegate) {
-		node.expect(delegate).to.have.property('username').that.is.an('string');
-		node.expect(delegate).to.have.property('address').that.is.an('string');
-		node.expect(delegate).to.have.property('publicKey').that.is.an('string');
-		node.expect(delegate).to.have.property('vote').that.is.an('string');
-		node.expect(delegate).to.have.property('rewards').that.is.an('string');
-		node.expect(delegate).to.have.property('producedBlocks').that.is.an('string');
-		node.expect(delegate).to.have.property('missedBlocks').that.is.an('string');
-		node.expect(delegate).to.have.property('rank').that.is.an('number');
-		node.expect(delegate).to.have.property('approval').that.is.an('number');
-		node.expect(delegate).to.have.property('productivity').that.is.an('number');
+		node.expect(delegate).to.have.property('username').that.is.a('string');
+		node.expect(delegate).to.have.property('address').that.is.a('string');
+		node.expect(delegate).to.have.property('publicKey').that.is.a('string');
+		node.expect(delegate).to.have.property('vote').that.is.a('string');
+		node.expect(delegate).to.have.property('rewards').that.is.a('string');
+		node.expect(delegate).to.have.property('producedBlocks').that.is.a('string');
+		node.expect(delegate).to.have.property('missedBlocks').that.is.a('string');
+		node.expect(delegate).to.have.property('rank').that.is.a('number');
+		node.expect(delegate).to.have.property('approval').that.is.a('number');
+		node.expect(delegate).to.have.property('productivity').that.is.a('number');
 	}
 
 	describe('from (cache)', function () {
