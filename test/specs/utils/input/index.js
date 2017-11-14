@@ -74,6 +74,24 @@ describe('input utils', () => {
 											});
 										});
 									});
+									Given('the options object has a "passphrase" field with key "source" set to string "prompt"', given.theOptionsObjectHasAFieldWithKeySetToString, () => {
+										Given('the passphrase is available from the source', given.thePassphraseIsAvailableFromTheSource, () => {
+											When('getInputsFromSources is called with the Vorpal instance and the options', when.getInputsFromSourcesIsCalledWithTheVorpalInstanceAndTheOptions, () => {
+												Then('it should not ask for the passphrase from stdIn', then.itShouldNotAskForThePassphraseFromStdIn);
+												Then('it should not ask for the second passphrase from stdIn', then.itShouldNotAskForTheSecondPassphraseFromStdIn);
+												Then('it should not ask for the password from stdIn', then.itShouldNotAskForThePasswordFromStdIn);
+												Then('it should not ask for the data from stdIn', then.itShouldNotAskForTheDataFromStdIn);
+												Then('it should get the passphrase with a single prompt', then.itShouldGetThePassphraseWithASinglePrompt);
+												Then('it should not get the second passphrase', then.itShouldNotGetTheSecondPassphrase);
+												Then('it should not get the password', then.itShouldNotGetThePassword);
+												Then('it should not get the data', then.itShouldNotGetTheData);
+												Then('it should resolve with the passphrase', then.itShouldResolveWithThePassphrase);
+												Then('it should resolve without the second passphrase', then.itShouldResolveWithoutTheSecondPassphrase);
+												Then('it should resolve without the password', then.itShouldResolveWithoutThePassword);
+												Then('it should resolve without the data', then.itShouldResolveWithoutTheData);
+											});
+										});
+									});
 									Given('the options object has a "passphrase" field with key "repeatPrompt" set to boolean true', given.theOptionsObjectHasAFieldWithKeySetToBoolean, () => {
 										Given('the passphrase is available from the source', given.thePassphraseIsAvailableFromTheSource, () => {
 											When('getInputsFromSources is called with the Vorpal instance and the options', when.getInputsFromSourcesIsCalledWithTheVorpalInstanceAndTheOptions, () => {
@@ -131,6 +149,24 @@ describe('input utils', () => {
 								});
 								describe('second passphrase option', () => {
 									Given('the options object has a "secondPassphrase" field', given.theOptionsObjectHasAField, () => {
+										Given('the second passphrase is available from the source', given.theSecondPassphraseIsAvailableFromTheSource, () => {
+											When('getInputsFromSources is called with the Vorpal instance and the options', when.getInputsFromSourcesIsCalledWithTheVorpalInstanceAndTheOptions, () => {
+												Then('it should not ask for the passphrase from stdIn', then.itShouldNotAskForThePassphraseFromStdIn);
+												Then('it should not ask for the second passphrase from stdIn', then.itShouldNotAskForTheSecondPassphraseFromStdIn);
+												Then('it should not ask for the password from stdIn', then.itShouldNotAskForThePasswordFromStdIn);
+												Then('it should not ask for the data from stdIn', then.itShouldNotAskForTheDataFromStdIn);
+												Then('it should not get the passphrase', then.itShouldNotGetThePassphrase);
+												Then('it should get the second passphrase with a single prompt', then.itShouldGetTheSecondPassphraseWithASinglePrompt);
+												Then('it should not get the password', then.itShouldNotGetThePassword);
+												Then('it should not get the data', then.itShouldNotGetTheData);
+												Then('it should resolve without the passphrase', then.itShouldResolveWithoutThePassphrase);
+												Then('it should resolve with the second passphrase', then.itShouldResolveWithTheSecondPassphrase);
+												Then('it should resolve without the password', then.itShouldResolveWithoutThePassword);
+												Then('it should resolve without the data', then.itShouldResolveWithoutTheData);
+											});
+										});
+									});
+									Given('the options object has a "secondPassphrase" field with key "source" set to string "prompt"', given.theOptionsObjectHasAFieldWithKeySetToString, () => {
 										Given('the second passphrase is available from the source', given.theSecondPassphraseIsAvailableFromTheSource, () => {
 											When('getInputsFromSources is called with the Vorpal instance and the options', when.getInputsFromSourcesIsCalledWithTheVorpalInstanceAndTheOptions, () => {
 												Then('it should not ask for the passphrase from stdIn', then.itShouldNotAskForThePassphraseFromStdIn);

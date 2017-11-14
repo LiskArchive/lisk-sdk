@@ -170,7 +170,7 @@ export const getPassphraseFromSource = async (source, { displayName }) => {
 
 export const getPassphrase = async (vorpal, passphraseSource, options) => {
 	const optionsWithDefaults = Object.assign({ displayName: 'your secret passphrase' }, options);
-	return passphraseSource
+	return passphraseSource && passphraseSource !== 'prompt'
 		? getPassphraseFromSource(passphraseSource, optionsWithDefaults)
 		: getPassphraseFromPrompt(vorpal, optionsWithDefaults);
 };
