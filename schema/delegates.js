@@ -36,8 +36,8 @@ module.exports = {
 			address: {
 				type: 'string',
 				format: 'address',
-				minLength: 20,
-				maxLength: 20
+				minLength: 1,
+				maxLength: 22
 			},
 			publicKey: {
 				type: 'string',
