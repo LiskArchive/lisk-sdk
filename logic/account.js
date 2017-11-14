@@ -218,7 +218,7 @@ function Account (db, schema, logger, cb) {
 			name: 'producedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_forged_cnt")::bigint'
+			expression: '(d."blocks_forged_count")::bigint'
 		},
 		{
 			name: 'missedBlocks',
