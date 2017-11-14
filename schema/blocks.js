@@ -34,7 +34,7 @@ module.exports = {
 				type: 'integer',
 				minimum: 0
 			},
-			orderBy: {
+			sort: {
 				type: 'string'
 			}
 		}

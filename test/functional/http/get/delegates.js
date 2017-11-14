@@ -68,7 +68,7 @@ describe('GET /api/delegates', function () {
 			var url, params;
 			url = '/api/delegates?';
 			params = [
-				'orderBy=' + 'unknown:asc'
+				'sort=' + 'unknown:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -118,9 +118,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="unknown:asc" should fail', function () {
+		it('using sort="unknown:asc" should fail', function () {
 			var params = [
-				'orderBy=' + 'unknown:asc'
+				'sort=' + 'unknown:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -129,9 +129,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="approval:asc" should be ok', function () {
+		it('using sort="approval:asc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'approval:asc'
+				'sort=' + 'approval:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -141,9 +141,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="productivity:asc" should be ok', function () {
+		it('using sort="productivity:asc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'productivity:asc'
+				'sort=' + 'productivity:asc'
 			];
 			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
@@ -152,9 +152,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="rank:asc" should be ok', function () {
+		it('using sort="rank:asc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'rank:asc'
+				'sort=' + 'rank:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -169,9 +169,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="rank:desc" should be ok', function () {
+		it('using sort="rank:desc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'rank:desc'
+				'sort=' + 'rank:desc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -186,9 +186,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="vote:asc" should be ok', function () {
+		it('using sort="vote:asc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'vote:asc'
+				'sort=' + 'vote:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -203,9 +203,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="vote:desc" should be ok', function () {
+		it('using sort="vote:desc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'vote:desc'
+				'sort=' + 'vote:desc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -220,9 +220,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="username:asc" should be ok', function () {
+		it('using sort="username:asc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'username:asc'
+				'sort=' + 'username:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -232,9 +232,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="address:asc" should be ok', function () {
+		it('using sort="address:asc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'address:asc'
+				'sort=' + 'address:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -244,9 +244,9 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="publicKey:asc" should be ok', function () {
+		it('using sort="publicKey:asc" should be ok', function () {
 			var params = [
-				'orderBy=' + 'publicKey:asc'
+				'sort=' + 'publicKey:asc'
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
@@ -358,11 +358,11 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy with any of sort fields should not place NULLs first', function () {
+		it('using sort with any of sort fields should not place NULLs first', function () {
 			var delegatesSortFields = ['approval', 'productivity', 'rank', 'vote'];
 			delegatesSortFields.forEach(function (sortField) {
 				var params = [
-					'orderBy=' + sortField
+					'sort=' + sortField
 				];
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.ok;
@@ -694,10 +694,10 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="unknown:asc" should fail', function () {
+		it('using sort="unknown:asc" should fail', function () {
 			var params = [
 				'q=' + 'genesis_',
-				'orderBy=' + 'unknown:asc'
+				'sort=' + 'unknown:asc'
 			];
 
 			return searchDelegatesPromise(params).then(function (res) {
@@ -706,7 +706,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using no orderBy should be ordered by ascending username', function () {
+		it('using no sort should be ordered by ascending username', function () {
 			var params = [
 				'q=' + 'genesis_'
 			];
@@ -722,10 +722,10 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="username:asc" should be ordered by ascending username', function () {
+		it('using sort="username:asc" should be ordered by ascending username', function () {
 			var params = [
 				'q=' + 'genesis_',
-				'orderBy=' + 'username:asc'
+				'sort=' + 'username:asc'
 			];
 
 			return searchDelegatesPromise(params).then(function (res) {
@@ -739,10 +739,10 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('using orderBy="username:desc" should be ordered by descending username', function () {
+		it('using sort="username:desc" should be ordered by descending username', function () {
 			var params = [
 				'q=' + 'genesis_',
-				'orderBy=' + 'username:desc'
+				'sort=' + 'username:desc'
 			];
 
 			return searchDelegatesPromise(params).then(function (res) {

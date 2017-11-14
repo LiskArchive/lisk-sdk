@@ -76,7 +76,7 @@ module.exports = {
 		id: 'delegates.getDelegates',
 		type: 'object',
 		properties: {
-			orderBy: {
+			sort: {
 				type: 'string'
 			},
 			limit: {

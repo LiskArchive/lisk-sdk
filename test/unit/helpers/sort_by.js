@@ -25,8 +25,8 @@ describe('SortBy', function () {
 				expect(SortBy.sortQueryToJsonSqlFormat('', validSortFieldsArray)).to.be.an('object').and.to.be.empty;
 			});
 
-			it('should return an empty object when sortQuery does not contain "asc" or "desc" keyword', function () {
-				expect(SortBy.sortQueryToJsonSqlFormat('address', validSortFieldsArray)).to.be.an('object').and.to.be.empty;
+			it('should return {address: 1} (default sort type) when sortQuery contains member of validSortFieldsArray', function () {
+				expect(SortBy.sortQueryToJsonSqlFormat('address', validSortFieldsArray)).to.be.an('object').eql({address: 1});
 			});
 
 			it('should return an empty object when sortQuery is not a member of validSortFieldsArray', function () {

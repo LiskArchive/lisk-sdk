@@ -4,7 +4,7 @@ var apiCodes = require('../../helpers/apiCodes.js');
 var ApiError = require('../../helpers/apiError.js');
 var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
-var OrderBy = require('../../helpers/orderBy.js');
+var sortBy = require('../../helpers/sort_by.js').sortBy;
 var schema = require('../../schema/blocks.js');
 var sql = require('../../sql/blocks.js');
 
@@ -55,7 +55,7 @@ function API (logger, db, block, schema, dbSequence) {
  * @param  {number}   filter.reward Block reward
  * @param  {number}   filter.limit Limit of blocks to retrieve, default: 100, max: 100
  * @param  {number}   filter.offset Offset from where to start
- * @param  {string}   filter.orderBy Sort order, default: height:desc
+ * @param  {string}   filter.sort Sort order, default: height:desc
  * @param  {function} cb Callback function
  * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
@@ -124,21 +124,21 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var orderBy = OrderBy(
-		(filter.orderBy || 'height:desc'), {
+	var sort = sortBy(
+		(filter.sort || 'height:desc'), {
 			sortFields: sql.sortFields,
 			fieldPrefix: 'b_'
 		}
 	);
 
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
+	if (sort.error) {
+		return setImmediate(cb, sort.error);
 	}
 
 	library.db.query(sql.list({
 		where: where,
-		sortField: orderBy.sortField,
-		sortMethod: orderBy.sortMethod
+		sortField: sort.sortField,
+		sortMethod: sort.sortMethod
 	}), params).then(function (rows) {
 		var blocks = [];
 		// Normalize blocks

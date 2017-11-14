@@ -10,7 +10,7 @@ var jobsQueue = require('../helpers/jobsQueue.js');
 var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
-var OrderBy = require('../helpers/orderBy.js');
+var sortBy = require('../helpers/sort_by.js').sortBy;
 var schema = require('../schema/delegates.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/delegates.js');
@@ -423,11 +423,11 @@ Delegates.prototype.generateDelegateList = function (cb) {
 
 /**
  * Gets delegates and for each one calculates rate, rank, approval, productivity.
- * Orders delegates as per criteria.
+ * sorts delegates as per criteria.
  * @param {Object} query
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error| object with delegates ordered, offset, count, limit.
- * @todo OrderBy does not affects data? What is the impact?.
+ * @todo sort does not affects data? What is the impact?.
  */
 Delegates.prototype.getDelegates = function (query, cb) {
 	if (!query) {
@@ -468,16 +468,16 @@ Delegates.prototype.getDelegates = function (query, cb) {
 			delegates[i].productivity = (!outsider) ? Math.round(percent * 1e2) / 1e2 : 0;
 		}
 
-		var orderBy = OrderBy(query.orderBy, {quoteField: false});
+		var sort = sortBy(query.sort, {quoteField: false});
 
-		if (orderBy.error) {
-			return setImmediate(cb, orderBy.error);
+		if (sort.error) {
+			return setImmediate(cb, sort.error);
 		}
 
 		return setImmediate(cb, null, {
 			delegates: delegates,
-			sortField: orderBy.sortField,
-			sortMethod: orderBy.sortMethod,
+			sortField: sort.sortField,
+			sortMethod: sort.sortMethod,
 			count: count,
 			offset: offset,
 			limit: realLimit
@@ -752,22 +752,22 @@ Delegates.prototype.shared = {
 				return setImmediate(cb, err[0].message);
 			}
 
-			var orderBy = OrderBy(
-				req.body.orderBy, {
+			var sort = sortBy(
+				req.body.sort, {
 					sortFields: sql.sortFields,
 					sortField: 'username'
 				}
 			);
 
-			if (orderBy.error) {
-				return setImmediate(cb, orderBy.error);
+			if (sort.error) {
+				return setImmediate(cb, sort.error);
 			}
 
 			library.db.query(sql.search({
 				q: req.body.q,
 				limit: req.body.limit || 101,
-				sortField: orderBy.sortField,
-				sortMethod: orderBy.sortMethod
+				sortField: sort.sortField,
+				sortMethod: sort.sortMethod
 			})).then(function (rows) {
 				return setImmediate(cb, null, {delegates: rows});
 			}).catch(function (err) {

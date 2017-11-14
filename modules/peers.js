@@ -132,8 +132,8 @@ __private.getByFilter = function (filter, cb) {
 	});
 
 	// Sorting
-	if (filter.orderBy) {
-		var sort_arr = String(filter.orderBy).split(':');
+	if (filter.sort) {
+		var sort_arr = String(filter.sort).split(':');
 		var sort_field = sort_arr[0] ? (_.includes(allowedFields, sort_arr[0]) ? sort_arr[0] : null) : null;
 		var sort_method = (sort_arr.length === 2) ? (sort_arr[1] === 'desc' ? false : true) : true;
 		if (sort_field) {
@@ -642,7 +642,7 @@ Peers.prototype.shared = {
 	 * @param {string} parameters.broadhash - Peer broadhash
 	 * @param {int} parameters.limit - Per page limit
 	 * @param {int} parameters.offset - Page start from
-	 * @param {string} parameters.orderBy - Sort key
+	 * @param {string} parameters.sort - Sort key
 	 * @param {function} cb - Callback function
 	 * @return {Array.<Object>}
 	 */

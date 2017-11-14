@@ -16,7 +16,7 @@ module.exports = {
 				minLength: 1,
 				maxLength: 32
 			},
-			orderBy: {
+			sort: {
 				type: 'string',
 				minLength: 1
 			},
