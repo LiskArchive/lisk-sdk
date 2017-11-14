@@ -43,11 +43,13 @@ var monitorWSClient = {
 	autoReconnect: true,
 	query: {
 		port: 9999,
+		httpPort: 5555,
 		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
 		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
 		height: 1,
 		version: '0.0.0a',
-		nonce: '0123456789ABCDEF'
+		nonce: '0123456789ABCDEF',
+		os: 'centos'
 	}
 };
 
