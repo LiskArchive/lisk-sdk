@@ -501,14 +501,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 		var broadhash = modules.system.getBroadhash();
 
 		modules.system.update(function () {
-			if (!__private.broadcaster.maxRelays(block)) {
-				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {
-					api: '/blocks',
-					data: {block: block},
-					method: 'POST',
-					immediate: true
-				});
-			}
+			self.broadcastBlock({limit: constants.maxPeers, broadhash: broadhash}, block);
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
