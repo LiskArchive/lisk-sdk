@@ -23,18 +23,17 @@ $$;
                   mma.lifetime          AS multilifetime,
                   mma.minimum           AS multimin
   FROM            ((((accounts a
-  left join       delegates d
-  ON              (((
-                                                                  d.public_key)::text = (a.public_key)::text)))
-  left join       multisignatures_master mma
-  ON              (((
-                                                                  mma."public_key")::text = (a.public_key)::text)))
-  left join       second_signature ss
-  ON              (((
-                                                                  ss."public_key")::text = (a.public_key)::text)))
-  left join       multisignatures_member mme
-  ON              (((
-                                                                  mme."public_key")::text = (a.public_key)::text)));
+  LEFT JOIN       delegates d ON (( d.public_key = a.public_key )))
+  LEFT JOIN       multisignatures_master mma ON (( mma."public_key" = a.public_key )))
+  LEFT JOIN       second_signature ss ON (( ss."public_key" = a.public_key))));
+
+CREATE VIEW "public".multisignatures_list AS
+SELECT DISTINCT mme.public_key AS "memberPublicKey",
+                mme.master_public_key AS "masterPublicKey",
+                mma.lifetime          AS multilifetime,
+                mma.minimum           AS multimin
+FROM            (multisignatures_member mme
+LEFT JOIN       multisignatures_master mma ON (( mme."master_public_key" = mma."public_key" )));
 
   CREATE VIEW "public".blocks_list                     AS
   SELECT b.block_id                                    AS b_id,
@@ -50,13 +49,10 @@ $$;
          encode(b."payload_hash", 'hex'::text)         AS "b_payloadHash",
          encode(b."generator_public_key", 'hex'::text) AS "b_generatorPublicKey",
          encode(b."signature", 'hex'::text)            AS "b_blockSignature",
-         (
-         (
-                SELECT (max(blocks.height) + 1)
-                FROM   blocks) - b.height) AS b_confirmations
+         (( SELECT (max(blocks.height) + 1)
+                            FROM   blocks) - b.height) AS b_confirmations
   FROM   blocks b;
 
-  ;
   CREATE VIEW "public".transactions_list            AS
   SELECT    t.transaction_id                        AS t_id,
             b.height                                AS b_height,
@@ -72,20 +68,12 @@ $$;
             encode(t.signature, 'hex'::text)        AS t_signature,
             encode(t.second_signature, 'hex'::text) AS "t_signSignature",
             t."signatures" AS "t_signatures",
-            (
-            (
-                     SELECT   (blocks.height + 1)
-                     FROM     blocks
-                     ORDER BY blocks.height DESC limit 1) - b.height) AS confirmations
+            (( SELECT   (blocks.height + 1) FROM blocks
+            ORDER BY blocks.height DESC limit 1) - b.height) AS confirmations
   FROM      ((transactions t
-  left join blocks b
-  ON        (((
-                                          t.block_id)::text = (b.block_id)::text)))
-  left join accounts a
-  ON        (((
-                                          t.recipient_address)::text = (a.address)::text)));
+  LEFT JOIN blocks b ON  ((( t.block_id)::text = (b.block_id)::text) ))
+  LEFT JOIN accounts a ON   ((( t.recipient_address)::text = (a.address)::text) ));
 
-  ;
   CREATE VIEW "public".full_blocks_list                   AS
   SELECT    b.block_id                                    AS b_id,
             b.version                                     AS b_version,
@@ -116,7 +104,7 @@ $$;
             v.votes                                       AS v_votes,
             m.minimum                                     AS m_min,
             m.lifetime                                    AS m_lifetime,
-            --m.keysgroup AS m_keysgroup, Need to implement this Stuff with a select
+            m.keysgroup AS m_keysgroup,
             dapp.name               AS dapp_name,
             dapp.description        AS dapp_description,
             dapp.tags               AS dapp_tags,
@@ -131,31 +119,13 @@ $$;
             convert_from(tf.data, 'utf8'::name) AS tf_data,
             t.signatures                        AS t_signatures
   FROM      (((((((((blocks b
-  left join transactions t
-  ON        (((
-                                          t."block_id")::text = (b.block_id)::text)))
-  left join delegates d
-  ON        (((
-                                          d.transaction_id)::text = (t.transaction_id)::text)))
-  left join votes v
-  ON        (((
-                                          v."transaction_id")::text = (t.transaction_id)::text)))
-  left join second_signature s
-  ON        (((
-                                          s."transaction_id")::text = (t.transaction_id)::text)))
-  left join multisignatures_master m
-  ON        (((
-                                          m."transaction_id")::text = (t.transaction_id)::text)))
-  left join dapps dapp
-  ON        (((
-                                          dapp."transaction_id")::text = (t.transaction_id)::text)))
-  left join intransfer it
-  ON        (((
-                                          it."transaction_id")::text = (t.transaction_id)::text)))
-  left join outtransfer ot
-  ON        (((
-                                          ot."transaction_id")::text = (t.transaction_id)::text)))
-  left join transfer tf
-  ON        (((
-                                          tf."transaction_id")::text = (t.transaction_id)::text)));
+  LEFT JOIN transactions t ON (( (t."block_id")::text = (b.block_id)::text) ))
+  LEFT JOIN delegates d ON (( (d.transaction_id)::text = (t.transaction_id)::text) ))
+  LEFT JOIN votes v ON (( (v."transaction_id")::text = (t.transaction_id)::text) ))
+  LEFT JOIN second_signature s ON (( (s."transaction_id")::text = (t.transaction_id)::text) ))
+  LEFT JOIN multisignatures_master m ON (( (m."transaction_id")::text = (t.transaction_id)::text) ))
+  LEFT JOIN dapps dapp ON (( (dapp."transaction_id")::text = (t.transaction_id)::text) ))
+  LEFT JOIN intransfer it ON (( (it."transaction_id")::text = (t.transaction_id)::text) ))
+  LEFT JOIN outtransfer ot ON (( (ot."transaction_id")::text = (t.transaction_id)::text) ))
+  LEFT JOIN transfer tf ON (( (tf."transaction_id")::text = (t.transaction_id)::text) ));
 END;
