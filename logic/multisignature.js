@@ -220,33 +220,7 @@ Multisignature.prototype.getBytes = function (transaction, skip) {
  * @return {setImmediateCallback} for errors
  */
 Multisignature.prototype.apply = function (transaction, block, sender, cb) {
-	__private.unconfirmedSignatures[sender.address] = false;
-
-	library.logic.account.merge(sender.address, {
-		multisignatures: transaction.asset.multisignature.keysgroup,
-		multimin: transaction.asset.multisignature.min,
-		multilifetime: transaction.asset.multisignature.lifetime,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		// Get public keys
-		async.eachSeries(transaction.asset.multisignature.keysgroup, function (transaction, cb) {
-			var key = transaction.substring(1);
-			var address = modules.accounts.generateAddressByPublicKey(key);
-
-			// Create accounts
-			modules.accounts.setAccountAndGet({
-				address: address,
-				publicKey: key
-			}, function (err) {
-				return setImmediate(cb, err);
-			});
-		}, cb);
-	});
+	return setImmediate(cb);
 };
 
 /**
@@ -401,18 +375,9 @@ Multisignature.prototype.dbFields = [
 	'minimum',
 	'lifetime',
 	'keysgroup',
-	'transaction_id'
-];
-
-/* TODO: Need to implement members
-Multisignature.prototype.member.dbTable = 'multisignatures_member';
-
-Multisignature.prototype.member.dbFields = [
-	'master_public_key',
 	'public_key',
 	'transaction_id'
 ];
-*/
 
 /**
  * Creates database Object based on transaction data.
@@ -421,14 +386,22 @@ Multisignature.prototype.member.dbFields = [
  * @todo check if this function is called.
  */
 Multisignature.prototype.dbSave = function (transaction) {
-	// TODO: We need to refactor this to also return promise for member inserts
+	var publicKey;
+
+	try {
+		publicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+	} catch (e) {
+		throw e;
+	}
+
 	return {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
 			minimum: transaction.asset.multisignature.min,
 			lifetime: transaction.asset.multisignature.lifetime,
-			//keysgroup: transaction.asset.multisignature.keysgroup.join(','), Need to use for making member inserts
+			keysgroup: transaction.asset.multisignature.keysgroup.join(','),
+			public_key: publicKey,
 			transaction_id: transaction.id
 		}
 	};
