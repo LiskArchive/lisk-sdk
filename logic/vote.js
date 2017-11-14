@@ -206,7 +206,7 @@ Vote.prototype.getBytes = function (transaction) {
  * @todo delete unnecessary var parent = this
  */
 Vote.prototype.apply = function (transaction, block, sender, cb) {
-	// TODO: Remove this apply function. Stubbed out 
+	// TODO: Remove this apply function. Stubbed out
 	var parent = this;
 
 	async.series([
@@ -358,7 +358,7 @@ Vote.prototype.dbFields = [
  * @return {Object[]} table, fields, values.
  */
 Vote.prototype.dbSave = function (transaction) {
-`	var publicKey;
+	var publicKey;
 
 	try {
 		publicKey = Buffer.from(transaction.senderPublicKey, 'hex');
