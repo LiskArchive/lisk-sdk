@@ -8,7 +8,7 @@
  * @param {string} options
  * @return {Object} error | {sortField, sortMethod}.
  */
-function OrderBy (orderBy, options) {
+function SortBy (sort, options) {
 	options = (typeof options === 'object') ? options : {};
 	options.sortField  = options.sortField  || null;
 	options.sortMethod = options.sortMethod || null;
@@ -22,12 +22,12 @@ function OrderBy (orderBy, options) {
 
 	var sortField, sortMethod;
 
-	if (orderBy) {
-		var sort = String(orderBy).split(':');
-		sortField = sort[0].replace(/[^\w\s]/gi, '');
+	if (sort) {
+		var sortBy = String(sort).split(':');
+		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
 
-		if (sort.length === 2) {
-			sortMethod = sort[1] === 'desc' ? 'DESC' : 'ASC';
+		if (sortBy.length === 2) {
+			sortMethod = sortBy[1] === 'desc' ? 'DESC' : 'ASC';
 		}
 	}
 
@@ -87,7 +87,7 @@ function OrderBy (orderBy, options) {
  * @param {Array} sortableFields
  * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
  */
-OrderBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
+SortBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {
 		sortQuery = sortQuery + ':asc';
 	}
@@ -106,4 +106,4 @@ OrderBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
 	return result;
 };
 
-module.exports = OrderBy;
+module.exports = SortBy;
