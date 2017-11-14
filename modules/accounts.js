@@ -136,19 +136,22 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		}
 	}
 
-	library.logic.account.get({address: address}, function (err ,account) {
+	library.logic.account.get({address: address}, function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		if (account === null) {
+		if (account === null && data.type === transactionTypes.SEND) {
 			account = {};
 			account.balance = 0;
 			account.address = address;
+			// TODO: Need to get data from upstream some how
 			account.publicKey = data.publicKey;
 			account.secondPublicKey = data.secondPublicKey || null;
 			account.multisignatures = data.multisignatures || null;
+		} else if (account === null) {
+			err = 'Account does not exist';
 		}
-		return setImmediate(cb, null, account);
+		return setImmediate(cb, err, account);
 	});
 };
 
