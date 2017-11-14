@@ -12,7 +12,7 @@ var DappsSql = {
 	// Need to fix "or" or "and" in query
 	list: function (params) {
 		return [
-			'SELECT "name", "description", "tags", "link", "type", "category", "icon", "transaction_id" AS "id" FROM dapps',
+			'SELECT "name", "description", "tags", "link", "type", "category", "icon", "transaction_id" AS "transactionId" FROM dapps',
       (params.where.length ? 'WHERE ' + params.where.join(' OR ') : ''),
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
