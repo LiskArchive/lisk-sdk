@@ -224,7 +224,7 @@ function Account (db, schema, logger, cb) {
 			name: 'missedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_missed_cnt")::bigint'
+			expression: '(d."blocks_missed_count")::bigint'
 		},
 		{
 			name: 'approval',
