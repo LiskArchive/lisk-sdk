@@ -18,7 +18,6 @@
  * @main lisk
  */
 import 'babel-polyfill';
-import Mnemonic from 'bitcore-mnemonic';
 import naclFactory from 'js-nacl';
 import api from './api/liskApi';
 import crypto from './crypto';
@@ -32,4 +31,4 @@ naclFactory.instantiate(nacl => {
 	naclInstance = nacl;
 });
 
-export default { crypto, transaction, api, time, Mnemonic };
+export default { crypto, transaction, api, time };
