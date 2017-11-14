@@ -591,7 +591,7 @@ describe('GET /api/delegates', function () {
 				node.expect(res.delegates[0]).to.have.property('missedblocks').that.is.an('number');
 				node.expect(res.delegates[0]).to.have.property('approval').that.is.an('number');
 				node.expect(res.delegates[0]).to.have.property('productivity').that.is.an('number');
-				node.expect(res.delegates[0]).to.have.property('voters_cnt').that.is.an('number');
+				node.expect(res.delegates[0]).to.have.property('voters_count').that.is.an('number');
 				node.expect(res.delegates[0]).to.have.property('register_timestamp').that.is.an('number');
 			});
 		});
