@@ -92,6 +92,7 @@ const setString = (variable, path) => (value) => {
 const handlers = {
 	json: setBoolean('json', ['json']),
 	name: setString('name', ['name']),
+	pretty: setBoolean('pretty', ['pretty']),
 	testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 };
 
