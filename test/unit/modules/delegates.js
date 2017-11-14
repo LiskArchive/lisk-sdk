@@ -108,9 +108,9 @@ describe('delegates', function () {
 					publicKey: testDelegate.publicKey
 				};
 
-				delegates.internal.forgingToggle(fakeRequest(randomIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Access denied');
+				delegates.internal.forgingToggle(fakeRequest(randomIp, body), function (err) {
+					expect(err).to.have.property('code').equal(403);
+					expect(err).to.have.property('message').equal('Access denied');
 					done();
 				});
 			});
@@ -120,9 +120,9 @@ describe('delegates', function () {
 					publicKey: testDelegate.publicKey
 				};
 
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Missing required property: key');
+				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err) {
+					expect(err).to.have.property('code').equal(500);
+					expect(err).to.have.property('message').equal('Missing required property: key');
 					done();
 				});
 			});
@@ -134,9 +134,9 @@ describe('delegates', function () {
 					publicKey: testDelegate.publicKey
 				};
 
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Invalid key and public key combination');
+				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err) {
+					expect(err).to.have.property('code').equal(500);
+					expect(err).to.have.property('message').equal('Invalid key and public key combination');
 					done();
 				});
 			});
@@ -148,9 +148,9 @@ describe('delegates', function () {
 					key: defaultKey
 				};
 
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found');
+				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err) {
+					expect(err).to.have.property('code').equal(500);
+					expect(err).to.have.property('message').equal('Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found');
 					done();
 				});
 			});
@@ -161,9 +161,9 @@ describe('delegates', function () {
 					key: node.gAccount.password
 				};
 
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
+				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err) {
+					expect(err).to.have.property('code').equal(500);
+					expect(err).to.have.property('message').equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
 					done();
 				});
 			});
@@ -174,7 +174,7 @@ describe('delegates', function () {
 					publicKey: testDelegate.publicKey,
 				};
 
-				updateForgingStatus(testDelegate, 'enable', function (err, res) {
+				updateForgingStatus(testDelegate, 'enable', function (err) {
 					expect(err).to.not.exist;
 
 					delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
@@ -194,7 +194,7 @@ describe('delegates', function () {
 					publicKey: testDelegate.publicKey,
 				};
 
-				updateForgingStatus(testDelegate, 'disable', function (err, res) {
+				updateForgingStatus(testDelegate, 'disable', function (err) {
 					expect(err).to.not.exist;
 
 					delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
@@ -214,7 +214,6 @@ describe('delegates', function () {
 
 		describe('loadDelegates', function () {
 
-			var rewiredDelegates;
 			var loadDelegates;
 			var config;
 			var __private;
