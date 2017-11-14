@@ -32,84 +32,66 @@ list blocks 100 200
 
 describe('execFile', () => {
 	beforeEach(setUpExecFile);
-	describe('Given a Lisky instance', () => {
-		beforeEach(given.aLiskyInstance);
-		describe('Given a file path "/path/to/script.lisky"', () => {
-			beforeEach(given.aFilePath);
-			describe('Given an exit function', () => {
-				beforeEach(given.anExitFunction);
-				describe('Given the file cannot be read', () => {
-					beforeEach(given.theFileCannotBeRead);
-					describe('When execFile is called with the Lisky instance, the file path and the exit function', () => {
-						beforeEach(when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction);
-						it('Then it should throw error "EACCES: permission denied"', then.itShouldThrowError);
+	Given('a Lisky instance', given.aLiskyInstance, () => {
+		Given('a file path "/path/to/script.lisky"', given.aFilePath, () => {
+			Given('an exit function', given.anExitFunction, () => {
+				Given('the file cannot be read', given.theFileCannotBeRead, () => {
+					When('execFile is called with the Lisky instance, the file path and the exit function', when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction, () => {
+						Then('it should throw error "EACCES: permission denied"', then.itShouldThrowError);
 					});
 				});
-				describe(`Given the file at the file path has contents "${validFileContents}"`, () => {
-					beforeEach(given.theFileAtTheFilePathHasContents);
-					describe('Given the first child process outputs "{ \'key\': 1 }"', () => {
-						beforeEach(given.theFirstChildProcessOutputs);
-						describe('Given the second child process exits with error "Something went wrong"', () => {
-							beforeEach(given.theSecondChildProcessExitsWithError);
-							describe('When execFile is called with the Lisky instance, the file path and the exit function', () => {
-								beforeEach(when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction);
-								it('Then it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
-								it('Then it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
-								it('Then it should not execute a third script in a separate child process', then.itShouldNotExecuteAThirdScriptInASeparateChildProcess);
-								it('Then the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
-								it('Then the Lisky instance should log the second child process error second', then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond);
-								it('Then it should exit with code 1', then.itShouldExitWithCode);
+				Given(`the file at the file path has contents "${validFileContents}"`, given.theFileAtTheFilePathHasContents, () => {
+					Given('the first child process outputs "{ \'key\': 1 }"', given.theFirstChildProcessOutputs, () => {
+						Given('the second child process exits with error "Something went wrong"', given.theSecondChildProcessExitsWithError, () => {
+							When('execFile is called with the Lisky instance, the file path and the exit function', when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction, () => {
+								Then('it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
+								Then('it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
+								Then('it should not execute a third script in a separate child process', then.itShouldNotExecuteAThirdScriptInASeparateChildProcess);
+								Then('the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
+								Then('the Lisky instance should log the second child process error second', then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond);
+								Then('it should exit with code 1', then.itShouldExitWithCode);
 							});
 						});
-						describe('Given the second child process exits with an error that cannot be trimmed', () => {
-							beforeEach(given.theSecondChildProcessExitsWithAnErrorThatCannotBeTrimmed);
-							describe('When execFile is called with the Lisky instance, the file path and the exit function', () => {
-								beforeEach(when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction);
-								it('Then it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
-								it('Then it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
-								it('Then it should not execute a third script in a separate child process', then.itShouldNotExecuteAThirdScriptInASeparateChildProcess);
-								it('Then the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
-								it('Then the Lisky instance should log the second child process error second', then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond);
-								it('Then it should exit with code 1', then.itShouldExitWithCode);
+						Given('the second child process exits with an error that cannot be trimmed', given.theSecondChildProcessExitsWithAnErrorThatCannotBeTrimmed, () => {
+							When('execFile is called with the Lisky instance, the file path and the exit function', when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction, () => {
+								Then('it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
+								Then('it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
+								Then('it should not execute a third script in a separate child process', then.itShouldNotExecuteAThirdScriptInASeparateChildProcess);
+								Then('the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
+								Then('the Lisky instance should log the second child process error second', then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond);
+								Then('it should exit with code 1', then.itShouldExitWithCode);
 							});
 						});
-						describe('Given the second child process outputs "Something went wrong" to stderr', () => {
-							beforeEach(given.theSecondChildProcessOutputsToStdErr);
-							describe('When execFile is called with the Lisky instance, the file path and the exit function', () => {
-								beforeEach(when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction);
-								it('Then it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
-								it('Then it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
-								it('Then it should not execute a third script in a separate child process', then.itShouldNotExecuteAThirdScriptInASeparateChildProcess);
-								it('Then the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
-								it('Then the Lisky instance should log the second child process error second', then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond);
-								it('Then it should exit with code 1', then.itShouldExitWithCode);
+						Given('the second child process outputs "Something went wrong" to stderr', given.theSecondChildProcessOutputsToStdErr, () => {
+							When('execFile is called with the Lisky instance, the file path and the exit function', when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction, () => {
+								Then('it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
+								Then('it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
+								Then('it should not execute a third script in a separate child process', then.itShouldNotExecuteAThirdScriptInASeparateChildProcess);
+								Then('the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
+								Then('the Lisky instance should log the second child process error second', then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond);
+								Then('it should exit with code 1', then.itShouldExitWithCode);
 							});
 						});
-						describe('Given the second child process outputs "{ \'key\': 2 }"', () => {
-							beforeEach(given.theSecondChildProcessOutputs);
-							describe('Given the third child process outputs "{ \'key\': 3 }"', () => {
-								beforeEach(given.theThirdChildProcessOutputs);
-								describe('When execFile is called with the Lisky instance, the file path and the exit function', () => {
-									beforeEach(when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction);
-									it('Then it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
-									it('Then it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
-									it('Then it should execute a script executing "list blocks 100 200" third in a separate child process', then.itShouldExecuteAScriptExecutingThirdInASeparateChildProcess);
-									it('Then the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
-									it('Then the Lisky instance should log the second child process output second', then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond);
-									it('Then the Lisky instance should log the third child process output third', then.theLiskyInstanceShouldLogTheThirdChildProcessOutputThird);
-									it('Then it should exit with code 0', then.itShouldExitWithCode);
+						Given('the second child process outputs "{ \'key\': 2 }"', given.theSecondChildProcessOutputs, () => {
+							Given('the third child process outputs "{ \'key\': 3 }"', given.theThirdChildProcessOutputs, () => {
+								When('execFile is called with the Lisky instance, the file path and the exit function', when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction, () => {
+									Then('it should execute a script executing "get delegate lightcurve" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
+									Then('it should execute a script executing "create account" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
+									Then('it should execute a script executing "list blocks 100 200" third in a separate child process', then.itShouldExecuteAScriptExecutingThirdInASeparateChildProcess);
+									Then('the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
+									Then('the Lisky instance should log the second child process output second', then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond);
+									Then('the Lisky instance should log the third child process output third', then.theLiskyInstanceShouldLogTheThirdChildProcessOutputThird);
+									Then('it should exit with code 0', then.itShouldExitWithCode);
 								});
-								describe('Given an array of options, "--json" and "--testnet=false"', () => {
-									beforeEach(given.anArrayOfOptions);
-									describe('When execFile is called with the Lisky instance, the file path, the options and the exit function', () => {
-										beforeEach(when.execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheExitFunction);
-										it('Then it should execute a script executing "get delegate lightcurve --json --testnet=false" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
-										it('Then it should execute a script executing "create account --json --testnet=false" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
-										it('Then it should execute a script executing "list blocks 100 200 --json --testnet=false" third in a separate child process', then.itShouldExecuteAScriptExecutingThirdInASeparateChildProcess);
-										it('Then the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
-										it('Then the Lisky instance should log the second child process output second', then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond);
-										it('Then the Lisky instance should log the third child process output third', then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond);
-										it('Then it should exit with code 0', then.itShouldExitWithCode);
+								Given('an array of options, "--json" and "--testnet=false"', given.anArrayOfOptions, () => {
+									When('execFile is called with the Lisky instance, the file path, the options and the exit function', when.execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheExitFunction, () => {
+										Then('it should execute a script executing "get delegate lightcurve --json --testnet=false" first in a separate child process', then.itShouldExecuteAScriptExecutingFirstInASeparateChildProcess);
+										Then('it should execute a script executing "create account --json --testnet=false" second in a separate child process', then.itShouldExecuteAScriptExecutingSecondInASeparateChildProcess);
+										Then('it should execute a script executing "list blocks 100 200 --json --testnet=false" third in a separate child process', then.itShouldExecuteAScriptExecutingThirdInASeparateChildProcess);
+										Then('the Lisky instance should log the first child process output first', then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst);
+										Then('the Lisky instance should log the second child process output second', then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond);
+										Then('the Lisky instance should log the third child process output third', then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond);
+										Then('it should exit with code 0', then.itShouldExitWithCode);
 									});
 								});
 							});

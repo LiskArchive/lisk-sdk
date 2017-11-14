@@ -20,117 +20,82 @@ import * as then from '../../steps/3_then';
 
 describe('list command', () => {
 	beforeEach(setUpCommandList);
-	describe('Given a query instance has been initialised', () => {
-		beforeEach(given.aQueryInstanceHasBeenInitialised);
-		describe('Given an action "list"', () => {
-			beforeEach(given.anAction);
-			describe('Given an unknown type "random"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "lightcurve" and "tosch"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should reject with message "Unsupported type."', then.itShouldRejectWithMessage);
+	Given('a query instance has been initialised', given.aQueryInstanceHasBeenInitialised, () => {
+		Given('an action "list"', given.anAction, () => {
+			Given('an unknown type "random"', given.anUnknownType, () => {
+				Given('inputs "lightcurve" and "tosch"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should reject with message "Unsupported type."', then.itShouldRejectWithMessage);
 					});
 				});
 			});
-			describe('Given a type "account"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "13133549779353512613L" and "13133549779353512255L"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "account"', given.anUnknownType, () => {
+				Given('inputs "13133549779353512613L" and "13133549779353512255L"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "accounts"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "13133549779353512613L" and "13133549779353512255L"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "accounts"', given.anUnknownType, () => {
+				Given('inputs "13133549779353512613L" and "13133549779353512255L"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "address"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "13133549779353512613L" and "13133549779353512255L"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "address"', given.anUnknownType, () => {
+				Given('inputs "13133549779353512613L" and "13133549779353512255L"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "addresses"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "13133549779353512613L" and "13133549779353512255L"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "addresses"', given.anUnknownType, () => {
+				Given('inputs "13133549779353512613L" and "13133549779353512255L"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "block"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "3641049113933914102" and "3641049113933914999"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "block"', given.anUnknownType, () => {
+				Given('inputs "3641049113933914102" and "3641049113933914999"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "blocks"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "3641049113933914102" and "3641049113933914999"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "blocks"', given.anUnknownType, () => {
+				Given('inputs "3641049113933914102" and "3641049113933914999"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "delegate"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "lightcurve" and "tosch"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "delegate"', given.anUnknownType, () => {
+				Given('inputs "lightcurve" and "tosch"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "delegates"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "lightcurve" and "tosch"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "delegates"', given.anUnknownType, () => {
+				Given('inputs "lightcurve" and "tosch"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "transaction"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "16388447461355055139" and "16388447461355054444"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "transaction"', given.anUnknownType, () => {
+				Given('inputs "16388447461355055139" and "16388447461355054444"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});
-			describe('Given a type "transactions"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given inputs "16388447461355055139" and "16388447461355054444"', () => {
-					beforeEach(given.inputs);
-					describe('When the action is called with the type and the inputs', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInputs);
-						it('Then it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
+			Given('a type "transactions"', given.anUnknownType, () => {
+				Given('inputs "16388447461355055139" and "16388447461355054444"', given.inputs, () => {
+					When('the action is called with the type and the inputs', when.theActionIsCalledWithTheTypeAndTheInputs, () => {
+						Then('it should resolve to an array of query results', then.itShouldResolveToAnArrayOfQueryResults);
 					});
 				});
 			});

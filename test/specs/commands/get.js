@@ -20,67 +20,47 @@ import * as then from '../../steps/3_then';
 
 describe('get command', () => {
 	beforeEach(setUpCommandGet);
-	describe('Given a query instance has been initialised', () => {
-		beforeEach(given.aQueryInstanceHasBeenInitialised);
-		describe('Given an action "get"', () => {
-			beforeEach(given.anAction);
-			describe('Given an unknown type "random"', () => {
-				beforeEach(given.anUnknownType);
-				describe('Given an input "13133549779353512613L"', () => {
-					beforeEach(given.anInput);
-					describe('When the action is called with the type and the input', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInput);
-						it('Then it should reject with message "Unsupported type."', then.itShouldRejectWithMessage);
+	Given('a query instance has been initialised', given.aQueryInstanceHasBeenInitialised, () => {
+		Given('an action "get"', given.anAction, () => {
+			Given('an unknown type "random"', given.anUnknownType, () => {
+				Given('an input "13133549779353512613L"', given.anInput, () => {
+					When('the action is called with the type and the input', when.theActionIsCalledWithTheTypeAndTheInput, () => {
+						Then('it should reject with message "Unsupported type."', then.itShouldRejectWithMessage);
 					});
 				});
 			});
-			describe('Given a type "account"', () => {
-				beforeEach(given.aType);
-				describe('Given an input "13133549779353512613L"', () => {
-					beforeEach(given.anInput);
-					describe('When the action is called with the type and the input', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInput);
-						it('Then it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
+			Given('a type "account"', given.aType, () => {
+				Given('an input "13133549779353512613L"', given.anInput, () => {
+					When('the action is called with the type and the input', when.theActionIsCalledWithTheTypeAndTheInput, () => {
+						Then('it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
 					});
 				});
 			});
-			describe('Given a type "address"', () => {
-				beforeEach(given.aType);
-				describe('Given an input "13133549779353512613L"', () => {
-					beforeEach(given.anInput);
-					describe('When the action is called with the type and the input', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInput);
-						it('Then it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
+			Given('a type "address"', given.aType, () => {
+				Given('an input "13133549779353512613L"', given.anInput, () => {
+					When('the action is called with the type and the input', when.theActionIsCalledWithTheTypeAndTheInput, () => {
+						Then('it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
 					});
 				});
 			});
-			describe('Given a type "block"', () => {
-				beforeEach(given.aType);
-				describe('Given an input "3641049113933914102"', () => {
-					beforeEach(given.anInput);
-					describe('When the action is called with the type and the input', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInput);
-						it('Then it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
+			Given('a type "block"', given.aType, () => {
+				Given('an input "3641049113933914102"', given.anInput, () => {
+					When('the action is called with the type and the input', when.theActionIsCalledWithTheTypeAndTheInput, () => {
+						Then('it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
 					});
 				});
 			});
-			describe('Given a type "delegate"', () => {
-				beforeEach(given.aType);
-				describe('Given an input "lightcurve"', () => {
-					beforeEach(given.anInput);
-					describe('When the action is called with the type and the input', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInput);
-						it('Then it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
+			Given('a type "delegate"', given.aType, () => {
+				Given('an input "lightcurve"', given.anInput, () => {
+					When('the action is called with the type and the input', when.theActionIsCalledWithTheTypeAndTheInput, () => {
+						Then('it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
 					});
 				});
 			});
-			describe('Given a type "transaction"', () => {
-				beforeEach(given.aType);
-				describe('Given an input "16388447461355055139"', () => {
-					beforeEach(given.anInput);
-					describe('When the action is called with the type and the input', () => {
-						beforeEach(when.theActionIsCalledWithTheTypeAndTheInput);
-						it('Then it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
+			Given('a type "transaction"', given.aType, () => {
+				Given('an input "16388447461355055139"', given.anInput, () => {
+					When('the action is called with the type and the input', when.theActionIsCalledWithTheTypeAndTheInput, () => {
+						Then('it should resolve to the result of the query', then.itShouldResolveToTheResultOfTheQuery);
 					});
 				});
 			});

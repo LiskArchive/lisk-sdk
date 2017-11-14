@@ -18,13 +18,10 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('config command', () => {
-	describe('Given a config', () => {
-		beforeEach(given.aConfig);
-		describe('Given an action "config"', () => {
-			beforeEach(given.anAction);
-			describe('When the action is called', () => {
-				beforeEach(when.theActionIsCalled);
-				it('Then it should resolve to the config', then.itShouldResolveToTheConfig);
+	Given('a config', given.aConfig, () => {
+		Given('an action "config"', given.anAction, () => {
+			When('the action is called', when.theActionIsCalled, () => {
+				Then('it should resolve to the config', then.itShouldResolveToTheConfig);
 			});
 		});
 	});
