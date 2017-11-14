@@ -19,6 +19,7 @@
  */
 import 'babel-polyfill';
 import naclFactory from 'js-nacl';
+import Mnemonic from 'bip39';
 import api from './api/liskApi';
 import crypto from './crypto';
 import * as time from './transactions/utils/time';
@@ -31,4 +32,4 @@ naclFactory.instantiate(nacl => {
 	naclInstance = nacl;
 });
 
-export default { crypto, transaction, api, time };
+export default { crypto, transaction, api, time, Mnemonic };
