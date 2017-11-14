@@ -3,12 +3,16 @@
 		"mocha": true
 	},
 	"globals": {
+		"Given": true,
+		"When": true,
+		"Then": true,
 		"sandbox": true,
 		"should": true,
 		"sinon": true
 	},
 	"rules": {
 		"arrow-body-style": "off",
-		"max-len": "off"
+		"max-len": "off",
+		"new-cap": ["error", { "capIsNewExceptions": ["Given", "When", "Then"] }]
 	}
 }
