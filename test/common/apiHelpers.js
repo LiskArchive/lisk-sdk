@@ -72,7 +72,7 @@ function getUnconfirmedTransactions (cb) {
 }
 
 function getQueuedTransaction (transaction, cb) {
-	http.get('/api/transactions/queued/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
+	http.get('/api/transactions/queued/?id=' + transaction, httpCallbackHelper.bind(null, cb));
 }
 
 function getQueuedTransactions (cb) {
