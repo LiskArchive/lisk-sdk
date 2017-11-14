@@ -182,6 +182,102 @@ describe('set command', () => {
 							});
 						});
 					});
+					describe('Given a variable "pretty"', () => {
+						beforeEach(given.aVariable);
+						describe('Given an unknown value "xxx"', () => {
+							beforeEach(given.anUnknownValue);
+							describe('When the action is called with the variable and the value', () => {
+								beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+								it('Then it should reject with message "Value must be a boolean."', then.itShouldRejectWithMessage);
+							});
+						});
+						describe('Given a value "true"', () => {
+							beforeEach(given.aValue);
+							describe('Given the config file cannot be written', () => {
+								beforeEach(given.theConfigFileCannotBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "pretty" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
+										it('Then it should resolve to an object with message "Successfully set pretty to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+							describe('Given the config file can be written', () => {
+								beforeEach(given.theConfigFileCanBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "pretty" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set pretty to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "pretty" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set pretty to true."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+						});
+						describe('Given a value "false"', () => {
+							beforeEach(given.aValue);
+							describe('Given the config file cannot be written', () => {
+								beforeEach(given.theConfigFileCannotBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "pretty" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
+										it('Then it should resolve to an object with message "Successfully set pretty to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+							describe('Given the config file can be written', () => {
+								beforeEach(given.theConfigFileCanBeWritten);
+								describe('Given Vorpal is in non-interactive mode', () => {
+									beforeEach(given.vorpalIsInNonInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "pretty" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set pretty to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+								describe('Given Vorpal is in interactive mode', () => {
+									beforeEach(given.vorpalIsInInteractiveMode);
+									describe('When the action is called with the variable and the value', () => {
+										beforeEach(when.theActionIsCalledWithTheVariableAndTheValue);
+										it('Then it should update the config variable "pretty" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
+										it('Then it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
+										it('Then it should resolve to an object with message "Successfully set pretty to false."', then.itShouldResolveToAnObjectWithMessage);
+									});
+								});
+							});
+						});
+					});
 					describe('Given a variable "testnet"', () => {
 						beforeEach(given.aVariable);
 						describe('Given an unknown value "xxx"', () => {
