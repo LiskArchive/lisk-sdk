@@ -768,8 +768,9 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getQueuedTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(false);
-				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
+				node.expect(res).to.have.property('success').to.equal(true);
+				node.expect(res).to.have.property('transactions').to.be.an('array');
+				node.expect(res.transactions.indexOf('1234')).to.equal(-1);
 			});
 		});
 
@@ -785,8 +786,8 @@ describe('GET /api/transactions', function () {
 
 				return getQueuedTransactionPromise(transaction.id).then(function (result) {
 					node.expect(result).to.have.property('success').to.equal(true);
-					node.expect(result).to.have.property('transaction').that.is.an('object');
-					node.expect(result.transaction.id).to.equal(transaction.id);
+					node.expect(result).to.have.property('transactions').to.be.an('array');
+					node.expect(result.transactions.indexOf(transaction.id)).to.equal(-1);
 				});
 			});
 		});
