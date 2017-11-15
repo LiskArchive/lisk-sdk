@@ -41,7 +41,6 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 
 	self.queue = [];
 	self.config = library.config.broadcasts;
-	self.config.peerLimit = constants.maxPeers;
 
 	// Optionally ignore broadhash consensus
 	if (library.config.forging.force) {
@@ -96,7 +95,7 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
  * Calls peers.list function to get peers.
  * @implements {modules.peers.list}
  * @param {Object} params
- * @param {number} params.limit[=self.config.peerLimit] - maximum number of peers to get
+ * @param {number} params.limit[=constants.maxPeers] - maximum number of peers to get
  * @param {string} params.broadhash[=null] - broadhash to match peers with
  * @param {boolean} params.matchBroadhash[=false] - if true: get only peers with broadhash equal to params.broadhash
  * @param {boolean} params.unmatchBroadhash[=false] - if true: get only peers with broadhash different than params.broadhash
@@ -104,7 +103,7 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
  * @return {setImmediateCallback} err | peers
  */
 Broadcaster.prototype.getPeers = function (params, cb) {
-	params.limit = params.limit || self.config.peerLimit;
+	params.limit = params.limit || constants.maxPeers;
 	var originalLimit = params.limit;
 	var skipConsensusCalculation = false;
 	if (params.matchBroadhash || params.unmatchBroadhash) {
@@ -144,7 +143,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
  * @return {setImmediateCallback} err | peers
  */
 Broadcaster.prototype.broadcast = function (params, options, cb) {
-	params.limit = params.limit || self.config.peerLimit;
+	params.limit = params.limit || constants.maxPeers;
 	params.broadhash = params.broadhash || null;
 
 	async.waterfall([
@@ -158,7 +157,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			if (params.limit === self.config.peerLimit) { 
+			if (params.limit === constants.maxPeers) {
 				peers = peers.slice(0, self.config.broadcastLimit);
 			}
 
