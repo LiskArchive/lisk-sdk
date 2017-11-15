@@ -470,6 +470,8 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
 
+	// TODO: Remove applyUnconfirmed entirely
+	return setImmediate(cb);
 	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else {
@@ -572,7 +574,7 @@ Transactions.prototype.shared = {
 			function (waterCb) {
 				// Query parameters which can have 1 or multiple values are parsed as strings when the have 1 value. We need to convert string into an array of length 1
 				_.each(req.body, function (value, key) {
-					// Dealing with parameters which must be array to array if they are string 
+					// Dealing with parameters which must be array to array if they are string
 					if (_.includes(['senderId', 'recipientId', 'senderPublicKey', 'recipientPublicKey'], key) && typeof value === 'string') {
 						req.body[key] = [value];
 					}
