@@ -384,7 +384,6 @@ definitions:
       links:
         type: object
 
-
   Peer:
     type: object
     required:

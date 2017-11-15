@@ -35,7 +35,6 @@ AccountsController.getAccounts = function (context, next) {
 	});
 
 	modules.accounts.shared.getAccounts(_.clone(filters), function (err, data) {
-
 		if (err) { return next(err); }
 
 		data = _.cloneDeep(data);

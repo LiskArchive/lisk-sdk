@@ -12,7 +12,7 @@ var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /accounts', function () {
-	
+
 	var account = node.randomAccount();
 	var accountsEndpoint = new swaggerEndpoint('GET /accounts');
 
@@ -220,6 +220,7 @@ describe('GET /accounts', function () {
 		});
 
 		describe('offset', function () {
+
 			it('using offset = -1 should return error', function () {
 				return accountsEndpoint.makeRequest({offset:  -1}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'offset');
