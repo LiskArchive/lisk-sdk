@@ -220,6 +220,14 @@ export function tearDownCommandSet() {
 	restoreEnvVariable(NON_INTERACTIVE_MODE).call(this);
 }
 
+export function setUpUtilConfig() {
+	setUpFsStubs();
+	setUpFsUtilsStubs();
+	setUpConsoleStubs();
+	setUpProcessStubs();
+	delete require.cache[require.resolve(CONFIG_PATH)];
+}
+
 export function setUpUtilCrypto() {
 	setUpLiskJSCryptoStubs();
 }
@@ -243,14 +251,6 @@ export function setUpUtilInputUtils() {
 
 export function tearDownUtilInputUtils() {
 	restoreEnvVariable(TEST_PASSPHRASE);
-}
-
-export function setUpUtilEnv() {
-	setUpFsStubs();
-	setUpFsUtilsStubs();
-	setUpConsoleStubs();
-	setUpProcessStubs();
-	delete require.cache[require.resolve(CONFIG_PATH)];
 }
 
 export function setUpUtilWrapActionCreator() {

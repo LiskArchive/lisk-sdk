@@ -14,13 +14,13 @@
  *
  */
 import os from 'os';
-import { setUpUtilEnv } from '../../steps/setup';
+import { setUpUtilConfig } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('config util', () => {
-	beforeEach(setUpUtilEnv);
+	beforeEach(setUpUtilConfig);
 	Given('a default config', given.aDefaultConfig, () => {
 		Given(`a directory path "${os.homedir()}/.lisky"`, given.aDirectoryPath, () => {
 			Given('a config file name "config.json"', given.aConfigFileName, () => {
