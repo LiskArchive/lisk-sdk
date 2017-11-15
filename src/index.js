@@ -32,6 +32,11 @@ fs.readdirSync(commandsDir).forEach((command) => {
 	lisky.use(commandModule.default);
 });
 
+const copyright = `Lisky  Copyright (C) 2017  Lisk Foundation
+This program comes with ABSOLUTELY NO WARRANTY; for details type \`show w\`.
+This is free software, and you are welcome to redistribute it under certain conditions; type \`show c\` for details.
+`;
+
 const logo = `
  _ _     _
 | (_)___| | ___   _
@@ -42,10 +47,10 @@ const logo = `
 `;
 
 const message = `
-Running v${version}. Copyright (C) 2017 Lisk Foundation
+Running v${version}.
 Type \`help\` to get started.
 `;
-const intro = `${logo}${message}`;
+const intro = `${copyright}${logo}${message}`;
 
 lisky
 	.delimiter(`${name}>`)
