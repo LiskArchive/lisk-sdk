@@ -11,27 +11,36 @@ const messageDescription = `Specifies a source for providing a message to the co
 
 const noJsonDescription = 'Sets output to text (default). You can change the default behaviour in your config.json file.';
 
-const passphraseDescription = `Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+const passphraseDescription = `Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
+
+	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 
 	Examples:
+	- --passphrase prompt (default behaviour)
 	- --passphrase 'pass:my secret passphrase' (should only be used where security is not important)
 	- --passphrase env:SECRET_PASSPHRASE
 	- --passphrase file:/path/to/my/passphrase.txt (takes the first line only)
 	- --passphrase stdin (takes one line only)
 `;
 
-const secondPassphraseDescription = `Specifies a source for your second secret passphrase. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+const secondPassphraseDescription = `Specifies a source for your second secret passphrase. For certain commands a second passphrase is necessary, in which case Lisky will prompt you for it if this option is not set. Otherwise, Lisky will assume you want to use one passphrase only.
+
+	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 
 	Examples:
+	- --second-passphrase prompt (to force a prompt even when a second passphrase is not always necessary)
 	- --second-passphrase 'pass:my second secret passphrase' (should only be used where security is not important)
 	- --second-passphrase env:SECOND_SECRET_PASSPHRASE
 	- --second-passphrase file:/path/to/my/secondPassphrase.txt (takes the first line only)
 	- --second-passphrase stdin (takes one line only)
 `;
 
-const passwordDescription = `Specifies a source for your secret password. Lisky will prompt you for input if this option is not set. Source must be one of \`env\`, \`file\` or \`stdin\`. Except for \`stdin\`, a corresponding identifier must also be provided.
+const passwordDescription = `Specifies a source for your secret password. Lisky will prompt you for input if this option is not set.
+
+	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 
 	Examples:
+	- --password prompt (default behaviour)
 	- --password pass:password123 (should only be used where security is not important)
 	- --password env:PASSWORD
 	- --password file:/path/to/my/password.txt (takes the first line only)
