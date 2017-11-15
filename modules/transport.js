@@ -533,7 +533,7 @@ Transport.prototype.onMessage = function (msg, broadcast) {
  */
 Transport.prototype.broadcastBlock = function (params, block) {
 	if (!__private.broadcaster.maxRelays(block)) {
-		library.logger.info('Broadcasting the block with id: ' + block.id);
+		library.logger.info('Broadcasting block with id: ' + block.id);
 		library.logger.trace('Transport->broadcastBlock', {block: block, params: params});
 		__private.broadcaster.broadcast(params, {
 			api: '/blocks',
