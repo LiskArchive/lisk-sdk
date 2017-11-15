@@ -126,7 +126,6 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 					transaction = node.lisk.signature.createSignature(accountDuplicate.password, accountDuplicate.secondPassword);
 
 					return sendTransactionPromise(transaction).then(function (res) {
-						console.log(res);
 						node.expect(res).to.have.property('status').to.equal(200);
 						node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 						goodTransactions.push(transaction);
@@ -186,7 +185,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				});
 			});
 		});
-	});	
+	});
 
 	describe('confirmation', function () {
 
