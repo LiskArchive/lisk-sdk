@@ -26,17 +26,14 @@ var pool = {};
  * @implements {processPool}
  * @implements {expireTransactions}
  * @implements {resetInvalidTransactions}
- * @param {number} storageLimit
- * @param {number} processInterval
- * @param {number} expiryInterval
- * @param {Transaction} transaction - Logic instance
- * @param {Account} account - Account instance
- * @param {bus} bus
  * @param {Object} logger
+ * @param {bus} bus
  * @param {Object} ed
+ * @param {Transaction} transaction - transaction logic instance
+ * @param {Account} account - account logic instance
  */
 // Constructor
-function TransactionPool (storageLimit, processInterval, expiryInterval, transaction, account, bus, logger, ed) {
+function TransactionPool (bus, ed, transaction, account, logger, configPool, cbPool) {
 	library = {
 		logger: logger,
 		bus: bus,
@@ -48,9 +45,9 @@ function TransactionPool (storageLimit, processInterval, expiryInterval, transac
 		config: {
 			transactions: {
 				pool: {
-					storageLimit: storageLimit,
-					processInterval: processInterval,
-					expiryInterval: expiryInterval
+					storageLimit: configPool.storageLimit,
+					processInterval: configPool.processInterval,
+					expiryInterval: configPool.expiryInterval
 				}
 			}
 		},
@@ -100,6 +97,10 @@ function TransactionPool (storageLimit, processInterval, expiryInterval, transac
 	}
 
 	jobsQueue.register('transactionPoolNextReset', nextReset, self.poolExpiryInterval);
+
+	if (cbPool) {
+		return setImmediate(cbPool, null, self);
+	}
 }
 
 
@@ -222,6 +223,7 @@ __private.addToUnverified = function (transaction, broadcast, cb) {
 				if (broadcast) {
 					transaction.broadcast = true;
 				}
+				transaction.receivedAt = new Date();
 				pool.unverified.transactions[transaction.id] = transaction;
 				pool.unverified.count++;
 			}
@@ -246,16 +248,15 @@ __private.addToPoolList = function (transaction, poolList, cb) {
 /**
  * Adds transactions to pool list without checks.
  * @param {transaction} transaction
- * @param {Object} poolList
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
-__private.addReadyCeckBroadcast = function (transaction, poolList, cb) {
+__private.addReadyCheckBroadcast = function (transaction, cb) {
 	if (transaction.broadcast) {
 		delete transaction.broadcast;
 		pool.broadcast.push(transaction);
 	}
-	return __private.addToPoolList(transaction, pool.verified.ready, cb);
+	__private.addToPoolList(transaction, pool.verified.ready, cb);
 };
 
 /**
@@ -509,7 +510,10 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-
+		if (account === null) {
+			account = {};
+			account.balance = 0;
+		}
 		// total payments
 		paymentTransactions = self.getAll('sender_id', { id: sender.address });
 		if (paymentTransactions.ready.length > 0) {
@@ -564,8 +568,8 @@ TransactionPool.prototype.add = function (transactions, broadcast, cb) {
 	if (!Array.isArray(transactions)) {
 		transactions = [transactions];
 	}
-	async.eachSeries(transactions, function (transaction, broadcast, eachSeriesCb) {
-		__private.addToUnverified(transaction, broadcast, eachSeriesCb);
+	async.eachSeries(transactions, function (transaction, cb) {
+		__private.addToUnverified(transaction, broadcast, cb);
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
@@ -676,7 +680,6 @@ TransactionPool.prototype.processPool = function (cb) {
 							library.logger.error('Failed to check balance transaction: ' + transaction.id, err);
 							return setImmediate(eachSeriesCb);
 						}
-						transaction.receivedAt = new Date();
 						var receiveAtToTime = transaction.receivedAt.getTime();
 						var timestampToTime = slots.getRealTime(transaction.timestamp);
 						if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures) || receiveAtToTime < timestampToTime) {
