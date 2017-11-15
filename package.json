@@ -60,6 +60,7 @@
 		"bitcore-mnemonic": "=1.2.5",
 		"cli-table2": "=0.2.0",
 		"lisk-js": "=0.5.0",
+		"lockfile": "=1.0.3",
 		"vorpal": "LiskHQ/vorpal#master"
 	}
 }
