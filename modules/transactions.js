@@ -8,7 +8,7 @@ var extend = require('extend');
 var OrderBy = require('../helpers/orderBy.js');
 var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
-var TransactionPool = require('../logic/transactionPool.js');
+var TransactionPool = require('../logic/transactions/pool.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Transfer = require('../logic/transfer.js');
 
@@ -49,11 +49,14 @@ function Transactions (cb, scope) {
 	self = this;
 
 	__private.transactionPool = new TransactionPool(
-		scope.config.broadcasts.broadcastInterval,
-		scope.config.broadcasts.releaseLimit,
+		scope.config.transactions.pool.storageLimit,
+		scope.config.transactions.pool.processInterval,
+		scope.config.transactions.pool.expiryInterval,
 		scope.logic.transaction,
+		scope.logic.account,
 		scope.bus,
-		scope.logger
+		scope.logger,
+		scope.ed
 	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
@@ -344,73 +347,65 @@ __private.getPooledTransactions = function (method, req, cb) {
 
 // Public methods
 /**
- * Check if transaction is in pool
+ * Check if transaction is in pool.
+ * @implements {transactionPool.get}
  * @param {string} id
- * @return {function} Calls transactionPool.transactionInPool
+ * @return {boolean} False if transaction not in pool.
  */
 Transactions.prototype.transactionInPool = function (id) {
-	return __private.transactionPool.transactionInPool(id);
+	var transaction = __private.transactionPool.get(id);
+	return transaction.status === 'Transaction not in pool' ? false : true;
 };
 
 /**
+ * Gets transaction from pool and check if is in pending signature list.
+ * @implements {transactionPool.get}
  * @param {string} id
- * @return {function} Calls transactionPool.getUnconfirmedTransaction
- */
-Transactions.prototype.getUnconfirmedTransaction = function (id) {
-	return __private.transactionPool.getUnconfirmedTransaction(id);
-};
-
-/**
- * @param {string} id
- * @return {function} Calls transactionPool.getQueuedTransaction
- */
-Transactions.prototype.getQueuedTransaction = function (id) {
-	return __private.transactionPool.getQueuedTransaction(id);
-};
-
-/**
- * @param {string} id
- * @return {function} Calls transactionPool.getMultisignatureTransaction
+ * @return {transaction|undefined} Calls transactionPool.getMultisignatureTransaction
  */
 Transactions.prototype.getMultisignatureTransaction = function (id) {
-	return __private.transactionPool.getMultisignatureTransaction(id);
+	var transaction = __private.transactionPool.get(id);
+	return transaction.status === 'pending' ? transaction.transaction : undefined;
 };
 
 /**
- * Gets unconfirmed transactions based on limit and reverse option.
- * @param {boolean} reverse
+ * Gets unconfirmed transactions based on limit.
+ * @implements {transactionPool.getReady}
  * @param {number} limit
- * @return {function} Calls transactionPool.getUnconfirmedTransactionList
+ * @return {transaction[]}
  */
-Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit) {
-	return __private.transactionPool.getUnconfirmedTransactionList(reverse, limit);
+Transactions.prototype.getUnconfirmedTransactionList = function (limit) {
+	return __private.transactionPool.getReady(limit);
 };
 
 /**
  * Gets queued transactions based on limit and reverse option.
+ * @implements {transactionPool.getAll}
  * @param {boolean} reverse
  * @param {number} limit
- * @return {function} Calls transactionPool.getQueuedTransactionList
+ * @return {transaction[]}
  */
 Transactions.prototype.getQueuedTransactionList = function (reverse, limit) {
-	return __private.transactionPool.getQueuedTransactionList(reverse, limit);
+	return __private.transactionPool.getAll('unverified', {reverse: reverse, limit: limit});
 };
 
 /**
- * Gets multisignature transactions based on limit and reverse option.
+ * Gets multisignature transactions based on limit.
+ * @implements {transactionPool.getAll}
  * @param {boolean} reverse
  * @param {number} limit
  * @return {function} Calls transactionPool.getQueuedTransactionList
  */
 Transactions.prototype.getMultisignatureTransactionList = function (reverse, limit) {
-	return __private.transactionPool.getMultisignatureTransactionList(reverse, limit);
+	return __private.transactionPool.getAll('pending', {reverse: reverse, limit: limit});
 };
 
 /**
- * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
+ * Gets ready, pending and unverified transactions based on limit and reverse option.
+ * @implements {transactionPool.getMergedTransactionList}
  * @param {boolean} reverse
  * @param {number} limit
- * @return {function} Calls transactionPool.getMergedTransactionList
+ * @return {function} ready + pending + unverified
  */
 Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
 	return __private.transactionPool.getMergedTransactionList(reverse, limit);
@@ -418,23 +413,23 @@ Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
 
 /**
  * Removes transaction from unconfirmed, queued and multisignature.
+ * @implements {transactionPool.delete}
  * @param {string} id
  * @return {function} Calls transactionPool.removeUnconfirmedTransaction
  */
 Transactions.prototype.removeUnconfirmedTransaction = function (id) {
-	return __private.transactionPool.removeUnconfirmedTransaction(id);
+	return __private.transactionPool.delete(id);
 };
 
 /**
- * Checks kind of unconfirmed transaction and process it, resets queue
- * if limit reached.
+ * Adds a transaction to pool list. It will be processed later by processPool worker.
+ * @implements {transactionPool.addToUnverified}
  * @param {transaction} transaction
- * @param {Object} broadcast
+ * @param {boolean} broadcast
  * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.processUnconfirmedTransaction
  */
 Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	return __private.transactionPool.processUnconfirmedTransaction(transaction, broadcast, cb);
+	return __private.transactionPool.addToUnverified(transaction, broadcast, cb);
 };
 
 /**
@@ -668,10 +663,6 @@ Transactions.prototype.shared = {
 		});
 	},
 
-	getQueuedTransaction: function (req, cb) {
-		return __private.getPooledTransaction('getQueuedTransaction', req, cb);
-	},
-
 	getQueuedTransactions: function (req, cb) {
 		return __private.getPooledTransactions('getQueuedTransactionList', req, cb);
 	},
@@ -682,10 +673,6 @@ Transactions.prototype.shared = {
 
 	getMultisignatureTransactions: function (req, cb) {
 		return __private.getPooledTransactions('getMultisignatureTransactionList', req, cb);
-	},
-
-	getUnconfirmedTransaction: function (req, cb) {
-		return __private.getPooledTransaction('getUnconfirmedTransaction', req, cb);
 	},
 
 	getUnconfirmedTransactions: function (req, cb) {
