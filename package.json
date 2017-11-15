@@ -4,6 +4,8 @@
 	"description": "JavaScript library for sending Lisk transactions from the client or server",
 	"main": "./dist-node/index.js",
 	"scripts": {
+		"prestart": "./bin/prestart.sh",
+		"start": "./bin/start.sh",
 		"test": "nyc mocha test --recursive",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test --recursive\" --initial",
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
