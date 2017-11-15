@@ -52,7 +52,7 @@ var TransactionsSql = {
 
 	getDelegateByIds: 'SELECT "transaction_id", name AS "d_username" FROM delegates WHERE "transaction_id" IN (${id:csv})',
 
-	getSignatureByIds: 'SELECT "transaction_id", ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM second_signature WHERE "transaction_id" IN (${id:csv})',
+	getSignatureByIds: 'SELECT "transaction_id", ENCODE ("public_key", \'hex\') AS "s_publicKey" FROM second_signature WHERE "transaction_id" IN (${id:csv})',
 
 	getMultiByIds: 'SELECT "transaction_id", min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures_master WHERE "transaction_id" IN (${id:csv})',
 
