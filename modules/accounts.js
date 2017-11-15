@@ -140,17 +140,23 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
+
 		if (account === null && data.type === transactionTypes.SEND) {
 			account = {};
 			account.balance = 0;
 			account.address = address;
-			// TODO: Need to get data from upstream some how
+			// TODO: Need implement logical checks around asset presence 
 			account.publicKey = data.publicKey;
-			account.secondPublicKey = data.secondPublicKey || null;
+			account.secondPublicKey = !data.asset.signature.publicKey ? null : data.asset.signature.publicKey;
 			account.multisignatures = data.multisignatures || null;
 		} else if (account === null) {
 			err = 'Account does not exist';
+		} else if (account.address && !account.publicKey) {
+			account.publicKey = data.publicKey;
+			account.secondPublicKey = !data.asset.signature.publicKey ? null : data.asset.signature.publicKey;
+			account.multisignatures = null;
 		}
+
 		return setImmediate(cb, err, account);
 	});
 };

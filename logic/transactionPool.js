@@ -684,7 +684,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 
 	async.waterfall([
 		function setAccountAndGet (waterCb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
+			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey, transaction: transaction}, waterCb);
 		},
 		// TODO: Determine if we need this. Need to refactor for setAccountAndGet response
 		function getRequester (sender, waterCb) {

@@ -381,22 +381,22 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 	}
 
 	// Check for missing sender second signature
-	if (!transaction.requesterPublicKey && sender.secondSignature && !transaction.signSignature && transaction.blockId !== this.scope.genesisblock.block.id) {
+	if (!transaction.requesterPublicKey && sender.secondPublicKey && !transaction.signSignature && transaction.blockId !== this.scope.genesisblock.block.id) {
 		return setImmediate(cb, 'Missing sender second signature');
 	}
 
 	// If second signature provided, check if sender has one enabled
-	if (!transaction.requesterPublicKey && !sender.secondSignature && (transaction.signSignature && transaction.signSignature.length > 0)) {
+	if (!transaction.requesterPublicKey && !sender.secondPublicKey && (transaction.signSignature && transaction.signSignature.length > 0)) {
 		return setImmediate(cb, 'Sender does not have a second signature');
 	}
 
 	// Check for missing requester second signature
-	if (transaction.requesterPublicKey && requester.secondSignature && !transaction.signSignature) {
+	if (transaction.requesterPublicKey && requester.secondPublicKey && !transaction.signSignature) {
 		return setImmediate(cb, 'Missing requester second signature');
 	}
 
 	// If second signature provided, check if requester has one enabled
-	if (transaction.requesterPublicKey && !requester.secondSignature && (transaction.signSignature && transaction.signSignature.length > 0)) {
+	if (transaction.requesterPublicKey && !requester.secondPublicKey && (transaction.signSignature && transaction.signSignature.length > 0)) {
 		return setImmediate(cb, 'Requester does not have a second signature');
 	}
 
