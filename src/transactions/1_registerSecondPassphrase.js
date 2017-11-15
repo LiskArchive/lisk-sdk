@@ -27,10 +27,10 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
  * @return {Object}
  */
 
-function newSignature(secondSecret) {
+const createAsset = secondSecret => {
 	const { publicKey } = cryptoModule.getKeys(secondSecret);
-	return { publicKey };
-}
+	return { signature: { publicKey } };
+};
 
 /**
  * @method registerSecondPassphrase
@@ -42,14 +42,9 @@ function newSignature(secondSecret) {
  * @return {Object}
  */
 
-export default function registerSecondPassphrase({
-	secret,
-	secondSecret,
-	timeOffset,
-}) {
+const registerSecondPassphrase = ({ secret, secondSecret, timeOffset }) => {
 	const keys = cryptoModule.getKeys(secret);
 
-	const signature = newSignature(secondSecret);
 	const transaction = {
 		type: 1,
 		amount: '0',
@@ -57,10 +52,10 @@ export default function registerSecondPassphrase({
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),
-		asset: {
-			signature,
-		},
+		asset: createAsset(secondSecret),
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);
-}
+};
+
+export default registerSecondPassphrase;

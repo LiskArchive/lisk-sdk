@@ -38,7 +38,7 @@ import {
  * @return {Object}
  */
 
-export default function transfer({
+const transfer = ({
 	recipientId,
 	recipientPublicKey,
 	amount,
@@ -46,7 +46,7 @@ export default function transfer({
 	secondSecret,
 	data,
 	timeOffset,
-}) {
+}) => {
 	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({
 		recipientId,
 		recipientPublicKey,
@@ -73,4 +73,6 @@ export default function transfer({
 	}
 
 	return prepareTransaction(transaction, secret, secondSecret);
-}
+};
+
+export default transfer;

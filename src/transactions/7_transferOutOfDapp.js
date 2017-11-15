@@ -35,7 +35,7 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
  * @return {Object}
  */
 
-export default function transferOutOfDapp({
+const transferOutOfDapp = ({
 	dappId,
 	transactionId,
 	recipientId,
@@ -43,7 +43,7 @@ export default function transferOutOfDapp({
 	secret,
 	secondSecret,
 	timeOffset,
-}) {
+}) => {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -62,4 +62,6 @@ export default function transferOutOfDapp({
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);
-}
+};
+
+export default transferOutOfDapp;
