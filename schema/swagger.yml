@@ -65,7 +65,7 @@ paths:
         - $ref: '#/parameters/offset'
         - name: sort
           in: query
-          description: Fields to sort on to query
+          description: Fields to sort query by
           required: false
           type: string
           enum:
@@ -349,7 +349,7 @@ definitions:
            type: integer
            example: 100
          total:
-           description: Total number of peers available
+           description: Total number of available peers
            type: integer
            example: 100
       links:
