@@ -211,14 +211,14 @@ Accounts.prototype.isLoaded = function () {
 Accounts.prototype.shared = {
 	/**
 	 * Search accounts based on the query parameter passed.
-	 * @param {Object} filters - Filters to fetch the accounts
+	 * @param {Object} filters - Filters applied to results
 	 * @param {string} filters.address - Account address
 	 * @param {string} filters.publicKey - Public key associated to account
 	 * @param {string} filters.secondPublicKey - Second public key associated to account
 	 * @param {string} filters.username - Username associated to account
-	 * @param {string} filters.sort - Sorting key
-	 * @param {int} filters.limit - Number of accounts to limit the response
-	 * @param {int} filters.offset - Head start the response list
+	 * @param {string} filters.sort - Field to sort results by
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
 	 */
