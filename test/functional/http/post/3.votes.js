@@ -213,8 +213,20 @@ describe('POST /api/transactions (type 3) votes', function () {
 				badTransactions.push(transaction);
 			});
 		});
-
-		it('upvoting with no funds should fail', function () {
+		
+		it('upvoting when sender not on blockchain should fail', function () {
+			accountNoFunds = node.randomAccount();
+			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + node.eAccount.publicKey]);
+			
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+		
+		// TODO: Test this after an account is made empty
+		it.skip('upvoting when sender has no funds should fail', function () {
 			accountNoFunds = node.randomAccount();
 			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + node.eAccount.publicKey]);
 

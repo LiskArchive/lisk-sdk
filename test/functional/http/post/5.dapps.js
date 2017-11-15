@@ -440,16 +440,27 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 	describe('transactions processing', function () {
 
-		it('with no funds should fail', function () {
+		it('when sender not on blockchain should fail', function () {
 			transaction = node.lisk.dapp.createDapp(accountNoFunds.password, null, node.randomApplication());
 
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+		
+		// TODO: Test this after an account is made empty
+		it.skip('with no funds should fail', function () {
+			transaction = node.lisk.dapp.createDapp(accountNoFunds.password, null, node.randomApplication());
+			
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
 				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
-
+		
 		it('with minimal funds should be ok', function () {
 			transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, node.randomApplication());
 
