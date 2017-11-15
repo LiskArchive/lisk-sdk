@@ -49,7 +49,7 @@ paths:
     get:
       tags:
       - Accounts
-      summary: requests account data
+      summary: Requests account data
       operationId: getAccounts
       description:
         By passing in the appropriate options, you can search for
@@ -65,7 +65,7 @@ paths:
         - $ref: '#/parameters/offset'
         - name: sort
           in: query
-          description: fields to sort on to query
+          description: Fields to sort on to query
           required: false
           type: string
           enum:
@@ -265,7 +265,7 @@ parameters:
   address:
     name: address
     in: query
-    description: address to query
+    description: Address to query
     required: false
     type: string
     format: address
@@ -274,13 +274,13 @@ parameters:
   publicKey:
     name: publicKey
     in: query
-    description: publicKey to query
+    description: Public key to query
     type: string
     format: publicKey
   secondPublicKey:
     name: secondPublicKey
     in: query
-    description: publicKey to query
+    description: Public key to query
     type: string
     format: publicKey
   username:
@@ -322,7 +322,7 @@ definitions:
         type: object
 
   PeersResponse:
-    description: Peers Response
+    description: Peers response
     type: object
     required:
       - data
