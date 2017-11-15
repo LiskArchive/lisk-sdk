@@ -470,7 +470,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 	}
 
 	// Verify second signature
-	if (requester.secondSignature || sender.secondSignature) {
+	if (requester.secondPublicKey || sender.secondPublicKey) {
 		try {
 			valid = false;
 			valid = this.verifySecondSignature(transaction, (requester.secondPublicKey || sender.secondPublicKey), transaction.signSignature);
@@ -779,8 +779,15 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
 	}
 
 	amount = amount.toNumber();
+	
+	__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
+		if (err) {
+			return setImmediate(cb, err);
+		} else {
+			return setImmediate(cb);
+		}
+	}.bind(this));
 
-	return setImmediate(cb);
 	// TODO: Do this stuff in memory instead
 	// this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
 	// 	if (err) {

@@ -152,17 +152,7 @@ Delegate.prototype.getBytes = function (transaction) {
  * @todo delete extra parameter block.
  */
 Delegate.prototype.apply = function (transaction, block, sender, cb) {
-	//TODO: Needs to be removed, if no impact to transactions
-	var data = {
-		address: sender.address,
-		u_isDelegate: 0,
-		isDelegate: 1,
-		vote: 0,
-		u_username: null,
-		username: transaction.asset.delegate.username
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 /**
@@ -174,17 +164,7 @@ Delegate.prototype.apply = function (transaction, block, sender, cb) {
  * @todo delete extra parameter block.
  */
 Delegate.prototype.undo = function (transaction, block, sender, cb) {
-	//TODO: Needs to be removed, if no impact to transactions
-	var data = {
-		address: sender.address,
-		u_isDelegate: 1,
-		isDelegate: 0,
-		vote: 0,
-		username: null,
-		u_username: transaction.asset.delegate.username
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 /**
@@ -195,16 +175,7 @@ Delegate.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	//TODO: Needs to be refactored to apply in memory
-	var data = {
-		address: sender.address,
-		u_isDelegate: 1,
-		isDelegate: 0,
-		username: null,
-		u_username: transaction.asset.delegate.username
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 /**
@@ -216,16 +187,7 @@ Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	//TODO: Needs to be removed, Undo unconfirmed should just delete the object
-	var data = {
-		address: sender.address,
-		u_isDelegate: 0,
-		isDelegate: 0,
-		username: null,
-		u_username: null
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 Delegate.prototype.schema = {

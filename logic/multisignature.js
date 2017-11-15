@@ -263,13 +263,7 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	library.logic.account.merge(sender.address, {
-		u_multisignatures: transaction.asset.multisignature.keysgroup,
-		u_multimin: transaction.asset.multisignature.min,
-		u_multilifetime: transaction.asset.multisignature.lifetime
-	}, function (err) {
-		return setImmediate(cb);
-	});
+	return setImmediate(cb);
 };
 
 /**
@@ -283,17 +277,7 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @return {setImmediateCallback} For error.
  */
 Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
-
-	__private.unconfirmedSignatures[sender.address] = false;
-
-	library.logic.account.merge(sender.address, {
-		u_multisignatures: multiInvert,
-		u_multimin: -transaction.asset.multisignature.min,
-		u_multilifetime: -transaction.asset.multisignature.lifetime
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	return setImmediate(cb);
 };
 
 /**

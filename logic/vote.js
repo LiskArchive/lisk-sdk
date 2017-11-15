@@ -206,14 +206,7 @@ Vote.prototype.getBytes = function (transaction) {
  * @todo delete unnecessary var parent = this
  */
 Vote.prototype.apply = function (transaction, block, sender, cb) {
-	// TODO: Remove this apply function. Stubbed out
-	var parent = this;
-
-	async.series([
-		function (seriesCb) {
-			self.checkConfirmedDelegates(transaction, seriesCb);
-		}
-	], cb);
+	return setImmediate(cb);
 };
 
 /**
@@ -230,16 +223,8 @@ Vote.prototype.apply = function (transaction, block, sender, cb) {
  */
 Vote.prototype.undo = function (transaction, block, sender, cb) {
 	if (transaction.asset.votes === null) { return setImmediate(cb); }
-
-	var votesInvert = Diff.reverse(transaction.asset.votes);
-
-	this.scope.account.merge(sender.address, {
-		delegates: votesInvert,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	
+	return setImmediate(cb);
 };
 
 /**
@@ -253,20 +238,7 @@ Vote.prototype.undo = function (transaction, block, sender, cb) {
  * @todo delete unnecessary var parent = this
  */
 Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	var parent = this;
-
-	async.series([
-		function (seriesCb) {
-			self.checkUnconfirmedDelegates(transaction, seriesCb);
-		},
-		function (seriesCb) {
-			parent.scope.account.merge(sender.address, {
-				u_delegates: transaction.asset.votes
-			}, function (err) {
-				return setImmediate(seriesCb, err);
-			});
-		}
-	], cb);
+	return setImmediate(cb);
 };
 
 /**
@@ -282,12 +254,8 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  */
 Vote.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	if (transaction.asset.votes === null) { return setImmediate(cb); }
-
-	var votesInvert = Diff.reverse(transaction.asset.votes);
-
-	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (err) {
-		return setImmediate(cb, err);
-	});
+	
+	return setImmediate(cb);
 };
 
 /**
