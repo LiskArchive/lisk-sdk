@@ -141,19 +141,21 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 			return setImmediate(cb, err);
 		}
 
+		// This sets account variables for fresh accounts - Needs to be refactored after TX Pool
 		if (account === null && data.type === transactionTypes.SEND) {
 			account = {};
 			account.balance = 0;
 			account.address = address;
-			// TODO: Need implement logical checks around asset presence 
 			account.publicKey = data.publicKey;
-			account.secondPublicKey = !data.asset.signature.publicKey ? null : data.asset.signature.publicKey;
-			account.multisignatures = data.multisignatures || null;
+			account.username = null;
+			account.secondPublicKey = null;
+			account.multisignatures = null;
 		} else if (account === null) {
 			err = 'Account does not exist';
 		} else if (account.address && !account.publicKey) {
 			account.publicKey = data.publicKey;
-			account.secondPublicKey = !data.asset.signature.publicKey ? null : data.asset.signature.publicKey;
+			account.username = null;
+			account.secondPublicKey = null;
 			account.multisignatures = null;
 		}
 
