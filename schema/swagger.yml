@@ -52,8 +52,8 @@ paths:
       summary: Requests account data
       operationId: getAccounts
       description:
-        By passing in the appropriate options, you can search for
-        specified account in the system
+        By passing in the appropriate parameters, you can search for
+        matching accounts in the system
       produces:
       - application/json
       parameters:
