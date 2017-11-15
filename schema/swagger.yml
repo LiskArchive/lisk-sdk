@@ -248,7 +248,7 @@ parameters:
   limit:
     in: query
     name: limit
-    description: Specify limit for the result set
+    description: Limit applied to the result set
     type: integer
     format: int32
     minimum: 1
@@ -257,7 +257,7 @@ parameters:
   offset:
     name: offset
     in: query
-    description: Specify offset for the result set
+    description: Offset value for the result set
     type: integer
     format: int32
     minimum: 0
@@ -341,11 +341,11 @@ definitions:
          - total
        properties:
          offset:
-           description: Offset value for the resultset
+           description: Offset value for the result set
            type: integer
            example: 0
          limit:
-           description: Limit applied to the resultset
+           description: Limit applied to the result set
            type: integer
            example: 100
          total:
@@ -374,11 +374,11 @@ definitions:
           - limit
         properties:
           offset:
-            description: Offset value for the resultset
+            description: Offset value for the result set
             type: integer
             example: 0
           limit:
-            description: Limit applied to the resultset
+            description: Limit applied to the result set
             type: integer
             example: 100
       links:
