@@ -49,11 +49,17 @@ describe('blocks/process', function () {
 	var accounts;
 	var db;
 	var rounds;
+	var modulesMocks;
 	// Set delegates to 4
 	constants.activeDelegates = 4;
 	slots.delegates = 4;
 
 	before(function (done) {
+		modulesMocks = {
+			transport: {
+				broadcastBlock: sinon.spy()
+			}
+		};
 		modulesLoader.initLogic(BlockLogic, modulesLoader.scope, function (err, __blockLogic) {
 			if (err) {
 				return done(err);
@@ -67,8 +73,8 @@ describe('blocks/process', function () {
 				{transactions: require('../../../../modules/transactions')},
 				{rounds: require('../../../../modules/rounds')},
 				{multisignatures: require('../../../../modules/multisignatures')},
-        {signatures: require('../../../../modules/signatures')},
-        {loader: require('../../../../modules/loader')},
+		        {signatures: require('../../../../modules/signatures')},
+		        {loader: require('../../../../modules/loader')},
 			], [
 				{'block': require('../../../../logic/block')},
 				{'transaction': require('../../../../logic/transaction')},
@@ -78,6 +84,7 @@ describe('blocks/process', function () {
 				if (err) {
 					return done(err);
 				}
+				__modules.transport = modulesMocks.transport;
 				__modules.blocks.verify.onBind(__modules);
 				blocksVerify = __modules.blocks.verify;
 				__modules.delegates.onBind(__modules);
@@ -119,6 +126,10 @@ describe('blocks/process', function () {
 				});
  			});
  		});
+	});
+
+	beforeEach(function () {
+		modulesMocks.transport.broadcastBlock.reset();
 	});
 
 	afterEach(function () {
@@ -558,6 +569,22 @@ describe('blocks/process', function () {
 							expect(info.args[0][1].block.previousBlock).to.equal(forkFiveScenarios[2].previousBlock);
 							expect(info.args[0][1].block.timestamp).to.equal(forkFiveScenarios[2].timestamp);
 							expect(info.args[1][0]).to.equal('Last block stands');
+							done();
+						});
+					};
+
+					blocksProcess.onReceiveBlock(forkFiveScenarios[2]);
+				});
+
+				it('when last block stands it should call modules.transport.broadcastBlock once with {unmatchBroadhash: true} and last block', function (done) {
+					modulesLoader.scope.sequence.add = function (cb) {
+
+						var fn = Promise.promisify(cb);
+
+						fn().then(function () {
+							expect(modulesMocks.transport.broadcastBlock.calledOnce).to.be.true;
+							expect(modulesMocks.transport.broadcastBlock.calledWith({unmatchBroadhash: true})).to.be.true;
+							expect(modulesMocks.transport.broadcastBlock.args[0][1]).eql(blocksData[1]);
 							done();
 						});
 					};
