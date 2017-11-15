@@ -28,7 +28,7 @@ export default function getTransactionId(transaction) {
 	const bufferFromFirstEntriesReversed = cryptoModule.getFirstEightBytesReversed(
 		transactionHash,
 	);
-	const firstEntriesToNumber = cryptoModule.bufferToBignumberString(
+	const firstEntriesToNumber = cryptoModule.bufferToBigNumberString(
 		bufferFromFirstEntriesReversed,
 	);
 

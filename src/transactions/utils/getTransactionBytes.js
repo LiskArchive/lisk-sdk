@@ -244,11 +244,9 @@ export default function getTransactionBytes(transaction) {
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = transaction.recipientId
-		? Buffer.from(
-				cryptoModule.bigNumberToBuffer(
-					transaction.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-				),
+		? cryptoModule.bigNumberToBuffer(
+				transaction.recipientId.slice(0, -1),
+				BYTESIZES.RECIPIENT_ID,
 			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 

@@ -31,13 +31,13 @@ export function bigNumberToBuffer(bignumber, size) {
 }
 
 /**
- * @method bufferToBignumberString
+ * @method bufferToBigNumberString
  * @param {Buffer} bigNumberBuffer
  *
  * @return {String}
  */
 
-export function bufferToBignumberString(bigNumberBuffer) {
+export function bufferToBigNumberString(bigNumberBuffer) {
 	return bignum.fromBuffer(bigNumberBuffer).toString();
 }
 
@@ -84,7 +84,7 @@ export function getFirstEightBytesReversed(publicKeyBytes) {
  */
 
 export function toAddress(buffer) {
-	return `${bufferToBignumberString(buffer)}L`;
+	return `${bufferToBigNumberString(buffer)}L`;
 }
 
 /**
