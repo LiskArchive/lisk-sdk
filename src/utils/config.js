@@ -15,6 +15,7 @@
  */
 import os from 'os';
 import fs from 'fs';
+import lockfile from 'lockfile';
 import defaultConfig from '../../defaultConfig.json';
 import {
 	readJsonSync,
@@ -23,9 +24,11 @@ import {
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';
+const lockfileName = 'config.lock';
 const homedir = os.homedir();
 const configDirPath = `${homedir}/${configDirName}`;
 const configFilePath = `${configDirPath}/${configFileName}`;
+const lockfilePath = `${configDirPath}/${lockfileName}`;
 
 const attemptCallWithWarning = (fn, path) => {
 	try {
@@ -62,6 +65,12 @@ const checkReadAccess = (path) => {
 	return attemptCallWithError(fn, 1, error);
 };
 
+const checkLockfile = (path) => {
+	const fn = lockfile.lockSync.bind(null, path);
+	const error = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
+	return attemptCallWithError(fn, 3, error);
+};
+
 const attemptToReadJsonFile = (path) => {
 	const fn = readJsonSync.bind(null, path);
 	const error = `Config file is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
@@ -78,6 +87,7 @@ const getConfig = () => {
 		return defaultConfig;
 	}
 
+	checkLockfile(lockfilePath);
 	checkReadAccess(configFilePath);
 
 	return attemptToReadJsonFile(configFilePath);
