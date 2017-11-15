@@ -6,7 +6,6 @@ var expect = require('chai').expect;
 var express = require('express');
 var sinon = require('sinon');
 
-var modulesLoader = require('../../common/modulesLoader');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var node = require('../../node');
 

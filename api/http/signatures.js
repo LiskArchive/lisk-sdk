@@ -8,7 +8,6 @@ var httpApi = require('../../helpers/httpApi');
  * - End point: `/api/signatures`
  * - Public API:
  * 	- post	/
- * 	- get	/fee
  * @memberof module:signatures
  * @requires helpers/Router
  * @requires helpers/httpApi
@@ -16,15 +15,13 @@ var httpApi = require('../../helpers/httpApi');
  * @param {Object} signaturesModule - Module signatures instance.
  * @param {scope} app - Network app.
  */
-// Constructor
 function SignaturesHttpApi (signaturesModule, app) {
 
 	var router = new Router();
 
 	router.map(signaturesModule.shared, {
-		'post /': 'postSignatures',
-		'get /fee': 'getFee'
-	});
+		'post /': 'postSignatures'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/signatures', app, router, signaturesModule.isLoaded);
 }

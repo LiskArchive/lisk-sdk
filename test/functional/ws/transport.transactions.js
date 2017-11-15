@@ -6,7 +6,7 @@ var ws = require('../../common/wsCommunication');
 
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', {
-		transaction: transaction
+		transactions: [transaction]
 	}, done, true);
 }
 
