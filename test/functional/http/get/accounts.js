@@ -112,9 +112,9 @@ describe('GET /accounts', function () {
 
 		describe.only('secondPublicKey', function () {
 
-			var spkAcccount = node.randomAccount();
-			var creditTransaction = node.lisk.transaction.createTransaction(spkAcccount.address, constants.fees.secondSignature, node.gAccount.password);
-			var signatureTransaction = node.lisk.signature.createSignature(spkAcccount.password, spkAcccount.secondPassword);
+			var secondPublicKeyAccount = node.randomAccount();
+			var creditTransaction = node.lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, node.gAccount.password);
+			var signatureTransaction = node.lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
 
 			before(function () {
 				return sendTransactionPromise(creditTransaction).then(function (res) {
@@ -129,8 +129,8 @@ describe('GET /accounts', function () {
 			});
 
 			it('using known secondPublicKey should be ok', function () {
-				return accountsEndpoint.makeRequest({secondPublicKey: spkAcccount.secondPublicKey}, 200).then(function (res) {
-					res.body.data[0].secondPublicKey.should.be.eql(spkAcccount.secondPublicKey);
+				return accountsEndpoint.makeRequest({secondPublicKey: secondPublicKeyAccount.secondPublicKey}, 200).then(function (res) {
+					res.body.data[0].secondPublicKey.should.be.eql(secondPublicKeyAccount.secondPublicKey);
 				});
 			});
 
