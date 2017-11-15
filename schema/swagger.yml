@@ -74,7 +74,7 @@ paths:
           default: balance:asc
       responses:
         200:
-          description: Search results matching criteria
+          description: List of accounts
           schema:
             $ref: '#/definitions/AccountsResponse'
         400:
