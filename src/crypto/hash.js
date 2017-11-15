@@ -21,7 +21,7 @@
  * @return {string}
  */
 
-export default function hash(data, format) {
+const hash = (data, format) => {
 	if (Buffer.isBuffer(data)) {
 		return Buffer.from(naclInstance.crypto_hash_sha256(data));
 	}
@@ -42,4 +42,6 @@ export default function hash(data, format) {
 	throw new Error(
 		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 	);
-}
+};
+
+export default hash;
