@@ -6,5 +6,6 @@
 		"node": "",
 		"port": "",
 		"ssl": false
-	}
+	},
+	"pretty": false
 }

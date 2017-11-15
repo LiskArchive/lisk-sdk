@@ -23,4 +23,4 @@ export const SINGULARS = {
 	transactions: 'transaction',
 };
 
-export const CONFIG_VARIABLES = ['json', 'name', 'testnet'];
+export const CONFIG_VARIABLES = ['json', 'name', 'pretty', 'testnet'];
