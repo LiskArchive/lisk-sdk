@@ -40,14 +40,14 @@ AccountsController.getAccounts = function (context, next) {
 		data = _.cloneDeep(data);
 
 		data = _.map(data, function (account) {
-			if(_.isEmpty(account.delegate)) {
+			if (_.isEmpty(account.delegate)) {
 				delete account.delegate;
 			} else {
 				account.delegate.rank = parseInt(account.delegate.rank);
 				account.delegate.missedBlocks = parseInt(account.delegate.missedBlocks);
 				account.delegate.producedBlocks = parseInt(account.delegate.producedBlocks);
 			}
-			if(_.isNull(account.secondPublicKey)) {
+			if (_.isNull(account.secondPublicKey)) {
 				account.secondPublicKey = '';
 			}
 			delete account.secondSignature;
