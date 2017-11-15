@@ -21,32 +21,26 @@ import * as then from '../../steps/3_then';
 describe('fs module', () => {
 	beforeEach(setUpUtilFs);
 	describe('#readJsonSync', () => {
-		describe('Given there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"', () => {
-			beforeEach(given.thereIsAFileWithUtf8EncodedJSONContentsAtPath);
-			describe('When the JSON is read', () => {
-				beforeEach(when.theJSONIsRead);
-				it('Then fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
-				it('Then JSON.parse should be called with the file contents as a string', then.jSONParseShouldBeCalledWithTheFileContentsAsAString);
-				it('Then the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
+		Given('there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"', given.thereIsAFileWithUtf8EncodedJSONContentsAtPath, () => {
+			When('the JSON is read', when.theJSONIsRead, () => {
+				Then('fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
+				Then('JSON.parse should be called with the file contents as a string', then.jSONParseShouldBeCalledWithTheFileContentsAsAString);
+				Then('the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
 			});
-			describe('Given the file has a BOM', () => {
-				beforeEach(given.theFileHasABOM);
-				describe('When the JSON is read', () => {
-					beforeEach(when.theJSONIsRead);
-					it('Then fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
-					it('Then JSON.parse should be called with the file contents as a string without the BOM', then.jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM);
-					it('Then the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
+			Given('the file has a BOM', given.theFileHasABOM, () => {
+				When('the JSON is read', when.theJSONIsRead, () => {
+					Then('fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
+					Then('JSON.parse should be called with the file contents as a string without the BOM', then.jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM);
+					Then('the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
 				});
 			});
 		});
 	});
 	describe('#writeJsonSync', () => {
-		describe('Given there is an object that should be written to path "/some/path/to/file.json"', () => {
-			beforeEach(given.thereIsAnObjectThatShouldBeWrittenToPath);
-			describe('When the JSON is written', () => {
-				beforeEach(when.theJSONIsWritten);
-				it('Then JSON.stringify should be called with the object using tab indentation', then.jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation);
-				it('Then fs.writeFileSync should be called with the path and the stringified JSON', then.fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON);
+		Given('there is an object that should be written to path "/some/path/to/file.json"', given.thereIsAnObjectThatShouldBeWrittenToPath, () => {
+			When('the JSON is written', when.theJSONIsWritten, () => {
+				Then('JSON.stringify should be called with the object using tab indentation', then.jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation);
+				Then('fs.writeFileSync should be called with the path and the stringified JSON', then.fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON);
 			});
 		});
 	});

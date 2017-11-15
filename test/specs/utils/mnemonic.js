@@ -19,33 +19,26 @@ import * as then from '../../steps/3_then';
 
 describe('mnemonic util', () => {
 	describe('#createMnemonicPassphrase', () => {
-		describe('When a new mnemonic passphrase is created', () => {
-			beforeEach(when.aNewMnemonicPassphraseIsCreated);
-			it('Then the mnemonic passphrase should be a 12 word string', then.theMnemonicPassphraseShouldBeA12WordString);
+		When('a new mnemonic passphrase is created', when.aNewMnemonicPassphraseIsCreated, () => {
+			Then('the mnemonic passphrase should be a 12 word string', then.theMnemonicPassphraseShouldBeA12WordString);
 		});
 	});
 	describe('#isValidMnemonicPassphrase', () => {
-		describe('Given a valid mnemonic passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', () => {
-			beforeEach(given.aValidMnemonicPassphrase);
-			describe('When the mnemonic passphrase is validated', () => {
-				beforeEach(when.theMnemonicPassphraseIsValidated);
-				it('Then it should return true', then.itShouldReturnTrue);
+		Given('a valid mnemonic passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', given.aValidMnemonicPassphrase, () => {
+			When('the mnemonic passphrase is validated', when.theMnemonicPassphraseIsValidated, () => {
+				Then('it should return true', then.itShouldReturnTrue);
 			});
 		});
-		describe('Given an invalid mnemonic passphrase "minute omit local rare sword knee banner pair rib museum shadow invalidAddition"', () => {
-			beforeEach(given.anInvalidMnemonicPassphrase);
-			describe('When the mnemonic passphrase is validated', () => {
-				beforeEach(when.theMnemonicPassphraseIsValidated);
-				it('Then it should return false', then.itShouldReturnFalse);
+		Given('an invalid mnemonic passphrase "minute omit local rare sword knee banner pair rib museum shadow invalidAddition"', given.anInvalidMnemonicPassphrase, () => {
+			When('the mnemonic passphrase is validated', when.theMnemonicPassphraseIsValidated, () => {
+				Then('it should return false', then.itShouldReturnFalse);
 			});
 		});
 	});
 	describe('#createMnemonicPassphrase and #isValidMnemonicPassphrase integration', () => {
-		describe('When a new mnemonic passphrase is created', () => {
-			beforeEach(when.aNewMnemonicPassphraseIsCreated);
-			describe('When the mnemonic passphrase is validated', () => {
-				beforeEach(when.theMnemonicPassphraseIsValidated);
-				it('Then it should return true', then.itShouldReturnTrue);
+		When('a new mnemonic passphrase is created', when.aNewMnemonicPassphraseIsCreated, () => {
+			When('the mnemonic passphrase is validated', when.theMnemonicPassphraseIsValidated, () => {
+				Then('it should return true', then.itShouldReturnTrue);
 			});
 		});
 	});

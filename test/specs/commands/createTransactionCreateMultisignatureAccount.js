@@ -20,166 +20,119 @@ import * as then from '../../steps/3_then';
 
 describe('create transaction create multisignature account command', () => {
 	beforeEach(setUpCommandCreateTransactionCreateMultisignatureAccount);
-	describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
-		beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
-		describe('Given an action "create transaction create multisignature account"', () => {
-			beforeEach(given.anAction);
-			describe('Given a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', () => {
-				beforeEach(given.aPassphrase);
-				describe('Given a Lisk object that can create transactions', () => {
-					beforeEach(given.aLiskObjectThatCanCreateTransactions);
-					describe('Given a minimum of 2 signatures', () => {
-						beforeEach(given.aMinimumOfSignatures);
-						describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
-							beforeEach(given.aKeysgroupWithKeys);
-							describe('Given an empty options object', () => {
-								beforeEach(given.anEmptyOptionsObject);
-								describe('Given a lifetime of "NaN" hours', () => {
-									beforeEach(given.aLifetimeOfHours);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithMessage);
+	Given('a Vorpal instance with a UI and an active command that can prompt', given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt, () => {
+		Given('an action "create transaction create multisignature account"', given.anAction, () => {
+			Given('a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', given.aPassphrase, () => {
+				Given('a Lisk object that can create transactions', given.aLiskObjectThatCanCreateTransactions, () => {
+					Given('a minimum of 2 signatures', given.aMinimumOfSignatures, () => {
+						Given('a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', given.aKeysgroupWithKeys, () => {
+							Given('an empty options object', given.anEmptyOptionsObject, () => {
+								Given('a lifetime of "NaN" hours', given.aLifetimeOfHours, () => {
+									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+										Then('it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithMessage);
 									});
 								});
-								describe('Given a lifetime of 5.5 hours', () => {
-									beforeEach(given.aLifetimeOfHours);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithMessage);
+								Given('a lifetime of 5.5 hours', given.aLifetimeOfHours, () => {
+									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+										Then('it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithMessage);
 									});
 								});
 							});
 						});
 					});
-					describe('Given a lifetime of 24 hours', () => {
-						beforeEach(given.aLifetimeOfHours);
-						describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
-							beforeEach(given.aKeysgroupWithKeys);
-							describe('Given an empty options object', () => {
-								beforeEach(given.anEmptyOptionsObject);
-								describe('Given a minimum of "NaN" signatures', () => {
-									beforeEach(given.aMinimumOfSignatures);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithMessage);
+					Given('a lifetime of 24 hours', given.aLifetimeOfHours, () => {
+						Given('a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', given.aKeysgroupWithKeys, () => {
+							Given('an empty options object', given.anEmptyOptionsObject, () => {
+								Given('a minimum of "NaN" signatures', given.aMinimumOfSignatures, () => {
+									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+										Then('it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithMessage);
 									});
 								});
-								describe('Given a minimum of 5.5 signatures', () => {
-									beforeEach(given.aMinimumOfSignatures);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithMessage);
+								Given('a minimum of 5.5 signatures', given.aMinimumOfSignatures, () => {
+									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+										Then('it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithMessage);
 									});
 								});
 							});
 						});
-						describe('Given a minimum of 2 signatures', () => {
-							beforeEach(given.aMinimumOfSignatures);
-							describe('Given a keysgroup with keys "+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca"', () => {
-								beforeEach(given.aKeysgroupWithKeys);
-								describe('Given an empty options object', () => {
-									beforeEach(given.anEmptyOptionsObject);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Error processing public key +215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca: Invalid hex string."', then.itShouldRejectWithMessage);
+						Given('a minimum of 2 signatures', given.aMinimumOfSignatures, () => {
+							Given('a keysgroup with keys "+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca"', given.aKeysgroupWithKeys, () => {
+								Given('an empty options object', given.anEmptyOptionsObject, () => {
+									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+										Then('it should reject with message "Error processing public key +215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca: Invalid hex string."', then.itShouldRejectWithMessage);
 									});
 								});
 							});
-							describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b"', () => {
-								beforeEach(given.aKeysgroupWithKeys);
-								describe('Given an empty options object', () => {
-									beforeEach(given.anEmptyOptionsObject);
-									describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-										beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-										it('Then it should reject with message "Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b length differs from the expected 64 hex characters for a public key."', then.itShouldRejectWithMessage);
+							Given('a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b"', given.aKeysgroupWithKeys, () => {
+								Given('an empty options object', given.anEmptyOptionsObject, () => {
+									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+										Then('it should reject with message "Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b length differs from the expected 64 hex characters for a public key."', then.itShouldRejectWithMessage);
 									});
 								});
 							});
-							describe('Given a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', () => {
-								beforeEach(given.aKeysgroupWithKeys);
-								describe('Given an empty options object', () => {
-									beforeEach(given.anEmptyOptionsObject);
-									describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
-										beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-											it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+							Given('a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', given.aKeysgroupWithKeys, () => {
+								Given('an empty options object', given.anEmptyOptionsObject, () => {
+									Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+										When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+											Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 										});
 									});
-									describe('Given the passphrase can be retrieved from its source', () => {
-										beforeEach(given.thePassphraseCanBeRetrievedFromItsSource);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-											it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
-											it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
-											it('Then it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
-											it('Then it should create a create multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
-											it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+									Given('the passphrase can be retrieved from its source', given.thePassphraseCanBeRetrievedFromItsSource, () => {
+										When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
+											Then('it should create a create multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
+											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
 								});
-								describe('Given an options object with passphrase set to "passphraseSource"', () => {
-									beforeEach(given.anOptionsObjectWithPassphraseSetTo);
-									describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
-										beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-											it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+								Given('an options object with passphrase set to "passphraseSource"', given.anOptionsObjectWithPassphraseSetTo, () => {
+									Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+										When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+											Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 										});
 									});
-									describe('Given the passphrase can be retrieved from its source', () => {
-										beforeEach(given.thePassphraseCanBeRetrievedFromItsSource);
-										describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-											beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-											it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
-											it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
-											it('Then it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
-											it('Then it should create a create multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
-											it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+									Given('the passphrase can be retrieved from its source', given.thePassphraseCanBeRetrievedFromItsSource, () => {
+										When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
+											Then('it should create a create multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
+											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
 								});
-								describe('Given a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', () => {
-									beforeEach(given.aSecondPassphrase);
-									describe('Given an options object with second passphrase set to "secondPassphraseSource"', () => {
-										beforeEach(given.anOptionsObjectWithSecondPassphraseSetTo);
-										describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
-											beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-											describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-												beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-												it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+								Given('a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', given.aSecondPassphrase, () => {
+									Given('an options object with second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithSecondPassphraseSetTo, () => {
+										Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+											When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+												Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 											});
 										});
-										describe('Given the passphrase and second passphrase can be retrieved from their sources', () => {
-											beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
-											describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-												beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-												it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
-												it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
-												it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
-												it('Then it should create a create multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
-												it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+										Given('the passphrase and second passphrase can be retrieved from their sources', given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources, () => {
+											When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+												Then('it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
+												Then('it should create a create multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
+												Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 											});
 										});
 									});
-									describe('Given an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"', () => {
-										beforeEach(given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo);
-										describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
-											beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-											describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-												beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-												it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+									Given('an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo, () => {
+										Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+											When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+												Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 											});
 										});
-										describe('Given the passphrase and second passphrase can be retrieved from their sources', () => {
-											beforeEach(given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources);
-											describe('When the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', () => {
-												beforeEach(when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions);
-												it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
-												it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
-												it('Then it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
-												it('Then it should create a create multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
-												it('Then it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
+										Given('the passphrase and second passphrase can be retrieved from their sources', given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources, () => {
+											When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
+												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+												Then('it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
+												Then('it should create a create multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures', then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures);
+												Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 											});
 										});
 									});

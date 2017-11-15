@@ -18,52 +18,40 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('tablify util', () => {
-	describe('Given an empty object', () => {
-		beforeEach(given.anEmptyObject);
-		describe('When the object is tablified', () => {
-			beforeEach(when.theObjectIsTablified);
-			it('Then the returned table should have no head', then.theReturnedTableShouldHaveNoHead);
-			it('Then the returned table should have no rows', then.theReturnedTableShouldHaveNoRows);
+	Given('an empty object', given.anEmptyObject, () => {
+		When('the object is tablified', when.theObjectIsTablified, () => {
+			Then('the returned table should have no head', then.theReturnedTableShouldHaveNoHead);
+			Then('the returned table should have no rows', then.theReturnedTableShouldHaveNoRows);
 		});
 	});
-	describe('Given a non-empty object', () => {
-		beforeEach(given.aNonEmptyObject);
-		describe('When the object is tablified', () => {
-			beforeEach(when.theObjectIsTablified);
-			it('Then the returned table should have a head with the object’s keys', then.theReturnedTableShouldHaveAHeadWithTheObjectKeys);
-			it('Then the returned table should have a row with the object’s values', then.theReturnedTableShouldHaveARowWithTheObjectValues);
+	Given('a non-empty object', given.aNonEmptyObject, () => {
+		When('the object is tablified', when.theObjectIsTablified, () => {
+			Then('the returned table should have a head with the object’s keys', then.theReturnedTableShouldHaveAHeadWithTheObjectKeys);
+			Then('the returned table should have a row with the object’s values', then.theReturnedTableShouldHaveARowWithTheObjectValues);
 		});
 	});
-	describe('Given a nested object', () => {
-		beforeEach(given.aNestedObject);
-		describe('When the object is tablified', () => {
-			beforeEach(when.theObjectIsTablified);
-			it('Then the returned table should have a head with the object’s nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys);
-			it('Then the returned table should have a row with the object’s nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedValues);
+	Given('a nested object', given.aNestedObject, () => {
+		When('the object is tablified', when.theObjectIsTablified, () => {
+			Then('the returned table should have a head with the object’s nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys);
+			Then('the returned table should have a row with the object’s nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedValues);
 		});
 	});
-	describe('Given a deeply nested object', () => {
-		beforeEach(given.aDeeplyNestedObject);
-		describe('When the object is tablified', () => {
-			beforeEach(when.theObjectIsTablified);
-			it('Then the returned table should have a head with the object’s deeply nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys);
-			it('Then the returned table should have a row with the object’s deeply nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues);
+	Given('a deeply nested object', given.aDeeplyNestedObject, () => {
+		When('the object is tablified', when.theObjectIsTablified, () => {
+			Then('the returned table should have a head with the object’s deeply nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys);
+			Then('the returned table should have a row with the object’s deeply nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues);
 		});
 	});
-	describe('Given an array of objects with the same keys', () => {
-		beforeEach(given.anArrayOfObjectsWithTheSameKeys);
-		describe('When the array is tablified', () => {
-			beforeEach(when.theArrayIsTablified);
-			it('Then the returned table should have a head with the objects’ keys', then.theReturnedTableShouldHaveAHeadWithTheObjectsKeys);
-			it('Then the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues);
+	Given('an array of objects with the same keys', given.anArrayOfObjectsWithTheSameKeys, () => {
+		When('the array is tablified', when.theArrayIsTablified, () => {
+			Then('the returned table should have a head with the objects’ keys', then.theReturnedTableShouldHaveAHeadWithTheObjectsKeys);
+			Then('the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues);
 		});
 	});
-	describe('Given an array of objects with divergent keys', () => {
-		beforeEach(given.anArrayOfObjectsWithDivergentKeys);
-		describe('When the array is tablified', () => {
-			beforeEach(when.theArrayIsTablified);
-			it('Then the returned table should have a head with every unique key', then.theReturnedTableShouldHaveAHeadWithEveryUniqueKey);
-			it('Then the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues);
+	Given('an array of objects with divergent keys', given.anArrayOfObjectsWithDivergentKeys, () => {
+		When('the array is tablified', when.theArrayIsTablified, () => {
+			Then('the returned table should have a head with every unique key', then.theReturnedTableShouldHaveAHeadWithEveryUniqueKey);
+			Then('the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues);
 		});
 	});
 });

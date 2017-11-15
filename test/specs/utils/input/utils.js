@@ -24,156 +24,119 @@ describe('input utils utils', () => {
 	beforeEach(setUpUtilInputUtils);
 	afterEach(tearDownUtilInputUtils);
 	describe('#splitSource', () => {
-		describe('Given a source without delimiter "someSource"', () => {
-			beforeEach(given.aSourceWithoutDelimiter);
-			describe('When the source is split', () => {
-				beforeEach(when.theSourceIsSplit);
-				it('Then the result should have source type "someSource"', then.theResultShouldHaveSourceType);
-				it('Then the result should have an empty source identifier', then.theResultShouldHaveAnEmptySourceIdentifier);
+		Given('a source without delimiter "someSource"', given.aSourceWithoutDelimiter, () => {
+			When('the source is split', when.theSourceIsSplit, () => {
+				Then('the result should have source type "someSource"', then.theResultShouldHaveSourceType);
+				Then('the result should have an empty source identifier', then.theResultShouldHaveAnEmptySourceIdentifier);
 			});
 		});
-		describe('Given a source with delimiter "someSource: this has spaces: and more colons "', () => {
-			beforeEach(given.aSourceWithDelimiter);
-			describe('When the source is split', () => {
-				beforeEach(when.theSourceIsSplit);
-				it('Then the result should have source type "someSource"', then.theResultShouldHaveSourceType);
-				it('Then the result should have source identifier " this has spaces: and more colons "', then.theResultShouldHaveSourceIdentifier);
+		Given('a source with delimiter "someSource: this has spaces: and more colons "', given.aSourceWithDelimiter, () => {
+			When('the source is split', when.theSourceIsSplit, () => {
+				Then('the result should have source type "someSource"', then.theResultShouldHaveSourceType);
+				Then('the result should have source identifier " this has spaces: and more colons "', then.theResultShouldHaveSourceIdentifier);
 			});
 		});
 	});
 	describe('#createPromptOptions', () => {
-		describe('Given a prompt message "Some message: "', () => {
-			beforeEach(given.aPromptMessage);
-			describe('When createPromptOptions is called with the message', () => {
-				beforeEach(when.createPromptOptionsIsCalledWithTheMessage);
-				it('Then an options object with the message should be returned', then.anOptionsObjectWithTheMessageShouldBeReturned);
+		Given('a prompt message "Some message: "', given.aPromptMessage, () => {
+			When('createPromptOptions is called with the message', when.createPromptOptionsIsCalledWithTheMessage, () => {
+				Then('an options object with the message should be returned', then.anOptionsObjectWithTheMessageShouldBeReturned);
 			});
 		});
 	});
-	describe('Given a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', () => {
-		beforeEach(given.aPassphrase);
+	Given('a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"', given.aPassphrase, () => {
 		describe('#getPassphrase', () => {
-			describe('Given the passphrase is provided as plaintext', () => {
-				beforeEach(given.thePassphraseIsProvidedAsPlaintext);
-				describe('When getPassphrase is passed a source but no passphrase', () => {
-					beforeEach(when.getPassphraseIsPassedASourceButNoPassphrase);
-					it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+			Given('the passphrase is provided as plaintext', given.thePassphraseIsProvidedAsPlaintext, () => {
+				When('getPassphrase is passed a source but no passphrase', when.getPassphraseIsPassedASourceButNoPassphrase, () => {
+					Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 				});
 			});
-			describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
-				beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
-				describe('Given the passphrase is provided via the prompt', () => {
-					beforeEach(given.thePassphraseIsProvidedViaThePrompt);
-					describe('When getPassphrase is passed neither a source nor a passphrase', () => {
-						beforeEach(when.getPassphraseIsPassedNeitherASourceNorAPassphrase);
-						it('Then it should prompt for the passphrase once', then.itShouldPromptForThePassphraseOnce);
-						it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+			Given('a Vorpal instance with a UI and an active command that can prompt', given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt, () => {
+				Given('the passphrase is provided via the prompt', given.thePassphraseIsProvidedViaThePrompt, () => {
+					When('getPassphrase is passed neither a source nor a passphrase', when.getPassphraseIsPassedNeitherASourceNorAPassphrase, () => {
+						Then('it should prompt for the passphrase once', then.itShouldPromptForThePassphraseOnce);
+						Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 					});
 				});
 			});
 		});
 		describe('#getPassphraseFromFile', () => {
-			describe('Given a passphrase file path "/path/to/the/passphrase.txt"', () => {
-				beforeEach(given.aPassphraseFilePath);
-				describe('Given the file does not exist', () => {
-					beforeEach(given.theFileDoesNotExist);
-					describe('When getPassphraseFromFile is called on the path', () => {
-						beforeEach(when.getPassphraseFromFileIsCalledOnThePath);
-						it('Then it should reject with message "File at /path/to/the/passphrase.txt does not exist."', then.itShouldRejectWithMessage);
+			Given('a passphrase file path "/path/to/the/passphrase.txt"', given.aPassphraseFilePath, () => {
+				Given('the file does not exist', given.theFileDoesNotExist, () => {
+					When('getPassphraseFromFile is called on the path', when.getPassphraseFromFileIsCalledOnThePath, () => {
+						Then('it should reject with message "File at /path/to/the/passphrase.txt does not exist."', then.itShouldRejectWithMessage);
 					});
 				});
-				describe('Given the file does exist', () => {
-					beforeEach(given.theFileDoesExist);
-					describe('Given the file cannot be read', () => {
-						beforeEach(given.theFileCannotBeRead);
-						describe('When getPassphraseFromFile is called on the path', () => {
-							beforeEach(when.getPassphraseFromFileIsCalledOnThePath);
-							it('Then it should reject with message "File at /path/to/the/passphrase.txt could not be read."', then.itShouldRejectWithMessage);
+				Given('the file does exist', given.theFileDoesExist, () => {
+					Given('the file cannot be read', given.theFileCannotBeRead, () => {
+						When('getPassphraseFromFile is called on the path', when.getPassphraseFromFileIsCalledOnThePath, () => {
+							Then('it should reject with message "File at /path/to/the/passphrase.txt could not be read."', then.itShouldRejectWithMessage);
 						});
 					});
-					describe('Given the file can be read', () => {
-						beforeEach(given.theFileCanBeRead);
-						describe('When getPassphraseFromFile is called on the path', () => {
-							beforeEach(when.getPassphraseFromFileIsCalledOnThePath);
-							it('Then it should resolve to the first line of the file', then.itShouldResolveToTheFirstLineOfTheFile);
+					Given('the file can be read', given.theFileCanBeRead, () => {
+						When('getPassphraseFromFile is called on the path', when.getPassphraseFromFileIsCalledOnThePath, () => {
+							Then('it should resolve to the first line of the file', then.itShouldResolveToTheFirstLineOfTheFile);
 						});
-						describe('Given an unknown error "Unknown Error" occurs when reading the file', () => {
-							beforeEach(given.anUnknownErrorOccursWhenReadingTheFile);
-							describe('When getPassphraseFromFile is called on the path', () => {
-								beforeEach(when.getPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs);
-								it('Then it should reject with message "Unknown Error"', then.itShouldRejectWithMessage);
+						Given('an unknown error "Unknown Error" occurs when reading the file', given.anUnknownErrorOccursWhenReadingTheFile, () => {
+							When('getPassphraseFromFile is called on the path', when.getPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs, () => {
+								Then('it should reject with message "Unknown Error"', then.itShouldRejectWithMessage);
 							});
 						});
 					});
 				});
 			});
 		});
-		describe('Given a prompt display name "your custom passphrase"', () => {
-			beforeEach(given.aPromptDisplayName);
+		Given('a prompt display name "your custom passphrase"', given.aPromptDisplayName, () => {
 			describe('#getPassphraseFromEnvVariable', () => {
 				describe(`Given the passphrase is stored in environmental variable "${ENV_VARIABLE}"`, () => {
 					beforeEach(given.thePassphraseIsStoredInEnvironmentalVariable);
-					describe('When getPassphraseFromEnvVariable is called with the variable', () => {
-						beforeEach(when.getPassphraseFromEnvVariableIsCalled);
-						it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+					When('getPassphraseFromEnvVariable is called with the variable', when.getPassphraseFromEnvVariableIsCalled, () => {
+						Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 					});
 				});
 				describe(`Given environmental variable "${ENV_VARIABLE}" is not set`, () => {
 					beforeEach(given.environmentalVariableIsNotSet);
-					describe('When getPassphraseFromEnvVariable is called with the variable', () => {
-						beforeEach(when.getPassphraseFromEnvVariableIsCalled);
-						it('Then it should reject with message "Environmental variable for your custom passphrase not set."', then.itShouldRejectWithMessage);
+					When('getPassphraseFromEnvVariable is called with the variable', when.getPassphraseFromEnvVariableIsCalled, () => {
+						Then('it should reject with message "Environmental variable for your custom passphrase not set."', then.itShouldRejectWithMessage);
 					});
 				});
 			});
 			describe('#getPassphraseFromPrompt', () => {
-				describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
-					beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
-					describe('Given the passphrase is provided via the prompt', () => {
-						beforeEach(given.thePassphraseIsProvidedViaThePrompt);
-						describe('Given the passphrase should not be repeated', () => {
-							beforeEach(given.thePassphraseShouldNotBeRepeated);
-							describe('Given the Vorpal instance has no UI parent', () => {
-								beforeEach(given.theVorpalInstanceHasNoUIParent);
-								describe('When getPassphraseFromPrompt is called', () => {
-									beforeEach(when.getPassphraseFromPromptIsCalled);
-									it('Then a UI parent should be set', then.aUIParentShouldBeSet);
-									it('Then it should prompt for the passphrase once', then.itShouldPromptForThePassphraseOnce);
-									it('Then it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
-									it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+				Given('a Vorpal instance with a UI and an active command that can prompt', given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt, () => {
+					Given('the passphrase is provided via the prompt', given.thePassphraseIsProvidedViaThePrompt, () => {
+						Given('the passphrase should not be repeated', given.thePassphraseShouldNotBeRepeated, () => {
+							Given('the Vorpal instance has no UI parent', given.theVorpalInstanceHasNoUIParent, () => {
+								When('getPassphraseFromPrompt is called', when.getPassphraseFromPromptIsCalled, () => {
+									Then('a UI parent should be set', then.aUIParentShouldBeSet);
+									Then('it should prompt for the passphrase once', then.itShouldPromptForThePassphraseOnce);
+									Then('it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
+									Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 								});
 							});
-							describe('Given the Vorpal instance has a UI parent', () => {
-								beforeEach(given.theVorpalInstanceHasAUIParent);
-								describe('When getPassphraseFromPrompt is called', () => {
-									beforeEach(when.getPassphraseFromPromptIsCalled);
-									it('Then the UI parent should be maintained', then.theUIParentShouldBeMaintained);
-									it('Then it should prompt for the passphrase once', then.itShouldPromptForThePassphraseOnce);
-									it('Then it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
-									it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+							Given('the Vorpal instance has a UI parent', given.theVorpalInstanceHasAUIParent, () => {
+								When('getPassphraseFromPrompt is called', when.getPassphraseFromPromptIsCalled, () => {
+									Then('the UI parent should be maintained', then.theUIParentShouldBeMaintained);
+									Then('it should prompt for the passphrase once', then.itShouldPromptForThePassphraseOnce);
+									Then('it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
+									Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 								});
 							});
 						});
-						describe('Given the passphrase should be repeated', () => {
-							beforeEach(given.thePassphraseShouldBeRepeated);
-							describe('Given the passphrase is not successfully repeated', () => {
-								beforeEach(given.thePassphraseIsNotSuccessfullyRepeated);
-								describe('When getPassphraseFromPrompt is called', () => {
-									beforeEach(when.getPassphraseFromPromptIsCalled);
-									it('Then it should prompt for the passphrase twice', then.itShouldPromptForThePassphraseTwice);
-									it('Then it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
-									it('Then it should use options with the message "Please re-enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
-									it('Then it should reject with message "Your custom passphrase was not successfully repeated."', then.itShouldRejectWithMessage);
+						Given('the passphrase should be repeated', given.thePassphraseShouldBeRepeated, () => {
+							Given('the passphrase is not successfully repeated', given.thePassphraseIsNotSuccessfullyRepeated, () => {
+								When('getPassphraseFromPrompt is called', when.getPassphraseFromPromptIsCalled, () => {
+									Then('it should prompt for the passphrase twice', then.itShouldPromptForThePassphraseTwice);
+									Then('it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
+									Then('it should use options with the message "Please re-enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
+									Then('it should reject with message "Your custom passphrase was not successfully repeated."', then.itShouldRejectWithMessage);
 								});
 							});
-							describe('Given the passphrase is successfully repeated', () => {
-								beforeEach(given.thePassphraseIsSuccessfullyRepeated);
-								describe('When getPassphraseFromPrompt is called', () => {
-									beforeEach(when.getPassphraseFromPromptIsCalled);
-									it('Then it should prompt for the passphrase twice', then.itShouldPromptForThePassphraseTwice);
-									it('Then it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
-									it('Then it should use options with the message "Please re-enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
-									it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+							Given('the passphrase is successfully repeated', given.thePassphraseIsSuccessfullyRepeated, () => {
+								When('getPassphraseFromPrompt is called', when.getPassphraseFromPromptIsCalled, () => {
+									Then('it should prompt for the passphrase twice', then.itShouldPromptForThePassphraseTwice);
+									Then('it should use options with the message "Please enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
+									Then('it should use options with the message "Please re-enter your custom passphrase: "', then.itShouldUseOptionsWithTheMessage);
+									Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 								});
 							});
 						});
@@ -181,158 +144,115 @@ describe('input utils utils', () => {
 				});
 			});
 			describe('#getPassphraseFromSource', () => {
-				describe('Given an unknown passphrase source', () => {
-					beforeEach(given.anUnknownPassphraseSource);
-					describe('When getPassphraseFromSourceIsCalled with the relevant source', () => {
-						beforeEach(when.getPassphraseFromSourceIsCalledWithTheRelevantSource);
-						it('Then it should reject with message "Your custom passphrase was provided with an unknown source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt."', then.itShouldRejectWithMessage);
+				Given('an unknown passphrase source', given.anUnknownPassphraseSource, () => {
+					When('getPassphraseFromSourceIsCalled with the relevant source', when.getPassphraseFromSourceIsCalledWithTheRelevantSource, () => {
+						Then('it should reject with message "Your custom passphrase was provided with an unknown source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt."', then.itShouldRejectWithMessage);
 					});
 				});
 				describe(`Given the passphrase is stored in environmental variable "${ENV_VARIABLE}"`, () => {
 					beforeEach(given.thePassphraseIsStoredInEnvironmentalVariable);
-					describe('When getPassphraseFromSourceIsCalled with the relevant source', () => {
-						beforeEach(when.getPassphraseFromSourceIsCalledWithTheRelevantSource);
-						it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+					When('getPassphraseFromSourceIsCalled with the relevant source', when.getPassphraseFromSourceIsCalledWithTheRelevantSource, () => {
+						Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 					});
 				});
-				describe('Given a passphrase file path "/path/to/the/passphrase.txt"', () => {
-					beforeEach(given.aPassphraseFilePath);
-					describe('Given the file can be read', () => {
-						beforeEach(given.theFileCanBeRead);
-						describe('When getPassphraseFromSourceIsCalled with the relevant source', () => {
-							beforeEach(when.getPassphraseFromSourceIsCalledWithTheRelevantSource);
-							it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+				Given('a passphrase file path "/path/to/the/passphrase.txt"', given.aPassphraseFilePath, () => {
+					Given('the file can be read', given.theFileCanBeRead, () => {
+						When('getPassphraseFromSourceIsCalled with the relevant source', when.getPassphraseFromSourceIsCalledWithTheRelevantSource, () => {
+							Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 						});
 					});
 				});
-				describe('Given the passphrase is provided as plaintext', () => {
-					beforeEach(given.thePassphraseIsProvidedAsPlaintext);
-					describe('When getPassphraseFromSourceIsCalled with the relevant source', () => {
-						beforeEach(when.getPassphraseFromSourceIsCalledWithTheRelevantSource);
-						it('Then it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
+				Given('the passphrase is provided as plaintext', given.thePassphraseIsProvidedAsPlaintext, () => {
+					When('getPassphraseFromSourceIsCalled with the relevant source', when.getPassphraseFromSourceIsCalledWithTheRelevantSource, () => {
+						Then('it should resolve to the passphrase', then.itShouldResolveToThePassphrase);
 					});
 				});
 			});
 		});
-		describe('Given some data "This is some text\nthat spans\nmultiple lines"', () => {
-			beforeEach(given.someData);
+		Given('some data "This is some text\nthat spans\nmultiple lines"', given.someData, () => {
 			describe('#getData', () => {
-				describe('Given no data source is provided', () => {
-					beforeEach(given.noDataSourceIsProvided);
-					describe('When getData is called with the source', () => {
-						beforeEach(when.getDataIsCalledWithTheSource);
-						it('Then it should reject with message "No data was provided."', then.itShouldRejectWithMessage);
+				Given('no data source is provided', given.noDataSourceIsProvided, () => {
+					When('getData is called with the source', when.getDataIsCalledWithTheSource, () => {
+						Then('it should reject with message "No data was provided."', then.itShouldRejectWithMessage);
 					});
 				});
-				describe('Given data is provided via an unknown source', () => {
-					beforeEach(given.dataIsProvidedViaAnUnknownSource);
-					describe('When getData is called with the source', () => {
-						beforeEach(when.getDataIsCalledWithTheSource);
-						it('Then it should reject with message "Unknown data source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
+				Given('data is provided via an unknown source', given.dataIsProvidedViaAnUnknownSource, () => {
+					When('getData is called with the source', when.getDataIsCalledWithTheSource, () => {
+						Then('it should reject with message "Unknown data source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
 					});
 				});
-				describe('Given a data file path "/path/to/the/data.txt"', () => {
-					beforeEach(given.aDataFilePath);
-					describe('Given the file does not exist', () => {
-						beforeEach(given.theFileDoesNotExist);
-						describe('Given data is provided via a file source', () => {
-							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called with the source', () => {
-								beforeEach(when.getDataIsCalledWithTheSource);
-								it('Then it should reject with message "File at /path/to/the/data.txt does not exist."', then.itShouldRejectWithMessage);
+				Given('a data file path "/path/to/the/data.txt"', given.aDataFilePath, () => {
+					Given('the file does not exist', given.theFileDoesNotExist, () => {
+						Given('data is provided via a file source', given.dataIsProvidedViaAFileSource, () => {
+							When('getData is called with the source', when.getDataIsCalledWithTheSource, () => {
+								Then('it should reject with message "File at /path/to/the/data.txt does not exist."', then.itShouldRejectWithMessage);
 							});
 						});
 					});
-					describe('Given the file cannot be read', () => {
-						beforeEach(given.theFileCannotBeRead);
-						describe('Given data is provided via a file source', () => {
-							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called with the source', () => {
-								beforeEach(when.getDataIsCalledWithTheSource);
-								it('Then it should reject with message "File at /path/to/the/data.txt could not be read."', then.itShouldRejectWithMessage);
+					Given('the file cannot be read', given.theFileCannotBeRead, () => {
+						Given('data is provided via a file source', given.dataIsProvidedViaAFileSource, () => {
+							When('getData is called with the source', when.getDataIsCalledWithTheSource, () => {
+								Then('it should reject with message "File at /path/to/the/data.txt could not be read."', then.itShouldRejectWithMessage);
 							});
 						});
 					});
-					describe('Given an unknown error "Unknown error" occurs when reading the file', () => {
-						beforeEach(given.anUnknownErrorOccursWhenReadingTheFile);
-						describe('Given data is provided via a file source', () => {
-							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called with the source', () => {
-								beforeEach(when.getDataIsCalledWithTheSource);
-								it('Then it should reject with message "Unknown error"', then.itShouldRejectWithMessage);
+					Given('an unknown error "Unknown error" occurs when reading the file', given.anUnknownErrorOccursWhenReadingTheFile, () => {
+						Given('data is provided via a file source', given.dataIsProvidedViaAFileSource, () => {
+							When('getData is called with the source', when.getDataIsCalledWithTheSource, () => {
+								Then('it should reject with message "Unknown error"', then.itShouldRejectWithMessage);
 							});
 						});
 					});
-					describe('Given the file can be read', () => {
-						beforeEach(given.theFileCanBeRead);
-						describe('Given data is provided via a file source', () => {
-							beforeEach(given.dataIsProvidedViaAFileSource);
-							describe('When getData is called with the source', () => {
-								beforeEach(when.getDataIsCalledWithTheSource);
-								it('Then it should resolve to the data as a string', then.itShouldResolveToTheDataAsAString);
+					Given('the file can be read', given.theFileCanBeRead, () => {
+						Given('data is provided via a file source', given.dataIsProvidedViaAFileSource, () => {
+							When('getData is called with the source', when.getDataIsCalledWithTheSource, () => {
+								Then('it should resolve to the data as a string', then.itShouldResolveToTheDataAsAString);
 							});
 						});
 					});
 				});
 			});
 			describe('#getDataFromFile', () => {
-				describe('Given a data file path "/path/to/the/data.txt"', () => {
-					beforeEach(given.aDataFilePath);
-					describe('Given the file can be read', () => {
-						beforeEach(given.theFileCanBeRead);
-						describe('When getDataFromFile is called with the path', () => {
-							beforeEach(when.getDataFromFileIsCalledWithThePath);
-							it('Then fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
-							it('Then it should resolve to the data as a string', then.itShouldResolveToTheDataAsAString);
+				Given('a data file path "/path/to/the/data.txt"', given.aDataFilePath, () => {
+					Given('the file can be read', given.theFileCanBeRead, () => {
+						When('getDataFromFile is called with the path', when.getDataFromFileIsCalledWithThePath, () => {
+							Then('fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
+							Then('it should resolve to the data as a string', then.itShouldResolveToTheDataAsAString);
 						});
 					});
 				});
 			});
 			describe('#getStdIn', () => {
-				describe('Given a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', () => {
-					beforeEach(given.aSecondPassphrase);
-					describe('Given a password "testing 123"', () => {
-						beforeEach(given.aPassword);
-						describe('Given nothing is provided via stdin', () => {
-							beforeEach(given.nothingIsProvidedViaStdIn);
-							describe('When getStdIn is called with the relevant options', () => {
-								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-								it('Then it should return an empty object', then.itShouldReturnAnEmptyObject);
+				Given('a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', given.aSecondPassphrase, () => {
+					Given('a password "testing 123"', given.aPassword, () => {
+						Given('nothing is provided via stdin', given.nothingIsProvidedViaStdIn, () => {
+							When('getStdIn is called with the relevant options', when.getStdInIsCalledWithTheRelevantOptions, () => {
+								Then('it should return an empty object', then.itShouldReturnAnEmptyObject);
 							});
 						});
-						describe('Given the passphrase is provided via stdin', () => {
-							beforeEach(given.thePassphraseIsProvidedViaStdIn);
-							describe('When getStdIn is called with the relevant options', () => {
-								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-								it('Then it should return an object with the passphrase', then.itShouldReturnAnObjectWithThePassphrase);
+						Given('the passphrase is provided via stdin', given.thePassphraseIsProvidedViaStdIn, () => {
+							When('getStdIn is called with the relevant options', when.getStdInIsCalledWithTheRelevantOptions, () => {
+								Then('it should return an object with the passphrase', then.itShouldReturnAnObjectWithThePassphrase);
 							});
 						});
-						describe('Given the second passphrase is provided via stdin', () => {
-							beforeEach(given.theSecondPassphraseIsProvidedViaStdIn);
-							describe('When getStdIn is called with the relevant options', () => {
-								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-								it('Then it should return an object with the second passphrase', then.itShouldReturnAnObjectWithTheSecondPassphrase);
+						Given('the second passphrase is provided via stdin', given.theSecondPassphraseIsProvidedViaStdIn, () => {
+							When('getStdIn is called with the relevant options', when.getStdInIsCalledWithTheRelevantOptions, () => {
+								Then('it should return an object with the second passphrase', then.itShouldReturnAnObjectWithTheSecondPassphrase);
 							});
 						});
-						describe('Given the password is provided via stdin', () => {
-							beforeEach(given.thePasswordIsProvidedViaStdIn);
-							describe('When getStdIn is called with the relevant options', () => {
-								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-								it('Then it should return an object with the password', then.itShouldReturnAnObjectWithThePassword);
+						Given('the password is provided via stdin', given.thePasswordIsProvidedViaStdIn, () => {
+							When('getStdIn is called with the relevant options', when.getStdInIsCalledWithTheRelevantOptions, () => {
+								Then('it should return an object with the password', then.itShouldReturnAnObjectWithThePassword);
 							});
 						});
-						describe('Given the data is provided via stdin', () => {
-							beforeEach(given.theDataIsProvidedViaStdIn);
-							describe('When getStdIn is called with the relevant options', () => {
-								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-								it('Then it should return an object with the data', then.itShouldReturnAnObjectWithTheData);
+						Given('the data is provided via stdin', given.theDataIsProvidedViaStdIn, () => {
+							When('getStdIn is called with the relevant options', when.getStdInIsCalledWithTheRelevantOptions, () => {
+								Then('it should return an object with the data', then.itShouldReturnAnObjectWithTheData);
 							});
 						});
-						describe('Given the passphrase, the second passphrase, the password and the data are provided via stdin', () => {
-							beforeEach(given.thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn);
-							describe('When getStdIn is called with the relevant options', () => {
-								beforeEach(when.getStdInIsCalledWithTheRelevantOptions);
-								it('Then it should return an object with the passphrase, the second passphrase, the password and the data', then.itShouldReturnAnObjectWithThePassphraseTheSecondPassphraseThePasswordAndTheData);
+						Given('the passphrase, the second passphrase, the password and the data are provided via stdin', given.thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn, () => {
+							When('getStdIn is called with the relevant options', when.getStdInIsCalledWithTheRelevantOptions, () => {
+								Then('it should return an object with the passphrase, the second passphrase, the password and the data', then.itShouldReturnAnObjectWithThePassphraseTheSecondPassphraseThePasswordAndTheData);
 							});
 						});
 					});

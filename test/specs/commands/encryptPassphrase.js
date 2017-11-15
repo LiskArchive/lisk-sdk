@@ -20,76 +20,56 @@ import * as then from '../../steps/3_then';
 
 describe('encrypt passphrase command', () => {
 	beforeEach(setUpCommandEncryptPassphrase);
-	describe('Given a Vorpal instance with a UI and an active command that can prompt', () => {
-		beforeEach(given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt);
-		describe('Given a crypto instance has been initialised', () => {
-			beforeEach(given.aCryptoInstanceHasBeenInitialised);
-			describe('Given an action "encrypt passphrase"', () => {
-				beforeEach(given.anAction);
-				describe('Given a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice" with public key "7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588"', () => {
-					beforeEach(given.aPassphraseWithPublicKey);
-					describe('Given a password "testing123"', () => {
-						beforeEach(given.aPassword);
-						describe('Given an empty options object', () => {
-							beforeEach(given.anEmptyOptionsObject);
-							describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
-								beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-								describe('When the action is called with the options', () => {
-									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+	Given('a Vorpal instance with a UI and an active command that can prompt', given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt, () => {
+		Given('a crypto instance has been initialised', given.aCryptoInstanceHasBeenInitialised, () => {
+			Given('an action "encrypt passphrase"', given.anAction, () => {
+				Given('a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice" with public key "7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588"', given.aPassphraseWithPublicKey, () => {
+					Given('a password "testing123"', given.aPassword, () => {
+						Given('an empty options object', given.anEmptyOptionsObject, () => {
+							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
 							});
-							describe('Given the passphrase and password can be retrieved from their sources', () => {
-								beforeEach(given.thePassphraseAndPasswordCanBeRetrievedFromTheirSources);
-								describe('When the action is called with the options', () => {
-									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
-									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
-									it('Then it should get the inputs from sources using the password source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeatingPrompt);
-									it('Then it should encrypt the passphrase using the password', then.itShouldEncryptThePassphraseUsingThePassword);
-									it('Then it should resolve to the result of encrypting the passphrase', then.itShouldResolveToTheResultOfEncryptingThePassphrase);
+							Given('the passphrase and password can be retrieved from their sources', given.thePassphraseAndPasswordCanBeRetrievedFromTheirSources, () => {
+								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+									Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+									Then('it should get the inputs from sources using the password source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeatingPrompt);
+									Then('it should encrypt the passphrase using the password', then.itShouldEncryptThePassphraseUsingThePassword);
+									Then('it should resolve to the result of encrypting the passphrase', then.itShouldResolveToTheResultOfEncryptingThePassphrase);
 								});
 							});
 						});
-						describe('Given an options object with output-public-key set to boolean true', () => {
-							beforeEach(given.anOptionsObjectWithOutputPublicKeySetToBoolean);
-							describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
-								beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-								describe('When the action is called with the options', () => {
-									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+						Given('an options object with output-public-key set to boolean true', given.anOptionsObjectWithOutputPublicKeySetToBoolean, () => {
+							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
 							});
-							describe('Given the passphrase and password can be retrieved from their sources', () => {
-								beforeEach(given.thePassphraseAndPasswordCanBeRetrievedFromTheirSources);
-								describe('When the action is called with the options', () => {
-									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
-									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
-									it('Then it should get the inputs from sources using the password source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeatingPrompt);
-									it('Then it should encrypt the passphrase using the password', then.itShouldEncryptThePassphraseUsingThePassword);
-									it('Then it should resolve to the result of encrypting the passphrase combined with the public key', then.itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey);
+							Given('the passphrase and password can be retrieved from their sources', given.thePassphraseAndPasswordCanBeRetrievedFromTheirSources, () => {
+								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+									Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+									Then('it should get the inputs from sources using the password source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeatingPrompt);
+									Then('it should encrypt the passphrase using the password', then.itShouldEncryptThePassphraseUsingThePassword);
+									Then('it should resolve to the result of encrypting the passphrase combined with the public key', then.itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey);
 								});
 							});
 						});
-						describe('Given an options object with passphrase set to "passphraseSource" and password set to "passwordSource"', () => {
-							beforeEach(given.anOptionsObjectWithPassphraseSetToAndPasswordSetTo);
-							describe('Given an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', () => {
-								beforeEach(given.anErrorOccursRetrievingTheInputsFromTheirSources);
-								describe('When the action is called with the options', () => {
-									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
+						Given('an options object with passphrase set to "passphraseSource" and password set to "passwordSource"', given.anOptionsObjectWithPassphraseSetToAndPasswordSetTo, () => {
+							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
 							});
-							describe('Given the passphrase and password can be retrieved from their sources', () => {
-								beforeEach(given.thePassphraseAndPasswordCanBeRetrievedFromTheirSources);
-								describe('When the action is called with the options', () => {
-									beforeEach(when.theActionIsCalledWithTheOptions);
-									it('Then it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
-									it('Then it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
-									it('Then it should get the inputs from sources using the password source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeatingPrompt);
-									it('Then it should encrypt the passphrase using the password', then.itShouldEncryptThePassphraseUsingThePassword);
-									it('Then it should resolve to the result of encrypting the passphrase', then.itShouldResolveToTheResultOfEncryptingThePassphrase);
+							Given('the passphrase and password can be retrieved from their sources', given.thePassphraseAndPasswordCanBeRetrievedFromTheirSources, () => {
+								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+									Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
+									Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
+									Then('it should get the inputs from sources using the password source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeatingPrompt);
+									Then('it should encrypt the passphrase using the password', then.itShouldEncryptThePassphraseUsingThePassword);
+									Then('it should resolve to the result of encrypting the passphrase', then.itShouldResolveToTheResultOfEncryptingThePassphrase);
 								});
 							});
 						});

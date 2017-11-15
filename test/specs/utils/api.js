@@ -17,8 +17,7 @@ import * as given from '../../steps/1_given';
 import * as then from '../../steps/3_then';
 
 describe('api util', () => {
-	describe('Given a lisk api instance', () => {
-		beforeEach(given.aLiskAPIInstance);
-		it('Then the lisk instance should be a lisk-js api instance', then.theLiskAPIInstanceShouldBeALiskJSApiInstance);
+	Given('a lisk api instance', given.aLiskAPIInstance, () => {
+		Then('the lisk instance should be a lisk-js api instance', then.theLiskAPIInstanceShouldBeALiskJSApiInstance);
 	});
 });
