@@ -17,10 +17,35 @@ import ed2curve from 'ed2curve';
 import hash from './hash';
 
 /**
- * @method bufferToHex
- * @param buffer
+ * @method bigNumberToBuffer
+ * @param {Number} bignumber
+ * @param {Number} size
  *
- * @return {string}
+ * @return {Buffer}
+ */
+
+export function bigNumberToBuffer(bignumber, size) {
+	return bignum(bignumber).toBuffer({
+		size,
+	});
+}
+
+/**
+ * @method bufferToBigNumberString
+ * @param {Buffer} bigNumberBuffer
+ *
+ * @return {String}
+ */
+
+export function bufferToBigNumberString(bigNumberBuffer) {
+	return bignum.fromBuffer(bigNumberBuffer).toString();
+}
+
+/**
+ * @method bufferToHex
+ * @param {Buffer}
+ *
+ * @return {String}
  */
 
 export function bufferToHex(buffer) {
@@ -29,9 +54,9 @@ export function bufferToHex(buffer) {
 
 /**
  * @method hexToBuffer
- * @param hex
+ * @param {String}
  *
- * @return {buffer}
+ * @return {Buffer}
  */
 
 export function hexToBuffer(hex) {
@@ -40,9 +65,9 @@ export function hexToBuffer(hex) {
 
 /**
  * @method getFirstEightBytesReversed
- * @param publicKeyBytes
+ * @param {Buffer} publicKeyBytes
  *
- * @return {buffer}
+ * @return {Buffer}
  */
 
 export function getFirstEightBytesReversed(publicKeyBytes) {
@@ -53,20 +78,20 @@ export function getFirstEightBytesReversed(publicKeyBytes) {
 
 /**
  * @method toAddress
- * @param buffer
+ * @param {Buffer} buffer
  *
- * @return {string}
+ * @return {String}
  */
 
 export function toAddress(buffer) {
-	return `${bignum.fromBuffer(buffer).toString()}L`;
+	return `${bufferToBigNumberString(buffer)}L`;
 }
 
 /**
  * @method getAddressFromPublicKey
- * @param publicKey
+ * @param {String} publicKey
  *
- * @return {string}
+ * @return {String}
  */
 
 export function getAddressFromPublicKey(publicKey) {
@@ -80,9 +105,9 @@ export function getAddressFromPublicKey(publicKey) {
 
 /**
  * @method getAddress
- * @param publicKey string
+ * @param {String} publicKey
  *
- * @return {string}
+ * @return {String}
  */
 
 export function getAddress(publicKey) {
@@ -91,9 +116,9 @@ export function getAddress(publicKey) {
 
 /**
  * @method convertPublicKeyEd2Curve
- * @param publicKey
+ * @param {String} publicKey
  *
- * @return {object}
+ * @return {Object}
  */
 
 export function convertPublicKeyEd2Curve(publicKey) {
@@ -102,9 +127,9 @@ export function convertPublicKeyEd2Curve(publicKey) {
 
 /**
  * @method convertPrivateKeyEd2Curve
- * @param privateKey
+ * @param {String} privateKey
  *
- * @return {object}
+ * @return {Object}
  */
 
 export function convertPrivateKeyEd2Curve(privateKey) {

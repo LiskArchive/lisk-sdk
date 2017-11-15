@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import bignum from 'browserify-bignum';
 import cryptoModule from '../../crypto';
 import getTransactionBytes from './getTransactionBytes';
 
@@ -29,9 +28,9 @@ export default function getTransactionId(transaction) {
 	const bufferFromFirstEntriesReversed = cryptoModule.getFirstEightBytesReversed(
 		transactionHash,
 	);
-	const firstEntriesToNumber = bignum.fromBuffer(
+	const firstEntriesToNumber = cryptoModule.bufferToBigNumberString(
 		bufferFromFirstEntriesReversed,
 	);
 
-	return firstEntriesToNumber.toString();
+	return firstEntriesToNumber;
 }

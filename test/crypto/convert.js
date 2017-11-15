@@ -21,6 +21,8 @@ import {
 	getAddress,
 	convertPublicKeyEd2Curve,
 	convertPrivateKeyEd2Curve,
+	bigNumberToBuffer,
+	bufferToBigNumberString,
 } from '../../src/crypto/convert';
 
 const hash = require('../../src/crypto/hash');
@@ -129,6 +131,23 @@ describe('convert', () => {
 			defaultPrivateKeyCurve
 				.equals(Buffer.from(curveRepresentation))
 				.should.be.true();
+		});
+	});
+
+	describe('#bigNumberToBuffer', () => {
+		it('should convert a big number to a buffer', () => {
+			const bigNumber = '58191285901858109';
+			const addressSize = 8;
+			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
+			bigNumberToBuffer(bigNumber, addressSize).should.be.eql(expectedBuffer);
+		});
+	});
+
+	describe('#bufferToBigNumberString', () => {
+		it('should convert a buffer to a big number', () => {
+			const bigNumber = '58191285901858109';
+			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
+			bufferToBigNumberString(buffer).should.be.equal(bigNumber);
 		});
 	});
 });
