@@ -54,7 +54,7 @@ var TransactionsSql = {
 
 	getSignatureByIds: 'SELECT "transaction_id", ENCODE ("public_key", \'hex\') AS "s_publicKey" FROM second_signature WHERE "transaction_id" IN (${id:csv})',
 
-	getMultiByIds: 'SELECT "transaction_id", min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures_master WHERE "transaction_id" IN (${id:csv})',
+	getMultiByIds: 'SELECT "transaction_id", minimum AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures_master WHERE "transaction_id" IN (${id:csv})',
 
 	getDappByIds: 'SELECT "transaction_id", name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_link", type AS "dapp_type", category AS "dapp_category", icon AS "dapp_icon" FROM dapps WHERE "transaction_id" IN (${id:csv})',
 
