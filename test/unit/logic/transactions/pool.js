@@ -17,42 +17,34 @@ var testAccounts = [
 	{
 		account: {
 			username: 'tpool_test_1',
-			isDelegate: 1,
 			address: '2737453412992791987L',
 			publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-			balance: 500000000000000,
-			u_balance: 500000000000000
+			balance: 500000000000000
 		},
 		secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
 		secret2: 'monitor connect vague chuckle advice message crash glance horror pear opera hedgehog'
 	},{
 		account: {
 			username: 'tpool_test_2',
-			isDelegate: 0,
 			address: '2896019180726908125L',
 			publicKey: '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-			balance: 1000,
-			u_balance: 1000
+			balance: 1000
 		},
 		secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
 	},{
 		account: {
 			username: 'tpool_test_3',
-			isDelegate: 0,
 			address: '15240249857307028085L',
 			publicKey: '181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c',
-			balance: 300000000000000,
-			u_balance: 300000000000000
+			balance: 300000000000000
 		},
 		secret: 'song gather until exercise explain utility walk choice garbage cross route develop',
 	},{
 		account: {
 			username: 'tpool_test_4',
-			isDelegate: 0,
 			address: '13898484363564790288L',
 			publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8',
-			balance: 300000000000000,
-			u_balance: 300000000000000
+			balance: 300000000000000
 		},
 		secret: 'island pizza tilt scrap spend guilt one guitar range narrow rough hotel',
 	}
@@ -86,17 +78,17 @@ var transactions = [
 
 var invalidsTransactions = [
 	/* Type: 0 - Transmit funds account without enough credit.*/
-	node.lisk.transaction.createTransaction(testAccounts[0].account.address, 4400000000, testAccounts[1].secret),
+	node.lisk.transaction.createTransaction(testAccounts[0].account.address, 4400000000000, testAccounts[1].secret),
 	/* Type: 1 - Register a second signature account without enough credit.*/
 	node.lisk.signature.createSignature(testAccounts[1].secret, testAccounts[0].secret2),
 	/* Type: 2.*/
 	[
 		/* - Register a delegate account without enough credit.*/
-		node.lisk.delegate.createDelegate('genre spare shed home aim achieve second garbage army erode rubber baby', 'tpool_new_delegate'),
+		node.lisk.delegate.createDelegate('genre spare shed home aim achieve second garbage army erode rubber baby', 'no_credit'),
 		/* - Register a delegate that already is delegate*/
 		node.lisk.delegate.createDelegate(testAccounts[0].secret, testAccounts[0].account.username),
 		/* - Register a delegate account with existing username*/
-		node.lisk.delegate.createDelegate(testAccounts[1].secret, testAccounts[1].account.username)
+		node.lisk.delegate.createDelegate(testAccounts[1].secret, 'genesis_101')
 	],
 	/* Type: 3.*/
 	[
@@ -191,7 +183,6 @@ describe('transactionPool', function () {
 			modulesLoader.scope.config.transactions.pool.expiryInterval = 80000000;
 			// Wait for genesisBlock transaction being applied
 			node.initApplication(function (err, scope) {
-				// Init transaction logic
 				transactionPool = scope.logic.transactionPool;
 				library = scope;
 				logger = scope.logger;
@@ -295,6 +286,15 @@ describe('transactionPool', function () {
 			});
 		});
 
+		it('should be ok when add delegate transaction to unverified', function (done) {
+			transaction = node.lisk.delegate.createDelegate(testAccounts[0].secret, testAccounts[0].account.username);
+
+			transactionPool.addFromPeer(transaction, false, function (err, cbtransaction) {
+				expect(cbtransaction).to.be.undefined;
+				done();
+			});
+		});
+
 		it('should be ok when get pool totals to initialize local counter', function (done) {
 			var totals = transactionPool.getUsage();
 
@@ -327,6 +327,26 @@ describe('transactionPool', function () {
 			expect(totals.ready).to.be.equal(totalDB.ready);
 			expect(totals.invalid).to.be.equal(totalDB.invalid);
 			done();
+		});
+
+		it('should be ok when add delegate transaction to unverified', function (done) {
+			transaction = node.lisk.delegate.createDelegate(testAccounts[0].secret, testAccounts[0].account.username);
+
+			transactionPool.addFromPeer(transaction, false, function (err, cbtransaction) {
+				expect(cbtransaction).to.be.undefined;
+				done();
+			});
+		});
+
+		it('should be ok when process transactions and create blocks', function (done) {
+			setTimeout(function () {
+				forge(function (err, cbForge) {
+					expect(err).to.be.null;
+					expect(cbForge).to.be.undefined;
+					totalDB.unverified = 0;
+					done();
+				});
+			}, 800);
 		});
 	});
 
@@ -378,7 +398,7 @@ describe('transactionPool', function () {
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
 						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[0].id);
-						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 3.00000001'].join(' '));
+						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 3.00001'].join(' '));
 						poolTotals.ready += 1;
 						done();
 					});
@@ -410,8 +430,8 @@ describe('transactionPool', function () {
 				it('should be ok when reset invalid transactions list', function (done) {
 					var invalidTransactions = transactionPool.resetInvalidTransactions();
 
-					expect(invalidTransactions).to.equal(1);
-					poolTotals.invalid -= 1;
+					expect(invalidTransactions).to.equal(poolTotals.invalid);
+					poolTotals.invalid -= invalidTransactions;
 					done();
 				});
 
@@ -460,7 +480,7 @@ describe('transactionPool', function () {
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
 						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[1].id);
-						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 1e-8'].join(' '));
+						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 0.00001'].join(' '));
 						poolTotals.ready += 1;
 						done();
 					});
@@ -601,7 +621,7 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when delete normal transaction from ready', function (done) {
-					var deletedTransaction = transactionPool.delete(transactions[2]);
+					var deletedTransaction = transactionPool.delete(transactions[2].id);
 
 					expect(deletedTransaction.length).to.equal(1);
 					expect(deletedTransaction[0]).to.equal('ready');
@@ -655,7 +675,7 @@ describe('transactionPool', function () {
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
 						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[3][0].id);
-						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTransactions[3][0].senderId, 'balance: 0'].join(' '));
+						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTransactions[3][0].senderId, 'balance: 0.00001'].join(' '));
 						expect(logger.error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTransactions[3][1].id);
 						expect(logger.error.args[1][1]).to.equal('Delegate not found');
 						poolTotals.invalid += 1;
@@ -679,7 +699,7 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when delete normal transaction from ready', function (done) {
-					var deletedTransaction = transactionPool.delete(transactions[3]);
+					var deletedTransaction = transactionPool.delete(transactions[3].id);
 
 					expect(deletedTransaction.length).to.equal(1);
 					expect(deletedTransaction[0]).to.equal('ready');
@@ -753,7 +773,7 @@ describe('transactionPool', function () {
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
 						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[4][0].id);
-						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTransactions[4][0].senderId, 'balance: 0'].join(' '));
+						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTransactions[4][0].senderId, 'balance: 0.00001'].join(' '));
 						expect(logger.error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTransactions[4][1].id);
 						expect(logger.error.args[1][1]).to.equal('Failed to verify multisignature');
 						poolTotals.invalid += 1;
@@ -785,7 +805,7 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when delete normal transaction from ready', function (done) {
-					var deletedTransaction = transactionPool.delete(completedSignatures);
+					var deletedTransaction = transactionPool.delete(completedSignatures.id);
 
 					expect(deletedTransaction.length).to.equal(1);
 					expect(deletedTransaction[0]).to.equal('ready');
@@ -794,7 +814,7 @@ describe('transactionPool', function () {
 				});
 
 				it('should be ok when delete normal transaction without enough signatures to unverified', function (done) {
-					var deletedTransaction = transactionPool.delete(transactions[4][1]);
+					var deletedTransaction = transactionPool.delete(transactions[4][1].id);
 
 					expect(deletedTransaction.length).to.equal(1);
 					expect(deletedTransaction[0]).to.equal('ready');
@@ -862,7 +882,7 @@ describe('transactionPool', function () {
 					});
 
 					it('should be ok when delete transaction from ready', function (done) {
-						var deletedTransaction = transactionPool.delete(transactions[4][2]);
+						var deletedTransaction = transactionPool.delete(transactions[4][2].id);
 
 						expect(deletedTransaction.length).to.equal(1);
 						expect(deletedTransaction[0]).to.equal('ready');
@@ -1055,6 +1075,7 @@ describe('transactionPool', function () {
 					poolTotals.invalid += 1;
 					poolTotals.ready += 1; 
 					poolTotals.pending += 1;
+					poolTotals.unverified = 0;
 					done();
 				});
 			});
@@ -1122,7 +1143,7 @@ describe('transactionPool', function () {
 				it('should be ok when check pool list unverified', function (done) {
 					var transactions = transactionPool.getAll('unverified', {limit: null});
 
-					expect(Object.keys(transactions).length).to.equal(2);
+					expect(Object.keys(transactions).length).to.equal(poolTotals.unverified);
 					done();
 				});
 
@@ -1251,7 +1272,7 @@ describe('transactionPool', function () {
 		describe('method delete', function () {
 
 			it('should be ok when delete a transaction from unverified', function (done) {
-				var deleteTransaction = transactionPool.delete(invalidsTransactions[0]);
+				var deleteTransaction = transactionPool.delete(invalidsTransactions[0].id);
 
 				expect(deleteTransaction).to.be.an('array').that.is.not.empty;
 				expect(deleteTransaction.length).to.equal(1);
@@ -1269,7 +1290,7 @@ describe('transactionPool', function () {
 			});
 
 			it('should fail when delete transaction that is not in pool', function (done) {
-				var deleteTransaction = transactionPool.delete(transactions[0]);
+				var deleteTransaction = transactionPool.delete(transactions[0].id);
 
 				expect(deleteTransaction).to.be.an('array').that.is.empty;
 				done();
@@ -1337,7 +1358,7 @@ describe('transactionPool', function () {
 			});
 
 			it('should be ok when delete transaction from ready', function (done) {
-				var deleteTransaction = transactionPool.delete(transactions[0]);
+				var deleteTransaction = transactionPool.delete(transactions[0].id);
 
 				expect(deleteTransaction).to.be.an('array').that.is.not.empty;
 				expect(deleteTransaction.length).to.equal(1);
@@ -1386,14 +1407,14 @@ describe('transactionPool', function () {
 
 		it('should be ok when checked account balance with enough LSK for transaction', function (done) {
 			transactionPool.checkBalance(transactions[0], {address: transactions[0].senderId}, function (err, cbBalance) {
-				expect(cbBalance).to.equal('balance: 52999994');
+				expect(cbBalance).to.equal('balance: 4999969');
 				done();
 			});
 		});
 
 		it('should fail when checked account balance with not enough LSK for transaction', function (done) {
 			transactionPool.checkBalance(invalidsTransactions[0], { address: invalidsTransactions[0].senderId }, function (err, cbBalance) {
-				expect(err).to.equal('Account does not have enough LSK: 2896019180726908125L balance: 0');
+				expect(err).to.equal('Account does not have enough LSK: 2896019180726908125L balance: 0.00001');
 				done();
 			});
 		});

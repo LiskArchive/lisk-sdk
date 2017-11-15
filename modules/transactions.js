@@ -464,7 +464,8 @@ Transactions.prototype.applyUnconfirmedList = function (cb) {
  * @return {function} Calls transactionPool.applyUnconfirmedIds
  */
 Transactions.prototype.applyUnconfirmedIds = function (ids, cb) {
-	return __private.transactionPool.applyUnconfirmedIds(ids, cb);
+	// TODO: delete this function
+	cb();
 };
 
 /**
@@ -473,7 +474,8 @@ Transactions.prototype.applyUnconfirmedIds = function (ids, cb) {
  * @return {function} Calls transactionPool.undoUnconfirmedList
  */
 Transactions.prototype.undoUnconfirmedList = function (cb) {
-	return __private.transactionPool.undoUnconfirmedList(cb);
+	// TODO: delete this function
+	cb();
 };
 
 /**
