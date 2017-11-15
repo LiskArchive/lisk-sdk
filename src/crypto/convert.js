@@ -17,6 +17,31 @@ import ed2curve from 'ed2curve';
 import hash from './hash';
 
 /**
+ * @method bigNumberToBuffer
+ * @param {Number} bignumber
+ * @param {Number} size
+ *
+ * @return {Array}
+ */
+
+export function bigNumberToBuffer(bignumber, size) {
+	return bignum(bignumber).toBuffer({
+		size,
+	});
+}
+
+/**
+ * @method bufferToBignumberString
+ * @param {Buffer} bigNumberBuffer
+ *
+ * @return {String}
+ */
+
+export function bufferToBignumberString(bigNumberBuffer) {
+	return bignum.fromBuffer(bigNumberBuffer).toString();
+}
+
+/**
  * @method bufferToHex
  * @param buffer
  *
@@ -59,7 +84,7 @@ export function getFirstEightBytesReversed(publicKeyBytes) {
  */
 
 export function toAddress(buffer) {
-	return `${bignum.fromBuffer(buffer).toString()}L`;
+	return `${bufferToBignumberString(buffer)}L`;
 }
 
 /**

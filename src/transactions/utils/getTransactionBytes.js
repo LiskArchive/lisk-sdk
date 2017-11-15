@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import bignum from 'browserify-bignum';
+import cryptoModule from '../../crypto';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
 
@@ -245,9 +245,10 @@ export default function getTransactionBytes(transaction) {
 
 	const transactionRecipientID = transaction.recipientId
 		? Buffer.from(
-				bignum(transaction.recipientId.slice(0, -1)).toBuffer({
-					size: BYTESIZES.RECIPIENT_ID,
-				}),
+				cryptoModule.bigNumberToBuffer(
+					transaction.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+				),
 			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
