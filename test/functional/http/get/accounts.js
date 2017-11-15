@@ -156,7 +156,7 @@ describe('GET /accounts', function () {
 			});
 
 			it('using username with string greater than max length should fail', function () {
-				return accountsEndpoint.makeRequest({username:  _.repeat('a', 21)}, 400).then(function (res) {
+				return accountsEndpoint.makeRequest({username: _.repeat('a', 21)}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'username');
 				});
 			});
@@ -174,19 +174,19 @@ describe('GET /accounts', function () {
 		describe('limit', function () {
 
 			it('using limit = 0 should return error', function () {
-				return accountsEndpoint.makeRequest({limit:  0}, 400).then(function (res) {
+				return accountsEndpoint.makeRequest({limit: 0}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'limit');
 				});
 			});
 
 			it('using limit = 102 should return error', function () {
-				return accountsEndpoint.makeRequest({limit:  102}, 400).then(function (res) {
+				return accountsEndpoint.makeRequest({limit: 102}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'limit');
 				});
 			});
 
 			it('using limit = 5 should return return 5 accounts', function () {
-				return accountsEndpoint.makeRequest({limit:  5}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({limit: 5}, 200).then(function (res) {
 					res.body.data.should.have.length(5);
 				});
 			});
@@ -194,25 +194,25 @@ describe('GET /accounts', function () {
 
 		describe('sort', function () {
 			it('using sort = invalid should return error', function () {
-				return accountsEndpoint.makeRequest({sort:  'invalid'}, 400);
+				return accountsEndpoint.makeRequest({sort: 'invalid'}, 400);
 			});
 
 			it('using no sort return accounts sorted by balance in asending order as default behavior', function () {
-				return accountsEndpoint.makeRequest({sort:  'balance:asc'}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({sort: 'balance:asc'}, 200).then(function (res) {
 					var balances = _(res.body.data).map('balance').value();
 					_.clone(balances).sort().should.be.eql(balances);
 				});
 			});
 
 			it('using sort = balance:asc should return accounts in ascending order by balance', function () {
-				return accountsEndpoint.makeRequest({sort:  'balance:asc'}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({sort: 'balance:asc'}, 200).then(function (res) {
 					var balances = _(res.body.data).map('balance').value();
 					_.clone(balances).sort().should.be.eql(balances);
 				});
 			});
 
 			it('using sort = balance:desc should return accounts in descending order by balance', function () {
-				return accountsEndpoint.makeRequest({sort:  'balance:desc'}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({sort: 'balance:desc'}, 200).then(function (res) {
 					var balances = _(res.body.data).map('balance').value();
 					_.clone(balances).sort().reverse().should.be.eql(balances);
 				});
@@ -222,7 +222,7 @@ describe('GET /accounts', function () {
 		describe('offset', function () {
 
 			it('using offset = -1 should return error', function () {
-				return accountsEndpoint.makeRequest({offset:  -1}, 400).then(function (res) {
+				return accountsEndpoint.makeRequest({offset: -1}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'offset');
 				});
 			});
