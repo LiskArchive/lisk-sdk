@@ -112,7 +112,10 @@ export default class LiskAPI {
 		return {
 			official: this.defaultNodes.map(node => ({ node })),
 			ssl: this.defaultSSLNodes.map(node => ({ node, ssl: true })),
-			testnet: this.defaultTestnetNodes.map(node => ({ node, testnet: true })),
+			testnet: this.defaultTestnetNodes.map(node => ({
+				node,
+				testnet: true,
+			})),
 		};
 	}
 
@@ -170,9 +173,10 @@ export default class LiskAPI {
 			requestParams: { transaction },
 		};
 
-		privateApi.sendRequestPromise
+		return privateApi.sendRequestPromise
 			.call(this, POST, request)
-			.then(result => callback(result.body));
+			.then(result => result.body)
+			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
 
 	/**
