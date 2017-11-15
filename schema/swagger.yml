@@ -86,7 +86,7 @@ paths:
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpeted error
+          description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
 
