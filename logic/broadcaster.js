@@ -105,17 +105,13 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
  */
 Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
-	params.broadhash = params.broadhash || null;
-	params.matchBroadhash = params.matchBroadhash || false;
-	params.unmatchBroadhash = params.unmatchBroadhash || false;
-
 	var originalLimit = params.limit;
 	var skipConsensusCalculation = false;
-	if (params.broadhash && (params.matchBroadhash || params.unmatchBroadhash)) {
+	if (params.matchBroadhash || params.unmatchBroadhash) {
 		params.attempt = params.matchBroadhash ? 0 : 1;
-		skipConsensusCalculation= true;
+		skipConsensusCalculation = true;
 	}
-	modules.peers.list(params, function (err, peers, consensus) {
+	modules.peers.list(params, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
