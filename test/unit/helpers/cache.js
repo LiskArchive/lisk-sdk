@@ -113,7 +113,7 @@ describe('cache', function () {
 					expect(result.cacheEnabled).to.eq( true );
 				});
 
-				it('should call callback with result containing client which is redis client', function () {
+				it('should call callback with result containing an instance of redis client', function () {
 					expect(result.client).to.eql(redisCreateClientResult);
 				});
 			});
