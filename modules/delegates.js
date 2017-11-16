@@ -282,8 +282,8 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');
 	}
-
-	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
+	
+	modules.accounts.getAccount({address: modules.accounts.generateAddressByPublicKey(publicKey)}, function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -292,6 +292,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			return setImmediate(cb, 'Account not found');
 		}
 
+		// TODO: Check from new tx pool for u_ state
 		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
 		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
 		var additions = 0, removals = 0;
