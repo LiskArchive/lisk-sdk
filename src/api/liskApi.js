@@ -91,9 +91,10 @@ export default class LiskAPI {
 	 */
 
 	getNethash(providedNethash) {
+		const { port } = this;
 		const NetHash = this.testnet
-			? privateApi.netHashOptions.call(this).testnet
-			: privateApi.netHashOptions.call(this).mainnet;
+			? utils.netHashOptions({ port }).testnet
+			: utils.netHashOptions({ port }).mainnet;
 
 		if (providedNethash) {
 			NetHash.nethash = providedNethash;
@@ -168,7 +169,7 @@ export default class LiskAPI {
 
 	broadcastSignedTransaction(transaction, callback) {
 		const request = {
-			requestUrl: `${privateApi.getFullURL.call(this)}/api/transactions`,
+			requestUrl: `${utils.getFullURL(this)}/api/transactions`,
 			nethash: this.nethash,
 			requestParams: { transaction },
 		};

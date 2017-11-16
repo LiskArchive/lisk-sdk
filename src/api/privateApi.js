@@ -18,60 +18,6 @@ import * as utils from './utils';
 const GET = 'GET';
 
 /**
- * @method netHashOptions
- * @return {Object}
- * @private
- */
-
-export function netHashOptions() {
-	const testnetNethash =
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const mainnetNethash =
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-
-	const commonNethash = {
-		'Content-Type': 'application/json',
-		os: 'lisk-js-api',
-		version: '1.0.0',
-		minVersion: '>=0.5.0',
-		port: this.port,
-	};
-
-	return {
-		testnet: Object.assign({}, commonNethash, {
-			nethash: testnetNethash,
-			broadhash: testnetNethash,
-		}),
-		mainnet: Object.assign({}, commonNethash, {
-			nethash: mainnetNethash,
-			broadhash: mainnetNethash,
-		}),
-	};
-}
-
-/**
- * @method getURLPrefix
- * @return {String}
- * @private
- */
-
-export function getURLPrefix() {
-	return this.ssl ? 'https' : 'http';
-}
-
-/**
- * @method getFullURL
- * @return {String}
- * @private
- */
-
-export function getFullURL() {
-	const nodeUrl = this.port ? `${this.node}:${this.port}` : this.node;
-
-	return `${getURLPrefix.call(this)}://${nodeUrl}`;
-}
-
-/**
  * @method getNodes
  * @return {Array}
  * @private
@@ -174,13 +120,11 @@ export function hasAvailableNodes() {
 
 export function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
+	const baseURL = utils.getFullURL(this);
 	const url =
 		method === GET
-			? `${getFullURL.call(this)}/api/${requestType}?${utils.toQueryString.call(
-					this,
-					options,
-				)}`
-			: `${getFullURL.call(this)}/api/${requestType}`;
+			? `${baseURL}/api/${requestType}?${utils.toQueryString(options)}`
+			: `${baseURL}/api/${requestType}`;
 
 	return {
 		method,

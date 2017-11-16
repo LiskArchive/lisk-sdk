@@ -90,7 +90,7 @@ describe('Lisk API module', () => {
 			privateApi,
 			'handleSendRequestFailures',
 		);
-		getFullURLStub = sandbox.stub(privateApi, 'getFullURL').returns(defaultUrl);
+		getFullURLStub = sandbox.stub(utils, 'getFullURL').returns(defaultUrl);
 
 		LSK = new LiskAPI({});
 	});
@@ -479,7 +479,7 @@ describe('Lisk API module', () => {
 
 		it('should use getFullURL to get the url', () => {
 			return LSK.broadcastSignedTransaction({}).then(() => {
-				getFullURLStub.should.be.calledOn(LSK);
+				getFullURLStub.should.be.calledWithExactly(LSK);
 			});
 		});
 

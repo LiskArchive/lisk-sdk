@@ -63,89 +63,6 @@ describe('privateApi module', () => {
 			.resolves(Object.assign({}, sendRequestResult));
 	});
 
-	describe('#netHashOptions', () => {
-		const { netHashOptions } = privateApi;
-		let result;
-
-		beforeEach(() => {
-			result = netHashOptions.call(LSK);
-		});
-
-		it('should return an object with a testnet nethash', () => {
-			const { testnet } = result;
-			testnet.should.have.property('Content-Type').and.be.type('string');
-			testnet.should.have.property('nethash').and.be.type('string');
-			testnet.should.have.property('broadhash').and.be.type('string');
-			testnet.should.have.property('os').and.be.type('string');
-			testnet.should.have.property('version').and.be.type('string');
-			testnet.should.have.property('minVersion').and.be.type('string');
-			testnet.should.have.property('port').and.be.type('number');
-		});
-		it('should return an object with a mainnet nethash', () => {
-			const { mainnet } = result;
-			mainnet.should.have.property('Content-Type').and.be.type('string');
-			mainnet.should.have.property('nethash').and.be.type('string');
-			mainnet.should.have.property('broadhash').and.be.type('string');
-			mainnet.should.have.property('os').and.be.type('string');
-			mainnet.should.have.property('version').and.be.type('string');
-			mainnet.should.have.property('minVersion').and.be.type('string');
-			mainnet.should.have.property('port').and.be.type('number');
-		});
-	});
-
-	describe('#getURLPrefix', () => {
-		const { getURLPrefix } = privateApi;
-
-		it('should return http when ssl is set to false', () => {
-			LSK.ssl = false;
-			const result = getURLPrefix.call(LSK);
-			result.should.be.equal('http');
-		});
-
-		it('should return https when ssl is set to true', () => {
-			LSK.ssl = true;
-			const result = getURLPrefix.call(LSK);
-			result.should.be.equal('https');
-		});
-	});
-
-	describe('#getFullURL', () => {
-		const { getFullURL } = privateApi;
-		const URLPrefix = 'ftp';
-
-		let getURLPrefixStub;
-		let restoreGetURLPrefixStub;
-		let result;
-
-		beforeEach(() => {
-			getURLPrefixStub = sandbox.stub().returns(URLPrefix);
-			// eslint-disable-next-line no-underscore-dangle
-			restoreGetURLPrefixStub = privateApi.__set__(
-				'getURLPrefix',
-				getURLPrefixStub,
-			);
-			result = getFullURL.call(LSK);
-		});
-
-		afterEach(() => {
-			restoreGetURLPrefixStub();
-		});
-
-		it('should get the URL prefix', () => {
-			getURLPrefixStub.should.be.calledOn(LSK);
-		});
-
-		it('should add the prefix to the node URL and the port', () => {
-			result.should.equal(`${URLPrefix}://${LSK.node}:${port}`);
-		});
-
-		it('should not include a port if not set', () => {
-			delete LSK.port;
-			result = getFullURL.call(LSK);
-			result.should.equal(`${URLPrefix}://${LSK.node}`);
-		});
-	});
-
 	describe('#getNodes', () => {
 		const { getNodes } = privateApi;
 
@@ -588,7 +505,9 @@ describe('privateApi module', () => {
 
 		it('should resend the request with a time offset of 10 seconds if all those conditions are met and the time offset is not specified', () => {
 			delete options.timeOffset;
-			const expectedOptions = Object.assign({}, options, { timeOffset: 10 });
+			const expectedOptions = Object.assign({}, options, {
+				timeOffset: 10,
+			});
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
 				.then(returnValue => {
@@ -602,7 +521,9 @@ describe('privateApi module', () => {
 		});
 
 		it('should resend the request with the time offset increased by 10 seconds if all those conditions are met and the time offset is specified', () => {
-			const expectedOptions = Object.assign({}, options, { timeOffset: 50 });
+			const expectedOptions = Object.assign({}, options, {
+				timeOffset: 50,
+			});
 			return handleTimestampIsInFutureFailures
 				.call(LSK, defaultMethod, defaultEndpoint, options, result)
 				.then(returnValue => {
