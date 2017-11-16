@@ -91,7 +91,9 @@ export function selectNewNode() {
 export function banActiveNode() {
 	if (!isBanned.call(this, this.node)) {
 		this.bannedNodes.push(this.node);
+		return true;
 	}
+	return false;
 }
 
 /**
