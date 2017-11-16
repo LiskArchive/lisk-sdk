@@ -97,13 +97,10 @@ var config = {
 		voters: './modules/voters'
 	},
 	api: {
-		accounts: { http: './api/http/accounts.js' },
 		blocks: { http: './api/http/blocks.js' },
 		dapps: { http: './api/http/dapps.js' },
 		delegates: { http: './api/http/delegates.js' },
-		loader: { http: './api/http/loader.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
-		peers: { http: './api/http/peers.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
 		voters: { http: './api/http/voters.js' },

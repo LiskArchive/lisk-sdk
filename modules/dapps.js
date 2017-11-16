@@ -1,3 +1,7 @@
+'use strict';
+
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var DApp = require('../logic/dapp.js');
 var dappCategories = require('../helpers/dappCategories.js');
 var InTransfer = require('../logic/inTransfer.js');
@@ -39,11 +43,11 @@ function DApps (cb, scope) {
 		ed: scope.ed,
 		balancesSequence: scope.balancesSequence,
 		logic: {
-			transaction: scope.logic.transaction,
+			transaction: scope.logic.transaction
 		},
 		config: {
-			dapp: scope.config.dapp,
-		},
+			dapp: scope.config.dapp
+		}
 	};
 	self = this;
 
@@ -85,27 +89,6 @@ function DApps (cb, scope) {
 
 // Private methods
 /**
- * Gets record from `dapps` table based on id
- * @private
- * @implements {library.db.query}
- * @param {string} id
- * @param {function} cb
- * @return {setImmediateCallback} error description | row data
- */
-__private.get = function (id, cb) {
-	library.db.query(sql.get, {id: id}).then(function (rows) {
-		if (rows.length === 0) {
-			return setImmediate(cb, 'Application not found');
-		} else {
-			return setImmediate(cb, null, rows[0]);
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'DApp#get error');
-	});
-};
-
-/**
  * Gets records from `dapps` table based on filter
  * @private
  * @implements {library.db.query}
@@ -116,6 +99,11 @@ __private.get = function (id, cb) {
  */
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
+
+	if (filter.transactionId) {
+		where.push('"transactionId" = ${transactionId}');
+		params.transactionId = filter.transactionId;
+	}
 
 	if (filter.type >= 0) {
 		where.push('"type" = ${type}');
@@ -193,7 +181,7 @@ DApps.prototype.onBind = function (scope) {
 		transactions: scope.transactions,
 		accounts: scope.accounts,
 		peers: scope.peers,
-		sql: scope.sql,
+		sql: scope.sql
 	};
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
@@ -222,54 +210,23 @@ DApps.prototype.isLoaded = function () {
  * @todo implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
-DApps.prototype.internal = {
+DApps.prototype.shared = {
 
-	get: function (param, cb) {
-		__private.get(param.id, function (err, dapp) {
+	getDapps: function (req, cb) {
+		library.schema.validate(req.body, schema.list, function (err) {
 			if (err) {
-				return setImmediate(cb, null, {success: false, error: err});
-			} else {
-				return setImmediate(cb, null, {success: true, dapp: dapp});
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
 			}
-		});
-	},
-
-	list: function (query, cb) {
-		__private.list(query, function (err, dapps) {
-			if (err) {
-				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, {success: true, dapps: dapps});
-			}
-		});
-	},
-
-	categories: function (req, cb) {
-		return setImmediate(cb, null, {success: true, categories: dappCategories});
-	},
-};
-
-// Shared API
-shared.getGenesis = function (req, cb) {
-	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
-		if (rows.length === 0) {
-			return setImmediate(cb, 'Application genesis block not found');
-		} else {
-			var row = rows[0];
-
-			return setImmediate(cb, null, {
-				pointId: row.id,
-				pointHeight: row.height,
-				authorId: row.authorId,
-				dappid: req.dappid
+			__private.list(req.body, function (err, dapps) {
+				if (err) {
+					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
+				} else {
+					return setImmediate(cb, null, {dapps: dapps});
+				}
 			});
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'DApp#getGenesis error');
-	});
+		});
+	}
 };
-
 
 // Export
 module.exports = DApps;

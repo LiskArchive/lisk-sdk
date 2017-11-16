@@ -16,14 +16,12 @@ describe('GET /api/multisignatures/', function () {
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		//Crediting accounts
-		return creditAccountPromise(scenario.account.address, 1000 * node.normalizer)
+		// Crediting accounts
+		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, node.gAccount.password);
+		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-				transactionsToWaitFor.push(res.transactionId);
-			})
-			.then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				transactionsToWaitFor.push(sendTransaction.id);
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
@@ -31,8 +29,7 @@ describe('GET /api/multisignatures/', function () {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(res.transactionId);
 			});
 	});

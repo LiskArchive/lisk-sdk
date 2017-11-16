@@ -67,7 +67,7 @@ describe('txPool', function () {
 
 		it('should return error when using empty object', function (done) {
 			txPool.receiveTransactions([{}], false, function (err) {
-				expect(err).to.be.equal('Invalid public key');
+				expect(err).to.equal('Invalid public key');
 				done();
 			});
 		});

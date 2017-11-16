@@ -1,22 +1,21 @@
 swagger: '2.0'
+
 info:
-  description: Lisk API Documentation 
-  version: "1.0.19"
-  title: Lisk API Documentation 
-  # Get account information by specified criteria
+  description: Lisk API Documentation
+  title: Lisk API Documentation
+  version: '1.0.19'
   contact:
     email: isabella@lightcurve.io
-
   license:
     name: GPL v3.0
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-# all paths will be relative to the basePath specified
+# All paths relative to specified basePath
 # basePath: /v1
 
 basePath: /api
 
-# tags are used for organizing operations
+# Tags for organizing operations
 tags:
 - name: Accounts
   description: Account related API calls
@@ -27,8 +26,8 @@ tags:
 - name: Delegates
   description: Delegates related API calls
 - name: Delegates (Private)
-  description: Private API calls only avaiable to localhost/Whitelist
-- name: Node 
+  description: Private API calls only available to localhost/whitelist
+- name: Node
   description: Node related API calls
 - name: Peers
   description: Peers related API Calls
@@ -43,50 +42,404 @@ tags:
 
 schemes:
   - https
+
 paths:
+  /accounts:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests account data
+      operationId: getAccounts
+      description:
+        By passing in the appropriate parameters, you can search for
+        matching accounts in the system
+      produces:
+      - application/json
+      parameters:
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - name: sort
+          in: query
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - balance:asc
+            - balance:desc
+          default: balance:asc
+      responses:
+        200:
+          description: List of accounts
+          schema:
+            $ref: '#/definitions/AccountsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /peers:
+    x-swagger-router-controller: peers
+    get:
+      tags:
+      - Peers
+      summary: Requests peers data
+      operationId: getPeers
+      description: Returns peers related data
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/ip'
+        - $ref: '#/parameters/httpPort'
+        - $ref: '#/parameters/wsPort'
+        - $ref: '#/parameters/os'
+        - $ref: '#/parameters/version'
+        - $ref: '#/parameters/state'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/broadhash'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - height:asc
+            - height:desc
+            - version:asc
+            - version:desc
+      responses:
+        200:
+          description: List of peers
+          schema:
+            $ref: '#/definitions/PeersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   # Node
   /node/constants:
     x-swagger-router-controller: node
     get:
       tags:
       - Node
-      summary: requests Constants data
+      summary: Requests constants data
       operationId: getConstants
-      description:
-        This API call returns all current constants data on the system
+      description: Returns all current constants data on the system
       produces:
       - application/json
       responses:
         200:
-          description: Node constants
+          description: Node constants response
           schema:
-            $ref: '#/definitions/NodeConstants'
+            $ref: '#/definitions/NodeConstantsResponse'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /node/status:
     x-swagger-router-controller: node
     get:
       tags:
       - Node
-      summary: requests Status data
+      summary: Requests status data
       operationId: getStatus
-      description:
-        This API call returns all current constants data on the system
+      description: Returns all current constants data on the system
       produces:
       - application/json
       responses:
         200:
-          description: Node constants
+          description: Node status response
           schema:
-            $ref: '#/definitions/NodeStatus'
+            $ref: '#/definitions/NodeStatusResponse'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
-            $ref: '#/definitions/ResponseCode429'
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+parameters:
+  ip:
+    name: ip
+    in: query
+    description: IP of the node or delegate
+    type: string
+    format: ip
+  httpPort:
+    name: httpPort
+    in: query
+    description: Http port of the node or delegate
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 65535
+  wsPort:
+    name: wsPort
+    in: query
+    description: Web socket port for the node or delegate
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 65535
+  os:
+    name: os
+    in: query
+    description: OS of the node
+    type: string
+  version:
+    name: version
+    in: query
+    description: Lisk version run by node
+    type: string
+    format: version
+    minLength: 5
+    maxLength: 12
+  state:
+    name: state
+    in: query
+    description: Current state of the network
+    type: integer
+    format: int32
+    minimum: 0
+    maximum: 2
+  height:
+    name: height
+    in: query
+    description: Current height of the network
+    type: integer
+    format: int32
+    minimum: 1
+  broadhash:
+    name: broadhash
+    in: query
+    description: Broadhash of the network
+    type: string
+    format: hex
+  limit:
+    in: query
+    name: limit
+    description: Limit applied to results
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 100
+    default: 10
+  offset:
+    name: offset
+    in: query
+    description: Offset value for results
+    type: integer
+    format: int32
+    minimum: 0
+    default: 0
+  address:
+    name: address
+    in: query
+    description: Address to query
+    required: false
+    type: string
+    format: address
+    minLength: 2
+    maxLength: 22
+  publicKey:
+    name: publicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+  secondPublicKey:
+    name: secondPublicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+  username:
+    name: username
+    in: query
+    description: Delegate username to query
+    type: string
+    format: username
+    minLength: 1
+    maxLength: 20
 
 definitions:
+  NodeStatusResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        $ref: '#/definitions/NodeStatus'
+      meta:
+        type: object
+      links:
+        type: object
+
+  NodeConstantsResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        $ref: '#/definitions/NodeConstants'
+      meta:
+        type: object
+      links:
+        type: object
+
+  PeersResponse:
+    description: Peers response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Peer'
+      meta:
+       type: object
+       required:
+         - offset
+         - limit
+         - total
+       properties:
+         offset:
+           description: Offset value for results
+           type: integer
+           example: 0
+         limit:
+           description: Limit applied to results
+           type: integer
+           example: 100
+         total:
+           description: Total number of available peers
+           type: integer
+           example: 100
+      links:
+        type: object
+
+  AccountsResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of accounts
+        type: array
+        items:
+          $ref: '#/definitions/AccountExtended'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  Peer:
+    type: object
+    required:
+      - ip
+      - httpPort
+      - wsPort
+      - os
+      - version
+      - state
+      - height
+      - broadhash
+      - nonce
+    properties:
+      ip:
+        type: string
+        example: 127.0.0.1
+        format: ip
+      httpPort:
+        type: integer
+        example: 8000
+        format: int32
+        minimum: 1
+        maximum: 65535
+      wsPort:
+        type: integer
+        example: 8001
+        format: int32
+        minimum: 1
+        maximum: 65535
+      os:
+        type: string
+        example: debian
+      version:
+        type: string
+        example: v0.8.0
+        format: version
+        minLength: 5
+        maxLength: 12
+      state:
+        type: integer
+        example: 2
+        format: int32
+        minimum: 0
+        maximum: 2
+      height:
+        type: integer
+        example: 123
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        format: hex
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 1
+
   Fees:
     type: object
     required:
@@ -178,40 +531,185 @@ definitions:
         maxLength: 16
       fees:
         $ref: '#/definitions/Fees'
+
   NodeStatus:
     type: object
     required:
-      - syncing
-      - height
-      - networkHeight
-      - consensus
       - broadhash
+      - consensus
+      - height
+      - loaded
+      - networkHeight
+      - syncing
     properties:
-      syncing:
-        type: boolean
-        example: false
-      height:
-        type: integer
-        example: 123
-        minimum: 1
-      networkHeight:
-        type: integer
-        example: 123
-      consensus:
-        type: integer
-        example: 95
-        minimum: 0
-        maximum: 100
       broadhash:
         type: string
         example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
         minLength: 64
         maxLength: 64
+      consensus:
+        type: integer
+        example: 95
+        minimum: 0
+        maximum: 100
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      loaded:
+        type: boolean
+        example: true
+      networkHeight:
+        type: integer
+        example: 123
+      syncing:
+        type: boolean
+        example: false
 
-# Response Code Templates
-  ResponseCode429:
+  UnexpectedError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  RequestLimitError:
     type: object
     properties:
       error:
         type: string
         example: Request limit exceeded. Please try again later.
+
+  ParamErrorResponse:
+    type: object
+    description: Response generated in case of parameters validation
+    required:
+      - message
+      - errors
+    properties:
+      message:
+        type: string
+        description: Message stating some valdiation error occurred
+        example: Validation errors
+      errors:
+        type: array
+        description: Array of individual parameter errors
+        items:
+          $ref: '#/definitions/ParamError'
+
+  ParamError:
+    type: object
+    description: Collection of errors on a particular parameter
+    required:
+      - code
+      - name
+      - in
+      - message
+    properties:
+      code:
+        type: string
+        description: Valid error code explaining error
+        example: INVALID_REQUEST_PARAMETER
+      name:
+        type: string
+        description: Parameter name for which error triggered
+        example: offset
+      in:
+        type: string
+        description: Where the param was specified, e.g. path, query, form-data
+        example: query
+      message:
+        type: string
+        description: Detailed message explaining the error
+        example: Invalid parameter (offset) value failed JSON schema validation
+      errors:
+        type: array
+        description: Array of individual validation error for a particular param
+        items:
+          $ref: '#/definitions/ParamErrorMessage'
+
+  ParamErrorMessage:
+    type: object
+    description: Singular error detail for a parameter
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: string
+        description: Valid error code explaining error
+        example: MINIMUM
+      message:
+        type: string
+        description: Detailed message explaining error
+        example: Value -1 is less than minimum 0
+      description:
+        type: string
+        description: Param description specified in schema
+
+  AccountExtended:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+      - unconfirmedBalance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+      unconfirmedBalance:
+        type: string
+        example: 0
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      delegate:
+        $ref: '#/definitions/Delegate'
+
+  Delegate:
+    type: object
+    required:
+      - username
+      - vote
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      vote:
+        type: string
+        example: 1081560729258
+      rewards:
+        type: string
+        example: 510000000
+      producedBlocks:
+        type: integer
+        example: 20131
+      missedBlocks:
+        type: integer
+        example: 427
+      rate:
+        type: integer
+        example: 91
+      approval:
+        type: number
+        example: 14.22
+      productivity:
+        type: number
+        example: 96.41
+      rank:
+        type: integer
+        example: 70

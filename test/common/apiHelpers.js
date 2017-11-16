@@ -27,6 +27,16 @@ function paramsHelper (url, params) {
 	return url;
 }
 
+function httpCallbackHelperWithStatus (cb, err, res) {
+	if (err) {
+		return cb(err);
+	}
+	cb(null, {
+		status: res.status,
+		body: res.body
+	});
+}
+
 function httpCallbackHelper (cb, err, res) {
 	if (err) {
 		return cb(err);
@@ -41,15 +51,16 @@ function httpResponseCallbackHelper (cb, err, res) {
 	cb(null, res);
 }
 
-function getTransaction (transaction, cb) {
-	http.get('/api/transactions/get?id=' + transaction, httpCallbackHelper.bind(null, cb));
+function getTransactionById (transactionId, cb) {
+	// Get transactionById uses the same /api/transactions endpoint, this is just a helper function
+	http.get('/api/transactions?id=' + transactionId, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getTransactions (params, cb) {
 	var url = '/api/transactions';
 	url = paramsHelper(url, params);
 
-	http.get(url, httpCallbackHelper.bind(null, cb));
+	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getUnconfirmedTransaction (transaction, cb) {
@@ -84,11 +95,11 @@ function getPendingMultisignatures (params, cb) {
 }
 
 function sendTransaction (transaction, cb) {
-	http.post('/api/transactions', {transaction: transaction}, httpCallbackHelper.bind(null, cb));
+	http.post('/api/transactions', {transactions: [transaction]}, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function sendSignature (signature, transaction, cb) {
-	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpCallbackHelper.bind(null, cb));
+	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function creditAccount (address, amount, cb) {
@@ -159,15 +170,7 @@ function getNextForgers (params, cb) {
 }
 
 function getAccounts (params, cb) {
-	http.get('/api/accounts?' + params, httpCallbackHelper.bind(null, cb));
-}
-
-function getPublicKey (address, cb) {
-	http.get('/api/accounts/getPublicKey?address=' + address, httpCallbackHelper.bind(null, cb));
-}
-
-function getBalance (address, cb) {
-	http.get('/api/accounts/getBalance?address=' + address, httpCallbackHelper.bind(null, cb));
+	http.get('/api/accounts?' + params, httpCallbackHelperWithStatus.bind(null, cb));
 }
 
 function getBlocks (params, cb) {
@@ -181,16 +184,15 @@ function waitForConfirmations (transactions, limitHeight) {
 	limitHeight = limitHeight || 10;
 
 	function checkConfirmations (transactions) {
-		return node.Promise.map(transactions, function (transaction) {
-			return getTransactionPromise(transaction);
-		})
-			.then(function (res) {
-				return node.Promise.each(res, function (result) {
-					if (result.success === false) {
-						throw Error(result.error);
-					}
-				});
+		return node.Promise.all(transactions.map(function (transactionId) {
+			return getTransactionByIdPromise(transactionId);
+		})).then(function (res) {
+			return node.Promise.each(res, function (result) {
+				if (result.body.transactions.length === 0) {
+					throw Error('Transaction not confirmed');
+				}
 			});
+		});
 	}
 
 	function waitUntilLimit (limit) {
@@ -212,25 +214,25 @@ function waitForConfirmations (transactions, limitHeight) {
 	return waitUntilLimit(limitHeight);
 }
 
-function getDapp (dapp_id, cb) {
-	http.get('/api/dapps/get?id=' + dapp_id, httpCallbackHelper.bind(null, cb));
-}
-
 function getDapps (params, cb) {
 	var url = '/api/dapps';
 	url = paramsHelper(url, params);
 
-	http.get(url, httpCallbackHelper.bind(null, cb));
+	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function getDappsCategories (params, cb) {
-	var url = '/api/dapps/categories';
-	url = paramsHelper(url, params);
-
-	http.get(url, httpCallbackHelper.bind(null, cb));
+/**
+ * Validate if the validation response contains error for a specific param
+ *
+ * @param {object} res - Response object got from server
+ * @param {string} param - Param name to check
+ */
+function expectSwaggerParamError (res, param) {
+	res.body.message.should.be.eql('Validation errors');
+	res.body.errors.map(function (p) { return p.name; }).should.contain(param);
 }
 
-var getTransactionPromise = node.Promise.promisify(getTransaction);
+var getTransactionByIdPromise = node.Promise.promisify(getTransactionById);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
 var getQueuedTransactionsPromise = node.Promise.promisify(getQueuedTransactions);
@@ -253,15 +255,11 @@ var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
 var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
 var getNextForgersPromise = node.Promise.promisify(getNextForgers);
 var getAccountsPromise = node.Promise.promisify(getAccounts);
-var getPublicKeyPromise = node.Promise.promisify(getPublicKey);
-var getBalancePromise = node.Promise.promisify(getBalance);
 var getBlocksPromise = node.Promise.promisify(getBlocks);
-var getDappPromise = node.Promise.promisify(getDapp);
 var getDappsPromise = node.Promise.promisify(getDapps);
-var getDappsCategoriesPromise = node.Promise.promisify(getDappsCategories);
 
 module.exports = {
-	getTransactionPromise: getTransactionPromise,
+	getTransactionByIdPromise: getTransactionByIdPromise,
 	getTransactionsPromise: getTransactionsPromise,
 	getUnconfirmedTransactionPromise: getUnconfirmedTransactionPromise,
 	getUnconfirmedTransactionsPromise: getUnconfirmedTransactionsPromise,
@@ -290,13 +288,8 @@ module.exports = {
 	getNextForgersPromise: getNextForgersPromise,
 	getAccounts: getAccounts,
 	getAccountsPromise: getAccountsPromise,
-	getPublicKey: getPublicKey,
-	getBalancePromise: getBalancePromise,
-	getBalance: getBalance,
-	getPublicKeyPromise: getPublicKeyPromise,
 	getBlocksPromise: getBlocksPromise,
 	waitForConfirmations: waitForConfirmations,
-	getDappPromise: getDappPromise,
 	getDappsPromise: getDappsPromise,
-	getDappsCategoriesPromise: getDappsCategoriesPromise
+	expectSwaggerParamError: expectSwaggerParamError
 };

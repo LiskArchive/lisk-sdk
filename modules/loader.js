@@ -769,6 +769,14 @@ Loader.prototype.isLoaded = function () {
 	return !!modules;
 };
 
+/**
+ * Checks private variable loaded.
+ * @return {boolean} False if not loaded
+ */
+Loader.prototype.loaded = function () {
+	return !!__private.loaded;
+};
+
 // Events
 /**
  * Pulls Transactions and signatures.
@@ -856,42 +864,6 @@ Loader.prototype.onBlockchainReady = function () {
 Loader.prototype.cleanup = function (cb) {
 	__private.loaded = false;
 	return setImmediate(cb);
-};
-
-// Internal API
-/**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-Loader.prototype.internal = {
-	statusPing: function () {
-		return modules.blocks.lastBlock.isFresh();
-	}
-};
-
-// Shared API
-/**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-Loader.prototype.shared = {
-	status: function (req, cb) {
-		return setImmediate(cb, null, {
-			loaded: __private.loaded,
-			now: __private.lastBlock.height,
-			blocksCount: __private.total
-		});
-	},
-
-	sync: function (req, cb) {
-		return setImmediate(cb, null, {
-			syncing: self.syncing(),
-			blocks: __private.blocksToSync,
-			height: modules.blocks.lastBlock.get().height,
-			broadhash: modules.system.getBroadhash(),
-			consensus: modules.peers.getConsensus()
-		});
-	}
 };
 
 // Export

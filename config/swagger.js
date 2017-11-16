@@ -40,10 +40,10 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
 		startWithWarnings: false
-	  };
+	};
 
-	  SwaggerRunner.create(swaggerConfig, function (err, runner) {
-		
+		SwaggerRunner.create(swaggerConfig, function (err, runner) {
+
 		if (err) {
 			// Some error occurred in configuring the swagger
 			if (err.validationErrors) {
@@ -63,10 +63,14 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 
 		// Check the response and do appropriate on error
 		runner.on('responseValidationError', function (validationResponse, request, response) {
-			logger.error(validationResponse.errors);
+			// TODO: Troubleshoot why default validation hook consider json response as string response
+			if (validationResponse.errors[0].code !== 'INVALID_RESPONSE_BODY') {
+				logger.error('Swagger Response Validation Errors:');
+				logger.error(validationResponse.errors[0].errors);
+			}
 		});
-				
-		// install middleware
+
+		// Install middleware
 		swaggerExpress.register(app);
 
 		// To be used in test cases or getting configuration runtime

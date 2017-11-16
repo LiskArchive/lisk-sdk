@@ -24,8 +24,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		typesRepresentatives.allTypes.forEach(function (test) {
 			it('using ' + test.description + ' should fail', function () {
 				return sendTransactionPromise(test.input).then(function (res) {
-					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				});
 			});
 		});
@@ -38,8 +38,9 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			transaction.timestamp += 1;
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid transaction id');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.equal('Invalid transaction id');
+				badTransactions.push(transaction);
 			});
 		});
 
@@ -47,8 +48,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			transaction = node.lisk.transaction.createTransaction(account.address, 0, node.gAccount.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Invalid transaction amount');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.to.equal('Invalid transaction amount');
 				badTransactions.push(transaction);
 			});
 		});
@@ -57,8 +58,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
@@ -67,8 +68,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			transaction = node.lisk.transaction.createTransaction(account.address, Math.floor(node.gAccount.balance) , node.gAccount.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.match(/^Account does not have enough LSK: [0-9]+L balance: /);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.match(/^Account does not have enough LSK: [0-9]+L balance: /);
 				badTransactions.push(transaction);
 			});
 		});
@@ -88,24 +89,24 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			};
 
 			return sendTransactionPromise(signedTransactionFromGenesis).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').equals('Invalid sender. Can not send from genesis account');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').equals('Invalid sender. Can not send from genesis account');
 				badTransactions.push(signedTransactionFromGenesis);
 			});
 		});
 
 		it('when sender has funds should be ok', function () {
 			return sendTransactionPromise(goodTransaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(goodTransaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(goodTransaction);
 			});
 		});
 
 		it('sending transaction with same id twice should fail', function () {
 			return sendTransactionPromise(goodTransaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Transaction is already processed: ' + goodTransaction.id);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Transaction is already processed: ' + goodTransaction.id);
 			});
 		});
 
@@ -113,8 +114,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			cloneGoodTransaction.timestamp += 1;
 
 			return sendTransactionPromise(cloneGoodTransaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
 			});
 		});
 
@@ -122,8 +123,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			cloneGoodTransaction.timestamp -= 1;
 
 			return sendTransactionPromise(cloneGoodTransaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
 			});
 		});
 
@@ -133,10 +134,10 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, -1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//goodTransactions.push(transaction);
+					// goodTransactions.push(transaction);
 				});
 			});
 
@@ -144,10 +145,10 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//goodTransactions.push(transaction);
+					// goodTransactions.push(transaction);
 				});
 			});
 			
@@ -155,10 +156,10 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1000);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Invalid transaction timestamp. Timestamp is in the future');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction timestamp. Timestamp is in the future');
 					// TODO: Enable when transaction pool order is fixed
-					//badTransactions.push(transaction);
+					// badTransactions.push(transaction);
 				});
 			});
 		});
@@ -177,8 +178,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 						transaction.asset.data = test.input;
 
 						return sendTransactionPromise(transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.not.ok;
-							node.expect(res).to.have.property('message').not.empty;
+							node.expect(res).to.have.property('status').to.equal(400);
+							node.expect(res).to.have.nested.property('body.message').not.empty;
 							badTransactions.push(transaction);
 						});
 					});
@@ -196,8 +197,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password, null, test.input);
 						
 						return sendTransactionPromise(transaction).then(function (res) {
-							node.expect(res).to.have.property('success').to.be.ok;
-							node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+							node.expect(res).to.have.property('status').to.equal(200);
+							node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 							goodTransactions.push(transaction);
 						});
 					});
@@ -215,8 +216,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 		it('sending already confirmed transaction should fail', function () {
 			return sendTransactionPromise(goodTransaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Transaction is already confirmed: ' + goodTransaction.id);
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Transaction is already confirmed: ' + goodTransaction.id);
 			});
 		});
 	});

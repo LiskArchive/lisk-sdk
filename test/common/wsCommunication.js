@@ -7,6 +7,7 @@ var node = require('../node');
 var ClientRPCStub = require('../../api/ws/rpc/wsRPC').ClientRPCStub;
 var ConnectionState = require('../../api/ws/rpc/wsRPC').ConnectionState;
 var System = require('../../modules/system');
+var WSClient = require('../common/wsClient');
 
 var wsCommunication = {
 
@@ -17,7 +18,7 @@ var wsCommunication = {
 	call: function (procedure, data, done, includePeer) {
 		if (!this.defaultConnectionState) {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
-			this.defaultSocketPeerHeaders = node.generatePeerHeaders('127.0.0.1', 9999);
+			this.defaultSocketPeerHeaders = WSClient.generatePeerHeaders('127.0.0.1', 9999);
 			System.setHeaders(this.defaultSocketPeerHeaders);
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}
