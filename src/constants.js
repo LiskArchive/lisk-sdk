@@ -33,3 +33,7 @@ export const DAPP_FEE = 25 * FIXED_POINT;
 export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
 export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / 1000);
+
+export const LIVE_PORT = 8000;
+export const TEST_PORT = 7000;
+export const SSL_PORT = 443;

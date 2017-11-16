@@ -38,22 +38,13 @@
  *
  *     var LSK = lisk.api(options);
 */
+import config from '../../config.json';
+import { LIVE_PORT, TEST_PORT } from '../constants';
 import * as privateApi from './privateApi';
 import * as utils from './utils';
-import config from '../../config.json';
 
 const GET = 'GET';
 const POST = 'POST';
-
-const livePort = 8000;
-const testPort = 7000;
-const sslPort = 443;
-
-const getDefaultPort = options => {
-	if (options.testnet) return testPort;
-	if (options.ssl) return sslPort;
-	return livePort;
-};
 
 /**
 *
@@ -80,7 +71,7 @@ export default class LiskAPI {
 		this.port =
 			options.port === '' || options.port
 				? options.port
-				: getDefaultPort(options);
+				: utils.getDefaultPort(options);
 		this.nethash = this.getNethash(options.nethash);
 	}
 
@@ -141,7 +132,7 @@ export default class LiskAPI {
 			this.bannedNodes = [];
 		}
 		this.testnet = testnet;
-		this.port = testnet ? testPort : livePort;
+		this.port = testnet ? TEST_PORT : LIVE_PORT;
 
 		privateApi.selectNewNode.call(this);
 	}

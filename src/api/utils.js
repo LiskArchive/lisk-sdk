@@ -12,6 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { LIVE_PORT, SSL_PORT, TEST_PORT } from '../constants';
+
+export const getDefaultPort = options => {
+	if (options.testnet) return TEST_PORT;
+	if (options.ssl) return SSL_PORT;
+	return LIVE_PORT;
+};
 
 /**
   * @method netHashOptions
