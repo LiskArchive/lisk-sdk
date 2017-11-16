@@ -124,10 +124,10 @@ function Account (db, schema, logger, cb) {
 				required: true,
 				type: 'integer',
 				minimum: 0,
-				maximum: constants.totalAmount
+				maximum: constants.activeDelegates
 			},
 			conv: Number,
-			expression: '("votes")::bigint'
+			expression: '("votes")::int'
 		},
 		{
 			name: 'voters',
@@ -555,7 +555,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 			}
 		}
 	});
-
+	
 	var self = this;
 
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
