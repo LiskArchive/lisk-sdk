@@ -109,7 +109,7 @@ describe('cache', function () {
 					redisCreateClientOnStub.args[READY][CALLBACK]();
 				});
 
-				it('should call callback result containing with cacheEnabled = true', function () {
+				it('should call callback with result containing with cacheEnabled = true', function () {
 					expect(result.cacheEnabled).to.eq( true );
 				});
 
