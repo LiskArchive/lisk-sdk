@@ -10,6 +10,11 @@ module.exports = {
 				minimum: 1,
 				maximum: 65535
 			},
+			httpPort: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 65535
+			},
 			address: {
 				type: 'string',
 				format: 'ip'
@@ -81,7 +86,7 @@ module.exports = {
 				properties: {
 					host: {
 						type: 'string',
-						format: 'ip',
+						format: 'ipOrFQDN',
 					},
 					port: {
 						type: 'integer',
@@ -302,6 +307,6 @@ module.exports = {
 				format: 'hex'
 			}
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
+		required: ['port', 'httpPort',  'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
 	}
 };

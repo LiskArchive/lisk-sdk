@@ -42,6 +42,7 @@ var pathFiles = [
 	'./modules/loader.js',
 	'./modules/node.js',
 	'./modules/peers.js',
+	'./modules/voters.js',
 	'./modules/transactions.js',
 
 	'./sql/blockRewards.js', // @slow

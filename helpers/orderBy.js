@@ -77,4 +77,33 @@ function OrderBy (orderBy, options) {
 	};
 }
 
+/**
+ * Converts orderBy queries from string format like "field:asc"
+ * to format accepted by "json-sql" library: {field: 1}.
+ * Ascending sort method number equivalent is 1.
+ * Descending sort method number equivalent is -1.
+ * If only field is specified in sortQuery, sortOrder will be ascending.
+ * @param {string} sortQuery - sortField|sortField:sortOrder
+ * @param {Array} sortableFields
+ * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
+ */
+OrderBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
+	if (sortableFields.indexOf(sortQuery) !== -1) {
+		sortQuery = sortQuery + ':asc';
+	}
+	var sortQueryMatched = typeof sortQuery !== 'string' ? null : sortQuery.match(/^([a-zA-Z0-9]+):(asc|desc)$/);
+	if (!sortQueryMatched || sortableFields.indexOf(sortQueryMatched[1]) === -1) {
+		return {};
+	}
+	var sortField = sortQueryMatched[1];
+	var sortMethodsToNumbersMap = {
+		asc: 1,
+		desc: -1
+	};
+	var result = {};
+	var sortMethod = sortQueryMatched[2];
+	result[sortField] = sortMethodsToNumbersMap[sortMethod];
+	return result;
+};
+
 module.exports = OrderBy;

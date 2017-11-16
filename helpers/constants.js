@@ -43,8 +43,11 @@
  */
 var constants = {
 	activeDelegates: 101,
-	maxVotesPerTransaction: 33,
 	addressLength: 208,
+	additionalData: {
+		minLength: 1,
+		maxLength: 64
+	},
 	blockHeaderLength: 248,
 	blockReceiptTimeOut: 20, // 2 blocks
 	confirmationLength: 77,
@@ -72,7 +75,22 @@ var constants = {
 	maxSharedTxs: 100,
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
+	maxVotesPerTransaction: 33,
 	minBroadhashConsensus: 51,
+	multisigConstraints: {
+		min: {
+			minimum: 1,
+			maximum: 15
+		},
+		lifetime: {
+			minimum: 1,
+			maximum: 72
+		},
+		keysgroup: {
+			minItems: 1,
+			maxItems: 15
+		}
+	},
 	nethashes: [
 		// Mainnet
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
@@ -97,20 +115,6 @@ var constants = {
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
-	multisigConstraints: {
-		min: {
-			minimum: 1,
-			maximum: 15
-		},
-		lifetime: {
-			minimum: 1,
-			maximum: 72
-		},
-		keysgroup: {
-			minItems: 1,
-			maxItems: 15
-		}
-	},
 	secondsPerHour: 3600,
 	signatureTransactionTimeOutMultiplier: 8
 };

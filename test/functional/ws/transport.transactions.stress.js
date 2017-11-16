@@ -4,12 +4,6 @@ var node = require('../../node.js');
 var http = require('../../common/httpCommunication.js');
 var ws = require('../../common/wsCommunication.js');
 
-function postTransaction (transaction, done) {
-	ws.call('postTransactions', {
-		transaction: transaction
-	}, done, true);
-}
-
 function postTransactions (transactions, done) {
 	ws.call('postTransactions', {
 		transactions: transactions
@@ -79,7 +73,7 @@ describe('postTransactions @slow', function () {
 					node.gAccount.password
 				);
 
-				postTransaction(transaction, function (err, res) {
+				postTransactions([transaction], function (err, res) {
 					node.expect(res).to.have.property('success').to.be.ok;
 					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
 					transactions.push(transaction);

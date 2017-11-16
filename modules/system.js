@@ -37,6 +37,7 @@ function System (cb, scope) {
 		config: {
 			version: scope.config.version,
 			port: scope.config.port,
+			httpPort: scope.config.httpPort,
 			nethash: scope.config.nethash,
 			minVersion: scope.config.minVersion,
 			nonce: scope.config.nonce

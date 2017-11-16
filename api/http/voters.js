@@ -5,28 +5,26 @@ var httpApi = require('../../helpers/httpApi');
 
 /**
  * Binds api with modules and creates common url.
- * - End point: `/api/node`
+ * - End point: `/api/voters`
  * - Public API:
- * 	- get	/constants
- * 	- get	/status
+ * 	- get	/
  * @memberof module:node
  * @requires helpers/Router
  * @requires helpers/httpApi
  * @constructor
- * @param {Object} nodeModule - Module node instance.
+ * @param {Object} votersModule - Module node instance.
  * @param {scope} app - Network app.
  */
 // Constructor
-function NodeHttpApi (nodeModule, app) {
+function VotersHttpApi (votersModule, app) {
 
 	var router = new Router();
 
-	router.map(nodeModule.shared, {
-		'get /constants': 'getConstants',
-		'get /status': 'getStatus'
+	router.map(votersModule.shared, {
+		'get /': 'getVoters'
 	}, {responseWithCode: true});
 
-	httpApi.registerEndpoint('/api/node', app, router, nodeModule.isLoaded);
+	httpApi.registerEndpoint('/api/voters', app, router, votersModule.isLoaded);
 }
 
-module.exports = NodeHttpApi;
+module.exports = VotersHttpApi;

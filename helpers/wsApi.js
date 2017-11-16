@@ -54,6 +54,7 @@ var middleware = {
 var extractHeaders = function (request) {
 	var headers = _.get(url.parse(request.url, true), 'query', null);
 	headers.ip = request.remoteAddress.split(':').pop();
+	headers.httpPort = +headers.httpPort;
 	headers.port = +headers.port;
 	headers.height = +headers.height;
 	return headers;

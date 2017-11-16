@@ -13,6 +13,7 @@ var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockc
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var baseConfig = require('../../test/config.json');
+var WSClient = require('../common/wsClient');
 var Logger = require('../../logger');
 var logger = new Logger({filename: 'integrationTestsLogger.logs', echo: 'log'});
 
@@ -41,15 +42,10 @@ var monitorWSClient = {
 	hostname: '127.0.0.1',
 	port: 'toOverwrite',
 	autoReconnect: true,
-	query: {
-		port: 9999,
-		nethash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		broadhash: '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-		height: 1,
-		version: '0.0.0a',
-		nonce: '0123456789ABCDEF'
-	}
+	query: WSClient.generatePeerHeaders()
 };
+
+monitorWSClient.query.port = 9999;
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
@@ -186,7 +182,8 @@ function killTestNodes (cb) {
 }
 
 function runFunctionalTests (cb) {
-	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), 'test/functional/http/get/blocks.js', 'test/functional/http/get/transactions.js'], {
+	var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), '--exit',
+		'test/functional/http/get/blocks.js', 'test/functional/http/get/transactions.js'], {
 		cwd: __dirname + '/../..'
 	});
 

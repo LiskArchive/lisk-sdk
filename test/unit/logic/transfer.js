@@ -12,6 +12,7 @@ var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var transactionTypes = require('../../../helpers/transactionTypes');
+var constants = require('../../../helpers/constants.js');
 
 var modulesLoader = require('../../common/modulesLoader');
 var Transfer = require('../../../logic/transfer.js');
@@ -333,33 +334,50 @@ describe('transfer', function () {
 			expect(transfer.objectNormalize(transaction).asset).to.eql(transaction.asset);
 		});
 
-		it('should remove data field if value is null', function () {
+		it('should throw error if value is null', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: null 
 			};
 
-			expect(transfer.objectNormalize(transaction).asset).to.eql({});
+			expect(function () {
+				transfer.objectNormalize(transaction);
+			}).to.throw('Failed to validate transfer schema: Expected type string but found type null');
 		});
 
-		it('should remove data field if value is undefined', function () {
+		it('should throw error if value is undefined', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: undefined
 			};
 
-			expect(transfer.objectNormalize(transaction).asset).to.eql({});
+			expect(function () {
+				transfer.objectNormalize(transaction);
+			}).to.throw('Failed to validate transfer schema: Expected type string but found type undefined');
 		});
 
-		it('should throw error if data field length is greater than 64 characters', function () {
+		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength +  ' characters', function () {
+			var invalidString = node.randomString.generate(constants.additionalData.maxLength + 1);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
-				data: new Array(65).fill('x').join('')
+				data: invalidString
 			};
 
 			expect(function () {
 				transfer.objectNormalize(transaction);
-			}).to.throw('Failed to validate transfer schema: String is too long (65 chars), maximum 64');
+			}).to.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
+		});
+
+		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength + ' bytes', function () {
+			var invalidString = node.randomString.generate(constants.additionalData.maxLength - 1) + '现';
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset = {
+				data: invalidString
+			};
+
+			expect(function () {
+				transfer.objectNormalize(transaction);
+			}).to.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
 		});
 	});
 

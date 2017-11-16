@@ -44,23 +44,21 @@ var TransactionsSql = {
 		].filter(Boolean).join(' ');
 	},
 
-	getById: 'SELECT *, ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey" FROM trs_list WHERE "t_id" = ${id}',
+	getTransferByIds: 'SELECT "transactionId" as "transaction_id", CONVERT_FROM(data, \'utf8\') AS "tf_data" FROM transfer WHERE "transactionId" IN (${id:csv})',
 
-	getTransferById: 'SELECT CONVERT_FROM(data, \'utf8\') AS "tf_data" FROM transfer WHERE "transactionId" = ${id}',
+	getVotesByIds: 'SELECT "transactionId" as "transaction_id", votes AS "v_votes" FROM votes WHERE "transactionId" IN (${id:csv})',
 
-	getVotesById: 'SELECT votes AS "v_votes" FROM votes WHERE "transactionId" = ${id}',
+	getDelegateByIds: 'SELECT "tx_id" as "transaction_id", name AS "d_username" FROM delegates WHERE "tx_id" IN (${id:csv})',
 
-	getDelegateById: 'SELECT name AS "d_username" FROM delegates WHERE "tx_id" = ${id}',
+	getSignatureByIds: 'SELECT "transactionId" as "transaction_id", ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" IN (${id:csv})',
 
-	getSignatureById: 'SELECT ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" = ${id}',
+	getMultiByIds: 'SELECT "transactionId" as "transaction_id", min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures WHERE "transactionId" IN (${id:csv})',
 
-	getMultiById: 'SELECT min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures WHERE "transactionId" = ${id}',
+	getDappByIds: 'SELECT "transactionId" as "transaction_id", name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_link", type AS "dapp_type", category AS "dapp_category", icon AS "dapp_icon" FROM dapps WHERE "transactionId" IN (${id:csv})',
 
-	getDappById: 'SELECT name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_link", type AS "dapp_type", category AS "dapp_category", icon AS "dapp_icon" FROM dapps WHERE "transactionId" = ${id}',
+	getInTransferByIds: 'SELECT "transactionId" as "transaction_id", "dappId" AS "in_dappId" FROM intransfer WHERE "transactionId" IN (${id:csv})',
 
-	getInTransferById: 'SELECT "dappId" AS "in_dappId" FROM intransfer WHERE "transactionId" = ${id}',
-
-	getOutTransferById: 'SELECT "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" = ${id}'
+	getOutTransferByIds: 'SELECT "transactionId" as "transaction_id", "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" IN (${id:csv})'
 };
 
 module.exports = TransactionsSql;

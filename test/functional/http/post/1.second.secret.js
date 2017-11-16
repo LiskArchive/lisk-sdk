@@ -7,11 +7,12 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
-var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('POST /api/transactions (type 1) register second secret', function () {
 
+	var transaction, signature;
+	var transactionsToWaitFor = [];
 	var badTransactions = [];
 	var goodTransactions = [];
 	var badTransactionsEnforcement = [];
@@ -24,25 +25,29 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	var accountNoSecondPassword = node.randomAccount();
 	var accountDuplicate = node.randomAccount();
 
-	var transaction, signature;
-
 	// Crediting accounts
 	before(function () {
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, node.gAccount.password);
+		var transaction3 = node.lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, node.gAccount.password);
+		var transaction4 = node.lisk.transaction.createTransaction(accountDuplicate.address, constants.fees.secondSignature, node.gAccount.password);
+
 		var promises = [];
-		promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
-		promises.push(creditAccountPromise(accountMinimalFunds.address, constants.fees.secondSignature));
-		promises.push(creditAccountPromise(accountNoSecondPassword.address, constants.fees.secondSignature));
-		promises.push(creditAccountPromise(accountDuplicate.address, constants.fees.secondSignature));
+		promises.push(sendTransactionPromise(transaction1));
+		promises.push(sendTransactionPromise(transaction2));
+		promises.push(sendTransactionPromise(transaction3));
+		promises.push(sendTransactionPromise(transaction4));
 
+		return node.Promise.all(promises)
+			.then(function (results) {
+				results.forEach(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				});
 
-		return node.Promise.all(promises).then(function (results) {
-			results.forEach(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
+				transactionsToWaitFor.push(transaction1.id, transaction2.id, transaction3.id, transaction4.id);
+				return waitForConfirmations(transactionsToWaitFor);
 			});
-		}).then(function (res) {
-			return getBlocksToWaitPromise().then(waitForBlocksPromise);
-		});
 	});
 
 	describe('schema validations', function () {
@@ -56,8 +61,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -66,8 +71,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = node.lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.not.be.ok;
-				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
@@ -76,8 +81,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = node.lisk.signature.createSignature(accountMinimalFunds.password, accountMinimalFunds.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -86,8 +91,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = node.lisk.signature.createSignature(account.password, account.secondPassword, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -101,8 +106,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 					badTransactions.push(transaction);
 				});
 			});
@@ -110,19 +115,19 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 1 - second secret', function () {
 
-			it('with valid params and duplicate submission should be ok but just last transaction will be confirmed', function () {
+			it('with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
 				transaction = node.lisk.signature.createSignature(accountDuplicate.password, 'secondpassword');
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					badTransactions.push(transaction);
 
 					transaction = node.lisk.signature.createSignature(accountDuplicate.password, accountDuplicate.secondPassword);
 
 					return sendTransactionPromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 						goodTransactions.push(transaction);
 					});
 				});
@@ -135,8 +140,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 					badTransactions.push(transaction);
 				});
 			});
@@ -148,8 +153,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 					badTransactions.push(transaction);
 				});
 			});
@@ -161,8 +166,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 					badTransactions.push(transaction);
 				});
 			});
@@ -174,8 +179,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Sender does not have a second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 					badTransactions.push(transaction);
 				});
 			});
@@ -195,8 +200,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Missing sender second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -205,8 +210,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -215,8 +220,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -224,15 +229,26 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 1 - second secret', function () {
 
-			it('registering a second passphrase on an account with a second passphrase already enabled should fail', function () {
+			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
+				transaction = node.lisk.signature.createSignature(account.password, node.randomPassword());
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+					badTransactionsEnforcement.push(transaction);
+				});
+			});
+
+			it('using second passphrase on an account with a second passphrase already enabled should pass but fail on confirmation', function () {
 				transaction = node.lisk.signature.createSignature(account.password, node.randomPassword());
 				var secondKeys = node.lisk.crypto.getKeys(account.secondPassword);
 				node.lisk.crypto.secondSign(transaction, secondKeys);
 				transaction.id = node.lisk.crypto.getId(transaction);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.not.be.ok;
-					node.expect(res).to.have.property('message').to.equal('Missing sender second signature');
+
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -244,8 +260,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.delegate.createDelegate(account.password, account.username);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Missing sender second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -254,8 +270,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.delegate.createDelegate(account.password, account.username, 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -264,8 +280,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -277,8 +293,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey]);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Missing sender second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -287,8 +303,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -297,8 +313,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					goodTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -310,8 +326,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Missing sender second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -320,8 +336,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -330,8 +346,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					pendingMultisignatures.push(transaction);
 				});
 			});
@@ -342,7 +358,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 					signature = node.lisk.multisignature.signTransaction(pendingMultisignatures[0], accountNoFunds.password);
 
 					return sendSignaturePromise(signature, pendingMultisignatures[0]).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
+						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 					});
 				});
 			});
@@ -354,8 +370,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Missing sender second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -364,8 +380,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, 'wrong second password', node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').to.equal('Failed to verify second signature');
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 					badTransactionsEnforcement.push(transaction);
 				});
 			});
@@ -374,8 +390,8 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 					goodTransactionsEnforcement.push(transaction);
 				});
 			});

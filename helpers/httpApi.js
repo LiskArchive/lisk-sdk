@@ -87,6 +87,7 @@ var middleware = {
 	 * @return {function} Sanitize middleware.
 	 */
 	sanitize: function (property, schema, cb) {
+		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
 		return function (req, res, next) {
 			req.sanitize(req[property], schema, function (err, report, sanitized) {
 				if (!report.isValid) {
@@ -164,7 +165,8 @@ var middleware = {
 				// Monkey patching res.json function only if we expect to cache response
 				var expressSendJson = res.json;
 				res.json = function (response) {
-					if (response.success) {
+					// ToDo: Remove response.success check when API refactor is done (#225)
+					if (response.success || (response.success === undefined && res.statusCode === apiCodes.OK)) {
 						logger.debug('cached response for key: ', req.url);
 						cache.setJsonForKey(key, response);
 					}
@@ -213,6 +215,7 @@ function respondWithCode (res, err, response) {
 		return res.status(isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK).json(response);
 	}
 }
+
 /**
  * Register router in express app using default middleware.
  * @param {string} route

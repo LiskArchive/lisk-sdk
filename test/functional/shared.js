@@ -1,48 +1,33 @@
 'use strict';
 
 var node = require('../node');
+var typesRepresentatives = require('../common/typesRepresentatives');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
-var getTransactionPromise = require('../common/apiHelpers').getTransactionPromise;
+var getTransactionsPromise = require('../common/apiHelpers').getTransactionsPromise;
 var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
-var getPendingMultisignaturePromise = require('../common/apiHelpers').getPendingMultisignaturePromise;
-var getBlocksToWaitPromise = require('../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
-
-var tests = [
-	{describe: 'null',              args: null},
-	{describe: 'undefined',         args: undefined},
-	{describe: 'NaN',               args: NaN},
-	{describe: 'Infinity',          args: Infinity},
-	{describe: '0 integer',         args: 0},
-	{describe: 'negative integer',  args: -1},
-	{describe: 'float',             args: 1.2},
-	{describe: 'negative float',    args: -1.2},
-	{describe: 'empty string',      args: ''},
-	{describe: '0 as string',       args: '0'},
-	{describe: 'regular string',    args: String('abc')},
-	{describe: 'uppercase string',  args: String('ABC')},
-	{describe: 'invalid chars',     args: String('/')},
-	{describe: 'date',              args: new Date()},
-	{describe: 'true boolean',      args: true},
-	{describe: 'false boolean',     args: false},
-	{describe: 'empty array',       args: []},
-	{describe: 'empty object',      args: {}}
-];
+var getPendingMultisignaturesPromise = require('../common/apiHelpers').getPendingMultisignaturesPromise;
+var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
 
 	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			return getBlocksToWaitPromise().then(waitForBlocksPromise);
+			var transactionToWaitFor = goodTransactions.map(function (transaction) {
+				return [transaction.id];
+			});
+			return waitForConfirmations(transactionToWaitFor);
 		});
 
 		it('bad transactions should not be confirmed', function () {
 			return node.Promise.map(badTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+				var params = [
+					'id=' + transaction.id
+				];
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});
@@ -58,9 +43,12 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		it('good transactions should be confirmed', function () {
 			return node.Promise.map(goodTransactions, function (transaction) {
-				return getTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transaction').to.have.property('id').equal(transaction.id);
+				var params = [
+					'id=' + transaction.id
+				];
+				return getTransactionsPromise(params).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
 				});
 			});
 		});
@@ -68,34 +56,30 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		if (pendingMultisignatures) {
 			it('pendingMultisignatures should remain in the pending queue', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getPendingMultisignaturePromise(transaction).then(function (res) {
+					var params = [
+						'publicKey=' + transaction.senderPublicKey
+					];
+
+					return getPendingMultisignaturesPromise(params).then(function (res) {
 						node.expect(res).to.have.property('success').to.be.ok;
 						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
+						node.expect(res.transactions[0]).to.have.property('transaction').to.have.property('id').to.equal(transaction.id);
 					});
 				});
 			});
 
 			it('pendingMultisignatures should not be confirmed', function () {
 				return node.Promise.map(pendingMultisignatures, function (transaction) {
-					return getTransactionPromise(transaction.id).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.not.ok;
-						node.expect(res).to.have.property('error').equal('Transaction not found');
+					var params = [
+						'id=' + transaction.id
+					];
+					return getTransactionsPromise(params).then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 					});
 				});
 			});
 		};
-	});
-};
-
-function invalidTxs () {
-
-	tests.forEach(function (test) {
-		it('using ' + test.describe + ' should fail', function () {
-			return sendTransactionPromise(test.args).then(function (res) {
-				node.expect(res).to.have.property('success').to.not.be.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
-			});
-		});
 	});
 };
 
@@ -125,13 +109,13 @@ function invalidAssets (account, option, badTransactions) {
 
 	describe('using invalid asset values', function () {
 
-		tests.forEach(function (test) {
-			it('using ' + test.describe + ' should fail', function () {
-				transaction.asset = test.args;
+		typesRepresentatives.allTypes.forEach(function (test) {
+			it('using ' + test.description + ' should fail', function () {
+				transaction.asset = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -141,8 +125,8 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset;
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});
@@ -150,13 +134,13 @@ function invalidAssets (account, option, badTransactions) {
 
 	describe('using invalid asset.' + option + ' values', function () {
 
-		tests.forEach(function (test) {
-			it('using ' + test.describe + ' should fail', function () {
-				transaction.asset[option] = test.args;
+		typesRepresentatives.allTypes.forEach(function (test) {
+			it('using ' + test.description + ' should fail', function () {
+				transaction.asset[option] = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('message').that.is.not.empty;
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -166,17 +150,31 @@ function invalidAssets (account, option, badTransactions) {
 			delete transaction.asset[option];
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').that.is.not.empty;
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});
 	});
 }
 
+function MultisigScenario (size, amount) {
+	this.account = node.randomAccount();
+	this.members = [];
+	this.keysgroup = [];
+
+	var i, auxAccount;
+	for (i = 0; i < size - 1; i++) {
+		auxAccount = node.randomAccount();
+		this.members.push(auxAccount);
+		this.keysgroup.push('+' + auxAccount.publicKey);
+	}
+
+	this.amount = amount || 100000000000;
+}
+
 module.exports = {
-	tests: tests,
 	confirmationPhase: confirmationPhase,
-	invalidTxs: invalidTxs,
-	invalidAssets: invalidAssets
+	invalidAssets: invalidAssets,
+	MultisigScenario: MultisigScenario
 };

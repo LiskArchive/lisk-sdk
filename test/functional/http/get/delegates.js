@@ -9,14 +9,14 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var registerDelegatePromise = require('../../../common/apiHelpers').registerDelegatePromise;
 var getDelegatesPromise = require('../../../common/apiHelpers').getDelegatesPromise;
 var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
-var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
+var getDelegateVotersPromise = require('../../../common/apiHelpers').getDelegateVotersPromise;
 var getForgingStatusPromise = require('../../../common/apiHelpers').getForgingStatusPromise;
 var searchDelegatesPromise = require('../../../common/apiHelpers').searchDelegatesPromise;
 var putForgingDelegatePromise = require('../../../common/apiHelpers').putForgingDelegatePromise;
 var getForgedByAccountPromise = require('../../../common/apiHelpers').getForgedByAccountPromise;
 var getNextForgersPromise = require('../../../common/apiHelpers').getNextForgersPromise;
-var getBlocksToWaitPromise = require('../../../common/apiHelpers').getBlocksToWaitPromise;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
+
 var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
 
 describe('GET /api/delegates', function () {
@@ -399,27 +399,35 @@ describe('GET /api/delegates', function () {
 
 	describe('/voters', function () {
 
+		var transactionsToWaitFor = [];
 		var account = node.randomAccount();
 
 		// Crediting account and vote delegate
 		before(function () {
+			var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
 			var promises = [];
-			promises.push(creditAccountPromise(account.address, 1000 * node.normalizer));
+			promises.push(sendTransactionPromise(transaction));
 
-			return node.Promise.all(promises).then(function (results) {
-				results.forEach(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.not.empty;
+			return node.Promise.all(promises)
+				.then(function (results) {
+					results.forEach(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+					});
+					transactionsToWaitFor.push(transaction.id);
+					return waitForConfirmations(transactionsToWaitFor);
+				})
+				.then(function (res) {
+					var transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], null);
+					transactionsToWaitFor = [];
+					transactionsToWaitFor.push(transaction.id);
+					return sendTransactionPromise(transaction);
+				})
+				.then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+					return waitForConfirmations(transactionsToWaitFor);
 				});
-				return getBlocksToWaitPromise().then(waitForBlocksPromise);
-			}).then(function (res) {
-				var transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], null);
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').that.is.not.empty;
-					return getBlocksToWaitPromise().then(waitForBlocksPromise);
-				});
-			});
 		});
 
 		it('using no publicKey should be ok', function () {
@@ -427,9 +435,9 @@ describe('GET /api/delegates', function () {
 				'publicKey='
 			];
 
-			return getVotersPromise(params).then(function (res) {
+			return getDelegateVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('accounts').that.is.an('array').that.is.empty;
+				node.expect(res).to.have.property('accounts').that.is.an('array');
 			});
 		});
 
@@ -438,7 +446,7 @@ describe('GET /api/delegates', function () {
 				'publicKey=' + 'notAPublicKey'
 			];
 
-			return getVotersPromise(params).then(function (res) {
+			return getDelegateVotersPromise(params).then(function (res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;
 				node.expect(res).to.have.property('error');
 			});
@@ -449,18 +457,16 @@ describe('GET /api/delegates', function () {
 				'publicKey=' + node.eAccount.publicKey
 			];
 
-			return getBlocksToWaitPromise().then(waitForBlocksPromise).then(function (res) {
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('accounts').that.is.an('array');
-					var flag = 0;
-					for (var i = 0; i < res.accounts.length; i++) {
-						if (res.accounts[i].address === account.address) {
-							flag = 1;
-						}
+			return getDelegateVotersPromise(params).then(function (res) {
+				node.expect(res).to.have.property('success').to.be.ok;
+				node.expect(res).to.have.property('accounts').that.is.an('array');
+				var flag = 0;
+				for (var i = 0; i < res.accounts.length; i++) {
+					if (res.accounts[i].address === account.address) {
+						flag = 1;
 					}
-					node.expect(flag).to.equal(1);
-				});
+				}
+				node.expect(flag).to.equal(1);
 			});
 		});
 	});
