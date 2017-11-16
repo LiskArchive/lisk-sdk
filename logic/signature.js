@@ -220,9 +220,8 @@ Signature.prototype.dbRead = function (raw) {
 		return null;
 	} else {
 		var signature = {
-			transaction_id: raw.t_id,
-			second_public_key: raw.s_secondPublicKey,
-			public_key: raw.s_publicKey
+			transactionId: raw.t_id,
+			publicKey: raw.s_publicKey
 		};
 
 		return {signature: signature};
