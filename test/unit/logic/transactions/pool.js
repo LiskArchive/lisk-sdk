@@ -430,6 +430,7 @@ describe('transactionPool', function () {
 					expect(totals.pending).to.equal(poolTotals.pending);
 					expect(totals.ready).to.equal(poolTotals.ready);
 					expect(totals.invalid).to.equal(poolTotals.invalid);
+					expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 					done();
 				});
 			});
@@ -512,6 +513,7 @@ describe('transactionPool', function () {
 					expect(totals.pending).to.be.equal(poolTotals.pending);
 					expect(totals.ready).to.be.equal(poolTotals.ready);
 					expect(totals.invalid).to.be.equal(poolTotals.invalid);
+					expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 					done();
 				});
 			});
@@ -632,6 +634,7 @@ describe('transactionPool', function () {
 					expect(totals.pending).to.be.equal(poolTotals.pending);
 					expect(totals.ready).to.be.equal(poolTotals.ready);
 					expect(totals.invalid).to.be.equal(poolTotals.invalid);
+					expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 					done();
 				});
 			});
@@ -710,6 +713,7 @@ describe('transactionPool', function () {
 					expect(totals.pending).to.be.equal(poolTotals.pending);
 					expect(totals.ready).to.be.equal(poolTotals.ready);
 					expect(totals.invalid).to.be.equal(poolTotals.invalid);
+					expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 					done();
 				});
 			});
@@ -825,6 +829,7 @@ describe('transactionPool', function () {
 					expect(totals.pending).to.be.equal(poolTotals.pending);
 					expect(totals.ready).to.be.equal(poolTotals.ready);
 					expect(totals.invalid).to.be.equal(poolTotals.invalid);
+					expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 					done();
 				});
 
@@ -885,6 +890,7 @@ describe('transactionPool', function () {
 						expect(totals.pending).to.be.equal(poolTotals.pending);
 						expect(totals.ready).to.be.equal(poolTotals.ready);
 						expect(totals.invalid).to.be.equal(poolTotals.invalid);
+						expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 						done();
 					});
 				});
@@ -953,6 +959,7 @@ describe('transactionPool', function () {
 				expect(totals.pending).to.be.equal(poolTotals.pending);
 				expect(totals.ready).to.be.equal(poolTotals.ready);
 				expect(totals.invalid).to.be.equal(poolTotals.invalid);
+				expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 				done();
 			});
 
@@ -1015,6 +1022,7 @@ describe('transactionPool', function () {
 				expect(totals.pending).to.be.equal(poolTotals.pending);
 				expect(totals.ready).to.be.equal(poolTotals.ready);
 				expect(totals.invalid).to.be.equal(poolTotals.invalid);
+				expect(totals.total).to.be.equal(poolTotals.unverified + poolTotals.pending + poolTotals.ready);
 				done();
 			});
 		});
@@ -1239,9 +1247,8 @@ describe('transactionPool', function () {
 
 			it('should be ok when pool totals are equal to pool storage limit', function (done) {
 				var totals = transactionPool.getUsage();
-				var currentStorage = totals.unverified + totals.pending + totals.ready;
 				expect(totals).to.be.an('object');
-				expect(currentStorage).to.equal(poolStorageTransactionsLimit);
+				expect(totals.total).to.equal(poolStorageTransactionsLimit);
 				poolTotals = totals;
 				done();
 			});

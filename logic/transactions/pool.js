@@ -246,7 +246,7 @@ __private.processTransaction = function (transaction, sender, requester, waterCb
 };
 
 /**
- * Verifyes transaction.
+ * Verifies transaction.
  * @private
  * @implements {library.logic.transaction.verify}
  * @implements {__private.addInvalid}
@@ -259,10 +259,8 @@ __private.verifyTransaction = function (transaction, sender, waterCb) {
 	library.logic.transaction.verify(transaction, sender, function (err) {
 		if (err) {
 			__private.addInvalid(transaction.id);
-			return setImmediate(waterCb, err);
-		} else {
-			return setImmediate(waterCb, null, transaction, sender);
 		}
+		return setImmediate(waterCb, err, transaction, sender);
 	});
 };
 
@@ -378,7 +376,7 @@ __private.addToUnverified = function (transaction, broadcast, cb) {
 };
 
 /**
- * Adds transactions to pool list without checks.
+ * Adds transactions to pool list, increment counter only if transaction id is not present.
  * @private
  * @param {transaction} transaction
  * @param {Object} poolList
@@ -544,6 +542,7 @@ TransactionPool.prototype.bind = function (accounts) {
 
 /**
  * Gets invalid, unverified, verified.pending and verified.ready counters.
+ * @implements {__private.countTransactionsPool}
  * @return {Object} unverified, pending, ready
  */
 TransactionPool.prototype.getUsage = function () {
@@ -551,7 +550,8 @@ TransactionPool.prototype.getUsage = function () {
 		unverified: pool.unverified.count,
 		pending: pool.verified.pending.count,
 		ready: pool.verified.ready.count,
-		invalid: pool.invalid.count
+		invalid: pool.invalid.count,
+		total: __private.countTransactionsPool()
 	};
 };
 
@@ -804,7 +804,7 @@ TransactionPool.prototype.delete = function (id) {
 
 /**
  * Deletes transactions from pool lists and rechecks balance for ready transactions
- * @implements {__private.delete}
+ * @implements {self.delete}
  * @param {string} id transaction id
  * @return {Array} names of cleared lists
  */
