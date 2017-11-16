@@ -16,7 +16,7 @@ describe('cache', function () {
 		var validCacheEnabled;
 		var validConfig;
 		var validLogger;
-		var validRedisClientError = new Error('valid redis client error');
+		var validRedisClientError = new Error('Valid redis client error');
 		var err;
 		var result;
 		const READY = 0;
