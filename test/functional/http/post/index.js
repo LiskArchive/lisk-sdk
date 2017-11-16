@@ -9,7 +9,8 @@ var pathFiles = [
 	'./3.votes',
 	'./4.multisig',
 	'./5.dapps',
-	'./6.dapps.inTransfer'
+	'./6.dapps.inTransfer',
+	'./7.dapps.outTransfer'
 ];
 
 parallelTests(pathFiles, 'test/functional/http/post/');
