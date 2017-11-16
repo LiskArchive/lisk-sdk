@@ -104,21 +104,6 @@ Transfer.prototype.getBytes = function (transaction) {
  */
 Transfer.prototype.apply = function (transaction, block, sender, cb) {
 	return setImmediate(cb);
-	// modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-	// 	if (err) {
-	// 		return setImmediate(cb, err);
-	// 	}
-	//
-	// 	modules.accounts.mergeAccountAndGet({
-	// 		address: transaction.recipientId,
-	// 		balance: transaction.amount,
-	// 		u_balance: transaction.amount,
-	// 		blockId: block.id,
-	// 		round: slots.calcRound(block.height)
-	// 	}, function (err) {
-	// 		return setImmediate(cb, err);
-	// 	});
-	// });
 };
 
 /**
@@ -130,24 +115,7 @@ Transfer.prototype.apply = function (transaction, block, sender, cb) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.undo = function (transaction, block, sender, cb) {
-	
-	// TODO: Implement proper check for this if needed
 	return setImmediate(cb);
-	// modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-	// 	if (err) {
-	// 		return setImmediate(cb, err);
-	// 	}
-	//
-	// 	modules.accounts.mergeAccountAndGet({
-	// 		address: transaction.recipientId,
-	// 		balance: -transaction.amount,
-	// 		u_balance: -transaction.amount,
-	// 		blockId: block.id,
-	// 		round: slots.calcRound(block.height)
-	// 	}, function (err) {
-	// 		return setImmediate(cb, err);
-	// 	});
-	// });
 };
 
 /**
