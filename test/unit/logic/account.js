@@ -1,6 +1,8 @@
 'use strict';/*eslint*/
 
 var node = require('./../../node.js');
+var _ = node._;
+
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
@@ -12,7 +14,6 @@ var sinon = require('sinon');
 
 var chai = require('chai');
 var expect = require('chai').expect;
-var _  = node._;
 
 var validAccount = {
 	username: 'genesis_100',

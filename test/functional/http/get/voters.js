@@ -1,9 +1,9 @@
 'use strict';
 
-
 var randomstring = require('randomstring');
 var node = require('../../../node.js');
 var _ = node._;
+
 var apiCodes = require('../../../../helpers/apiCodes.js');
 var constants = require('../../../../helpers/constants.js');
 

@@ -1,8 +1,8 @@
 'use strict';
 
 var node = require('../../../node.js');
-var constants = require('../../../../helpers/constants');
 var _ = node._;
+var constants = require('../../../../helpers/constants');
 
 var apiHelpers = require('../../../common/apiHelpers');
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;

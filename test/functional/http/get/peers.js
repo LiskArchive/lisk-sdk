@@ -1,10 +1,11 @@
 'use strict';
 
 var node = require('../../../node.js');
+var _ = node._;
+
 var WSServer = require('../../../common/wsServerMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
-var _ = node._;
 
 describe('GET /peers', function () {
 
