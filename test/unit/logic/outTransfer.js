@@ -51,7 +51,7 @@ describe('outTransfer', function () {
 
 		accountsStub = {
 			mergeAccountAndGet: sinon.stub().callsArg(1),
-			setAccountAndGet: sinon.stub().callsArg(1)
+			getSender: sinon.stub().callsArg(1)
 		};
 		dummyBlock = {
 			id: '9314232245035524467',
@@ -439,18 +439,18 @@ describe('outTransfer', function () {
 			expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(false);
 		});
 
-		it('should call modules.accounts.setAccountAndGet', function () {
-			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true;
+		it('should call modules.accounts.getSender', function () {
+			expect(accountsStub.getSender.calledOnce).to.be.true;
 		});
 
-		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientId}', function () {
-			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
+		it('should call modules.accounts.getSender with {address: transaction.recipientId}', function () {
+			expect(accountsStub.getSender.calledWith({address: transaction.recipientId})).to.be.true;
 		});
 
-		describe('when modules.accounts.setAccountAndGet fails', function () {
+		describe('when modules.accounts.getSender fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.getSender = sinon.stub.callsArgWith(1, 'getSender error');
 			});
 
 			it('should call callback with error', function () {
@@ -460,10 +460,10 @@ describe('outTransfer', function () {
 			});
 		});
 
-		describe('when modules.accounts.setAccountAndGet succeeds', function () {
+		describe('when modules.accounts.getSender succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArg(1);
+				accountsStub.getSender = sinon.stub.callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -531,18 +531,18 @@ describe('outTransfer', function () {
 			expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(true);
 		});
 
-		it('should call modules.accounts.setAccountAndGet', function () {
-			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true;
+		it('should call modules.accounts.getSender', function () {
+			expect(accountsStub.getSender.calledOnce).to.be.true;
 		});
 
-		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientId}', function () {
-			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
+		it('should call modules.accounts.getSender with {address: transaction.recipientId}', function () {
+			expect(accountsStub.getSender.calledWith({address: transaction.recipientId})).to.be.true;
 		});
 
-		describe('when modules.accounts.setAccountAndGet fails', function () {
+		describe('when modules.accounts.getSender fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.getSender = sinon.stub.callsArgWith(1, 'getSender error');
 			});
 
 			it('should call callback with error', function () {
@@ -552,10 +552,10 @@ describe('outTransfer', function () {
 			});
 		});
 
-		describe('when modules.accounts.setAccountAndGet succeeds', function () {
+		describe('when modules.accounts.getSender succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArg(1);
+				accountsStub.getSender = sinon.stub.callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {

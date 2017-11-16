@@ -89,7 +89,7 @@ describe('delegate', function () {
 		sender = _.cloneDeep(validSender);
 
 		accountsMock = {
-			setAccountAndGet: sinon.mock(),
+			getSender: sinon.mock(),
 			getAccount: sinon.mock()
 		};
 

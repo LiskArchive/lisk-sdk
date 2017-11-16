@@ -114,7 +114,7 @@ Signature.prototype.getBytes = function (transaction) {
 
 /**
  * Sets account second signature from transaction asset.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Uses publicKey from asset signature.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender - Uses the address
@@ -122,7 +122,7 @@ Signature.prototype.getBytes = function (transaction) {
  * @return {setImmediateCallback} for errors
  */
 Signature.prototype.apply = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({
+	modules.accounts.getSender({
 		address: sender.address,
 		secondSignature: 1,
 		u_secondSignature: 0,
@@ -132,14 +132,14 @@ Signature.prototype.apply = function (transaction, block, sender, cb) {
 
 /**
  * Sets account second signature to null.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Signature.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({
+	modules.accounts.getSender({
 		address: sender.address,
 		secondSignature: 0,
 		u_secondSignature: 1,
@@ -149,7 +149,7 @@ Signature.prototype.undo = function (transaction, block, sender, cb) {
 
 /**
  * Activates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender
@@ -166,14 +166,15 @@ Signature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 
 /**
  * Deactivates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Signature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 0}, cb);
+	
+	return setImmediate(cb);
 };
 /**
  * @typedef signature

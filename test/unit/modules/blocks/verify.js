@@ -647,7 +647,7 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate account', function (done) {
-			accounts.setAccountAndGet(testAccount.account, function (err, newaccount) {
+			accounts.getSender(testAccount.account, function (err, newaccount) {
 				if (err) {
 					return done(err);
 				}
@@ -872,7 +872,7 @@ describe('blocks/verify', function () {
 	describe.skip('processBlock() for valid block {broadcast: true, saveBlock: false}', function () {
 		
 		it('should generate account', function (done) {
-			accounts.setAccountAndGet(userAccount.account, function (err, newaccount) {
+			accounts.getSender(userAccount.account, function (err, newaccount) {
 				if (err) {
 					return done(err);
 				}

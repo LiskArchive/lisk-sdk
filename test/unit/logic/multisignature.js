@@ -57,7 +57,7 @@ describe('multisignature', function () {
 		};
 		accountsMock = {
 			generateAddressByPublicKey: sinon.stub().returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey),
-			setAccountAndGet: sinon.stub().callsArg(1)
+			getSender: sinon.stub().callsArg(1)
 		};
 		transaction = _.cloneDeep(validTransaction);
 		rawTransaction = _.cloneDeep(rawValidTransaction);
@@ -73,7 +73,7 @@ describe('multisignature', function () {
 	afterEach(function () {
 		accountMock.merge.reset();
 		accountsMock.generateAddressByPublicKey.reset();
-		accountsMock.setAccountAndGet.reset();
+		accountsMock.getSender.reset();
 	});
 
 	describe('constructor', function () {
@@ -512,22 +512,22 @@ describe('multisignature', function () {
 							address = accountsMock.generateAddressByPublicKey(key);
 						});
 
-						it('should call library.logic.account.setAccountAndGet', function () {
-							expect(accountsMock.setAccountAndGet.callCount).to.equal(validTransaction.asset.multisignature.keysgroup.length);
+						it('should call library.logic.account.getSender', function () {
+							expect(accountsMock.getSender.callCount).to.equal(validTransaction.asset.multisignature.keysgroup.length);
 						});
 
-						it('should call library.logic.account.setAccountAndGet with {address: address}', function () {
-							expect(accountsMock.setAccountAndGet.calledWith(sinon.match({address: address}))).to.be.true;
+						it('should call library.logic.account.getSender with {address: address}', function () {
+							expect(accountsMock.getSender.calledWith(sinon.match({address: address}))).to.be.true;
 						});
 
-						it('should call library.logic.account.setAccountAndGet with sender.address', function () {
-							expect(accountsMock.setAccountAndGet.calledWith(sinon.match({publicKey: key}))).to.be.true;
+						it('should call library.logic.account.getSender with sender.address', function () {
+							expect(accountsMock.getSender.calledWith(sinon.match({publicKey: key}))).to.be.true;
 						});
 
-						describe('when modules.accounts.setAccountAndGet fails', function () {
+						describe('when modules.accounts.getSender fails', function () {
 
 							beforeEach(function () {
-								accountsMock.setAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+								accountsMock.getSender = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
 							});
 
 							it('should call callback with error', function () {

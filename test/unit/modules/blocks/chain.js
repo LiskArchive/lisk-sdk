@@ -206,11 +206,11 @@ describe('blocks/chain', function () {
 
 		describe('for every block.transactions', function () {
 
-			it('should call modules.accounts.setAccountAndGet');
+			it('should call modules.accounts.getSender');
 
-			it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
+			it('should call modules.accounts.getSender with {publicKey: transaction.senderPublicKey}');
 
-			describe('when modules.accounts.setAccountAndGet fails', function () {
+			describe('when modules.accounts.getSender fails', function () {
 				
 				describe('error object', function () {
 
@@ -224,7 +224,7 @@ describe('blocks/chain', function () {
 				it('should call process.exit with 0');
 			});
 
-			describe('when modules.accounts.setAccountAndGet succeeds', function () {
+			describe('when modules.accounts.getSender succeeds', function () {
 
 				it('should call __private.applyTransaction');
 
@@ -324,9 +324,9 @@ describe('blocks/chain', function () {
 
 			describe('for every block.transactions', function () {
 
-				it('should call modules.accounts.setAccountAndGet');
+				it('should call modules.accounts.getSender');
 
-				it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
+				it('should call modules.accounts.getSender with {publicKey: transaction.senderPublicKey}');
 
 				it('should call modules.transactions.applyUnconfirmed');
 

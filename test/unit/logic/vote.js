@@ -363,7 +363,7 @@ describe('vote', function () {
 		});
 	});
 
-	// TODO: Refactor these tests to use new setAccountAndGet - Apply blocks etc
+	// TODO: Refactor these tests to use new getSender - Apply blocks etc
 	describe.skip('checkConfirmedDelegates (add vote)', function () {
 		it('should return err if vote is already made to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
@@ -393,7 +393,7 @@ describe('vote', function () {
 
 	});
 	
-	// TODO: Refactor these tests to use new setAccountAndGet - Apply blocks etc
+	// TODO: Refactor these tests to use new getSender - Apply blocks etc
 	describe.skip('checkConfirmedDelegates (remove vote)', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {
@@ -414,7 +414,7 @@ describe('vote', function () {
 		});
 	});
 	
-	// TODO: Refactor these tests to use new setAccountAndGet - Apply blocks etc
+	// TODO: Refactor these tests to use new getSender - Apply blocks etc
 	describe.skip('checkUnconfirmedDelegates (add vote)', function () {
 
 		it('should return err if vote is already made to a delegate', function (done) {
@@ -446,7 +446,7 @@ describe('vote', function () {
 
 	});
 	
-	// TODO: Refactor these tests to use new setAccountAndGet - Apply blocks etc
+	// TODO: Refactor these tests to use new getSender - Apply blocks etc
 	describe.skip('checkUnconfirmedDelegates (remove vote)', function () {
 
 		it('should return err if vote is not made for a delegate', function (done) {

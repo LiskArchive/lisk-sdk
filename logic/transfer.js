@@ -95,7 +95,7 @@ Transfer.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Calls setAccountAndGet based on transaction recipientId and
+ * Calls getSender based on transaction recipientId and
   * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -107,7 +107,7 @@ Transfer.prototype.apply = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls setAccountAndGet based on transaction recipientId
+ * Calls getSender based on transaction recipientId
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender

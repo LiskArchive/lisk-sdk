@@ -212,7 +212,7 @@ Multisignature.prototype.getBytes = function (transaction, skip) {
 /**
  * Merges transaction data into mem_accounts table.
  * Checks public keys from multisignature and creates accounts.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Uses multisignature from asset.
  * @param {block} block
  * @param {account} sender

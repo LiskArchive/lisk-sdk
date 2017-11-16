@@ -144,8 +144,8 @@ Delegate.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * Checks transaction delegate and calls modules.accounts.getSender() with username.
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
@@ -156,8 +156,8 @@ Delegate.prototype.apply = function (transaction, block, sender, cb) {
 };
 
 /**
- * Checks transaction delegate and no nameexist and calls modules.accounts.setAccountAndGet() with u_username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * Checks transaction delegate and no nameexist and calls modules.accounts.getSender() with u_username.
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
@@ -168,8 +168,8 @@ Delegate.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with u_username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * Checks transaction delegate and calls modules.accounts.getSender() with u_username.
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
@@ -179,9 +179,9 @@ Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with
+ * Checks transaction delegate and calls modules.accounts.getSender() with
  * username and u_username both null.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.

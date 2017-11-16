@@ -168,7 +168,7 @@ OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Sets unconfirmed OutTansfers to true.
+ * Sets unconfirmed OutTransfers to true.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
@@ -180,7 +180,7 @@ OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 /**
- * Sets unconfirmed OutTansfers to false.
+ * Sets unconfirmed OutTransfers to false.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb

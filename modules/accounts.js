@@ -112,7 +112,7 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
  * @returns {function()} Call to logic.account.get().
  */
 // TODO: Remove this bad boy, replace with only get :D
-Accounts.prototype.setAccountAndGet = function (data, cb) {
+Accounts.prototype.getSender = function (data, cb) {
 	var address = data.address || null;
 	var err;
 
