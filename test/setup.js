@@ -17,7 +17,6 @@ import 'babel-polyfill';
 import should from 'should';
 import sinon from 'sinon';
 import 'should-sinon';
-import '../src/utils/config';
 
 process.env.NODE_ENV = 'test';
 

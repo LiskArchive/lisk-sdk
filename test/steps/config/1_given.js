@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import lockfile from 'lockfile';
 import defaultConfig from '../../../defaultConfig.json';
 import * as currentConfig from '../../../src/utils/config';
 import {
@@ -62,3 +63,10 @@ export function aConfigWithJsonSetToAndPrettySetTo() {
 	currentConfig.default = config;
 	this.test.ctx.config = config;
 }
+
+export function thereIsAConfigLockfile() {
+	const error = new Error('Found a lockfile');
+	lockfile.lock.throws(error);
+}
+
+export function thereIsNoConfigLockfile() {}

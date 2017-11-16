@@ -67,3 +67,8 @@ export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
 	return (console.error).should.be.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`);
 }
+
+export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
+	const path = getFirstQuotedString(this.test.title);
+	return (console.error).should.be.calledWithExactly(`Config lockfile at ${path} found. Are you running Lisky in another process?`);
+}

@@ -8,7 +8,7 @@
 	},
 	"scripts": {
 		"start": "babel-node src/index.js",
-		"test": "NODE_ENV=test nyc mocha",
+		"test": "NODE_ENV=test nyc mocha test/specs",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
@@ -60,6 +60,7 @@
 		"bitcore-mnemonic": "=1.2.5",
 		"cli-table2": "=0.2.0",
 		"lisk-js": "=0.5.0",
+		"lockfile": "=1.0.3",
 		"vorpal": "LiskHQ/vorpal#master"
 	}
 }
