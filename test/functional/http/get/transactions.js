@@ -787,7 +787,7 @@ describe('GET /api/transactions', function () {
 				return getQueuedTransactionPromise(transaction.id).then(function (result) {
 					node.expect(result).to.have.property('success').to.equal(true);
 					node.expect(result).to.have.property('transactions').to.be.an('array');
-					node.expect(result.transactions.indexOf(transaction.id)).to.equal(-1);
+					node.expect(result.transactions[0].id).to.equal(transaction.id);
 				});
 			});
 		});
