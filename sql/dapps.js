@@ -5,9 +5,9 @@ var DappsSql = {
 
 	countByTransactionId: 'SELECT COUNT(*)::int AS "count" FROM dapps WHERE "transaction_id" = ${id}',
 
-	countByOutTransactionId: 'SELECT COUNT(*)::int AS "count" FROM outtransfer WHERE "outtransaction_id" = ${transactionId}', //TODO: Fix my value, this is dumb
+	countByOutTransactionId: 'SELECT COUNT(*)::int AS "count" FROM outtransfer WHERE "out_transaction_id" = ${transactionId}',
 
-	getExisting: 'SELECT "name", "link" FROM dapps WHERE ("name" = ${name} OR "link" = ${link}) AND "transaction_id" != ${transactionId}',  //TODO: Fix my value, this is dumb
+	getExisting: 'SELECT "name", "link" FROM dapps WHERE ("name" = ${name} OR "link" = ${link}) AND "transaction_id" != ${transactionId}',
 
 	// Need to fix "or" or "and" in query
 	list: function (params) {
