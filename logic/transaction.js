@@ -670,16 +670,6 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
 	amount = amount.toNumber();
 
 	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: slots.calcRound(block.height)});
-	// TODO: Should be ok to remove
-	// this.scope.account.merge(sender.address, {
-	// 	balance: -amount,
-	// 	blockId: block.id,
-	// 	round: slots.calcRound(block.height)
-	// }, function (err, sender) {
-	// 	if (err) {
-	// 		return setImmediate(cb, err);
-	// 	}
-	// }.bind(this));
 
 	/**
 	 * calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
@@ -687,19 +677,7 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
 	 */
 	__private.types[transaction.type].apply.call(this, transaction, block, sender, function (err) {
 		return setImmediate(cb, err);
-		// if (err) {
-		// 	this.scope.account.merge(sender.address, {
-		// 		balance: amount,
-		// 		blockId: block.id,
-		// 		round: slots.calcRound(block.height)
-		// 	}, function (err) {
-		// 		return setImmediate(cb, err);
-		// 	});
-		// } else {
-		// 	return setImmediate(cb);
-		// }
 	}.bind(this));
-
 };
 
 /**
