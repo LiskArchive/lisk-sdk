@@ -220,6 +220,8 @@ Multisignature.prototype.getBytes = function (transaction, skip) {
  * @return {setImmediateCallback} for errors
  */
 Multisignature.prototype.apply = function (transaction, block, sender, cb) {
+	__private.unconfirmedSignatures[sender.address] = false;
+	
 	return setImmediate(cb);
 };
 
@@ -236,16 +238,8 @@ Multisignature.prototype.undo = function (transaction, block, sender, cb) {
 	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = true;
-
-	library.logic.account.merge(sender.address, {
-		multisignatures: multiInvert,
-		multimin: -transaction.asset.multisignature.min,
-		multilifetime: -transaction.asset.multisignature.lifetime,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	
+	return setImmediate(cb);
 };
 
 /**
@@ -277,6 +271,8 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @return {setImmediateCallback} For error.
  */
 Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+	__private.unconfirmedSignatures[sender.address] = false;
+	
 	return setImmediate(cb);
 };
 
