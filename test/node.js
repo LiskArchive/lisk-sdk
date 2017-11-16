@@ -107,7 +107,7 @@ node.swaggerDef = swaggerHelper.getSwaggerSpec();;
 
 node._.mixin({
 	/**
-	 * Lodash mixin to sort collection case insensitive
+	 * Lodash mixin to sort collection case-insensitively
 	 *
 	 * @param {Array} arr
 	 * @param {string} [sortOrder=asc] - Sorting order asc|desc
