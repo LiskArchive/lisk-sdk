@@ -13,196 +13,159 @@ var bson = require('../../../../helpers/bson.js');
 var constants = require('../../../../helpers/constants.js');
 var TransactionPool = require('../../../../logic/transactions/pool.js');
 
-var testAccounts = [
-	{
-		account: {
-			username: 'tpool_test_1',
-			address: '2737453412992791987L',
-			publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-			balance: 500000000000000
-		},
-		secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
-		secret2: 'monitor connect vague chuckle advice message crash glance horror pear opera hedgehog'
-	},{
-		account: {
-			username: 'tpool_test_2',
-			address: '2896019180726908125L',
-			publicKey: '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-			balance: 1000
-		},
-		secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
-	},{
-		account: {
-			username: 'tpool_test_3',
-			address: '15240249857307028085L',
-			publicKey: '181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c',
-			balance: 300000000000000
-		},
-		secret: 'song gather until exercise explain utility walk choice garbage cross route develop',
-	},{
-		account: {
-			username: 'tpool_test_4',
-			address: '13898484363564790288L',
-			publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8',
-			balance: 300000000000000
-		},
-		secret: 'island pizza tilt scrap spend guilt one guitar range narrow rough hotel',
-	}
-];
-
-var transactions = [
-	/* Type: 0 - Transmit funds.*/
-	node.lisk.transaction.createTransaction(testAccounts[1].account.address, 300000000, testAccounts[0].secret),
-	/* Type: 1 - Register a second signature.*/
-	node.lisk.signature.createSignature(testAccounts[0].secret, testAccounts[0].secret2),
-	/* Type: 2 - Register a delegate.*/
-	node.lisk.delegate.createDelegate(testAccounts[3].secret, 'tpool_new_delegate'),
-	/* Type: 3 - Submit votes.*/
-	node.lisk.vote.createVote(testAccounts[0].secret, 
-		['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
-	/* Type: 4 - Multisignature registration.*/
-	[
-		/* - Create normal multisignature, all accounts in database */
-		createMultisignatureSigned (testAccounts[0].secret, null, 
-			['+' + testAccounts[1].account.publicKey, '+' + testAccounts[2].account.publicKey], 
-			[testAccounts[1].secret, testAccounts[2].secret], 1, 2),
-		/* - Create multisignature signed with signer account not register in database.*/
-		createMultisignatureSigned (testAccounts[2].secret, null, 
-			['+6a23c387172fdf66654f27ccb451ceb4bed7507584c20ed5168f0e7a979f9c5e'], 
-			['horse endless tag awkward pact reveal kiss april crash interest prefer lunch'], 1, 1),
-		/* - Create multisignature signed without enough signatures.*/
-		createMultisignatureSigned (testAccounts[3].secret, null, 
-			['+' + testAccounts[2].account.publicKey,'+' + testAccounts[1].account.publicKey], [testAccounts[2].secret], 1, 2)
-	]
-];
-
-var invalidsTransactions = [
-	/* Type: 0 - Transmit funds account without enough credit.*/
-	node.lisk.transaction.createTransaction(testAccounts[0].account.address, 4400000000000, testAccounts[1].secret),
-	/* Type: 1 - Register a second signature account without enough credit.*/
-	node.lisk.signature.createSignature(testAccounts[1].secret, testAccounts[0].secret2),
-	/* Type: 2.*/
-	[
-		/* - Register a delegate account without enough credit.*/
-		node.lisk.delegate.createDelegate('genre spare shed home aim achieve second garbage army erode rubber baby', 'no_credit'),
-		/* - Register a delegate that already is delegate*/
-		node.lisk.delegate.createDelegate(testAccounts[0].secret, testAccounts[0].account.username),
-		/* - Register a delegate account with existing username*/
-		node.lisk.delegate.createDelegate(testAccounts[1].secret, 'genesis_101')
-	],
-	/* Type: 3.*/
-	[
-		/* - Submit votes from an account without enough credit.*/
-		node.lisk.vote.createVote(testAccounts[1].secret, 
-			['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
-		/* - Submit votes to an account that is not a delegate.*/
-		node.lisk.vote.createVote(testAccounts[2].secret, 
-			['+181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c'])
-	],
-	/* Type: 4.*/
-	[
-		/* - Create multisignature signed from an account without enough credit.*/
-		createMultisignatureSigned (testAccounts[1].secret, null, 
-			['+' + testAccounts[3].account.publicKey], [testAccounts[3].secret], 1, 1),
-		/* - Create multisignature signed with invalid signature.*/
-		createMultisignatureSigned (testAccounts[3].secret, null, 
-			['+' + testAccounts[2].account.publicKey], [testAccounts[1].secret], 1, 1)
-	]
-];
-
-var hackedTransactions = [
-	/* Invalid signature */
-	{
-		'type': 2,
-		'amount': 0,
-		'fee': 2500000000,
-		'recipientId': null,
-		'senderPublicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9',
-		'timestamp': 43775831,
-		'asset': {
-			'delegate': {
-				'username': 'txp_new_delegate',
-				'publicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9'
-			}
-		},
-		'signature': '6db720cd875035de6d6e91cd6f48303c1f7baab3f85074e03029af857e71e8af96cf7be33fd2b7bf650c4bf01383dbccfaaba23a4020974fcb9d1912b84a4f0a',
-		'id': '16349767733713562311'
-	}
-];
-
-// Set spies for logger
-var logger;
-
-function resetSpiesState () {
-	// Reset state of spies
-	logger.debug.reset();
-	logger.info.reset();
-	logger.warn.reset();
-	logger.error.reset();
-}
-
-function restoreSpiesState () {
-	// Restore state of spies
-	logger.debug.restore();
-	logger.info.restore();
-	logger.warn.restore();
-	logger.error.restore();
-}
-
-function createMultisignatureSigned (creatorSecret, creatorSecondSecret, keysgroup, signeersSecrets, min, lifetime) {
-	var multisignatureTransaction = node.lisk.multisignature.createMultisignature(creatorSecret, creatorSecondSecret, keysgroup, min, lifetime);
-	var signatures = [];
-	signeersSecrets.forEach(function (secret) {
-		var sign = node.lisk.multisignature.signTransaction(multisignatureTransaction, secret);
-		signatures.push(sign);
-	});
-	multisignatureTransaction.signatures = signatures;
-	return multisignatureTransaction;
-}
-
 describe('transactionPool', function () {
 
+	var testAccounts = [
+		{
+			account: {
+				username: 'tpool_test_1',
+				address: '2737453412992791987L',
+				publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
+				balance: 500000000000000
+			},
+			secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
+			secret2: 'monitor connect vague chuckle advice message crash glance horror pear opera hedgehog'
+		},{
+			account: {
+				username: 'tpool_test_2',
+				address: '2896019180726908125L',
+				publicKey: '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
+				balance: 1000
+			},
+			secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
+		},{
+			account: {
+				username: 'tpool_test_3',
+				address: '15240249857307028085L',
+				publicKey: '181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c',
+				balance: 300000000000000
+			},
+			secret: 'song gather until exercise explain utility walk choice garbage cross route develop',
+		},{
+			account: {
+				username: 'tpool_test_4',
+				address: '13898484363564790288L',
+				publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8',
+				balance: 300000000000000
+			},
+			secret: 'island pizza tilt scrap spend guilt one guitar range narrow rough hotel',
+		}
+	];
+	
+	var transactions = [
+		/* Type: 0 - Transmit funds.*/
+		node.lisk.transaction.createTransaction(testAccounts[1].account.address, 300000000, testAccounts[0].secret),
+		/* Type: 1 - Register a second signature.*/
+		node.lisk.signature.createSignature(testAccounts[0].secret, testAccounts[0].secret2),
+		/* Type: 2 - Register a delegate.*/
+		node.lisk.delegate.createDelegate(testAccounts[3].secret, 'tpool_new_delegate'),
+		/* Type: 3 - Submit votes.*/
+		node.lisk.vote.createVote(testAccounts[0].secret, 
+			['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
+		/* Type: 4 - Multisignature registration.*/
+		[
+			/* - Create normal multisignature, all accounts in database */
+			createMultisignatureSigned (testAccounts[0].secret, null, 
+				['+' + testAccounts[1].account.publicKey, '+' + testAccounts[2].account.publicKey], 
+				[testAccounts[1].secret, testAccounts[2].secret], 1, 2),
+			/* - Create multisignature signed with signer account not register in database.*/
+			createMultisignatureSigned (testAccounts[2].secret, null, 
+				['+6a23c387172fdf66654f27ccb451ceb4bed7507584c20ed5168f0e7a979f9c5e'], 
+				['horse endless tag awkward pact reveal kiss april crash interest prefer lunch'], 1, 1),
+			/* - Create multisignature signed without enough signatures.*/
+			createMultisignatureSigned (testAccounts[3].secret, null, 
+				['+' + testAccounts[2].account.publicKey,'+' + testAccounts[1].account.publicKey], [testAccounts[2].secret], 1, 2)
+		]
+	];
+	
+	var invalidsTransactions = [
+		/* Type: 0 - Transmit funds account without enough credit.*/
+		node.lisk.transaction.createTransaction(testAccounts[0].account.address, 4400000000000, testAccounts[1].secret),
+		/* Type: 1 - Register a second signature account without enough credit.*/
+		node.lisk.signature.createSignature(testAccounts[1].secret, testAccounts[0].secret2),
+		/* Type: 2.*/
+		[
+			/* - Register a delegate account without enough credit.*/
+			node.lisk.delegate.createDelegate('genre spare shed home aim achieve second garbage army erode rubber baby', 'no_credit'),
+			/* - Register a delegate that already is delegate*/
+			node.lisk.delegate.createDelegate(testAccounts[0].secret, testAccounts[0].account.username),
+			/* - Register a delegate account with existing username*/
+			node.lisk.delegate.createDelegate(testAccounts[1].secret, 'genesis_101')
+		],
+		/* Type: 3.*/
+		[
+			/* - Submit votes from an account without enough credit.*/
+			node.lisk.vote.createVote(testAccounts[1].secret, 
+				['+c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5']),
+			/* - Submit votes to an account that is not a delegate.*/
+			node.lisk.vote.createVote(testAccounts[2].secret, 
+				['+181414336a6642307feda947a697c36f299093de35bf0fb263ccdeccb497962c'])
+		],
+		/* Type: 4.*/
+		[
+			/* - Create multisignature signed from an account without enough credit.*/
+			createMultisignatureSigned (testAccounts[1].secret, null, 
+				['+' + testAccounts[3].account.publicKey], [testAccounts[3].secret], 1, 1),
+			/* - Create multisignature signed with invalid signature.*/
+			createMultisignatureSigned (testAccounts[3].secret, null, 
+				['+' + testAccounts[2].account.publicKey], [testAccounts[1].secret], 1, 1)
+		]
+	];
+	
+	var hackedTransactions = [
+		/* Invalid signature */
+		{
+			'type': 2,
+			'amount': 0,
+			'fee': 2500000000,
+			'recipientId': null,
+			'senderPublicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9',
+			'timestamp': 43775831,
+			'asset': {
+				'delegate': {
+					'username': 'txp_new_delegate',
+					'publicKey': '911441a4984f1ed369f36bb044758d0b3e158581418832a5dd4a67f3d03387e9'
+				}
+			},
+			'signature': '6db720cd875035de6d6e91cd6f48303c1f7baab3f85074e03029af857e71e8af96cf7be33fd2b7bf650c4bf01383dbccfaaba23a4020974fcb9d1912b84a4f0a',
+			'id': '16349767733713562311'
+		}
+	];
+	
+	// Set spies for logger
+	var logger;
 	var library;
 	var transactionPool;
 	var poolTotals;
 	var poolStorageTransactionsLimit;
 	var dbSandbox;
-
-	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transactionPool');
-		dbSandbox.create(function (err, __db) {
-			if (err) {
-				return done(err);
-			}
-
-			constants.unconfirmedTransactionTimeOut = 1;
-			constants.signatureTransactionTimeOutMultiplier = 1;
-			constants.secondsPerHour = 1;
-			poolStorageTransactionsLimit =  modulesLoader.scope.config.transactions.pool.storageLimit = 6;
-			modulesLoader.scope.config.transactions.pool.processInterval = 60000000;
-			modulesLoader.scope.config.transactions.pool.expiryInterval = 80000000;
-			// Wait for genesisBlock transaction being applied
-			node.initApplication(function (err, scope) {
-				transactionPool = scope.logic.transactionPool;
-				library = scope;
-				logger = scope.logger;
-				done();
-			}, {db: __db});
+	
+	function resetSpiesState () {
+		// Reset state of spies
+		logger.debug.reset();
+		logger.info.reset();
+		logger.warn.reset();
+		logger.error.reset();
+	}
+	
+	function restoreSpiesState () {
+		// Restore state of spies
+		logger.debug.restore();
+		logger.info.restore();
+		logger.warn.restore();
+		logger.error.restore();
+	}
+	
+	function createMultisignatureSigned (creatorSecret, creatorSecondSecret, keysgroup, signeersSecrets, min, lifetime) {
+		var multisignatureTransaction = node.lisk.multisignature.createMultisignature(creatorSecret, creatorSecondSecret, keysgroup, min, lifetime);
+		var signatures = [];
+		signeersSecrets.forEach(function (secret) {
+			var sign = node.lisk.multisignature.signTransaction(multisignatureTransaction, secret);
+			signatures.push(sign);
 		});
-	});
-
-	beforeEach(function () {
-		resetSpiesState();
-	});
-
-	after(function () {
-		restoreSpiesState();
-	});
-
-	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
-	});
+		multisignatureTransaction.signatures = signatures;
+		return multisignatureTransaction;
+	}
 
 	function forge (cb) {
 		function getNextForger (offset, cb) {
@@ -245,6 +208,39 @@ describe('transactionPool', function () {
 			cb(err);
 		});
 	}
+
+	before(function (done) {
+		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transactionPool');
+		dbSandbox.create(function (err, __db) {
+			if (err) {
+				return done(err);
+			}
+
+			constants.unconfirmedTransactionTimeOut = 1;
+			constants.signatureTransactionTimeOutMultiplier = 1;
+			constants.secondsPerHour = 1;
+			poolStorageTransactionsLimit =  modulesLoader.scope.config.transactions.pool.storageLimit = 6;
+			modulesLoader.scope.config.transactions.pool.processInterval = 60000000;
+			modulesLoader.scope.config.transactions.pool.expiryInterval = 80000000;
+			// Wait for genesisBlock transaction being applied
+			node.initApplication(function (err, scope) {
+				transactionPool = scope.logic.transactionPool;
+				library = scope;
+				logger = scope.logger;
+				done();
+			}, {db: __db});
+		});
+	});
+
+	beforeEach(function () {
+		resetSpiesState();
+	});
+
+	after(function (done) {
+		restoreSpiesState();
+		dbSandbox.destroy();
+		node.appCleanup(done);
+	});
 
 	describe('setup database', function () {
 		var transaction;
@@ -367,6 +363,7 @@ describe('transactionPool', function () {
 		describe('processPool - no broadcast - addFromPeer', function () {
 
 			describe('Transaction type: 0 - Transmit funds', function () {
+
 				var tmpTransactionInvalidId;
 
 				it('should be ok when add normal transaction to unverified', function (done) {
@@ -1075,7 +1072,6 @@ describe('transactionPool', function () {
 					poolTotals.invalid += 1;
 					poolTotals.ready += 1; 
 					poolTotals.pending += 1;
-					poolTotals.unverified = 0;
 					done();
 				});
 			});
@@ -1090,9 +1086,8 @@ describe('transactionPool', function () {
 				});
 			});
 
-			it('should be ok when add normal transaction type 3 to unverified', function (done) {
+			it('should be ok when add valid transaction type 3 to unverified', function (done) {
 				var normalTransactionT3 = _.cloneDeep(transactions[3]);
-				normalTransactionT3.requesterPublicKey = '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8';
 				transactionPool.addFromPeer(normalTransactionT3, false, function (err, cbtransaction) {
 					expect(cbtransaction).to.be.undefined;
 					poolTotals.unverified += 1;
@@ -1171,7 +1166,7 @@ describe('transactionPool', function () {
 				it('should be ok when check pool list ready', function (done) {
 					var transactions = transactionPool.getAll('ready', {limit: null});
 
-					expect(Object.keys(transactions).length).to.equal(1);
+					expect(Object.keys(transactions).length).to.equal(poolTotals.ready);
 					done();
 				});
 
@@ -1219,8 +1214,9 @@ describe('transactionPool', function () {
 					done();
 				});
 
-				it('should be ok when requester publicKey is valid', function (done) {
-					var transactions = transactionPool.getAll('recipient_pk', {publicKey: '849b37aaeb6038aebbe7e7341735d7a9d207da1851b701d87db5426651ed3fe8'});
+				// TODO: turn on this test after move to new db schema
+				it.skip('should be ok when recipient publicKey is valid', function (done) {
+					var transactions = transactionPool.getAll('recipient_pk', {publicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5'});
 
 					expect(transactions.unverified.length).to.equal(1);
 					expect(transactions.pending.length).to.equal(0);
@@ -1313,7 +1309,7 @@ describe('transactionPool', function () {
 			it('should be ok when add transactions to ready', function (done) {
 				transactionPool.addReady(allTransactions, function (err, cbtransaction) {
 					expect(cbtransaction).to.be.undefined;
-					poolTotals.ready += allTransactions.length -1;
+					poolTotals.ready = allTransactions.length;
 					done();
 				});
 			});
@@ -1351,9 +1347,6 @@ describe('transactionPool', function () {
 
 				expect(readyTransactions.length).to.equal(2);
 				expect(readyTransactions[0].receivedAt).to.not.equal(readyTransactions[1].receivedAt);
-				expect(readyTransactions[1].receivedAt).to.equal(readyTransactions[2].receivedAt);
-				expect(readyTransactions[2].receivedAt).to.equal(readyTransactions[3].receivedAt);
-				expect(readyTransactions[3].receivedAt).to.equal(readyTransactions[4].receivedAt);
 				done();
 			});
 

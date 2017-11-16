@@ -386,8 +386,10 @@ __private.addToUnverified = function (transaction, broadcast, cb) {
  * @return {setImmediateCallback} error | cb
  */
 __private.addToPoolList = function (transaction, poolList, cb) {
+	if (poolList.transactions[transaction.id] === undefined) {
+		poolList.count++;
+	}
 	poolList.transactions[transaction.id] = transaction;
-	poolList.count++;
 	return setImmediate(cb);
 };
 
