@@ -17,11 +17,11 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('show copyright', () => {
-	Given('an action "show c"', given.anAction, () => {
-		Given('a copyright information text', given.aCopyrightInformationText, () => {
+describe('show warranty command', () => {
+	Given('an action "show warranty"', given.anAction, () => {
+		Given('a warranty information text', given.aWarrantyInformationText, () => {
 			When('the action is called', when.theActionIsCalled, () => {
-				Then('it should resolve to the copyright information', then.itShouldResolveToTheCopyrightInformation);
+				Then('it should resolve to the warranty information', then.itShouldResolveToTheWarrantyInformation);
 			});
 		});
 	});

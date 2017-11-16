@@ -15,10 +15,9 @@
  */
 import { createCommand } from '../utils/helpers';
 
-const description = `Show copyright notice.
+const description = `Displays copyright notice.
 
-	Examples:
-	- show c
+	Example: show copyright
 `;
 
 const copyright = `
@@ -36,12 +35,13 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-`;
+`.trim();
 
-export const actionCreator = () => () => Promise.resolve({ copyright });
+export const actionCreator = () => async () => ({ copyright });
 
 const showCopyright = createCommand({
-	command: 'show c',
+	command: 'show copyright',
+	alias: 'show c',
 	description,
 	actionCreator,
 });

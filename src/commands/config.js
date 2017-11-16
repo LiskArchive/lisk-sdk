@@ -21,7 +21,7 @@ const description = `Show current configuration.
 	Example: config
 `;
 
-export const actionCreator = () => async () => Promise.resolve(currentConfig);
+export const actionCreator = () => async () => currentConfig;
 
 const config = createCommand({
 	command: 'config',

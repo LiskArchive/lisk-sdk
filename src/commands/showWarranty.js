@@ -15,10 +15,9 @@
  */
 import { createCommand } from '../utils/helpers';
 
-const description = `Show warranty notice.
+const description = `Displays warranty notice.
 
-	Examples:
-	- show w
+	Example: show warranty
 `;
 
 const warranty = `
@@ -30,12 +29,13 @@ SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICI
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-`;
+`.trim();
 
-export const actionCreator = () => () => Promise.resolve({ warranty });
+export const actionCreator = () => async () => ({ warranty });
 
 const showWarranty = createCommand({
-	command: 'show w',
+	command: 'show warranty',
+	alias: 'show w',
 	description,
 	actionCreator,
 });
