@@ -126,17 +126,17 @@ $$;
             it."dapp_id"            AS "in_dappId",
             ot."dapp_id"            AS "ot_dappId",
             ot."out_transaction_id" AS "ot_outTransactionId",
-            --encode(t."requester_public_key", 'hex'::text) AS "t_requesterPublicKey", What do we do with Stuff? Was uninmplemented and not in new schema
+            encode(t."requester_public_key", 'hex'::text) AS "t_requesterPublicKey",
             convert_from(tf.data, 'utf8'::name) AS tf_data,
             t.signatures                        AS t_signatures
   FROM      (((((((((blocks b
-  LEFT JOIN transactions t ON (( (t."block_id")::text = (b.block_id)::text) ))
-  LEFT JOIN delegates d ON (( (d.transaction_id)::text = (t.transaction_id)::text) ))
-  LEFT JOIN votes v ON (( (v."transaction_id")::text = (t.transaction_id)::text) ))
-  LEFT JOIN second_signature s ON (( (s."transaction_id")::text = (t.transaction_id)::text) ))
-  LEFT JOIN multisignatures_master m ON (( (m."transaction_id")::text = (t.transaction_id)::text) ))
-  LEFT JOIN dapps dapp ON (( (dapp."transaction_id")::text = (t.transaction_id)::text) ))
-  LEFT JOIN intransfer it ON (( (it."transaction_id")::text = (t.transaction_id)::text) ))
-  LEFT JOIN outtransfer ot ON (( (ot."transaction_id")::text = (t.transaction_id)::text) ))
-  LEFT JOIN transfer tf ON (( (tf."transaction_id")::text = (t.transaction_id)::text) ));
+  LEFT JOIN transactions t ON (( (t."block_id") = (b.block_id)) ))
+  LEFT JOIN delegates d ON (( (d.transaction_id) = (t.transaction_id)) ))
+  LEFT JOIN votes v ON (( (v."transaction_id") = (t.transaction_id)) ))
+  LEFT JOIN second_signature s ON (( (s."transaction_id") = (t.transaction_id)) ))
+  LEFT JOIN multisignatures_master m ON (( (m."transaction_id") = (t.transaction_id)) ))
+  LEFT JOIN dapps dapp ON (( (dapp."transaction_id") = (t.transaction_id)) ))
+  LEFT JOIN intransfer it ON (( (it."transaction_id") = (t.transaction_id)) ))
+  LEFT JOIN outtransfer ot ON (( (ot."transaction_id") = (t.transaction_id)) ))
+  LEFT JOIN transfer tf ON (( (tf."transaction_id") = (t.transaction_id)) ));
 END;

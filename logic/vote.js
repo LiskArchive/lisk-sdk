@@ -231,7 +231,7 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs 
+ * Calls Diff.reverse to change asset.votes signs
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function

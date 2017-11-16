@@ -54,7 +54,7 @@ var BlocksSql = {
   getCommonBlock: function (params) {
     return [
       'SELECT COUNT("block_id")::int FROM blocks WHERE "block_id" = ${id}',
-      (params.previous_block_id ? 'AND "previous_block_id" = ${previous_block_id}' : ''),
+      (params.previous_block_id ? 'AND "previous_block_id" = ${previousBlock}' : ''),
       'AND "height" = ${height}'
     ].filter(Boolean).join(' ');
   },
