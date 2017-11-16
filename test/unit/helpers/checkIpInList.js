@@ -28,13 +28,14 @@ describe('checkIpInList', function () {
 			checkIpInListResult = checkIpInList(validList, validAddress, validReturnListIsEmpty);
 		});
 
-		afterEach( function () {
+		afterEach(function () {
 		});
 
 		after(function () {
 		});
 
 		describe('when returnListIsEmpty is not a Boolean', function () {
+
 			before(function () {
 				validReturnListIsEmpty = null;
 			});
@@ -45,6 +46,7 @@ describe('checkIpInList', function () {
 		});
 
 		describe('when validList is not an array', function () {
+
 			before(function () {
 				validReturnListIsEmpty = true;
 				validList = null;
@@ -56,6 +58,7 @@ describe('checkIpInList', function () {
 		});
 
 		describe('when validList is an empty list', function () {
+
 			before(function () {
 				validList = [];
 			});
@@ -66,6 +69,7 @@ describe('checkIpInList', function () {
 		});
 
 		describe('when all the entries in validList are not in the right format', function () {
+
 			before(function () {
 				validList = ['abc', 'shzduvsg'];
 			});
@@ -80,6 +84,7 @@ describe('checkIpInList', function () {
 		});
 
 		describe('when some entries in validList are not in the right format', function () {
+
 			before(function () {
 				validList = ['abc', '1.2.3.4'];
 			});
@@ -90,6 +95,7 @@ describe('checkIpInList', function () {
 		});
 
 		describe('when validList does not contain validAddress', function () {
+
 			before(function () {
 				validList = ['1.2.3.4','5.6.7.8'];
 				validAddress = '127.0.0.1';
@@ -101,6 +107,7 @@ describe('checkIpInList', function () {
 		});
 
 		describe('when validList contains validAddress', function () {
+
 			before(function () {
 				validAddress = '1.2.3.4';
 			});
