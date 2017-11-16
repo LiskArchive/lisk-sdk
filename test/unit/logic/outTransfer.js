@@ -769,20 +769,20 @@ describe('outTransfer', function () {
 			expect(dbSaveResult).to.have.property('table').equal('outtransfer');
 		});
 
-		it('should return result containing fields = ["dappId", "outTransactionId", "transactionId"]', function () {
-			expect(dbSaveResult).to.have.property('fields').eql(['dappId', 'outTransactionId', 'transactionId']);
+		it('should return result containing fields = ["dapp_id", "out_transaction_id", "transaction_id"]', function () {
+			expect(dbSaveResult).to.have.property('fields').eql(['dapp_id', 'out_transaction_id', 'transaction_id']);
 		});
 
 		it('should return result containing values', function () {
 			expect(dbSaveResult).to.have.property('values');
 		});
 
-		it('should return result containing values.dappId = transaction.asset.outTransfer.dappId', function () {
-			expect(dbSaveResult).to.have.nested.property('values.dappId').equal(transaction.asset.outTransfer.dappId);
+		it('should return result containing values.dapp_id = transaction.asset.outTransfer.dappId', function () {
+			expect(dbSaveResult).to.have.nested.property('values.dapp_id').equal(transaction.asset.outTransfer.dappId);
 		});
 
-		it('should return result containing values.transactionId = transaction.id', function () {
-			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(transaction.id);
+		it('should return result containing values.transaction_id = transaction.id', function () {
+			expect(dbSaveResult).to.have.nested.property('values.transaction_id').equal(transaction.id);
 		});
 	});
 

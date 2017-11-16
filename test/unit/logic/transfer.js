@@ -226,7 +226,7 @@ describe('transfer', function () {
 			transfer.undo.call(transactionLogic, transaction, dummyBlock, sender, done);
 		}
 
-		it('should return error if recipientid is not set', function (done) {
+		it.skip('should return error if recipientid is not set', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
 			transfer.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
