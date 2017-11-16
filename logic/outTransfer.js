@@ -141,11 +141,6 @@ OutTransfer.prototype.getBytes = function (transaction) {
 
 /**
  * Sets unconfirmed out transfers to false.
- * Calls setAccountAndGet based on transaction recipientId and
- * mergeAccountAndGet with unconfirmed transaction amount.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -155,30 +150,11 @@ OutTransfer.prototype.getBytes = function (transaction) {
 OutTransfer.prototype.apply = function (transaction, block, sender, cb) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
 
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
-			balance: transaction.amount,
-			u_balance: transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
-	});
+	return setImmediate(cb);
 };
 
 /**
  * Sets unconfirmed out transfers to true.
- * Calls setAccountAndGet based on transaction recipientId and
- * mergeAccountAndGet with unconfirmed transaction amount and balance both negatives.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -187,21 +163,8 @@ OutTransfer.prototype.apply = function (transaction, block, sender, cb) {
  */
 OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true;
-
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
-			balance: -transaction.amount,
-			u_balance: -transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
-	});
+	
+	return setImmediate(cb);
 };
 
 /**

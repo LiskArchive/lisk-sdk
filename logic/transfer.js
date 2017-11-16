@@ -96,11 +96,7 @@ Transfer.prototype.getBytes = function (transaction) {
 
 /**
  * Calls setAccountAndGet based on transaction recipientId and
- * mergeAccountAndGet with unconfirmed transaction amount.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
- * @param {transaction} transaction
+  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
@@ -126,11 +122,7 @@ Transfer.prototype.apply = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls setAccountAndGet based on transaction recipientId and
- * mergeAccountAndGet with unconfirmed transaction amount and balance negative.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
+ * Calls setAccountAndGet based on transaction recipientId
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -138,6 +130,8 @@ Transfer.prototype.apply = function (transaction, block, sender, cb) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.undo = function (transaction, block, sender, cb) {
+	
+	// TODO: Implement proper check for this if needed
 	return setImmediate(cb);
 	// modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
 	// 	if (err) {

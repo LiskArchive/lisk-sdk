@@ -114,11 +114,6 @@ InTransfer.prototype.getBytes = function (transaction) {
 
 /**
  * Calls getGenesis with dappid to obtain authorId.
- * Calls mergeAccountAndGet with unconfirmed transaction amount and authorId as
- * address.
- * @implements {shared.getGenesis}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -130,25 +125,23 @@ InTransfer.prototype.apply = function (transaction, block, sender, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		modules.accounts.mergeAccountAndGet({
-			address: res.authorId,
-			balance: transaction.amount,
-			u_balance: transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
+		
+		// TODO: Implement proper check for this if needed
+		return setImmediate(cb);
+		// modules.accounts.mergeAccountAndGet({
+		// 	address: res.authorId,
+		// 	balance: transaction.amount,
+		// 	u_balance: transaction.amount,
+		// 	blockId: block.id,
+		// 	round: slots.calcRound(block.height)
+		// }, function (err) {
+		// 	return setImmediate(cb, err);
+		// });
 	});
 };
 
 /**
  * Calls getGenesis with dappid to obtain authorId.
- * Calls mergeAccountAndGet with authorId as address and unconfirmed
- * transaction amount and balance both negatives.
- * @implements {shared.getGenesis}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -160,15 +153,18 @@ InTransfer.prototype.undo = function (transaction, block, sender, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		modules.accounts.mergeAccountAndGet({
-			address: res.authorId,
-			balance: -transaction.amount,
-			u_balance: -transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
+	
+		// TODO: Implement proper check for this if needed
+		return setImmediate(cb);
+		// modules.accounts.mergeAccountAndGet({
+		// 	address: res.authorId,
+		// 	balance: -transaction.amount,
+		// 	u_balance: -transaction.amount,
+		// 	blockId: block.id,
+		// 	round: slots.calcRound(block.height)
+		// }, function (err) {
+		// 	return setImmediate(cb, err);
+		// });
 	});
 };
 

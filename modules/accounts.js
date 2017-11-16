@@ -163,43 +163,6 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 	});
 };
 
-/**
- * Validates input address and calls logic.account.merge().
- * @implements module:accounts#Account~merge
- * @param {Object} data - Contains address and public key.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} for errors wit address and public key.
- * @returns {function} calls to logic.account.merge().
- * @todo improve publicKey validation try/catch
- */
-// TODO: Remove this
-Accounts.prototype.mergeAccountAndGet = function (data, cb) {
-	var address = data.address || null;
-	var err;
-
-	if (address === null) {
-		if (data.publicKey) {
-			address = self.generateAddressByPublicKey(data.publicKey);
-		} else {
-			err = 'Missing address or public key';
-		}
-	}
-
-	if (!address) {
-		err = 'Invalid public key';
-	}
-
-	if (err) {
-		if (typeof cb === 'function') {
-			return setImmediate(cb, err);
-		} else {
-			throw err;
-		}
-	}
-
-	return library.logic.account.merge(address, data, cb);
-};
-
 // Events
 /**
  * Calls Vote.bind() with scope.
