@@ -45,7 +45,7 @@ Cache.prototype.isReady = function () {
  * @returns {function} cb
  */
 Cache.prototype.getJsonForKey = function (key, cb) {
-	logger.info(['Cache - Get value for key: ', key, ', cache status:', self.isConnected()].join(''));
+	logger.info(['Cache - Get value for key:', key, '| Status:', self.isConnected()].join(' '));
 	if (!self.isConnected()) { 
 		return cb(errorCacheDisabled); 
 	}
@@ -65,7 +65,7 @@ Cache.prototype.getJsonForKey = function (key, cb) {
  * @param {function} cb
  */
 Cache.prototype.setJsonForKey = function (key, value, cb) {
-	logger.info(['Cache - Set value for key: ', key, ', cache status:', self.isConnected()].join(''));
+	logger.info(['Cache - Set value for key:', key, '| Status:', self.isConnected()].join(' '));
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
@@ -79,7 +79,7 @@ Cache.prototype.setJsonForKey = function (key, value, cb) {
  * @param {string} key
  */
 Cache.prototype.deleteJsonForKey = function (key, cb) {
-	logger.info(['Cache - Delete value for key: ', key, ', cache status:', self.isConnected()].join(''));
+	logger.info(['Cache - Delete value for key:', key, '| Status:', self.isConnected()].join(' '));
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
@@ -158,14 +158,14 @@ Cache.prototype.quit = function (cb) {
 Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 	cb = cb || function () {};
 
-	logger.info(['Cache - onNewBlock', ', cache status:', self.isConnected()].join(''));
+	logger.info(['Cache - onNewBlock', '| Status:', self.isConnected()].join(' '));
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	async.map(['/api/blocks*', '/api/transactions*'], function (pattern, mapCb) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
-				logger.error(['Cache - Error clearing keys with pattern: ', pattern, ' on new block'].join(' '));
+				logger.error(['Cache - Error clearing keys with pattern:', pattern, 'on new block'].join(' '));
 			} else {
-				logger.info(['Cache - keys with pattern: ', pattern, 'cleared from cache on new block'].join(' '));
+				logger.info(['Cache - Keys with pattern:', pattern, 'cleared from cache on new block'].join(' '));
 			}
 			mapCb(err);
 		});
@@ -182,19 +182,18 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 Cache.prototype.onRoundChanged = function (data, cb) {
 	cb = cb || function () {};
 
-	logger.info(['Cache - onRoundChanged', ', cache status:', self.isConnected()].join(''));
+	logger.info(['Cache - onRoundChanged', '| Status:', self.isConnected()].join(' '));
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 	self.removeByPattern(pattern, function (err) {
 		if (err) {
-			logger.error(['Cache - Error clearing keys with pattern: ', pattern, ' round finish'].join(' '));
+			logger.error(['Cache - Error clearing keys with pattern:', pattern, 'round finish'].join(' '));
 		} else {
-			logger.info(['Cache - keys with pattern: ', pattern, 'cleared from cache on new Round'].join(' '));
+			logger.info(['Cache - Keys with pattern:', pattern, 'cleared from cache on new Round'].join(' '));
 		}
 		return cb(err);
 	});
 };
-
 
 /**
  * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
@@ -204,7 +203,7 @@ Cache.prototype.onRoundChanged = function (data, cb) {
 Cache.prototype.onTransactionsSaved = function (transactions, cb) {
 	cb = cb || function () {};
 
-	logger.info(['Cache - onTransactionsSaved', ', cache status:', self.isConnected()].join(''));
+	logger.info(['Cache - onTransactionsSaved', '| Status:', self.isConnected()].join(' '));
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 
@@ -215,9 +214,9 @@ Cache.prototype.onTransactionsSaved = function (transactions, cb) {
 	if (!!delegateTransaction) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
-				logger.error(['Cache - Error clearing keys with pattern: ', pattern, ' on delegate transaction'].join(' '));
+				logger.error(['Cache - Error clearing keys with pattern:', pattern, 'on delegate transaction'].join(' '));
 			} else {
-				logger.info(['Cache - keys with pattern: ', pattern, 'cleared from cache on delegate transaction'].join(' '));
+				logger.info(['Cache - Keys with pattern:', pattern, 'cleared from cache on delegate transaction'].join(' '));
 			}
 			return cb(err);
 		});
