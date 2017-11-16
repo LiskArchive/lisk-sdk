@@ -438,14 +438,14 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 		}
 	}
 
-	// // Check requester public key
-	// if (transaction.requesterPublicKey) {
-	// 	multisignatures.push(transaction.senderPublicKey);
-	//
-	// 	if (!Array.isArray(sender.multisignatures) || sender.multisignatures.indexOf(transaction.requesterPublicKey) < 0) {
-	// 		return setImmediate(cb, 'Account does not belong to multisignature group');
-	// 	}
-	// }
+	// Check requester public key
+	if (transaction.requesterPublicKey) {
+		multisignatures.push(transaction.senderPublicKey);
+
+		if (!Array.isArray(sender.multisignatures) || sender.multisignatures.indexOf(transaction.requesterPublicKey) < 0) {
+			return setImmediate(cb, 'Account does not belong to multisignature group');
+		}
+	}
 
 	// Verify signature
 	try {
@@ -852,6 +852,7 @@ Transaction.prototype.dbFields = [
 	'timestamp',
 	'sender_public_key',
 	'requester_public_key',
+	'recipient_public_key',
 	'sender_address',
 	'recipient_address',
 	'amount',
@@ -873,13 +874,14 @@ Transaction.prototype.dbSave = function (transaction) {
 		throw 'Unknown transaction type ' + transaction.type;
 	}
 
-	var senderPublicKey, signature, signSignature, requesterPublicKey;
+	var senderPublicKey, signature, signSignature, requesterPublicKey, recipientPublicKey;
 
 	try {
 		senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
 		signature = Buffer.from(transaction.signature, 'hex');
 		signSignature = transaction.signSignature ? Buffer.from(transaction.signSignature, 'hex') : null;
 		requesterPublicKey = transaction.requesterPublicKey ? Buffer.from(transaction.requesterPublicKey, 'hex') : null;
+		recipientPublicKey = transaction.recipientPublicKey ? Buffer.from(transaction.recipientPublicKey, 'hex') : null;
 	} catch (e) {
 		throw e;
 	}
@@ -895,6 +897,7 @@ Transaction.prototype.dbSave = function (transaction) {
 				timestamp: transaction.timestamp,
 				sender_public_key: senderPublicKey,
 				requester_public_key: requesterPublicKey,
+				recipient_public_key: recipientPublicKey,
 				sender_address: transaction.senderId,
 				recipient_address: transaction.recipientId || null,
 				amount: transaction.amount,
