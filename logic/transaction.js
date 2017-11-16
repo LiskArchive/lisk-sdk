@@ -697,35 +697,14 @@ Transaction.prototype.undo = function (transaction, block, sender, cb) {
 	amount = amount.plus(transaction.fee.toString()).toNumber();
 
 	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height)});
-
-	// TODO: Should be done in memory
-	// this.scope.account.merge(sender.address, {
-	// 	balance: amount,
-	// 	blockId: block.id,
-	// 	round: slots.calcRound(block.height)
-	// }, function (err, sender) {
-	// 	if (err) {
-	// 		return setImmediate(cb, err);
-	// 	}
-	//  * Types were here *
-	// }.bind(this));
-
-	// TODO: Should be done in memory
-	// __private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
-	// 	if (err) {
-	// 		this.scope.account.merge(sender.address, {
-	// 			balance: -amount,
-	// 			blockId: block.id,
-	// 			round: slots.calcRound(block.height)
-	// 		}, function (err) {
-	// 			return setImmediate(cb, err);
-	// 		});
-	// 	} else {
-	// 		return setImmediate(cb);
-	// 	}
-	// }.bind(this));
-
-	return setImmediate(cb);
+	
+	__private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
+		if (err) {
+			return setImmediate(cb, err);
+		} else {
+			return setImmediate(cb);
+		}
+	}.bind(this));
 };
 
 /**
@@ -765,23 +744,6 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
 			return setImmediate(cb);
 		}
 	}.bind(this));
-
-	// TODO: Do this stuff in memory instead
-	// this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
-	// 	if (err) {
-	// 		return setImmediate(cb, err);
-	// 	}
-	//
-	// 	__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
-	// 		if (err) {
-	// 			this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
-	// 				return setImmediate(cb, err2 || err);
-	// 			});
-	// 		} else {
-	// 			return setImmediate(cb);
-	// 		}
-	// 	}.bind(this));
-	// }.bind(this));
 };
 
 /**
@@ -800,25 +762,13 @@ Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	var amount = new bignum(transaction.amount.toString());
 	    amount = amount.plus(transaction.fee.toString()).toNumber();
 
-	return setImmediate(cb);
-
-	// TODO: Remove this probably
-	//
-	// this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
-	// 	if (err) {
-	// 		return setImmediate(cb, err);
-	// 	}
-	//
-	// 	__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
-	// 		if (err) {
-	// 			this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
-	// 				return setImmediate(cb, err2 || err);
-	// 			});
-	// 		} else {
-	// 			return setImmediate(cb);
-	// 		}
-	// 	}.bind(this));
-	// }.bind(this));
+	__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
+		if (err) {
+				return setImmediate(cb, err);
+		} else {
+			return setImmediate(cb);
+		}
+	}.bind(this));
 };
 
 Transaction.prototype.dbTable = 'transactions';
