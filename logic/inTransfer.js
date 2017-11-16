@@ -235,7 +235,7 @@ InTransfer.prototype.dbRead = function (raw) {
 		return null;
 	} else {
 		var inTransfer = {
-			dapp_id: raw.in_dappId
+			dappId: raw.in_dappId
 		};
 
 		return {inTransfer: inTransfer};

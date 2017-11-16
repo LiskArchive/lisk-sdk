@@ -268,6 +268,7 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
  * @return {setImmediateCallback} cb|errors
  */
 DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+	// TODO: Move to verify function
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}

@@ -277,8 +277,9 @@ OutTransfer.prototype.dbRead = function (raw) {
 		return null;
 	} else {
 		var outTransfer = {
-			dapp_id: raw.ot_dappId,
-			transaction_id: raw.ot_outTransactionId
+			dappId: raw.ot_dappId,
+			transactionId: raw.ot_outTransactionId,
+			outTransactionId: raw.ot_outTransactionId
 		};
 
 		return {outTransfer: outTransfer};
