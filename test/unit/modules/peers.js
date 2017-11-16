@@ -343,115 +343,44 @@ describe('peers', function () {
 		});
 	});
 
-	describe.skip('update', function () {
+	describe('update', function () {
+		
+		var validPeer;
+		var updateResult;
+		var validUpsertResult;
 
-		it('should insert new peer', function (done) {
-			peers.update(randomPeer);
-
-			getPeers(function (err, peersResult) {
-				expect(currentPeers.length + 1).that.equals(peersResult.length);
-				currentPeers = peersResult;
-				var inserted = peersResult.find(function (p) {
-					return p.ip + ':' + p.port === randomPeer.ip + ':' + randomPeer.port;
-				});
-				expect(inserted).to.be.an('object');
-				expect(inserted).not.to.be.empty;
-				done();
-			});
+		before(function () {
+			validUpsertResult = true;
+			validPeer = generateRandomActivePeer();
 		});
 
-		it('should update existing peer', function (done) {
-			var toUpdate = _.clone(randomPeer);
-			toUpdate.height += 1;
-			peers.update(toUpdate);
-
-			getPeers(function (err, peersResult) {
-				expect(currentPeers.length).that.equals(peersResult.length);
-				currentPeers = peersResult;
-				var updated = peersResult.find(function (p) {
-					return p.ip + ':' + p.port === randomPeer.ip + ':' + randomPeer.port;
-				});
-				expect(updated).to.be.an('object');
-				expect(updated).not.to.be.empty;
-				expect(updated.ip + ':' + updated.port).that.equals(randomPeer.ip + ':' + randomPeer.port);
-				expect(updated.height).that.equals(toUpdate.height);
-				done();
-			});
+		beforeEach(function () {
+			peersLogicMock.upsert = sinon.stub().returns(validUpsertResult);
+			updateResult = peers.update(validPeer);
 		});
 
-		it('should insert new peer if ip or port changed', function (done) {
-			var toUpdate = _.clone(randomPeer);
-			toUpdate.port += 1;
-			peers.update(toUpdate);
-
-			getPeers(function (err, peersResult) {
-				expect(currentPeers.length + 1).that.equals(peersResult.length);
-				currentPeers = peersResult;
-				var inserted = peersResult.find(function (p) {
-					return p.ip + ':' + p.port === toUpdate.ip + ':' + toUpdate.port;
-				});
-				expect(inserted).to.be.an('object');
-				expect(inserted).not.to.be.empty;
-				expect(inserted.ip + ':' + inserted.port).that.equals(toUpdate.ip + ':' + toUpdate.port);
-
-				toUpdate.ip = '40.40.40.41';
-				peers.update(toUpdate);
-				getPeers(function (err, peersResult) {
-					expect(currentPeers.length + 1).that.equals(peersResult.length);
-					currentPeers = peersResult;
-					var inserted = peersResult.find(function (p) {
-						return p.ip + ':' + p.port === toUpdate.ip + ':' + toUpdate.port;
-					});
-					expect(inserted).to.be.an('object');
-					expect(inserted).not.to.be.empty;
-					expect(inserted.ip + ':' + inserted.port).that.equals(toUpdate.ip + ':' + toUpdate.port);
-					done();
-				});
-			});
+		it('should call logic.peers.upsert', function () {
+			expect(peersLogicMock.upsert.calledOnce).to.be.true;
 		});
 
-		var ipAndPortPeer = {
-			ip: '40.41.40.41',
-			port: 4000
-		};
-
-		it('should insert new peer with only ip and port defined', function (done) {
-			peers.update(ipAndPortPeer);
-
-			getPeers(function (err, peersResult) {
-				expect(currentPeers.length + 1).that.equals(peersResult.length);
-				currentPeers = peersResult;
-				var inserted = peersResult.find(function (p) {
-					return p.ip + ':' + p.port === ipAndPortPeer.ip + ':' + ipAndPortPeer.port;
-				});
-				expect(inserted).to.be.an('object');
-				expect(inserted).not.to.be.empty;
-				expect(inserted.ip + ':' + inserted.port).that.equals(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
-				done();
-			});
+		it('should call logic.peers.upsert with peer', function () {
+			expect(peersLogicMock.upsert.calledWith(validPeer)).to.be.true;
 		});
 
-		it('should update peer with only one property defined', function (done) {
-			peers.update(ipAndPortPeer);
+		it('should return library.logic.peers.upsert result', function () {
+			expect(validUpsertResult).equal(validUpsertResult);
+		});
 
-			getPeers(function (err, peersResult) {
-				currentPeers = peersResult;
+		describe('when peer state != 2', function () {
 
-				var almostEmptyPeer = _.clone(ipAndPortPeer);
-				almostEmptyPeer.height = 1;
+			var differentThanTwoState = 1;
 
-				peers.update(almostEmptyPeer);
-				getPeers(function (err, peersResult) {
-					expect(currentPeers.length).that.equals(peersResult.length);
-					var inserted = peersResult.find(function (p) {
-						return p.ip + ':' + p.port === ipAndPortPeer.ip + ':' + ipAndPortPeer.port;
-					});
-					expect(inserted).to.be.an('object');
-					expect(inserted).not.to.be.empty;
-					expect(inserted.ip + ':' + inserted.port).that.equals(ipAndPortPeer.ip + ':' + ipAndPortPeer.port);
-					expect(inserted.height).that.equals(almostEmptyPeer.height);
-					done();
-				});
+			before(function () {
+				validPeer.state = differentThanTwoState;
+			});
+
+			it('should call logic.peers.upsert with peer containing state = 2 anyway', function () {
+				expect(peersLogicMock.upsert.calledWith(sinon.match({state: 2}))).to.be.true;
 			});
 		});
 	});
