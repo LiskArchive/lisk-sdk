@@ -26,6 +26,8 @@ import * as config from '../../src/commands/config';
 import * as get from '../../src/commands/get';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
+import * as showC from '../../src/commands/showC';
+import * as showW from '../../src/commands/showW';
 
 export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
 
@@ -84,6 +86,8 @@ export const getActionCreator = actionName => ({
 	get: get.actionCreator,
 	list: list.actionCreator,
 	set: set.actionCreator,
+	'show c': showC.actionCreator,
+	'show w': showW.actionCreator,
 })[actionName];
 
 export const createFakeInterface = value => ({

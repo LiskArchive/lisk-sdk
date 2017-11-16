@@ -109,3 +109,13 @@ export function itShouldReturnAnObjectWithError() {
 		error,
 	});
 }
+
+export function itShouldResolveToTheWarrantyInformation() {
+	const { returnValue, warranty } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith({ warranty });
+}
+
+export function itShouldResolveToTheCopyrightInformation() {
+	const { returnValue, copyright } = this.test.ctx;
+	return (returnValue).should.be.fulfilledWith({ copyright });
+}
