@@ -145,6 +145,8 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Build cached dependencies" : {
 				node('master-01'){
 					try {
+						deleteDir()
+						checkout scm
 						sh """
 						if [ ${params.JENKINS_PROFILE} = "jenkins-extensive" ]; then
 							rm -Rf "${env.WORKSPACE}/node_modules/"
