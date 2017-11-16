@@ -64,7 +64,7 @@
     "socket.io": "=2.0.3",
     "socketcluster": "=5.14.2",
     "socketcluster-client": "=5.3.0",
-    "sodium": "LiskHQ/node-sodium#716de00",
+    "sodium": "LiskHQ/node-sodium#895ac4482a56a34eba81205e43e0c859490fb99d",
     "strftime": "=0.10.0",
     "swagger-node-runner": "=0.7.3",
     "valid-url": "=1.0.9",
