@@ -161,49 +161,32 @@ describe('accounts', function () {
 
 		describe('getAccounts', function () {
 
-			it('should throw if parameter doesnt have correct schema', function (done) {
-				accounts.shared.getAccounts({
-					body: {
-						address: 5
-					}
-				}, function (err, res){
-					expect(err).to.have.property('message').that.is.equal('Expected type string but found type integer');
-					done();
-				});
-			});
-
 			it('should return empty accounts array when account does not exist', function (done) {
 				accounts.shared.getAccounts({
-					body: {
-						address: node.randomAccount().address
-					}
+					address: node.randomAccount().address
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(res).to.have.property('accounts').to.be.an('array').which.has.length(0);
+					expect(res).be.an('array').which.has.length(0);
 					done();
 				});
 			});
 
 			it('should return account using publicKey', function (done) {
 				accounts.shared.getAccounts({
-					body: {
-						publicKey: validAccount.publicKey
-					}
+					publicKey: validAccount.publicKey
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(res).to.have.property('accounts').to.be.an('array');
+					expect(res).to.be.an('array');
 					done();
 				});
 			});
 
 			it('should return account using address', function (done) {
 				accounts.shared.getAccounts({
-					body: {
-						address: validAccount.address
-					}
+					address: validAccount.address
 				}, function (err, res){
 					expect(err).to.not.exist;
-					expect(res).to.have.property('accounts').to.be.an('array');
+					expect(res).to.be.an('array');
 					done();
 				});
 			});
@@ -213,15 +196,13 @@ describe('accounts', function () {
 				var sort = 'balance:desc';
 
 				accounts.shared.getAccounts({
-					body: {
-						limit: limit,
-						sort: sort
-					}
+					limit: limit,
+					sort: sort
 				}, function (err, res) {
 					expect(err).to.not.exist;
-					expect(res.accounts).to.have.length(10);
+					expect(res).to.have.length(10);
 					for (var i = 0; i < limit - 1; i++) {
-						expect(new bignum(res.accounts[i].balance).gte(new bignum(res.accounts[i + 1].balance))).to.equal(true);
+						expect(new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))).to.equal(true);
 					}
 					done();
 				});
@@ -233,16 +214,14 @@ describe('accounts', function () {
 				var sort = 'balance:desc';
 
 				accounts.shared.getAccounts({
-					body: {
-						limit: limit,
-						offset: offset,
-						sort: sort 
-					}
+					limit: limit,
+					offset: offset,
+					sort: sort
 				}, function (err, res) {
 					expect(err).to.not.exist;
-					expect(res.accounts).to.have.length(10);
+					expect(res).to.have.length(10);
 					for (var i = 0; i < limit - 1; i++) {
-						expect(new bignum(res.accounts[i].balance).gte(new bignum(res.accounts[i + 1].balance))).to.equal(true);
+						expect(new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))).to.equal(true);
 					}
 					done();
 				});
