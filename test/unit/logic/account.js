@@ -383,6 +383,7 @@ describe('account', function () {
 
 		it('should ignore negative limit', function (done) {
 			var sortedUsernames = _(allAccounts).map('username').dbSort();
+
 			account.getAll({
 				limit: -50,
 				sort: 'username:asc'
