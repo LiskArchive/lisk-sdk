@@ -34,7 +34,7 @@ describe('checkIpInList', function () {
 		after(function () {
 		});
 
-		describe('when returnListIsEmpty is not a Boolean', function () {
+		describe('when returnListIsEmpty is not a boolean', function () {
 
 			before(function () {
 				validReturnListIsEmpty = null;
