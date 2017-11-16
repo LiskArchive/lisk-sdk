@@ -414,8 +414,6 @@ describe('transactions', function () {
 				}]);
 
 				getTransactionsById(transactionId, function (err, res) {
-					console.log (res);
-					console.log (res.transactions[0].asset);
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
