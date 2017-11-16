@@ -461,7 +461,7 @@ Peers.prototype.list = function (options, cb) {
 	var limit = options.limit || constants.maxPeers;
 	var broadhash = options.broadhash || modules.system.getBroadhash();
 	var allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
-	var attempts = options.attempt ? [options.attempt] : [1, 0];
+	var attempts = (options.attempt === 0 || options.attempt === 1) ? [options.attempt] : [1, 0];
 
 	var attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
 
