@@ -368,7 +368,7 @@ describe('peers', function () {
 		});
 
 		it('should return library.logic.peers.upsert result', function () {
-			expect(validUpsertResult).equal(validUpsertResult);
+			expect(updateResult).equal(validUpsertResult);
 		});
 
 		describe('when peer state != 2', function () {
@@ -385,28 +385,73 @@ describe('peers', function () {
 		});
 	});
 
-	describe.skip('remove', function () {
+	describe('remove', function () {
 
-		before(function (done) {
-			peers.update(randomPeer);
-			done();
+		var validIp;
+		var validPort;
+		var removeResult;
+		var validLogicRemoveResult;
+
+		before(function () {
+			validLogicRemoveResult = true;
+			var validPeer = generateRandomActivePeer();
+			validIp = validPeer.ip;
+			validPort = validPeer.port;
 		});
 
-		it('should remove added peer', function (done) {
-			getPeers(function (err, peersResult) {
-				currentPeers = peersResult;
-				var peerToRemove = currentPeers.find(function (p) {
-					return p.ip + ':' + p.port === randomPeer.ip + ':' + randomPeer.port;
-				});
-				expect(peerToRemove).to.be.an('object').and.not.to.be.empty;
-				expect(peerToRemove.state).that.equals(2);
+		beforeEach(function () {
+			peersLogicMock.remove = sinon.stub().returns(validLogicRemoveResult);
+			removeResult = peers.remove(validIp, validPort);
+		});
 
-				expect(peers.remove(peerToRemove.ip, peerToRemove.port)).to.be.ok;
-				getPeers(function (err, peersResult) {
-					expect(currentPeers.length - 1).that.equals(peersResult.length);
-					currentPeers = peersResult;
-					done();
-				});
+		describe('when removable peer is frozen', function () {
+
+			var originalFrozenPeersList;
+			var loggerDebugSpy;
+
+			before(function () {
+				originalFrozenPeersList = _.assign({}, modulesLoader.scope.config.peers.list);
+				modulesLoader.scope.config.peers.list = [{
+					ip: validIp,
+					port: validPort
+				}];
+				loggerDebugSpy = sinon.spy(modulesLoader.scope.logger, 'debug');
+			});
+
+			after(function () {
+				modulesLoader.scope.config.peers.list = originalFrozenPeersList;
+				loggerDebugSpy.restore();
+			});
+
+			it('should not call logic.peers.remove', function () {
+				expect(peersLogicMock.remove.called).to.be.false;
+			});
+
+			it('should call logger.debug with message = "Cannot remove frozen peer"', function () {
+				expect(loggerDebugSpy.calledWith('Cannot remove frozen peer')).to.be.true;
+			});
+
+			it('should call logger.debug with message = [ip:port]', function () {
+				expect(loggerDebugSpy.args[0][1]).eql(validIp + ':' + validPort);
+			});
+		});
+
+		describe('when removable peer is not frozen', function () {
+
+			it('should call logic.peers.remove', function () {
+				expect(peersLogicMock.remove.calledOnce).to.be.true;
+			});
+
+			it('should call logic.peers.remove with object containing expected ip', function () {
+				expect(peersLogicMock.remove.calledWith(sinon.match({ip: validIp}))).to.be.true;
+			});
+
+			it('should call logic.peers.remove with object containing expected port', function () {
+				expect(peersLogicMock.remove.calledWith(sinon.match({port: validPort}))).to.be.true;
+			});
+
+			it('should return library.logic.peers.remove result', function () {
+				expect(removeResult).equal(validLogicRemoveResult);
 			});
 		});
 	});
