@@ -125,7 +125,17 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				});
 			});
 
-			it('invalid dapp id should fail', function () {
+			it('with empty string should fail', function () {
+				transaction = node.lisk.transfer.createInTransfer('', Date.now(), account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: String is too short (0 chars), minimum 1');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with invalid string should fail', function () {
 				var invalidDappId = '1L';
 				transaction = node.lisk.transfer.createInTransfer(invalidDappId, 1, node.gAccount.password);
 
@@ -178,6 +188,17 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
 				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + inventedDappId);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('using valid but inexistent transaction id as dapp id should fail', function () {
+			var inexistentId = node.randomTransaction().id;
+			transaction = node.lisk.transfer.createInTransfer(inexistentId, 1, account.password);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + inexistentId);
 				badTransactions.push(transaction);
 			});
 		});

@@ -125,7 +125,17 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 				});
 			});
 
-			it('invalid dapp id should fail', function () {
+			it('with empty string should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer('', node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: String is too short (0 chars), minimum 1');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with invalid string should fail', function () {
 				var invalidDappId = '1L';
 				transaction = node.lisk.transfer.createOutTransfer(invalidDappId, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
 
@@ -138,9 +148,150 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		});
 
 		describe('transactionId', function () {
+			
+			it('without should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				delete transaction.asset.outTransfer.transactionId;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: Missing required property: transactionId');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with integer should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.asset.outTransfer.transactionId = 1;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type integer');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with number should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.asset.outTransfer.transactionId = 1.2;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type number');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with empty array should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.asset.outTransfer.transactionId = [];
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type array');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with empty object should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.asset.outTransfer.transactionId = {};
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type object');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('empty string should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, '', node.gAccount.address, 1, account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: String is too short (0 chars), minimum 1');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with invalid string should fail', function () {
+				var invalidTransactionId = '1L';
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, invalidTransactionId, node.gAccount.address, Date.now(), account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate outTransfer schema: Object didn\'t pass validation for format id: ' + invalidTransactionId);
+					badTransactions.push(transaction);
+				});
+			});
 		});
 
 		describe('recipientId', function () {
+
+			it('with integer should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.recipientId = 1;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type string but found type integer');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with number should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.recipientId = 1.2;
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type string but found type number');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with empty array should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.recipientId = [];
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type string but found type array');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with empty object should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), account.password);
+				transaction.recipientId = {};
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: Expected type string but found type object');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('empty string should fail', function () {
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, '', 1, account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: String is too short (0 chars), minimum 1');
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with invalid string should fail', function () {
+				var invalidRecipientId = '1X';
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, invalidRecipientId, Date.now(), account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: Object didn\'t pass validation for format address: ' + invalidRecipientId);
+					badTransactions.push(transaction);
+				});
+			});
 		});
 
 		describe('amount', function () {
@@ -192,7 +343,18 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 		});
 
-		it('using unrelated transaction id as dapp id should fail', function () {
+		it('using valid but inexistent transaction id as dapp id should fail', function () {
+			var inexistentId = node.randomTransaction().id;
+			transaction = node.lisk.transfer.createOutTransfer(inexistentId, node.randomTransaction().id, node.gAccount.address, 1, account.password);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + inexistentId);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('using unrelated existent transaction id as dapp id should fail', function () {
 			transaction = node.lisk.transfer.createOutTransfer(transactionsToWaitFor[0], node.randomTransaction().id, node.gAccount.address, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
