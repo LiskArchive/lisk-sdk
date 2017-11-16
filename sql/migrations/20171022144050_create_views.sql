@@ -7,27 +7,35 @@ END
 $$;
 
   -- Recreate views
-  CREATE VIEW "public".accounts_list AS
-  SELECT DISTINCT a.address,
-                  a.balance     AS balance,
-                  a.public_key  AS "publicKey",
-                  ss.second_public_key AS "secondPublicKey",
-                  d.name        AS username,
-                  d.rank,
-                  d.fees,
-                  d.rewards,
-                  d.voters_balance      AS votes,
-                  d.voters_count        AS voters,
-                  d.blocks_forged_count AS "producedBlocks",
-                  d.blocks_missed_count AS "missedBlocks",
-                  ((CASE WHEN mma.public_key IS NULL then 0
-                        WHEN mma.public_key IS NOT NULL then 1 END))       AS "multisignatures",
-                  mma.lifetime          AS multilifetime,
-                  mma.minimum           AS multimin
-  FROM            ((((accounts a
-  LEFT JOIN       delegates d ON (( d.public_key = a.public_key )))
-  LEFT JOIN       multisignatures_master mma ON (( mma."public_key" = a.public_key )))
-  LEFT JOIN       second_signature ss ON (( ss."public_key" = a.public_key))));
+ CREATE VIEW "public".accounts_list AS
+ SELECT DISTINCT a.address,
+    a.balance,
+    a.public_key AS "publicKey",
+    ss.second_public_key AS "secondPublicKey",
+    d.name AS username,
+    d.rank,
+    d.fees,
+    d.rewards,
+    (SELECT COUNT(v.delegate_public_key)
+        FROM (SELECT DISTINCT ON (delegate_public_key) voter_address, delegate_public_key, type
+            FROM votes_details
+            WHERE voter_address = a."address"
+            ORDER BY delegate_public_key, timestamp DESC)
+        v WHERE v.type = 'add') AS votes,
+    d.voters_count AS voters,
+    d.blocks_forged_count AS "producedBlocks",
+    d.blocks_missed_count AS "missedBlocks",
+        CASE
+            WHEN (mma.public_key IS NULL) THEN 0
+            WHEN (mma.public_key IS NOT NULL) THEN 1
+            ELSE NULL::integer
+        END AS multisignatures,
+    mma.lifetime AS multilifetime,
+    mma.minimum AS multimin
+   FROM (((accounts a
+     LEFT JOIN delegates d ON ((d.public_key = a.public_key)))
+     LEFT JOIN multisignatures_master mma ON ((mma.public_key = a.public_key)))
+     LEFT JOIN second_signature ss ON ((ss.public_key = a.public_key)));
 
 CREATE VIEW "public".multisignatures_list AS
 SELECT DISTINCT mma.transaction_id AS "transaction_id",
