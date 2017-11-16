@@ -128,15 +128,6 @@ InTransfer.prototype.apply = function (transaction, block, sender, cb) {
 		
 		// TODO: Implement proper check for this if needed
 		return setImmediate(cb);
-		// modules.accounts.mergeAccountAndGet({
-		// 	address: res.authorId,
-		// 	balance: transaction.amount,
-		// 	u_balance: transaction.amount,
-		// 	blockId: block.id,
-		// 	round: slots.calcRound(block.height)
-		// }, function (err) {
-		// 	return setImmediate(cb, err);
-		// });
 	});
 };
 
@@ -156,15 +147,6 @@ InTransfer.prototype.undo = function (transaction, block, sender, cb) {
 	
 		// TODO: Implement proper check for this if needed
 		return setImmediate(cb);
-		// modules.accounts.mergeAccountAndGet({
-		// 	address: res.authorId,
-		// 	balance: -transaction.amount,
-		// 	u_balance: -transaction.amount,
-		// 	blockId: block.id,
-		// 	round: slots.calcRound(block.height)
-		// }, function (err) {
-		// 	return setImmediate(cb, err);
-		// });
 	});
 };
 

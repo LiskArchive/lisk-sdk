@@ -764,7 +764,7 @@ Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 
 	__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
 		if (err) {
-				return setImmediate(cb, err);
+			return setImmediate(cb, err);
 		} else {
 			return setImmediate(cb);
 		}

@@ -194,11 +194,7 @@ Vote.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Calls checkConfirmedDelegates based on transaction data and
- * merges account to sender address with votes as delegates.
- * @implements {checkConfirmedDelegates}
- * @implements {scope.account.merge}
- * @implements {slots.calcRound}
+ * Calls checkConfirmedDelegates based on transaction data
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -210,11 +206,7 @@ Vote.prototype.apply = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to
- * sender address with inverted votes as delegates.
- * @implements {Diff}
- * @implements {scope.account.merge}
- * @implements {slots.calcRound}
+ * Calls Diff.reverse to change asset.votes signs
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -228,10 +220,7 @@ Vote.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls checkUnconfirmedDelegates based on transaction data and
- * merges account to sender address with votes as unconfirmed delegates.
- * @implements {checkUnconfirmedDelegates}
- * @implements {scope.account.merge}
+ * Calls checkUnconfirmedDelegates based on transaction data
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
@@ -242,11 +231,7 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to
- * sender address with inverted votes as unconfirmed delegates.
- * @implements {Diff}
- * @implements {scope.account.merge}
- * @implements {slots.calcRound}
+ * Calls Diff.reverse to change asset.votes signs 
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
