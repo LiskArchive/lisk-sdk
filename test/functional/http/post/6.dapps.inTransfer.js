@@ -66,7 +66,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(account, 'inTransfer', badTransactions);
+		shared.invalidAssets('inTransfer', badTransactions);
 		
 		describe('dappId', function () {
 			

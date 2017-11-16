@@ -83,26 +83,26 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	});
 };
 
-function invalidAssets (account, option, badTransactions) {
+function invalidAssets (option, badTransactions) {
 
 	var transaction;
 
 	beforeEach(function () {
 		switch(option) {
 			case 'signature':
-				transaction = node.lisk.signature.createSignature(account.password, node.randomPassword());
+				transaction = node.lisk.signature.createSignature(node.gAccount.password, node.randomPassword());
 				break;
 			case 'delegate':
-				transaction = node.lisk.delegate.createDelegate(account.password, node.randomDelegateName());
+				transaction = node.lisk.delegate.createDelegate(node.gAccount.password, node.randomDelegateName());
 				break;
 			case 'votes':
-				transaction = node.lisk.vote.createVote(account.password, []);
+				transaction = node.lisk.vote.createVote(node.gAccount.password, []);
 				break;
 			case 'multisignature':
-				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + node.eAccount.publicKey], 1, 2);
 				break;
 			case 'dapp':
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, node.guestbookDapp);
 				break;
 			case 'inTransfer':
 				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);

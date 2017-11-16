@@ -50,7 +50,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(scenarios.regular.account, 'multisignature', badTransactions);
+		shared.invalidAssets('multisignature', badTransactions);
 
 		describe('keysgroup', function () {
 

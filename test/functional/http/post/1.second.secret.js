@@ -66,7 +66,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(account, 'signature', badTransactions);
+		shared.invalidAssets('signature', badTransactions);
 	});
 
 	describe('transactions processing', function () {
