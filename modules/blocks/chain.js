@@ -253,7 +253,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 		// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
 		// FIXME: Poor performance - every transaction cause SQL query to be executed
 		// WARNING: DB_WRITE
-		modules.accounts.setAccountAndGet(transaction, function (err, sender) {
+		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey, transaction: transaction}, function (err, sender) {
 			if (err) {
 				return setImmediate(cb, {
 					message: err,
