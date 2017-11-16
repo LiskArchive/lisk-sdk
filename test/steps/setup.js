@@ -16,6 +16,7 @@
 import childProcess from 'child_process';
 import fs from 'fs';
 import readline from 'readline';
+import lockfile from 'lockfile';
 import lisk from 'lisk-js';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
@@ -66,6 +67,10 @@ const setUpJSONStubs = () => {
 		'parse',
 		'stringify',
 	].forEach(methodName => sandbox.stub(JSON, methodName));
+};
+
+const setUpLockfileStubs = () => {
+	sandbox.stub(lockfile, 'lock');
 };
 
 const setUpProcessStubs = () => {
@@ -220,6 +225,15 @@ export function tearDownCommandSet() {
 	restoreEnvVariable(NON_INTERACTIVE_MODE).call(this);
 }
 
+export function setUpUtilConfig() {
+	setUpFsStubs();
+	setUpFsUtilsStubs();
+	setUpConsoleStubs();
+	setUpLockfileStubs();
+	setUpProcessStubs();
+	delete require.cache[require.resolve(CONFIG_PATH)];
+}
+
 export function setUpUtilCrypto() {
 	setUpLiskJSCryptoStubs();
 }
@@ -243,14 +257,6 @@ export function setUpUtilInputUtils() {
 
 export function tearDownUtilInputUtils() {
 	restoreEnvVariable(TEST_PASSPHRASE);
-}
-
-export function setUpUtilEnv() {
-	setUpFsStubs();
-	setUpFsUtilsStubs();
-	setUpConsoleStubs();
-	setUpProcessStubs();
-	delete require.cache[require.resolve(CONFIG_PATH)];
 }
 
 export function setUpUtilWrapActionCreator() {

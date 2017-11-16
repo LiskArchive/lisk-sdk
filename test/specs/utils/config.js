@@ -14,13 +14,13 @@
  *
  */
 import os from 'os';
-import { setUpUtilEnv } from '../../steps/setup';
+import { setUpUtilConfig } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('config util', () => {
-	beforeEach(setUpUtilEnv);
+	beforeEach(setUpUtilConfig);
 	Given('a default config', given.aDefaultConfig, () => {
 		Given(`a directory path "${os.homedir()}/.lisky"`, given.aDirectoryPath, () => {
 			Given('a config file name "config.json"', given.aConfigFileName, () => {
@@ -61,25 +61,34 @@ describe('config util', () => {
 								Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
 							});
 						});
-						Given('the config file can be read', given.theFileCanBeRead, () => {
-							Given('the config file is not valid JSON', given.theFileIsNotValidJSON, () => {
-								When('the config is loaded', when.theConfigIsLoaded, () => {
-									Then('the user should be informed that the config file is not valid JSON', then.theUserShouldBeInformedThatTheConfigFileIsNotValidJSON);
-									Then('the process should exit with error code "2"', then.theProcessShouldExitWithErrorCode);
-									Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
-								});
+						Given('there is a config lockfile', given.thereIsAConfigLockfile, () => {
+							When('the config is loaded', when.theConfigIsLoaded, () => {
+								it(`Then the user should be informed that a config lockfile was found at path "${os.homedir()}/.lisky/config.lock"`, then.theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath);
+								Then('the process should exit with error code "3"', then.theProcessShouldExitWithErrorCode);
+								Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
 							});
-							Given('the config file is valid JSON', given.theFileIsValidJSON, () => {
-								Given('the config file cannot be written', given.theFileCannotBeWritten, () => {
+						});
+						Given('there is no config lockfile', given.thereIsNoConfigLockfile, () => {
+							Given('the config file can be read', given.theFileCanBeRead, () => {
+								Given('the config file is not valid JSON', given.theFileIsNotValidJSON, () => {
 									When('the config is loaded', when.theConfigIsLoaded, () => {
+										Then('the user should be informed that the config file is not valid JSON', then.theUserShouldBeInformedThatTheConfigFileIsNotValidJSON);
+										Then('the process should exit with error code "2"', then.theProcessShouldExitWithErrorCode);
 										Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
-										Then('the user’s config should be exported', then.theUsersConfigShouldBeExported);
 									});
 								});
-								Given('the config file can be written', given.theFileCanBeWritten, () => {
-									When('the config is loaded', when.theConfigIsLoaded, () => {
-										Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
-										Then('the user’s config should be exported', then.theUsersConfigShouldBeExported);
+								Given('the config file is valid JSON', given.theFileIsValidJSON, () => {
+									Given('the config file cannot be written', given.theFileCannotBeWritten, () => {
+										When('the config is loaded', when.theConfigIsLoaded, () => {
+											Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
+											Then('the user’s config should be exported', then.theUsersConfigShouldBeExported);
+										});
+									});
+									Given('the config file can be written', given.theFileCanBeWritten, () => {
+										When('the config is loaded', when.theConfigIsLoaded, () => {
+											Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
+											Then('the user’s config should be exported', then.theUsersConfigShouldBeExported);
+										});
 									});
 								});
 							});

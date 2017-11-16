@@ -2147,9 +2147,9 @@ istanbul-reports@^1.1.1:
   dependencies:
     handlebars "^4.0.3"
 
-"js-nacl@github:liskhq/js-nacl#6dc1417":
+js-nacl@LiskHQ/js-nacl#6dc1417:
   version "1.2.1"
-  resolved "https://codeload.github.com/liskhq/js-nacl/tar.gz/6dc1417"
+  resolved "https://codeload.github.com/LiskHQ/js-nacl/tar.gz/6dc1417057cd81381d332b370e82ceab1f2416af"
 
 js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
@@ -2298,6 +2298,10 @@ locate-path@^2.0.0:
   dependencies:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
+
+lockfile@=1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/lockfile/-/lockfile-1.0.3.tgz#2638fc39a0331e9cac1a04b71799931c9c50df79"
 
 lodash._baseassign@^3.0.0:
   version "3.2.0"
@@ -2490,11 +2494,7 @@ minimist@0.0.8:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.8.tgz#857fcabfc3397d2625b8228262e86aa7a011b05d"
 
-minimist@1.2.0, minimist@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
-
-minimist@LiskHQ/minimist#2f27878:
+minimist@1.2.0, minimist@LiskHQ/minimist#2f27878, minimist@^1.2.0:
   version "1.2.0"
   resolved "https://codeload.github.com/LiskHQ/minimist/tar.gz/2f27878"
 
