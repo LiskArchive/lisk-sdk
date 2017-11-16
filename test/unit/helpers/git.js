@@ -22,7 +22,7 @@ describe('git', function () {
 				spawnSyncStub.restore();
 			});
 
-			it('should throw the error', function () {
+			it('should throw an error', function () {
 				expect(git.getLastCommit).throws(Error, validErrorMessage);
 			});
 		});
@@ -40,7 +40,7 @@ describe('git', function () {
 				spawnSyncStub.restore();
 			});
 
-			it('should return commit hash', function () {
+			it('should return a commit hash', function () {
 				expect(git.getLastCommit()).equal(validCommitHash);
 			});
 		});
