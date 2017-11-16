@@ -39,12 +39,9 @@
  *     var LSK = lisk.api(options);
 */
 import config from '../../config.json';
-import { LIVE_PORT, TEST_PORT } from '../constants';
+import { LIVE_PORT, TEST_PORT, GET, POST } from '../constants';
 import * as privateApi from './privateApi';
 import * as utils from './utils';
-
-const GET = 'GET';
-const POST = 'POST';
 
 /**
 *
