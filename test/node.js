@@ -379,7 +379,8 @@ node.initApplication = function (cb, initScope) {
 		return t.batch([
 			t.none('DELETE FROM blocks WHERE height > 1'),
 			t.none('DELETE FROM blocks'),
-			t.none('DELETE FROM mem_accounts')
+			t.none('DELETE FROM accounts'),
+			t.none('DELETE FROM transactions')
 		]);
 	}).then(function () {
 		var logger = initScope.logger || {
