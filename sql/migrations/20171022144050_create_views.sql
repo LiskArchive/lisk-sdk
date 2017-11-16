@@ -37,56 +37,56 @@ $$;
      LEFT JOIN multisignatures_master mma ON ((mma.public_key = a.public_key)))
      LEFT JOIN second_signature ss ON ((ss.public_key = a.public_key)));
 
-CREATE VIEW "public".multisignatures_list AS
-SELECT DISTINCT mma.transaction_id AS "transaction_id",
-                mme.public_key AS "memberPublicKey",
-                mme.master_public_key AS "masterPublicKey",
-                mma.lifetime          AS multilifetime,
-                mma.minimum           AS multimin
-FROM            (multisignatures_member mme
-LEFT JOIN       multisignatures_master mma ON (( mme."master_public_key" = mma."public_key" )));
+    CREATE VIEW "public".multisignatures_list AS
+    SELECT DISTINCT mma.transaction_id AS "transaction_id",
+                    mme.public_key AS "memberPublicKey",
+                    mme.master_public_key AS "masterPublicKey",
+                    mma.lifetime          AS multilifetime,
+                    mma.minimum           AS multimin
+    FROM            (multisignatures_member mme
+    LEFT JOIN       multisignatures_master mma ON (( mme."master_public_key" = mma."public_key" )));
 
-  CREATE VIEW "public".blocks_list                     AS
-  SELECT b.block_id                                    AS b_id,
-         b.version                                     AS b_version,
-         b."timestamp"                                 AS b_timestamp,
-         b.height                                      AS b_height,
-         b."previous_block_id"                         AS "b_previousBlock",
-         b."total_transactions"                        AS "b_numberOfTransactions",
-         b."total_amount"                              AS "b_totalAmount",
-         b."total_fee"                                 AS "b_totalFee",
-         b.reward                                      AS b_reward,
-         b."payload_length"                            AS "b_payloadLength",
-         encode(b."payload_hash", 'hex'::text)         AS "b_payloadHash",
-         encode(b."generator_public_key", 'hex'::text) AS "b_generatorPublicKey",
-         encode(b."signature", 'hex'::text)            AS "b_blockSignature",
-         (( SELECT (max(blocks.height) + 1)
+ CREATE VIEW "public".blocks_list                     AS
+ SELECT b.block_id                                    AS b_id,
+        b.version                                     AS b_version,
+        b."timestamp"                                 AS b_timestamp,
+        b.height                                      AS b_height,
+        b."previous_block_id"                         AS "b_previousBlock",
+        b."total_transactions"                        AS "b_numberOfTransactions",
+        b."total_amount"                              AS "b_totalAmount",
+        b."total_fee"                                 AS "b_totalFee",
+        b.reward                                      AS b_reward,
+        b."payload_length"                            AS "b_payloadLength",
+        encode(b."payload_hash", 'hex'::text)         AS "b_payloadHash",
+        encode(b."generator_public_key", 'hex'::text) AS "b_generatorPublicKey",
+        encode(b."signature", 'hex'::text)            AS "b_blockSignature",
+        (( SELECT (max(blocks.height) + 1)
                             FROM   blocks) - b.height) AS b_confirmations
-  FROM   blocks b;
+ FROM   blocks b;
 
-  CREATE VIEW "public".transactions_list            AS
-  SELECT    t.transaction_id                        AS t_id,
-            b.height                                AS b_height,
-            t.block_id                              AS "t_blockId",
-            t.TYPE                                  AS t_type,
-            t."timestamp"                           AS t_timestamp,
-            t.sender_public_key                     AS "t_senderPublicKey",
-            a.public_key                            AS "a_recipientPublicKey",
-            upper((t.sender_address)::text)         AS "t_senderId",
-            upper((t.recipient_address)::text)      AS "t_recipientId",
-            t.amount                                AS t_amount,
-            t.fee                                   AS t_fee,
-            encode(t.signature, 'hex'::text)        AS t_signature,
-            encode(t.second_signature, 'hex'::text) AS "t_signSignature",
-            t."signatures" AS "t_signatures",
-            (( SELECT   (blocks.height + 1) FROM blocks
-            ORDER BY blocks.height DESC limit 1) - b.height) AS confirmations
-  FROM      ((transactions t
-  LEFT JOIN blocks b ON  ((( t.block_id)::text = (b.block_id)::text) ))
-  LEFT JOIN accounts a ON   ((( t.recipient_address)::text = (a.address)::text) ));
+ CREATE VIEW "public".transactions_list            AS
+ SELECT    t.transaction_id                        AS t_id,
+           b.height                                AS b_height,
+           t.block_id                              AS "t_blockId",
+           t.TYPE                                  AS t_type,
+           t."timestamp"                           AS t_timestamp,
+           t.sender_public_key                     AS "t_senderPublicKey",
+           a.public_key                            AS "a_recipientPublicKey", -- Need to get publickey from transactions if present
+           upper((t.sender_address)::text)         AS "t_senderId",
+           upper((t.recipient_address)::text)      AS "t_recipientId",
+           t.amount                                AS t_amount,
+           t.fee                                   AS t_fee,
+           encode(t.signature, 'hex'::text)        AS t_signature,
+           encode(t.second_signature, 'hex'::text) AS "t_signSignature",
+           t."signatures" AS "t_signatures",
+           (( SELECT   (blocks.height + 1) FROM blocks
+           ORDER BY blocks.height DESC limit 1) - b.height) AS confirmations
+ FROM      ((transactions t
+ LEFT JOIN blocks b ON  ((( t.block_id)::text = (b.block_id)::text) ))
+ LEFT JOIN accounts a ON   ((( t.recipient_address)::text = (a.address)::text) ));
 
-  CREATE VIEW "public".full_blocks_list                   AS
-  SELECT    b.block_id                                    AS b_id,
+ CREATE VIEW "public".full_blocks_list                   AS
+ SELECT    b.block_id                                    AS b_id,
             b.version                                     AS b_version,
             b."timestamp"                                 AS b_timestamp,
             b.height                                      AS b_height,

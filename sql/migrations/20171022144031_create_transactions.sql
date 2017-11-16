@@ -6,19 +6,22 @@ BEGIN
 END
 $$;
 
- /* Rename all columns for new schema */
-ALTER TABLE trs RENAME TO transactions;
-ALTER TABLE transactions RENAME id TO "transaction_id";
-ALTER TABLE transactions RENAME "rowId" TO "row_id";
-ALTER TABLE transactions RENAME "blockId" TO "block_id";
-ALTER TABLE transactions RENAME "senderPublicKey" TO "sender_public_key";
-ALTER TABLE transactions RENAME "senderId" TO "sender_address";
-ALTER TABLE transactions RENAME "recipientId" TO "recipient_address";
-ALTER TABLE transactions RENAME "signSignature" TO "second_signature";
-ALTER TABLE transactions RENAME "requesterPublicKey" TO "requester_public_key";
+  -- Rename all columns for new schema
+  ALTER TABLE trs RENAME TO transactions;
+  ALTER TABLE transactions RENAME id TO "transaction_id";
+  ALTER TABLE transactions RENAME "rowId" TO "row_id";
+  ALTER TABLE transactions RENAME "blockId" TO "block_id";
+  ALTER TABLE transactions RENAME "senderPublicKey" TO "sender_public_key";
+  ALTER TABLE transactions RENAME "senderId" TO "sender_address";
+  ALTER TABLE transactions RENAME "recipientId" TO "recipient_address";
+  ALTER TABLE transactions RENAME "signSignature" TO "second_signature";
+  ALTER TABLE transactions RENAME "requesterPublicKey" TO "requester_public_key";
 
-/* Rename rowId sequence */
-ALTER SEQUENCE "public"."trs_rowId_seq" RENAME TO "transactions_row_id_seq";
+  -- Rename rowId sequence
+  ALTER SEQUENCE "public"."trs_rowId_seq" RENAME TO "transactions_row_id_seq";
+
+  --Add recipient public key column to transactions
+  ALTER TABLE transactions ADD COLUMN "recipient_public_key" BYTEA;
 
 
   -- Transactions indexes
