@@ -51,7 +51,7 @@ describe('transactionPool', function () {
 			secret: 'island pizza tilt scrap spend guilt one guitar range narrow rough hotel',
 		}
 	];
-	
+
 	var transactions = [
 		/* Type: 0 - Transmit funds.*/
 		node.lisk.transaction.createTransaction(testAccounts[1].account.address, 300000000, testAccounts[0].secret),
@@ -77,7 +77,7 @@ describe('transactionPool', function () {
 				['+' + testAccounts[2].account.publicKey,'+' + testAccounts[1].account.publicKey], [testAccounts[2].secret], 1, 2)
 		]
 	];
-	
+
 	var invalidsTransactions = [
 		/* Type: 0 - Transmit funds account without enough credit.*/
 		node.lisk.transaction.createTransaction(testAccounts[0].account.address, 4400000000000, testAccounts[1].secret),
@@ -111,7 +111,7 @@ describe('transactionPool', function () {
 				['+' + testAccounts[2].account.publicKey], [testAccounts[1].secret], 1, 1)
 		]
 	];
-	
+
 	var hackedTransactions = [
 		/* Invalid signature */
 		{
@@ -131,7 +131,7 @@ describe('transactionPool', function () {
 			'id': '16349767733713562311'
 		}
 	];
-	
+
 	// Set spies for logger
 	var logger;
 	var library;
@@ -139,23 +139,14 @@ describe('transactionPool', function () {
 	var poolTotals;
 	var poolStorageTransactionsLimit;
 	var dbSandbox;
-	
+
 	function resetSpiesState () {
 		// Reset state of spies
-		logger.debug.reset();
 		logger.info.reset();
 		logger.warn.reset();
 		logger.error.reset();
 	}
-	
-	function restoreSpiesState () {
-		// Restore state of spies
-		logger.debug.restore();
-		logger.info.restore();
-		logger.warn.restore();
-		logger.error.restore();
-	}
-	
+
 	function createMultisignatureSigned (creatorSecret, creatorSecondSecret, keysgroup, signeersSecrets, min, lifetime) {
 		var multisignatureTransaction = node.lisk.multisignature.createMultisignature(creatorSecret, creatorSecondSecret, keysgroup, min, lifetime);
 		var signatures = [];
@@ -237,7 +228,6 @@ describe('transactionPool', function () {
 	});
 
 	after(function (done) {
-		restoreSpiesState();
 		dbSandbox.destroy();
 		node.appCleanup(done);
 	});
