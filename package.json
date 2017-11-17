@@ -45,7 +45,7 @@
 		"babel-register": "=6.26.0",
 		"coveralls": "=3.0.0",
 		"eslint": "=4.11.0",
-		"eslint-config-airbnb-base": "=11.2.0",
+		"eslint-config-airbnb-base": "=12.1.0",
 		"eslint-config-lisk-base": "=0.1.0",
 		"eslint-plugin-import": "=2.8.0",
 		"husky": "=0.14.3",

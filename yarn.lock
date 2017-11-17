@@ -1267,9 +1267,11 @@ escape-string-regexp@1.0.5, escape-string-regexp@^1.0.2, escape-string-regexp@^1
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
 
-eslint-config-airbnb-base@=11.2.0:
-  version "11.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-airbnb-base/-/eslint-config-airbnb-base-11.2.0.tgz#19a9dc4481a26f70904545ec040116876018f853"
+eslint-config-airbnb-base@=12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-airbnb-base/-/eslint-config-airbnb-base-12.1.0.tgz#386441e54a12ccd957b0a92564a4bafebd747944"
+  dependencies:
+    eslint-restricted-globals "^0.1.1"
 
 eslint-config-lisk-base@=0.1.0:
   version "0.1.0"
@@ -1303,6 +1305,10 @@ eslint-plugin-import@=2.8.0:
     lodash.cond "^4.3.0"
     minimatch "^3.0.3"
     read-pkg-up "^2.0.0"
+
+eslint-restricted-globals@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/eslint-restricted-globals/-/eslint-restricted-globals-0.1.1.tgz#35f0d5cbc64c2e3ed62e93b4b1a7af05ba7ed4d7"
 
 eslint-scope@^3.7.1:
   version "3.7.1"
