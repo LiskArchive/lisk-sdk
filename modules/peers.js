@@ -305,7 +305,7 @@ Peers.prototype.getConsensus = function (matched, active) {
 	});
 
 	active = active.slice(0, constants.maxPeers);
-	matched = matched.slice(0, constants.maxPeers);
+	matched = matched.slice(0, constants.maxPeers < active.length ? constants.maxPeers : active.length);
 
 	var consensus = +(matched.length / active.length * 100).toPrecision(2);
 	return isNaN(consensus) ? 0 : consensus;
