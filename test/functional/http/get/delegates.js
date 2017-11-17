@@ -67,8 +67,13 @@ describe('GET /api/delegates', function () {
 
 			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('delegates').that.is.an('array');
-				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(res);
+				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
+				return node.Promise.all([0, 10, 100].map(function (delay) {
+					return node.Promise.delay(delay).then(function () {
+						return getJsonForKeyPromise(url + params.join('&'));
+					});
+				})).then(function (responses) {
+					node.expect(responses).to.deep.include(res);
 				});
 			});
 		});
@@ -82,6 +87,7 @@ describe('GET /api/delegates', function () {
 
 			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('message').to.equal('Account#getAll error');
+
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
 					node.expect(response).to.eql(null);
 				});
@@ -95,9 +101,15 @@ describe('GET /api/delegates', function () {
 
 			return getDelegatesPromise(params).then(function (res) {
 				node.expect(res).to.have.property('delegates').that.is.an('array');
-				return getJsonForKeyPromise(url).then(function (response) {
-					node.expect(response).to.eql(res);
-					return onNewRoundPromise().then(function (res) {
+
+				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
+				return node.Promise.all([0, 10, 100].map(function (delay) {
+					return node.Promise.delay(delay).then(function () {
+						return getJsonForKeyPromise(url + params.join('&'));
+					});
+				})).then(function (responses) {
+					node.expect(responses).to.deep.include(res);
+					return onNewRoundPromise().then(function () {
 						return getJsonForKeyPromise(url).then(function (result) {
 							node.expect(result).to.eql(null);
 						});

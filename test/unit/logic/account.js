@@ -1,6 +1,8 @@
 'use strict';/*eslint*/
 
 var node = require('./../../node.js');
+var _ = node._;
+
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
@@ -12,7 +14,6 @@ var sinon = require('sinon');
 
 var chai = require('chai');
 var expect = require('chai').expect;
-var _  = require('lodash');
 
 var validAccount = {
 	username: 'genesis_100',
@@ -285,31 +286,27 @@ describe('account', function () {
 		});
 
 		it('should ignore limit when below 1', function (done) {
-			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
-			});
+			var sortedUsernames = _(allAccounts).map('username').dbSort();
 
 			account.getAll({
 				limit: 0,
 				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(sortedUsernames);
+				expect(_.map(res, 'username')).to.eql(sortedUsernames);
 				done();
 			});
 		});
 
 		it('should ignore offset when below 1', function (done) {
-			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
-			});
+			var sortedUsernames = _(allAccounts).map('username').dbSort();
 
 			account.getAll({
 				offset: 0,
 				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(sortedUsernames);
+				expect(_.map(res, 'username')).to.eql(sortedUsernames);
 				done();
 			});
 		});
@@ -371,9 +368,6 @@ describe('account', function () {
 		});
 
 		it('should fetch results with limit of 50', function (done) {
-			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
-			}).slice(0, 50);
 
 			account.getAll({
 				limit: 50,
@@ -382,18 +376,20 @@ describe('account', function () {
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.have.length(50);
-				expect(res).to.eql(_.sortBy(res, 'username'));
+				expect(_(res).map('username').dbSort()).to.eql(_.map(res, 'username'));
 				done();
 			});
 		});
 
 		it('should ignore negative limit', function (done) {
+			var sortedUsernames = _(allAccounts).map('username').dbSort();
+
 			account.getAll({
 				limit: -50,
 				sort: 'username:asc'
 			}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(_.sortBy(res, 'username'));
+				expect(_(res).map('username').dbSort()).to.eql(_.map(res, 'username'));
 				done();
 			});
 		});
@@ -401,7 +397,7 @@ describe('account', function () {
 		it('should sort the result according to field type in ascending order', function (done) {
 			account.getAll({sort: 'username:asc'}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(_.sortBy(res, 'username'));
+				expect(_(res).map('username').dbSort()).to.eql(_.map(res, 'username'));
 				done();
 			});
 		});
@@ -409,7 +405,7 @@ describe('account', function () {
 		it('should sort the result according to field type in descending order', function (done) {
 			account.getAll({sort: 'username:desc'}, ['username'], function (err, res) {
 				expect(err).to.not.exist;
-				expect(res).to.eql(_.sortBy(res, 'username').reverse());
+				expect(_(res).map('username').dbSort('desc')).to.eql(_.map(res, 'username'));
 				done();
 			});
 		});
