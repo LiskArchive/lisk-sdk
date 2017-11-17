@@ -28,7 +28,7 @@ function generateRandomPeer () {
 		'state': 2,
 		'nonce': randomstring.generate(16),
 		'version': randomDigits(1) + '.' + randomDigits(1) + '.' + randomDigits(1)
-	}
+	};
 }
 
 module.exports = {
