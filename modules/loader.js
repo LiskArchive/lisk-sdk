@@ -264,7 +264,6 @@ __private.loadTransactions = function (cb) {
 		function (transactions, waterCb) {
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 				library.balancesSequence.add(function (cb) {
-					transaction.bundled = true;
 					modules.transactions.processUnconfirmedTransaction('peer', transaction, false, cb);
 				}, function (err) {
 					if (err) {

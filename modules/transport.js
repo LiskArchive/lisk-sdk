@@ -194,7 +194,6 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 		if (!transaction) {
 			return setImmediate(eachSeriesCb, 'Unable to process transaction. Transaction is undefined.');
 		}
-		transaction.bundled = true;
 
 		__private.receiveTransaction(transaction, peer, extraLogMessage, function (err) {
 			if (err) {
