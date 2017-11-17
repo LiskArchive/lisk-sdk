@@ -38,11 +38,12 @@ function Peers (cb, scope) {
 		build: scope.build,
 		lastCommit: scope.lastCommit,
 		logic: {
-			peers: scope.logic.peers,
+			peers: scope.logic.peers
 		},
 		config: {
+			forging: scope.config.forging,
 			peers: scope.config.peers,
-			version: scope.config.version,
+			version: scope.config.version
 		},
 	};
 	self = this;
