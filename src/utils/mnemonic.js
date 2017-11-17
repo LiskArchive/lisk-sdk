@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Mnemonic from 'bitcore-mnemonic';
+import Mnemonic from 'bip39';
 
-export const createMnemonicPassphrase = () => new Mnemonic().toString();
+export const createMnemonicPassphrase = Mnemonic.generateMnemonic;
 
-export const isValidMnemonicPassphrase = Mnemonic.isValid;
+export const isValidMnemonicPassphrase = Mnemonic.validateMnemonic;
