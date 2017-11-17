@@ -43,7 +43,7 @@
 		"babel-plugin-istanbul": "=4.1.5",
 		"babel-preset-env": "=1.6.1",
 		"babel-register": "=6.26.0",
-		"coveralls": "=2.13.1",
+		"coveralls": "=3.0.0",
 		"eslint": "=4.7.2",
 		"eslint-config-airbnb-base": "=11.2.0",
 		"eslint-config-lisk-base": "=0.1.0",
