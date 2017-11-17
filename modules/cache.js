@@ -65,6 +65,10 @@ Cache.prototype.getJsonForKey = function (key, cb) {
  * @param {function} cb
  */
 Cache.prototype.setJsonForKey = function (key, value, cb) {
+	cb = cb || function () {
+		logger.debug('Cache - Value set for key');
+	};
+
 	logger.debug(['Cache - Set value for key:', key, '| Status:', self.isConnected()].join(' '));
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
