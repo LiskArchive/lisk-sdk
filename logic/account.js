@@ -185,7 +185,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(a."fees")::bigint'
+			expression: '(d."fees")'
 		},
 		{
 			name: 'rank',
@@ -194,7 +194,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."rank")::bigint'
+			expression: '(d."rank")'
 		},
 		{
 			name: 'rewards',
@@ -218,13 +218,13 @@ function Account (db, schema, logger, cb) {
 			name: 'producedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_forged_count")::bigint'
+			expression: '(d."blocks_forged_count")'
 		},
 		{
 			name: 'missedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_missed_count")::bigint'
+			expression: '(d."blocks_missed_count")'
 		},
 		{
 			name: 'approval',
