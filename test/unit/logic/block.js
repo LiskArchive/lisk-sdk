@@ -273,10 +273,7 @@ describe('block', function () {
 			var blockNormalizeStub;
 
 			before(function () {
-				blockNormalizeStub = sinon.stub(block, 'objectNormalize', function (block) {
-					return block;
-				});
-
+				blockNormalizeStub = sinon.stub(block, 'objectNormalize').returnsArg(0);
 				transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
 				transactionStub.objectNormalize.returnsArg(0);
 			});

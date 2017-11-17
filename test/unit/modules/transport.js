@@ -110,12 +110,12 @@ describe('transport', function () {
 			});
 
 			it('should call broadcaster.broadcast with expected options', function () {
-				expect(broadcastSpy.calledWith({
+				expect(broadcastSpy.args[0][1]).eql({
 					api: '/blocks',
 					data: {block: validBlock},
 					method: 'POST',
-					immediate: true,
-				})).to.be.true;
+					immediate: true
+				});
 			});
 		});
 	});
