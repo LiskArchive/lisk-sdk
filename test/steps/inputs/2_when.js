@@ -42,7 +42,9 @@ export function getPassphraseFromPromptIsCalled() {
 }
 
 export function getStdInIsCalledWithTheRelevantOptions() {
-	const { passphraseIsRequired, secondPassphraseIsRequired, passwordIsRequired, dataIsRequired } = this.test.ctx;
+	const {
+		passphraseIsRequired, secondPassphraseIsRequired, passwordIsRequired, dataIsRequired,
+	} = this.test.ctx;
 	const options = (passphraseIsRequired || secondPassphraseIsRequired || passwordIsRequired || dataIsRequired)
 		? {
 			passphraseIsRequired,

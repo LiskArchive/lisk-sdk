@@ -50,8 +50,12 @@ export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
 }
 
 export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
-	const { message, nonce, passphrase, senderPublicKey } = this.test.ctx;
-	return (cryptoInstance.decryptMessage).should.be.calledWithExactly({ cipher: message, nonce, passphrase, senderPublicKey });
+	const {
+		message, nonce, passphrase, senderPublicKey,
+	} = this.test.ctx;
+	return (cryptoInstance.decryptMessage).should.be.calledWithExactly({
+		cipher: message, nonce, passphrase, senderPublicKey,
+	});
 }
 
 export function itShouldResolveToTheResultOfDecryptingTheMessage() {
@@ -70,7 +74,9 @@ export function itShouldResolveToTheResultOfEncryptingTheMessage() {
 }
 
 export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
-	const { returnValue, passphrase, keys: { publicKey }, address } = this.test.ctx;
+	const {
+		returnValue, passphrase, keys: { publicKey }, address,
+	} = this.test.ctx;
 	const expectedObject = {
 		passphrase,
 		publicKey,
@@ -196,7 +202,9 @@ export function itShouldReturnAnObjectWithTheData() {
 }
 
 export function itShouldReturnAnObjectWithThePassphraseTheSecondPassphraseThePasswordAndTheData() {
-	const { returnValue, passphrase, secondPassphrase, password, data } = this.test.ctx;
+	const {
+		returnValue, passphrase, secondPassphrase, password, data,
+	} = this.test.ctx;
 	return (returnValue).should.be.fulfilledWith({
 		passphrase,
 		secondPassphrase,

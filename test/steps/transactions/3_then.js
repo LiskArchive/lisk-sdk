@@ -20,7 +20,9 @@ import {
 } from '../utils';
 
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase() {
-	const { passphrase, secondPassphrase, address, amount } = this.test.ctx;
+	const {
+		passphrase, secondPassphrase, address, amount,
+	} = this.test.ctx;
 	return (transactions.createTransaction).should.be.calledWithExactly(address, amount, passphrase, secondPassphrase);
 }
 
@@ -57,7 +59,9 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheS
 }
 
 export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
-	const { passphrase, secondPassphrase, keysgroup, lifetime, minimum } = this.test.ctx;
+	const {
+		passphrase, secondPassphrase, keysgroup, lifetime, minimum,
+	} = this.test.ctx;
 	const publicKeysWithPlus = keysgroup.map((publicKey) => {
 		return `+${publicKey}`;
 	});
@@ -65,7 +69,9 @@ export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePas
 }
 
 export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
-	const { passphrase, keysgroup, lifetime, minimum } = this.test.ctx;
+	const {
+		passphrase, keysgroup, lifetime, minimum,
+	} = this.test.ctx;
 	const publicKeysWithPlus = keysgroup.map((publicKey) => {
 		return `+${publicKey}`;
 	});

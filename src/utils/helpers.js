@@ -21,7 +21,7 @@ const regExpAmount = /^\d+(\.\d{1,8})?$/;
 
 const isStringInteger = (n) => {
 	const parsed = parseInt(n, 10);
-	return !isNaN(parsed) && parsed.toString() === n;
+	return !Number.isNaN(parsed) && parsed.toString() === n;
 };
 
 export const validateLifetime = (lifetime) => {

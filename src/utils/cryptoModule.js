@@ -43,7 +43,9 @@ class Crypto {
 		return this.liskCrypto.encryptMessageWithSecret(message, passphrase, recipient);
 	}
 
-	decryptMessage({ cipher, nonce, passphrase, senderPublicKey }) {
+	decryptMessage({
+		cipher, nonce, passphrase, senderPublicKey,
+	}) {
 		return {
 			message: this.liskCrypto
 				.decryptMessageWithSecret(cipher, nonce, passphrase, senderPublicKey),

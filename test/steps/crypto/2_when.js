@@ -76,12 +76,16 @@ export function anErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
 }
 
 export function noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
-	const { cryptoInstance, message, passphrase, recipientKeys } = this.test.ctx;
+	const {
+		cryptoInstance, message, passphrase, recipientKeys,
+	} = this.test.ctx;
 	this.test.ctx.returnValue = cryptoInstance.encryptMessage({ message, passphrase, recipient: recipientKeys.publicKey });
 }
 
 export function anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
-	const { cryptoInstance, message, passphrase, recipientKeys } = this.test.ctx;
+	const {
+		cryptoInstance, message, passphrase, recipientKeys,
+	} = this.test.ctx;
 
 	lisk.crypto.encryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
@@ -90,15 +94,23 @@ export function anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingTh
 }
 
 export function noErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
-	const { cryptoInstance, cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys } = this.test.ctx;
-	this.test.ctx.returnValue = cryptoInstance.decryptMessage({ cipher, nonce, passphrase: recipientPassphrase, senderPublicKey: keys.publicKey });
+	const {
+		cryptoInstance, cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys,
+	} = this.test.ctx;
+	this.test.ctx.returnValue = cryptoInstance.decryptMessage({
+		cipher, nonce, passphrase: recipientPassphrase, senderPublicKey: keys.publicKey,
+	});
 }
 
 export function anErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
-	const { cryptoInstance, cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys } = this.test.ctx;
+	const {
+		cryptoInstance, cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys,
+	} = this.test.ctx;
 
 	lisk.crypto.decryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.decryptMessage({ cipher, nonce, recipientPassphrase, senderPublicKey: keys.publicKey });
+	this.test.ctx.returnValue = cryptoInstance.decryptMessage({
+		cipher, nonce, recipientPassphrase, senderPublicKey: keys.publicKey,
+	});
 }
