@@ -171,13 +171,13 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
 	describe('transactions processing', function () {
 
-		it('invented dapp id should fail', function () {
-			var inventedDappId  = '1';
-			transaction = node.lisk.transfer.createInTransfer(inventedDappId, 1, node.gAccount.password);
+		it('using unknown dapp id should fail', function () {
+			var unknownDappId = '1';
+			transaction = node.lisk.transfer.createInTransfer(unknownDappId, 1, node.gAccount.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + inventedDappId);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + unknownDappId);
 				badTransactions.push(transaction);
 			});
 		});
