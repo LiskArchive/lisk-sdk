@@ -125,7 +125,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				});
 			});
 
-			it('invalid dapp id should fail', function () {
+			it('with invalid dapp id should fail', function () {
 				var invalidDappId = '1L';
 				transaction = node.lisk.transfer.createInTransfer(invalidDappId, 1, node.gAccount.password);
 
