@@ -49,7 +49,7 @@
 		"eslint-config-lisk-base": "=0.1.0",
 		"eslint-plugin-import": "=2.8.0",
 		"husky": "=0.14.3",
-		"mocha": "=3.3.0",
+		"mocha": "=4.0.1",
 		"nyc": "=11.0.3",
 		"should": "=11.2.1",
 		"should-sinon": "=0.0.6",
