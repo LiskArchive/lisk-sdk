@@ -15,6 +15,7 @@
 		"cover:local": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
 		"cover:ci": "NODE_ENV=test nyc --reporter=text-lcov mocha | coveralls -v",
 		"lint": "eslint .",
+		"lint:fix": "npm run lint -- --fix",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "babel src -d dist",
 		"precommit": "npm run lint",
