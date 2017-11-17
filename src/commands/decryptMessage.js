@@ -31,7 +31,9 @@ const processInputs = (nonce, senderPublicKey, message) => ({ passphrase, data }
 		senderPublicKey,
 	});
 
-export const actionCreator = vorpal => async ({ message, nonce, senderPublicKey, options }) => {
+export const actionCreator = vorpal => async ({
+	message, nonce, senderPublicKey, options,
+}) => {
 	const passphraseSource = options.passphrase;
 	const messageSource = options.message;
 

@@ -267,7 +267,9 @@ export function theSecondPassphraseAndTheDataAreProvidedViaStdIn() {
 }
 
 export function thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn() {
-	const { passphrase, secondPassphrase, password, data } = this.test.ctx;
+	const {
+		passphrase, secondPassphrase, password, data,
+	} = this.test.ctx;
 
 	readline.createInterface.returns(createFakeInterface(`${passphrase}\n${secondPassphrase}\n${password}\n${data}`));
 

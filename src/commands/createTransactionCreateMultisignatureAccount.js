@@ -42,7 +42,9 @@ const processInputs = (lifetime, minimum, keysgroup) =>
 			minimum,
 		);
 
-export const actionCreator = vorpal => async ({ lifetime, minimum, keysgroup, options }) => {
+export const actionCreator = vorpal => async ({
+	lifetime, minimum, keysgroup, options,
+}) => {
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,

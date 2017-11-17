@@ -27,8 +27,7 @@ const reduceKeys = (keys, row) => {
 		.filter(key =>
 			!keys.includes(key)
 			&& row[key] !== undefined
-			&& !(row[key] instanceof Error),
-		);
+			&& !(row[key] instanceof Error));
 	return keys.concat(newKeys);
 };
 
