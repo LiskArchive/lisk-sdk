@@ -17,17 +17,17 @@ var modulesLoader = require('../../common/initModule').modulesLoader;
 var Peer = require('../../../logic/peer');
 var constants = require('../../../helpers/constants');
 
-var currentPeers = [];
-
 describe('peers', function () {
 
 	var peers;
+	var peersRewired;
 	var peersLogicMock;
 	var modules;
 
 	var NONCE = randomstring.generate(16);
 
 	before(function () {
+		peersRewired = rewire('../../../modules/peers');
 		peersLogicMock = {
 			create: sinon.spy(),
 			exists: sinon.stub(),
@@ -452,6 +452,79 @@ describe('peers', function () {
 
 			it('should return library.logic.peers.remove result', function () {
 				expect(removeResult).equal(validLogicRemoveResult);
+			});
+		});
+	});
+
+	describe('getConsensus', function () {
+
+		describe('when config.forging.force = true', function () {
+
+			it('should return undefined');
+		});
+
+		describe('when config.forging.force = false', function () {
+
+			describe('when active peers not passed', function () {
+
+				it('should call __private.getByFilter');
+
+				it('should call __private.getByFilter with filter containing state = 2');
+
+				it('should call __private.getByFilter with filter containing normalized = false');
+
+				it('should return consensus as a number');
+			});
+
+			describe('when matched peers not passed', function () {
+
+				describe('when non of active peers matches broadhash', function () {
+
+					it('should return consensus = 0');
+				});
+
+				describe('when all of active peers matches broadhash', function () {
+
+					it('should return consensus = 100');
+				});
+
+				describe('when half of active peers matches broadhash', function () {
+
+					it('should return consensus = 50');
+				});
+			});
+
+			describe('when called with active and matched arguments', function () {
+
+				describe('when there are 10 active and 10 matched peers', function () {
+
+					it('should return consensus = 100');
+				});
+
+				describe('when there are [constants.maxPeers] active and [constants.maxPeers] matched peers', function () {
+
+					it('should return consensus = 100');
+				});
+
+				describe('when there are [constants.maxPeers] x 10 active and [constants.maxPeers] matched peers', function () {
+
+					it('should return consensus = 100');
+				});
+
+				describe('when there are [constants.maxPeers] active and [constants.maxPeers] x 10 matched peers', function () {
+
+					it('should return consensus = 100');
+				});
+
+				describe('when there are 50 active and 100 matched peers', function () {
+
+					it('should return consensus = 100');
+				});
+
+				describe('when there are 100 active and 50 matched peers', function () {
+
+					it('should return consensus = 50');
+				});
 			});
 		});
 	});
