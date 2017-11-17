@@ -115,17 +115,16 @@ var modulesLoader = new function () {
 	 *
 	 * @param {Array<{name: Module}>} modules
 	 * @param {Array<{name: Logic}>} logic
-	 * @param {Object>} customScope
+	 * @param {Object>} scope
 	 * @param {Function} cb
 	 */
-	this.initModules = function (modules, logic, customScope, cb) {
-		var scope = _.assign({}, this.scope, customScope);
+	this.initModules = function (modules, logic, scope, cb) {
 		async.waterfall([
 			function (waterCb) {
 				this.getDbConnection(waterCb);
 			}.bind(this),
 			function (db, waterCb) {
-				scope.db = customScope.db || db;
+				scope = _.merge(this.scope, {db: db}, scope);
 				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
@@ -135,7 +134,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope.logic = _.assign({}, logic, customScope.logic);
+				scope.logic = _.assign({}, logic, scope.logic);
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
