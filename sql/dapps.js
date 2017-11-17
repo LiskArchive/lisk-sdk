@@ -17,7 +17,9 @@ var DappsSql = {
       (params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
 		].filter(Boolean).join(' ');
-	}
+	},
+
+	getGenesis: 'SELECT b."height" AS "height", b."id" AS "id", t."senderId" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = ${id}'
 };
 
 module.exports = DappsSql;

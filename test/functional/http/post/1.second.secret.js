@@ -47,6 +47,20 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id, transaction3.id, transaction4.id);
 				return waitForConfirmations(transactionsToWaitFor);
+			})
+			.then(function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+
+				return sendTransactionPromise(transaction);
+			})
+			.then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				goodTransactions.push(transaction);
+				node.guestbookDapp.transactionId = transaction.id;
+
+				transactionsToWaitFor.push(transaction.id);
+				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
 
@@ -177,6 +191,19 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.randomApplication());
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
+					badTransactions.push(transaction);
+				});
+			});
+		});
+
+		describe('type 6 - inTransfer', function () {
+
+			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
+				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -388,6 +415,53 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 			it('using correct second passphrase should be ok', function () {
 				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.randomApplication());
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(200);
+					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+					goodTransactionsEnforcement.push(transaction);
+				});
+			});
+		});
+
+		describe('type 6 - inTransfer', function () {
+			
+			before(function () {
+				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.blockDataDapp);
+
+				return sendTransactionPromise(transaction)
+					.then(function (res) {
+						node.expect(res).to.have.property('status').to.equal(200);
+						node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+						goodTransactionsEnforcement.push(transaction);
+						node.blockDataDapp.transactionId = transaction.id;
+
+						return waitForConfirmations([node.blockDataDapp.transactionId]);
+					});
+			});
+
+			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
+				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.transactionId, 10 * node.normalizer, account.password);
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+					badTransactionsEnforcement.push(transaction);
+				});
+			});
+
+			it('using second passphrase not matching registered secondPublicKey should fail', function () {
+				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.transactionId, 10 * node.normalizer, account.password, 'wrong second password');
+
+				return sendTransactionPromise(transaction).then(function (res) {
+					node.expect(res).to.have.property('status').to.equal(400);
+					node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
+					badTransactionsEnforcement.push(transaction);
+				});
+			});
+
+			it('using correct second passphrase should be ok', function () {
+				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
