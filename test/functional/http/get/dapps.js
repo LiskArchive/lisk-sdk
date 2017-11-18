@@ -293,7 +293,7 @@ describe('GET /api/dapps', function () {
 
 		describe('sort=', function () {
 
-			// Creates 20 random applications to increase dataset
+			// Create 20 random applications to increase data set
 			before(function () {
 				var promises = [];
 				var transaction;
