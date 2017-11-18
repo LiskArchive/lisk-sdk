@@ -433,7 +433,7 @@ Delegates.prototype.generateDelegateList = function (cb) {
  */
 Delegates.prototype.getDelegates = function (query, cb) {
 	if (!_.isObject(query)) {
-		throw 'Wrong type of getDelegates query parameter';
+		throw 'Invalid query argument, expected object';
 	}
 	if (query.search) {
 		query.username = {$like: '%' + query.search + '%'};
