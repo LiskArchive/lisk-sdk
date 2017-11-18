@@ -338,6 +338,7 @@ describe('GET /api/dapps', function () {
 
 					var expectedArray = node._.map(res.body.dapps, 'name');
 					var obtainedArray = node._.clone(expectedArray).sort();
+
 					node.expect(expectedArray).eql(obtainedArray);
 				});
 			});
