@@ -248,7 +248,7 @@ describe('GET /api/blocks', function () {
 				});
 			});
 
-			it('using empty params should be ordered by "height:desc" by default', function () {
+			it('using empty params should sort results by descending height', function () {
 				var params = [];
 
 				return getBlocksPromise(params).then(function (res) {

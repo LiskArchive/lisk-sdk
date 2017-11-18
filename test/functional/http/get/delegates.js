@@ -61,7 +61,7 @@ describe('GET /api/delegates', function () {
 			cache.quit(done);
 		});
 
-		it('cache delegates when response is a success', function () {
+		it('should cache delegates when response is successful', function () {
 			var url;
 			url = '/api/delegates';
 			var params = [];
@@ -79,7 +79,7 @@ describe('GET /api/delegates', function () {
 			});
 		});
 
-		it('should not cache if response is not a success', function () {
+		it('should not cache delegates when response is unsuccessful', function () {
 			var url, params;
 			url = '/api/delegates?';
 			params = [
@@ -235,7 +235,7 @@ describe('GET /api/delegates', function () {
 
 		describe('address', function () {
 
-			it('using no address should return the schema error', function () {
+			it('using no address should return a schema error', function () {
 				var params = [
 					'address='
 				];
@@ -278,7 +278,7 @@ describe('GET /api/delegates', function () {
 
 		describe('username', function () {
 
-			it('using no username should return the schema error', function () {
+			it('using no username should return a schema error', function () {
 				var params = [
 					'username='
 				];
@@ -373,7 +373,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using critera="genesis_1" should return 13 delegate', function () {
+			it('using critera="genesis_1" should return 13 delegates', function () {
 				var params = [
 					'search=' + 'genesis_1'
 				];
@@ -491,7 +491,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="unknown:asc" should return records in random order', function () {
+			it('using sort="unknown:asc" should return results in random order', function () {
 				var params = [
 					'search=' + 'genesis_',
 					'sort=' + 'unknown:asc'
@@ -502,7 +502,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="username:asc" should be ordered by ascending username', function () {
+			it('using sort="username:asc" should sort results in ascending order', function () {
 				var params = [
 					'search=' + 'genesis_',
 					'sort=' + 'username:asc'
@@ -518,7 +518,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="username:desc" should be ordered by descending username', function () {
+			it('using sort="username:desc" should sort results in descending order', function () {
 				var params = [
 					'search=' + 'genesis_',
 					'sort=' + 'username:desc'
@@ -537,7 +537,7 @@ describe('GET /api/delegates', function () {
 
 		describe('sort', function () {
 
-			it('using sort="unknown:asc" should not sort records', function () {
+			it('using sort="unknown:asc" should not sort results', function () {
 				var params = [
 					'sort=' + 'unknown:asc'
 				];
@@ -547,7 +547,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="rank:asc" should sort records in ascending order', function () {
+			it('using sort="rank:asc" should sort results in ascending order', function () {
 				var params = [
 					'sort=' + 'rank:asc'
 				];
@@ -558,7 +558,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="rank:desc" should sort records in descending order', function () {
+			it('using sort="rank:desc" should sort results in descending order', function () {
 				var params = [
 					'sort=' + 'rank:desc'
 				];
@@ -569,7 +569,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="username:asc" should sort records in ascending order', function () {
+			it('using sort="username:asc" should sort results in ascending order', function () {
 				var params = [
 					'sort=' + 'username:asc'
 				];
@@ -580,7 +580,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="username:desc" should sort records in descending order', function () {
+			it('using sort="username:desc" should sort results in descending order', function () {
 				var params = [
 					'sort=' + 'username:desc'
 				];
@@ -591,7 +591,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="missedBlocks:asc" should sort records in ascending order', function () {
+			it('using sort="missedBlocks:asc" should sort results in ascending order', function () {
 				var params = [
 					'sort=' + 'missedBlocks:asc'
 				];
@@ -602,7 +602,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 
-			it('using sort="missedBlocks:desc" should sort records in descending order', function () {
+			it('using sort="missedBlocks:desc" should sort results in descending order', function () {
 				var params = [
 					'sort=' + 'missedBlocks:desc'
 				];

@@ -168,7 +168,7 @@ describe('delegates', function () {
 				});
 			});
 
-			it('should toggle forging from enable to disable', function (done) {
+			it('should toggle forging from enabled to disabled', function (done) {
 				var body = {
 					key: defaultKey,
 					publicKey: testDelegate.publicKey,
@@ -188,7 +188,7 @@ describe('delegates', function () {
 				});
 			});
 
-			it('should toggle forging from disable to enable', function (done) {
+			it('should toggle forging from disabled to enabled', function (done) {
 				var body = {
 					key: defaultKey,
 					publicKey: testDelegate.publicKey,
@@ -323,7 +323,7 @@ describe('delegates', function () {
 				});
 			});
 
-			it('should not load account as delegates for non-delegate item', function (done) {
+			it('should ignore secrets which do not belong to a delegate', function (done) {
 				config.forging.secret = [{
 					encryptedSecret: node.gAccount.encryptedSecret,
 					publicKey: node.gAccount.publicKey
