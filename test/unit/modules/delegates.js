@@ -66,6 +66,7 @@ describe('delegates', function () {
 	}
 
 	describe('internal', function () {
+
 		var delegates;
 
 		before(function () {
@@ -100,7 +101,6 @@ describe('delegates', function () {
 			before(function () {
 				defaultKey = library.config.forging.defaultKey;
 			});
-
 
 			it('should return error when ip is not whitelisted', function (done) {
 				var randomIp = '192.168.0.1';
@@ -271,7 +271,6 @@ describe('delegates', function () {
 					done();
 				});
 			});
-
 
 			it('should return error if encrypted secret does not decrypt with default secret', function (done) {
 				var accountDetails = {

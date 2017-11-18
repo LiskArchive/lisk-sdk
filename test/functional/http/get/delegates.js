@@ -34,6 +34,7 @@ describe('GET /api/delegates', function () {
 	}
 
 	describe('from (cache)', function () {
+
 		var cache;
 		var getJsonForKeyPromise;
 
@@ -157,16 +158,17 @@ describe('GET /api/delegates', function () {
 				var params = [
 					'publicKey=9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
 				];
+
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.nested.property('delegates.0.publicKey').equal(validDelegate.publicKey);
 				});
 			});
 
 			it('using valid not existing publicKey should return an empty array', function () {
-
 				var params = [
 					'publicKey=' + validNotExistingPublicKey
 				];
+
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.property('delegates').to.be.an('array').that.is.empty;
 				});
@@ -214,16 +216,17 @@ describe('GET /api/delegates', function () {
 				var params = [
 					'secondPublicKey=' + secondSecretAccount.secondPublicKey
 				];
+
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.nested.property('delegates.0.secondPublicKey').equal(secondSecretAccount.secondPublicKey);
 				});
 			});
 
 			it('using valid not existing secondPublicKey should return an empty array', function () {
-
 				var params = [
 					'secondPublicKey=' + validNotExistingPublicKey
 				];
+
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.property('delegates').to.be.an('array').that.is.empty;
 				});
@@ -262,11 +265,11 @@ describe('GET /api/delegates', function () {
 			});
 
 			it('using valid not existing address should return an empty array', function () {
-
 				var validNotExistingAddress = '1111111111111111111L';
 				var params = [
 					'address=' + validNotExistingAddress
 				];
+
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.property('delegates').to.be.an('array').that.is.empty;
 				});
@@ -300,17 +303,18 @@ describe('GET /api/delegates', function () {
 				var params = [
 					'username=' + validDelegate.username
 				];
+
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.nested.property('delegates.0.username').equal(validDelegate.username);
 				});
 			});
 
 			it('using valid not existing username should return an empty array', function () {
-
 				var validNotExistingUsername = 'unknownusername';
 				var params = [
 					'username=' + validNotExistingUsername
 				];
+
 				return getDelegatesPromise(params).then(function (res) {
 					node.expect(res).to.have.property('delegates').to.be.an('array').that.is.empty;
 				});
@@ -530,7 +534,7 @@ describe('GET /api/delegates', function () {
 				});
 			});
 		});
-		
+
 		describe('sort', function () {
 
 			it('using sort="unknown:asc" should not sort records', function () {
@@ -776,7 +780,6 @@ describe('GET /api/delegates', function () {
 			return getForgingStatusPromise(params).then(function (res) {
 				node.expect(res).to.have.property('enabled').to.be.true;
 				node.expect(res).to.have.property('delegates').that.is.an('array');
-
 			});
 		});
 
@@ -787,7 +790,6 @@ describe('GET /api/delegates', function () {
 
 			return getForgingStatusPromise(params).then(function (res) {
 				node.expect(res).to.have.property('enabled').that.is.a('boolean');
-
 			});
 		});
 
@@ -798,7 +800,6 @@ describe('GET /api/delegates', function () {
 
 			return getForgingStatusPromise(params).then(function (res) {
 				node.expect(res).to.have.property('enabled').to.be.true;
-
 			});
 		});
 	});
@@ -838,6 +839,7 @@ describe('GET /api/delegates', function () {
 				publicKey: invalidPublicKey,
 				key: validDelegate.key
 			};
+
 			return putForgingDelegatePromise(params).then(function (res) {
 				node.expect(res).to.have.property('message').to.be.a('string').and.to.contain(['Delegate with publicKey:', invalidPublicKey, 'not found'].join(' '));
 			});
