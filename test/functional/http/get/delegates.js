@@ -83,7 +83,7 @@ describe('GET /api/delegates', function () {
 			var url, params;
 			url = '/api/delegates?';
 			params = [
-				'sort=' + 'unknown:asc'
+				'invalidParam=true',
 			];
 
 			return getDelegatesPromise(params).then(function (res) {
