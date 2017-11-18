@@ -1,8 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
 var node = require('../../../node.js');
-var _ = node._;
-
 var WSServer = require('../../../common/wsServerMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
@@ -127,14 +126,16 @@ describe('GET /peers', function () {
 		it('using sort = "version:asc" should return results in ascending order by version', function () {
 			return peersEndpoint.makeRequest({sort: 'version:asc'}, 200)
 				.then(function (res) {
-					_(res.body.data).map('version').dbSort().should.be.eql(_.map(res.body.data, 'version'));
+					var versions = _(res.body.data).map('version').value();
+					_.clone(versions).sort().should.be.eql(versions);
 				});
 		});
 
 		it('using sort = "version:desc" should return results in descending order by version', function () {
 			return peersEndpoint.makeRequest({sort: 'version:desc'}, 200)
 				.then(function (res) {
-					_(res.body.data).map('version').dbSort('desc').should.be.eql(_.map(res.body.data, 'version'));
+					var versions = _(res.body.data).map('version').value();
+					_.clone(versions).sort().reverse().should.be.eql(versions);
 				});
 		});
 

@@ -1,7 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
 var node = require('../../../node.js');
-var _ = node._;
 var constants = require('../../../../helpers/constants');
 
 var apiHelpers = require('../../../common/apiHelpers');
