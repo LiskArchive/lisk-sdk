@@ -8,7 +8,7 @@ var httpApi = require('../../helpers/httpApi');
  * - End point: `/api/delegates`
  * - Public API:
  * 	- get 	/
- * 	- get	/forgers
+ * 	- get 	/forgers
  * - Private API:
  * 	- put 	/forging
  * 	- get 	/forging
@@ -16,10 +16,10 @@ var httpApi = require('../../helpers/httpApi');
  * @requires helpers/Router
  * @requires helpers/httpApi
  * @constructor
- * @param {Object} delegatesModule - module delegate instance
- * @param {scope} app - network app
- * @param {Logger} logger - application logger
- * @param {Cache} cache - cache module
+ * @param {Object} delegatesModule - Module delegate instance.
+ * @param {scope} app - Network app.
+ * @param {Logger} logger - Application logger.
+ * @param {Cache} cache - Cache module.
  */
 function DelegatesHttpApi (delegatesModule, app, logger, cache) {
 
