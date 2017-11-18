@@ -25,7 +25,7 @@ function DelegatesHttpApi (delegatesModule, app, logger, cache) {
 
 	var router = new Router();
 
-	// attach a middlware to endpoints
+	// Attach a middleware to endpoints
 	router.attachMiddlwareForUrls(httpApi.middleware.useCache.bind(null, logger, cache), ['get /']);
 
 	router.map(delegatesModule.shared, {
