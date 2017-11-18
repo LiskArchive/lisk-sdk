@@ -1,8 +1,9 @@
 'use strict';
 
 var scClient = require('socketcluster-client');
-var testConfig = require('../config.json');
 var Promise = require('bluebird');
+var randomString = require('randomstring');
+var testConfig = require('../config.json');
 
 /**
  * WSClient
@@ -72,6 +73,37 @@ WSClient.prototype.start = function () {
  */
 WSClient.prototype.stop = function () {
 	this.client.disconnect();
+};
+
+/**
+ * Generate random header values for a peer socket connection
+ *
+ * @param {string} [ip]
+ * @param {int} [port]
+ * @param {string} [nonce]
+ * @return {Object}
+ */
+WSClient.generatePeerHeaders = function (ip, port, nonce) {
+	port = port || (Math.floor(Math.random() * 65535) + 1);
+	ip = ip || '127.0.0.1';
+	nonce = nonce || randomString.generate(16);
+	var httpPort = (Math.floor(Math.random() * 65535) + 1);
+	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
+	var os = operatingSystems[((Math.floor(Math.random() * operatingSystems.length)))];
+	var version =  testConfig.version;
+
+	return {
+		broadhash: testConfig.nethash,
+		height: 1,
+		nethash: testConfig.nethash,
+		os: os,
+		ip: ip,
+		port: port,
+		httpPort: httpPort,
+		version: version,
+		nonce: nonce,
+		status: 2
+	};
 };
 
 module.exports = WSClient;

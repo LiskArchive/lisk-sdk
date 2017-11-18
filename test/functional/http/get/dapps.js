@@ -314,7 +314,7 @@ describe('GET /api/dapps', function () {
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
-					node.expect(node._(res.body.dapps).map('name').sort().value()).eql(node._.map(res.body.dapps, 'name'));
+					node.expect(node._(res.body.dapps).map('name').dbSort()).eql(node._.map(res.body.dapps, 'name'));
 				});
 			});
 
@@ -326,7 +326,7 @@ describe('GET /api/dapps', function () {
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
-					node.expect(node._(res.body.dapps).map('name').sort().value()).eql(node._.map(res.body.dapps, 'name'));
+					node.expect(node._(res.body.dapps).map('name').dbSort()).eql(node._.map(res.body.dapps, 'name'));
 				});
 			});
 
@@ -338,7 +338,7 @@ describe('GET /api/dapps', function () {
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
-					node.expect(node._(res.body.dapps).map('name').sort().reverse().value()).eql(node._.map(res.body.dapps, 'name'));
+					node.expect(node._(res.body.dapps).map('name').dbSort('desc')).eql(node._.map(res.body.dapps, 'name'));
 				});
 			});
 		});

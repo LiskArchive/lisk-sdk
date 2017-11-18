@@ -319,7 +319,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."rank")::bigint'
+			expression: '(d."rank")'
 		},
 		{
 			name: 'rewards',
@@ -642,8 +642,9 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	delete filter.limit;
 
 	if (filter.sort) {
-		sort = sortBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance']);
+		sort = sortBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance', 'rank', 'missedBlocks']);
 	}
+
 	delete filter.sort;
 
 	if (filter.address) {

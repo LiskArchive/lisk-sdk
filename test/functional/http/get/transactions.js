@@ -91,8 +91,13 @@ describe('GET /api/transactions', function () {
 			return getTransactionsPromise(params).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(res.body);
+				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
+				return node.Promise.all([0, 10, 100].map(function (delay) {
+					return node.Promise.delay(delay).then(function () {
+						return getJsonForKeyPromise(url + params.join('&'));
+					});
+				})).then(function (responses) {
+					node.expect(responses).to.deep.include(res.body);
 				});
 			});
 		});

@@ -1,79 +1,54 @@
 'use strict';
 
-var _ = require('lodash');
 var node = require('../../../node.js');
+var _ = node._;
+var constants = require('../../../../helpers/constants');
 
-var getAccountsPromise = require('../../../common/apiHelpers').getAccountsPromise;
+var apiHelpers = require('../../../common/apiHelpers');
+var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /api/accounts', function () {
-	
+describe('GET /accounts', function () {
+
 	var account = node.randomAccount();
-
-	function validateAccountFields (res, account) {
-		node.expect(res).to.have.property('status').to.equal(200);
-		node.expect(res).to.have.nested.property('body.accounts').that.is.an('array');
-		node.expect(res).to.have.nested.property('body.accounts[0].address').to.equal(account.address);
-		node.expect(res).to.have.nested.property('body.accounts[0].unconfirmedBalance').that.is.a('string');
-		node.expect(res).to.have.nested.property('body.accounts[0].balance').that.is.a('string');
-		node.expect(res).to.have.nested.property('body.accounts[0].publicKey').to.equal(account.publicKey);
-		node.expect(res).to.have.nested.property('body.accounts[0].unconfirmedSignature').to.equal(0);
-		node.expect(res).to.have.nested.property('body.accounts[0].secondSignature').to.equal(0);
-		node.expect(res).to.have.nested.property('body.accounts[0].secondPublicKey').to.equal(null);
-	}
-
-	function validateDelegateFields (res, account) {
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate').that.is.an('object');
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.username').to.equal(account.delegateName);
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.rank').that.is.an('string');
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.productivity').that.is.an('number');
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.missedBlocks').that.is.an('string');
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.producedBlocks').that.is.an('string');
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.rewards').that.is.an('string');
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.vote').that.is.an('string');
-		node.expect(res).to.have.nested.property('body.accounts[0].delegate.approval').that.is.an('number');
-	}
+	var accountsEndpoint = new swaggerEndpoint('GET /accounts');
 
 	describe('?', function () {
 
 		describe('address', function () {
 
 			it('using known address should be ok', function () {
-				return getAccountsPromise('address=' + node.gAccount.address).then(function (res) {
-					validateAccountFields(res, node.gAccount);
-				});
+				return accountsEndpoint.makeRequest({address: node.gAccount.address}, 200);
 			});
 
 			it('using known address and empty publicKey should return empty result', function () {
-				return getAccountsPromise('address=' + node.gAccount.address + '&publicKey=').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(0);
+				return accountsEndpoint.makeRequest({address: node.gAccount.address, publicKey: ''}, 200).then(function (res) {
+					res.body.data.should.have.length(0);
 				});
 			});
 
 			it('using known lowercase address should be ok', function () {
-				return getAccountsPromise('address=' + node.gAccount.address.toLowerCase()).then(function (res) {
-					validateAccountFields(res, node.gAccount);
-				});
+				return accountsEndpoint.makeRequest({address: node.gAccount.address.toLowerCase()}, 200);
 			});
 
 			it('using unknown address should return empty result', function () {
-				return getAccountsPromise('address=' + account.address).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(0);
+				return accountsEndpoint.makeRequest({address: account.address}, 200).then(function (res) {
+					res.body.data.should.have.length(0);
 				});
 			});
 
 			it('using invalid address should fail', function () {
-				return getAccountsPromise('address=' + 'invalidAddress').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.contain('Object didn\'t pass validation for format address: invalidAddress');
+				return accountsEndpoint.makeRequest({address: 'InvalidAddress'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
 				});
 			});
 
 			it('using empty address should fail', function () {
-				return getAccountsPromise('address=').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.contain('String is too short (0 chars), minimum 1');
+				return accountsEndpoint.makeRequest({address: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
 				});
 			});
 		});
@@ -81,63 +56,93 @@ describe('GET /api/accounts', function () {
 		describe('publicKey', function () {
 
 			it('using known publicKey should be ok', function () {
-				return getAccountsPromise('publicKey=' + node.gAccount.publicKey).then(function (res) {
-					validateAccountFields(res, node.gAccount);
-				});
+				return accountsEndpoint.makeRequest({publicKey: node.gAccount.publicKey}, 200);
 			});
 
 			it('using known publicKey and empty address should fail', function () {
-				return getAccountsPromise('publicKey=' + node.gAccount.publicKey + '&address=').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.contain('String is too short (0 chars), minimum 1');
+				return accountsEndpoint.makeRequest({publicKey: node.gAccount.publicKey, address: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
 				});
 			});
 
 			it('using unknown publicKey should return empty result', function () {
-				return getAccountsPromise('publicKey=' + account.publicKey).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(0);
+				return accountsEndpoint.makeRequest({publicKey: account.publicKey}, 200).then(function (res) {
+					res.body.data.should.have.length(0);
 				});
 			});
 
 			it('using invalid publicKey should fail', function () {
-				return getAccountsPromise('publicKey=' + 'invalidPublicKey').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.contain('Object didn\'t pass validation for format publicKey: invalidPublicKey');
+				return accountsEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
 				});
 			});
 
 			it('using invalid publicKey (integer) should fail', function () {
-				return getAccountsPromise('publicKey=' + '123').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.contain('Expected type string but found type integer');
+				return accountsEndpoint.makeRequest({publicKey: '123'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
 				});
 			});
 
 			it('using empty publicKey should return empty results', function () {
-				return getAccountsPromise('publicKey=').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(0);
+				return accountsEndpoint.makeRequest({publicKey: ''}, 200).then(function (res) {
+					res.body.data.should.have.length(0);
 				});
 			});
 
 			it('using empty publicKey and address should fail', function () {
-				return getAccountsPromise('publicKey=&address=').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.contain('String is too short (0 chars), minimum 1');
+				return accountsEndpoint.makeRequest({publicKey: '', address: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
 				});
 			});
 
 			it('using known address and matching publicKey should be ok', function () {
-				return getAccountsPromise('address=' + node.gAccount.address + '&publicKey=' + node.gAccount.publicKey).then(function (res) {
-					validateAccountFields(res, node.gAccount);
+				return accountsEndpoint.makeRequest({publicKey: node.gAccount.publicKey, address: node.gAccount.address}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+					res.body.data[0].address.should.be.eql(node.gAccount.address);
+					res.body.data[0].publicKey.should.be.eql(node.gAccount.publicKey);
 				});
 			});
 
 			it('using known address and not matching publicKey should return empty result', function () {
-				return getAccountsPromise('address=' + node.gAccount.address + '&publicKey=' + account.publicKey).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(0);
+				return accountsEndpoint.makeRequest({publicKey: account.publicKey, address: node.gAccount.address}, 200).then(function (res) {
+					res.body.data.should.have.length(0);
+				});
+			});
+		});
+
+		describe.only('secondPublicKey', function () {
+
+			var secondPublicKeyAccount = node.randomAccount();
+			var creditTransaction = node.lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, node.gAccount.password);
+			var signatureTransaction = node.lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
+
+			before(function () {
+				return sendTransactionPromise(creditTransaction).then(function (res) {
+					res.statusCode.should.be.eql(200);
+					return waitForConfirmations([creditTransaction.id]);
+				}).then(function () {
+					return sendTransactionPromise(signatureTransaction);
+				}).then(function (res) {
+					res.statusCode.should.be.eql(200);
+					return waitForConfirmations([signatureTransaction.id]);
+				});
+			});
+
+			it('using known secondPublicKey should be ok', function () {
+				return accountsEndpoint.makeRequest({secondPublicKey: secondPublicKeyAccount.secondPublicKey}, 200).then(function (res) {
+					res.body.data[0].secondPublicKey.should.be.eql(secondPublicKeyAccount.secondPublicKey);
+				});
+			});
+
+			it('using unknown secondPublicKey should return empty result', function () {
+				return accountsEndpoint.makeRequest({secondPublicKey: account.secondPublicKey}, 200).then(function (res) {
+					res.body.data.should.have.length(0);
+				});
+			});
+
+			it('using invalid secondPublicKey should fail', function () {
+				return accountsEndpoint.makeRequest({secondPublicKey: 'invalidPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'secondPublicKey');
 				});
 			});
 		});
@@ -145,21 +150,23 @@ describe('GET /api/accounts', function () {
 		describe('username', function () {
 
 			it('using empty username name should fail', function () {
-				return getAccountsPromise('username=').then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
+				return accountsEndpoint.makeRequest({username: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'username');
 				});
 			});
 
 			it('using username with string greater than max length should fail', function () {
-				return getAccountsPromise('username=' + _.repeat('a', 21)).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
+				return accountsEndpoint.makeRequest({username: _.repeat('a', 21)}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'username');
 				});
 			});
 
 			it('using valid username name should result account', function () {
-				return getAccountsPromise('username=' + node.eAccount.delegateName).then(function (res) {
-					validateAccountFields(res, node.eAccount);
-					validateDelegateFields(res, node.eAccount);
+				return accountsEndpoint.makeRequest({username: node.eAccount.delegateName}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+					res.body.data[0].address.should.be.eql(node.eAccount.address);
+					res.body.data[0].publicKey.should.be.eql(node.eAccount.publicKey);
+					res.body.data[0].delegate.username.should.to.eql(node.eAccount.delegateName);
 				});
 			});
 		});
@@ -167,154 +174,96 @@ describe('GET /api/accounts', function () {
 		describe('limit', function () {
 
 			it('using limit = 0 should return error', function () {
-				return getAccountsPromise('limit=' + 0).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Value 0 is less than minimum 1');
+				return accountsEndpoint.makeRequest({limit: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
 				});
 			});
 
 			it('using limit = 102 should return error', function () {
-				return getAccountsPromise('limit=' + 102).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Value 102 is greater than maximum 101');
+				return accountsEndpoint.makeRequest({limit: 102}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
 				});
 			});
 
 			it('using limit = 5 should return return 5 accounts', function () {
-				return getAccountsPromise('limit=' + 5).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
+				return accountsEndpoint.makeRequest({limit: 5}, 200).then(function (res) {
+					res.body.data.should.have.length(5);
 				});
 			});
 		});
 
-		describe('with accounts prefetched', function () {
+		describe('sort', function () {
+			it('using sort = invalid should return error', function () {
+				return accountsEndpoint.makeRequest({sort: 'invalid'}, 400);
+			});
 
-			var accountAddressesWithoutOffset;
-			// Need to add sorting so that accounts returned are always in deterministic order.
-			var sortingParam = 'sort=username';
-			before(function () {
-				return getAccountsPromise(sortingParam).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					accountAddressesWithoutOffset = res.body.accounts.map(function (account) {
-						return account.address;
-					});
+			it('using no sort return accounts sorted by balance in asending order as default behavior', function () {
+				return accountsEndpoint.makeRequest({sort: 'balance:asc'}, 200).then(function (res) {
+					var balances = _(res.body.data).map('balance').value();
+					_.clone(balances).sort().should.be.eql(balances);
 				});
 			});
 
-			describe('offset', function () {
-
-				it('using offset = -1 should return result', function () {
-					return getAccountsPromise(sortingParam + '&offset=' + '-1').then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(400);
-						node.expect(res).to.have.nested.property('body.message').to.equal('Value -1 is less than minimum 0');
-					});
-				});
-
-				it('using offset = 5 should return accounts sorted according to username including top 5', function () {
-					return getAccountsPromise(sortingParam + '&offset=' + '5').then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						var responseAccountAddresses = res.body.accounts.map(function (account) {
-							return account.address;
-						});
-						node.expect(res).to.have.nested.property('body.accounts');
-						node.expect(responseAccountAddresses).to.be.an('array').to.include.members(accountAddressesWithoutOffset.slice(5));
-					});
+			it('using sort = balance:asc should return accounts in ascending order by balance', function () {
+				return accountsEndpoint.makeRequest({sort: 'balance:asc'}, 200).then(function (res) {
+					var balances = _(res.body.data).map('balance').value();
+					_.clone(balances).sort().should.be.eql(balances);
 				});
 			});
 
-			describe('sort', function () {
-
-				describe('balance', function () {
-
-					it('using sort = balance should sort accounts by balance in default ascending order', function () {
-						return getAccountsPromise('limit=' + 5 + '&sort=balance').then(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
-							node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-							var accountBalances = _.map(res.body.accounts, function (account) {
-								return Number(account.balance);
-							});
-							node.expect(_.map(_.map(res.body.accounts, 'balance'), Number)).eql(_.sortBy(accountBalances));
-						});
-					});
-
-					it('using sort = balance:desc should sort accounts by balance in descending order', function () {
-						return getAccountsPromise('limit=' + 5 + '&sort=balance:desc').then(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
-							node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-							var accountBalances = _.map(res.body.accounts, function (account) {
-								return Number(account.balance);
-							});
-							node.expect(_.map(_.map(res.body.accounts, 'balance'), Number)).eql(_.sortBy(accountBalances).reverse());
-						});
-					});
-
-					it('using sort = balance:asc should sort accounts by balance in ascending order', function () {
-						return getAccountsPromise('limit=' + 5 + '&sort=balance:asc').then(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
-							node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-							var accountBalances = _.map(res.body.accounts, function (account) {
-								return Number(account.balance);
-							});
-							node.expect(_.map(_.map(res.body.accounts, 'balance'), Number)).eql(_.sortBy(accountBalances));
-						});
-					});
+			it('using sort = balance:desc should return accounts in descending order by balance', function () {
+				return accountsEndpoint.makeRequest({sort: 'balance:desc'}, 200).then(function (res) {
+					var balances = _(res.body.data).map('balance').value();
+					_.clone(balances).sort().reverse().should.be.eql(balances);
 				});
+			});
+		});
 
-				describe('username', function () {
+		describe('offset', function () {
 
-					it('using sort = username should sort accounts by username in default ascending order', function () {
-						return getAccountsPromise('limit=' + 5 + '&sort=username').then(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
-							node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-							node.expect(_.map(res.body.accounts, 'delegate.username')).eql(_.map(_.sortBy(res.body.accounts, 'delegate.username'), 'delegate.username'));
-						});
-					});
-
-					it('using sort = username:desc should sort accounts by balance in descending order', function () {
-						return getAccountsPromise('limit=' + 5 + '&sort=username:desc').then(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
-							node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-							node.expect(_.map(res.body.accounts, 'delegate.username')).eql(_.map(_.sortBy(res.body.accounts, 'delegate.username').reverse(), 'delegate.username'));
-						});
-					});
-
-					it('using sort = username:asc should sort accounts by balance in ascending order', function () {
-						return getAccountsPromise('limit=' + 5 + '&sort=username:asc').then(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
-							node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-							node.expect(_.map(res.body.accounts, 'delegate.username')).eql(_.map(_.sortBy(res.body.accounts, 'username'), 'delegate.username'));
-						});
-					});
+			it('using offset = -1 should return error', function () {
+				return accountsEndpoint.makeRequest({offset: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
 				});
 			});
 
-			describe('sort, offset & limit together', function () {
+			it('using offset = 5 should return accounts including top 5', function () {
+				var res1;
 
-				it('using sort = username and offset = 1 and limit = 5 should return 5 accounts sorted by username', function () {
-					return getAccountsPromise('sort=username' + '&limit=' + 5 + '&offset=1').then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.accounts').that.is.an('array').to.have.length(5);
-						node.expect(_.map(res.body.accounts, 'delegate.username')).eql(_.map(_.sortBy(res.body.accounts, 'username'), 'delegate.username'));
-					});
+				return accountsEndpoint.makeRequest({offset: 0}, 200).then(function (res) {
+					res1 = res;
+					return accountsEndpoint.makeRequest({offset: 5}, 200);
+				}).then(function (res2) {
+					res2.body.data.should.include.deep.members(res1.body.data.slice(-5));
 				});
 			});
+		});
 
+		describe('sort, offset & limit together', function () {
+
+			it('using sort = balance:asc and offset = 1 and limit = 5 should return 5 accounts sorted by balance', function () {
+				return accountsEndpoint.makeRequest({sort: 'balance:asc', offset: 1, limit: 5}, 200).then(function (res) {
+					var balances = _(res.body.data).map('balance').value();
+
+					res.body.data.should.have.length(5);
+					_.clone(balances).sort().reverse().should.be.eql(balances);
+				});
+			});
 		});
 
 		it('should return delegate properties for a delegate account', function () {
-			return getAccountsPromise('address=' + node.eAccount.address).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				validateAccountFields(res, node.eAccount);
-				validateDelegateFields(res, node.eAccount);
+			return accountsEndpoint.makeRequest({address: node.eAccount.address}, 200).then(function (res) {
+				res.body.data[0].address.should.be.eql(node.eAccount.address);
+				res.body.data[0].publicKey.should.be.eql(node.eAccount.publicKey);
+				res.body.data[0].delegate.username.should.be.eql(node.eAccount.delegateName);
 			});
 		});
 
-		it('should return empty delgate property for a non delegate account', function () {
-			return getAccountsPromise('address=' + node.gAccount.address).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				validateAccountFields(res, node.gAccount);
-				node.expect(res.body.accounts[0].delegate).to.eql({});
+		it('should return empty delegate property for a non delegate account', function () {
+			return accountsEndpoint.makeRequest({address: node.gAccount.address}, 200).then(function (res) {
+				res.body.data[0].address.should.be.eql(node.gAccount.address);
+				res.body.data[0].publicKey.should.be.eql(node.gAccount.publicKey);
+				res.body.data[0].should.not.have.property('delegate');
 			});
 		});
 	});
