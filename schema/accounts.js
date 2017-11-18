@@ -27,7 +27,7 @@ module.exports = {
 				minLength: 1,
 				maxLength: 20
 			},
-			orderBy: {
+			sort: {
 				type: 'string'
 			},
 			limit: {

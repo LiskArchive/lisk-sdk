@@ -124,7 +124,7 @@ describe('GET /api/transactions', function () {
 			it('using valid array-like parameters should fail', function () {
 				var limit = 10;
 				var offset = 0;
-				var orderBy = 'amount:asc';
+				var sort = 'amount:asc';
 
 				var params = [
 					'blockId=' + '1',
@@ -134,7 +134,7 @@ describe('GET /api/transactions', function () {
 					'recipientPublicKey=' + node.gAccount.publicKey + ',' + account.publicKey,
 					'limit=' + limit,
 					'offset=' + offset,
-					'orderBy=' + orderBy
+					'sort=' + sort
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -146,7 +146,7 @@ describe('GET /api/transactions', function () {
 			it('using invalid field name should fail', function () {
 				var limit = 10;
 				var offset = 0;
-				var orderBy = 'amount:asc';
+				var sort = 'amount:asc';
 
 				var params = [
 					'blockId=' + '1',
@@ -154,7 +154,7 @@ describe('GET /api/transactions', function () {
 					'whatever=' + account.address,
 					'limit=' + limit,
 					'offset=' + offset,
-					'orderBy=' + orderBy
+					'sort=' + sort
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -203,7 +203,7 @@ describe('GET /api/transactions', function () {
 					'recipientId=invalid',
 					'limit=invalid',
 					'offset=invalid',
-					'orderBy=invalid'
+					'sort=invalid'
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -219,7 +219,7 @@ describe('GET /api/transactions', function () {
 					'recipientId=' + account.address,
 					'limit=invalid',
 					'offset=invalid',
-					'orderBy=blockId:asc'
+					'sort=blockId:asc'
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -505,14 +505,14 @@ describe('GET /api/transactions', function () {
 			});
 		});
 
-		describe('orderBy', function () {
+		describe('sort', function () {
 
 			describe('amount', function () {
 
-				it('ordered by descending amount should be ok', function () {
-					var orderBy = 'amount:asc';
+				it('sorted by descending amount should be ok', function () {
+					var sort = 'amount:asc';
 					var params = [
-						'orderBy=' + orderBy
+						'sort=' + sort
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
@@ -522,10 +522,10 @@ describe('GET /api/transactions', function () {
 					});
 				});
 
-				it('ordered by ascending timestamp should be ok', function () {
-					var orderBy = 'amount:asc';
+				it('sorted by ascending timestamp should be ok', function () {
+					var sort = 'amount:asc';
 					var params = [
-						'orderBy=' + orderBy
+						'sort=' + sort
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
@@ -538,10 +538,10 @@ describe('GET /api/transactions', function () {
 
 			describe('timestamp', function () {
 
-				it('ordered by descending timestamp should be ok', function () {
-					var orderBy = 'timestamp:asc';
+				it('sorted by descending timestamp should be ok', function () {
+					var sort = 'timestamp:asc';
 					var params = [
-						'orderBy=' + orderBy
+						'sort=' + sort
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
@@ -551,10 +551,10 @@ describe('GET /api/transactions', function () {
 					});
 				});
 
-				it('ordered by ascending timestamp should be ok', function () {
-					var orderBy = 'timestamp:asc';
+				it('sorted by ascending timestamp should be ok', function () {
+					var sort = 'timestamp:asc';
 					var params = [
-						'orderBy=' + orderBy
+						'sort=' + sort
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
@@ -565,12 +565,12 @@ describe('GET /api/transactions', function () {
 				});
 			});
 
-			it('using orderBy with any of sort fields should not place NULLs first', function () {
+			it('using sort with any of sort fields should not place NULLs first', function () {
 				var params;
 
 				return node.Promise.each(transactionSortFields, function (sortField) {
 					params = [
-						'orderBy=' + sortField
+						'sort=' + sortField
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
@@ -650,7 +650,7 @@ describe('GET /api/transactions', function () {
 
 		describe('maxAmount', function () {
 
-			it('using minAmount with maxAmount ordered by amount and limited should be ok', function () {
+			it('using minAmount with maxAmount sorted by amount and limited should be ok', function () {
 				var params = [
 					'maxAmount=' + maxAmount,
 				];
@@ -665,15 +665,15 @@ describe('GET /api/transactions', function () {
 			});
 		});
 
-		describe('minAmount & maxAmount & orderBy', function () {
+		describe('minAmount & maxAmount & sort', function () {
 
-			it('using minAmount, maxAmount ordered by amount should return ordered transactions', function () {
-				var orderBy = 'amount:asc';
+			it('using minAmount, maxAmount sorted by amount should return sorted transactions', function () {
+				var sort = 'amount:asc';
 
 				var params = [
 					'minAmount=' + minAmount,
 					'maxAmount=' + maxAmount,
-					'orderBy=' + orderBy
+					'sort=' + sort
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -695,7 +695,7 @@ describe('GET /api/transactions', function () {
 			it('using valid parameters should be ok', function () {
 				var limit = 10;
 				var offset = 0;
-				var orderBy = 'amount:asc';
+				var sort = 'amount:asc';
 
 				var params = [
 					'senderId=' + node.gAccount.address,
@@ -703,7 +703,7 @@ describe('GET /api/transactions', function () {
 					'recipientId=' + account2.address,
 					'limit=' + limit,
 					'offset=' + offset,
-					'orderBy=' + orderBy
+					'sort=' + sort
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -721,7 +721,7 @@ describe('GET /api/transactions', function () {
 			it('using many valid parameters should be ok', function () {
 				var limit = 10;
 				var offset = 0;
-				var orderBy = 'amount:asc';
+				var sort = 'amount:asc';
 
 				var params = [
 					'blockId=' + '1',
@@ -733,7 +733,7 @@ describe('GET /api/transactions', function () {
 					'minAmount=' + 0,
 					'limit=' + limit,
 					'offset=' + offset,
-					'orderBy=' + orderBy
+					'sort=' + sort
 				];
 
 				return getTransactionsPromise(params).then(function (res) {

@@ -92,25 +92,25 @@ describe('dapps', function () {
 				it('should call db.query with offset = 0');
 			});
 
-			describe('when filter.orderBy exists', function () {
+			describe('when filter.sort exists', function () {
 
-				it('should call OrderBy with filter.orderBy param');
+				it('should call sortBy with filter.sort param');
 
 			});
 
-			describe('when filter.orderBy does not exist', function () {
+			describe('when filter.sort does not exist', function () {
 
-				it('should call OrderBy with undefined');
+				it('should call sortBy with undefined');
 			});
 
-			describe('when OrderBy returns the object with error property', function () {
+			describe('when sortBy returns the object with error property', function () {
 
-				it('should return the error from OrderBy');
+				it('should return the error from sortBy');
 
 				it('should not call db.query');
 			});
 
-			describe('when OrderBy succeeds', function () {
+			describe('when sortBy succeeds', function () {
 
 				it('should call sql.list with returned sortField');
 

@@ -216,11 +216,11 @@ describe('GET /api/blocks', function () {
 			});
 		});
 
-		describe('orderBy', function () {
+		describe('sort', function () {
 
 			it('using "height:asc" should be ok', function () {
 				var params = [
-					'orderBy=' + 'height:asc'
+					'sort=' + 'height:asc'
 				];
 
 				return getBlocksPromise(params).then(function (res) {
@@ -235,7 +235,7 @@ describe('GET /api/blocks', function () {
 
 			it('using "height:desc" should be ok', function () {
 				var params = [
-					'orderBy=' + 'height:desc'
+					'sort=' + 'height:desc'
 				];
 
 				return getBlocksPromise(params).then(function (res) {

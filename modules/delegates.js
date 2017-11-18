@@ -12,7 +12,7 @@ var jobsQueue = require('../helpers/jobsQueue.js');
 var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
-var OrderBy = require('../helpers/orderBy.js');
+var sortBy = require('../helpers/sort_by.js').sortBy;
 var schema = require('../schema/delegates.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/delegates.js');
@@ -71,7 +71,7 @@ function Delegates (cb, scope) {
 	);
 
 	setImmediate(cb, null, self);
-}	
+}
 
 /**
  * Gets slot time and keypair.
@@ -425,11 +425,11 @@ Delegates.prototype.generateDelegateList = function (cb) {
 
 /**
  * Gets delegates and for each one calculates rate, rank, approval, productivity.
- * Orders delegates as per criteria.
+ * sorts delegates as per criteria.
  * @param {Object} query
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error| object with delegates ordered, offset, count, limit.
- * @todo OrderBy does not affects data? What is the impact?.
+ * @todo sort does not affects data? What is the impact?.
  */
 Delegates.prototype.getDelegates = function (query, cb) {
 	if (!_.isObject(query)) {
