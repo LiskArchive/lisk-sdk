@@ -157,7 +157,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(delegateAccount, 'votes', badTransactions);
+		shared.invalidAssets('votes', badTransactions);
 	});
 
 	describe('transactions processing', function () {

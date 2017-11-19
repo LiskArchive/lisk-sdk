@@ -53,7 +53,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(account, 'delegate', badTransactions);
+		shared.invalidAssets('delegate', badTransactions);
 	});
 
 	describe('transactions processing', function () {
