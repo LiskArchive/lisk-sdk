@@ -7,7 +7,7 @@ var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
-var orderBy = require('../helpers/orderBy.js');
+var sortBy = require('../helpers/sort_by.js');
 var BlockReward = require('../logic/blockReward.js');
 var Bignum = require('../helpers/bignum.js');
 
@@ -319,7 +319,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."rank")::bigint'
+			expression: '(d."rank")'
 		},
 		{
 			name: 'rewards',
@@ -642,8 +642,9 @@ Account.prototype.getAll = function (filter, fields, cb) {
 	delete filter.limit;
 
 	if (filter.sort) {
-		sort = orderBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance']);
+		sort = sortBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance', 'rank', 'missedBlocks']);
 	}
+
 	delete filter.sort;
 
 	if (filter.address) {

@@ -14,12 +14,12 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 	var scenarios = {
 		'no_funds': new shared.MultisigScenario(3, 0),
 		'minimal_funds': new shared.MultisigScenario(3, constants.fees.multisignature * 3),
-		'minimum_not_reached': new shared.MultisigScenario(4), //4 members 2 min signatures required
-		'regular': new shared.MultisigScenario(3), //3 members 2 min signatures required
-		'regular_with_second_signature': new shared.MultisigScenario(3), //3 members 2 min signatures required
-		'max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 2 min signatures required 
-		'max_signatures_max_min': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), //16 members 16 min signatures required
-		'more_than_max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) //17 members 2 min signatures required
+		'minimum_not_reached': new shared.MultisigScenario(4), // 4 members 2 min signatures required
+		'regular': new shared.MultisigScenario(3), // 3 members 2 min signatures required
+		'regular_with_second_signature': new shared.MultisigScenario(3), // 3 members 2 min signatures required
+		'max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), // 16 members 2 min signatures required
+		'max_signatures_max_min': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), // 16 members 16 min signatures required
+		'more_than_max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) // 17 members 2 min signatures required
 	};
 
 	var transaction, signature;

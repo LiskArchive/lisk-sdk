@@ -25,86 +25,55 @@ module.exports = {
 			publicKey: {
 				type: 'string',
 				format: 'publicKey'
-			},
+			}
 		},
 		required: ['key', 'publicKey']
 	},
-	getDelegate: {
-		id: 'delegates.getDelegate',
+	getDelegates: {
+		id: 'delegates.getDelegates',
 		type: 'object',
 		properties: {
+			address: {
+				type: 'string',
+				format: 'address',
+				minLength: 1,
+				maxLength: 22
+			},
 			publicKey: {
-				type: 'string'
+				type: 'string',
+				format: 'publicKey'
+			},
+			secondPublicKey: {
+				type: 'string',
+				format: 'publicKey'
 			},
 			username: {
 				type: 'string',
 				format: 'username',
 				minLength: 1,
 				maxLength: 20
-			}
-		}
-	},
-	search: {
-		id: 'delegates.search',
-		type: 'object',
-		properties: {
-			q: {
+			},
+			search: {
 				type: 'string',
 				minLength: 1,
 				maxLength: 20
 			},
-			limit: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 1000
-			}
-		},
-		required: ['q']
-	},
-	getVoters: {
-		id: 'delegates.getVoters',
-		type: 'object',
-		properties: {
-			publicKey: {
-				type: 'string',
-				format: 'publicKey'
-			}
-		},
-		required: ['publicKey']
-	},
-	getDelegates: {
-		id: 'delegates.getDelegates',
-		type: 'object',
-		properties: {
-			orderBy: {
+			rank: {
+				type: 'number',
+				minimum: 1
+			},
+			sort: {
 				type: 'string'
 			},
 			limit: {
-				type: 'integer',
+				type: 'number',
 				minimum: 1,
 				maximum: constants.activeDelegates
 			},
 			offset: {
-				type: 'integer',
+				type: 'number',
 				minimum: 0
 			}
 		}
-	},
-	getForgedByAccount: {
-		id: 'delegates.getForgedByAccount',
-		type: 'object',
-		properties: {
-			generatorPublicKey: {
-				type: 'string',
-				format: 'publicKey'
-			},
-			start: {
-				type: 'integer'
-			},
-			end: {
-				type: 'integer'
-			}
-		},
-		required: ['generatorPublicKey']
 	}
 };

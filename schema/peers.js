@@ -91,7 +91,7 @@ module.exports = {
 				type: 'integer',
 				minimum: 1
 			},
-			orderBy: {
+			sort: {
 				type: 'string'
 			},
 			nonce: {

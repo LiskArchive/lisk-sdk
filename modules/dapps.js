@@ -5,7 +5,7 @@ var ApiError = require('../helpers/apiError.js');
 var DApp = require('../logic/dapp.js');
 var dappCategories = require('../helpers/dappCategories.js');
 var InTransfer = require('../logic/inTransfer.js');
-var OrderBy = require('../helpers/orderBy.js');
+var sortBy = require('../helpers/sort_by.js').sortBy;
 var OutTransfer = require('../logic/outTransfer.js');
 var schema = require('../schema/dapps.js');
 var sql = require('../sql/dapps.js');
@@ -93,7 +93,7 @@ function DApps (cb, scope) {
  * @private
  * @implements {library.db.query}
  * @param {Object} filter - Could contains type, name, category, link, limit,
- * offset, orderBy
+ * offset, sort
  * @param {function} cb
  * @return {setImmediateCallback} error description | rows data
  */
@@ -147,20 +147,20 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var orderBy = OrderBy(
-		filter.orderBy, {
+	var sort = sortBy(
+		filter.sort, {
 			sortFields: sql.sortFields
 		}
 	);
 
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
+	if (sort.error) {
+		return setImmediate(cb, sort.error);
 	}
 
 	library.db.query(sql.list({
 		where: where,
-		sortField: orderBy.sortField,
-		sortMethod: orderBy.sortMethod
+		sortField: sort.sortField,
+		sortMethod: sort.sortMethod
 	}), params).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {

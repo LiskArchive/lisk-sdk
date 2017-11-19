@@ -31,7 +31,7 @@ PeersController.getPeers = function (context, next) {
 		height: params.height.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		orderBy: params.sort.value
+		sort: params.sort.value
 	};
 
 	// Remove filters with null values

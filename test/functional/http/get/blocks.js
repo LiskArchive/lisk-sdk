@@ -71,8 +71,13 @@ describe('GET /api/blocks', function () {
 
 			return getBlocksPromise(params).then(function (res) {
 				node.expect(res).to.have.nested.property('body.blocks').that.is.an('array');
-				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(res.body).to.eql(response);
+				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
+				return node.Promise.all([0, 10, 100].map(function (delay) {
+					return node.Promise.delay(delay).then(function () {
+						return getJsonForKeyPromise(url + params.join('&'));
+					});
+				})).then(function (responses) {
+					node.expect(responses).to.deep.include(res.body);
 				});
 			});
 		});
@@ -101,10 +106,16 @@ describe('GET /api/blocks', function () {
 				.then(function (res) {
 					expectValidNonEmptyBlocks(res);
 					auxResponse = res.body;
-					return getJsonForKeyPromise(url + params.join('&'));
+					// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
+					return node.Promise.all([0, 10, 100].map(function (delay) {
+						return node.Promise.delay(delay).then(function () {
+							return getJsonForKeyPromise(url + params.join('&'));
+						});
+					})).then(function (responses) {
+						node.expect(responses).to.deep.include(auxResponse);
+					});
 				})
-				.then(function (response) {
-					node.expect(auxResponse).to.eql(response);
+				.then(function () {
 					return onNewBlockPromise();
 				})
 				.then(function () {
@@ -205,11 +216,11 @@ describe('GET /api/blocks', function () {
 			});
 		});
 
-		describe('orderBy', function () {
+		describe('sort', function () {
 
 			it('using "height:asc" should be ok', function () {
 				var params = [
-					'orderBy=' + 'height:asc'
+					'sort=' + 'height:asc'
 				];
 
 				return getBlocksPromise(params).then(function (res) {
@@ -224,7 +235,7 @@ describe('GET /api/blocks', function () {
 
 			it('using "height:desc" should be ok', function () {
 				var params = [
-					'orderBy=' + 'height:desc'
+					'sort=' + 'height:desc'
 				];
 
 				return getBlocksPromise(params).then(function (res) {
@@ -237,7 +248,7 @@ describe('GET /api/blocks', function () {
 				});
 			});
 
-			it('using empty params should be ordered by "height:desc" by default', function () {
+			it('using empty params should sort results by descending height', function () {
 				var params = [];
 
 				return getBlocksPromise(params).then(function (res) {

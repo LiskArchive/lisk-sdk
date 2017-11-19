@@ -4,11 +4,15 @@
  * Validates sort options, methods and fields.
  * @memberof module:helpers
  * @function
- * @param {Array} orderBy
- * @param {string} options
+ * @param {Array} sort
+ * @param {Object} options
+ * @param {string} options.fieldPrefix
+ * @param {string} options.sortField
+ * @param {string} options.sortMethod - asc / desc
+ * @param {Array} options.sortFields
  * @return {Object} error | {sortField, sortMethod}.
  */
-function OrderBy (orderBy, options) {
+function sortBy (sort, options) {
 	options = (typeof options === 'object') ? options : {};
 	options.sortField  = options.sortField  || null;
 	options.sortMethod = options.sortMethod || null;
@@ -22,12 +26,12 @@ function OrderBy (orderBy, options) {
 
 	var sortField, sortMethod;
 
-	if (orderBy) {
-		var sort = String(orderBy).split(':');
-		sortField = sort[0].replace(/[^\w\s]/gi, '');
+	if (sort) {
+		var sortBy = String(sort).split(':');
+		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
 
-		if (sort.length === 2) {
-			sortMethod = sort[1] === 'desc' ? 'DESC' : 'ASC';
+		if (sortBy.length === 2) {
+			sortMethod = sortBy[1] === 'desc' ? 'DESC' : 'ASC';
 		}
 	}
 
@@ -78,7 +82,7 @@ function OrderBy (orderBy, options) {
 }
 
 /**
- * Converts orderBy queries from string format like "field:asc"
+ * Converts sortBy queries from string format like "field:asc"
  * to format accepted by "json-sql" library: {field: 1}.
  * Ascending sort method number equivalent is 1.
  * Descending sort method number equivalent is -1.
@@ -87,7 +91,7 @@ function OrderBy (orderBy, options) {
  * @param {Array} sortableFields
  * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
  */
-OrderBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
+function sortQueryToJsonSqlFormat (sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {
 		sortQuery = sortQuery + ':asc';
 	}
@@ -106,4 +110,7 @@ OrderBy.sortQueryToJsonSqlFormat = function (sortQuery, sortableFields) {
 	return result;
 };
 
-module.exports = OrderBy;
+module.exports = {
+	sortQueryToJsonSqlFormat: sortQueryToJsonSqlFormat,
+	sortBy: sortBy
+};
