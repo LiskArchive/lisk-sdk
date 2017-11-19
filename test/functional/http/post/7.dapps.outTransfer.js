@@ -332,13 +332,13 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 	describe('transactions processing', function () {
 
-		it('invented dapp id should fail', function () {
-			var inventedDappId = '1';
-			transaction = node.lisk.transfer.createOutTransfer(inventedDappId, node.randomTransaction().id, node.gAccount.address, 1, account.password);
+		it('using unknown dapp id should fail', function () {
+			var unknownDappId = '1';
+			transaction = node.lisk.transfer.createOutTransfer(unknownDappId, node.randomTransaction().id, node.gAccount.address, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + inventedDappId);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + unknownDappId);
 				badTransactions.push(transaction);
 			});
 		});
