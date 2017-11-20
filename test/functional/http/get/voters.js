@@ -1,9 +1,8 @@
 'use strict';
 
+var _ = require('lodash');
 var randomstring = require('randomstring');
 var node = require('../../../node.js');
-var _ = node._;
-
 var apiCodes = require('../../../../helpers/apiCodes.js');
 var constants = require('../../../../helpers/constants.js');
 
@@ -442,7 +441,7 @@ describe('GET /api/voters', function () {
 						];
 						return getVotersPromise(params).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).map('username').dbSort()).to.be.eql(_.map(res.body.voters, 'username'));
+							node.expect(_(res.body.voters).sortBy('username').map('username').value()).to.be.eql(_.map(res.body.voters, 'username'));
 						});
 					});
 
@@ -453,7 +452,7 @@ describe('GET /api/voters', function () {
 						];
 						return getVotersPromise(params).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).map('username').dbSort('desc')).to.be.eql(_.map(res.body.voters, 'username'));
+							node.expect(_(res.body.voters).sortBy('username').reverse().map('username').value()).to.be.eql(_.map(res.body.voters, 'username'));
 						});
 					});
 				});

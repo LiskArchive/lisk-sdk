@@ -254,7 +254,6 @@ describe('GET /api/dapps', function () {
 
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
-					console.log(res.body.dapps[0].name, dapp1.name, dapp2.name);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.lengthOf(1);
 				});
 			});
@@ -267,7 +266,6 @@ describe('GET /api/dapps', function () {
 
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
-					console.log(res.body.dapps[0].name, dapp1.name, dapp2.name);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array').and.has.lengthOf(1);
 				});
 			});
@@ -295,6 +293,29 @@ describe('GET /api/dapps', function () {
 
 		describe('sort=', function () {
 
+			// Create 20 random applications to increase data set
+			before(function () {
+				var promises = [];
+				var transaction;
+				var transactionsToWaitFor = [];
+
+				var sum = 0;
+				for (var i = 1; i <= 20; i++) {
+					transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+					transactionsToWaitFor.push(transaction.id);
+					promises.push(sendTransactionPromise(transaction));
+					sum = sum + i;
+				}
+
+				return node.Promise.all(promises)
+					.then(function (results) {
+						results.forEach(function (res) {
+							node.expect(res).to.have.property('status').to.equal(200);
+						});
+						return waitForConfirmations(transactionsToWaitFor);
+					});
+			});
+
 			it('using "unknown:unknown" should be ok', function () {
 				var params = [
 					'sort=' + 'unknown:unknown'
@@ -314,7 +335,11 @@ describe('GET /api/dapps', function () {
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
-					node.expect(node._(res.body.dapps).map('name').dbSort()).eql(node._.map(res.body.dapps, 'name'));
+
+					var expectedArray = node._.map(res.body.dapps, 'name');
+					var obtainedArray = node._.clone(expectedArray).sort();
+
+					node.expect(expectedArray).eql(obtainedArray);
 				});
 			});
 
@@ -326,7 +351,12 @@ describe('GET /api/dapps', function () {
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
-					node.expect(node._(res.body.dapps).map('name').dbSort()).eql(node._.map(res.body.dapps, 'name'));
+
+					var obtainedArray = node._.map(res.body.dapps, 'name');
+					var cloneObtainedArray = node._.clone(obtainedArray);
+					var expectedArray = cloneObtainedArray.sort();
+
+					node.expect(expectedArray).eql(obtainedArray);
 				});
 			});
 
@@ -338,7 +368,12 @@ describe('GET /api/dapps', function () {
 				return getDappsPromise(params).then(function (res) {
 					node.expect(res).to.have.property('status').equal(apiCodes.OK);
 					node.expect(res).to.have.nested.property('body.dapps').that.is.an('array');
-					node.expect(node._(res.body.dapps).map('name').dbSort('desc')).eql(node._.map(res.body.dapps, 'name'));
+
+					var obtainedArray = node._.map(res.body.dapps, 'name');
+					var cloneObtainedArray = node._.clone(obtainedArray);
+					var expectedArray = cloneObtainedArray.sort().reverse();
+
+					node.expect(expectedArray).eql(obtainedArray);
 				});
 			});
 		});

@@ -83,36 +83,6 @@ node.gAccount = {
 
 node.swaggerDef = swaggerHelper.getSwaggerSpec();;
 
-node._.mixin({
-	/**
-	 * Lodash mixin to sort collection case-insensitively
-	 *
-	 * @param {Array} arr
-	 * @param {string} [sortOrder=asc] - Sorting order asc|desc
-	 * @return {*}
-	 */
-	dbSort: function (arr, sortOrder) {
-		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
-
-		return node._.clone(arr).sort(function (a, b ) {
-			// If first element is empty push it downard
-			if(!node._.isEmpty(a) && node._.isEmpty(b)) { return sortFactor * -1; }
-
-			// If second element is empty pull it upward
-			if(node._.isEmpty(a) && !node._.isEmpty(b)) { return sortFactor * 1; }
-
-			// If both are empty keep same order
-			if(node._.isEmpty(a) && node._.isEmpty(b)) { return sortFactor * 0; }
-
-			// Convert to lower case and remove special characters
-			var s1lower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
-			var s2lower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
-			
-			return s1lower.localeCompare(s2lower) * sortFactor;
-		});
-	}
-}, {chain: false});
-
 // Optional logging
 if (process.env.SILENT === 'true') {
 	node.debug = function () {};
@@ -314,7 +284,7 @@ node.randomApplicationName = function () {
 	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	return node.randomString.generate({
-		length: 32,
+		length: node.randomNumber(5, 32),
 		charset: custom
 	});
 };
