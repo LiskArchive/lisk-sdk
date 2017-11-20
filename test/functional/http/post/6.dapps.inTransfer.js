@@ -5,7 +5,6 @@ var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var getAccountsPromise = require('../../../common/apiHelpers').getAccountsPromise;
 
