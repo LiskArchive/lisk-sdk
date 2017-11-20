@@ -197,6 +197,29 @@ describe('GET /dapps', function () {
 
 		describe('sort=', function () {
 
+			// Create 20 random applications to increase data set
+			before(function () {
+				var promises = [];
+				var transaction;
+				var transactionsToWaitFor = [];
+
+				var sum = 0;
+				for (var i = 1; i <= 20; i++) {
+					transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+					transactionsToWaitFor.push(transaction.id);
+					promises.push(sendTransactionPromise(transaction));
+					sum = sum + i;
+				}
+
+				return node.Promise.all(promises)
+					.then(function (results) {
+						results.forEach(function (res) {
+							node.expect(res).to.have.property('status').to.equal(200);
+						});
+						return waitForConfirmations(transactionsToWaitFor);
+					});
+			});
+
 			it('using "unknown:unknown" should fail', function () {
 				return dappsEndpoint.makeRequest({sort: 'unknown:unknown'}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'sort');
@@ -211,13 +234,21 @@ describe('GET /dapps', function () {
 
 			it('using "name:asc" should return result in descending order', function () {
 				return dappsEndpoint.makeRequest({sort: 'name:asc'}, 200).then(function (res) {
-					_(res.body.data).map('name').dbSort().should.be.eql(_.map(res.body.data, 'name'));
+					var obtainedArray = node._.map(res.body.dapps, 'name');
+					var cloneObtainedArray = node._.clone(obtainedArray);
+					var expectedArray = cloneObtainedArray.sort();
+
+					node.expect(expectedArray).eql(obtainedArray);
 				});
 			});
 
 			it('using "name:desc" should return result in descending order', function () {
 				return dappsEndpoint.makeRequest({sort: 'name:desc'}, 200).then(function (res) {
-					_(res.body.data).map('name').dbSort('desc').should.be.eql(_.map(res.body.data, 'name'));
+					var obtainedArray = node._.map(res.body.dapps, 'name');
+					var cloneObtainedArray = node._.clone(obtainedArray);
+					var expectedArray = cloneObtainedArray.sort().reverse();
+
+					node.expect(expectedArray).eql(obtainedArray);
 				});
 			});
 		});
