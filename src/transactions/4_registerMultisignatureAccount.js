@@ -28,14 +28,14 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
  * @return {Object}
  */
 
-export default function registerMultisignatureAccount({
+const registerMultisignatureAccount = ({
 	secret,
 	secondSecret,
 	keysgroup,
 	lifetime,
 	min,
 	timeOffset,
-}) {
+}) => {
 	const keys = cryptoModule.getKeys(secret);
 	const keygroupFees = keysgroup.length + 1;
 
@@ -56,4 +56,6 @@ export default function registerMultisignatureAccount({
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);
-}
+};
+
+export default registerMultisignatureAccount;

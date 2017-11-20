@@ -22,7 +22,7 @@ import hash from './hash';
  * @return {object}
  */
 
-export function getPrivateAndPublicKeyBytesFromSecret(secret) {
+export const getPrivateAndPublicKeyBytesFromSecret = secret => {
 	const hashed = hash(secret, 'utf8');
 
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(hashed);
@@ -31,7 +31,7 @@ export function getPrivateAndPublicKeyBytesFromSecret(secret) {
 		privateKey: signSk,
 		publicKey: signPk,
 	};
-}
+};
 
 /**
  * @method getPrivateAndPublicKeyFromSecret
@@ -40,7 +40,7 @@ export function getPrivateAndPublicKeyBytesFromSecret(secret) {
  * @return {object}
  */
 
-export function getPrivateAndPublicKeyFromSecret(secret) {
+export const getPrivateAndPublicKeyFromSecret = secret => {
 	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromSecret(
 		secret,
 	);
@@ -49,7 +49,7 @@ export function getPrivateAndPublicKeyFromSecret(secret) {
 		privateKey: bufferToHex(privateKey),
 		publicKey: bufferToHex(publicKey),
 	};
-}
+};
 
 /**
  * @method getKeys
@@ -58,9 +58,7 @@ export function getPrivateAndPublicKeyFromSecret(secret) {
  * @return {object}
  */
 
-export function getKeys(secret) {
-	return getPrivateAndPublicKeyFromSecret(secret);
-}
+export const getKeys = getPrivateAndPublicKeyFromSecret;
 
 /**
  * @method getAddressAndPublicKeyFromSecret
@@ -69,7 +67,7 @@ export function getKeys(secret) {
  * @return {object}
  */
 
-export function getAddressAndPublicKeyFromSecret(secret) {
+export const getAddressAndPublicKeyFromSecret = secret => {
 	const accountKeys = getKeys(secret);
 	const accountAddress = getAddress(accountKeys.publicKey);
 
@@ -77,4 +75,4 @@ export function getAddressAndPublicKeyFromSecret(secret) {
 		address: accountAddress,
 		publicKey: accountKeys.publicKey,
 	};
-}
+};

@@ -38,22 +38,10 @@
  *
  *     var LSK = lisk.api(options);
 */
+import config from '../../config.json';
+import { LIVE_PORT, TEST_PORT, GET, POST } from '../constants';
 import * as privateApi from './privateApi';
 import * as utils from './utils';
-import config from '../../config.json';
-
-const GET = 'GET';
-const POST = 'POST';
-
-const livePort = 8000;
-const testPort = 7000;
-const sslPort = 443;
-
-const getDefaultPort = options => {
-	if (options.testnet) return testPort;
-	if (options.ssl) return sslPort;
-	return livePort;
-};
 
 /**
 *
@@ -80,7 +68,7 @@ export default class LiskAPI {
 		this.port =
 			options.port === '' || options.port
 				? options.port
-				: getDefaultPort(options);
+				: utils.getDefaultPort(options);
 		this.nethash = this.getNethash(options.nethash);
 	}
 
@@ -91,9 +79,10 @@ export default class LiskAPI {
 	 */
 
 	getNethash(providedNethash) {
+		const { port } = this;
 		const NetHash = this.testnet
-			? privateApi.netHashOptions.call(this).testnet
-			: privateApi.netHashOptions.call(this).mainnet;
+			? utils.netHashOptions({ port }).testnet
+			: utils.netHashOptions({ port }).mainnet;
 
 		if (providedNethash) {
 			NetHash.nethash = providedNethash;
@@ -140,7 +129,7 @@ export default class LiskAPI {
 			this.bannedNodes = [];
 		}
 		this.testnet = testnet;
-		this.port = testnet ? testPort : livePort;
+		this.port = testnet ? TEST_PORT : LIVE_PORT;
 
 		privateApi.selectNewNode.call(this);
 	}
@@ -168,7 +157,7 @@ export default class LiskAPI {
 
 	broadcastSignedTransaction(transaction, callback) {
 		const request = {
-			requestUrl: `${privateApi.getFullURL.call(this)}/api/transactions`,
+			requestUrl: `${utils.getFullURL(this)}/api/transactions`,
 			nethash: this.nethash,
 			requestParams: { transaction },
 		};

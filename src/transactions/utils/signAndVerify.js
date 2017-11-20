@@ -23,10 +23,10 @@ import getTransactionHash from './getTransactionHash';
  * @return {string}
  */
 
-export function signTransaction(transaction, secret) {
+export const signTransaction = (transaction, secret) => {
 	const transactionHash = getTransactionHash(transaction);
 	return crypto.signData(transactionHash, secret);
-}
+};
 
 /**
  * @method multiSignTransaction
@@ -36,7 +36,7 @@ export function signTransaction(transaction, secret) {
  * @return {string}
  */
 
-export function multiSignTransaction(transaction, secret) {
+export const multiSignTransaction = (transaction, secret) => {
 	const transactionToSign = Object.assign({}, transaction);
 	delete transactionToSign.signature;
 	delete transactionToSign.signSignature;
@@ -44,7 +44,7 @@ export function multiSignTransaction(transaction, secret) {
 	const transactionHash = getTransactionHash(transactionToSign);
 
 	return crypto.signData(transactionHash, secret);
-}
+};
 
 /**
  * @method verifyTransaction
@@ -54,7 +54,7 @@ export function multiSignTransaction(transaction, secret) {
  * @return {boolean}
  */
 
-export function verifyTransaction(transaction, secondPublicKey) {
+export const verifyTransaction = (transaction, secondPublicKey) => {
 	const secondSignaturePresent = !!transaction.signSignature;
 	if (secondSignaturePresent && !secondPublicKey) {
 		throw new Error('Cannot verify signSignature without secondPublicKey.');
@@ -82,4 +82,4 @@ export function verifyTransaction(transaction, secondPublicKey) {
 	return secondSignaturePresent
 		? verified && verifyTransaction(transactionWithoutSignature)
 		: verified;
-}
+};

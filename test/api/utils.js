@@ -18,6 +18,7 @@ describe('api utils module', () => {
 	const POST = 'POST';
 	const defaultMethod = POST;
 	const defaultEndpoint = 'transactions';
+	const defaultPort = 7000;
 
 	let LSK;
 	let sendRequestResult;
@@ -25,12 +26,94 @@ describe('api utils module', () => {
 
 	beforeEach(() => {
 		LSK = {
+			port: defaultPort,
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
 		sendRequestStub = sandbox
 			.stub(LSK, 'sendRequest')
 			.resolves(Object.assign({}, sendRequestResult));
+	});
+
+	describe('#netHashOptions', () => {
+		const { netHashOptions } = utils;
+		let result;
+
+		beforeEach(() => {
+			result = netHashOptions({ port: defaultPort });
+		});
+
+		it('should return an object with a testnet nethash', () => {
+			const { testnet } = result;
+			testnet.should.have.property('Content-Type').and.be.type('string');
+			testnet.should.have.property('nethash').and.be.type('string');
+			testnet.should.have.property('broadhash').and.be.type('string');
+			testnet.should.have.property('os').and.be.type('string');
+			testnet.should.have.property('version').and.be.type('string');
+			testnet.should.have.property('minVersion').and.be.type('string');
+			testnet.should.have.property('port').and.be.type('number');
+		});
+		it('should return an object with a mainnet nethash', () => {
+			const { mainnet } = result;
+			mainnet.should.have.property('Content-Type').and.be.type('string');
+			mainnet.should.have.property('nethash').and.be.type('string');
+			mainnet.should.have.property('broadhash').and.be.type('string');
+			mainnet.should.have.property('os').and.be.type('string');
+			mainnet.should.have.property('version').and.be.type('string');
+			mainnet.should.have.property('minVersion').and.be.type('string');
+			mainnet.should.have.property('port').and.be.type('number');
+		});
+	});
+
+	describe('#getURLPrefix', () => {
+		const { getURLPrefix } = utils;
+
+		it('should return http when ssl is set to false', () => {
+			const ssl = false;
+			const result = getURLPrefix({ ssl });
+			result.should.be.equal('http');
+		});
+
+		it('should return https when ssl is set to true', () => {
+			const ssl = true;
+			const result = getURLPrefix({ ssl });
+			result.should.be.equal('https');
+		});
+	});
+
+	describe('#getFullURL', () => {
+		const { getFullURL } = utils;
+		const URLPrefix = 'ftp';
+
+		let getURLPrefixStub;
+		let restoreGetURLPrefixStub;
+		let result;
+
+		beforeEach(() => {
+			getURLPrefixStub = sandbox.stub().returns(URLPrefix);
+			// eslint-disable-next-line no-underscore-dangle
+			restoreGetURLPrefixStub = utils.__set__('getURLPrefix', getURLPrefixStub);
+			result = getFullURL(LSK);
+		});
+
+		afterEach(() => {
+			restoreGetURLPrefixStub();
+		});
+
+		it('should get the URL prefix', () => {
+			const { ssl } = LSK;
+			getURLPrefixStub.should.be.calledWithExactly({ ssl });
+		});
+
+		it('should add the prefix to the node URL and the port', () => {
+			result.should.equal(`${URLPrefix}://${LSK.node}:${defaultPort}`);
+		});
+
+		it('should not include a port if not set', () => {
+			delete LSK.port;
+			result = getFullURL(LSK);
+			result.should.equal(`${URLPrefix}://${LSK.node}`);
+		});
 	});
 
 	describe('#toQueryString', () => {

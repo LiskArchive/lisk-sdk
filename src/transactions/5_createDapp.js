@@ -53,12 +53,7 @@ const validateOptions = options => {
  * @return {Object}
  */
 
-export default function createDapp({
-	secret,
-	secondSecret,
-	options,
-	timeOffset,
-}) {
+const createDapp = ({ secret, secondSecret, options, timeOffset }) => {
 	validateOptions(options);
 
 	const keys = cryptoModule.getKeys(secret);
@@ -84,4 +79,6 @@ export default function createDapp({
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);
-}
+};
+
+export default createDapp;

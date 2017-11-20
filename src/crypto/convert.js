@@ -24,11 +24,8 @@ import hash from './hash';
  * @return {Buffer}
  */
 
-export function bigNumberToBuffer(bignumber, size) {
-	return bignum(bignumber).toBuffer({
-		size,
-	});
-}
+export const bigNumberToBuffer = (bignumber, size) =>
+	bignum(bignumber).toBuffer({ size });
 
 /**
  * @method bufferToBigNumberString
@@ -37,9 +34,8 @@ export function bigNumberToBuffer(bignumber, size) {
  * @return {String}
  */
 
-export function bufferToBigNumberString(bigNumberBuffer) {
-	return bignum.fromBuffer(bigNumberBuffer).toString();
-}
+export const bufferToBigNumberString = bigNumberBuffer =>
+	bignum.fromBuffer(bigNumberBuffer).toString();
 
 /**
  * @method bufferToHex
@@ -48,9 +44,7 @@ export function bufferToBigNumberString(bigNumberBuffer) {
  * @return {String}
  */
 
-export function bufferToHex(buffer) {
-	return naclInstance.to_hex(buffer);
-}
+export const bufferToHex = naclInstance.to_hex;
 
 /**
  * @method hexToBuffer
@@ -59,9 +53,7 @@ export function bufferToHex(buffer) {
  * @return {Buffer}
  */
 
-export function hexToBuffer(hex) {
-	return Buffer.from(hex, 'hex');
-}
+export const hexToBuffer = hex => Buffer.from(hex, 'hex');
 
 /**
  * @method getFirstEightBytesReversed
@@ -70,11 +62,10 @@ export function hexToBuffer(hex) {
  * @return {Buffer}
  */
 
-export function getFirstEightBytesReversed(publicKeyBytes) {
-	return Buffer.from(publicKeyBytes)
+export const getFirstEightBytesReversed = publicKeyBytes =>
+	Buffer.from(publicKeyBytes)
 		.slice(0, 8)
 		.reverse();
-}
 
 /**
  * @method toAddress
@@ -83,9 +74,7 @@ export function getFirstEightBytesReversed(publicKeyBytes) {
  * @return {String}
  */
 
-export function toAddress(buffer) {
-	return `${bufferToBigNumberString(buffer)}L`;
-}
+export const toAddress = buffer => `${bufferToBigNumberString(buffer)}L`;
 
 /**
  * @method getAddressFromPublicKey
@@ -94,14 +83,14 @@ export function toAddress(buffer) {
  * @return {String}
  */
 
-export function getAddressFromPublicKey(publicKey) {
+export const getAddressFromPublicKey = publicKey => {
 	const publicKeyHash = hash(publicKey, 'hex');
 
 	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
 	const address = toAddress(publicKeyTransform);
 
 	return address;
-}
+};
 
 /**
  * @method getAddress
@@ -110,9 +99,7 @@ export function getAddressFromPublicKey(publicKey) {
  * @return {String}
  */
 
-export function getAddress(publicKey) {
-	return getAddressFromPublicKey(publicKey);
-}
+export const getAddress = getAddressFromPublicKey;
 
 /**
  * @method convertPublicKeyEd2Curve
@@ -121,9 +108,7 @@ export function getAddress(publicKey) {
  * @return {Object}
  */
 
-export function convertPublicKeyEd2Curve(publicKey) {
-	return ed2curve.convertPublicKey(publicKey);
-}
+export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 
 /**
  * @method convertPrivateKeyEd2Curve
@@ -132,6 +117,4 @@ export function convertPublicKeyEd2Curve(publicKey) {
  * @return {Object}
  */
 
-export function convertPrivateKeyEd2Curve(privateKey) {
-	return ed2curve.convertSecretKey(privateKey);
-}
+export const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;

@@ -22,10 +22,10 @@ import crypto from '../../crypto';
 * @return {String}
 */
 
-export default function getAddressAndPublicKeyFromRecipientData({
+const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,
 	recipientPublicKey,
-}) {
+}) => {
 	if (recipientId && recipientPublicKey) {
 		const addressFromPublicKey = crypto.getAddressFromPublicKey(
 			recipientPublicKey,
@@ -46,4 +46,6 @@ export default function getAddressAndPublicKeyFromRecipientData({
 	}
 
 	return { address: recipientId, publicKey: null };
-}
+};
+
+export default getAddressAndPublicKeyFromRecipientData;

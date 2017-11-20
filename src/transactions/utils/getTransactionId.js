@@ -22,7 +22,7 @@ import getTransactionBytes from './getTransactionBytes';
  * @return {string}
  */
 
-export default function getTransactionId(transaction) {
+const getTransactionId = transaction => {
 	const transactionBytes = getTransactionBytes(transaction);
 	const transactionHash = cryptoModule.hash(transactionBytes);
 	const bufferFromFirstEntriesReversed = cryptoModule.getFirstEightBytesReversed(
@@ -33,4 +33,6 @@ export default function getTransactionId(transaction) {
 	);
 
 	return firstEntriesToNumber;
-}
+};
+
+export default getTransactionId;

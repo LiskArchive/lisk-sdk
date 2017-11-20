@@ -22,7 +22,9 @@ import getTransactionBytes from './getTransactionBytes';
 * @return {string}
 */
 
-export default function getTransactionHash(transaction) {
+const getTransactionHash = transaction => {
 	const bytes = getTransactionBytes(transaction);
 	return crypto.hash(bytes);
-}
+};
+
+export default getTransactionHash;

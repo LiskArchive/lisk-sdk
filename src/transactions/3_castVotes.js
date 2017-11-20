@@ -31,12 +31,7 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
  * @return {Object}
  */
 
-export default function castVotes({
-	secret,
-	delegates,
-	secondSecret,
-	timeOffset,
-}) {
+const castVotes = ({ secret, delegates, secondSecret, timeOffset }) => {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -52,4 +47,6 @@ export default function castVotes({
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);
-}
+};
+
+export default castVotes;

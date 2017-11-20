@@ -12,6 +12,64 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { LIVE_PORT, SSL_PORT, TEST_PORT } from '../constants';
+
+export const getDefaultPort = options => {
+	if (options.testnet) return TEST_PORT;
+	if (options.ssl) return SSL_PORT;
+	return LIVE_PORT;
+};
+
+/**
+  * @method netHashOptions
+  * @return {Object}
+  * @private
+  */
+
+export const netHashOptions = ({ port }) => {
+	const testnetNethash =
+		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const mainnetNethash =
+		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+
+	const commonNethash = {
+		'Content-Type': 'application/json',
+		os: 'lisk-js-api',
+		version: '1.0.0',
+		minVersion: '>=0.5.0',
+		port,
+	};
+
+	return {
+		testnet: Object.assign({}, commonNethash, {
+			nethash: testnetNethash,
+			broadhash: testnetNethash,
+		}),
+		mainnet: Object.assign({}, commonNethash, {
+			nethash: mainnetNethash,
+			broadhash: mainnetNethash,
+		}),
+	};
+};
+
+/**
+  * @method getURLPrefix
+  * @return {String}
+  * @private
+  */
+
+export const getURLPrefix = ({ ssl }) => (ssl ? 'https' : 'http');
+
+/**
+  * @method getFullURL
+  * @return {String}
+  * @private
+  */
+
+export const getFullURL = ({ node, port, ssl }) => {
+	const nodeUrl = port ? `${node}:${port}` : node;
+	return `${getURLPrefix({ ssl })}://${nodeUrl}`;
+};
 
 /**
  * @method optionallyCallCallback

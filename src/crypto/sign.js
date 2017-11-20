@@ -39,7 +39,7 @@ const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
  * @return {Object} - message, publicKey, signature
  */
 
-export function signMessageWithSecret(message, secret) {
+export const signMessageWithSecret = (message, secret) => {
 	const msgBytes = Buffer.from(message, 'utf8');
 	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromSecret(
 		secret,
@@ -51,7 +51,7 @@ export function signMessageWithSecret(message, secret) {
 		publicKey: bufferToHex(publicKey),
 		signature: Buffer.from(signature).toString('base64'),
 	};
-}
+};
 
 /**
  * @method verifyMessageWithPublicKey
@@ -63,7 +63,11 @@ export function signMessageWithSecret(message, secret) {
  * @return {string}
  */
 
-export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
+export const verifyMessageWithPublicKey = ({
+	message,
+	signature,
+	publicKey,
+}) => {
 	const msgBytes = Buffer.from(message);
 	const signatureBytes = Buffer.from(signature, 'base64');
 	const publicKeyBytes = hexToBuffer(publicKey);
@@ -81,7 +85,7 @@ export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
 		msgBytes,
 		publicKeyBytes,
 	);
-}
+};
 
 /**
  * @method signMessageWithTwoSecrets
@@ -92,7 +96,7 @@ export function verifyMessageWithPublicKey({ message, signature, publicKey }) {
  * @return {Object} - message, publicKey, secondPublicKey, signature, secondSignature
  */
 
-export function signMessageWithTwoSecrets(message, secret, secondSecret) {
+export const signMessageWithTwoSecrets = (message, secret, secondSecret) => {
 	const msgBytes = Buffer.from(message, 'utf8');
 	const keypairBytes = getPrivateAndPublicKeyBytesFromSecret(secret);
 	const secondKeypairBytes = getPrivateAndPublicKeyBytesFromSecret(
@@ -115,7 +119,7 @@ export function signMessageWithTwoSecrets(message, secret, secondSecret) {
 		signature: Buffer.from(signature).toString('base64'),
 		secondSignature: Buffer.from(secondSignature).toString('base64'),
 	};
-}
+};
 
 /**
  * @method verifyMessageWithTwoPublicKeys
@@ -126,13 +130,13 @@ export function signMessageWithTwoSecrets(message, secret, secondSecret) {
  * @return {string}
  */
 
-export function verifyMessageWithTwoPublicKeys({
+export const verifyMessageWithTwoPublicKeys = ({
 	message,
 	signature,
 	secondSignature,
 	publicKey,
 	secondPublicKey,
-}) {
+}) => {
 	const messageBytes = Buffer.from(message);
 	const signatureBytes = Buffer.from(signature, 'base64');
 	const secondSignatureBytes = Buffer.from(secondSignature, 'base64');
@@ -173,7 +177,7 @@ export function verifyMessageWithTwoPublicKeys({
 		);
 
 	return verifyFirstSignature() && verifySecondSignature();
-}
+};
 
 /**
  * @method printSignedMessage
@@ -181,14 +185,14 @@ export function verifyMessageWithTwoPublicKeys({
  * @return {string}
  */
 
-export function printSignedMessage({
+export const printSignedMessage = ({
 	message,
 	signature,
 	publicKey,
 	secondSignature,
 	secondPublicKey,
-}) {
-	const outputArray = [
+}) =>
+	[
 		signedMessageHeader,
 		messageHeader,
 		message,
@@ -201,10 +205,9 @@ export function printSignedMessage({
 		secondSignature ? secondSignatureHeader : null,
 		secondSignature,
 		signatureFooter,
-	].filter(Boolean);
-
-	return outputArray.join('\n');
-}
+	]
+		.filter(Boolean)
+		.join('\n');
 
 /**
  * @method signAndPrintMessage
@@ -215,13 +218,13 @@ export function printSignedMessage({
  * @return {string}
  */
 
-export function signAndPrintMessage(message, secret, secondSecret) {
+export const signAndPrintMessage = (message, secret, secondSecret) => {
 	const signedMessage = secondSecret
 		? signMessageWithTwoSecrets(message, secret, secondSecret)
 		: signMessageWithSecret(message, secret);
 
 	return printSignedMessage(signedMessage);
-}
+};
 
 /**
  * @method signData
@@ -231,11 +234,11 @@ export function signAndPrintMessage(message, secret, secondSecret) {
  * @return {string}
  */
 
-export function signData(data, secret) {
+export const signData = (data, secret) => {
 	const { privateKey } = getPrivateAndPublicKeyBytesFromSecret(secret);
 	const signature = naclInstance.crypto_sign_detached(data, privateKey);
 	return bufferToHex(signature);
-}
+};
 
 /**
  * @method verifyData
@@ -245,13 +248,12 @@ export function signData(data, secret) {
  * @return {boolean}
  */
 
-export function verifyData(data, signature, publicKey) {
-	return naclInstance.crypto_sign_verify_detached(
+export const verifyData = (data, signature, publicKey) =>
+	naclInstance.crypto_sign_verify_detached(
 		hexToBuffer(signature),
 		data,
 		hexToBuffer(publicKey),
 	);
-}
 
 /**
  * @method encryptMessageWithSecret
@@ -262,7 +264,11 @@ export function verifyData(data, signature, publicKey) {
  * @return {object}
  */
 
-export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
+export const encryptMessageWithSecret = (
+	message,
+	secret,
+	recipientPublicKey,
+) => {
 	const senderPrivateKeyBytes = getPrivateAndPublicKeyBytesFromSecret(secret)
 		.privateKey;
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
@@ -285,7 +291,7 @@ export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
 		nonce: nonceHex,
 		encryptedMessage,
 	};
-}
+};
 
 /**
  * @method decryptMessageWithSecret
@@ -297,12 +303,12 @@ export function encryptMessageWithSecret(message, secret, recipientPublicKey) {
  * @return {string}
  */
 
-export function decryptMessageWithSecret(
+export const decryptMessageWithSecret = (
 	cipherHex,
 	nonce,
 	secret,
 	senderPublicKey,
-) {
+) => {
 	const recipientPrivateKeyBytes = getPrivateAndPublicKeyBytesFromSecret(secret)
 		.privateKey;
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(
@@ -321,7 +327,7 @@ export function decryptMessageWithSecret(
 	);
 
 	return naclInstance.decode_utf8(decoded);
-}
+};
 
 /**
  * @method encryptAES256CBCWithPassword
@@ -331,7 +337,7 @@ export function decryptMessageWithSecret(
  * @return {Object} - { cipher: '...', iv: '...' }
  */
 
-function encryptAES256CBCWithPassword(plainText, password) {
+const encryptAES256CBCWithPassword = (plainText, password) => {
 	const iv = crypto.randomBytes(16);
 	const passwordHash = hash(password, 'utf8');
 	const cipher = crypto.createCipheriv('aes-256-cbc', passwordHash, iv);
@@ -342,7 +348,7 @@ function encryptAES256CBCWithPassword(plainText, password) {
 		cipher: encrypted.toString('hex'),
 		iv: iv.toString('hex'),
 	};
-}
+};
 
 /**
  * @method decryptAES256CBCWithPassword
@@ -354,7 +360,7 @@ function encryptAES256CBCWithPassword(plainText, password) {
  * @return {String} utf8
  */
 
-function decryptAES256CBCWithPassword({ cipher, iv }, password) {
+const decryptAES256CBCWithPassword = ({ cipher, iv }, password) => {
 	const passwordHash = hash(password, 'utf8');
 	const decipherInit = crypto.createDecipheriv(
 		'aes-256-cbc',
@@ -365,7 +371,7 @@ function decryptAES256CBCWithPassword({ cipher, iv }, password) {
 	const decrypted = Buffer.concat([firstBlock, decipherInit.final()]);
 
 	return decrypted.toString();
-}
+};
 
 /**
  * @method encryptPassphraseWithPassword
@@ -375,9 +381,7 @@ function decryptAES256CBCWithPassword({ cipher, iv }, password) {
  * @return {Object} - { cipher: '...', iv: '...' }
  */
 
-export function encryptPassphraseWithPassword(passphrase, password) {
-	return encryptAES256CBCWithPassword(passphrase, password);
-}
+export const encryptPassphraseWithPassword = encryptAES256CBCWithPassword;
 
 /**
  * @method decryptPassphraseWithPassword
@@ -387,6 +391,4 @@ export function encryptPassphraseWithPassword(passphrase, password) {
  * @return {String}
  */
 
-export function decryptPassphraseWithPassword(cipherAndIv, password) {
-	return decryptAES256CBCWithPassword(cipherAndIv, password);
-}
+export const decryptPassphraseWithPassword = decryptAES256CBCWithPassword;

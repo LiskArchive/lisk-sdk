@@ -31,12 +31,7 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
  * @return {Object}
  */
 
-export default function registerDelegate({
-	secret,
-	username,
-	secondSecret,
-	timeOffset,
-}) {
+const registerDelegate = ({ secret, username, secondSecret, timeOffset }) => {
 	const keys = cryptoModule.getKeys(secret);
 
 	const transaction = {
@@ -54,4 +49,6 @@ export default function registerDelegate({
 	};
 
 	return prepareTransaction(transaction, secret, secondSecret);
-}
+};
+
+export default registerDelegate;
