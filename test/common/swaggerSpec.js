@@ -116,7 +116,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		_.each(_.keys(parameters), function (param){
 			var p = _.find(self.spec.parameters, {name: param});
 
-			// If its a swagger defined parameter
+			// If a swagger defined parameter
 			if (p) {
 				if(p.in === 'query') {
 					query[param] = parameters[param];
