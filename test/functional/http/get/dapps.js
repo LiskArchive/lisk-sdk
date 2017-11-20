@@ -5,7 +5,6 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
-var _ = node._;
 
 describe('GET /dapps', function () {
 
