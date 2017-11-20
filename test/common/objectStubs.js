@@ -14,7 +14,7 @@ var randomPeer = {
 	'version': '0.0.0'
 };
 
-function generateRandomPeer () {
+function generateRandomActivePeer () {
 	var randomDigits = function (length) {
 		return randomstring.generate({charset: 'numeric', length: length});
 	};
@@ -33,5 +33,5 @@ function generateRandomPeer () {
 
 module.exports = {
 	randomPeer: randomPeer,
-	generateRandomPeer: generateRandomPeer
+	generateRandomActivePeer: generateRandomActivePeer
 };
