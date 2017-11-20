@@ -166,17 +166,26 @@ describe('encrypt', () => {
 					.and.be.hexString()
 					.and.have.length(32);
 			});
+
+			it('should output the tag', () => {
+				cipher.should.be
+					.type('object')
+					.and.have.property('tag')
+					.and.be.hexString()
+					.and.have.length(32);
+			});
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
 			it('should decrypt a text with a password', () => {
-				const cipherAndNonce = {
+				const cipherNonceAndTag = {
 					cipher:
-						'1c527b9408e77ae79e2ceb1ad5907ec523cd957d30c6a08dc922686e62ed98271910ca5b605f95aec98c438b6214fa7e83e3689f3fba89bfcaee937b35a3d931640afe79c353499a500f14c35bd3fd08',
-					iv: '89d0fa0b955219a0e6239339fbb8239f',
+						'331a80ab5f9cdd21e16f60c73e9b8f3c3d7f6b44dc79f60985234fde36077080726e577cb5596ab0c885bc321efc4f6cce52f5cae134b48e1b5308232563b6180858323bcb',
+					iv: 'e249a35bb2c2fa529fdbe349496d30ac',
+					tag: 'eb318b7feaa7a7540e599984bd1bb298',
 				};
 				const decrypted = decryptPassphraseWithPassword(
-					cipherAndNonce,
+					cipherNonceAndTag,
 					defaultPassword,
 				);
 				decrypted.should.be.eql(defaultPassphrase);
