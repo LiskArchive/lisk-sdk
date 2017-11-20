@@ -95,17 +95,17 @@ paths:
     get:
       tags:
       - Dapps
-      summary: requests a list of registered Dapps
+      summary: Requests a list of registered dapps
       operationId: getDapps
       description:
         By passing in the appropriate options, you can search for
-        specified a Dapp in the system, otherwise returns a list
+        specified a dapp in the system, otherwise returns a list
       produces:
       - application/json
       parameters:
         - name: transactionId
           in: query
-          description: Registration Transaction ID to query
+          description: Registration transaction ID to query
           required: false
           type: string
           format: id
@@ -113,7 +113,7 @@ paths:
           maxLength: 20
         - name: name
           in: query
-          description: Name to query - Fuzzy Search
+          description: Name to query - Fuzzy search
           type: string
           minLength: 1
           maxLength: 32
@@ -129,7 +129,7 @@ paths:
         - $ref: '#/parameters/offset'
       responses:
         200:
-          description: search results matching criteria
+          description: Search results matching criteria
           schema:
             type: object
             properties:
