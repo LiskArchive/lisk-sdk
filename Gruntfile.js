@@ -22,11 +22,13 @@ module.exports = function configureGrunt(grunt) {
 		pkg: grunt.file.readJSON('package.json'),
 
 		exec: {
-			coverageSingle: './node_modules/.bin/nyc --report-dir=coverage --reporter=lcov ./node_modules/.bin/_mocha test --recursive',
+			coverageSingle:
+				'./node_modules/.bin/nyc --report-dir=coverage --reporter=lcov ./node_modules/.bin/_mocha test --recursive',
 			prepareDistNode: 'rm -r dist-node/* || mkdir dist-node | echo',
-			prepareDistBrowser: 'rm -r dist-browser/* || mkdir dist-browser | echo',
+			prepareDistBrowser: 'rm dist-browser/*.js || mkdir dist-browser | echo',
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
-			babelTest: './node_modules/.bin/babel src --out-dir ./browsertest/src && BABEL_ENV=browsertest ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
+			babelTest:
+				'./node_modules/.bin/babel src --out-dir ./browsertest/src && BABEL_ENV=browsertest ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
 			tidyTest: 'rm -r browsertest/src browsertest/test',
 		},
 
@@ -95,7 +97,5 @@ module.exports = function configureGrunt(grunt) {
 		'uglify:test',
 		'exec:tidyTest',
 	]);
-	grunt.registerTask('default', [
-		'build',
-	]);
+	grunt.registerTask('default', ['build']);
 };
