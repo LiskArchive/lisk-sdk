@@ -213,14 +213,14 @@ DApps.prototype.isLoaded = function () {
 DApps.prototype.shared = {
 
 	/**
-	 * Utility method to get daaps
+	 * Utility method to get dapps.
 	 *
 	 * @param {Object} parameters - Object of all parameters
-	 * @param {string} parameters.transactionId - Registration Transaction ID to query
-	 * @param {string} parameters.name - Name to query - Fuzzy Search
+	 * @param {string} parameters.transactionId - Registration transaction ID to query
+	 * @param {string} parameters.name - Name to query - Fuzzy search
 	 * @param {string} parameters.sort - Sort field
-	 * @param {int} parameters.limit - Per page limit
-	 * @param {int} parameters.offset - Page start from
+	 * @param {int} parameters.limit - Limit applied to results
+	 * @param {int} parameters.offset - Offset value for results
 	 * @param {function} cb - Callback function
 	 * @return {Array.<Object>}
 	 */

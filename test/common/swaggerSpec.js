@@ -189,10 +189,10 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 };
 
 /**
- * Perform the actual HTTP call on individual parameter set
+ * Perform the actual HTTP request on individual parameter set.
  *
- * @param {Object} [parameters] - Array of JSON objects of for individual request passed to +makeRequest+
- * @param {int} [responseCode] - Expected Response code. Will override what was used in constructor
+ * @param {Object} [parameters] - Array of JSON objects for individual request passed to +makeRequest+
+ * @param {int} [responseCode] - Expected response code. Will override what was used in constructor
  * @return {*|Promise<any>}
  */
 SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
