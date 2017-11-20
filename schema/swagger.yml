@@ -119,7 +119,7 @@ paths:
           maxLength: 32
         - name: sort
           in: query
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -173,7 +173,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
