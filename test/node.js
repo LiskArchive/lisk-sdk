@@ -81,7 +81,7 @@ node.gAccount = {
 	key: 'elephant tree paris dragon chair galaxy',
 };
 
-node.swaggerDef = swaggerHelper.getSwaggerSpec();;
+node.swaggerDef = swaggerHelper.getSwaggerSpec();
 
 // Optional logging
 if (process.env.SILENT === 'true') {

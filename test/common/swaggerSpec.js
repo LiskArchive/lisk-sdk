@@ -113,20 +113,26 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 	var callPath = self.path;
 
 	return this.resolveJSONRefs().then(function () {
-
 		_.each(_.keys(parameters), function (param){
 			var p = _.find(self.spec.parameters, {name: param});
-			if(p.in === 'query') {
+
+			// If a swagger defined parameter
+			if (p) {
+				if(p.in === 'query') {
+					query[param] = parameters[param];
+				} else if (p.in === 'body') {
+					post[param] = parameters[param];
+				} else if (p.in === 'path') {
+					callPath = callPath.replace('{' + param + '}', parameters[param]);
+				} else if (p.in === 'formData') {
+					post[param] = parameters[param];
+					formData = true;
+				} else if (p.in === 'header') {
+					headers[param] = parameters[param];
+				}
+			} else {
+				// If not a swagger defined parameter consider as query param
 				query[param] = parameters[param];
-			} else if (p.in === 'body') {
-				post[param] = parameters[param];
-			} else if (p.in === 'path') {
-				callPath = callPath.replace('{' + param + '}', parameters[param]);
-			} else if (p.in === 'formData') {
-				post[param] = parameters[param];
-				formData = true;
-			} else if (p.in === 'header') {
-				headers[param] = parameters[param];
 			}
 		});
 
@@ -180,6 +186,19 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		});
 };
 
+/**
+ * Perform the actual HTTP request on individual parameter set.
+ *
+ * @param {Object} [parameters] - Array of JSON objects for individual request passed to +makeRequest+
+ * @param {int} [responseCode] - Expected response code. Will override what was used in constructor
+ * @return {*|Promise<any>}
+ */
+SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
+	var self = this;
+	var requests = [];
+	parameters.forEach(function (paramSet) { requests.push(self.makeRequest(paramSet, responseCode)); });
+	return node.Promise.all(requests);
+};
 
 /**
  * A helper method to create an object swagger test spec
