@@ -113,7 +113,6 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 	var callPath = self.path;
 
 	return this.resolveJSONRefs().then(function () {
-
 		_.each(_.keys(parameters), function (param){
 			var p = _.find(self.spec.parameters, {name: param});
 
@@ -135,7 +134,6 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 				// If not a swagger defined parameter consider as query param
 				query[param] = parameters[param];
 			}
-
 		});
 
 		var req = node.supertest(node.baseUrl);
