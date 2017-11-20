@@ -214,13 +214,6 @@ function waitForConfirmations (transactions, limitHeight) {
 	return waitUntilLimit(limitHeight);
 }
 
-function getDapps (params, cb) {
-	var url = '/api/dapps';
-	url = paramsHelper(url, params);
-
-	http.get(url, httpResponseCallbackHelper.bind(null, cb));
-}
-
 /**
  * Validate if the validation response contains error for a specific param
  *
@@ -256,7 +249,6 @@ var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
 var getForgersPromise = node.Promise.promisify(getForgers);
 var getAccountsPromise = node.Promise.promisify(getAccounts);
 var getBlocksPromise = node.Promise.promisify(getBlocks);
-var getDappsPromise = node.Promise.promisify(getDapps);
 
 module.exports = {
 	getTransactionByIdPromise: getTransactionByIdPromise,
@@ -290,6 +282,5 @@ module.exports = {
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
 	waitForConfirmations: waitForConfirmations,
-	getDappsPromise: getDappsPromise,
 	expectSwaggerParamError: expectSwaggerParamError
 };

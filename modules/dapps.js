@@ -212,18 +212,25 @@ DApps.prototype.isLoaded = function () {
  */
 DApps.prototype.shared = {
 
-	getDapps: function (req, cb) {
-		library.schema.validate(req.body, schema.list, function (err) {
+	/**
+	 * Utility method to get daaps
+	 *
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.transactionId - Registration Transaction ID to query
+	 * @param {string} parameters.name - Name to query - Fuzzy Search
+	 * @param {string} parameters.sort - Sort field
+	 * @param {int} parameters.limit - Per page limit
+	 * @param {int} parameters.offset - Page start from
+	 * @param {function} cb - Callback function
+	 * @return {Array.<Object>}
+	 */
+	getDapps: function (parameters, cb) {
+		__private.list(parameters, function (err, dapps) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
+				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
+			} else {
+				return setImmediate(cb, null, dapps);
 			}
-			__private.list(req.body, function (err, dapps) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
-				} else {
-					return setImmediate(cb, null, {dapps: dapps});
-				}
-			});
 		});
 	}
 };

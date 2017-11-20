@@ -90,6 +90,66 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /dapps:
+    x-swagger-router-controller: dapps
+    get:
+      tags:
+      - Dapps
+      summary: requests a list of registered Dapps
+      operationId: getDapps
+      description:
+        By passing in the appropriate options, you can search for
+        specified a Dapp in the system, otherwise returns a list
+      produces:
+      - application/json
+      parameters:
+        - name: transactionId
+          in: query
+          description: Registration Transaction ID to query
+          required: false
+          type: string
+          format: id
+          minLength: 1
+          maxLength: 20
+        - name: name
+          in: query
+          description: Name to query - Fuzzy Search
+          type: string
+          minLength: 1
+          maxLength: 32
+        - name: sort
+          in: query
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - name:asc
+            - name:desc
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: object
+            properties:
+              dapps:
+                type: array
+                items:
+                  $ref: '#/definitions/DappsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpeted error
+          schema:
+           $ref: '#/definitions/UnexpectedError'
+
   /peers:
     x-swagger-router-controller: peers
     get:
@@ -383,6 +443,66 @@ definitions:
             example: 100
       links:
         type: object
+
+  DappsResponse:
+    description: Dapps endpint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Dapp'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for the resultset
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to the resultset
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  Dapp:
+    type: object
+    required:
+      - transactionsId
+      - name
+    properties:
+      transactionsId:
+        type: string
+        format: id
+        example: '15359945250124697273'
+        minLength: 1
+        maxLength: 20
+      icon:
+        type: string
+        example: http://www.blocksafefoundation.com/header.jpg
+      category:
+        type: number
+        example: 8
+      link:
+        type: string
+        example: https://github.com/blocksafe/SDK-notice/archive/master.zip
+      tags:
+        type: string
+        example: Smartgun
+      description:
+        type: string
+        example: Smart Gun Netwoirk
+      name:
+        type: string
+        example: Blocksafe
 
   Peer:
     type: object

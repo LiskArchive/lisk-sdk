@@ -81,7 +81,7 @@ node.gAccount = {
 	key: 'elephant tree paris dragon chair galaxy',
 };
 
-node.swaggerDef = swaggerHelper.getSwaggerSpec();;
+node.swaggerDef = swaggerHelper.getSwaggerSpec();
 
 node._.mixin({
 	/**
@@ -95,19 +95,19 @@ node._.mixin({
 		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
 
 		return node._.clone(arr).sort(function (a, b ) {
-			// If first element is empty push it downard
-			if(!node._.isEmpty(a) && node._.isEmpty(b)) { return sortFactor * -1; }
+			// If first element is empty push it downward
+			if(node._.isEmpty(a) && !node._.isEmpty(b)) {return sortFactor * 1; }
 
 			// If second element is empty pull it upward
-			if(node._.isEmpty(a) && !node._.isEmpty(b)) { return sortFactor * 1; }
+			if(!node._.isEmpty(a) && node._.isEmpty(b)) {return sortFactor * -1; }
 
 			// If both are empty keep same order
 			if(node._.isEmpty(a) && node._.isEmpty(b)) { return sortFactor * 0; }
 
 			// Convert to lower case and remove special characters
-			var s1lower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
-			var s2lower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
-			
+			var s1lower = a.replace(/[^a-zA-Z0-9]/g, '');
+			var s2lower = b.replace(/[^a-zA-Z0-9]/g, '');
+
 			return s1lower.localeCompare(s2lower) * sortFactor;
 		});
 	}
