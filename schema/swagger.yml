@@ -146,7 +146,7 @@ paths:
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpeted error
+          description: Unexpected error
           schema:
            $ref: '#/definitions/UnexpectedError'
 
@@ -445,7 +445,7 @@ definitions:
         type: object
 
   DappsResponse:
-    description: Dapps endpint response
+    description: Dapps endpoint response
     type: object
     required:
       - data
