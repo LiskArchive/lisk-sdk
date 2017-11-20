@@ -44,7 +44,7 @@ export const bufferToBigNumberString = bigNumberBuffer =>
  * @return {String}
  */
 
-export const bufferToHex = naclInstance.to_hex;
+export const bufferToHex = buffer => naclInstance.to_hex(buffer);
 
 /**
  * @method hexToBuffer
