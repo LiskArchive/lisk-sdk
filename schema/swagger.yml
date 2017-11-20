@@ -463,11 +463,11 @@ definitions:
           - limit
         properties:
           offset:
-            description: Offset value for the resultset
+            description: Offset value for results
             type: integer
             example: 0
           limit:
-            description: Limit applied to the resultset
+            description: Limit applied to results
             type: integer
             example: 100
       links:
