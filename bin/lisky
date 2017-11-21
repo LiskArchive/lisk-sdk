@@ -35,10 +35,21 @@ function exit(code) {
 	process.exit(code || 0);
 }
 
-if (process.argv[2] === 'clean') {
+// eslint-disable-next-line default-case
+switch (process.argv[2]) {
+case 'clean':
 	console.warn('\x1b[33m', 'WARNING: Attempting to remove configuration lockfile. I hope you know what you’re doing.', '\x1b[0m');
 	lockfile.unlockSync(configLockfilePath);
 	exit();
+	break;
+case '--version':
+case '-v':
+	// eslint-disable-next-line global-require
+	console.info(require('../package.json').version);
+	exit();
+	break;
+default:
+	// continue...
 }
 
 lisky = require('../dist').default;
