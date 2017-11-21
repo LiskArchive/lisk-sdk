@@ -498,10 +498,8 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
  */
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
-		var broadhash = modules.system.getBroadhash();
-
 		modules.system.update(function () {
-			self.broadcastBlock({limit: constants.maxPeers, broadhash: broadhash}, block);
+			self.broadcastBlock({}, block);
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
@@ -516,7 +514,7 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
  */
 Transport.prototype.onMessage = function (msg, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
-		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {
+		__private.broadcaster.broadcast({dappid: msg.dappid}, {
 			api: '/dapp/message',
 			data: msg,
 			method: 'POST',
