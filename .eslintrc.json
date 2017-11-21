@@ -1,5 +1,11 @@
 {
-	"extends": [
-		"lisk-base"
-	]
+	"extends": ["lisk-base"],
+	"rules": {
+		"arrow-parens": "off",
+		"curly": "off",
+		"function-paren-newline": "off",
+		"indent": "off",
+		"no-confusing-arrow": "off",
+		"object-curly-newline": "off"
+	}
 }
