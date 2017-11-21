@@ -12,14 +12,41 @@ var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirma
 describe('POST /api/transactions (type 4) register multisignature', function () {
 
 	var scenarios = {
-		'no_funds': new shared.MultisigScenario(3, 0),
-		'minimal_funds': new shared.MultisigScenario(3, constants.fees.multisignature * 3),
-		'minimum_not_reached': new shared.MultisigScenario(4), // 4 members 2 min signatures required
-		'regular': new shared.MultisigScenario(3), // 3 members 2 min signatures required
-		'regular_with_second_signature': new shared.MultisigScenario(3), // 3 members 2 min signatures required
-		'max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), // 16 members 2 min signatures required
-		'max_signatures_max_min': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 1), // 16 members 16 min signatures required
-		'more_than_max_signatures': new shared.MultisigScenario(constants.multisigConstraints.keysgroup.maxItems + 2) // 17 members 2 min signatures required
+		'no_funds': new shared.MultisigScenario(
+			{ 
+				'amount' : 0 
+			}
+		),
+		'minimal_funds': new shared.MultisigScenario(
+			{ 
+				'amount': constants.fees.multisignature * 3 
+			}
+		),
+		'minimum_not_reached': new shared.MultisigScenario(
+			{
+				'members' : 4,
+				'min' : 2
+			}
+		),
+		'max_signatures': new shared.MultisigScenario(
+			{
+				'members' : constants.multisigConstraints.keysgroup.maxItems + 1,
+				'min' : 2
+			}
+		),
+		'max_signatures_max_min': new shared.MultisigScenario(
+			{
+				'members': constants.multisigConstraints.keysgroup.maxItems + 1,
+				'min': constants.multisigConstraints.min.maximum
+			}
+		),
+		'more_than_max_signatures': new shared.MultisigScenario(
+			{
+				'members': constants.multisigConstraints.keysgroup.maxItems + 2
+			}
+		),
+		'regular': new shared.MultisigScenario(),
+		'regular_with_second_signature': new shared.MultisigScenario(),
 	};
 
 	var transaction, signature;
