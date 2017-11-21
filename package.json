@@ -1,69 +1,70 @@
 {
-  "name": "lisky",
-  "version": "0.3.0",
-  "description": "A command line interface for Lisk",
-  "main": "./dist/index.js",
-  "directories": {
-    "bin": "./bin"
-  },
-  "scripts": {
-    "start": "babel-node src/index.js",
-    "test": "NODE_ENV=test nyc mocha test/specs",
-    "test:watch": "npm test -- --watch",
-    "test:watch:min": "npm run test:watch -- --reporter=min",
-    "cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
-    "cover:local": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
-    "cover:ci": "NODE_ENV=test nyc --reporter=text-lcov mocha | coveralls -v",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "prebuild": "if test -d dist; then rm -r dist; fi",
-    "build": "babel src -d dist",
-    "precommit": "npm run lint",
-    "prepush": "npm run lint && npm test",
-    "prepublishOnly": "npm run build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LiskHQ/lisky.git"
-  },
-  "keywords": [
-    "lisk",
-    "blockchain",
-    "command-line",
-    "nodejs",
-    "javascript"
-  ],
-  "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/LiskHQ/lisky/issues"
-  },
-  "homepage": "https://github.com/LiskHQ/lisky#readme",
-  "devDependencies": {
-    "babel-cli": "=6.26.0",
-    "babel-plugin-istanbul": "=4.1.5",
-    "babel-preset-env": "=1.6.1",
-    "babel-register": "=6.26.0",
-    "coveralls": "=3.0.0",
-    "eslint": "=4.11.0",
-    "eslint-config-airbnb-base": "=12.1.0",
-    "eslint-config-lisk-base": "=0.1.0",
-    "eslint-plugin-import": "=2.8.0",
-    "husky": "=0.14.3",
-    "mocha": "=4.0.1",
-    "nyc": "=11.3.0",
-    "should": "=13.1.3",
-    "should-sinon": "=0.0.6",
-    "sinon": "=4.1.2"
-  },
-  "dependencies": {
-    "babel-polyfill": "=6.26.0",
-    "bip39": "=2.4.0",
-    "chalk": "=2.3.0",
-    "cli-table2": "=0.2.0",
-    "lisk-js": "=0.5.0",
-    "lockfile": "=1.0.3",
-    "strip-ansi": "=4.0.0",
-    "vorpal": "LiskHQ/vorpal#master"
-  }
+	"name": "lisky",
+	"version": "0.3.0",
+	"description": "A command line interface for Lisk",
+	"main": "./dist/index.js",
+	"directories": {
+		"bin": "./bin"
+	},
+	"scripts": {
+		"start": "babel-node src/index.js",
+		"test": "NODE_ENV=test nyc mocha test/specs",
+		"test:watch": "npm test -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:local": "NODE_ENV=test nyc --reporter=html --reporter=text mocha",
+		"cover:ci": "NODE_ENV=test nyc --reporter=text-lcov mocha | coveralls -v",
+		"lint": "eslint .",
+		"lint:fix": "npm run lint -- --fix",
+		"prebuild": "if test -d dist; then rm -r dist; fi",
+		"build": "babel src -d dist",
+		"precommit": "npm run lint",
+		"prepush": "npm run lint && npm test",
+		"prepublishOnly": "npm run build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisky.git"
+	},
+	"keywords": [
+		"lisk",
+		"blockchain",
+		"command-line",
+		"nodejs",
+		"javascript"
+	],
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "GPL-3.0",
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisky/issues"
+	},
+	"homepage": "https://github.com/LiskHQ/lisky#readme",
+	"devDependencies": {
+		"babel-cli": "=6.26.0",
+		"babel-plugin-istanbul": "=4.1.5",
+		"babel-preset-env": "=1.6.1",
+		"babel-register": "=6.26.0",
+		"coveralls": "=3.0.0",
+		"eslint": "=4.11.0",
+		"eslint-config-airbnb-base": "=12.1.0",
+		"eslint-config-lisk-base": "=0.1.0",
+		"eslint-plugin-import": "=2.8.0",
+		"husky": "=0.14.3",
+		"mocha": "=4.0.1",
+		"nyc": "=11.3.0",
+		"prettier": "=1.9.2",
+		"should": "=13.1.3",
+		"should-sinon": "=0.0.6",
+		"sinon": "=4.1.2"
+	},
+	"dependencies": {
+		"babel-polyfill": "=6.26.0",
+		"bip39": "=2.4.0",
+		"chalk": "=2.3.0",
+		"cli-table2": "=0.2.0",
+		"lisk-js": "=0.5.0",
+		"lockfile": "=1.0.3",
+		"strip-ansi": "=4.0.0",
+		"vorpal": "LiskHQ/vorpal#master"
+	}
 }
