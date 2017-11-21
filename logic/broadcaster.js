@@ -104,16 +104,27 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
  */
 Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || constants.maxPeers;
-	var skipConsensusCalculation = false;
 	if (params.matchBroadhash || params.unmatchBroadhash) {
 		params.attempt = params.matchBroadhash ? 0 : 1;
-		skipConsensusCalculation = true;
 	}
 	modules.peers.list(params, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		if (self.consensus !== undefined && params.limit === constants.maxPeers && !skipConsensusCalculation) {
+		/**
+		 * Skip consensus calculation if:
+		 * - config.forge.force is set to true
+		 * - function was called as a consequence of:
+		 *      - calling getFromRandomPeer function which sets limit to 1
+		 *      - broadcasting block to peers with matched / unmatched peers
+		 */
+		var skipConsensus = function () {
+			return library.config.forging.force ||
+				params.limit !== constants.maxPeers ||
+				params.matchBroadhash ||
+				params.unmatchBroadhash;
+		};
+		if (!skipConsensus()) {
 			self.consensus = modules.peers.getConsensus(peers);
 			library.logger.info(['Broadhash consensus now', self.consensus, '%'].join(' '));
 		}
