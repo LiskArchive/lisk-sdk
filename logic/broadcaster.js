@@ -97,15 +97,15 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
  * @param {Object} params
  * @param {number} params.limit[=constants.maxPeers] - maximum number of peers to get
  * @param {string} params.broadhash[=null] - broadhash to match peers with
- * @param {boolean} params.matchBroadhash[=false] - if true: get only peers with broadhash equal to params.broadhash
- * @param {boolean} params.unmatchBroadhash[=false] - if true: get only peers with broadhash different than params.broadhash
+ * @param {boolean} params.matchedBroadhash[=false] - if true: get only peers with broadhash equal to params.broadhash
+ * @param {boolean} params.unmatchedBroadhash[=false] - if true: get only peers with broadhash different than params.broadhash
  * @param {function} cb
  * @return {setImmediateCallback} err | peers
  */
 Broadcaster.prototype.getPeers = function (params, cb) {
 	params.limit = params.limit || constants.maxPeers;
-	if (params.matchBroadhash || params.unmatchBroadhash) {
-		params.attempt = params.matchBroadhash ? 0 : 1;
+	if (params.matchedBroadhash || params.unmatchedBroadhash) {
+		params.attempt = params.matchedBroadhash ? 0 : 1;
 	}
 	modules.peers.list(params, function (err, peers) {
 		if (err) {
@@ -121,8 +121,8 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 		var skipConsensus = function () {
 			return library.config.forging.force ||
 				params.limit !== constants.maxPeers ||
-				params.matchBroadhash ||
-				params.unmatchBroadhash;
+				params.matchedBroadhash ||
+				params.unmatchedBroadhash;
 		};
 		if (!skipConsensus()) {
 			self.consensus = modules.peers.getConsensus(peers);

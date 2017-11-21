@@ -545,7 +545,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 		 * Check receipt of received block first to avoid malicious broadcast enforcement.
 		 */
 		if (modules.blocks.verify.verifyReceipt(block).check) {
-			modules.transport.broadcastBlock({unmatchBroadhash: true}, lastBlock);
+			modules.transport.broadcastBlock({unmatchedBroadhash: true}, lastBlock);
 		}
 		return setImmediate(cb); // Discard received block
 	} else {
