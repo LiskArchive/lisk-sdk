@@ -498,12 +498,8 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
  */
 Transport.prototype.onNewBlock = function (block, broadcast) {
 	if (broadcast) {
-		var broadhash = modules.system.getBroadhash();
-
 		modules.system.update(function () {
-			if (!__private.broadcaster.maxRelays(block)) {
-				__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: broadhash}, {api: '/blocks', data: {block: block}, method: 'POST', immediate: true});
-			}
+			self.broadcastBlock({}, block);
 			library.network.io.sockets.emit('blocks/change', block);
 		});
 	}
@@ -518,7 +514,31 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
  */
 Transport.prototype.onMessage = function (msg, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(msg)) {
-		__private.broadcaster.broadcast({limit: constants.maxPeers, dappid: msg.dappid}, {api: '/dapp/message', data: msg, method: 'POST', immediate: true});
+		__private.broadcaster.broadcast({dappid: msg.dappid}, {
+			api: '/dapp/message',
+			data: msg,
+			method: 'POST',
+			immediate: true
+		});
+	}
+};
+
+/**
+ * Broadcasts the passed block using __private.broadcaster.broadcast
+ * @implements {Broadcaster.broadcast}
+ * @param {Object} params
+ * @param {Object} block
+ */
+Transport.prototype.broadcastBlock = function (params, block) {
+	if (!__private.broadcaster.maxRelays(block)) {
+		library.logger.info('Broadcasting block with id: ' + block.id);
+		library.logger.trace('Transport->broadcastBlock', {block: block, params: params});
+		__private.broadcaster.broadcast(params, {
+			api: '/blocks',
+			data: {block: block},
+			method: 'POST',
+			immediate: true
+		});
 	}
 };
 

@@ -359,7 +359,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
  * @public
  * @method  onReceiveBlock
  * @listens module:transport~event:receiveBlock
- * @param   {block} block New block
+ * @param   {block} block - new block
  */
 Process.prototype.onReceiveBlock = function (block) {
 	var lastBlock;
@@ -521,9 +521,10 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
  *
  * @private
  * @async
- * @method receiveBlock
- * @param {Object}   block Received block
- * @param {Function} cb Callback function
+ * @method receiveForkFive
+ * @param {Object} block - received block
+ * @param {Object} lastBlock - last valid block
+ * @param {Function} cb - callback function
  */
 __private.receiveForkFive = function (block, lastBlock, cb) {
 	var tmp_block = _.clone(block);
@@ -539,6 +540,13 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 	// Keep the oldest block, or if both have same age, keep block with lower id
 	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
 		library.logger.info('Last block stands');
+		/**
+		 * Broadcast last accepted block to peers on potential fork.
+		 * Check receipt of received block first to avoid malicious broadcast enforcement.
+		 */
+		if (modules.blocks.verify.verifyReceipt(block).check) {
+			modules.transport.broadcastBlock({unmatchedBroadhash: true}, lastBlock);
+		}
 		return setImmediate(cb); // Discard received block
 	} else {
 		library.logger.info('Last block loses');
@@ -591,6 +599,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
  * - delegates
  * - loader
  * - rounds
+ * - system
  * - transactions
  * - transport
  * @param {modules} scope Exposed modules
@@ -604,7 +613,7 @@ Process.prototype.onBind = function (scope) {
 		loader: scope.loader,
 		rounds: scope.rounds,
 		transactions: scope.transactions,
-		transport: scope.transport,
+		transport: scope.transport
 	};
 
 	// Set module as loaded

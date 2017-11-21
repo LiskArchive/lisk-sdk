@@ -38,11 +38,12 @@ function Peers (cb, scope) {
 		build: scope.build,
 		lastCommit: scope.lastCommit,
 		logic: {
-			peers: scope.logic.peers,
+			peers: scope.logic.peers
 		},
 		config: {
+			forging: scope.config.forging,
 			peers: scope.config.peers,
-			version: scope.config.version,
+			version: scope.config.version
 		},
 	};
 	self = this;
@@ -287,6 +288,25 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
 };
 
 /**
+ * Calculates consensus for as a ratio active to matched peers.
+ * @param {Array<Peer>} active - active peers (with connected state)
+ * @param {Array<Peer>} matched - peers with same as system broadhash
+ * @returns {number|undefined} - return consensus or undefined if config.forging.force = true
+ */
+Peers.prototype.getConsensus = function (active, matched) {
+	active = active || library.logic.peers.list(true);
+	var broadhash = modules.system.getBroadhash();
+	matched = matched || active.filter(function (peer) {
+		return peer.broadhash === broadhash;
+	});
+	var activeCount = Math.min(active.length, constants.maxPeers);
+	var matchedCount = Math.min(matched.length, activeCount);
+	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+	return isNaN(consensus) ? 0 : consensus;
+};
+
+
+/**
  * Sets peer state to active (2).
  * @param {peer} peer
  * @return {function} Calls peers.upsert
@@ -421,45 +441,53 @@ Peers.prototype.acceptable = function (peers) {
 
 /**
  * Gets peers list and calculated consensus.
- * @param {Object} options - Constains limit, broadhash.
+ * @param {Object} options
+ * @param {number} options.limit[=constants.maxPeers] - maximum number of peers to get
+ * @param {string} options.broadhash[=null] - broadhash to match peers by
+ * @param {Array} options.allowedStates[=[2]] - allowed peer states
+ * @param {number} options.attempt[=undefined] - if 0: return peers with equal options.broadhash
+ *                                               if 1: return peers with different options.broadhash
+ *                                               if not specified: return peers regardless of options.broadhash
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | peers, consensus
  */
 Peers.prototype.list = function (options, cb) {
-	options.limit = options.limit || constants.maxPeers;
-	options.broadhash = options.broadhash || modules.system.getBroadhash();
-	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
-	options.attempts = ['matched broadhash', 'unmatched broadhash'];
-	options.attempt = 0;
-	options.matched = 0;
 
-	function randomList (options, peers, cb) {
+	var limit = options.limit || constants.maxPeers;
+	var broadhash = options.broadhash || modules.system.getBroadhash();
+	var allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
+	var attempts = (options.attempt === 0 || options.attempt === 1) ? [options.attempt] : [1, 0];
+
+	var attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
+
+	function randomList (peers, cb) {
 		// Get full peers list (random)
-		__private.getByFilter ({}, function (err, peersList) {
+		__private.getByFilter({}, function (err, peersList) {
 			var accepted, found, matched, picked;
 
 			found = peersList.length;
+			var attempt = attempts.pop();
 			// Apply filters
 			peersList = peersList.filter(function (peer) {
-				if (options.broadhash) {
+				if (broadhash) {
 					// Skip banned and disconnected peers (state 0 and 1)
-					return options.allowedStates.indexOf(peer.state) !== -1 && (
+					return allowedStates.indexOf(peer.state) !== -1 && (
 						// Matched broadhash when attempt 0
-						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
+						attempt === 0 ? (peer.broadhash === broadhash) :
 						// Unmatched broadhash when attempt 1
-						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
+						attempt === 1 ? (peer.broadhash !== broadhash) : false
 					);
 				} else {
 					// Skip banned and disconnected peers (state 0 and 1)
-					return options.allowedStates.indexOf(peer.state) !== -1;
+					return allowedStates.indexOf(peer.state) !== -1;
 				}
 			});
 			matched = peersList.length;
 			// Apply limit
-			peersList = peersList.slice(0, options.limit);
+			peersList = peersList.slice(0, limit);
 			picked = peersList.length;
 			accepted = self.acceptable(peers.concat(peersList));
-			library.logger.debug('Listing peers', {attempt: options.attempts[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
+			library.logger.debug('Listing peers', {attempt: attemptsDescriptions[attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
 			return setImmediate(cb, null, accepted);
 		});
 	}
@@ -467,27 +495,18 @@ Peers.prototype.list = function (options, cb) {
 	async.waterfall([
 		function (waterCb) {
 			// Matched broadhash
-			return randomList (options, [], waterCb);
+			return randomList([], waterCb);
 		},
 		function (peers, waterCb) {
-			options.matched = peers.length;
-			options.limit -= peers.length;
-			++options.attempt;
-			if (options.limit > 0) {
+			limit -= peers.length;
+			if (attempts.length && limit > 0) {
 				// Unmatched broadhash
-				return randomList(options, peers, waterCb);
+				return randomList(peers, waterCb);
 			} else {
 				return setImmediate(waterCb, null, peers);
 			}
 		}
-	], function (err, peers) {
-		// Calculate consensus
-		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-		consensus = isNaN(consensus) ? 0 : consensus;
-
-		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers, consensus);
-	});
+	], cb);
 };
 
 // Events

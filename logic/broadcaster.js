@@ -41,7 +41,6 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 
 	self.queue = [];
 	self.config = library.config.broadcasts;
-	self.config.peerLimit = constants.maxPeers;
 
 	// Optionally ignore broadhash consensus
 	if (library.config.forging.force) {
@@ -88,7 +87,7 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
 	modules = {
 		peers: peers,
 		transport: transport,
-		transactions: transactions,
+		transactions: transactions
 	};
 };
 
@@ -96,25 +95,39 @@ Broadcaster.prototype.bind = function (peers, transport, transactions) {
  * Calls peers.list function to get peers.
  * @implements {modules.peers.list}
  * @param {Object} params
+ * @param {number} params.limit[=constants.maxPeers] - maximum number of peers to get
+ * @param {string} params.broadhash[=null] - broadhash to match peers with
+ * @param {boolean} params.matchedBroadhash[=false] - if true: get only peers with broadhash equal to params.broadhash
+ * @param {boolean} params.unmatchedBroadhash[=false] - if true: get only peers with broadhash different than params.broadhash
  * @param {function} cb
  * @return {setImmediateCallback} err | peers
  */
 Broadcaster.prototype.getPeers = function (params, cb) {
-	params.limit = params.limit || self.config.peerLimit;
-	params.broadhash = params.broadhash || null;
-
-	var originalLimit = params.limit;
-
-	modules.peers.list(params, function (err, peers, consensus) {
+	params.limit = params.limit || constants.maxPeers;
+	if (params.matchedBroadhash || params.unmatchedBroadhash) {
+		params.attempt = params.matchedBroadhash ? 0 : 1;
+	}
+	modules.peers.list(params, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-
-		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
-			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
-			self.consensus = consensus;
+		/**
+		 * Skip consensus calculation if:
+		 * - config.forge.force is set to true
+		 * - function was called as a consequence of:
+		 *      - calling getFromRandomPeer function which sets limit to 1
+		 *      - broadcasting block to peers with matched / unmatched peers
+		 */
+		var skipConsensus = function () {
+			return library.config.forging.force ||
+				params.limit !== constants.maxPeers ||
+				params.matchedBroadhash ||
+				params.unmatchedBroadhash;
+		};
+		if (!skipConsensus()) {
+			self.consensus = modules.peers.getConsensus(peers);
+			library.logger.info(['Broadhash consensus now', self.consensus, '%'].join(' '));
 		}
-
 		return setImmediate(cb, null, peers);
 	});
 };
@@ -140,7 +153,7 @@ Broadcaster.prototype.enqueue = function (params, options) {
  * @return {setImmediateCallback} err | peers
  */
 Broadcaster.prototype.broadcast = function (params, options, cb) {
-	params.limit = params.limit || self.config.peerLimit;
+	params.limit = params.limit || constants.maxPeers;
 	params.broadhash = params.broadhash || null;
 
 	async.waterfall([
@@ -154,7 +167,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 		function getFromPeer (peers, waterCb) {
 			library.logger.debug('Begin broadcast', options);
 
-			if (params.limit === self.config.peerLimit) { 
+			if (params.limit === constants.maxPeers) {
 				peers = peers.slice(0, self.config.broadcastLimit);
 			}
 

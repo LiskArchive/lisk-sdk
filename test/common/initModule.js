@@ -134,7 +134,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope = _.merge(this.scope, {logic: logic}, scope);
+				scope.logic = _.assign({}, logic, scope.logic);
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
