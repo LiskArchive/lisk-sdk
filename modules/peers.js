@@ -299,7 +299,7 @@ Peers.prototype.getConsensus = function (matched, active) {
 		return undefined;
 	}
 
-	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED, normalized: false});
+	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED});
 	matched = matched || active.filter(function (peer) {
 		return peer.broadhash === modules.system.getBroadhash();
 	});
