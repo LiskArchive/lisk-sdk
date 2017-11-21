@@ -21,10 +21,11 @@ function beforeValidationPhase (scenarios) {
 				return;
 			}
 			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, node.gAccount.password);
+			transactionsToWaitFor.push(transaction.id);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
-				transactionsToWaitFor.push(transaction.id);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
@@ -33,12 +34,12 @@ function beforeValidationPhase (scenarios) {
 			.then(function () {
 				return node.Promise.all(Object.keys(scenarios).map(function (type) {
 					var transaction = node.lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
+					scenarios[type].transaction = transaction;
+					transactionsToWaitFor.push(transaction.id);
 
 					return sendTransactionPromise(transaction).then(function (res) {
 						node.expect(res).to.have.property('status').to.equal(200);
 						node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-						scenarios[type].transaction = transaction;
-						transactionsToWaitFor.push(transaction.id);
 					});
 				}));
 			})
@@ -60,7 +61,7 @@ function beforeValidationPhase (scenarios) {
 	});
 };
 
-function sendAndSignMultisigTransaction (type, scenario, goodTransactions) {
+function sendAndSignMultisigTransaction (type, scenario) {
 
 	var transaction;
 	
@@ -89,23 +90,23 @@ function sendAndSignMultisigTransaction (type, scenario, goodTransactions) {
 			break;
 	};
 
-	return sendTransactionPromise(transaction).then(function (res) {
-		node.expect(res).to.have.property('status').to.equal(200);
-		node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-		scenario.transaction = transaction;
-	})
+	return sendTransactionPromise(transaction)
+		.then(function (res) {
+			node.expect(res).to.have.property('status').to.equal(200);
+			node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+		})
 		.then(function () {
 			return node.Promise.all(node.Promise.map(scenario.members, function (member) {
-				var signature = node.lisk.multisignature.signTransaction(scenario.transaction, member.password);
+				var signature = node.lisk.multisignature.signTransaction(transaction, member.password);
 
-				return sendSignaturePromise(signature, scenario.transaction).then(function (res) {
+				return sendSignaturePromise(signature, transaction).then(function (res) {
 					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
 				});
-			}))
-				.then(function () {
-					goodTransactions.push(scenario.transaction);
-				});
+			}));
+		})
+		.then(function () {
+			return transaction;
 		});
 }
 

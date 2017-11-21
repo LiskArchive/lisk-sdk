@@ -30,6 +30,8 @@ describe('POST /api/transactions (type 0 on top of type 4)', function () {
 		),
 		'regular': new shared.MultisigScenario(),
 	};
+
+	console.log(scenarios);
 	
 	var transaction, signature;
 	var badTransactions = [];
@@ -70,11 +72,17 @@ describe('POST /api/transactions (type 0 on top of type 4)', function () {
 		});
 
 		it('regular scenario should be ok', function () {
-			localShared.sendAndSignMultisigTransaction('transfer', scenarios.regular, goodTransactions);
+			return localShared.sendAndSignMultisigTransaction('transfer', scenarios.regular)
+				.then(function (transaction) {
+					goodTransactions.push(transaction);
+				});
 		});
 
 		it('max_mebers_max_min scenario should be ok', function () {
-			localShared.sendAndSignMultisigTransaction('transfer', scenarios.max_mebers_max_min, goodTransactions);
+			return localShared.sendAndSignMultisigTransaction('transfer', scenarios.max_mebers_max_min)
+				.then(function (transaction) {
+					goodTransactions.push(transaction);
+				});
 		});
 	});
 
