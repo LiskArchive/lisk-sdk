@@ -56,9 +56,6 @@ function TransactionPool (bus, ed, transaction, account, logger, configPool, cbP
 	};
 	self = this;
 
-	self.poolStorageTransactionsLimit = library.config.transactions.pool.storageLimit;
-	self.poolProcessInterval = library.config.transactions.pool.processInterval;
-	self.poolExpiryInterval = library.config.transactions.pool.expiryInterval;
 	pool = {
 		unverified: { transactions: {}, count: 0 },
 		verified:{
@@ -208,23 +205,23 @@ __private.setAccountAndGet = function (transaction, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender, requester
  */
-__private.getRequester = function (transaction, sender, waterCb) {
-	var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
+__private.getRequester = function (transaction, sender, cb) {
+	var isMultisignature = Array.isArray(sender.multisignatures) && sender.multisignatures.length > 0;
 
-	if (multisignatures) {
+	if (isMultisignature) {
 		transaction.signatures = transaction.signatures || [];
 	}
 
-	if (sender && transaction.requesterPublicKey && multisignatures) {
+	if (sender && transaction.requesterPublicKey && isMultisignature) {
 		modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
 			if (!requester) {
-				return setImmediate(waterCb, 'Requester not found');
+				return setImmediate(cb, 'Requester not found');
 			} else {
-				return setImmediate(waterCb, null, transaction, sender, requester);
+				return setImmediate(cb, null, transaction, sender, requester);
 			}
 		});
 	} else {
-		return setImmediate(waterCb, null, transaction, sender, null);
+		return setImmediate(cb, null, transaction, sender, null);
 	}
 };
 
@@ -735,17 +732,15 @@ TransactionPool.prototype.addFromPeer = function (transactions, broadcast, cb) {
  * Adds transactions to verified.ready pool list.
  * @implements {__private.addToPoolList}
  * @implements {delete}
- * @param {transaction} transactions
+ * @param {[transaction]} transactions - Array of transactions
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
 TransactionPool.prototype.addReady = function (transactions, cb) {
-	if (!Array.isArray(transactions)) {
-		transactions = [transactions];
-	}
 	var resetReceivedAt = new Date();
+
 	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-		self.delete(transaction);
+		self.delete(transaction.id);
 		transaction.receivedAt = resetReceivedAt;
 		__private.addToPoolList(transaction, pool.verified.ready, eachSeriesCb);
 	}, function (err) {
