@@ -540,8 +540,13 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 	// Keep the oldest block, or if both have same age, keep block with lower id
 	if (block.timestamp > lastBlock.timestamp || (block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)) {
 		library.logger.info('Last block stands');
-		// Broadcast current block to peers on potential fork
-		modules.transport.broadcastBlock({unmatchBroadhash: true}, lastBlock);
+		/**
+		 * Broadcast last accepted block to peers on potential fork.
+		 * Check receipt of received block first to avoid malicious broadcast enforcement.
+		 */
+		if (modules.blocks.verify.verifyReceipt(block).check) {
+			modules.transport.broadcastBlock({unmatchBroadhash: true}, lastBlock);
+		}
 		return setImmediate(cb); // Discard received block
 	} else {
 		library.logger.info('Last block loses');
