@@ -113,7 +113,7 @@ export function noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingTh
 export function anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
 	const { cryptoInstance, message, passphrase, recipientKeys } = this.test.ctx;
 
-	lisk.crypto.encryptMessageWithSecret.throws(
+	lisk.crypto.encryptMessageWithPassphrase.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
@@ -148,7 +148,7 @@ export function anErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassp
 		keys,
 	} = this.test.ctx;
 
-	lisk.crypto.decryptMessageWithSecret.throws(
+	lisk.crypto.decryptMessageWithPassphrase.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 

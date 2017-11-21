@@ -161,7 +161,7 @@ export function theDecryptedPassphraseShouldBeReturned() {
 
 export function liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
 	const { message, passphrase, recipientKeys } = this.test.ctx;
-	return lisk.crypto.encryptMessageWithSecret.should.be.calledWithExactly(
+	return lisk.crypto.encryptMessageWithPassphrase.should.be.calledWithExactly(
 		message,
 		passphrase,
 		recipientKeys.publicKey,
@@ -179,7 +179,7 @@ export function liskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
 		recipientPassphrase,
 		keys,
 	} = this.test.ctx;
-	return lisk.crypto.decryptMessageWithSecret.should.be.calledWithExactly(
+	return lisk.crypto.decryptMessageWithPassphrase.should.be.calledWithExactly(
 		cipher,
 		nonce,
 		recipientPassphrase,

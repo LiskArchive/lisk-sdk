@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { crypto as liskCrypto } from 'lisk-js';
+import liskJS from 'lisk-js';
 
 const wrapFunction = fn =>
 	function wrappedFunction(...args) {
@@ -26,7 +26,7 @@ const wrapFunction = fn =>
 
 class Crypto {
 	constructor() {
-		this.liskCrypto = liskCrypto;
+		this.liskCrypto = liskJS.crypto;
 
 		[
 			'encryptMessage',
@@ -41,7 +41,7 @@ class Crypto {
 	}
 
 	encryptMessage({ message, passphrase, recipient }) {
-		return this.liskCrypto.encryptMessageWithSecret(
+		return this.liskCrypto.encryptMessageWithPassphrase(
 			message,
 			passphrase,
 			recipient,
@@ -50,7 +50,7 @@ class Crypto {
 
 	decryptMessage({ cipher, nonce, passphrase, senderPublicKey }) {
 		return {
-			message: this.liskCrypto.decryptMessageWithSecret(
+			message: this.liskCrypto.decryptMessageWithPassphrase(
 				cipher,
 				nonce,
 				passphrase,

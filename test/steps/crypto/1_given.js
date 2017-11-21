@@ -141,8 +141,8 @@ export function anEncryptedPassphraseWithAnIV() {
 export function aMessage() {
 	const message = getFirstQuotedString(this.test.parent.title);
 
-	if (typeof lisk.crypto.decryptMessageWithSecret.returns === 'function') {
-		lisk.crypto.decryptMessageWithSecret.returns(message);
+	if (typeof lisk.crypto.decryptMessageWithPassphrase.returns === 'function') {
+		lisk.crypto.decryptMessageWithPassphrase.returns(message);
 	}
 	if (typeof inputUtils.getData.resolves === 'function') {
 		inputUtils.getData.resolves(message);
@@ -174,7 +174,7 @@ export function anEncryptedMessageWithANonce() {
 		nonce,
 	};
 
-	lisk.crypto.encryptMessageWithSecret.returns(cipherAndNonce);
+	lisk.crypto.encryptMessageWithPassphrase.returns(cipherAndNonce);
 
 	this.test.ctx.cipherAndNonce = cipherAndNonce;
 }
