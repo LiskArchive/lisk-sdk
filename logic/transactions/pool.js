@@ -647,7 +647,7 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 	var paymentTransactions;
 	var receiptTransactions;
 
-	library.logic.account.get({ address: sender.address }, 'balance', function (err, account) {
+	library.logic.account.get({address: sender.address}, 'balance', function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -656,7 +656,7 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 			account.balance = 0;
 		}
 		// total payments
-		paymentTransactions = self.getAll('sender_id', { id: sender.address });
+		paymentTransactions = self.getAll('sender_id', {id: sender.address});
 		if (paymentTransactions.ready.length > 0) {
 			paymentTransactions.ready.forEach(function (paymentTransaction) {
 				if (paymentTransaction.amount) {
@@ -667,7 +667,7 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 		}
 		
 		// total receipts
-		receiptTransactions = self.getAll('recipient_id', { id: sender.address });
+		receiptTransactions = self.getAll('recipient_id', {id: sender.address});
 		if (receiptTransactions.ready.length > 0) {
 			receiptTransactions.ready.forEach(function (receiptTransaction) {
 				if (receiptTransaction.type === transactionTypes.SEND) {
