@@ -794,12 +794,11 @@ TransactionPool.prototype.delete = function (id) {
 			clearedList.push(poolList[index]);
 		}
 	});
-	if (clearedList.length > 0) {
-		if (clearedList.length > 1) {
-			library.logger.debug(['Cleared duplicated transaction in pool list:', clearedList, 'transaction id:', id].join(' '));
-		}
+	if (clearedList.length > 1) {
+		library.logger.debug(['Cleared duplicated transaction in pool list:', clearedList, 'transaction id:', id].join(' '));
 	}
-	return clearedList;	
+
+	return clearedList[0] ? clearedList[0] : undefined;
 };
 
 /**
