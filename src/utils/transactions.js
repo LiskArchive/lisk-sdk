@@ -15,11 +15,4 @@
  */
 import lisk from 'lisk-js';
 
-export default Object.assign(
-	{},
-	lisk.transaction,
-	lisk.multisignature,
-	lisk.signature,
-	lisk.delegate,
-	lisk.vote,
-);
+export default lisk.transaction;

@@ -121,12 +121,11 @@ const setUpQueryStubs = () => {
 
 const setUpTransactionsStubs = () => {
 	[
-		'createTransaction',
-		'signTransaction',
-		'createMultisignature',
-		'createSignature',
-		'createDelegate',
-		'createVote',
+		'transfer',
+		'registerSecondPassphrase',
+		'registerDelegate',
+		'castVotes',
+		'registerMultisignature',
 	].forEach(methodName => sandbox.stub(transactions, methodName));
 };
 

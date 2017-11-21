@@ -27,12 +27,11 @@ export function aLiskObjectThatCanCreateTransactions() {
 	};
 
 	[
-		'createTransaction',
-		'signTransaction',
-		'createMultisignature',
-		'createSignature',
-		'createDelegate',
-		'createVote',
+		'transfer',
+		'registerSecondPassphrase',
+		'registerDelegate',
+		'castVotes',
+		'registerMultisignature',
 	].forEach(methodName => {
 		transactions[methodName].returns(createdTransaction);
 	});
