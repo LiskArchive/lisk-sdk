@@ -384,7 +384,7 @@ describe('transactionPool', function () {
 
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
-						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[0].id);
+						expect(logger.error.args[0][0]).to.equal('Failed to check balance for account related with transaction: ' + invalidsTransactions[0].id);
 						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 3.00001'].join(' '));
 						poolTotals.ready += 1;
 						done();
@@ -408,8 +408,7 @@ describe('transactionPool', function () {
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTransaction = transactionPool.delete(transactions[0].id);
 
-					expect(deletedTransaction.length).to.equal(1);
-					expect(deletedTransaction[0]).to.equal('ready');
+					expect(deletedTransaction).to.equal('ready');
 					poolTotals.ready -= 1;
 					done();
 				});
@@ -467,7 +466,7 @@ describe('transactionPool', function () {
 
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
-						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[1].id);
+						expect(logger.error.args[0][0]).to.equal('Failed to check balance for account related with transaction: ' + invalidsTransactions[1].id);
 						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', testAccounts[1].account.address, 'balance: 0.00001'].join(' '));
 						poolTotals.ready += 1;
 						done();
@@ -491,8 +490,7 @@ describe('transactionPool', function () {
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTransaction = transactionPool.delete(transactions[1].id);
 
-					expect(deletedTransaction.length).to.equal(1);
-					expect(deletedTransaction[0]).to.equal('ready');
+					expect(deletedTransaction).to.equal('ready');
 					poolTotals.ready -= 1;
 					done();
 				});
@@ -560,7 +558,7 @@ describe('transactionPool', function () {
 
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
-						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[2][0].id);
+						expect(logger.error.args[0][0]).to.equal('Failed to check balance for account related with transaction: ' + invalidsTransactions[2][0].id);
 						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTransactions[2][0].senderId, 'balance: 0'].join(' '));
 						expect(logger.error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTransactions[2][1].id);
 						expect(logger.error.args[1][1]).to.equal('Account is already a delegate');
@@ -612,8 +610,7 @@ describe('transactionPool', function () {
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTransaction = transactionPool.delete(transactions[2].id);
 
-					expect(deletedTransaction.length).to.equal(1);
-					expect(deletedTransaction[0]).to.equal('ready');
+					expect(deletedTransaction).to.equal('ready');
 					poolTotals.ready -= 1;
 					done();
 				});
@@ -664,7 +661,7 @@ describe('transactionPool', function () {
 	
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
-						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[3][0].id);
+						expect(logger.error.args[0][0]).to.equal('Failed to check balance for account related with transaction: ' + invalidsTransactions[3][0].id);
 						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTransactions[3][0].senderId, 'balance: 0.00001'].join(' '));
 						expect(logger.error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTransactions[3][1].id);
 						expect(logger.error.args[1][1]).to.equal('Delegate not found');
@@ -691,8 +688,7 @@ describe('transactionPool', function () {
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTransaction = transactionPool.delete(transactions[3].id);
 
-					expect(deletedTransaction.length).to.equal(1);
-					expect(deletedTransaction[0]).to.equal('ready');
+					expect(deletedTransaction).to.equal('ready');
 					poolTotals.ready -= 1;
 					done();
 				});
@@ -763,7 +759,7 @@ describe('transactionPool', function () {
 
 				it('should be ok when process pool transactions', function (done) {
 					transactionPool.processPool(function (err, cbprPool) {
-						expect(logger.error.args[0][0]).to.equal('Failed to check balance transaction: ' + invalidsTransactions[4][0].id);
+						expect(logger.error.args[0][0]).to.equal('Failed to check balance for account related with transaction: ' + invalidsTransactions[4][0].id);
 						expect(logger.error.args[0][1]).to.equal(['Account does not have enough LSK:', invalidsTransactions[4][0].senderId, 'balance: 0.00001'].join(' '));
 						expect(logger.error.args[1][0]).to.equal('Failed to process unverified transaction: ' + invalidsTransactions[4][1].id);
 						expect(logger.error.args[1][1]).to.equal('Failed to verify multisignature');
@@ -798,8 +794,7 @@ describe('transactionPool', function () {
 				it('should be ok when delete normal transaction from ready', function (done) {
 					var deletedTransaction = transactionPool.delete(completedSignatures.id);
 
-					expect(deletedTransaction.length).to.equal(1);
-					expect(deletedTransaction[0]).to.equal('ready');
+					expect(deletedTransaction).to.equal('ready');
 					poolTotals.ready -= 1;
 					done();
 				});
@@ -807,8 +802,7 @@ describe('transactionPool', function () {
 				it('should be ok when delete normal transaction without enough signatures to unverified', function (done) {
 					var deletedTransaction = transactionPool.delete(transactions[4][1].id);
 
-					expect(deletedTransaction.length).to.equal(1);
-					expect(deletedTransaction[0]).to.equal('ready');
+					expect(deletedTransaction).to.equal('ready');
 					poolTotals.ready -= 1;
 					done();
 				});
@@ -876,8 +870,7 @@ describe('transactionPool', function () {
 					it('should be ok when delete transaction from ready', function (done) {
 						var deletedTransaction = transactionPool.delete(transactions[4][2].id);
 
-						expect(deletedTransaction.length).to.equal(1);
-						expect(deletedTransaction[0]).to.equal('ready');
+						expect(deletedTransaction).to.equal('ready');
 						poolTotals.ready -= 1;
 						done();
 					});
@@ -1267,9 +1260,7 @@ describe('transactionPool', function () {
 			it('should be ok when delete a transaction from unverified', function (done) {
 				var deleteTransaction = transactionPool.delete(invalidsTransactions[0].id);
 
-				expect(deleteTransaction).to.be.an('array').that.is.not.empty;
-				expect(deleteTransaction.length).to.equal(1);
-				expect(deleteTransaction[0]).to.equal('unverified');
+				expect(deleteTransaction).to.equal('unverified');
 				done();
 			});
 
@@ -1285,7 +1276,7 @@ describe('transactionPool', function () {
 			it('should fail when delete transaction that is not in pool', function (done) {
 				var deleteTransaction = transactionPool.delete(transactions[0].id);
 
-				expect(deleteTransaction).to.be.an('array').that.is.empty;
+				expect(deleteTransaction).to.be.undefined;
 				done();
 			});
 		});
@@ -1323,7 +1314,7 @@ describe('transactionPool', function () {
 			});
 
 			it('should be ok when add type 2 transaction again to ready', function (done) {
-				transactionPool.addReady(allTransactions[2], function (err, cbtransaction) {
+				transactionPool.addReady([allTransactions[2]], function (err, cbtransaction) {
 					expect(cbtransaction).to.be.undefined;
 					done();
 				});
@@ -1350,9 +1341,7 @@ describe('transactionPool', function () {
 			it('should be ok when delete transaction from ready', function (done) {
 				var deleteTransaction = transactionPool.delete(transactions[0].id);
 
-				expect(deleteTransaction).to.be.an('array').that.is.not.empty;
-				expect(deleteTransaction.length).to.equal(1);
-				expect(deleteTransaction[0]).to.equal('ready');
+				expect(deleteTransaction).to.equal('ready');
 				poolTotals.ready -= 1;
 				done();
 			});
