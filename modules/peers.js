@@ -305,29 +305,28 @@ __private.dbSave = function (cb) {
 	});
 };
 
-Peers.prototype.getConsensus = function (matched, active) {
-
+/**
+* Calculates consensus for as a ratio active to matched peers.
+* @param {Array<Peer>} active - active peers (with connected state)
+* @param {Array<Peer>} matched - peers with same as system broadhash
+* @returns {number|undefined} - return consensus or undefined if config.forging.force = true
+*/
+Peers.prototype.getConsensus = function (active, matched) {
 	if (library.config.forging.force) {
 		return undefined;
 	}
-
-	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED, normalized: false});
-	matched = matched || __private.getMatched({broadhash: modules.system.getBroadhash()}, active);
-
-	active = active.slice(0, constants.maxPeers);
-	matched = matched.slice(0, constants.maxPeers);
-
-	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 100;
-
-	if (isNaN(consensus)) {
-		return 0;
-	}
-
-	return consensus;
+	active = active || library.logic.peers.list(true);
+	var broadhash = modules.system.getBroadhash();
+	matched = matched || active.filter(function (peer) {
+		return peer.broadhash === broadhash;
+	});
+	var activeCount = Math.min(active.length, constants.maxPeers);
+	var matchedCount = Math.min(matched.length, activeCount);
+	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+	return isNaN(consensus) ? 0 : consensus;
 };
 
 // Public methods
-
 /**
  * Updates peer in peers list.
  * @param {peer} peer
