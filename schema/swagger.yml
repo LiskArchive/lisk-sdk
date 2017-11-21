@@ -131,12 +131,7 @@ paths:
         200:
           description: Search results matching criteria
           schema:
-            type: object
-            properties:
-              dapps:
-                type: array
-                items:
-                  $ref: '#/definitions/DappsResponse'
+            $ref: '#/definitions/DappsResponse'
         400:
           description: Malformed query or parameters
           schema:
@@ -476,10 +471,11 @@ definitions:
   Dapp:
     type: object
     required:
-      - transactionsId
+      - transactionId
       - name
+      - type
     properties:
-      transactionsId:
+      transactionId:
         type: string
         format: id
         example: '15359945250124697273'
@@ -489,6 +485,9 @@ definitions:
         type: string
         example: http://www.blocksafefoundation.com/header.jpg
       category:
+        type: number
+        example: 8
+      type:
         type: number
         example: 8
       link:
