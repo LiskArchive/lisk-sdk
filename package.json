@@ -50,6 +50,7 @@
 		"eslint-config-lisk-base": "=0.1.0",
 		"eslint-plugin-import": "=2.8.0",
 		"husky": "=0.14.3",
+		"lint-staged": "=5.0.0",
 		"mocha": "=4.0.1",
 		"nyc": "=11.3.0",
 		"prettier": "=1.9.2",
