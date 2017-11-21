@@ -907,8 +907,9 @@ TransactionPool.prototype.expireTransactions = function (cb) {
  */
 TransactionPool.prototype.resetInvalidTransactions = function () {
 	var counter = 0;
+	var transaction;
 
-	for (var transaction in pool.invalid.transactions) {
+	for (transaction in pool.invalid.transactions) {
 		delete pool.invalid.transactions[transaction];
 		counter++;
 	}
