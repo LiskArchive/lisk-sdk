@@ -14,6 +14,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+var os = require('os');
+var lockfile = require('lockfile');
+
+var configLockfilePath = `${os.homedir()}/.lisky/config.lock`;
 var lisky;
 var execFile;
 var firstCommandWords;
@@ -24,15 +28,21 @@ var commandArgIsFilePath = false;
 
 process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskyArg.endsWith('lisky') && process.argv.length === 2);
 
+function exit(code) {
+	process.exit(code || 0);
+}
+
+if (process.argv[2] === 'clean') {
+	console.warn('\x1b[33m', 'WARNING: Attempting to remove configuration lockfile. I hope you know what you’re doing.', '\x1b[0m');
+	lockfile.unlockSync(configLockfilePath);
+	exit();
+}
+
 lisky = require('../dist').default;
 execFile = require('../dist/execFile').default;
 
 // eslint-disable-next-line no-underscore-dangle
 firstCommandWords = lisky.commands.map(c => c._name.split(' ')[0]);
-
-function exit(code) {
-	process.exit(code || 0);
-}
 
 if (firstCommandWords.indexOf(nonInteractiveCommandArg) === -1) {
 	commandArgIsFilePath = true;
