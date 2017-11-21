@@ -36,8 +36,6 @@ describe('POST /api/transactions (type 0 on top of type 4)', function () {
 	var goodTransactions = [];
 	var pendingMultisignatures = [];
 
-	var account = node.randomAccount();
-
 	localShared.beforeValidationPhase(scenarios);
 
 	describe('sending funds', function () {
@@ -72,49 +70,11 @@ describe('POST /api/transactions (type 0 on top of type 4)', function () {
 		});
 
 		it('regular scenario should be ok', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenarios.regular.account.password);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.regular.transaction = transaction;
-			})
-				.then(function () {
-					return node.Promise.all(node.Promise.map(scenarios.regular.members, function (member) {
-						signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
-
-						return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-						});
-					}))
-						.then(function () {
-							goodTransactions.push(scenarios.regular.transaction);
-						});
-				});
+			localShared.sendAndSignMultisigTransaction('transfer', scenarios.regular, goodTransactions);
 		});
 
 		it('max_mebers_max_min scenario should be ok', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenarios.max_mebers_max_min.account.password);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.max_mebers_max_min.transaction = transaction;
-			})
-				.then(function () {
-					return node.Promise.all(node.Promise.map(scenarios.max_mebers_max_min.members, function (member) {
-						signature = node.lisk.multisignature.signTransaction(scenarios.max_mebers_max_min.transaction, member.password);
-
-						return sendSignaturePromise(signature, scenarios.max_mebers_max_min.transaction).then(function (res) {
-							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-						});
-					}))
-						.then(function () {
-							goodTransactions.push(scenarios.max_mebers_max_min.transaction);
-						});
-				});
+			localShared.sendAndSignMultisigTransaction('transfer', scenarios.max_mebers_max_min, goodTransactions);
 		});
 	});
 

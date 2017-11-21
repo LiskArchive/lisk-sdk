@@ -60,6 +60,56 @@ function beforeValidationPhase (scenarios) {
 	});
 };
 
+function sendAndSignMultisigTransaction (type, scenario, goodTransactions) {
+
+	var transaction;
+	
+	switch (type) {
+		case 'transfer':
+			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenario.account.password);
+			break;
+		case 'signature':
+			transaction = node.lisk.signature.createSignature(scenario.account.password, scenario.account.secondPassword);
+			break;
+		case 'delegate':
+			transaction = node.lisk.delegate.createDelegate(scenario.account.password, scenario.account.username);
+			break;
+		case 'votes':
+			transaction = node.lisk.vote.createVote(scenario.account.password, ['+' + node.eAccount.publicKey]);
+			break;
+		case 'dapp':
+			transaction = node.lisk.dapp.createDapp(scenario.account.password, null, node.guestbookDapp);
+			node.guestbookDapp.id = transaction.id;
+			break;
+		case 'inTransfer':
+			transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, 1, scenario.account.password);
+			break;
+		case 'outTransfer':
+			transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.randomAccount().address, 1, scenario.account.password);
+			break;
+	};
+
+	return sendTransactionPromise(transaction).then(function (res) {
+		node.expect(res).to.have.property('status').to.equal(200);
+		node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+		scenario.transaction = transaction;
+	})
+		.then(function () {
+			return node.Promise.all(node.Promise.map(scenario.members, function (member) {
+				var signature = node.lisk.multisignature.signTransaction(scenario.transaction, member.password);
+
+				return sendSignaturePromise(signature, scenario.transaction).then(function (res) {
+					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
+					node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
+				});
+			}))
+				.then(function () {
+					goodTransactions.push(scenario.transaction);
+				});
+		});
+}
+
 module.exports = {
-	beforeValidationPhase: beforeValidationPhase
+	beforeValidationPhase: beforeValidationPhase,
+	sendAndSignMultisigTransaction: sendAndSignMultisigTransaction
 };
