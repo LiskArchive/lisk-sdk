@@ -165,23 +165,23 @@ __private.transactionInPool = function (id) {
  * Checks if pool is ready to receive a new transaction and the incoming
  * transaction was not already processed by pool.
  * @private
- * @implements {__private.countTransactionsPool}
+ * @implements {__private.countTransactionsInPool}
  * @implements {__private.transactionInPool}
  * @param {Object} transaction
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction
  */
-__private.checkPoolAvailability = function (transaction, waterCb) {
-	if (__private.countTransactionsPool() >= self.poolStorageTransactionsLimit) {
-		return setImmediate(waterCb, 'Transaction pool is full');
-	}
+__private.checkPoolAvailability = function (transaction, cb) {
 	if (pool.invalid.transactions[transaction.id] !== undefined) {
-		return setImmediate(waterCb, 'Transaction is already processed as invalid: ' + transaction.id);
+		return setImmediate(cb, 'Transaction is already processed as invalid: ' + transaction.id);
 	}
 	if (__private.transactionInPool(transaction.id)) {
-		return setImmediate(waterCb, 'Transaction is already in pool: ' + transaction.id);
+		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
 	}
-	return setImmediate(waterCb, null, transaction);
+	if (__private.countTransactionsInPool() >= library.config.transactions.pool.storageLimit) {
+		return setImmediate(cb, 'Transaction pool is full');
+	}
+	return setImmediate(cb, null, transaction);
 };
 
 /**
@@ -193,9 +193,9 @@ __private.checkPoolAvailability = function (transaction, waterCb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
-__private.setAccountAndGet = function (transaction, waterCb) {
-	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, cb) {
-		return setImmediate(waterCb, err, transaction, cb);
+__private.setAccountAndGet = function (transaction, cb) {
+	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, cbAccount) {
+		return setImmediate(cb, err, transaction, cbAccount);
 	});
 };
 
@@ -239,13 +239,13 @@ __private.getRequester = function (transaction, sender, waterCb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
-__private.processTransaction = function (transaction, sender, requester, waterCb) {
+__private.processTransaction = function (transaction, sender, requester, cb) {
 	library.logic.transaction.process(transaction, sender, requester, function (err) {
 		if (err) {
 			__private.addInvalid(transaction.id);
-			return setImmediate(waterCb, err);
+			return setImmediate(cb, err);
 		} 
-		return setImmediate(waterCb, null, transaction, sender);
+		return setImmediate(cb, null, transaction, sender);
 	});
 };
 
@@ -259,12 +259,12 @@ __private.processTransaction = function (transaction, sender, requester, waterCb
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
-__private.verifyTransaction = function (transaction, sender, waterCb) {
+__private.verifyTransaction = function (transaction, sender, cb) {
 	library.logic.transaction.verify(transaction, sender, function (err) {
 		if (err) {
 			__private.addInvalid(transaction.id);
 		}
-		return setImmediate(waterCb, err, transaction, sender);
+		return setImmediate(cb, err, transaction, sender);
 	});
 };
 
@@ -465,39 +465,37 @@ __private.delete = function (id, poolList) {
  * @private
  * @return {Number} Total = unverified + pending + ready
  */
-__private.countTransactionsPool = function () {
+__private.countTransactionsInPool = function () {
 	return pool.unverified.count + pool.verified.pending.count + pool.verified.ready.count;
 };
 
 /**
- * Removes transactions if expired from pool list.
+ * Removes expired transactions from pool list.
  * @private
- * @implements {__private.transactionTimeOut}
+ * @implements {__private.getTransactionTimeOut}
  * @implements {__private.delete}
  * @param {Object[]} poolList
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} cb|error
  */
 __private.expireTransactionsFromList = function (poolList, cb) {
-	async.eachSeries(poolList.transactions, function (transaction, eachSeriesCb) {
+	async.each(poolList.transactions, function (transaction, eachCb) {
 		if (!transaction) {
-			return setImmediate(eachSeriesCb);
+			return setImmediate(eachCb);
 		}
 
 		var timeNow = Math.floor(Date.now() / 1000);
-		var timeOut = __private.transactionTimeOut(transaction);
+		var timeOut = __private.getTransactionTimeOut(transaction);
 		// transaction.receivedAt is instance of Date
 		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
 		if (seconds > timeOut) {
 			__private.delete(transaction.id, poolList);
 			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
-			return setImmediate(eachSeriesCb);
-		} else {
-			return setImmediate(eachSeriesCb);
 		}
-	}, function (err) {
-		return setImmediate(cb, err, null);
+		return setImmediate(eachCb);
+	}, function () {
+		return setImmediate(cb);
 	});
 };
 
