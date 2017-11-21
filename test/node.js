@@ -83,6 +83,60 @@ node.gAccount = {
 
 node.swaggerDef = swaggerHelper.getSwaggerSpec();
 
+node._.mixin({
+	/**
+	 * Lodash mixin to sort collection case-insensitively
+	 *
+	 * @param {Array} arr
+	 * @param {string} [sortOrder=asc] - Sorting order asc|desc
+	 * @return {*}
+	 */
+	dbSort: function (arr, sortOrder) {
+		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
+
+		return node._.clone(arr).sort(function (a, b ) {
+			// If first element is empty push it downard
+			if(!node._.isEmpty(a) && node._.isEmpty(b)) { return sortFactor * -1; }
+
+			// If second element is empty pull it upward
+			if(node._.isEmpty(a) && !node._.isEmpty(b)) { return sortFactor * 1; }
+
+			// If both are empty keep same order
+			if(node._.isEmpty(a) && node._.isEmpty(b)) { return sortFactor * 0; }
+
+			// Convert to lower case and remove special characters
+			var s1lower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
+			var s2lower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+			return s1lower.localeCompare(s2lower) * sortFactor;
+		});
+	},
+	/**
+	 * Lodash mixin to check occurrence of a value in end of of array
+	 *
+	 * @param {Array} arr
+	 * @param {*} valueCheck
+	 * @return {boolean}
+	 */
+	appearsInLast: function (arr, valueCheck) {
+
+		// Get list of indexes of desired value
+		var indices = node._.compact(arr.map(function (data, index) {
+			if (data === valueCheck ) { return index; }
+		}));
+
+			// If last occurrence appears at the end of array
+		if (indices[indices.length - 1] === arr.length - 1 &&
+			// If first and last occurrence appears without any gaps
+			indices.length === (indices[indices.length - 1] - indices[0] + 1)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+}, {chain: false});
+
 // Optional logging
 if (process.env.SILENT === 'true') {
 	node.debug = function () {};

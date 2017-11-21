@@ -110,7 +110,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 	var headers = {'Accept': 'application/json'};
 	var formData = false;
 	var self = this;
-	var callPath = self.path;
+	var callPath = self.getPath();
 
 	return this.resolveJSONRefs().then(function () {
 		_.each(_.keys(parameters), function (param){
@@ -139,11 +139,11 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		var req = node.supertest(node.baseUrl);
 
 		if (self.method === 'post') {
-			req = req.post(apiSpec.basePath + callPath);
+			req = req.post(callPath);
 		} else if (self.method === 'put') {
-			req = req.put(apiSpec.basePath + callPath);
+			req = req.put(callPath);
 		} else if (self.method === 'get') {
-			req = req.get(apiSpec.basePath + callPath);
+			req = req.get(callPath);
 		}
 
 		_.each(_.keys(headers), function (header){
@@ -198,6 +198,15 @@ SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
 	var requests = [];
 	parameters.forEach(function (paramSet) { requests.push(self.makeRequest(paramSet, responseCode)); });
 	return node.Promise.all(requests);
+};
+
+/**
+ * Get full path of an endpoint
+ *
+ * @return {string}
+ */
+SwaggerTestSpec.prototype.getPath = function () {
+	return apiSpec.basePath + this.path;
 };
 
 /**

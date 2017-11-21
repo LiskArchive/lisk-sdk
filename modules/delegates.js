@@ -675,17 +675,30 @@ Delegates.prototype.shared = {
 		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
 	},
 
-	getDelegates: function (req, cb) {
-		library.schema.validate(req.body, schema.getDelegates, function (err) {
+	/**
+	 * Search accounts based on the query parameter passed.
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.address - Account address
+	 * @param {string} filters.publicKey - Public key associated to account
+	 * @param {string} filters.secondPublicKey - Second public key associated to account
+	 * @param {string} filters.username - Username associated to account
+	 * @param {string} filters.sort - Field to sort results by
+	 * @param {string} filters.search - Field to sort results by
+	 * @param {string} filters.rank - Field to sort results by
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
+	 *
+	 * @param {function} cb - Callback function
+	 *
+	 * @returns {setImmediateCallbackObject}
+	 */
+	getDelegates: function (filters, cb) {
+		modules.delegates.getDelegates(filters, function (err, delegates) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
+				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 			}
-			modules.delegates.getDelegates(req.body, function (err, delegates) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
-				}
-				return setImmediate(cb, null, {delegates: delegates, count: delegates.length});
-			});
+			return setImmediate(cb, null,  delegates);
 		});
 	}
 };

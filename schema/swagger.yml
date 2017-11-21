@@ -243,6 +243,70 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /delegates:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+      - Delegates
+      summary: requests a list of Delegates data
+      operationId: getDelegates
+      x-lisk-cache-enabled: true
+      description:
+        By passing in the appropriate options, you can search for
+        specified Delegate in the system, otherwise returns a list
+      produces:
+      - application/json
+      parameters:
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - name: search
+          in: query
+          description: Fuzzy delegate username to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - name: rank
+          in: query
+          description: Delegate rank to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - in: query
+          name: sort
+          description: fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - rank:asc
+            - rank:desc
+            - productivity:asc
+            - productivity:desc
+            - missedBlocks:asc
+            - missedBlocks:desc
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            $ref: '#/definitions/DelegatesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
 parameters:
   ip:
     name: ip
@@ -451,6 +515,35 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Dapp'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  DelegatesResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: Response for the delegates endpoint
+        type: array
+        items:
+          $ref: '#/definitions/DelegateWithAccount'
       meta:
         type: object
         required:
@@ -769,6 +862,25 @@ definitions:
         type: string
         description: Param description specified in schema
 
+  Account:
+    type: object
+    required:
+      - address
+      - publicKey
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+
   AccountExtended:
     type: object
     required:
@@ -832,3 +944,41 @@ definitions:
       rank:
         type: integer
         example: 70
+
+  DelegateWithAccount:
+    type: object
+    required:
+      - username
+      - vote
+      - account
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      vote:
+        type: string
+        example: 1081560729258
+      rewards:
+        type: string
+        example: 510000000
+      producedBlocks:
+        type: integer
+        example: 20131
+      missedBlocks:
+        type: integer
+        example: 427
+      rate:
+        type: integer
+        example: 91
+      approval:
+        type: number
+        example: 14.22
+      productivity:
+        type: number
+        example: 96.41
+      rank:
+        type: integer
+        example: 70
+      account:
+        $ref: '#/definitions/Account'
