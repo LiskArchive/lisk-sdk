@@ -30,7 +30,6 @@
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
 	"dependencies": {
-		"babel-polyfill": "=6.23.0",
 		"bip39": "=2.4.0",
 		"browserify-bignum": "=1.3.0-2",
 		"ed2curve": "=0.2.1",

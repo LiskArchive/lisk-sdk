@@ -17,7 +17,6 @@
  * @module lisk
  * @main lisk
  */
-import 'babel-polyfill';
 import naclFactory from 'js-nacl';
 import Mnemonic from 'bip39';
 import api from './api/liskApi';

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import 'babel-polyfill';
 import should from 'should';
 import sinon from 'sinon';
 import 'should-sinon';
