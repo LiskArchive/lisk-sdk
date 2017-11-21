@@ -32,7 +32,7 @@ const description = `Creates a transaction which will cast votes (or unvotes) fo
 `;
 
 const processInputs = votes => ({ passphrase, secondPassphrase }) =>
-	transactions.createVote(passphrase, votes, secondPassphrase);
+	transactions.castVotes({ passphrase, delegates: votes, secondPassphrase });
 
 const processVotesInput = async votes =>
 	votes.includes(':') ? getData(votes) : votes;

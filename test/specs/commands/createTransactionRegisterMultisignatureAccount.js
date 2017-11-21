@@ -13,19 +13,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpCommandCreateTransactionCreateMultisignatureAccount } from '../../steps/setup';
+import { setUpCommandCreateTransactionRegisterMultisignatureAccount } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('create transaction create multisignature account command', () => {
-	beforeEach(setUpCommandCreateTransactionCreateMultisignatureAccount);
+describe('create transaction register multisignature account command', () => {
+	beforeEach(setUpCommandCreateTransactionRegisterMultisignatureAccount);
 	Given(
 		'a Vorpal instance with a UI and an active command that can prompt',
 		given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt,
 		() => {
 			Given(
-				'an action "create transaction create multisignature account"',
+				'an action "create transaction register multisignature account"',
 				given.anAction,
 				() => {
 					Given(
@@ -227,8 +227,8 @@ describe('create transaction create multisignature account command', () => {
 																						then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource,
 																					);
 																					Then(
-																						'it should create a create multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures',
-																						then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
+																						'it should create a register multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures',
+																						then.itShouldCreateARegisterMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
 																					);
 																					Then(
 																						'it should resolve to the created transaction',
@@ -281,8 +281,8 @@ describe('create transaction create multisignature account command', () => {
 																						then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource,
 																					);
 																					Then(
-																						'it should create a create multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures',
-																						then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
+																						'it should create a register multisignature account transaction using the passphrase, the keysgroup, the lifetime and the minimum number of signatures',
+																						then.itShouldCreateARegisterMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
 																					);
 																					Then(
 																						'it should resolve to the created transaction',
@@ -339,8 +339,8 @@ describe('create transaction create multisignature account command', () => {
 																								then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt,
 																							);
 																							Then(
-																								'it should create a create multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures',
-																								then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
+																								'it should create a register multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures',
+																								then.itShouldCreateARegisterMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
 																							);
 																							Then(
 																								'it should resolve to the created transaction',
@@ -393,8 +393,8 @@ describe('create transaction create multisignature account command', () => {
 																								then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt,
 																							);
 																							Then(
-																								'it should create a create multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures',
-																								then.itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
+																								'it should create a register multisignature account transaction using the passphrase, the second passphrase, the keysgroup, the lifetime and the minimum number of signatures',
+																								then.itShouldCreateARegisterMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
 																							);
 																							Then(
 																								'it should resolve to the created transaction',

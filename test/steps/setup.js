@@ -183,12 +183,12 @@ export function setUpCommandcreateTransactionCastVotes() {
 	setUpFsStubs();
 }
 
-export function setUpCommandCreateTransactionCreateMultisignatureAccount() {
+export function setUpCommandCreateTransactionRegisterDelegateCommand() {
 	setUpTransactionsStubs();
 	setUpInputStubs();
 }
 
-export function setUpCommandCreateTransactionRegisterDelegateCommand() {
+export function setUpCommandCreateTransactionRegisterMultisignatureAccount() {
 	setUpTransactionsStubs();
 	setUpInputStubs();
 }

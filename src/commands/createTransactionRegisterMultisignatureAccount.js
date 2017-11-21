@@ -30,7 +30,7 @@ const description = `Creates a transaction which will register the account as a 
 	- A list of one or more public keys that will identify the multisignature group.
 
 	Examples:
-	- create transaction create multisignature account 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa
+	- create transaction register multisignature account 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa
 	- create transaction 4 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa
 `;
 
@@ -38,13 +38,13 @@ const processInputs = (lifetime, minimum, keysgroup) => ({
 	passphrase,
 	secondPassphrase,
 }) =>
-	transactions.createMultisignature(
+	transactions.registerMultisignature({
 		passphrase,
 		secondPassphrase,
 		keysgroup,
 		lifetime,
 		minimum,
-	);
+	});
 
 export const actionCreator = vorpal => async ({
 	lifetime,
@@ -86,14 +86,14 @@ export const actionCreator = vorpal => async ({
 	);
 };
 
-const createTransactionRegisterSecondPassphrase = createCommand({
+const createTransactionRegisterMultisignatureAccount = createCommand({
 	command:
-		'create transaction create multisignature account <lifetime> <minimum> <keysgroup...>',
+		'create transaction register multisignature account <lifetime> <minimum> <keysgroup...>',
 	alias: 'create transaction 4',
 	description,
 	actionCreator,
 	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
-	errorPrefix: 'Could not create "create multisignature group" transaction',
+	errorPrefix: 'Could not create "register multisignature account" transaction',
 });
 
-export default createTransactionRegisterSecondPassphrase;
+export default createTransactionRegisterMultisignatureAccount;
