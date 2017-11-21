@@ -456,202 +456,169 @@ describe('peers', function () {
 		var validActive;
 		var validMatched;
 		var getConsensusResult;
-		var originalForgingForce;
+		var peersListStub;
 
 		before(function () {
 			validActive = null;
 			validMatched = null;
 			getConsensusResult = null;
-			originalForgingForce = modulesLoader.scope.config.forging.force;
-		});
-
-		after(function () {
-			modulesLoader.scope.config.forging.force = originalForgingForce;
+			peersListStub = peersLogicMock.list.returns([]);
 		});
 
 		beforeEach(function () {
-			getConsensusResult = peers.getConsensus(validMatched, validActive);
+			getConsensusResult = peers.getConsensus(validActive, validMatched);
 		});
 
-		describe('when config.forging.force = true', function () {
+		afterEach(function () {
+			peersListStub.resetHistory();
+		});
 
-			before(function () {
-				modulesLoader.scope.config.forging.force = true;
+		describe('when active peers not passed', function () {
+
+			it('should call logic.peers.list', function () {
+				expect(peersListStub.calledOnce).to.be.true;
 			});
 
-			it('should return undefined', function () {
-				expect(getConsensusResult).to.be.undefined;
+			it('should call logic.peers.list with true', function () {
+				expect(peersListStub.calledWithExactly(true)).to.be.true;
+			});
+
+			it('should return consensus as a number', function () {
+				expect(getConsensusResult).to.be.a('number');
 			});
 		});
 
-		describe('when config.forging.force = false', function () {
+		describe('when matched peers not passed and there are 100 active peers', function () {
 
-			var getByFilterStub;
+			var oneHundredActivePeers;
+			var getBroadhashStub;
+			var broadhashes;
 
 			before(function () {
-				modulesLoader.scope.config.forging.force = false;
-				getByFilterStub = sinon.stub(PeersRewired.__get__('__private'), 'getByFilter').returns([]);
-			});
-
-			afterEach(function () {
-				getByFilterStub.resetHistory();
+				oneHundredActivePeers = _.range(100).map(function () {
+					return generateRandomActivePeer();
+				});
+				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
+				getBroadhashStub = sinon.stub(modules.system, 'getBroadhash').returns(broadhashes.matchedBroadhash);
+				validActive = oneHundredActivePeers;
 			});
 
 			after(function () {
-				getByFilterStub.restore();
+				getBroadhashStub.restore();
+				validActive = null;
 			});
 
-			describe('when active peers not passed', function () {
-
-				it('should call __private.getByFilter', function () {
-					expect(getByFilterStub.calledOnce).to.be.true;
-				});
-
-				it('should call __private.getByFilter with filter containing state = 2', function () {
-					expect(getByFilterStub.calledWith(sinon.match({state: 2}))).to.be.true;
-				});
-
-				it('should call __private.getByFilter with filter containing normalized = false', function () {
-					expect(getByFilterStub.calledWith(sinon.match({normalized: false}))).to.be.true;
-				});
-
-				it('should return consensus as a number', function () {
-					expect(getConsensusResult).to.be.a('number');
-				});
-			});
-
-			describe('when matched peers not passed and there are 100 active peers', function () {
-
-				var oneHundredActivePeers;
-				var getBroadhashStub;
-				var broadhashes;
+			describe('when non of active peers matches broadhash', function () {
 
 				before(function () {
-					oneHundredActivePeers = _.range(100).map(function () {
-						return generateRandomActivePeer();
-					});
-					broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-					getBroadhashStub = sinon.stub(modules.system, 'getBroadhash').returns(broadhashes.matchedBroadhash);
-					validActive = oneHundredActivePeers;
-				});
-
-				after(function () {
-					getBroadhashStub.restore();
-					validActive = null;
-				});
-
-				describe('when non of active peers matches broadhash', function () {
-
-					before(function () {
-						oneHundredActivePeers.forEach(function (peer, index) {
-							peer.broadhash = broadhashes.unmatchedBroadhashes[index];
-						});
-					});
-
-					it('should return consensus = 0', function () {
-						expect(getConsensusResult).to.be.zero;
+					oneHundredActivePeers.forEach(function (peer, index) {
+						peer.broadhash = broadhashes.unmatchedBroadhashes[index];
 					});
 				});
 
-				describe('when all of active peers matches broadhash', function () {
-
-					before(function () {
-						oneHundredActivePeers.forEach(function (peer) {
-							peer.broadhash = broadhashes.matchedBroadhash;
-						});
-					});
-
-					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
-					});
-				});
-
-				describe('when half of active peers matches broadhash', function () {
-
-					before(function () {
-						oneHundredActivePeers.forEach(function (peer, i) {
-							peer.broadhash = i < 50 ? broadhashes.matchedBroadhash : broadhashes.unmatchedBroadhashes[i];
-						});
-					});
-
-					it('should return consensus = 50', function () {
-						expect(getConsensusResult).equal(50);
-					});
+				it('should return consensus = 0', function () {
+					expect(getConsensusResult).to.be.zero;
 				});
 			});
 
-			describe('when called with active and matched arguments', function () {
+			describe('when all of active peers matches broadhash', function () {
 
-				describe('when there are 10 active and 10 matched peers', function () {
-
-					before(function () {
-						validActive = _.range(10).map(generateRandomActivePeer);
-						validMatched = _.range(10).map(generateRandomActivePeer);
-					});
-
-					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+				before(function () {
+					oneHundredActivePeers.forEach(function (peer) {
+						peer.broadhash = broadhashes.matchedBroadhash;
 					});
 				});
 
-				describe('when there are [constants.maxPeers] active and [constants.maxPeers] matched peers', function () {
+				it('should return consensus = 100', function () {
+					expect(getConsensusResult).equal(100);
+				});
+			});
 
-					before(function () {
-						validActive = _.range(constants.maxPeers).map(generateRandomActivePeer);
-						validMatched = _.range(constants.maxPeers).map(generateRandomActivePeer);
-					});
+			describe('when half of active peers matches broadhash', function () {
 
-					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+				before(function () {
+					oneHundredActivePeers.forEach(function (peer, i) {
+						peer.broadhash = i < 50 ? broadhashes.matchedBroadhash : broadhashes.unmatchedBroadhashes[i];
 					});
 				});
 
-				describe('when there are [constants.maxPeers] x 10 active and [constants.maxPeers] matched peers', function () {
+				it('should return consensus = 50', function () {
+					expect(getConsensusResult).equal(50);
+				});
+			});
+		});
 
-					before(function () {
-						validActive = _.range(10 * constants.maxPeers).map(generateRandomActivePeer);
-						validMatched = _.range(constants.maxPeers).map(generateRandomActivePeer);
-					});
+		describe('when called with active and matched arguments', function () {
 
-					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
-					});
+			describe('when there are 10 active and 10 matched peers', function () {
+
+				before(function () {
+					validActive = _.range(10).map(generateRandomActivePeer);
+					validMatched = _.range(10).map(generateRandomActivePeer);
 				});
 
-				describe('when there are [constants.maxPeers] active and [constants.maxPeers] x 10 matched peers', function () {
+				it('should return consensus = 100', function () {
+					expect(getConsensusResult).equal(100);
+				});
+			});
 
-					before(function () {
-						validActive = _.range(constants.maxPeers).map(generateRandomActivePeer);
-						validMatched = _.range(10 * constants.maxPeers).map(generateRandomActivePeer);
-					});
+			describe('when there are [constants.maxPeers] active and [constants.maxPeers] matched peers', function () {
 
-					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
-					});
+				before(function () {
+					validActive = _.range(constants.maxPeers).map(generateRandomActivePeer);
+					validMatched = _.range(constants.maxPeers).map(generateRandomActivePeer);
 				});
 
-				describe('when there are 50 active and 100 matched peers', function () {
+				it('should return consensus = 100', function () {
+					expect(getConsensusResult).equal(100);
+				});
+			});
 
-					before(function () {
-						validActive = _.range(50).map(generateRandomActivePeer);
-						validMatched = _.range(100).map(generateRandomActivePeer);
-					});
+			describe('when there are [constants.maxPeers] x 10 active and [constants.maxPeers] matched peers', function () {
 
-					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
-					});
+				before(function () {
+					validActive = _.range(10 * constants.maxPeers).map(generateRandomActivePeer);
+					validMatched = _.range(constants.maxPeers).map(generateRandomActivePeer);
 				});
 
-				describe('when there are 100 active and 50 matched peers', function () {
+				it('should return consensus = 100', function () {
+					expect(getConsensusResult).equal(100);
+				});
+			});
 
-					before(function () {
-						validActive = _.range(100).map(generateRandomActivePeer);
-						validMatched = _.range(50).map(generateRandomActivePeer);
-					});
+			describe('when there are [constants.maxPeers] active and [constants.maxPeers] x 10 matched peers', function () {
 
-					it('should return consensus = 50', function () {
-						expect(getConsensusResult).equal(50);
-					});
+				before(function () {
+					validActive = _.range(constants.maxPeers).map(generateRandomActivePeer);
+					validMatched = _.range(10 * constants.maxPeers).map(generateRandomActivePeer);
+				});
+
+				it('should return consensus = 100', function () {
+					expect(getConsensusResult).equal(100);
+				});
+			});
+
+			describe('when there are 50 active and 100 matched peers', function () {
+
+				before(function () {
+					validActive = _.range(50).map(generateRandomActivePeer);
+					validMatched = _.range(100).map(generateRandomActivePeer);
+				});
+
+				it('should return consensus = 100', function () {
+					expect(getConsensusResult).equal(100);
+				});
+			});
+
+			describe('when there are 100 active and 50 matched peers', function () {
+
+				before(function () {
+					validActive = _.range(100).map(generateRandomActivePeer);
+					validMatched = _.range(50).map(generateRandomActivePeer);
+				});
+
+				it('should return consensus = 50', function () {
+					expect(getConsensusResult).equal(50);
 				});
 			});
 		});

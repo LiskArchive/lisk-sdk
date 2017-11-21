@@ -289,25 +289,19 @@ Peers.prototype.sandboxApi = function (call, args, cb) {
 
 /**
  * Calculates consensus for as a ratio active to matched peers.
- * @param {Array<Peer>} matched - peers with same as system broadhash
  * @param {Array<Peer>} active - active peers (with connected state)
+ * @param {Array<Peer>} matched - peers with same as system broadhash
  * @returns {number|undefined} - return consensus or undefined if config.forging.force = true
  */
-Peers.prototype.getConsensus = function (matched, active) {
-
-	if (library.config.forging.force) {
-		return undefined;
-	}
-
-	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED});
+Peers.prototype.getConsensus = function (active, matched) {
+	active = active || library.logic.peers.list(true);
+	var broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(function (peer) {
-		return peer.broadhash === modules.system.getBroadhash();
+		return peer.broadhash === broadhash;
 	});
-
-	active = active.slice(0, constants.maxPeers);
-	matched = matched.slice(0, constants.maxPeers < active.length ? constants.maxPeers : active.length);
-
-	var consensus = +(matched.length / active.length * 100).toPrecision(2);
+	var activeCount = Math.min(active.length, constants.maxPeers);
+	var matchedCount = Math.min(matched.length, activeCount);
+	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
 	return isNaN(consensus) ? 0 : consensus;
 };
 
