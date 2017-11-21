@@ -565,9 +565,7 @@ Transactions.prototype.onBind = function (scope) {
 	};
 
 	library.logic.transactionPool.bind(
-		scope.accounts,
-		scope.transactions,
-		scope.loader
+		scope.accounts
 	);
 	__private.assetTypes[transactionTypes.SEND].bind(
 		scope.accounts
