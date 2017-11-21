@@ -17,6 +17,7 @@ import 'babel-polyfill';
 import should from 'should';
 import sinon from 'sinon';
 import 'should-sinon';
+import './givenWhenThen';
 
 process.env.NODE_ENV = 'test';
 
@@ -34,14 +35,3 @@ should.use((_, Assertion) => {
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create();
-
-const createPreStep = prefix => (description, beforeEachHook, suiteBody) => {
-	describe(`${prefix} ${description}`, () => {
-		beforeEach(beforeEachHook);
-		suiteBody();
-	});
-};
-
-global.Given = createPreStep('Given');
-global.When = createPreStep('When');
-global.Then = (description, testBody) => it(`Then ${description}`, testBody);
