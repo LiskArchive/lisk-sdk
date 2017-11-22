@@ -16,6 +16,17 @@
 import {
 	getFirstQuotedString,
 } from '../utils';
+import ValidationError from '../../../src/utils/error';
+
+export function aFunctionThatThrowsAValidationError() {
+	const validationErrorMessage = getFirstQuotedString(this.test.parent.title);
+	const validationErrorFn = () => {
+		throw new ValidationError(validationErrorMessage);
+	};
+
+	this.test.ctx.validationErrorMessage = validationErrorMessage;
+	this.test.ctx.validationErrorFn = validationErrorFn;
+}
 
 export function anEmptyObject() {
 	this.test.ctx.testObject = {};

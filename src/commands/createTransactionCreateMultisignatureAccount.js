@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import ValidationError from '../utils/error';
 import {
 	createCommand,
 	validateLifetime,
@@ -54,10 +55,10 @@ export const actionCreator = vorpal => async ({
 		try {
 			Buffer.from(publicKey, 'hex').toString('hex');
 		} catch (error) {
-			throw new Error(`Error processing public key ${publicKey}: ${error.message}.`);
+			throw new ValidationError(`Error processing public key ${publicKey}: ${error.message}.`);
 		}
 		if (publicKey.length !== 64) {
-			throw new Error(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
+			throw new ValidationError(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
 		}
 		return `+${publicKey}`;
 	});

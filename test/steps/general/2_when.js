@@ -27,3 +27,17 @@ export function theReturnedFunctionIsCalledWithTheObject() {
 	const { returnValue, testObject } = this.test.ctx;
 	this.test.ctx.returnValue = returnValue(testObject);
 }
+
+export function validationErrorIsThrown() {
+	const { validationErrorFn } = this.test.ctx;
+	try {
+		const returnValue = validationErrorFn();
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = validationErrorFn.bind(null);
+		this.test.ctx.testFunction = testFunction;
+		this.test.ctx.testError = error;
+		return testFunction;
+	}
+}

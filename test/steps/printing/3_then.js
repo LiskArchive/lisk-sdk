@@ -13,11 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import chalk from 'chalk';
 import {
 	shouldUseJsonOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
 import tablify from '../../../src/utils/tablify';
+
+export function itShouldPrintTheErrorMessageInRed() {
+	const { testError: { message }, validationErrorMessage } = this.test.ctx;
+	return (message).should.be.equal(chalk.red(validationErrorMessage));
+}
 
 export function theErrorShouldBePrintedWithThePrefix() {
 	const { printFunction, errorMessage, prefix } = this.test.ctx;

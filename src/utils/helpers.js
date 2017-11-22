@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import ValidationError from '../utils/error';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 
@@ -26,28 +27,28 @@ const isStringInteger = (n) => {
 
 export const validateLifetime = (lifetime) => {
 	if (!isStringInteger(lifetime)) {
-		throw new Error('Lifetime must be an integer.');
+		throw new ValidationError('Lifetime must be an integer.');
 	}
 	return true;
 };
 
 export const validateMinimum = (minimum) => {
 	if (!isStringInteger(minimum)) {
-		throw new Error('Minimum number of signatures must be an integer.');
+		throw new ValidationError('Minimum number of signatures must be an integer.');
 	}
 	return true;
 };
 
 export const validateAddress = (address) => {
 	if (!address.match(regExpAddress)) {
-		throw new Error(`${address} is not a valid address.`);
+		throw new ValidationError(`${address} is not a valid address.`);
 	}
 	return true;
 };
 
 export const validateAmount = (amount) => {
 	if (!amount.match(regExpAmount)) {
-		throw new Error('Amount must be a number with no more than 8 decimal places.');
+		throw new ValidationError('Amount must be a number with no more than 8 decimal places.');
 	}
 	return true;
 };
