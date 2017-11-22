@@ -14,6 +14,7 @@
  *
  */
 import os from 'os';
+import chalk from 'chalk';
 import {
 	getFirstQuotedString,
 	getFirstBoolean,
@@ -65,15 +66,15 @@ export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
 
 export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
 	const { filePath } = this.test.ctx;
-	return (console.error).should.be.calledWithExactly(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`);
+	return (console.error).should.be.calledWithExactly(chalk.red(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`));
 }
 
 export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
-	return (console.error).should.be.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`);
+	return (console.error).should.be.calledWithExactly(chalk.red(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`));
 }
 
 export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 	const path = getFirstQuotedString(this.test.title);
-	return (console.error).should.be.calledWithExactly(`Config lockfile at ${path} found. Are you running Lisky in another process?`);
+	return (console.error).should.be.calledWithExactly(chalk.red(`Config lockfile at ${path} found. Are you running Lisky in another process?`));
 }

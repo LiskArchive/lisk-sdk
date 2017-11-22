@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import ValidationError from '../utils/error';
+import { ValidationError } from '../utils/error';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 

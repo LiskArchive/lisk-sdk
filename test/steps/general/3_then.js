@@ -17,7 +17,7 @@ import {
 	getFirstQuotedString,
 	getFirstNumber,
 } from '../utils';
-import ValidationError from '../../../src/utils/error';
+import { ValidationError } from '../../../src/utils/error';
 
 export function theErrorShouldBeInstanceOfBuildInError() {
 	const { testError } = this.test.ctx;

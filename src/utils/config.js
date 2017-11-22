@@ -21,6 +21,10 @@ import {
 	readJsonSync,
 	writeJsonSync,
 } from '../utils/fs';
+import {
+	configurationWarningMessage,
+	fileSystemErrorMessage,
+} from './error';
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';
@@ -34,18 +38,16 @@ const attemptCallWithWarning = (fn, path) => {
 	try {
 		return fn();
 	} catch (_) {
-		const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
-		console.warn(warning);
-		return null;
+		return configurationWarningMessage(path);
 	}
 };
 
-const attemptCallWithError = (fn, code, error) => {
+const attemptCallWithError = (fn, errorCode, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
-		console.error(error);
-		return process.exit(code);
+		fileSystemErrorMessage(errorMessage);
+		return process.exit(errorCode);
 	}
 };
 
@@ -61,20 +63,23 @@ const attemptToCreateFile = (path) => {
 
 const checkReadAccess = (path) => {
 	const fn = fs.accessSync.bind(null, path, fs.constants.R_OK);
-	const error = `Could not read config file. Please check permissions for ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, 1, error);
+	const errorCode = 1;
+	const errorMessage = `Could not read config file. Please check permissions for ${path} or delete the file so we can create a new one from defaults.`;
+	return attemptCallWithError(fn, errorCode, errorMessage);
 };
 
 const checkLockfile = (path) => {
 	const fn = lockfile.lockSync.bind(null, path);
-	const error = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
-	return attemptCallWithError(fn, 3, error);
+	const errorCode = 3;
+	const errorMessage = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
+	return attemptCallWithError(fn, errorCode, errorMessage);
 };
 
 const attemptToReadJsonFile = (path) => {
 	const fn = readJsonSync.bind(null, path);
-	const error = `Config file is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, 2, error);
+	const errorCode = 2;
+	const errorMessage = `Config file is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
+	return attemptCallWithError(fn, errorCode, errorMessage);
 };
 
 const getConfig = () => {

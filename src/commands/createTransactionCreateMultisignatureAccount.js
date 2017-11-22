@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import ValidationError from '../utils/error';
+import { ValidationError } from '../utils/error';
 import {
 	createCommand,
 	validateLifetime,

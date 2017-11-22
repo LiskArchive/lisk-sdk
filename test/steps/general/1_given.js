@@ -16,7 +16,7 @@
 import {
 	getFirstQuotedString,
 } from '../utils';
-import ValidationError from '../../../src/utils/error';
+import { ValidationError } from '../../../src/utils/error';
 
 export function aFunctionThatThrowsAValidationError() {
 	const validationErrorMessage = getFirstQuotedString(this.test.parent.title);

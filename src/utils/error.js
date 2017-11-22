@@ -15,10 +15,20 @@
  */
 import chalk from 'chalk';
 
-export default class ValidationError extends Error {
+export class ValidationError extends Error {
 	constructor(message) {
 		super(message);
 		this.message = chalk.red(message);
 		this.name = 'ValidationError';
 	}
 }
+
+export const configurationWarningMessage = (path) => {
+	const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
+	console.warn(chalk.yellow(warning));
+	return null;
+};
+
+export const fileSystemErrorMessage = (errorMessage) => {
+	console.error(chalk.red(errorMessage));
+};
