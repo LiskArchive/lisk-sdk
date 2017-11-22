@@ -441,53 +441,36 @@ describe('GET /delegates', function () {
 
 	describe('GET /forging', function () {
 
-		it('using no params should be ok', function () {
-			var params = [];
+		var forgingEndpoint = new swaggerEndpoint('GET /delegates/forging');
 
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('enabled').to.be.true;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
+		it('using no params should return param error', function () {
+			return forgingEndpoint.makeRequest({}, 400).then(function (res) {
+				expectSwaggerParamError(res, 'publicKey');
 			});
 		});
 
 		it('using invalid publicKey should fail', function () {
-			var params = [
-				'publicKey=' + 'invalidPublicKey'
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('message').to.eql('Object didn\'t pass validation for format publicKey: invalidPublicKey');
+			return forgingEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
+				expectSwaggerParamError(res, 'publicKey');
 			});
 		});
 
-		it('using empty publicKey should be ok', function () {
-			var params = [
-				'publicKey='
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('enabled').to.be.true;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
+		it('using empty publicKey should should fail', function () {
+			return forgingEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
+				expectSwaggerParamError(res, 'publicKey');
 			});
 		});
 
 		it('using existing publicKey should be ok', function () {
-			var params = [
-				'publicKey=' + validDelegate.publicKey
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('enabled').that.is.a('boolean');
-			});
+			return forgingEndpoint.makeRequest({publicKey: validDelegate.publicKey}, 200);
 		});
 
 		it('using enabled publicKey should be ok', function () {
-			var params = [
-				'publicKey=' + '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
-			];
+			var key = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f';
 
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('enabled').to.be.true;
+			return forgingEndpoint.makeRequest({publicKey: key}, 200).then(function (res) {
+				res.body.data.publicKey.should.be.eql(key);
+				res.body.data.forging.should.be.true;
 			});
 		});
 	});

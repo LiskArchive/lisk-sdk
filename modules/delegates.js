@@ -484,6 +484,7 @@ Delegates.prototype.getForgers = function (query, cb) {
 	}).then(function (data) {
 		data.map(function (forger) {
 			forger.nextSlot = __private.delegatesList.indexOf(forger.publicKey) + currentSlot + 1;
+
 			return forger; 
 		});
 		return setImmediate(cb, null, data);
@@ -644,27 +645,25 @@ Delegates.prototype.isLoaded = function () {
 
 // Internal API
 /**
- * @todo implement API comments with apidoc.
+ * @param {string} publickKey
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.internal = {
-	forgingStatus: function (req, cb) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return setImmediate(cb, new ApiError('Access denied', apiCodes.FORBIDDEN));
+
+	/**
+	 * Get forging status for a public key
+	 *
+	 * @param {string }publicKey
+	 * @param {function} cb - Callback function
+	 *
+	 * @returns {setImmediateCallbackObject}
+	 */
+	forgingStatus: function (publicKey, cb) {
+		// Public Key dose not exists
+		if (__private.keypairs[publicKey] === undefined) {
+			return setImmediate(cb, new Error('Public key not found.'));
 		}
-
-		library.schema.validate(req.body, schema.forgingStatus, function (err) {
-			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
-			}
-
-			if (req.body.publicKey) {
-				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.body.publicKey]});
-			} else {
-				var delegates_cnt = _.keys(__private.keypairs).length;
-				return setImmediate(cb, null, {enabled: delegates_cnt > 0, delegates: _.keys(__private.keypairs)});
-			}
-		});
+		return setImmediate(cb, null, {forging: !!__private.keypairs[publicKey], publicKey: publicKey});
 	},
 	forgingToggle: function (req, cb) {
 		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {

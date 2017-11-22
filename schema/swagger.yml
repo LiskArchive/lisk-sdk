@@ -339,6 +339,50 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /delegates/forging:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+        - Delegates
+      summary: returns the status of Forging for a delegate
+      operationId: getForgingStatus
+      description:
+        By querying by publicKey, a delegates forging status on a node can be determined
+      produces:
+        - application/json
+      parameters:
+        - name: publicKey
+          in: query
+          description: Public key to query
+          type: string
+          format: publicKey
+          required: true
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        401:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        404:
+          description: results not found for matching criteria
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
 parameters:
   ip:
     name: ip
@@ -637,6 +681,32 @@ definitions:
       links:
         type: object
 
+  ForgingStatusResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: object
+        required:
+          - forging
+          - publicKey
+        properties:
+          forging:
+            type: boolean
+            description: Status of forging for searched delegate
+            example: true
+          publicKey:
+            type: string
+            example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+            format: publicKey
+      meta:
+        type: object
+      links:
+        type: object
+
   Forger:
     type: object
     required:
@@ -877,6 +947,26 @@ definitions:
       syncing:
         type: boolean
         example: false
+
+  AccessDeniedError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  NotFoundError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
 
   UnexpectedError:
     type: object
