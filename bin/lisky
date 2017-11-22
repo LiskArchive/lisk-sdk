@@ -17,7 +17,7 @@
 var os = require('os');
 var lockfile = require('lockfile');
 
-var configLockfilePath = `${os.homedir()}/.lisky/config.lock`;
+var configLockfilePath;
 var lisky;
 var execFile;
 var firstCommandWords;
@@ -25,6 +25,9 @@ var nonInteractiveLiskyArg = process.argv[1];
 var nonInteractiveCommandArg = process.argv[2];
 var nonInteractiveOptions;
 var commandArgIsFilePath = false;
+
+process.env.LISKY_CONFIG_DIR = process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
+configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
 
 process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskyArg.endsWith('lisky') && process.argv.length === 2);
 

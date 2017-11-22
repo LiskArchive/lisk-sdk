@@ -19,7 +19,7 @@ pipeline {
 		}
 		stage('Run tests') {
 			steps {
-				sh 'npm run test'
+				sh 'LISKY_CONFIG_DIR=$WORKSPACE/.lisky npm run test'
 				sh '''
 				cp ~/.coveralls.yml-lisky .coveralls.yml
 				npm run cover
@@ -36,6 +36,9 @@ pipeline {
 		}
 		aborted {
 			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build was aborted.', status: 'ERROR'
+		}
+		always {
+			sh 'rm -f $WORKSPACE/.lisky/config.lock'
 		}
 	}
 }

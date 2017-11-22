@@ -13,14 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import os from 'os';
 import { CONFIG_VARIABLES } from '../utils/constants';
-import config from '../utils/config';
+import config, { configFilePath } from '../utils/config';
 import { writeJsonSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 import liskAPIInstance from '../utils/api';
-
-const configFilePath = `${os.homedir()}/.lisky/config.json`;
 
 const description = `Set configuration <variable> to <value>. Variables available: json, name, testnet. Configuration is persisted in \`${configFilePath}\`.
 

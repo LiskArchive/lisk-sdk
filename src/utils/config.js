@@ -26,8 +26,8 @@ const configDirName = '.lisky';
 const configFileName = 'config.json';
 const lockfileName = 'config.lock';
 const homedir = os.homedir();
-const configDirPath = `${homedir}/${configDirName}`;
-const configFilePath = `${configDirPath}/${configFileName}`;
+const configDirPath = process.env.LISKY_CONFIG_DIR || `${homedir}/${configDirName}`;
+export const configFilePath = `${configDirPath}/${configFileName}`;
 const lockfilePath = `${configDirPath}/${lockfileName}`;
 
 const attemptCallWithWarning = (fn, path) => {
