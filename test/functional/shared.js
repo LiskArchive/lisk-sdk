@@ -164,19 +164,28 @@ function invalidAssets (option, badTransactions) {
 	});
 }
 
-function MultisigScenario (size, amount) {
+function MultisigScenario (options) {
+	if (!options) {
+		var options = {};
+	}
+
 	this.account = node.randomAccount();
 	this.members = [];
 	this.keysgroup = [];
 
+	if(!options.members) {
+		options.members = 3;
+	}
 	var i, auxAccount;
-	for (i = 0; i < size - 1; i++) {
+	for (i = 0; i < options.members - 1; i++) {
 		auxAccount = node.randomAccount();
 		this.members.push(auxAccount);
 		this.keysgroup.push('+' + auxAccount.publicKey);
 	}
 
-	this.amount = amount || 100000000000;
+	this.min = options.min || options.members - 1;
+	this.lifetime = options.lifetime || 1;
+	this.amount = options.amount || 100000000000;
 }
 
 module.exports = {

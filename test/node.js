@@ -272,7 +272,7 @@ node.randomCapitalUsername = function () {
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = node.randomString.generate({
-		length: 16,
+		length: 15,
 		charset: custom
 	});
 
