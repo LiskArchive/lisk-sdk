@@ -176,8 +176,9 @@ TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) 
 };
 
 /**
- * Gets multisignature transactions based on limit and reverse option.
- * @param {boolean} reverse
+ * Gets multisignature transactions.
+ * @param {boolean} reverse - Reverse order of transactions
+ * @param {boolean} ready - Get only transactions with ready state
  * @param {number} [limit]
  * @return {getTransactionList} Calls getTransactionList
  * @todo Avoid mix sync/asyn implementations of the same function
@@ -195,9 +196,9 @@ TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, 
 
 /**
  * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
- * @implements {modules.transactions.getUnconfirmedTransactionList}
- * @implements {modules.transactions.getMultisignatureTransactionList}
- * @implements {modules.transactions.getQueuedTransactionList}
+ * @implements {getUnconfirmedTransactionList}
+ * @implements {getMultisignatureTransactionList}
+ * @implements {getQueuedTransactionList}
  * @param {boolean} reverse
  * @param {number} [limit]
  * @return {transaction[]} unconfirmed + multisignatures + queued
@@ -210,13 +211,13 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 		limit = minLimit;
 	}
 
-	var unconfirmed = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
+	var unconfirmed = self.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	limit -= unconfirmed.length;
 
-	var multisignatures = modules.transactions.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
+	var multisignatures = self.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
 	limit -= multisignatures.length;
 
-	var queued = modules.transactions.getQueuedTransactionList(false, limit);
+	var queued = self.getQueuedTransactionList(false, limit);
 	limit -= queued.length;
 
 	return unconfirmed.concat(multisignatures).concat(queued);
