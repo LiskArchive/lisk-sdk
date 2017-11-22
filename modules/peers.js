@@ -503,14 +503,7 @@ Peers.prototype.list = function (options, cb) {
 				return setImmediate(waterCb, null, peers);
 			}
 		}
-	], function (err, peers) {
-		// Calculate consensus
-		var consensus = Math.round(options.matched / peers.length * 100 * 1e2) / 1e2;
-		consensus = isNaN(consensus) ? 0 : consensus;
-
-		library.logger.debug(['Listing', peers.length, 'total peers'].join(' '));
-		return setImmediate(cb, err, peers, consensus);
-	});
+	], cb);
 };
 
 // Events
