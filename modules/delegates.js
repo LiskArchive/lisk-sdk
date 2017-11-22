@@ -458,6 +458,41 @@ Delegates.prototype.getDelegates = function (query, cb) {
 };
 
 /**
+ * Gets list forgers based on query parameters
+ * @param {Object} query
+ * @param {int} query.limit
+ * @param {int} query.offset
+ *
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} error| object
+ */
+Delegates.prototype.getForgers = function (query, cb) {
+	query.limit = query.limit || 10;
+	query.offset = query.offset || 0;
+
+	var currentSlot = slots.getSlotNumber();
+	var forgerKeys = [];
+
+	for (var i = query.offset + 1; i <= slots.delegates && i <= query.limit + query.offset; i++) {
+		if (__private.delegatesList[(currentSlot + i) % slots.delegates]) {
+			forgerKeys.push(__private.delegatesList[(currentSlot + i) % slots.delegates]);
+		}
+	}
+
+	library.db.query(sql.getDelegatesByPublicKeys, {
+		publicKeys: forgerKeys
+	}).then(function (data) {
+		data.map(function (forger) {
+			forger.nextSlot = __private.delegatesList.indexOf(forger.publicKey) + currentSlot + 1;
+			return forger; 
+		});
+		return setImmediate(cb, null, data);
+	}).catch(function (error) {
+		return setImmediate(cb, error);
+	});
+};
+
+/**
  * @param {publicKey} publicKey
  * @param {Array} votes
  * @param {function} cb
@@ -658,21 +693,35 @@ Delegates.prototype.internal = {
  */
 Delegates.prototype.shared = {
 
-	getForgers: function (req, cb) {
-		var currentBlock = modules.blocks.lastBlock.get();
-		var limit = req.body.limit || 10;
-
-		var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
+	/**
+	 * Search forgers based on the query parameters
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
+	 *
+	 * @param {function} cb - Callback function
+	 *
+	 * @returns {setImmediateCallbackObject}
+	 */
+	getForgers: function (filters, cb) {
+		var lastBlock = modules.blocks.lastBlock.get();
+		var lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 		var currentSlot = slots.getSlotNumber();
-		var nextForgers = [];
 
-		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
-			if (__private.delegatesList[(currentSlot + i) % slots.delegates]) {
-				nextForgers.push(__private.delegatesList[(currentSlot + i) % slots.delegates]);
+		modules.delegates.getForgers(filters, function (err, forgers) {
+			if (err) {
+				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 			}
-		}
 
-		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
+			return setImmediate(cb, null, {
+				data: forgers,
+				meta: {
+					lastBlock: lastBlock.height,
+					lastBlockSlot: lastBlockSlot,
+					currentSlot: currentSlot
+				}});
+		});
 	},
 
 	/**

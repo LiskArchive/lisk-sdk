@@ -24,7 +24,7 @@ describe('GET /delegates', function () {
 	var validDelegate = genesisDelegates.delegates[0];
 	var validNotExistingPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
 
-	describe.only('from (cache)', function () {
+	describe('from (cache)', function () {
 
 		var cache;
 		var getJsonForKeyPromise;
@@ -578,43 +578,44 @@ describe('GET /delegates', function () {
 
 	describe('GET /forgers', function () {
 
-		it('using no params should be ok', function () {
-			var params = [];
+		var forgersEndpoint = new swaggerEndpoint('GET /delegates/forgers');
 
-			return getForgersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('currentBlock').that.is.a('number');
-				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
-				node.expect(res).to.have.property('currentSlot').that.is.a('number');
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(10);
+		it('using no params should be ok', function () {
+			return forgersEndpoint.makeRequest({}, 200).then(function (res) {
+				res.body.data.should.have.length(10);
 			});
 		});
 
 		it('using limit=1 should be ok', function () {
-			var params = [
-				'limit=1'
-			];
-
-			return getForgersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('currentBlock').that.is.a('number');
-				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
-				node.expect(res).to.have.property('currentSlot').that.is.a('number');
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(1);
+			return forgersEndpoint.makeRequest({limit: 1}, 200).then(function (res) {
+				res.body.data.should.have.length(1);
 			});
 		});
 
-		it('using limit=101 should be ok', function () {
-			var params = [
-				'limit=101'
-			];
+		it('using offset=1 limit=10 should be ok', function () {
+			return forgersEndpoint.makeRequest({limit: 10, offset: 1}, 200).then(function (res) {
+				res.body.data.should.have.length(10);
+			});
+		});
 
-			return getForgersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('currentBlock').that.is.a('number');
-				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
-				node.expect(res).to.have.property('currentSlot').that.is.a('number');
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
+		describe('slot numbers are correct', function () {
+
+			var forgersData;
+
+			before(function () {
+				return forgersEndpoint.makeRequest({}, 200).then(function (res) {
+					forgersData = res.body;
+				});
+			});
+
+			it('lastBlockSlot should be less or equal to currentSlot', function () {
+				forgersData.meta.lastBlockSlot.should.be.at.most(forgersData.meta.currentSlot);
+			});
+
+			it('every forger nextSlot should be greater than currentSlot', function () {
+				forgersData.data.forEach(function (forger) {
+					forgersData.meta.currentSlot.should.be.at.most(forger.nextSlot);
+				});
 			});
 		});
 	});

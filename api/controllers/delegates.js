@@ -68,4 +68,25 @@ DelegatesController.getDelegates = function (context, next) {
 	});
 };
 
+DelegatesController.getForgers = function (context, next) {
+
+	var params = context.request.swagger.params;
+
+	var filters = {
+		limit: params.limit.value,
+		offset: params.offset.value
+	};
+
+	modules.delegates.shared.getForgers(_.clone(filters), function (err, data) {
+		if (err) { return next(err); }
+
+		data.meta.limit = filters.limit;
+		data.meta.offset = filters.offset;
+
+		data.links = {};
+
+		next(null, data);
+	});
+};
+
 module.exports = DelegatesController;

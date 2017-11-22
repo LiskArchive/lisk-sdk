@@ -307,6 +307,38 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /delegates/forgers:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+        - Delegates
+      summary: requests a list of next forgers
+      operationId: getForgers
+      description:
+        By passing in the appropriate options, you can get a list of the next forgers
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
 parameters:
   ip:
     name: ip
@@ -560,6 +592,74 @@ definitions:
             example: 100
       links:
         type: object
+
+  ForgersResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of forgers
+        type: array
+        items:
+          $ref: '#/definitions/Forger'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+          - currentSlot
+          - lastBlockSlot
+          - lastBlock
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+          currentSlot:
+            description: Currently active slot
+            type: integer
+            example: 10
+          lastBlockSlot:
+            description: The slot for last processed blocked
+            type: integer
+            example: 10
+          lastBlock:
+            description: Number of last processed block
+            type: integer
+            example: 10
+      links:
+        type: object
+
+  Forger:
+    type: object
+    required:
+      - username
+      - publicKey
+      - address
+      - nextSlot
+    properties:
+      username:
+        type: string
+        format: username
+        example: isabella
+      publicKey:
+        type: string
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        format: publicKey
+      address:
+        type: string
+        format: address
+        example: 6251001604903637008L
+      nextSlot:
+        type: number
+        example: 4368793
 
   Dapp:
     type: object
