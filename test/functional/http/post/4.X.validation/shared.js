@@ -11,11 +11,10 @@ var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransa
 var sendSignaturePromise = require('../../../../common/apiHelpers').sendSignaturePromise;
 
 function beforeValidationPhase (scenarios) {
-
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		//Crediting accounts
+		// Crediting accounts
 		return node.Promise.all(Object.keys(scenarios).map(function (type) {
 			if (type === 'no_funds') {
 				return;
@@ -62,9 +61,8 @@ function beforeValidationPhase (scenarios) {
 };
 
 function sendAndSignMultisigTransaction (type, scenario) {
-
 	var transaction;
-	
+
 	switch (type) {
 		case 'transfer':
 			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenario.account.password);
