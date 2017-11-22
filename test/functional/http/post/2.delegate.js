@@ -5,7 +5,6 @@ var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 describe('POST /api/transactions (type 2) register delegate', function () {
