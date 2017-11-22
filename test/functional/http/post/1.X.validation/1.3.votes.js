@@ -6,7 +6,7 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 
-describe('POST /api/transactions (type 3 on top of type 1)', function () {
+describe('POST /api/transactions (validate type 3 on top of type 1)', function () {
 
 	var transaction;
 	var badTransactions = [];

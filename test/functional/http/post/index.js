@@ -12,6 +12,15 @@ var pathFiles = [
 	'./6.dapps.inTransfer',
 	'./7.dapps.outTransfer',
 	
+	'./1.X.unconfirmed/1.0.transfer',
+	'./1.X.unconfirmed/1.1.second.secret',
+	'./1.X.unconfirmed/1.2.delegate',
+	'./1.X.unconfirmed/1.3.votes',
+	'./1.X.unconfirmed/1.4.multisig',
+	'./1.X.unconfirmed/1.5.dapps',
+	'./1.X.unconfirmed/1.6.dapps.inTransfer',
+	'./1.X.unconfirmed/1.7.dapps.outTransfer',
+
 	'./1.X.validation/1.0.transfer',
 	'./1.X.validation/1.1.second.secret',
 	'./1.X.validation/1.2.delegate',

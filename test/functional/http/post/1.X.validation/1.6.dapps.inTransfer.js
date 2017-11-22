@@ -7,7 +7,7 @@ var localShared = require('./shared');
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
 
-describe('POST /api/transactions (type 6 on top of type 1)', function () {
+describe('POST /api/transactions (validate type 6 on top of type 1)', function () {
 
 	var transaction;
 	var badTransactions = [];
