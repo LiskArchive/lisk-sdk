@@ -22,7 +22,7 @@ describe('POST /api/transactions (type 0 on top of type 4)', function () {
 				'members': 4
 			}
 		),
-		'max_mebers_max_min': new shared.MultisigScenario(
+		'max_members_max_min': new shared.MultisigScenario(
 			{
 				'members': constants.multisigConstraints.keysgroup.maxItems + 1,
 				'min': constants.multisigConstraints.min.maximum
@@ -78,8 +78,8 @@ describe('POST /api/transactions (type 0 on top of type 4)', function () {
 				});
 		});
 
-		it('max_mebers_max_min scenario should be ok', function () {
-			return localShared.sendAndSignMultisigTransaction('transfer', scenarios.max_mebers_max_min)
+		it('max_members_max_min scenario should be ok', function () {
+			return localShared.sendAndSignMultisigTransaction('transfer', scenarios.max_members_max_min)
 				.then(function (transaction) {
 					goodTransactions.push(transaction);
 				});
