@@ -7,7 +7,6 @@ var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransa
 var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
 
 function beforeUnconfirmedPhase (account) {
-
 	before(function () {
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
 
@@ -31,7 +30,6 @@ function beforeUnconfirmedPhase (account) {
 };
 
 function beforeUnconfirmedPhaseWithDapp (account) {
-
 	before(function () {
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
 
@@ -66,7 +64,6 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 			});
 	});
 };
-
 
 module.exports = {
 	beforeUnconfirmedPhase: beforeUnconfirmedPhase,
