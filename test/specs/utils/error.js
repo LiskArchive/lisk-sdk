@@ -19,7 +19,7 @@ import * as then from '../../steps/3_then';
 
 describe('Custom Error Message', () => {
 	Given('a function that throws a validation error "could not be validated"', given.aFunctionThatThrowsAValidationError, () => {
-		When('the validation error is thrown', when.validationErrorIsThrown, () => {
+		When('the validation error is thrown', when.theValidationErrorIsThrown, () => {
 			Then('it should print the error message in red', then.itShouldPrintTheErrorMessageInRed);
 			Then('the error should have the name "ValidationError"', then.theErrorShouldHaveTheName);
 			Then('the error should be instance of Node`s built-in error', then.theErrorShouldBeInstanceOfNodesBuiltInError);

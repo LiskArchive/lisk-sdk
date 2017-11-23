@@ -28,7 +28,7 @@ export function theReturnedFunctionIsCalledWithTheObject() {
 	this.test.ctx.returnValue = returnValue(testObject);
 }
 
-export function validationErrorIsThrown() {
+export function theValidationErrorIsThrown() {
 	const { validationErrorFn } = this.test.ctx;
 	try {
 		const returnValue = validationErrorFn();

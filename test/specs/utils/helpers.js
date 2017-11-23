@@ -27,12 +27,12 @@ describe('utils helpers', () => {
 		});
 		Given('an invalid string lifetime of "123.4" hours', given.anInvalidStringLifetimeOfHours, () => {
 			When('validateLifetime is called on the lifetime', when.validateLifetimeIsCalledOnTheLifetime, () => {
-				Then('it should throw error "Lifetime must be an integer."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "Lifetime must be an integer."', then.itShouldThrowValidationError);
 			});
 		});
 		Given('an invalid string lifetime of "NaN" hours', given.anInvalidStringLifetimeOfHours, () => {
 			When('validateLifetime is called on the lifetime', when.validateLifetimeIsCalledOnTheLifetime, () => {
-				Then('it should throw error "Lifetime must be an integer."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "Lifetime must be an integer."', then.itShouldThrowValidationError);
 			});
 		});
 	});
@@ -44,12 +44,12 @@ describe('utils helpers', () => {
 		});
 		Given('an invalid string minimum of "123.4" signatures', given.anInvalidStringMinimumOfSignatures, () => {
 			When('validateMinimum is called on the minimum', when.validateMinimumIsCalledOnTheMinimum, () => {
-				Then('it should throw error "Minimum number of signatures must be an integer."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "Minimum number of signatures must be an integer."', then.itShouldThrowValidationError);
 			});
 		});
 		Given('an invalid string minimum of "NaN" signatures', given.anInvalidStringMinimumOfSignatures, () => {
 			When('validateMinimum is called on the minimum', when.validateMinimumIsCalledOnTheMinimum, () => {
-				Then('it should throw error "Minimum number of signatures must be an integer."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "Minimum number of signatures must be an integer."', then.itShouldThrowValidationError);
 			});
 		});
 	});
@@ -61,17 +61,17 @@ describe('utils helpers', () => {
 		});
 		Given('an invalid address "1234567890LL"', given.anInvalidAddress, () => {
 			When('validateAddress is called on the address', when.validateAddressIsCalledOnTheAddress, () => {
-				Then('it should throw error "1234567890LL is not a valid address."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "1234567890LL is not a valid address."', then.itShouldThrowValidationError);
 			});
 		});
 		Given('an invalid address "L"', given.anInvalidAddress, () => {
 			When('validateAddress is called on the address', when.validateAddressIsCalledOnTheAddress, () => {
-				Then('it should throw error "L is not a valid address."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "L is not a valid address."', then.itShouldThrowValidationError);
 			});
 		});
 		Given('an invalid address "0123456789101112131415L"', given.anInvalidAddress, () => {
 			When('validateAddress is called on the address', when.validateAddressIsCalledOnTheAddress, () => {
-				Then('it should throw error "0123456789101112131415L is not a valid address."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "0123456789101112131415L is not a valid address."', then.itShouldThrowValidationError);
 			});
 		});
 	});
@@ -83,12 +83,12 @@ describe('utils helpers', () => {
 		});
 		Given('an invalid amount "abcedf"', given.anInvalidAmount, () => {
 			When('validateAmount is called on the amount', when.validateAmountIsCalledOnTheAmount, () => {
-				Then('it should throw the error "Amount must be a number with no more than 8 decimal places."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "Amount must be a number with no more than 8 decimal places."', then.itShouldThrowValidationError);
 			});
 		});
 		Given('an invalid amount "10.0001000001"', given.anInvalidAmount, () => {
 			When('validateAmount is called on the amount', when.validateAmountIsCalledOnTheAmount, () => {
-				Then('it should throw the error "Amount must be a number with no more than 8 decimal places."', then.itShouldThrowValidationError);
+				Then('it should throw validation error "Amount must be a number with no more than 8 decimal places."', then.itShouldThrowValidationError);
 			});
 		});
 	});
