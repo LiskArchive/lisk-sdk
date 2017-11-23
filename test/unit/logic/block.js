@@ -223,8 +223,8 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 function expectedOrderOfTransactions (sortedTransactions) {
 	var sorted = true;
 
-		// transactions should always be in ascending order of types unless next transaction is MULTI
 	for (var i = 0; i < sortedTransactions.length - 1; i++) {
+		// Transactions should always be in ascending order of types unless next transaction is MULTI
 		if (sortedTransactions[i].type > sortedTransactions[i+1].type
 			&& sortedTransactions[i+1].type !== transactionTypes.MULTI) {
 			sorted = false;
@@ -343,7 +343,7 @@ describe('block', function () {
 
 					beforeEach(function () {
 						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
-						// Add multisig transactions after the 3rd transaction transactions array.
+						// Add multisig transactions after the 3rd transaction in array
 						transactions.splice.apply(transactions, [3, 0].concat(multipleMultisigTx));
 						data.transactions = transactions;
 						generatedBlock = block.create(data);
