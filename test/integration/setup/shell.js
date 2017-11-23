@@ -17,6 +17,26 @@ module.exports = {
 		});
 	},
 
+	runMochaTests: function (testsPaths, cb) {
+		var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), '--exit'].concat(testsPaths), {
+			cwd: __dirname + '/../../..'
+		});
+
+		child.stdout.pipe(process.stdout);
+
+		child.on('close', function (code) {
+			if (code === 0) {
+				return cb();
+			} else {
+				return cb('Functional tests failed');
+			}
+		});
+
+		child.on('error', function (err) {
+			return cb(err);
+		});
+	},
+
 	killTestNodes: function (cb) {
 		child_process.exec('node_modules/.bin/pm2 kill', function (err) {
 			if (err) {
