@@ -103,7 +103,7 @@ module.exports = function (grunt) {
 			},
 
 			testIntegration: {
-				command: './node_modules/.bin/_mocha --bail test/integration/peers.integration.js ',
+				command: './node_modules/.bin/_mocha --bail test/integration/index.js ',
 				maxBuffer: maxBufferSize
 			},
 
