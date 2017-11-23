@@ -1,6 +1,9 @@
 'use strict';
 
 var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/apiHelpers');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+var node = require('../../../node');
 
 describe('GET /node', function () {
 
@@ -77,8 +80,51 @@ describe('GET /node', function () {
 
 	describe('/status', function () {
 
-		var endPoint = swaggerEndpoint('GET /node/status 200');
+		var ndoeStatusEndpoint = swaggerEndpoint('GET /node/status 200');
 
-		return endPoint.makeRequest();
+		it('should return node status', function () {
+			return ndoeStatusEndpoint.makeRequest();
+		});
+
+		describe('GET /forging', function () {
+
+			var forgingEndpoint = new swaggerEndpoint('GET /node/status/forging');
+
+			it('using no params should return full list of internal forgers', function () {
+				return forgingEndpoint.makeRequest({}, 200).then(function (res) {
+					res.body.data.length.should.be.eql(node.config.forging.secret.length);
+				});
+			});
+
+			it('using invalid publicKey should fail', function () {
+				return forgingEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
+			});
+
+			it('using empty publicKey should should fail', function () {
+				return forgingEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
+			});
+
+			it('using existing publicKey should be ok', function () {
+				var publicKey = node.config.forging.secret[0].publicKey;
+
+				return forgingEndpoint.makeRequest({publicKey: publicKey}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+					res.body.data[0].publicKey.should.be.eql(publicKey);
+				});
+			});
+
+			it('using enabled publicKey should be ok', function () {
+				var publicKey = node.config.forging.secret[0].publicKey;
+
+				return forgingEndpoint.makeRequest({publicKey: publicKey}, 200).then(function (res) {
+					res.body.data[0].publicKey.should.be.eql(publicKey);
+					res.body.data[0].forging.should.be.true;
+				});
+			});
+		});
 	});
 });

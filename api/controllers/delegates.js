@@ -1,11 +1,9 @@
 'use strict';
 
 var _ = require('lodash');
-var checkIpInList = require('../../helpers/checkIpInList.js');
 
 // Private Fields
 var modules;
-var config;
 
 /**
  * Initializes with scope content and private variables:
@@ -16,7 +14,6 @@ var config;
  */
 function DelegatesController (scope) {
 	modules = scope.modules;
-	config = scope.config;
 }
 
 DelegatesController.getDelegates = function (context, next) {
@@ -88,24 +85,6 @@ DelegatesController.getForgers = function (context, next) {
 
 		data.links = {};
 
-		next(null, data);
-	});
-};
-
-DelegatesController.getForgingStatus = function (context, next) {
-
-	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
-		context.statusCode = 401;
-		return next(new Error('Access Denied'));
-	}
-
-	var publicKey = context.request.swagger.params.publicKey.value;
-
-	modules.delegates.internal.forgingStatus(publicKey, function (err, data) {
-		if(err) {
-			context.statusCode = 404;
-			return next(err);
-		}
 		next(null, data);
 	});
 };

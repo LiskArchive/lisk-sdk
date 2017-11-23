@@ -1,9 +1,12 @@
 'use strict';
 
 var _ = require('lodash');
+var checkIpInList = require('../../helpers/checkIpInList.js');
+var apiCodes = require('../../helpers/apiCodes');
 
 // Private Fields
 var modules;
+var config;
 
 /**
  * Initializes with scope content and private variables:
@@ -14,6 +17,7 @@ var modules;
  */
 function NodeController (scope) {
 	modules = scope.modules;
+	config = scope.config;
 }
 
 NodeController.getConstants = function (context, next) {
@@ -61,6 +65,22 @@ NodeController.getStatus = function (context, next) {
 		} catch (error) {
 			next(error);
 		}
+	});
+};
+
+NodeController.getForgingStatus = function (context, next) {
+
+	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
+		context.statusCode = apiCodes.FORBIDDEN;
+		return next(new Error('Access Denied'));
+	}
+
+	var publicKey = context.request.swagger.params.publicKey.value;
+
+	modules.node.internal.getForgingStatus(publicKey, function (err, data) {
+		if (err) { return next(err); }
+
+		next(null, data);
 	});
 };
 

@@ -559,6 +559,15 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 	}
 };
 
+/**
+ * Get key pair list of delegates
+ *
+ * @return {*}
+ */
+Delegates.prototype.getForgersKeyPairs = function () {
+	return __private.keypairs;
+};
+
 // Events
 /**
  * Calls Delegate.bind() with scope.
@@ -650,21 +659,6 @@ Delegates.prototype.isLoaded = function () {
  */
 Delegates.prototype.internal = {
 
-	/**
-	 * Get forging status for a public key
-	 *
-	 * @param {string }publicKey
-	 * @param {function} cb - Callback function
-	 *
-	 * @returns {setImmediateCallbackObject}
-	 */
-	forgingStatus: function (publicKey, cb) {
-		// Public Key dose not exists
-		if (__private.keypairs[publicKey] === undefined) {
-			return setImmediate(cb, new Error('Public key not found.'));
-		}
-		return setImmediate(cb, null, {forging: !!__private.keypairs[publicKey], publicKey: publicKey});
-	},
 	forgingToggle: function (req, cb) {
 		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
 			return setImmediate(cb, new ApiError('Access denied', apiCodes.FORBIDDEN));

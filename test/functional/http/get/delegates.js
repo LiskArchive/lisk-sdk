@@ -439,42 +439,6 @@ describe('GET /delegates', function () {
 		});
 	});
 
-	describe('GET /forging', function () {
-
-		var forgingEndpoint = new swaggerEndpoint('GET /delegates/forging');
-
-		it('using no params should return param error', function () {
-			return forgingEndpoint.makeRequest({}, 400).then(function (res) {
-				expectSwaggerParamError(res, 'publicKey');
-			});
-		});
-
-		it('using invalid publicKey should fail', function () {
-			return forgingEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
-				expectSwaggerParamError(res, 'publicKey');
-			});
-		});
-
-		it('using empty publicKey should should fail', function () {
-			return forgingEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
-				expectSwaggerParamError(res, 'publicKey');
-			});
-		});
-
-		it('using existing publicKey should be ok', function () {
-			return forgingEndpoint.makeRequest({publicKey: validDelegate.publicKey}, 200);
-		});
-
-		it('using enabled publicKey should be ok', function () {
-			var key = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f';
-
-			return forgingEndpoint.makeRequest({publicKey: key}, 200).then(function (res) {
-				res.body.data.publicKey.should.be.eql(key);
-				res.body.data.forging.should.be.true;
-			});
-		});
-	});
-
 	describe('PUT /forging', function () {
 
 		before(function () {
