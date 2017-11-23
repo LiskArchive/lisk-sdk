@@ -111,12 +111,11 @@ module.exports = {
 			}
 		}).then(function (res) {
 			if (res.status !== apiCodes.OK) {
-				throw new Error('Unable to enable forging for delagate with publicKey: ' + keys.publicKey);
+				throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey);
 			}
 			return JSON.parse(res.body);
-		}).catch(function (err) {
-			console.error(err);
-			throw new Error('Unable to enable forging for delagate with publicKey: ' + keys.publicKey);
+		}).catch(function () {
+			throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey);
 		});
 	}
 };
