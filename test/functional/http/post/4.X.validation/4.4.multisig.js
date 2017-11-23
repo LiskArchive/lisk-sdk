@@ -6,7 +6,7 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 
-describe('POST /api/transactions (type 4 on top of type 4)', function () {
+describe('POST /api/transactions (validate type 4 on top of type 4)', function () {
 
 	var scenarios = {
 		'regular': new shared.MultisigScenario(),

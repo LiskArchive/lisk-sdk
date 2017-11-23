@@ -181,7 +181,7 @@ function getBlocks (params, cb) {
 }
 
 function waitForConfirmations (transactions, limitHeight) {
-	limitHeight = limitHeight || 15;
+	limitHeight = limitHeight || 20;
 
 	function checkConfirmations (transactions) {
 		return node.Promise.all(transactions.map(function (transactionId) {

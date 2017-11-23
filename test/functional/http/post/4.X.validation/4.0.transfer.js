@@ -9,7 +9,7 @@ var constants = require('../../../../../helpers/constants');
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 var sendSignaturePromise = require('../../../../common/apiHelpers').sendSignaturePromise;
 
-describe('POST /api/transactions (type 0 on top of type 4)', function () {
+describe('POST /api/transactions (validate type 0 on top of type 4)', function () {
 
 	var scenarios = {
 		'without_signatures': new shared.MultisigScenario(
@@ -30,8 +30,6 @@ describe('POST /api/transactions (type 0 on top of type 4)', function () {
 		),
 		'regular': new shared.MultisigScenario(),
 	};
-
-	console.log(scenarios);
 	
 	var transaction, signature;
 	var badTransactions = [];
