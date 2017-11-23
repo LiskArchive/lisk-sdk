@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import 'babel-polyfill';
 import should from 'should';
 import sinon from 'sinon';
@@ -20,6 +21,7 @@ import 'should-sinon';
 import './givenWhenThen';
 
 process.env.NODE_ENV = 'test';
+process.env.LISKY_CONFIG_DIR = process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
 
 should.use((_, Assertion) => {
 	Assertion.add('hexString', function hexString() {

@@ -70,3 +70,7 @@ export function thereIsAConfigLockfile() {
 }
 
 export function thereIsNoConfigLockfile() {}
+
+export function theConfigDirectoryPathIsNotSpecifiedInAnEnvironmentalVariable() {
+	delete process.env.LISKY_CONFIG_DIR;
+}

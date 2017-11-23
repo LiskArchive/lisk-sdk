@@ -29,6 +29,7 @@ import queryInstance from '../../src/utils/query';
 import transactions from '../../src/utils/transactions';
 
 const NON_INTERACTIVE_MODE = 'NON_INTERACTIVE_MODE';
+const LISKY_CONFIG_DIR = 'LISKY_CONFIG_DIR';
 const TEST_PASSPHRASE = 'TEST_PASSPHRASE';
 const CONFIG_PATH = '../../src/utils/config';
 
@@ -226,12 +227,17 @@ export function tearDownCommandSet() {
 }
 
 export function setUpUtilConfig() {
+	setUpEnvVariable(LISKY_CONFIG_DIR).call(this);
 	setUpFsStubs();
 	setUpFsUtilsStubs();
 	setUpConsoleStubs();
 	setUpLockfileStubs();
 	setUpProcessStubs();
 	delete require.cache[require.resolve(CONFIG_PATH)];
+}
+
+export function tearDownUtilConfig() {
+	restoreEnvVariable(LISKY_CONFIG_DIR).call(this);
 }
 
 export function setUpUtilCrypto() {
@@ -249,14 +255,14 @@ export function setUpUtilInput() {
 }
 
 export function setUpUtilInputUtils() {
-	setUpEnvVariable(TEST_PASSPHRASE);
+	setUpEnvVariable(TEST_PASSPHRASE).call(this);
 	setUpFsStubs();
 	setUpFsUtilsStubs();
 	setUpReadlineStubs();
 }
 
 export function tearDownUtilInputUtils() {
-	restoreEnvVariable(TEST_PASSPHRASE);
+	restoreEnvVariable(TEST_PASSPHRASE).call(this);
 }
 
 export function setUpUtilWrapActionCreator() {

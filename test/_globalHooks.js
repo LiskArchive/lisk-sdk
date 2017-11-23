@@ -1,4 +1,3 @@
-import os from 'os';
 import lockfile from 'lockfile';
 
 afterEach(function globalAfterEach() {
@@ -12,6 +11,6 @@ afterEach(function globalAfterEach() {
 });
 
 after(() => {
-	const configLockfilePath = `${os.homedir()}/.lisky/config.lock`;
+	const configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
 	lockfile.unlock(configLockfilePath);
 });

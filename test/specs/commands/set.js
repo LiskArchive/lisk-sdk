@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import os from 'os';
 import { setUpCommandSet, tearDownCommandSet } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
@@ -23,7 +22,7 @@ describe('set command', () => {
 	beforeEach(setUpCommandSet);
 	afterEach(tearDownCommandSet);
 	Given('a config', given.aConfig, () => {
-		describe(`Given a directory path "${os.homedir()}/.lisky"`, () => {
+		describe(`Given a directory path "${process.env.LISKY_CONFIG_DIR}"`, () => {
 			beforeEach(given.aDirectoryPath);
 			Given('a config file name "config.json"', given.aConfigFileName, () => {
 				Given('an action "set"', given.anAction, () => {
