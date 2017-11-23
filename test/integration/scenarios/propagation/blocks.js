@@ -13,10 +13,10 @@ module.exports = function (params) {
 
 		before(function () {
 			return Promise.all(params.configurations.map(function (configuration) {
-				return utils.http.getBlocks(configuration.httpPort).then(function (blocksResults) {
-					nodesBlocks = blocksResults;
-				});
-			}));
+				return utils.http.getBlocks(configuration.httpPort);
+			})).then(function (blocksResults) {
+				nodesBlocks = blocksResults;
+			});
 		});
 
 		it('should be able to get blocks list from every peer', function () {
