@@ -71,7 +71,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					describe('when functional tests are successfully executed against 127.0.0.1:5000', function () {
 
 						before(function (done) {
-							setup.shell.runMochaTests(['test/functional/http/get/blocks.js'], done);
+							setup.shell.runMochaTests(['test/functional/http/get/blocks.js', 'test/functional/http/get/transactions.js'], done);
 						});
 
 						scenarios.propagation.blocks(params);
