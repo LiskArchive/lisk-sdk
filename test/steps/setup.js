@@ -149,6 +149,11 @@ const setUpInputUtilsStubs = () => {
 };
 
 function setUpPrintStubs() {
+	[
+		'logError',
+		'logWarning',
+	].forEach(methodName => sandbox.stub(print, methodName));
+
 	const printFunction = sandbox.spy();
 	sandbox.stub(print, 'printResult').returns(printFunction);
 	this.test.ctx.printFunction = printFunction;
@@ -232,6 +237,7 @@ export function setUpUtilConfig() {
 	setUpFsUtilsStubs();
 	setUpConsoleStubs();
 	setUpLockfileStubs();
+	setUpPrintStubs.call(this);
 	setUpProcessStubs();
 	delete require.cache[require.resolve(CONFIG_PATH)];
 }
