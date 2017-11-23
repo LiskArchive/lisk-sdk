@@ -30,6 +30,15 @@ var pathFiles = [
 	'./1.X.validation/1.6.dapps.inTransfer',
 	'./1.X.validation/1.7.dapps.outTransfer',
 
+	'./4.X.unconfirmed/4.0.transfer',
+	'./4.X.unconfirmed/4.1.second.secret',
+	'./4.X.unconfirmed/4.2.delegate',
+	'./4.X.unconfirmed/4.3.votes',
+	'./4.X.unconfirmed/4.4.multisig',
+	'./4.X.unconfirmed/4.5.dapps',
+	'./4.X.unconfirmed/4.6.dapps.inTransfer',
+	'./4.X.unconfirmed/4.7.dapps.outTransfer',
+
 	'./4.X.validation/4.0.transfer',
 	'./4.X.validation/4.1.second.secret',
 	'./4.X.validation/4.2.delegate',
