@@ -22,8 +22,8 @@ import {
 	writeJsonSync,
 } from '../utils/fs';
 import {
-	logConfigurationWarningMessage,
-	logFileSystemErrorMessage,
+	logWarning,
+	logError,
 } from './error';
 
 const configDirName = '.lisky';
@@ -38,7 +38,8 @@ const attemptCallWithWarning = (fn, path) => {
 	try {
 		return fn();
 	} catch (_) {
-		return logConfigurationWarningMessage(path);
+		const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
+		return logWarning(warning);
 	}
 };
 
@@ -46,7 +47,7 @@ const attemptCallWithError = (fn, errorCode, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
-		logFileSystemErrorMessage(errorMessage);
+		logError(errorMessage);
 		return process.exit(errorCode);
 	}
 };

@@ -23,13 +23,23 @@ export class ValidationError extends Error {
 	}
 }
 
-export const logConfigurationWarningMessage = (path) => {
-	const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
-	console.warn(chalk.yellow(warning));
-	return null;
-};
+const PLACEHOLDERS = [
+	'%s',
+	'%d',
+	'%i',
+	'%f',
+	'%j',
+	'%o',
+	'%O',
+];
 
-export const logFileSystemErrorMessage = (errorMessage) => {
-	console.error(chalk.red(errorMessage));
-	return null;
-};
+const colourArg = (arg, colour) => chalk[colour](arg);
+const colourArgs = (args, colour) => args.map(arg => chalk[colour](arg));
+
+const wrapLogFunction = (fn, colour) => (...args) =>
+	(PLACEHOLDERS.some(placeholder => args[0].includes(placeholder))
+		? fn(colourArg(args[0], colour), ...args.slice(1))
+		: fn(...colourArgs(args, colour)));
+
+export const logWarning = wrapLogFunction(console.warn, 'yellow');
+export const logError = wrapLogFunction(console.error, 'red');
