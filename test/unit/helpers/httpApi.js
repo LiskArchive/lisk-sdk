@@ -2,8 +2,6 @@
 
 var expect = require('chai').expect;
 var sinon = require('sinon');
-var extend = require('extend');
-var rewire = require('rewire');
 
 var checkIpInList = require('../../../helpers/checkIpInList');
 var httpApi = require('../../../helpers/httpApi');
@@ -22,7 +20,6 @@ var spyConsoleTrace;
 var resMock;
 var loggerMock;
 var checkIpInListStub;
-var checkIpInListRewired;
 
 describe('httpApi', function () {
 
@@ -39,10 +36,6 @@ describe('httpApi', function () {
 			validSendObject = {success: false, error: 'API error: ' + validError.message};
 			validNextSpy = sinon.spy();
 			spyConsoleTrace = sinon.spy(console, 'trace');
-			//not possible to stub this function, see: https://github.com/sinonjs/sinon/issues/562
-			// checkIpInListStub = sinon.stub(checkIpInList, 'CheckIpInList');
-			// checkIpInListRewired = rewire('../../../helpers/checkIpInList');
-			// checkIpInListRewired = sinon.stub();
 
 			loggerMock = {
 				trace: sinon.spy(),
@@ -253,10 +246,8 @@ describe('httpApi', function () {
 					};
 					validSanitizeReport = { isValid: true };
 					validReqMock = {
-						//callsArgWith causes the stub to call the argument at the provided index as a callback function, and passes args.
-						sanitize: sinon.stub()//.callsArgWith(2, validSanitizeError, validSanitizeReport, validSanitizeSanitized)
+						sanitize: sinon.stub()
 					};
-					//yields causes the stub to call the first callback it receives with the provided arguments (if any).
 					validReqMock.sanitize.yields(validSanitizeError,validSanitizeReport,validSanitizeSanitized);
 					validReqMock[validProperty] = validValue;
 					validSanitizeCallback = sinon.stub();
@@ -317,7 +308,7 @@ describe('httpApi', function () {
 				expect(validNextSpy.calledOnce).to.be.true;
 			});
 		});
-		//delayed: check of checkIpInList does not work
+
 		describe.skip('applyAPIAccessRules', function () {
 
 			var validConfig;
@@ -331,11 +322,6 @@ describe('httpApi', function () {
 					},
 					api: sinon.stub()
 				};
-
-				/*validConfig.peers = {
-					enabled: sinon.stub(),
-					access: {blacklist: sinon.stub()}
-				};*/
 			});
 
 			beforeEach(function () {
@@ -382,14 +368,14 @@ describe('httpApi', function () {
 					//expect(checkIpInlistStub.calledWith(validConfig.peers.access.blacklist,validReq.ip, false)).to.be.true;
 				});*/
 
-				describe('when config.api.enabled = true and checkIpInList() = true', function () {
+				describe('when config.api.enabled = true and checkIpInList() = true and config.api.access.public = false', function () {
 
 					it('should call rejectDisallowed with "true" and "true" as arguments', function () {
 
 					});
 				});
 
-				describe('when config.api.enabled = true and config.api.access.public = true', function () {
+				describe('when config.api.enabled = true and config.api.access.public = true and checkIpInList() = false', function () {
 
 					it('should call rejectDisallowed with "true" and "true" as arguments', function () {
 
@@ -552,7 +538,7 @@ describe('httpApi', function () {
 		describe('when error is defined', function () {
 
 			it('should call res.json with {"success": false, "error": err}', function () {
-				sinon.assert.calledWith(validRes.json,{'success': false, 'error': validError});
+				expect(validRes.json.calledWith({'success': false, 'error': validError})).to.be.true;
 			});
 		});
 
@@ -564,7 +550,7 @@ describe('httpApi', function () {
 
 			it('should call res.json with extend({}, {"success": true}, response)', function () {
 				validResponse.success = true;
-				sinon.assert.calledWith(validRes.json,validResponse);
+				expect(validRes.json.calledWith(validResponse)).to.be.true;
 			});
 		});
 	});
@@ -593,7 +579,7 @@ describe('httpApi', function () {
 			httpApi.respondWithCode(validRes, validError, validResponse);
 		});
 
-		after(function () {
+		afterEach(function () {
 			validRes.json.reset();
 		});
 
@@ -608,8 +594,8 @@ describe('httpApi', function () {
 
 			it('should call res.status(500).json() with error in json format', function () {
 				var tmp_error = validError.code ? validError.code : apiCodes.INTERNAL_SERVER_ERROR;
-				sinon.assert.calledWith(validRes.status,tmp_error);
-				sinon.assert.called(validRes.json);
+				expect(validRes.status.calledWith(tmp_error)).to.be.true;
+				expect(validRes.json.calledOnce).to.be.true;
 			});
 		});
 
@@ -622,8 +608,8 @@ describe('httpApi', function () {
 			describe('when response is empty', function () {
 
 				it('should call res.status with Code = 204 and res.json', function () {
-					sinon.assert.calledWith(validRes.status,apiCodes.EMPTY_RESOURCES_OK);
-					sinon.assert.called(validRes.json);
+					expect(validRes.status.calledWith(apiCodes.EMPTY_RESOURCES_OK)).to.be.true;
+					expect(validRes.json.calledOnce).to.be.true;
 				});
 			});
 
@@ -636,8 +622,8 @@ describe('httpApi', function () {
 				});
 
 				it('should call res.status with Code = 200 and res.json', function () {
-					sinon.assert.calledWith(validRes.status,apiCodes.OK);
-					sinon.assert.called(validRes.json);
+					expect(validRes.status.calledWith(apiCodes.OK)).to.be.true;
+					expect(validRes.json.calledOnce).to.be.true;
 				});
 			});
 		});
@@ -665,8 +651,7 @@ describe('httpApi', function () {
 		it('should call router.use with middleware.notFound', function () {
 			expect(validRouter.use.calledWith(httpApi.middleware.notFound)).to.be.true;
 		});
-		//.calledWith() does not work for complex arguments
-		//https://stackoverflow.com/questions/21161340/how-to-test-multiple-calls-to-the-same-function-with-different-params
+
 		it('should call router.use with middleware.blockchainReady.bind(null, validIsLoaded)', function () {
 			 expect(validRouter.use.args[1][0].toString()).to.equal(httpApi.middleware.blockchainReady.bind(null, validIsLoaded).toString());
 		});
