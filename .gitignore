@@ -17,6 +17,7 @@ sftp-config.json
 *.swo
 tmux-client-*.log
 Session.vim
+test/integration/pm2.integration.json
 test/integration/logs/
 test/integration/configs/
 !test/integration/configs/config.non-forge.json
