@@ -64,7 +64,10 @@ module.exports = {
 			url: endpoints.versions[currentVersion].getBlocks(ip || '127.0.0.1', port || 4000),
 			headers: headers
 		}).then(function (res) {
-			return res.body.blocks;
+			if (res.status !== apiCodes.OK) {
+				throw new Error('Unable to get blocks from peer: ' + res.body);
+			}
+			return JSON.parse(res.body).blocks;
 		});
 	},
 
@@ -107,7 +110,6 @@ module.exports = {
 				publicKey: keys.publicKey
 			}
 		}).then(function (res) {
-			console.log('forging enabled res:', res.body, res.status);
 			if (res.status !== apiCodes.OK) {
 				throw new Error('Unable to enable forging for delagate with publicKey: ' + keys.publicKey);
 			}
@@ -118,25 +120,3 @@ module.exports = {
 		});
 	}
 };
-
-// var enableForging = function (keys, port, ip) {
-// 	return popsicle.put({
-// 		url: endpoints.versions[currentVersion].enableForging(ip || '127.0.0.1', port || 4000),
-// 		headers: headers,
-// 		body: {
-// 			key: 'elephant tree paris dragon chair galaxy',
-// 			publicKey: keys.publicKey
-// 		}
-// 	}).then(function (res) {
-// 		if (res.statusCode !== apiCodes.OK) {
-// 			throw new Error('Unable to enable forging for delagate with publicKey: ' + keys.publicKey);
-// 		}
-// 		return res.body.forging;
-// 	}).catch(function () {
-// 		throw new Error('Unable to enable forging for delagate with publicKey: ' + keys.publicKey);
-// 	});
-// };
-//
-// enableForging({
-// 	"publicKey": "3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135"
-// });

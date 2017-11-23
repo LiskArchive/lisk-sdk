@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var sinon = require('sinon');
 var devConfig = require('../config.json');
 var utils = require('./utils');
 var setup = require('./setup');
@@ -37,7 +38,6 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				configurations.forEach(function (configuration, index) {
 					configuration.forging.force = false;
 					configuration.forging.secret = secrets.slice(index * secretsMaxLength, (index + 1) * secretsMaxLength);
-					console.log('configuration_ ', configuration.port, configuration.forging.secret.length);
 				});
 			});
 
@@ -67,6 +67,17 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					});
 
 					scenarios.network.peers(params);
+
+					describe('when functional tests are successfully executed against 127.0.0.1:5000', function () {
+
+						before(function (done) {
+							setup.shell.runMochaTests(['test/functional/http/get/blocks.js'], done);
+						});
+
+						scenarios.propagation.blocks(params);
+
+						scenarios.propagation.transactions(params);
+					});
 				});
 			});
 		});
