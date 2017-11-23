@@ -112,6 +112,7 @@ transactionsByTypes[transactionTypes.DAPP] = {
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.801Z'
 };
+
 transactionsByTypes[transactionTypes.VOTE] = {
 	type: 3,
 	amount: 0,
@@ -130,6 +131,7 @@ transactionsByTypes[transactionTypes.VOTE] = {
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.780Z'
 };
+
 transactionsByTypes[transactionTypes.DELEGATE] = {
 	type: 2,
 	amount: 0,
@@ -220,9 +222,9 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 
 function expectedOrderOfTransactions (sortedTransactions) {
 	var sorted = true;
-	for (var i = 0; i < sortedTransactions.length - 1; i++) {
 
 		// transactions should always be in ascending order of types unless next transaction is MULTI
+	for (var i = 0; i < sortedTransactions.length - 1; i++) {
 		if (sortedTransactions[i].type > sortedTransactions[i+1].type
 			&& sortedTransactions[i+1].type !== transactionTypes.MULTI) {
 			sorted = false;
@@ -243,6 +245,7 @@ function expectedOrderOfTransactions (sortedTransactions) {
 			return sorted;
 		}
 	}
+
 	return sorted;
 }
 
