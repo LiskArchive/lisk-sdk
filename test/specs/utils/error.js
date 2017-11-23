@@ -22,7 +22,7 @@ describe('Custom Error Message', () => {
 		When('the validation error is thrown', when.validationErrorIsThrown, () => {
 			Then('it should print the error message in red', then.itShouldPrintTheErrorMessageInRed);
 			Then('the error should have the name "ValidationError"', then.theErrorShouldHaveTheName);
-			Then('the error should be instance of build in error', then.theErrorShouldBeInstanceOfBuildInError);
+			Then('the error should be instance of Node`s built-in error', then.theErrorShouldBeInstanceOfNodesBuiltInError);
 		});
 	});
 });

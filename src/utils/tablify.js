@@ -66,8 +66,8 @@ const tablify = (data) => {
 		head,
 		chars,
 		style: {
-			head: ['cyan'], // disable colors in header cells
-			border: [], // disable colors for the border
+			head: ['cyan'],
+			border: [],
 		},
 	});
 

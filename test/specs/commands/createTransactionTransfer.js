@@ -28,19 +28,19 @@ describe('create transaction transfer command', () => {
 						Given('an address "13356260975429434553L"', given.anAddress, () => {
 							Given('an invalid amount "abc"', given.anInvalidAmount, () => {
 								When('the action is called with the amount, the address and the options', when.theActionIsCalledWithTheAmountTheAddressAndTheOptions, () => {
-									Then('it should reject with message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithValidationErrorAndMessage);
+									Then('it should reject with validation error and message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithValidationErrorAndMessage);
 								});
 							});
 							Given('an invalid amount "100,5"', given.anInvalidAmount, () => {
 								When('the action is called with the amount, the address and the options', when.theActionIsCalledWithTheAmountTheAddressAndTheOptions, () => {
-									Then('it should reject with message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithValidationErrorAndMessage);
+									Then('it should reject with validation error and message "Amount must be a number with no more than 8 decimal places."', then.itShouldRejectWithValidationErrorAndMessage);
 								});
 							});
 						});
 						Given('an amount "100.123"', given.anAmount, () => {
 							Given('an invalid address "1234567890LL"', given.anInvalidAddress, () => {
 								When('the action is called with the amount, the address and the options', when.theActionIsCalledWithTheAmountTheAddressAndTheOptions, () => {
-									Then('it should reject with message "1234567890LL is not a valid address."', then.itShouldRejectWithValidationErrorAndMessage);
+									Then('it should reject with validation error and message "1234567890LL is not a valid address."', then.itShouldRejectWithValidationErrorAndMessage);
 								});
 							});
 							Given('an address "13356260975429434553L"', given.anAddress, () => {

@@ -23,12 +23,13 @@ export class ValidationError extends Error {
 	}
 }
 
-export const configurationWarningMessage = (path) => {
+export const logConfigurationWarningMessage = (path) => {
 	const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
 	console.warn(chalk.yellow(warning));
 	return null;
 };
 
-export const fileSystemErrorMessage = (errorMessage) => {
+export const logFileSystemErrorMessage = (errorMessage) => {
 	console.error(chalk.red(errorMessage));
+	return null;
 };

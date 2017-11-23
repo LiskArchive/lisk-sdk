@@ -29,12 +29,12 @@ describe('create transaction create multisignature account command', () => {
 							Given('an empty options object', given.anEmptyOptionsObject, () => {
 								Given('a lifetime of "NaN" hours', given.aLifetimeOfHours, () => {
 									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
-										Then('it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
+										Then('it should reject with validation error and message "Lifetime must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
 									});
 								});
 								Given('a lifetime of 5.5 hours', given.aLifetimeOfHours, () => {
 									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
-										Then('it should reject with message "Lifetime must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
+										Then('it should reject with validation error and message "Lifetime must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
 									});
 								});
 							});
@@ -45,12 +45,12 @@ describe('create transaction create multisignature account command', () => {
 							Given('an empty options object', given.anEmptyOptionsObject, () => {
 								Given('a minimum of "NaN" signatures', given.aMinimumOfSignatures, () => {
 									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
-										Then('it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
+										Then('it should reject with validation error and message "Minimum number of signatures must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
 									});
 								});
 								Given('a minimum of 5.5 signatures', given.aMinimumOfSignatures, () => {
 									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
-										Then('it should reject with message "Minimum number of signatures must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
+										Then('it should reject with validation error and message "Minimum number of signatures must be an integer."', then.itShouldRejectWithValidationErrorAndMessage);
 									});
 								});
 							});
@@ -59,14 +59,14 @@ describe('create transaction create multisignature account command', () => {
 							Given('a keysgroup with keys "+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca"', given.aKeysgroupWithKeys, () => {
 								Given('an empty options object', given.anEmptyOptionsObject, () => {
 									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
-										Then('it should reject with message "Error processing public key +215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca: Invalid hex string."', then.itShouldRejectWithValidationErrorAndMessage);
+										Then('it should reject with validation error and message "Error processing public key +215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca: Invalid hex string."', then.itShouldRejectWithValidationErrorAndMessage);
 									});
 								});
 							});
 							Given('a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca21"', given.aKeysgroupWithKeys, () => {
 								Given('an empty options object', given.anEmptyOptionsObject, () => {
 									When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
-										Then('it should reject with message "Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca21 length differs from the expected 64 hex characters for a public key."', then.itShouldRejectWithValidationErrorAndMessage);
+										Then('it should reject with validation error and message "Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca21 length differs from the expected 64 hex characters for a public key."', then.itShouldRejectWithValidationErrorAndMessage);
 									});
 								});
 							});

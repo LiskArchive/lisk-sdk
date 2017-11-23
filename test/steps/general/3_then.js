@@ -19,7 +19,7 @@ import {
 } from '../utils';
 import { ValidationError } from '../../../src/utils/error';
 
-export function theErrorShouldBeInstanceOfBuildInError() {
+export function theErrorShouldBeInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
 	return (testError).should.be.instanceOf(Error);
 }

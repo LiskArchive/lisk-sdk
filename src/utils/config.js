@@ -22,8 +22,8 @@ import {
 	writeJsonSync,
 } from '../utils/fs';
 import {
-	configurationWarningMessage,
-	fileSystemErrorMessage,
+	logConfigurationWarningMessage,
+	logFileSystemErrorMessage,
 } from './error';
 
 const configDirName = '.lisky';
@@ -38,7 +38,7 @@ const attemptCallWithWarning = (fn, path) => {
 	try {
 		return fn();
 	} catch (_) {
-		return configurationWarningMessage(path);
+		return logConfigurationWarningMessage(path);
 	}
 };
 
@@ -46,7 +46,7 @@ const attemptCallWithError = (fn, errorCode, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
-		fileSystemErrorMessage(errorMessage);
+		logFileSystemErrorMessage(errorMessage);
 		return process.exit(errorCode);
 	}
 };
