@@ -65,6 +65,23 @@ Node.prototype.internal = {
 		}
 
 		return setImmediate(cb, null, fullList);
+	},
+
+	/**
+	 * Toggle current forging status for a list of delegate
+	 *
+	 * @param {string} publicKey
+	 * @param {string} decryptionKey
+	 * @param {function} cb - Callback function
+	 *
+	 * @returns {setImmediateCallbackObject}
+	 */
+	toggleForgingStatus: function (publicKey, decryptionKey, cb) {
+		modules.delegates.toggleForgingStatus(publicKey, decryptionKey, function (err, result) {
+			if (err) { return setImmediate(cb, err); }
+
+			return setImmediate(cb, null, result);
+		});
 	}
 };
 

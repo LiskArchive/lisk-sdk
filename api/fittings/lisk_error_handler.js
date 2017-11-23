@@ -26,6 +26,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		debug('exec: %s', context.error.message);
 		debug('status: %s', context.statusCode);
+		debug('stack: %s', context.error.stack);
 
 		if (context.statusCode === 500) {
 			if(!fittingDef.handle500Errors) {

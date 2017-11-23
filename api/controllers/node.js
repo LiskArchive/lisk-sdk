@@ -84,4 +84,24 @@ NodeController.getForgingStatus = function (context, next) {
 	});
 };
 
+NodeController.updateForgingStatus = function (context, next) {
+
+	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
+		context.statusCode = apiCodes.FORBIDDEN;
+		return next(new Error('Access Denied'));
+	}
+
+	var publicKey = context.request.swagger.params.data.value.publicKey;
+	var decryptionKey = context.request.swagger.params.data.value.decryptionKey;
+
+	modules.node.internal.toggleForgingStatus(publicKey, decryptionKey, function (err, data) {
+		if (err) {
+			context.statusCode = apiCodes.NOT_FOUND;
+			return next(err);
+		}
+
+		next(null, [data]);
+	});
+};
+
 module.exports = NodeController;

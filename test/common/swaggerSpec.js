@@ -121,11 +121,11 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 				if(p.in === 'query') {
 					query[param] = parameters[param];
 				} else if (p.in === 'body') {
-					post[param] = parameters[param];
+					post = parameters[param];
 				} else if (p.in === 'path') {
 					callPath = callPath.replace('{' + param + '}', parameters[param]);
 				} else if (p.in === 'formData') {
-					post[param] = parameters[param];
+					post = parameters[param];
 					formData = true;
 				} else if (p.in === 'header') {
 					headers[param] = parameters[param];

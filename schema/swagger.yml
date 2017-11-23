@@ -250,6 +250,7 @@ paths:
     get:
       tags:
         - Node
+        - Delegates
         - Private
       summary: returns the status of Forging for a delegate
       operationId: getForgingStatus
@@ -272,6 +273,63 @@ paths:
           description: Access denied
           schema:
             $ref: '#/definitions/AccessDeniedError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+    put:
+      tags:
+        - Node
+        - Delegates
+        - Private
+      summary: Toggles forging for the associated Delegate
+      operationId: updateForgingStatus
+      description:
+        Upon passing the correct key and publicKey, forging will be enabled or disabled
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Secret key for the delegate account
+          required: true
+          schema:
+            type: object
+            required:
+              - decryptionKey
+              - publicKey
+            properties:
+              decryptionKey:
+                type: string
+                example: "happy tree friends"
+                minLength: 5
+              publicKey:
+                type: string
+                example: "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
+                format: publicKey
+      responses:
+        200:
+          description: Delegate forging toggled on or off
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        403:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        404:
+          description: Provided public key not found
+          schema:
+            $ref: '#/definitions/NotFoundError'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
@@ -946,6 +1004,16 @@ definitions:
       syncing:
         type: boolean
         example: false
+
+  NotFoundError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
 
   AccessDeniedError:
     type: object
