@@ -3,10 +3,13 @@
 .eslintignore
 .eslintrc.json
 .gitignore
+.npmignore
 .nvmrc
 .nycrc
 .snyk
-Jenkinsfile
+Jenkinsfile*
+package-lock.json
+yarn.lock
 
 .idea/
 .nyc_output/
