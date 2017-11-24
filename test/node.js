@@ -49,19 +49,6 @@ node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
 node.nonce = randomstring.generate(16);
 
-// Transaction fees
-node.fees = {
-	voteFee: node.constants.fees.vote,
-	transactionFee: node.constants.fees.send,
-	secondPasswordFee: node.constants.fees.secondSignature,
-	delegateRegistrationFee: node.constants.fees.delegate,
-	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappRegistrationFee: node.constants.fees.dappRegistration,
-	dappDepositFee: node.constants.fees.dappDeposit,
-	dappWithdrawalFee: node.constants.fees.dappWithdrawal,
-	dataFee: node.constants.fees.data
-};
-
 node.swaggerDef = swaggerHelper.getSwaggerSpec();
 
 // Optional logging
