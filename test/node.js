@@ -12,6 +12,7 @@ var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
 var swagger = require('../config/swagger');
 var swaggerHelper = require('../helpers/swagger');
+var http = require('./common/httpCommunication');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -40,8 +41,7 @@ node.config.root = process.cwd();
 require('colors');
 
 // Node configuration
-node.baseUrl = 'http://' + node.config.address + ':' + node.config.httpPort;
-node.api = node.supertest(node.baseUrl);
+node.api = node.supertest(http.baseUrl);
 
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds

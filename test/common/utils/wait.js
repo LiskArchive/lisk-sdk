@@ -15,7 +15,7 @@ wait.onNewRound = function (cb) {
 		} else {
 			var nextRound = slots.calcRound(height);
 			var blocksToWait = nextRound * slots.delegates - height;
-			wait.debug('blocks to wait: '.grey, blocksToWait);
+			console.debug('blocks to wait: '.grey, blocksToWait);
 			wait.waitForNewBlock(height, blocksToWait, cb);
 		}
 	});
@@ -55,7 +55,7 @@ wait.waitForNewBlock = function (height, blocksToWait, cb) {
 
 	async.doWhilst(
 		function (cb) {
-			var request = popsicle.get(wait.baseUrl + '/api/node/status');
+			var request = popsicle.get(http.baseUrl + '/api/node/status');
 
 			request.use(popsicle.plugins.parse(['json']));
 

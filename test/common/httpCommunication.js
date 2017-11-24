@@ -1,8 +1,14 @@
 'use strict';
 
+var config = require('../config.json');
 var node = require('../node');
 
+var baseUrl = 'http://' + config.address + ':' + config.httpPort;
+
 var httpCommunication = {
+
+	baseUrl: baseUrl,
+
 	abstractRequest: function (options, done) {
 		var request = node.api[options.verb.toLowerCase()](options.path);
 
@@ -50,7 +56,7 @@ var httpCommunication = {
 	},
 
 	getHeight: function (cb) {
-		var request = node.popsicle.get(node.baseUrl + '/api/node/status');
+		var request = node.popsicle.get(baseUrl + '/api/node/status');
 
 		request.use(node.popsicle.plugins.parse(['json']));
 
