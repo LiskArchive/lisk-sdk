@@ -1,12 +1,6 @@
 pipeline {
 	agent { node { label 'lisky' } }
 	stages {
-		stage('Prepare workspace') {
-			steps {
-				deleteDir()
-				checkout scm
-			}
-		}
 		stage('Install dependencies') {
 			steps {
 				sh 'npm install --verbose'
