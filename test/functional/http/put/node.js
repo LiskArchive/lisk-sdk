@@ -27,6 +27,9 @@ describe('PUT /node/status/forging', function () {
 		});
 	});
 
+	// TODO: Find a library for supertest to make request from a proxy server
+	it('called from unauthorized IP should fail');
+
 	it('using no params should fail', function () {
 		return toggleForgingEndpoint.makeRequest({data: {}}, 400).then(function (res) {
 			expectSwaggerParamError(res, 'data');

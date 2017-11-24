@@ -90,6 +90,9 @@ describe('GET /node', function () {
 
 			var forgingEndpoint = new swaggerEndpoint('GET /node/status/forging');
 
+			// TODO: Find a library for supertest to make request from a proxy server
+			it('called from unauthorized IP should fail');
+
 			it('using no params should return full list of internal forgers', function () {
 				return forgingEndpoint.makeRequest({}, 200).then(function (res) {
 					res.body.data.length.should.be.eql(node.config.forging.secret.length);
