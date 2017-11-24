@@ -10,6 +10,9 @@ var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPr
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var getAccountsPromise = require('../../../common/apiHelpers').getAccountsPromise;
 
+var guestbookDapp = utils.random.randomApplication();
+var blockDataDapp = utils.random.randomApplication();
+
 describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 	var transaction;
@@ -40,7 +43,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(account.password, null, guestbookDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -48,9 +51,9 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				node.guestbookDapp.id = transaction.id;
-				transactionsToWaitFor.push(node.guestbookDapp.id);
-				transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, node.blockDataDapp);
+				guestbookDapp.id = transaction.id;
+				transactionsToWaitFor.push(guestbookDapp.id);
+				transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, blockDataDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -58,8 +61,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				node.blockDataDapp.id = transaction.id;
-				transactionsToWaitFor.push(node.blockDataDapp.id);
+				blockDataDapp.id = transaction.id;
+				transactionsToWaitFor.push(blockDataDapp.id);
 
 				return waitForConfirmations(transactionsToWaitFor);
 			});
@@ -72,7 +75,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('dappId', function () {
 
 			it('without should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				delete transaction.asset.outTransfer.dappId;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -83,7 +86,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -94,7 +97,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -105,7 +108,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -116,7 +119,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -151,7 +154,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('transactionId', function () {
 			
 			it('without should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				delete transaction.asset.outTransfer.transactionId;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -162,7 +165,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -173,7 +176,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -184,7 +187,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -195,7 +198,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -206,7 +209,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('empty string should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, '', utils.accounts.gAccount.address, 1, account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, '', utils.accounts.gAccount.address, 1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -217,7 +220,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with invalid string should fail', function () {
 				var invalidTransactionId = '1L';
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, invalidTransactionId, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, invalidTransactionId, utils.accounts.gAccount.address, Date.now(), account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -230,7 +233,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('recipientId', function () {
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.recipientId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -241,7 +244,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.recipientId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -252,7 +255,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.recipientId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -263,7 +266,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), account.password);
 				transaction.recipientId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -274,7 +277,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('empty string should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, '', 1, account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, '', 1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -285,7 +288,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with invalid string should fail', function () {
 				var invalidRecipientId = '1X';
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, invalidRecipientId, Date.now(), account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, invalidRecipientId, Date.now(), account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -298,7 +301,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('amount', function () {
 
 			it('using < 0 should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, -1, account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, -1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -318,7 +321,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 						var balance = res.body.data[0].balance;
 						var amount = new node.bignum(balance).plus('1').toNumber();
-						transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, amount, account.password);
+						transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, amount, account.password);
 
 						return sendTransactionPromise(transaction);
 					})
@@ -366,7 +369,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		});
 
 		it('with correct data should be ok', function () {
-			transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, 10 * node.normalizer, account.password);
+			transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, 10 * node.normalizer, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -378,7 +381,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('from the author itself', function () {
 
 			it('with minimal funds should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.blockDataDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, 10 * node.normalizer, accountMinimalFunds.password);
+				transaction = node.lisk.transfer.createOutTransfer(blockDataDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, 10 * node.normalizer, accountMinimalFunds.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -388,7 +391,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with enough funds should be ok', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, 10 * node.normalizer, account.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, 10 * node.normalizer, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

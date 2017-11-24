@@ -10,6 +10,8 @@ var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconf
 var getPendingMultisignaturesPromise = require('../common/apiHelpers').getPendingMultisignaturesPromise;
 var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
 
+var guestbookDapp = utils.random.randomApplication();
+
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
 
 	describe('after transactions get confirmed', function () {
@@ -103,13 +105,13 @@ function invalidAssets (option, badTransactions) {
 				transaction = node.lisk.multisignature.createMultisignature(utils.accounts.gAccount.password, null, ['+' + utils.accounts.eAccount.publicKey], 1, 2);
 				break;
 			case 'dapp':
-				transaction = node.lisk.dapp.createDapp(utils.accounts.gAccount.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(utils.accounts.gAccount.password, null, guestbookDapp);
 				break;
 			case 'inTransfer':
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), utils.accounts.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(guestbookDapp.id, Date.now(), utils.accounts.gAccount.password);
 				break;
 			case 'outTransfer':
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), utils.accounts.gAccount.password);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), utils.accounts.gAccount.password);
 				break;
 		};
 	});

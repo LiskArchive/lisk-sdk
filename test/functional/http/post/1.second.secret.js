@@ -10,6 +10,9 @@ var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPr
 var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var guestbookDapp = utils.random.randomApplication();
+var blockDataDapp = utils.random.randomApplication();
+
 describe('POST /api/transactions (type 1) register second secret', function () {
 
 	var transaction, signature;
@@ -50,7 +53,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(account.password, null, guestbookDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -58,7 +61,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
-				node.guestbookDapp.transactionId = transaction.id;
+				guestbookDapp.transactionId = transaction.id;
 
 				transactionsToWaitFor.push(transaction.id);
 				return waitForConfirmations(transactionsToWaitFor);
@@ -204,7 +207,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 6 - inTransfer', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
+				transaction = node.lisk.transfer.createInTransfer(guestbookDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -217,7 +220,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 7 - outTransfer', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.transactionId, utils.random.randomTransaction().id, utils.random.randomAccount().address, 10 * node.normalizer, account.password, account.secondPassword);
+				transaction = node.lisk.transfer.createOutTransfer(guestbookDapp.transactionId, utils.random.randomTransaction().id, utils.random.randomAccount().address, 10 * node.normalizer, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -441,21 +444,21 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 6 - inTransfer', function () {
 			
 			before(function () {
-				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.blockDataDapp);
+				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, blockDataDapp);
 
 				return sendTransactionPromise(transaction)
 					.then(function (res) {
 						node.expect(res).to.have.property('status').to.equal(200);
 						node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 						goodTransactionsEnforcement.push(transaction);
-						node.blockDataDapp.transactionId = transaction.id;
+						blockDataDapp.transactionId = transaction.id;
 
-						return waitForConfirmations([node.blockDataDapp.transactionId]);
+						return waitForConfirmations([blockDataDapp.transactionId]);
 					});
 			});
 
 			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.transactionId, 10 * node.normalizer, account.password);
+				transaction = node.lisk.transfer.createInTransfer(blockDataDapp.transactionId, 10 * node.normalizer, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -465,7 +468,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using second passphrase not matching registered secondPublicKey should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.transactionId, 10 * node.normalizer, account.password, 'wrong second password');
+				transaction = node.lisk.transfer.createInTransfer(blockDataDapp.transactionId, 10 * node.normalizer, account.password, 'wrong second password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -475,7 +478,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using correct second passphrase should be ok', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
+				transaction = node.lisk.transfer.createInTransfer(blockDataDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
