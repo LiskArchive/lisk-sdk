@@ -276,6 +276,8 @@ export function setUpUtilWrapActionCreator() {
 }
 
 export function setUpUtilPrint() {
+	delete require.cache[require.resolve('../../src/utils/print')];
+	setUpConsoleStubs();
 	setUpHelperStubs();
 }
 

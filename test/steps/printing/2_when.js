@@ -17,8 +17,30 @@ import {
 	shouldUseJsonOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
-import { printResult } from '../../../src/utils/print';
+import {
+	printResult,
+} from '../../../src/utils/print';
 import tablify from '../../../src/utils/tablify';
+
+export function logErrorIsCalledWithTheArguments() {
+	const { testArguments } = this.test.ctx;
+	// NOTE: This dynamic require is necessary because otherwise the log
+	// function is created with a bound console method rather than the stub.
+	// eslint-disable-next-line global-require
+	const { logError } = require('../../../src/utils/print');
+	const returnValue = logError(...testArguments);
+	this.test.ctx.returnValue = returnValue;
+}
+
+export function logWarningIsCalledWithTheArguments() {
+	const { testArguments } = this.test.ctx;
+	// NOTE: This dynamic require is necessary because otherwise the log
+	// function is created with a bound console method rather than the stub.
+	// eslint-disable-next-line global-require
+	const { logWarning } = require('../../../src/utils/print');
+	const returnValue = logWarning(...testArguments);
+	this.test.ctx.returnValue = returnValue;
+}
 
 export function theResultIsPrinted() {
 	const { vorpal, result, options } = this.test.ctx;

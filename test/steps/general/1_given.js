@@ -15,8 +15,13 @@
  */
 import {
 	getFirstQuotedString,
+	getQuotedStrings,
 } from '../utils';
 import { ValidationError } from '../../../src/utils/error';
+
+export function stringArguments() {
+	this.test.ctx.testArguments = getQuotedStrings(this.test.parent.title);
+}
 
 export function aFunctionThatThrowsAValidationError() {
 	const validationErrorMessage = getFirstQuotedString(this.test.parent.title);
