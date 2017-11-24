@@ -241,7 +241,7 @@ DApp.prototype.getBytes = function (transaction) {
  * @return {setImmediateCallback} cb
  */
 DApp.prototype.apply = function (transaction, block, sender, cb) {
-	// This cleans up our unconfirmed state for dapp names
+	// Deletes dapp name and link from unconfirmed state
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
