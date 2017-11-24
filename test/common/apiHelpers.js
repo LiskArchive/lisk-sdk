@@ -6,7 +6,7 @@ var node = require('../node');
 var utils = require('../common/utils');
 var http = require('./httpCommunication');
 
-var waitForBlocks = node.Promise.promisify(node.waitForBlocks);
+var waitForBlocks = node.Promise.promisify(utils.wait.waitForBlocks);
 
 /**
  * A helper method to get path based on swagger

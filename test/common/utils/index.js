@@ -2,5 +2,6 @@
 
 module.exports = {
 	accounts: require('./accounts'),
-	random: require('./random')
+	random: require('./random'),
+	wait: require('./wait')
 };

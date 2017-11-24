@@ -10,7 +10,7 @@ var constants = require('../../../../helpers/constants.js');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var waitForBlocksPromise = node.Promise.promisify(utils.wait.waitForBlocks);
 
 describe('GET /api/voters', function () {
 

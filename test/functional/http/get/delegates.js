@@ -13,8 +13,8 @@ var getForgingStatusPromise = require('../../../common/apiHelpers').getForgingSt
 var getDelegatesPromise = require('../../../common/apiHelpers').getDelegatesPromise;
 var putForgingDelegatePromise = require('../../../common/apiHelpers').putForgingDelegatePromise;
 var getForgersPromise = require('../../../common/apiHelpers').getForgersPromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
-var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
+var onNewBlockPromise = node.Promise.promisify(utils.wait.onNewBlock);
+var onNewRoundPromise = node.Promise.promisify(utils.wait.onNewRound);
 
 describe('GET /api/delegates', function () {
 

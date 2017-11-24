@@ -12,7 +12,6 @@ var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
 var swagger = require('../config/swagger');
 var swaggerHelper = require('../helpers/swagger');
-var http = require('./common/httpCommunication');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -58,89 +57,6 @@ if (process.env.SILENT === 'true') {
 } else {
 	node.debug = console.log;
 }
-
-// Run callback on new round
-node.onNewRound = function (cb) {
-	http.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			var nextRound = slots.calcRound(height);
-			var blocksToWait = nextRound * slots.delegates - height;
-			node.debug('blocks to wait: '.grey, blocksToWait);
-			node.waitForNewBlock(height, blocksToWait, cb);
-		}
-	});
-};
-
-// Upon detecting a new block, do something
-node.onNewBlock = function (cb) {
-	http.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			node.waitForNewBlock(height, 2, cb);
-		}
-	});
-};
-
-// Waits for (n) blocks to be created
-node.waitForBlocks = function (blocksToWait, cb) {
-	http.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			node.waitForNewBlock(height, blocksToWait, cb);
-		}
-	});
-};
-
-// Waits for a new block to be created
-node.waitForNewBlock = function (height, blocksToWait, cb) {
-	if (blocksToWait === 0) {
-		return setImmediate(cb, null, height);
-	}
-
-	var actualHeight = height;
-	var counter = 1;
-	var target = height + blocksToWait;
-
-	node.async.doWhilst(
-		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
-
-			request.use(node.popsicle.plugins.parse(['json']));
-
-			request.then(function (res) {
-				if (res.status !== 200) {
-					return cb(['Received bad response code', res.status, res.url].join(' '));
-				}
-
-				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
-
-				if (target === res.body.data.height) {
-					height = res.body.data.height;
-				}
-
-				setTimeout(cb, 1000);
-			});
-
-			request.catch(function (err) {
-				return cb(err);
-			});
-		},
-		function () {
-			return actualHeight >= height;
-		},
-		function (err) {
-			if (err) {
-				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, height);
-			}
-		}
-	);
-};
 
 var currentAppScope;
 
