@@ -194,7 +194,7 @@ Vote.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Calls checkConfirmedDelegates based on transaction data
+ * Applies transaction to confirmed state.
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -206,7 +206,7 @@ Vote.prototype.apply = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs
+ * Undoes confirmed state of transaction.
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -220,7 +220,7 @@ Vote.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls checkUnconfirmedDelegates based on transaction data
+ * Applies transaction to unconfirmed state.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
@@ -231,7 +231,7 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs
+ * Undoes unconfirmed state of transaction.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
