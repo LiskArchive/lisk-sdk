@@ -76,7 +76,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 			if (!multisignatureTransaction) {
 				return setImmediate(cb, 'Transaction not found');
 			}
-			// We should do one unified get at the beginning of the process
+			// TODO: We should do one unified get at the beginning of the process
 			modules.accounts.getAccount({
 				publicKey: multisignatureTransaction.senderPublicKey
 			}, function (err, sender) {
@@ -135,7 +135,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 
 			var verify = false;
 			var multisignatures = account.multisignatures;
-			// TODO: Compare the incoming publickey against the senderId multisignatures list here.
+			// TODO: Compare the incoming publickey against the senderId multisignatures list here
 
 			if (multisignatureTransaction.requesterPublicKey) {
 				multisignatures.push(multisignatureTransaction.senderPublicKey);
