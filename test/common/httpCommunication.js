@@ -47,6 +47,24 @@ var httpCommunication = {
 	// Put to the given path
 	put: function (path, params, done) {
 		return this.abstractRequest({verb: 'PUT', path: path, params: params}, done);
+	},
+
+	getHeight: function (cb) {
+		var request = node.popsicle.get(node.baseUrl + '/api/node/status');
+
+		request.use(node.popsicle.plugins.parse(['json']));
+
+		request.then(function (res) {
+			if (res.status !== 200) {
+				return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
+			} else {
+				return setImmediate(cb, null, res.body.data.height);
+			}
+		});
+
+		request.catch(function (err) {
+			return setImmediate(cb, err);
+		});
 	}
 };
 

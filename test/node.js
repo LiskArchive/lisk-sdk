@@ -12,6 +12,7 @@ var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
 var swagger = require('../config/swagger');
 var swaggerHelper = require('../helpers/swagger');
+var http = require('./common/httpCommunication');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -58,28 +59,9 @@ if (process.env.SILENT === 'true') {
 	node.debug = console.log;
 }
 
-// Returns current block height
-node.getHeight = function (cb) {
-	var request = node.popsicle.get(node.baseUrl + '/api/node/status');
-
-	request.use(node.popsicle.plugins.parse(['json']));
-
-	request.then(function (res) {
-		if (res.status !== 200) {
-			return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
-		} else {
-			return setImmediate(cb, null, res.body.data.height);
-		}
-	});
-
-	request.catch(function (err) {
-		return setImmediate(cb, err);
-	});
-};
-
 // Run callback on new round
 node.onNewRound = function (cb) {
-	node.getHeight(function (err, height) {
+	http.getHeight(function (err, height) {
 		if (err) {
 			return cb(err);
 		} else {
@@ -93,7 +75,7 @@ node.onNewRound = function (cb) {
 
 // Upon detecting a new block, do something
 node.onNewBlock = function (cb) {
-	node.getHeight(function (err, height) {
+	http.getHeight(function (err, height) {
 		if (err) {
 			return cb(err);
 		} else {
@@ -104,7 +86,7 @@ node.onNewBlock = function (cb) {
 
 // Waits for (n) blocks to be created
 node.waitForBlocks = function (blocksToWait, cb) {
-	node.getHeight(function (err, height) {
+	http.getHeight(function (err, height) {
 		if (err) {
 			return cb(err);
 		} else {
@@ -210,7 +192,7 @@ node.initApplication = function (cb, initScope) {
 			system: '../modules/system.js',
 			transactions: '../modules/transactions.js',
 			transport: '../modules/transport.js',
-			voters: '../modules/voters.js',
+			voters: '../modules/voters.js'
 		};
 
 		// Init limited application layer
