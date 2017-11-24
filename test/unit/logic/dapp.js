@@ -9,6 +9,7 @@ var sinon   = require('sinon');
 var randomString = require('randomstring');
 
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modulesLoader.js');
 
@@ -706,7 +707,7 @@ describe('dapp', function () {
 
 					var invalidNames = ['', _.fill(new Array(33), 'a'), _.fill(new Array(34), 'b')];
 					var validNames = _.fill(new Array(5), 'a').map(function () {
-						return node.randomApplicationName();
+						return utils.random.randomApplicationName();
 					});
 
 					invalidTypes.forEach(function (type) {
@@ -873,7 +874,7 @@ describe('dapp', function () {
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidLinks = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
 					var validLinks = _.fill(new Array(5), '').map(function () {
-						return node.randomApplicationName();
+						return utils.random.randomApplicationName();
 					});
 
 					invalidTypes.forEach(function (type) {
@@ -912,7 +913,7 @@ describe('dapp', function () {
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidIcons = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
 					var validIcons = _.fill(new Array(5), '').map(function () {
-						return node.randomApplicationName();
+						return utils.random.randomApplicationName();
 					});
 
 					invalidTypes.forEach(function (type) {

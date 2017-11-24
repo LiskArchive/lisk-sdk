@@ -1,6 +1,7 @@
 var expect = require('chai').expect;
 
 var node = require('../../node.js');
+var utils = require('../../common/utils');
 var ZSchema = require('../../../helpers/z_schema.js');
 var schema = require('../../../schema/transactions.js');
 
@@ -31,8 +32,8 @@ describe('transactions', function () {
 		var testBody;
 
 		beforeEach(function () {
-			var account1PublicKey = node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
-			var account2PublicKey = node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			var account1PublicKey = node.lisk.crypto.getKeys(utils.random.randomPassword()).publicKey;
+			var account2PublicKey = node.lisk.crypto.getKeys(utils.random.randomPassword()).publicKey;
 
 			testBody = {
 				blockId: '1465651642158264047',

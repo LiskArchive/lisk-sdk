@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var node = require('../../../node');
 var lisk = node.lisk;
+var utils = require('../../../common/utils');
 var transactionSortFields = require('../../../../sql/transactions').sortFields;
 var modulesLoader = require('../../../common/modulesLoader');
 var transactionTypes = require('../../../../helpers/transactionTypes');
@@ -26,8 +27,8 @@ describe('GET /api/transactions', function () {
 
 	var transactionList = [];
 
-	var account = node.randomAccount();
-	var account2 = node.randomAccount();
+	var account = utils.random.randomAccount();
+	var account2 = utils.random.randomAccount();
 	var minAmount = 20 * node.normalizer; // 20 LSK
 	var maxAmount = 100 * node.normalizer; // 100 LSK
 
@@ -36,8 +37,8 @@ describe('GET /api/transactions', function () {
 
 		var promises = [];
 
-		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, node.gAccount.password);
-		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, node.gAccount.password);
+		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, utils.accounts.gAccount.password);
+		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, utils.accounts.gAccount.password);
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
 		return node.Promise.all(promises).then(function (results) {
@@ -84,7 +85,7 @@ describe('GET /api/transactions', function () {
 		it('cache transactions by the url and parameters when response is a success', function () {
 			var params = [
 				'blockId=' + '1',
-				'senderId=' + node.gAccount.address,
+				'senderId=' + utils.accounts.gAccount.address,
 				'recipientId=' + account.address,
 			];
 
@@ -104,7 +105,7 @@ describe('GET /api/transactions', function () {
 
 		it('should not cache if response is not a success', function () {
 			var params = [
-				'whatever:senderId=' + node.gAccount.address
+				'whatever:senderId=' + utils.accounts.gAccount.address
 			];
 
 			return getTransactionsPromise(params).then(function (res) {
@@ -128,10 +129,10 @@ describe('GET /api/transactions', function () {
 
 				var params = [
 					'blockId=' + '1',
-					'senderId=' + node.gAccount.address + ',' + account.address,
+					'senderId=' + utils.accounts.gAccount.address + ',' + account.address,
 					'recipientId=' + account.address + ',' + account2.address,
-					'senderPublicKey=' + node.gAccount.publicKey,
-					'recipientPublicKey=' + node.gAccount.publicKey + ',' + account.publicKey,
+					'senderPublicKey=' + utils.accounts.gAccount.publicKey,
+					'recipientPublicKey=' + utils.accounts.gAccount.publicKey + ',' + account.publicKey,
 					'limit=' + limit,
 					'offset=' + offset,
 					'sort=' + sort
@@ -150,7 +151,7 @@ describe('GET /api/transactions', function () {
 
 				var params = [
 					'blockId=' + '1',
-					'and:senderId=' + node.gAccount.address,
+					'and:senderId=' + utils.accounts.gAccount.address,
 					'whatever=' + account.address,
 					'limit=' + limit,
 					'offset=' + offset,
@@ -165,7 +166,7 @@ describe('GET /api/transactions', function () {
 
 			it('using invalid condition should fail', function () {
 				var params = [
-					'whatever:senderId=' + node.gAccount.address
+					'whatever:senderId=' + utils.accounts.gAccount.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -176,7 +177,7 @@ describe('GET /api/transactions', function () {
 
 			it('using invalid field name (x:z) should fail', function () {
 				var params = [
-					'and:senderId=' + node.gAccount.address
+					'and:senderId=' + utils.accounts.gAccount.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -337,7 +338,7 @@ describe('GET /api/transactions', function () {
 
 			it('using one senderId should return transactions', function () {
 				var params = [
-					'senderId=' + node.gAccount.address,
+					'senderId=' + utils.accounts.gAccount.address,
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -345,7 +346,7 @@ describe('GET /api/transactions', function () {
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].senderId).to.equal(node.gAccount.address);
+							node.expect(res.body.transactions[i].senderId).to.equal(utils.accounts.gAccount.address);
 						}
 					}
 				});
@@ -353,8 +354,8 @@ describe('GET /api/transactions', function () {
 
 			it('using multiple senderId should return transactions', function () {
 				var params = [
-					'senderId=' + node.gAccount.address,
-					'senderId=' + node.eAccount.address
+					'senderId=' + utils.accounts.gAccount.address,
+					'senderId=' + utils.accounts.eAccount.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -362,7 +363,7 @@ describe('GET /api/transactions', function () {
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([node.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].senderId);
+							node.expect([utils.accounts.gAccount.address, utils.accounts.eAccount.address]).to.include(res.body.transactions[i].senderId);
 						}
 					}
 				});
@@ -384,7 +385,7 @@ describe('GET /api/transactions', function () {
 
 			it('using one recipientId should return transactions', function () {
 				var params = [
-					'recipientId=' + node.gAccount.address,
+					'recipientId=' + utils.accounts.gAccount.address,
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -392,7 +393,7 @@ describe('GET /api/transactions', function () {
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].recipientId).to.equal(node.gAccount.address);
+							node.expect(res.body.transactions[i].recipientId).to.equal(utils.accounts.gAccount.address);
 						}
 					}
 				});
@@ -400,8 +401,8 @@ describe('GET /api/transactions', function () {
 
 			it('using multiple recipientId should return transactions', function () {
 				var params = [
-					'recipientId=' + node.gAccount.address,
-					'recipientId=' + node.eAccount.address
+					'recipientId=' + utils.accounts.gAccount.address,
+					'recipientId=' + utils.accounts.eAccount.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -409,7 +410,7 @@ describe('GET /api/transactions', function () {
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([node.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].recipientId);
+							node.expect([utils.accounts.gAccount.address, utils.accounts.eAccount.address]).to.include(res.body.transactions[i].recipientId);
 						}
 					}
 				});
@@ -698,7 +699,7 @@ describe('GET /api/transactions', function () {
 				var sort = 'amount:asc';
 
 				var params = [
-					'senderId=' + node.gAccount.address,
+					'senderId=' + utils.accounts.gAccount.address,
 					'recipientId=' + account.address,
 					'recipientId=' + account2.address,
 					'limit=' + limit,
@@ -725,7 +726,7 @@ describe('GET /api/transactions', function () {
 
 				var params = [
 					'blockId=' + '1',
-					'senderId=' + node.gAccount.address,
+					'senderId=' + utils.accounts.gAccount.address,
 					'recipientId=' + account.address,
 					'fromHeight=' + 1,
 					'toHeight=' + 666,
@@ -780,7 +781,7 @@ describe('GET /api/transactions', function () {
 
 		it('using valid transaction with data field should be ok', function () {
 			var amountToSend = 123456789;
-			var expectedFee = node.expectedFeeForTransactionWithData(amountToSend);
+			var expectedFee = utils.random.expectedFeeForTransactionWithData(amountToSend);
 			var data = 'extra information';
 			var transaction = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
@@ -834,7 +835,7 @@ describe('GET /api/transactions', function () {
 		var unconfirmedTransaction;
 
 		before(function () {
-			unconfirmedTransaction = lisk.transaction.createTransaction(account.address, maxAmount, node.gAccount.password);
+			unconfirmedTransaction = lisk.transaction.createTransaction(account.address, maxAmount, utils.accounts.gAccount.password);
 			return sendTransactionPromise(unconfirmedTransaction);
 		});
 

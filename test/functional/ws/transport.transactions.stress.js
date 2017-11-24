@@ -1,6 +1,11 @@
 'use strict';
 
-var node = require('../../node.js');
+var async = require('async');
+var lisk = require('lisk-js');
+var expect = require('chai').expect;
+var config = require('../../config.json');
+var constants = require('../../../helpers/constants');
+var utils = require('../../common/utils');
 var http = require('../../common/httpCommunication.js');
 var ws = require('../../common/wsCommunication.js');
 
@@ -19,14 +24,14 @@ describe('postTransactions @slow', function () {
 		var count = 1;
 
 		before(function (done) {
-			node.async.doUntil(function (next) {
+			async.doUntil(function (next) {
 				var bundled = [];
 
-				for (var i = 0; i < node.config.broadcasts.releaseLimit; i++) {
-					var transaction = node.lisk.transaction.createTransaction(
-						node.randomAccount().address,
-						node.randomNumber(100000000, 1000000000),
-						node.gAccount.password
+				for (var i = 0; i < config.broadcasts.releaseLimit; i++) {
+					var transaction = lisk.transaction.createTransaction(
+						utils.random.randomAccount().address,
+						utils.random.randomNumber(100000000, 1000000000),
+						utils.accounts.gAccount.password
 					);
 
 					transactions.push(transaction);
@@ -35,7 +40,7 @@ describe('postTransactions @slow', function () {
 				}
 
 				postTransactions(bundled, function (err, res) {
-					node.expect(res).to.have.property('success').to.be.ok;
+					expect(res).to.have.property('success').to.be.ok;
 					next();
 				});
 			}, function () {
@@ -46,12 +51,12 @@ describe('postTransactions @slow', function () {
 		});
 
 		it('should confirm all transactions', function (done) {
-			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
-			node.waitForBlocks(blocksToWait, function (err) {
-				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
+			utils.wait.waitForBlocks(blocksToWait, function () {
+				async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+					http.get('/api/transactions?id=' + transaction.id, function (err, res) {
+						expect(res.body).to.have.property('success').to.be.ok;
+						expect(res.body).to.have.property('transaction').that.is.an('object');
 						return setImmediate(eachSeriesCb);
 					});
 				}, done);
@@ -66,16 +71,16 @@ describe('postTransactions @slow', function () {
 		var count = 1;
 
 		before(function (done) {
-			node.async.doUntil(function (next) {
-				var transaction = node.lisk.transaction.createTransaction(
-					node.randomAccount().address,
-					node.randomNumber(100000000, 1000000000),
-					node.gAccount.password
+			async.doUntil(function (next) {
+				var transaction = lisk.transaction.createTransaction(
+					utils.random.randomAccount().address,
+					utils.random.randomNumber(100000000, 1000000000),
+					utils.accounts.gAccount.password
 				);
 
 				postTransactions([transaction], function (err, res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					expect(res).to.have.property('success').to.be.ok;
+					expect(res).to.have.property('transactionId').to.equal(transaction.id);
 					transactions.push(transaction);
 					count++;
 					next();
@@ -88,12 +93,12 @@ describe('postTransactions @slow', function () {
 		});
 
 		it('should confirm all transactions', function (done) {
-			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
-			node.waitForBlocks(blocksToWait, function (err) {
-				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						node.expect(res.body).to.have.property('transaction').that.is.an('object');
+			var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
+			utils.wait.waitForBlocks(blocksToWait, function () {
+				async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+					http.get('/api/transactions?id=' + transaction.id, function (err, res) {
+						expect(res.body).to.have.property('success').to.be.ok;
+						expect(res.body).to.have.property('transaction').that.is.an('object');
 						return setImmediate(eachSeriesCb);
 					});
 				}, done);

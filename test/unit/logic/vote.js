@@ -8,6 +8,7 @@ var expect = require('chai').expect;
 var _  = require('lodash');
 
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var ed = require('../../../helpers/ed');
@@ -216,7 +217,7 @@ describe('vote', function () {
 	describe('verify', function () {
 		it('should return error when receipientId and sender id are different', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.recipientId = node.gAccount.address;
+			transaction.recipientId = utils.accounts.gAccount.address;
 			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid recipient');
 				done();
@@ -264,9 +265,9 @@ describe('vote', function () {
 
 		it('should return error when removing vote for delegate sender has not voted', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['-' + node.eAccount.publicKey];
+			transaction.asset.votes = ['-' + utils.accounts.eAccount.publicKey];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Failed to remove vote, delegate "' + node.eAccount.delegateName + '" was not voted for');
+				expect(err).to.equal('Failed to remove vote, delegate "' + utils.accounts.eAccount.delegateName + '" was not voted for');
 				done();
 			});
 		});
@@ -375,7 +376,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.gAccount.publicKey];
 			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
@@ -384,7 +385,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.eAccount.publicKey];
 			vote.checkConfirmedDelegates(transaction, done);
 		});
 
@@ -426,7 +427,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.gAccount.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
@@ -435,7 +436,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.eAccount.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, done);
 		});
 
@@ -560,7 +561,7 @@ describe('vote', function () {
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
-				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+				return '+' + node.lisk.crypto.getKeys(utils.random.randomPassword()).publicKey;
 			});
 			expect(function () {
 				vote.objectNormalize.call(transactionLogic, transaction);

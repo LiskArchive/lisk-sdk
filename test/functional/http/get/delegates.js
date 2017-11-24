@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
 var modulesLoader = require('../../../common/modulesLoader');
 var constants = require('../../../../helpers/constants');
 var genesisDelegates = require('../../../genesisDelegates.json');
@@ -12,8 +13,8 @@ var getForgingStatusPromise = require('../../../common/apiHelpers').getForgingSt
 var getDelegatesPromise = require('../../../common/apiHelpers').getDelegatesPromise;
 var putForgingDelegatePromise = require('../../../common/apiHelpers').putForgingDelegatePromise;
 var getForgersPromise = require('../../../common/apiHelpers').getForgersPromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
-var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
+var onNewBlockPromise = node.Promise.promisify(utils.wait.onNewBlock);
+var onNewRoundPromise = node.Promise.promisify(utils.wait.onNewRound);
 
 describe('GET /api/delegates', function () {
 
@@ -177,7 +178,7 @@ describe('GET /api/delegates', function () {
 
 		describe.skip('secondPublicKey', function () {
 
-			var secondSecretAccount = node.randomAccount();
+			var secondSecretAccount = utils.random.randomAccount();
 
 			before(function () {
 				return creditAccountPromise(secondSecretAccount.address, constants.fees.secondSignature).then(function () {

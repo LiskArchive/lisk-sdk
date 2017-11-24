@@ -10,7 +10,7 @@ function parallelTests (pathfiles, folder) {
 		var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', folder + test];
 		if (process.argv[2] !== '@slow') {
 			coverageArguments.push('--', '--grep', '@slow', '--invert');
-		};
+		}
 		var child = child_process.spawn('node_modules/.bin/istanbul', coverageArguments, {
 			cwd: __dirname + '/../..',
 			detached: true,

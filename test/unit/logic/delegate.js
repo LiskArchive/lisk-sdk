@@ -5,7 +5,7 @@ var _  = require('lodash');
 
 var rewire = require('rewire');
 var sinon   = require('sinon');
-
+var utils = require('../../common/utils');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modulesLoader');
 var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
@@ -245,7 +245,7 @@ describe('delegate', function () {
 
 			it('should call callback with error when accounts.getAccount returns error', function (done) {
 				var expectedError = 'Error: could not connect to server: Connection refused';
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(expectedError);
+				accountsMock.getAccount.withArgs({username: utils.accounts.eAccount.delegateName}, sinon.match.any).yields(expectedError);
 
 				delegate.verify(transaction, sender, function (err) {
 					expect(err).to.equal(expectedError);
@@ -255,7 +255,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error when username already exists', function (done) {
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);
+				accountsMock.getAccount.withArgs({username: utils.accounts.eAccount.delegateName}, sinon.match.any).yields(null, utils.accounts.eAccount);
 
 				delegate.verify(transaction, sender, function (err) {
 					expect(err).to.equal('Username already exists');
@@ -268,7 +268,7 @@ describe('delegate', function () {
 		describe('when transaction is valid', function () {
 
 			it('should call accounts.getAccount with correct parameters', function (done) {
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
+				accountsMock.getAccount.withArgs({username: utils.accounts.eAccount.delegateName}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err) {
 					expect(err).to.not.exist;
@@ -278,7 +278,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error = null and valid transaction when username contains symbols which are valid', function (done) {
-				transaction.asset.delegate.username = node.randomUsername() + '!@.';
+				transaction.asset.delegate.username = utils.random.randomUsername() + '!@.';
 				accountsMock.getAccount.withArgs({username: transaction.asset.delegate.username}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err, returnedTransaction) {
@@ -289,7 +289,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error = null and valid transaction', function (done) {
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
+				accountsMock.getAccount.withArgs({username: utils.accounts.eAccount.delegateName}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err, returnedTransaction) {
 					expect(err).to.not.exist;

@@ -6,8 +6,10 @@ var _  = require('lodash');
 
 var chai = require('chai');
 var expect = require('chai').expect;
+var randomstring = require('randomstring');
 
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
@@ -20,7 +22,7 @@ var Transfer = require('../../../logic/transfer.js');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
-var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
+var senderHash = crypto.createHash('sha256').update(utils.accounts.gAccount.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
 var validSender = {
@@ -357,7 +359,7 @@ describe('transfer', function () {
 		});
 
 		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength +  ' characters', function () {
-			var invalidString = node.randomString.generate(constants.additionalData.maxLength + 1);
+			var invalidString = randomstring.generate(constants.additionalData.maxLength + 1);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString
@@ -369,7 +371,7 @@ describe('transfer', function () {
 		});
 
 		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength + ' bytes', function () {
-			var invalidString = node.randomString.generate(constants.additionalData.maxLength - 1) + '现';
+			var invalidString = randomstring.generate(constants.additionalData.maxLength - 1) + '现';
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString

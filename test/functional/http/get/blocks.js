@@ -1,10 +1,11 @@
 'use strict';
 
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
 var modulesLoader = require('../../../common/modulesLoader');
 
 var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var onNewBlockPromise = node.Promise.promisify(utils.wait.onNewBlock);
 
 describe('GET /api/blocks', function () {
 

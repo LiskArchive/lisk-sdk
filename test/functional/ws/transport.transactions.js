@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../../node');
+var utils = require('../../common/utils');
 var shared = require('../shared');
 var ws = require('../../common/wsCommunication');
 
@@ -15,10 +16,10 @@ describe('Posting transaction (type 0)', function () {
 	var transaction;
 	var goodTransactions = [];
 	var badTransactions = [];
-	var account = node.randomAccount();
+	var account = utils.random.randomAccount();
 
 	beforeEach(function () {
-		transaction = node.randomTransaction();
+		transaction = utils.random.randomTransaction();
 	});
 
 	describe('transaction processing', function () {

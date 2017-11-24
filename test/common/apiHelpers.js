@@ -3,10 +3,10 @@
 var lisk = require('lisk-js');
 
 var node = require('../node');
+var utils = require('../common/utils');
 var http = require('./httpCommunication');
-var constants = require('../../helpers/constants');
 
-var waitForBlocks = node.Promise.promisify(node.waitForBlocks);
+var waitForBlocks = node.Promise.promisify(utils.wait.waitForBlocks);
 
 /**
  * A helper method to get path based on swagger
@@ -103,7 +103,7 @@ function sendSignature (signature, transaction, cb) {
 }
 
 function creditAccount (address, amount, cb) {
-	var transaction = lisk.transaction.createTransaction(address, amount, node.gAccount.password);
+	var transaction = lisk.transaction.createTransaction(address, amount, utils.accounts.gAccount.password);
 	sendTransaction(transaction, cb);
 }
 
@@ -112,7 +112,7 @@ function getCount (param, cb) {
 }
 
 function registerDelegate (account, cb) {
-	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+	var transaction = lisk.delegate.createDelegate(account.password, account.username);
 	sendTransaction(transaction, cb);
 }
 

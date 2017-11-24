@@ -8,6 +8,7 @@ var expect = require('chai').expect;
 var _  = require('lodash');
 
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
@@ -30,7 +31,7 @@ var OutTransfer = require('../../../logic/outTransfer.js');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
-var senderPassword = node.gAccount.password;
+var senderPassword = utils.accounts.gAccount.password;
 var senderHash = crypto.createHash('sha256').update(senderPassword, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
@@ -541,7 +542,7 @@ describe('transaction', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(sender);
 			// Different publicKey for multisignature account
-			vs.multisignatures = [node.eAccount.publicKey];
+			vs.multisignatures = [utils.accounts.eAccount.publicKey];
 			transaction.requesterPublicKey = validKeypair.publicKey.toString('hex');
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);

@@ -1,6 +1,8 @@
 'use strict';
 
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
+var constants = require('../../../../helpers/constants');
 var shared = require('../../shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -17,7 +19,7 @@ describe('GET /api/multisignatures/', function () {
 
 	before(function () {
 		// Crediting accounts
-		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, node.gAccount.password);
+		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
 		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -94,7 +96,7 @@ describe('GET /api/multisignatures/', function () {
 						node.expect(element.transaction.asset.multisignature).to.have.property('lifetime').that.is.a('number');
 						node.expect(element.transaction).to.have.property('signature').that.is.a('string');
 						node.expect(element.transaction).to.have.property('id').that.is.equal(transaction.id);
-						node.expect(element.transaction).to.have.property('fee').that.is.equal(node.fees.multisignatureRegistrationFee * (scenario.keysgroup.length + 1));
+						node.expect(element.transaction).to.have.property('fee').that.is.equal(constants.fees.multisignature * (scenario.keysgroup.length + 1));
 						node.expect(element.transaction).to.have.property('senderId').that.is.eql(scenario.account.address);
 						node.expect(element.transaction).to.have.property('receivedAt').that.is.a('string');
 					}

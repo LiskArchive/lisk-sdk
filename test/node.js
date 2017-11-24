@@ -12,6 +12,7 @@ var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
 var swagger = require('../config/swagger');
 var swaggerHelper = require('../helpers/swagger');
+var http = require('./common/httpCommunication');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -29,9 +30,8 @@ node.chai.use(require('chai-bignumber')(node.bignum));
 node.expect = node.chai.expect;
 node.should = node.chai.should();
 node.lisk = require('lisk-js');
-node.supertest = require('supertest');
 node.Promise = require('bluebird');
-node.randomString = require('randomstring');
+var randomstring = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
 
@@ -40,46 +40,11 @@ node.config.root = process.cwd();
 require('colors');
 
 // Node configuration
-node.baseUrl = 'http://' + node.config.address + ':' + node.config.httpPort;
-node.api = node.supertest(node.baseUrl);
-
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
-node.nonce = node.randomString.generate(16);
-
-// Transaction fees
-node.fees = {
-	voteFee: node.constants.fees.vote,
-	transactionFee: node.constants.fees.send,
-	secondPasswordFee: node.constants.fees.secondSignature,
-	delegateRegistrationFee: node.constants.fees.delegate,
-	multisignatureRegistrationFee: node.constants.fees.multisignature,
-	dappRegistrationFee: node.constants.fees.dappRegistration,
-	dappDepositFee: node.constants.fees.dappDeposit,
-	dappWithdrawalFee: node.constants.fees.dappWithdrawal,
-	dataFee: node.constants.fees.data
-};
-
-// Existing delegate account
-node.eAccount = {
-	address: '10881167371402274308L',
-	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-	password: 'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
-	balance: '0',
-	delegateName: 'genesis_100'
-};
-
-// Genesis account, initially holding 100M total supply
-node.gAccount = {
-	address: '16313739661670634666L',
-	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	password: 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
-	balance: '10000000000000000',
-	encryptedSecret: 'ddbb37d465228d52a78ad13555e609750ec30e8f5912a1b8fbdb091f50e269cbcc3875dad032115e828976f0c7f5ed71ce925e16974233152149e902b48cec51d93c2e40a6c95de75c1c5a2c369e6d24',
-	key: 'elephant tree paris dragon chair galaxy',
-};
+node.nonce = randomstring.generate(16);
 
 node.swaggerDef = swaggerHelper.getSwaggerSpec();
 
@@ -89,252 +54,6 @@ if (process.env.SILENT === 'true') {
 } else {
 	node.debug = console.log;
 }
-
-// Random LSK amount
-node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
-
-// Returns a random property from the given object
-node.randomProperty = function (obj, needKey) {
-	var keys = Object.keys(obj);
-
-	if (!needKey) {
-		return obj[keys[keys.length * Math.random() << 0]];
-	} else {
-		return keys[keys.length * Math.random() << 0];
-	}
-};
-
-// Returns random LSK amount
-node.randomLISK = function () {
-	return Math.floor(Math.random() * (10000 * 100000000)) + (1000 * 100000000);
-};
-
-// Returns current block height
-node.getHeight = function (cb) {
-	var request = node.popsicle.get(node.baseUrl + '/api/node/status');
-
-	request.use(node.popsicle.plugins.parse(['json']));
-
-	request.then(function (res) {
-		if (res.status !== 200) {
-			return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
-		} else {
-			return setImmediate(cb, null, res.body.data.height);
-		}
-	});
-
-	request.catch(function (err) {
-		return setImmediate(cb, err);
-	});
-};
-
-// Run callback on new round
-node.onNewRound = function (cb) {
-	node.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			var nextRound = slots.calcRound(height);
-			var blocksToWait = nextRound * slots.delegates - height;
-			node.debug('blocks to wait: '.grey, blocksToWait);
-			node.waitForNewBlock(height, blocksToWait, cb);
-		}
-	});
-};
-
-// Upon detecting a new block, do something
-node.onNewBlock = function (cb) {
-	node.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			node.waitForNewBlock(height, 2, cb);
-		}
-	});
-};
-
-// Waits for (n) blocks to be created
-node.waitForBlocks = function (blocksToWait, cb) {
-	node.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			node.waitForNewBlock(height, blocksToWait, cb);
-		}
-	});
-};
-
-// Waits for a new block to be created
-node.waitForNewBlock = function (height, blocksToWait, cb) {
-	if (blocksToWait === 0) {
-		return setImmediate(cb, null, height);
-	}
-
-	var actualHeight = height;
-	var counter = 1;
-	var target = height + blocksToWait;
-
-	node.async.doWhilst(
-		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
-
-			request.use(node.popsicle.plugins.parse(['json']));
-
-			request.then(function (res) {
-				if (res.status !== 200) {
-					return cb(['Received bad response code', res.status, res.url].join(' '));
-				}
-
-				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
-
-				if (target === res.body.data.height) {
-					height = res.body.data.height;
-				}
-
-				setTimeout(cb, 1000);
-			});
-
-			request.catch(function (err) {
-				return cb(err);
-			});
-		},
-		function () {
-			return actualHeight >= height;
-		},
-		function (err) {
-			if (err) {
-				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, height);
-			}
-		}
-	);
-};
-
-// Returns a random index for an array
-node.randomizeSelection = function (length) {
-	return Math.floor(Math.random() * length);
-};
-
-// Returns a random number between min (inclusive) and max (exclusive)
-node.randomNumber = function (min, max) {
-	return	Math.floor(Math.random() * (max - min) + min);
-};
-
-// Returns the expected fee for the given amount
-node.expectedFee = function (amount) {
-	return parseInt(node.fees.transactionFee);
-};
-
-// Returns the expected fee for the given amount with data property
-node.expectedFeeForTransactionWithData = function (amount) {
-	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
-};
-
-// Returns a random username of 16 characters
-node.randomUsername = function () {
-	var randomLetter = node.randomString.generate({
-		length: 1,
-		charset: 'alphabetic',
-		capitalization: 'lowercase'
-	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = node.randomString.generate({
-		length: 15,
-		charset: custom
-	});
-
-	return randomLetter.concat(username);
-};
-
-// Returns a random delegate name of 20 characters
-node.randomDelegateName = function () {
-	var randomLetter = node.randomString.generate({
-		length: 1,
-		charset: 'alphabetic',
-		capitalization: 'lowercase'
-	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = node.randomString.generate({
-		length: 19,
-		charset: custom
-	});
-
-	return randomLetter.concat(username);
-};
-
-// Returns a random capitialized username of 16 characters
-node.randomCapitalUsername = function () {
-	var randomLetter = node.randomString.generate({
-		length: 1,
-		charset: 'alphabetic',
-		capitalization: 'uppercase'
-	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = node.randomString.generate({
-		length: 16,
-		charset: custom
-	});
-
-	return randomLetter.concat(username);
-};
-
-// Returns a random application name of 32 characteres
-node.randomApplicationName = function () {
-	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-	return node.randomString.generate({
-		length: node.randomNumber(5, 32),
-		charset: custom
-	});
-};
-
-// Test random application
-node.randomApplication = function () {
-	var application = {
-		category: node.randomNumber(0, 9),
-		name: node.randomApplicationName(),
-		description: 'Blockchain based home monitoring tool',
-		tags: 'monitoring temperature power sidechain',
-		type: node.randomNumber(0, 2),
-		link: 'https://' + node.randomApplicationName() + '.zip',
-		icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
-	};
-
-	return application;
-};
-
-// Test applications
-node.guestbookDapp = node.randomApplication();
-node.blockDataDapp = node.randomApplication();
-
-// Returns a basic random account
-node.randomAccount = function () {
-	var account = {
-		balance: '0'
-	};
-
-	account.password = node.randomPassword();
-	account.secondPassword = node.randomPassword();
-	account.username = node.randomDelegateName();
-	account.publicKey = node.lisk.crypto.getKeys(account.password).publicKey;
-	account.address = node.lisk.crypto.getAddress(account.publicKey);
-	account.secondPublicKey = node.lisk.crypto.getKeys(account.secondPassword).publicKey;
-
-	return account;
-};
-
-// Returns an random basic transaction to send 1 LSK from genesis account to a random account
-node.randomTransaction = function (offset) {
-	var randomAccount = node.randomAccount();
-
-	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password, offset);
-};
-
-// Returns a random password
-node.randomPassword = function () {
-	return Math.random().toString(36).substring(7);
-};
 
 var currentAppScope;
 
@@ -386,7 +105,7 @@ node.initApplication = function (cb, initScope) {
 			system: '../modules/system.js',
 			transactions: '../modules/transactions.js',
 			transport: '../modules/transport.js',
-			voters: '../modules/voters.js',
+			voters: '../modules/voters.js'
 		};
 
 		// Init limited application layer

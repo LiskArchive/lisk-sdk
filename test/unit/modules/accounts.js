@@ -2,6 +2,7 @@
 
 var _  = require('lodash');
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');
@@ -163,7 +164,7 @@ describe('accounts', function () {
 
 			it('should return empty accounts array when account does not exist', function (done) {
 				accounts.shared.getAccounts({
-					address: node.randomAccount().address
+					address: utils.random.randomAccount().address
 				}, function (err, res){
 					expect(err).to.not.exist;
 					expect(res).be.an('array').which.has.length(0);

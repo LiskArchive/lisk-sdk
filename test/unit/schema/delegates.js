@@ -1,6 +1,9 @@
+'use strict';
+
 var Zschema = require('../../../helpers/z_schema.js');
 var schema = require('../../../schema/delegates.js');
 var node = require('../../node.js');
+var utils = require('../../common/utils');
 
 var expect = node.expect;
 var validator = new Zschema();
@@ -12,7 +15,7 @@ describe('delegates', function () {
 		it('should return false when key is undefined', function () {
 			var testObject = {
 				key: undefined,
-				publicKey: node.gAccount.publicKey
+				publicKey: utils.accounts.gAccount.publicKey
 			};
 
 			expect(validator.validate(testObject, schema.toggleForging)).to.equal(false);
@@ -24,7 +27,7 @@ describe('delegates', function () {
 		it('should return false when key is null', function () {
 			var testObject = {
 				key: null,
-				publicKey: node.gAccount.publicKey
+				publicKey: utils.accounts.gAccount.publicKey
 			};
 
 			expect(validator.validate(testObject, schema.toggleForging)).to.equal(false);
@@ -36,7 +39,7 @@ describe('delegates', function () {
 		it('should return false when key is number', function () {
 			var testObject = {
 				key: 12,
-				publicKey: node.gAccount.publicKey
+				publicKey: utils.accounts.gAccount.publicKey
 			};
 
 			expect(validator.validate(testObject, schema.toggleForging)).to.equal(false);
@@ -48,7 +51,7 @@ describe('delegates', function () {
 		it('should return false when key is empty string', function () {
 			var testObject = {
 				key: '',
-				publicKey: node.gAccount.publicKey
+				publicKey: utils.accounts.gAccount.publicKey
 			};
 
 			expect(validator.validate(testObject, schema.toggleForging)).to.equal(false);
@@ -60,7 +63,7 @@ describe('delegates', function () {
 		it('should return false when key longer than 100 characters', function () {
 			var testObject = {
 				key: new Array(101).fill('x').join(''),
-				publicKey: node.gAccount.publicKey
+				publicKey: utils.accounts.gAccount.publicKey
 			};
 
 			expect(validator.validate(testObject, schema.toggleForging)).to.equal(false);
@@ -71,7 +74,7 @@ describe('delegates', function () {
 
 		it('should return false when publicKey is undefined', function () {
 			var testObject = {
-				key: node.gAccount.key,
+				key: utils.accounts.gAccount.key,
 				publicKey: undefined
 			};
 
@@ -83,7 +86,7 @@ describe('delegates', function () {
 
 		it('should return false when key is null', function () {
 			var testObject = {
-				key: node.gAccount.key,
+				key: utils.accounts.gAccount.key,
 				publicKey: null,
 			};
 
@@ -96,7 +99,7 @@ describe('delegates', function () {
 		it('should return false when publicKey is an invalid hex string', function () {
 			var invalidPublicKey = 'zd3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f';
 			var testObject = {
-				key: node.gAccount.key,
+				key: utils.accounts.gAccount.key,
 				publicKey: invalidPublicKey
 			};
 
@@ -110,7 +113,7 @@ describe('delegates', function () {
 		it('should return false when publicKey is of invalid length', function () {
 			var invalidPublicKey = '3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f';
 			var testObject = {
-				key: node.gAccount.key,
+				key: utils.accounts.gAccount.key,
 				publicKey: invalidPublicKey
 			};
 
@@ -122,7 +125,7 @@ describe('delegates', function () {
 
 		it('should return true when publicKey is of 0 length', function () {
 			var testObject = {
-				key: node.gAccount.key,
+				key: utils.accounts.gAccount.key,
 				publicKey: ''
 			};
 
@@ -131,8 +134,8 @@ describe('delegates', function () {
 
 		it('should return true when key and publicKey are valid', function () {
 			var testObject = {
-				key: node.gAccount.key,
-				publicKey: node.gAccount.publicKey
+				key: utils.accounts.gAccount.key,
+				publicKey: utils.accounts.gAccount.publicKey
 			};
 
 			expect(validator.validate(testObject, schema.toggleForging)).to.equal(true);
