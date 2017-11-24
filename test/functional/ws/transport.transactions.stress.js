@@ -54,7 +54,7 @@ describe('postTransactions @slow', function () {
 			var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 			utils.wait.waitForBlocks(blocksToWait, function () {
 				async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions?id=' + transaction.id, function (err, res) {
 						expect(res.body).to.have.property('success').to.be.ok;
 						expect(res.body).to.have.property('transaction').that.is.an('object');
 						return setImmediate(eachSeriesCb);
@@ -96,7 +96,7 @@ describe('postTransactions @slow', function () {
 			var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 			utils.wait.waitForBlocks(blocksToWait, function () {
 				async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
+					http.get('/api/transactions?id=' + transaction.id, function (err, res) {
 						expect(res.body).to.have.property('success').to.be.ok;
 						expect(res.body).to.have.property('transaction').that.is.an('object');
 						return setImmediate(eachSeriesCb);
