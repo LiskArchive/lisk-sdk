@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../../../node');
+var utils = require('../../../common/utils');
 var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
 
@@ -19,11 +20,11 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	var goodTransactionsEnforcement = [];
 	var pendingMultisignatures = [];
 
-	var account = node.randomAccount();
-	var accountNoFunds = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
-	var accountNoSecondPassword = node.randomAccount();
-	var accountDuplicate = node.randomAccount();
+	var account = utils.random.randomAccount();
+	var accountNoFunds = utils.random.randomAccount();
+	var accountMinimalFunds = utils.random.randomAccount();
+	var accountNoSecondPassword = utils.random.randomAccount();
+	var accountDuplicate = utils.random.randomAccount();
 
 	// Crediting accounts
 	before(function () {
@@ -190,7 +191,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 5 - registering dapp', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, utils.random.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -216,7 +217,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 7 - outTransfer', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.transactionId, node.randomTransaction().id, node.randomAccount().address, 10 * node.normalizer, account.password, account.secondPassword);
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.transactionId, utils.random.randomTransaction().id, utils.random.randomAccount().address, 10 * node.normalizer, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -270,7 +271,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 1 - second secret', function () {
 
 			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-				transaction = node.lisk.signature.createSignature(account.password, node.randomPassword());
+				transaction = node.lisk.signature.createSignature(account.password, utils.random.randomPassword());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -280,7 +281,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using second passphrase on an account with a second passphrase already enabled should pass but fail on confirmation', function () {
-				transaction = node.lisk.signature.createSignature(account.password, node.randomPassword());
+				transaction = node.lisk.signature.createSignature(account.password, utils.random.randomPassword());
 				var secondKeys = node.lisk.crypto.getKeys(account.secondPassword);
 				node.lisk.crypto.secondSign(transaction, secondKeys);
 				transaction.id = node.lisk.crypto.getId(transaction);
@@ -407,7 +408,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 5 - registering dapp', function () {
 
 			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, utils.random.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -417,7 +418,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using second passphrase not matching registered secondPublicKey should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, 'wrong second password', node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, 'wrong second password', utils.random.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -427,7 +428,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using correct second passphrase should be ok', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, utils.random.randomApplication());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
@@ -486,7 +487,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 7 - outTransfer', function () {
 
-			var application = node.randomApplication();
+			var application = utils.random.randomApplication();
 
 			before(function () {
 				transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, application);
@@ -503,7 +504,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(application.transactionId, node.randomTransaction().id, node.randomAccount().address, 10 * node.normalizer, account.password);
+				transaction = node.lisk.transfer.createOutTransfer(application.transactionId, utils.random.randomTransaction().id, utils.random.randomAccount().address, 10 * node.normalizer, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -513,7 +514,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using second passphrase not matching registered secondPublicKey should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(application.transactionId, node.randomTransaction().id, node.randomAccount().address, 10 * node.normalizer, account.password, 'wrong second password');
+				transaction = node.lisk.transfer.createOutTransfer(application.transactionId, utils.random.randomTransaction().id, utils.random.randomAccount().address, 10 * node.normalizer, account.password, 'wrong second password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -523,7 +524,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using correct second passphrase should be ok', function () {
-				transaction = node.lisk.transfer.createOutTransfer(application.transactionId, node.randomTransaction().id, node.randomAccount().address, 10 * node.normalizer, account.password, account.secondPassword);
+				transaction = node.lisk.transfer.createOutTransfer(application.transactionId, utils.random.randomTransaction().id, utils.random.randomAccount().address, 10 * node.normalizer, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

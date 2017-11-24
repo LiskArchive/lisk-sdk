@@ -5,7 +5,7 @@ var _  = require('lodash');
 
 var rewire = require('rewire');
 var sinon   = require('sinon');
-
+var utils = require('../../common/utils');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modulesLoader');
 var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
@@ -278,7 +278,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error = null and valid transaction when username contains symbols which are valid', function (done) {
-				transaction.asset.delegate.username = node.randomUsername() + '!@.';
+				transaction.asset.delegate.username = utils.random.randomUsername() + '!@.';
 				accountsMock.getAccount.withArgs({username: transaction.asset.delegate.username}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err, returnedTransaction) {

@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
@@ -12,10 +13,10 @@ describe('GET /dapps', function () {
 
 	var transactionsToWaitFor = [];
 
-	var account = node.randomAccount();
-	var dapp1 = node.randomApplication();
+	var account = utils.random.randomAccount();
+	var dapp1 = utils.random.randomApplication();
 	dapp1.category = 1;
-	var dapp2 = node.randomApplication();
+	var dapp2 = utils.random.randomApplication();
 	dapp2.category = 2;
 	var registeredDappsAmount = 2;
 
@@ -204,7 +205,7 @@ describe('GET /dapps', function () {
 
 				var sum = 0;
 				for (var i = 1; i <= 20; i++) {
-					transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+					transaction = node.lisk.dapp.createDapp(account.password, null, utils.random.randomApplication());
 					transactionsToWaitFor.push(transaction.id);
 					promises.push(sendTransactionPromise(transaction));
 					sum = sum + i;

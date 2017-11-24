@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
 var modulesLoader = require('../../../common/modulesLoader');
 var constants = require('../../../../helpers/constants');
 var genesisDelegates = require('../../../genesisDelegates.json');
@@ -177,7 +178,7 @@ describe('GET /api/delegates', function () {
 
 		describe.skip('secondPublicKey', function () {
 
-			var secondSecretAccount = node.randomAccount();
+			var secondSecretAccount = utils.random.randomAccount();
 
 			before(function () {
 				return creditAccountPromise(secondSecretAccount.address, constants.fees.secondSignature).then(function () {

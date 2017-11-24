@@ -8,6 +8,7 @@ var expect = require('chai').expect;
 var _  = require('lodash');
 
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var ed = require('../../../helpers/ed');
@@ -560,7 +561,7 @@ describe('vote', function () {
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
-				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+				return '+' + node.lisk.crypto.getKeys(utils.random.randomPassword()).publicKey;
 			});
 			expect(function () {
 				vote.objectNormalize.call(transactionLogic, transaction);

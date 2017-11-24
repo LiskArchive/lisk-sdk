@@ -31,7 +31,7 @@ node.should = node.chai.should();
 node.lisk = require('lisk-js');
 node.supertest = require('supertest');
 node.Promise = require('bluebird');
-node.randomString = require('randomstring');
+var randomstring = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
 
@@ -47,7 +47,7 @@ node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
-node.nonce = node.randomString.generate(16);
+node.nonce = randomstring.generate(16);
 
 // Transaction fees
 node.fees = {
@@ -89,25 +89,6 @@ if (process.env.SILENT === 'true') {
 } else {
 	node.debug = console.log;
 }
-
-// Random LSK amount
-node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
-
-// Returns a random property from the given object
-node.randomProperty = function (obj, needKey) {
-	var keys = Object.keys(obj);
-
-	if (!needKey) {
-		return obj[keys[keys.length * Math.random() << 0]];
-	} else {
-		return keys[keys.length * Math.random() << 0];
-	}
-};
-
-// Returns random LSK amount
-node.randomLISK = function () {
-	return Math.floor(Math.random() * (10000 * 100000000)) + (1000 * 100000000);
-};
 
 // Returns current block height
 node.getHeight = function (cb) {
@@ -209,131 +190,6 @@ node.waitForNewBlock = function (height, blocksToWait, cb) {
 			}
 		}
 	);
-};
-
-// Returns a random index for an array
-node.randomizeSelection = function (length) {
-	return Math.floor(Math.random() * length);
-};
-
-// Returns a random number between min (inclusive) and max (exclusive)
-node.randomNumber = function (min, max) {
-	return	Math.floor(Math.random() * (max - min) + min);
-};
-
-// Returns the expected fee for the given amount
-node.expectedFee = function (amount) {
-	return parseInt(node.fees.transactionFee);
-};
-
-// Returns the expected fee for the given amount with data property
-node.expectedFeeForTransactionWithData = function (amount) {
-	return parseInt(node.fees.transactionFee) + parseInt(node.fees.dataFee);
-};
-
-// Returns a random username of 16 characters
-node.randomUsername = function () {
-	var randomLetter = node.randomString.generate({
-		length: 1,
-		charset: 'alphabetic',
-		capitalization: 'lowercase'
-	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = node.randomString.generate({
-		length: 15,
-		charset: custom
-	});
-
-	return randomLetter.concat(username);
-};
-
-// Returns a random delegate name of 20 characters
-node.randomDelegateName = function () {
-	var randomLetter = node.randomString.generate({
-		length: 1,
-		charset: 'alphabetic',
-		capitalization: 'lowercase'
-	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = node.randomString.generate({
-		length: 19,
-		charset: custom
-	});
-
-	return randomLetter.concat(username);
-};
-
-// Returns a random capitialized username of 16 characters
-node.randomCapitalUsername = function () {
-	var randomLetter = node.randomString.generate({
-		length: 1,
-		charset: 'alphabetic',
-		capitalization: 'uppercase'
-	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = node.randomString.generate({
-		length: 16,
-		charset: custom
-	});
-
-	return randomLetter.concat(username);
-};
-
-// Returns a random application name of 32 characteres
-node.randomApplicationName = function () {
-	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-	return node.randomString.generate({
-		length: node.randomNumber(5, 32),
-		charset: custom
-	});
-};
-
-// Test random application
-node.randomApplication = function () {
-	var application = {
-		category: node.randomNumber(0, 9),
-		name: node.randomApplicationName(),
-		description: 'Blockchain based home monitoring tool',
-		tags: 'monitoring temperature power sidechain',
-		type: node.randomNumber(0, 2),
-		link: 'https://' + node.randomApplicationName() + '.zip',
-		icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
-	};
-
-	return application;
-};
-
-// Test applications
-node.guestbookDapp = node.randomApplication();
-node.blockDataDapp = node.randomApplication();
-
-// Returns a basic random account
-node.randomAccount = function () {
-	var account = {
-		balance: '0'
-	};
-
-	account.password = node.randomPassword();
-	account.secondPassword = node.randomPassword();
-	account.username = node.randomDelegateName();
-	account.publicKey = node.lisk.crypto.getKeys(account.password).publicKey;
-	account.address = node.lisk.crypto.getAddress(account.publicKey);
-	account.secondPublicKey = node.lisk.crypto.getKeys(account.secondPassword).publicKey;
-
-	return account;
-};
-
-// Returns an random basic transaction to send 1 LSK from genesis account to a random account
-node.randomTransaction = function (offset) {
-	var randomAccount = node.randomAccount();
-
-	return node.lisk.transaction.createTransaction(randomAccount.address, 1, node.gAccount.password, offset);
-};
-
-// Returns a random password
-node.randomPassword = function () {
-	return Math.random().toString(36).substring(7);
 };
 
 var currentAppScope;

@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../node');
+var utils = require('../common/utils');
 var typesRepresentatives = require('../common/typesRepresentatives');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
@@ -90,10 +91,10 @@ function invalidAssets (option, badTransactions) {
 	beforeEach(function () {
 		switch(option) {
 			case 'signature':
-				transaction = node.lisk.signature.createSignature(node.gAccount.password, node.randomPassword());
+				transaction = node.lisk.signature.createSignature(node.gAccount.password, utils.random.randomPassword());
 				break;
 			case 'delegate':
-				transaction = node.lisk.delegate.createDelegate(node.gAccount.password, node.randomDelegateName());
+				transaction = node.lisk.delegate.createDelegate(node.gAccount.password, utils.random.randomDelegateName());
 				break;
 			case 'votes':
 				transaction = node.lisk.vote.createVote(node.gAccount.password, []);
@@ -108,7 +109,7 @@ function invalidAssets (option, badTransactions) {
 				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
 				break;
 			case 'outTransfer':
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, node.gAccount.address, Date.now(), node.gAccount.password);
 				break;
 		};
 	});
@@ -165,13 +166,13 @@ function invalidAssets (option, badTransactions) {
 }
 
 function MultisigScenario (size, amount) {
-	this.account = node.randomAccount();
+	this.account = utils.random.randomAccount();
 	this.members = [];
 	this.keysgroup = [];
 
 	var i, auxAccount;
 	for (i = 0; i < size - 1; i++) {
-		auxAccount = node.randomAccount();
+		auxAccount = utils.random.randomAccount();
 		this.members.push(auxAccount);
 		this.keysgroup.push('+' + auxAccount.publicKey);
 	}

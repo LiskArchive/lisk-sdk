@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../../../node');
+var utils = require('../../../common/utils');
 var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
 
@@ -16,8 +17,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
+	var account = utils.random.randomAccount();
+	var accountMinimalFunds = utils.random.randomAccount();
 
 	// Crediting accounts
 	before(function () {
@@ -193,7 +194,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		});
 
 		it('using valid but inexistent transaction id as dapp id should fail', function () {
-			var inexistentId = node.randomTransaction().id;
+			var inexistentId = utils.random.randomTransaction().id;
 			transaction = node.lisk.transfer.createInTransfer(inexistentId, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {

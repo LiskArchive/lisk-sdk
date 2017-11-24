@@ -14,6 +14,7 @@ var bignum    = require('../../../helpers/bignum.js');
 var config    = require('../../../config.json');
 var constants = require('../../../helpers/constants');
 var node      = require('../../node.js');
+var utils = require('../../common/utils');
 var slots     = require('../../../helpers/slots.js');
 var DBSandbox     = require('../../common/globalBefore').DBSandbox;
 
@@ -573,8 +574,8 @@ describe('Rounds-related SQL triggers', function () {
 		it('should forge block with 1 TRANSFER transaction to random account, update mem_accounts (native) and delegates (trigger block_insert_delete) tables', function () {
 			var transactions = [];
 			var transaction = node.lisk.transaction.createTransaction(
-				node.randomAccount().address,
-				node.randomNumber(100000000, 1000000000),
+				utils.random.randomAccount().address,
+				utils.random.randomNumber(100000000, 1000000000),
 				node.gAccount.password
 			);
 			transactions.push(transaction);
@@ -588,8 +589,8 @@ describe('Rounds-related SQL triggers', function () {
 
 			for (var i = tx_cnt - 1; i >= 0; i--) {
 				var transaction = node.lisk.transaction.createTransaction(
-					node.randomAccount().address,
-					node.randomNumber(100000000, 1000000000),
+					utils.random.randomAccount().address,
+					utils.random.randomNumber(100000000, 1000000000),
 					node.gAccount.password
 				);
 				transactions.push(transaction);
@@ -608,8 +609,8 @@ describe('Rounds-related SQL triggers', function () {
 				var transactions = [];
 				for (var t = tx_cnt - 1; t >= 0; t--) {
 					var transaction = node.lisk.transaction.createTransaction(
-						node.randomAccount().address,
-						node.randomNumber(100000000, 1000000000),
+						utils.random.randomAccount().address,
+						utils.random.randomNumber(100000000, 1000000000),
 						node.gAccount.password
 					);
 					transactions.push(transaction);
@@ -790,7 +791,7 @@ describe('Rounds-related SQL triggers', function () {
 					.then(function () {
 						// Fund random account
 						var transactions = [];
-						tmp_account = node.randomAccount();
+						tmp_account = utils.random.randomAccount();
 						var transaction = node.lisk.transaction.createTransaction(tmp_account.address, 5000000000, node.gAccount.password);
 						transactions.push(transaction);
 						return tickAndValidate(transactions);

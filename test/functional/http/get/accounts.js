@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
 var constants = require('../../../../helpers/constants');
 
 var apiHelpers = require('../../../common/apiHelpers');
@@ -13,7 +14,7 @@ var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /accounts', function () {
 
-	var account = node.randomAccount();
+	var account = utils.random.randomAccount();
 	var accountsEndpoint = new swaggerEndpoint('GET /accounts');
 
 	describe('?', function () {
@@ -112,7 +113,7 @@ describe('GET /accounts', function () {
 
 		describe.only('secondPublicKey', function () {
 
-			var secondPublicKeyAccount = node.randomAccount();
+			var secondPublicKeyAccount = utils.random.randomAccount();
 			var creditTransaction = node.lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, node.gAccount.password);
 			var signatureTransaction = node.lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
 

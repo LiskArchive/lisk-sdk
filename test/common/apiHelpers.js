@@ -4,7 +4,6 @@ var lisk = require('lisk-js');
 
 var node = require('../node');
 var http = require('./httpCommunication');
-var constants = require('../../helpers/constants');
 
 var waitForBlocks = node.Promise.promisify(node.waitForBlocks);
 
@@ -112,7 +111,7 @@ function getCount (param, cb) {
 }
 
 function registerDelegate (account, cb) {
-	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+	var transaction = lisk.delegate.createDelegate(account.password, account.username);
 	sendTransaction(transaction, cb);
 }
 

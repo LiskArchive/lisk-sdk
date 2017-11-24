@@ -3,6 +3,7 @@
 var _ = require('lodash');
 var randomstring = require('randomstring');
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
 var apiCodes = require('../../../../helpers/apiCodes.js');
 var constants = require('../../../../helpers/constants.js');
 
@@ -396,8 +397,8 @@ describe('GET /api/voters', function () {
 
 		describe('sort, limit, offset', function () {
 
-			var validExtraDelegateVoter = node.randomAccount();
-			var validExtraVoter = node.randomAccount();
+			var validExtraDelegateVoter = utils.random.randomAccount();
+			var validExtraVoter = utils.random.randomAccount();
 
 			before(function () {
 				var enrichExtraDelegateVoterTransaction = node.lisk.transaction.createTransaction(

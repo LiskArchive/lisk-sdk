@@ -1,6 +1,8 @@
 'use strict';
 
+var randomstring = require('randomstring');
 var node = require('../../../node');
+var utils = require('../../../common/utils');
 var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
 
@@ -17,11 +19,11 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	var badTransactionsEnforcement = [];
 	var goodTransactionsEnforcement = [];
 
-	var account = node.randomAccount();
-	var accountNoFunds = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
-	var accountUpperCase = node.randomAccount();
-	var accountFormerDelegate = node.randomAccount();
+	var account = utils.random.randomAccount();
+	var accountNoFunds = utils.random.randomAccount();
+	var accountMinimalFunds = utils.random.randomAccount();
+	var accountUpperCase = utils.random.randomAccount();
+	var accountFormerDelegate = utils.random.randomAccount();
 
 	// Crediting accounts
 	before(function () {
@@ -100,7 +102,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('using username longer than 20 characters should fail', function () {
-			var username = node.randomString.generate({
+			var username = randomstring.generate({
 				length: 20+1,
 				charset: 'alphabetic',
 				capitalization: 'lowercase'
