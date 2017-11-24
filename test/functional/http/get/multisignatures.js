@@ -96,7 +96,7 @@ describe('GET /api/multisignatures/', function () {
 						node.expect(element.transaction.asset.multisignature).to.have.property('lifetime').that.is.a('number');
 						node.expect(element.transaction).to.have.property('signature').that.is.a('string');
 						node.expect(element.transaction).to.have.property('id').that.is.equal(transaction.id);
-						node.expect(element.transaction).to.have.property('fee').that.is.equal(constants.fees.multisignatureRegistrationFee * (scenario.keysgroup.length + 1));
+						node.expect(element.transaction).to.have.property('fee').that.is.equal(constants.fees.multisignature * (scenario.keysgroup.length + 1));
 						node.expect(element.transaction).to.have.property('senderId').that.is.eql(scenario.account.address);
 						node.expect(element.transaction).to.have.property('receivedAt').that.is.a('string');
 					}
