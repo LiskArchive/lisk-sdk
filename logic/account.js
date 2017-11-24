@@ -146,7 +146,7 @@ function Account (db, schema, logger, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG(ENCODE(v.delegate_public_key, \'hex\')) AS "delegates" FROM (SELECT DISTINCT ON (delegate_public_key) voter_address, delegate_public_key, type FROM votes_details WHERE voter_address = a."address" ORDER BY delegate_public_key, timestamp DESC) v WHERE v.type = \'add\')'
+			expression: '(SELECT ARRAY_AGG(ENCODE(v.delegate_public_key, \'hex\')) AS delegates FROM (SELECT DISTINCT ON (delegate_public_key) voter_address, delegate_public_key, type FROM votes_details WHERE voter_address = a.address ORDER BY delegate_public_key, timestamp DESC) v WHERE v.type = \'add\')'
 		},
 		{
 			name: 'multisignatures',
@@ -156,7 +156,7 @@ function Account (db, schema, logger, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG(ENCODE(mm."public_key", \'hex\')) FROM multisignatures_member mm, accounts a WHERE a."public_key" = mm."master_public_key")'
+			expression: '(SELECT ARRAY_AGG(ENCODE(mm.public_key, \'hex\')) FROM multisignatures_member mm, accounts a WHERE a.public_key = mm.master_public_key)'
 		},
 		{
 			name: 'multimin',
