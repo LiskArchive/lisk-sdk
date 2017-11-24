@@ -83,6 +83,7 @@ random.randomApplicationName = function () {
 // Test random application
 random.randomApplication = function () {
 	return {
+		id: '',
 		category: random.randomNumber(0, 9),
 		name: random.randomApplicationName(),
 		description: 'Blockchain based home monitoring tool',
