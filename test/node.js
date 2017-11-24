@@ -30,7 +30,6 @@ node.chai.use(require('chai-bignumber')(node.bignum));
 node.expect = node.chai.expect;
 node.should = node.chai.should();
 node.lisk = require('lisk-js');
-node.supertest = require('supertest');
 node.Promise = require('bluebird');
 var randomstring = require('randomstring');
 
@@ -41,8 +40,6 @@ node.config.root = process.cwd();
 require('colors');
 
 // Node configuration
-node.api = node.supertest(http.baseUrl);
-
 node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds

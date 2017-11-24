@@ -1,16 +1,17 @@
 'use strict';
 
+var popsicle = require('popsicle');
+var supertest = require('supertest');
 var config = require('../config.json');
-var node = require('../node');
 
 var baseUrl = 'http://' + config.address + ':' + config.httpPort;
-
+var api = supertest(baseUrl);
 var httpCommunication = {
 
 	baseUrl: baseUrl,
 
 	abstractRequest: function (options, done) {
-		var request = node.api[options.verb.toLowerCase()](options.path);
+		var request = api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
 		request.expect(function (response) {
@@ -24,15 +25,15 @@ var httpCommunication = {
 		}
 
 		var verb = options.verb.toUpperCase();
-		node.debug(['> Path:'.grey, verb, options.path].join(' '));
+		console.log(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
-			node.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
+			console.log(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
 		}
 
 		if (done) {
 			request.end(function (err, res) {
-				node.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
-				node.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
+				console.log('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
+				console.log('> Response:'.grey, JSON.stringify(res ? res.body : err));
 				done(err, res);
 			});
 		} else {
@@ -56,9 +57,9 @@ var httpCommunication = {
 	},
 
 	getHeight: function (cb) {
-		var request = node.popsicle.get(baseUrl + '/api/node/status');
+		var request = popsicle.get(baseUrl + '/api/node/status');
 
-		request.use(node.popsicle.plugins.parse(['json']));
+		request.use(popsicle.plugins.parse(['json']));
 
 		request.then(function (res) {
 			if (res.status !== 200) {

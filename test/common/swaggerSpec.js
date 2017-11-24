@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var supertest = require('supertest');
 
 var node = require('../node');
 var http = require('../common/httpCommunication');
@@ -137,7 +138,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			}
 		});
 
-		var req = node.supertest(http.baseUrl);
+		var req = supertest(http.baseUrl);
 
 		if (self.method === 'post') {
 			req = req.post(apiSpec.basePath + callPath);
