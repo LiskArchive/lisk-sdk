@@ -22,17 +22,17 @@ describe('GET /accounts', function () {
 		describe('address', function () {
 
 			it('using known address should be ok', function () {
-				return accountsEndpoint.makeRequest({address: node.gAccount.address}, 200);
+				return accountsEndpoint.makeRequest({address: utils.accounts.gAccount.address}, 200);
 			});
 
 			it('using known address and empty publicKey should return empty result', function () {
-				return accountsEndpoint.makeRequest({address: node.gAccount.address, publicKey: ''}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({address: utils.accounts.gAccount.address, publicKey: ''}, 200).then(function (res) {
 					res.body.data.should.have.length(0);
 				});
 			});
 
 			it('using known lowercase address should be ok', function () {
-				return accountsEndpoint.makeRequest({address: node.gAccount.address.toLowerCase()}, 200);
+				return accountsEndpoint.makeRequest({address: utils.accounts.gAccount.address.toLowerCase()}, 200);
 			});
 
 			it('using unknown address should return empty result', function () {
@@ -57,11 +57,11 @@ describe('GET /accounts', function () {
 		describe('publicKey', function () {
 
 			it('using known publicKey should be ok', function () {
-				return accountsEndpoint.makeRequest({publicKey: node.gAccount.publicKey}, 200);
+				return accountsEndpoint.makeRequest({publicKey: utils.accounts.gAccount.publicKey}, 200);
 			});
 
 			it('using known publicKey and empty address should fail', function () {
-				return accountsEndpoint.makeRequest({publicKey: node.gAccount.publicKey, address: ''}, 400).then(function (res) {
+				return accountsEndpoint.makeRequest({publicKey: utils.accounts.gAccount.publicKey, address: ''}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'address');
 				});
 			});
@@ -97,15 +97,15 @@ describe('GET /accounts', function () {
 			});
 
 			it('using known address and matching publicKey should be ok', function () {
-				return accountsEndpoint.makeRequest({publicKey: node.gAccount.publicKey, address: node.gAccount.address}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({publicKey: utils.accounts.gAccount.publicKey, address: utils.accounts.gAccount.address}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
-					res.body.data[0].address.should.be.eql(node.gAccount.address);
-					res.body.data[0].publicKey.should.be.eql(node.gAccount.publicKey);
+					res.body.data[0].address.should.be.eql(utils.accounts.gAccount.address);
+					res.body.data[0].publicKey.should.be.eql(utils.accounts.gAccount.publicKey);
 				});
 			});
 
 			it('using known address and not matching publicKey should return empty result', function () {
-				return accountsEndpoint.makeRequest({publicKey: account.publicKey, address: node.gAccount.address}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({publicKey: account.publicKey, address: utils.accounts.gAccount.address}, 200).then(function (res) {
 					res.body.data.should.have.length(0);
 				});
 			});
@@ -114,7 +114,7 @@ describe('GET /accounts', function () {
 		describe.only('secondPublicKey', function () {
 
 			var secondPublicKeyAccount = utils.random.randomAccount();
-			var creditTransaction = node.lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, node.gAccount.password);
+			var creditTransaction = node.lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, utils.accounts.gAccount.password);
 			var signatureTransaction = node.lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
 
 			before(function () {
@@ -261,9 +261,9 @@ describe('GET /accounts', function () {
 		});
 
 		it('should return empty delegate property for a non delegate account', function () {
-			return accountsEndpoint.makeRequest({address: node.gAccount.address}, 200).then(function (res) {
-				res.body.data[0].address.should.be.eql(node.gAccount.address);
-				res.body.data[0].publicKey.should.be.eql(node.gAccount.publicKey);
+			return accountsEndpoint.makeRequest({address: utils.accounts.gAccount.address}, 200).then(function (res) {
+				res.body.data[0].address.should.be.eql(utils.accounts.gAccount.address);
+				res.body.data[0].publicKey.should.be.eql(utils.accounts.gAccount.publicKey);
 				res.body.data[0].should.not.have.property('delegate');
 			});
 		});

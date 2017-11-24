@@ -29,10 +29,10 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	before(function () {
 
 		var transactions = [];
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, node.gAccount.password);
-		var transaction3 = node.lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, node.gAccount.password);
-		var transaction4 = node.lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, node.gAccount.password);
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, utils.accounts.gAccount.password);
+		var transaction3 = node.lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, utils.accounts.gAccount.password);
+		var transaction4 = node.lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, utils.accounts.gAccount.password);
 		transactions.push(transaction1);
 		transactions.push(transaction2);
 		transactions.push(transaction3);

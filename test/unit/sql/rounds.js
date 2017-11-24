@@ -576,7 +576,7 @@ describe('Rounds-related SQL triggers', function () {
 			var transaction = node.lisk.transaction.createTransaction(
 				utils.random.randomAccount().address,
 				utils.random.randomNumber(100000000, 1000000000),
-				node.gAccount.password
+				utils.accounts.gAccount.password
 			);
 			transactions.push(transaction);
 
@@ -591,7 +591,7 @@ describe('Rounds-related SQL triggers', function () {
 				var transaction = node.lisk.transaction.createTransaction(
 					utils.random.randomAccount().address,
 					utils.random.randomNumber(100000000, 1000000000),
-					node.gAccount.password
+					utils.accounts.gAccount.password
 				);
 				transactions.push(transaction);
 			}
@@ -611,7 +611,7 @@ describe('Rounds-related SQL triggers', function () {
 					var transaction = node.lisk.transaction.createTransaction(
 						utils.random.randomAccount().address,
 						utils.random.randomNumber(100000000, 1000000000),
-						node.gAccount.password
+						utils.accounts.gAccount.password
 					);
 					transactions.push(transaction);
 				}
@@ -721,7 +721,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('should unvote expected forger of last block of round', function () {
 				var transactions = [];
 				var transaction = node.lisk.vote.createVote(
-					node.gAccount.password,
+					utils.accounts.gAccount.password,
 					['-' + last_block_forger]
 				);
 				transactions.push(transaction);
@@ -792,7 +792,7 @@ describe('Rounds-related SQL triggers', function () {
 						// Fund random account
 						var transactions = [];
 						tmp_account = utils.random.randomAccount();
-						var transaction = node.lisk.transaction.createTransaction(tmp_account.address, 5000000000, node.gAccount.password);
+						var transaction = node.lisk.transaction.createTransaction(tmp_account.address, 5000000000, utils.accounts.gAccount.password);
 						transactions.push(transaction);
 						return tickAndValidate(transactions);
 					})
@@ -813,7 +813,7 @@ describe('Rounds-related SQL triggers', function () {
 			it('after finishing round, should unvote expected forger of last block of round and vote new delegate', function () {
 				var transactions = [];
 				var transaction = node.lisk.vote.createVote(
-					node.gAccount.password,
+					utils.accounts.gAccount.password,
 					['-' + last_block_forger, '+' + tmp_account.publicKey]
 				);
 				transactions.push(transaction);

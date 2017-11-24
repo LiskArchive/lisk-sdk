@@ -46,7 +46,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 
 		it('using zero amount should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(account.address, 0, node.gAccount.password);
+			transaction = node.lisk.transaction.createTransaction(account.address, 0, utils.accounts.gAccount.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -66,7 +66,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 
 		it('using entire balance should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(account.address, Math.floor(node.gAccount.balance) , node.gAccount.password);
+			transaction = node.lisk.transaction.createTransaction(account.address, Math.floor(utils.accounts.gAccount.balance) , utils.accounts.gAccount.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -132,7 +132,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		describe('with offset', function () {
 			
 			it('using -1 should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, -1);
+				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, utils.accounts.gAccount.password, null, null, -1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
@@ -143,7 +143,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			});
 			
 			it('using future timestamp should fail', function () {
-				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1000);
+				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, utils.accounts.gAccount.password, null, null, 1000);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -164,7 +164,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				invalidCases.forEach(function (test) {
 					it('using ' + test.description + ' should fail', function () {
 						var accountAdditionalData = utils.random.randomAccount();
-						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password);
+						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, utils.accounts.gAccount.password);
 						transaction.asset.data = test.input;
 
 						return sendTransactionPromise(transaction).then(function (res) {
@@ -184,7 +184,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				validCases.forEach(function (test) {
 					it('using ' + test.description + ' should be ok', function () {
 						var accountAdditionalData = utils.random.randomAccount();
-						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password, null, test.input);
+						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, utils.accounts.gAccount.password, null, test.input);
 						
 						return sendTransactionPromise(transaction).then(function (res) {
 							node.expect(res).to.have.property('status').to.equal(200);

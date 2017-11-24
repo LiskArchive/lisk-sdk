@@ -320,7 +320,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, node.gAccount.secondPassword);
+				var transaction = node.lisk.transaction.createTransaction('1L', 1, utils.accounts.gAccount.password, utils.accounts.gAccount.secondPassword);
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {

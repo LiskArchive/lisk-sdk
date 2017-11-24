@@ -91,25 +91,25 @@ function invalidAssets (option, badTransactions) {
 	beforeEach(function () {
 		switch(option) {
 			case 'signature':
-				transaction = node.lisk.signature.createSignature(node.gAccount.password, utils.random.randomPassword());
+				transaction = node.lisk.signature.createSignature(utils.accounts.gAccount.password, utils.random.randomPassword());
 				break;
 			case 'delegate':
-				transaction = node.lisk.delegate.createDelegate(node.gAccount.password, utils.random.randomDelegateName());
+				transaction = node.lisk.delegate.createDelegate(utils.accounts.gAccount.password, utils.random.randomDelegateName());
 				break;
 			case 'votes':
-				transaction = node.lisk.vote.createVote(node.gAccount.password, []);
+				transaction = node.lisk.vote.createVote(utils.accounts.gAccount.password, []);
 				break;
 			case 'multisignature':
-				transaction = node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + node.eAccount.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(utils.accounts.gAccount.password, null, ['+' + node.eAccount.publicKey], 1, 2);
 				break;
 			case 'dapp':
-				transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(utils.accounts.gAccount.password, null, node.guestbookDapp);
 				break;
 			case 'inTransfer':
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), utils.accounts.gAccount.password);
 				break;
 			case 'outTransfer':
-				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, node.gAccount.address, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, utils.random.randomTransaction().id, utils.accounts.gAccount.address, Date.now(), utils.accounts.gAccount.password);
 				break;
 		};
 	});

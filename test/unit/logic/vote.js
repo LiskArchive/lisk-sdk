@@ -217,7 +217,7 @@ describe('vote', function () {
 	describe('verify', function () {
 		it('should return error when receipientId and sender id are different', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.recipientId = node.gAccount.address;
+			transaction.recipientId = utils.accounts.gAccount.address;
 			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid recipient');
 				done();
@@ -376,7 +376,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.gAccount.publicKey];
 			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
@@ -427,7 +427,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.gAccount.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();

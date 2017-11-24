@@ -15,7 +15,7 @@ var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 describe('GET /api/voters', function () {
 
 	var validVotedDelegate = node.eAccount;
-	var validNotVotedDelegate = node.gAccount;
+	var validNotVotedDelegate = utils.accounts.gAccount;
 	var validNotExistingAddress = '11111111111111111111L';
 
 	function expectValidVotedDelegateResponse (res) {
@@ -404,7 +404,7 @@ describe('GET /api/voters', function () {
 				var enrichExtraDelegateVoterTransaction = node.lisk.transaction.createTransaction(
 					validExtraDelegateVoter.address,
 					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
-					node.gAccount.password
+					utils.accounts.gAccount.password
 				);
 				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
 					length: 10,

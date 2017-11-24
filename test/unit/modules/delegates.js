@@ -8,6 +8,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var modulesLoader = require('./../../common/modulesLoader');
 var DBSandbox = require('./../../common/globalBefore.js').DBSandbox;
 var ed = require('../../../helpers/ed');
@@ -157,8 +158,8 @@ describe('delegates', function () {
 
 			it('should return error with non delegate account', function (done) {
 				var body = {
-					publicKey: node.gAccount.publicKey,
-					key: node.gAccount.password
+					publicKey: utils.accounts.gAccount.publicKey,
+					key: utils.accounts.gAccount.password
 				};
 
 				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err) {
@@ -325,8 +326,8 @@ describe('delegates', function () {
 
 			it('should ignore secrets which do not belong to a delegate', function (done) {
 				config.forging.secret = [{
-					encryptedSecret: node.gAccount.encryptedSecret,
-					publicKey: node.gAccount.publicKey
+					encryptedSecret: utils.accounts.gAccount.encryptedSecret,
+					publicKey: utils.accounts.gAccount.publicKey
 				}];
 
 				loadDelegates(function (err) {

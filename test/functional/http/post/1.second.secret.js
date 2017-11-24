@@ -28,10 +28,10 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 	// Crediting accounts
 	before(function () {
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, node.gAccount.password);
-		var transaction3 = node.lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, node.gAccount.password);
-		var transaction4 = node.lisk.transaction.createTransaction(accountDuplicate.address, constants.fees.secondSignature, node.gAccount.password);
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, utils.accounts.gAccount.password);
+		var transaction3 = node.lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, utils.accounts.gAccount.password);
+		var transaction4 = node.lisk.transaction.createTransaction(accountDuplicate.address, constants.fees.secondSignature, utils.accounts.gAccount.password);
 
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));

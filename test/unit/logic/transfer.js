@@ -9,6 +9,7 @@ var expect = require('chai').expect;
 var randomstring = require('randomstring');
 
 var node = require('./../../node.js');
+var utils = require('../../common/utils');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
@@ -21,7 +22,7 @@ var Transfer = require('../../../logic/transfer.js');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
-var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
+var senderHash = crypto.createHash('sha256').update(utils.accounts.gAccount.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
 var validSender = {

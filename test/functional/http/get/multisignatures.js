@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../../../node.js');
+var utils = require('../../../common/utils');
 var shared = require('../../shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -17,7 +18,7 @@ describe('GET /api/multisignatures/', function () {
 
 	before(function () {
 		// Crediting accounts
-		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, node.gAccount.password);
+		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
 		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

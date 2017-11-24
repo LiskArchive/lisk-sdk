@@ -38,7 +38,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				return;
 			}
 
-			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, node.gAccount.password);
+			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, utils.accounts.gAccount.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

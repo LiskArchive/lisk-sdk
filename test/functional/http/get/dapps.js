@@ -21,7 +21,7 @@ describe('GET /dapps', function () {
 	var registeredDappsAmount = 2;
 
 	before(function () {
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
 		transactionsToWaitFor.push(transaction.id);
 		return sendTransactionPromise(transaction)
 			.then(function (res) {

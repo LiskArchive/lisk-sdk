@@ -44,12 +44,12 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	before(function () {
 		var transactions = [];
-		var transaction1 = node.lisk.transaction.createTransaction(delegateAccount.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.vote, node.gAccount.password);
-		var transaction3 = node.lisk.transaction.createTransaction(node.eAccount.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction4 = node.lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction5 = node.lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction6 = node.lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, node.gAccount.password);
+		var transaction1 = node.lisk.transaction.createTransaction(delegateAccount.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.vote, utils.accounts.gAccount.password);
+		var transaction3 = node.lisk.transaction.createTransaction(node.eAccount.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
+		var transaction4 = node.lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
+		var transaction5 = node.lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * node.normalizer, utils.accounts.gAccount.password);
+		var transaction6 = node.lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, utils.accounts.gAccount.password);
 		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5, transaction6);
 
 		var promises = [];
@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
 					var tempAccount = utils.random.randomAccount();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
-					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, node.gAccount.password);
+					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, utils.accounts.gAccount.password);
 					transactionsCreditMaxVotesPerTransaction.push(transaction);
 					promisesCreditsMaxVotesPerTransaction.push(sendTransactionPromise(transaction));
 				};
@@ -92,7 +92,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				for (var i = 0; i < constants.activeDelegates; i++) {
 					var tempAccount = utils.random.randomAccount();
 					delegatesMaxVotesPerAccount.push(tempAccount);
-					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, node.gAccount.password);
+					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, utils.accounts.gAccount.password);
 					transactionsCreditMaxVotesPerAccount.push(transaction);
 					promisesCreditsMaxVotesPerAccount.push(sendTransactionPromise(transaction));
 				};
