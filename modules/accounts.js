@@ -141,7 +141,8 @@ Accounts.prototype.getSender = function (data, cb) {
 			return setImmediate(cb, err);
 		}
 
-		// This sets account variables for fresh accounts - Needs to be refactored after TX Pool
+		// Sets account variables for fresh accounts
+		// TODO: Refactor after transaction pool rewrite
 		if (account === null && data.type === transactionTypes.SEND) {
 			account = {};
 			account.balance = 0;
@@ -229,7 +230,7 @@ Accounts.prototype.shared = {
 
 					return {
 						address: account.address,
-						unconfirmedBalance: account.u_balance, //TODO: Need to set this in memory
+						unconfirmedBalance: account.u_balance, // TODO: Set this in memory
 						balance: account.balance,
 						publicKey: account.publicKey,
 						secondPublicKey: account.secondPublicKey,
