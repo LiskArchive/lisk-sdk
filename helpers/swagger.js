@@ -80,8 +80,32 @@ function getSwaggerSpec () {
 	return YAML.safeLoad(fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml')));
 }
 
+/**
+ * Generate swagger based param error object to handle custom errors
+ *
+ * @param {Array} params - List of param objects
+ * @param {Array} messages - List of error messages
+ * @param {Array} [codes] - List of codes for particular error
+ *
+ * @return {object}
+ */
+function generateParamsErrorObject (params, messages, codes) {
+
+	if (!codes){ codes = []; }
+
+	var error = new Error('Validation errors');
+	error.statusCode = 400;
+
+	error.errors = params.map(function (p, i) {
+		var def = p.parameterObject;
+		return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
+	});
+	return error;
+}
+
 module.exports = {
 	getValidator: getValidator,
 	getResolvedSwaggerSpec: getResolvedSwaggerSpec,
-	getSwaggerSpec: getSwaggerSpec
+	getSwaggerSpec: getSwaggerSpec,
+	generateParamsErrorObject: generateParamsErrorObject
 };

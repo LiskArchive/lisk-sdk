@@ -7,7 +7,9 @@ var VotersSql = {
 		'publicKey'
 	],
 
-	getVoters: 'SELECT ARRAY_AGG("accountId") AS "accountIds" FROM mem_accounts2delegates WHERE "dependentId" = ${publicKey}'
+	getVoters: 'SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${publicKey} LIMIT ${limit} OFFSET ${offset}',
+
+	getVotersCount: 'SELECT COUNT("accountId") as "votersCount" FROM mem_accounts2delegates WHERE "dependentId" = ${publicKey}'
 };
 
 module.exports = VotersSql;
