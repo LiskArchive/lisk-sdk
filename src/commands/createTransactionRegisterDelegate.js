@@ -39,12 +39,13 @@ export const actionCreator = vorpal => async ({ username, options }) => {
 			source: passphraseSource,
 			repeatPrompt: true,
 		},
-		secondPassphrase: !secondPassphraseSource ? null : {
-			source: secondPassphraseSource,
-			repeatPrompt: true,
-		},
-	})
-		.then(processInputs(username));
+		secondPassphrase: !secondPassphraseSource
+			? null
+			: {
+					source: secondPassphraseSource,
+					repeatPrompt: true,
+				},
+	}).then(processInputs(username));
 };
 
 const createTransactionRegisterSecondPassphrase = createCommand({
@@ -52,10 +53,7 @@ const createTransactionRegisterSecondPassphrase = createCommand({
 	alias: 'create transaction 2',
 	description,
 	actionCreator,
-	options: [
-		commonOptions.passphrase,
-		commonOptions.secondPassphrase,
-	],
+	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
 	errorPrefix: 'Could not create "register delegate" transaction',
 });
 

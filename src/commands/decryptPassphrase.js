@@ -51,11 +51,12 @@ export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 		password: {
 			source: passwordSource,
 		},
-		data: passphrase ? null : {
-			source: passphraseSource,
-		},
-	})
-		.then(processInputs(iv, passphrase));
+		data: passphrase
+			? null
+			: {
+					source: passphraseSource,
+				},
+	}).then(processInputs(iv, passphrase));
 };
 
 const decryptPassphrase = createCommand({

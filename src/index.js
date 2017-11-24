@@ -26,7 +26,7 @@ const lisky = vorpal();
 
 const commandsDir = path.join(__dirname, 'commands');
 
-fs.readdirSync(commandsDir).forEach((command) => {
+fs.readdirSync(commandsDir).forEach(command => {
 	const commandPath = path.join(commandsDir, command);
 	// eslint-disable-next-line global-require, import/no-dynamic-require
 	const commandModule = require(commandPath);
@@ -53,9 +53,7 @@ Type \`help\` to get started.
 `;
 const intro = `${copyright}${logo}${message}`;
 
-lisky
-	.delimiter(`${name}>`)
-	.history(name);
+lisky.delimiter(`${name}>`).history(name);
 
 if (process.env.NON_INTERACTIVE_MODE !== 'true') {
 	lisky.log(intro).show();

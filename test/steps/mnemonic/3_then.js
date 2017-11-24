@@ -16,5 +16,5 @@
 export function theMnemonicPassphraseShouldBeA12WordString() {
 	const { mnemonicPassphrase } = this.test.ctx;
 	const mnemonicWords = mnemonicPassphrase.split(' ').filter(Boolean);
-	return (mnemonicWords).should.have.length(12);
+	return mnemonicWords.should.have.length(12);
 }

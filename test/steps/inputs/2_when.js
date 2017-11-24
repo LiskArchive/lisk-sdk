@@ -13,7 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import getInputsFromSources, { getFirstLineFromString } from '../../../src/utils/input/';
+import getInputsFromSources, {
+	getFirstLineFromString,
+} from '../../../src/utils/input/';
 import * as inputUtils from '../../../src/utils/input/utils';
 
 export function getInputsFromSourcesIsCalledWithTheVorpalInstanceAndTheOptions() {
@@ -35,7 +37,10 @@ export function createPromptOptionsIsCalledWithTheMessage() {
 
 export function getPassphraseFromPromptIsCalled() {
 	const { vorpal, displayName, shouldRepeat } = this.test.ctx;
-	const returnValue = inputUtils.getPassphraseFromPrompt(vorpal, { displayName, shouldRepeat });
+	const returnValue = inputUtils.getPassphraseFromPrompt(vorpal, {
+		displayName,
+		shouldRepeat,
+	});
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -43,16 +48,23 @@ export function getPassphraseFromPromptIsCalled() {
 
 export function getStdInIsCalledWithTheRelevantOptions() {
 	const {
-		passphraseIsRequired, secondPassphraseIsRequired, passwordIsRequired, dataIsRequired,
+		passphraseIsRequired,
+		secondPassphraseIsRequired,
+		passwordIsRequired,
+		dataIsRequired,
 	} = this.test.ctx;
-	const options = (passphraseIsRequired || secondPassphraseIsRequired || passwordIsRequired || dataIsRequired)
-		? {
-			passphraseIsRequired,
-			secondPassphraseIsRequired,
-			passwordIsRequired,
-			dataIsRequired,
-		}
-		: undefined;
+	const options =
+		passphraseIsRequired ||
+		secondPassphraseIsRequired ||
+		passwordIsRequired ||
+		dataIsRequired
+			? {
+					passphraseIsRequired,
+					secondPassphraseIsRequired,
+					passwordIsRequired,
+					dataIsRequired,
+				}
+			: undefined;
 	const returnValue = inputUtils.getStdIn(options);
 
 	this.test.ctx.returnValue = returnValue;
@@ -61,7 +73,10 @@ export function getStdInIsCalledWithTheRelevantOptions() {
 
 export function getPassphraseFromEnvVariableIsCalled() {
 	const { environmentalVariableName, displayName } = this.test.ctx;
-	const returnValue = inputUtils.getPassphraseFromEnvVariable(environmentalVariableName, displayName);
+	const returnValue = inputUtils.getPassphraseFromEnvVariable(
+		environmentalVariableName,
+		displayName,
+	);
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -85,7 +100,9 @@ export function getPassphraseFromFileIsCalledOnThePathAndAnUnknownErrorOccurs() 
 
 export function getPassphraseFromSourceIsCalledWithTheRelevantSource() {
 	const { passphraseSource, displayName } = this.test.ctx;
-	const returnValue = inputUtils.getPassphraseFromSource(passphraseSource, { displayName });
+	const returnValue = inputUtils.getPassphraseFromSource(passphraseSource, {
+		displayName,
+	});
 
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);

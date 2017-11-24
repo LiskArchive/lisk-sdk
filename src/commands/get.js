@@ -14,11 +14,7 @@
  *
  */
 import { COMMAND_TYPES } from '../utils/constants';
-import {
-	createCommand,
-	deAlias,
-	processQueryResult,
-} from '../utils/helpers';
+import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
 import query from '../utils/query';
 
 const description = `Gets information from the blockchain. Types available: account, address, block, delegate, transaction.
@@ -33,8 +29,7 @@ export const actionCreator = () => async ({ type, input }) => {
 		throw new Error('Unsupported type.');
 	}
 
-	return query.handlers[deAlias(type)](input)
-		.then(processQueryResult(type));
+	return query.handlers[deAlias(type)](input).then(processQueryResult(type));
 };
 
 const get = createCommand({

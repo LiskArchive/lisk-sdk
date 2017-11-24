@@ -1,4 +1,5 @@
-const jsonDescription = 'Sets output to json. You can change the default behaviour in your config.json file.';
+const jsonDescription =
+	'Sets output to json. You can change the default behaviour in your config.json file.';
 
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 
@@ -9,7 +10,8 @@ const messageDescription = `Specifies a source for providing a message to the co
 	- --message stdin
 `;
 
-const noJsonDescription = 'Sets output to text (default). You can change the default behaviour in your config.json file.';
+const noJsonDescription =
+	'Sets output to text (default). You can change the default behaviour in your config.json file.';
 
 const passphraseDescription = `Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
 
@@ -47,7 +49,8 @@ const passwordDescription = `Specifies a source for your secret password. Lisky 
 	- --password stdin (takes the first line only)
 `;
 
-const prettyDescription = 'Prints json in pretty format rather than condensed. Has no effect if json option is false. You can change the default behaviour in your config.json file.';
+const prettyDescription =
+	'Prints json in pretty format rather than condensed. Has no effect if json option is false. You can change the default behaviour in your config.json file.';
 
 const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
 
@@ -68,7 +71,10 @@ const options = {
 	message: ['-m, --message <source>', messageDescription],
 	noJson: ['-t, --no-json', noJsonDescription],
 	passphrase: ['-p, --passphrase <source>', passphraseDescription],
-	secondPassphrase: ['-s, --second-passphrase <source>', secondPassphraseDescription],
+	secondPassphrase: [
+		'-s, --second-passphrase <source>',
+		secondPassphraseDescription,
+	],
 	password: ['-w, --password <source>', passwordDescription],
 	pretty: ['--pretty', prettyDescription],
 	unvotes: ['--unvotes <source...>', unvotesDescription],

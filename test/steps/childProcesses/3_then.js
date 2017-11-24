@@ -14,45 +14,43 @@
  *
  */
 import childProcess from 'child_process';
-import {
-	getFirstQuotedString,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export function itShouldExecuteAScriptExecutingFirstInASeparateChildProcess() {
 	const command = getFirstQuotedString(this.test.title);
-	return (childProcess.exec).firstCall.should.be.calledWithMatch(command);
+	return childProcess.exec.firstCall.should.be.calledWithMatch(command);
 }
 
 export function itShouldExecuteAScriptExecutingSecondInASeparateChildProcess() {
 	const command = getFirstQuotedString(this.test.title);
-	return (childProcess.exec).secondCall.should.be.calledWithMatch(command);
+	return childProcess.exec.secondCall.should.be.calledWithMatch(command);
 }
 
 export function itShouldExecuteAScriptExecutingThirdInASeparateChildProcess() {
 	const command = getFirstQuotedString(this.test.title);
-	return (childProcess.exec).thirdCall.should.be.calledWithMatch(command);
+	return childProcess.exec.thirdCall.should.be.calledWithMatch(command);
 }
 
 export function itShouldNotExecuteAThirdScriptInASeparateChildProcess() {
-	return (childProcess.exec).should.not.be.calledThrice();
+	return childProcess.exec.should.not.be.calledThrice();
 }
 
 export function theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst() {
 	const { lisky, firstChildOutput } = this.test.ctx;
-	return (lisky.log).firstCall.should.be.calledWithExactly(firstChildOutput);
+	return lisky.log.firstCall.should.be.calledWithExactly(firstChildOutput);
 }
 
 export function theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond() {
 	const { lisky, secondChildOutput } = this.test.ctx;
-	return (lisky.log).secondCall.should.be.calledWithExactly(secondChildOutput);
+	return lisky.log.secondCall.should.be.calledWithExactly(secondChildOutput);
 }
 
 export function theLiskyInstanceShouldLogTheThirdChildProcessOutputThird() {
 	const { lisky, thirdChildOutput } = this.test.ctx;
-	return (lisky.log).thirdCall.should.be.calledWithExactly(thirdChildOutput);
+	return lisky.log.thirdCall.should.be.calledWithExactly(thirdChildOutput);
 }
 
 export function theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond() {
 	const { lisky, secondChildError } = this.test.ctx;
-	return (lisky.log).secondCall.should.be.calledWithExactly(secondChildError);
+	return lisky.log.secondCall.should.be.calledWithExactly(secondChildError);
 }

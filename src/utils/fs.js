@@ -15,7 +15,7 @@
  */
 import { readFileSync, writeFileSync } from 'fs';
 
-export const readJsonSync = (path) => {
+export const readJsonSync = path => {
 	const contents = readFileSync(path, 'utf8');
 	const stripped = contents.replace(/^\uFEFF/, '');
 	return JSON.parse(stripped);

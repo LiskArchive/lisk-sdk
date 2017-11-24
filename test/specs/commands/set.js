@@ -28,256 +28,774 @@ describe('set command', () => {
 				Given('an action "set"', given.anAction, () => {
 					Given('an unknown variable "xxx"', given.anUnknownVariable, () => {
 						Given('a value "true"', given.aValue, () => {
-							When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-								Then('it should reject with message "Unsupported variable name."', then.itShouldRejectWithMessage);
-							});
+							When(
+								'the action is called with the variable and the value',
+								when.theActionIsCalledWithTheVariableAndTheValue,
+								() => {
+									Then(
+										'it should reject with message "Unsupported variable name."',
+										then.itShouldRejectWithMessage,
+									);
+								},
+							);
 						});
 					});
 					Given('a variable "json"', given.aVariable, () => {
 						Given('an unknown value "xxx"', given.anUnknownValue, () => {
-							When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-								Then('it should reject with message "Value must be a boolean."', then.itShouldRejectWithMessage);
-							});
+							When(
+								'the action is called with the variable and the value',
+								when.theActionIsCalledWithTheVariableAndTheValue,
+								() => {
+									Then(
+										'it should reject with message "Value must be a boolean."',
+										then.itShouldRejectWithMessage,
+									);
+								},
+							);
 						});
 						Given('a value "true"', given.aValue, () => {
-							Given('the config file cannot be written', given.theConfigFileCannotBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "json" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
-										Then('it should resolve to an object with message "Successfully set json to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
-							Given('the config file can be written', given.theConfigFileCanBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "json" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set json to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "json" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set json to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
+							Given(
+								'the config file cannot be written',
+								given.theConfigFileCannotBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should reject with message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "json" to boolean true',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."',
+														then.itShouldResolveToAnObjectWithWarning,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set json to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'the config file can be written',
+								given.theConfigFileCanBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "json" to boolean true',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set json to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "json" to boolean true',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set json to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						});
 						Given('a value "false"', given.aValue, () => {
-							Given('the config file cannot be written', given.theConfigFileCannotBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "json" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
-										Then('it should resolve to an object with message "Successfully set json to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
-							Given('the config file can be written', given.theConfigFileCanBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "json" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set json to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "json" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set json to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
+							Given(
+								'the config file cannot be written',
+								given.theConfigFileCannotBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should reject with message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "json" to boolean false',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."',
+														then.itShouldResolveToAnObjectWithWarning,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set json to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'the config file can be written',
+								given.theConfigFileCanBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "json" to boolean false',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set json to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "json" to boolean false',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set json to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						});
 					});
 					Given('a variable "name"', given.aVariable, () => {
 						Given('a value "my_custom_lisky"', given.aValue, () => {
-							Given('the config file cannot be written', given.theConfigFileCannotBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "name" to the value', then.itShouldUpdateTheConfigVariableToTheValue);
-										Then('it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
-										Then('it should resolve to an object with message "Successfully set name to my_custom_lisky."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
-							Given('the config file can be written', given.theConfigFileCanBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "name" to the value', then.itShouldUpdateTheConfigVariableToTheValue);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set name to my_custom_lisky."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "name" to the value', then.itShouldUpdateTheConfigVariableToTheValue);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set name to my_custom_lisky."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
+							Given(
+								'the config file cannot be written',
+								given.theConfigFileCannotBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should reject with message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "name" to the value',
+														then.itShouldUpdateTheConfigVariableToTheValue,
+													);
+													Then(
+														'it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."',
+														then.itShouldResolveToAnObjectWithWarning,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'the config file can be written',
+								given.theConfigFileCanBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "name" to the value',
+														then.itShouldUpdateTheConfigVariableToTheValue,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "name" to the value',
+														then.itShouldUpdateTheConfigVariableToTheValue,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						});
 					});
 					Given('a variable "pretty"', given.aVariable, () => {
 						Given('an unknown value "xxx"', given.anUnknownValue, () => {
-							When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-								Then('it should reject with message "Value must be a boolean."', then.itShouldRejectWithMessage);
-							});
+							When(
+								'the action is called with the variable and the value',
+								when.theActionIsCalledWithTheVariableAndTheValue,
+								() => {
+									Then(
+										'it should reject with message "Value must be a boolean."',
+										then.itShouldRejectWithMessage,
+									);
+								},
+							);
 						});
 						Given('a value "true"', given.aValue, () => {
-							Given('the config file cannot be written', given.theConfigFileCannotBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "pretty" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
-										Then('it should resolve to an object with message "Successfully set pretty to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
-							Given('the config file can be written', given.theConfigFileCanBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "pretty" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set pretty to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "pretty" to boolean true', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set pretty to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
+							Given(
+								'the config file cannot be written',
+								given.theConfigFileCannotBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should reject with message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "pretty" to boolean true',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."',
+														then.itShouldResolveToAnObjectWithWarning,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set pretty to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'the config file can be written',
+								given.theConfigFileCanBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "pretty" to boolean true',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set pretty to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "pretty" to boolean true',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set pretty to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						});
 						Given('a value "false"', given.aValue, () => {
-							Given('the config file cannot be written', given.theConfigFileCannotBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "pretty" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
-										Then('it should resolve to an object with message "Successfully set pretty to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
-							Given('the config file can be written', given.theConfigFileCanBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "pretty" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set pretty to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config variable "pretty" to boolean false', then.itShouldUpdateTheConfigVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set pretty to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
+							Given(
+								'the config file cannot be written',
+								given.theConfigFileCannotBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should reject with message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "pretty" to boolean false',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."',
+														then.itShouldResolveToAnObjectWithWarning,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set pretty to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'the config file can be written',
+								given.theConfigFileCanBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "pretty" to boolean false',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set pretty to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config variable "pretty" to boolean false',
+														then.itShouldUpdateTheConfigVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set pretty to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						});
 					});
 					Given('a variable "testnet"', given.aVariable, () => {
 						Given('an unknown value "xxx"', given.anUnknownValue, () => {
-							When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-								Then('it should reject with message "Value must be a boolean."', then.itShouldRejectWithMessage);
-							});
+							When(
+								'the action is called with the variable and the value',
+								when.theActionIsCalledWithTheVariableAndTheValue,
+								() => {
+									Then(
+										'it should reject with message "Value must be a boolean."',
+										then.itShouldRejectWithMessage,
+									);
+								},
+							);
 						});
 						Given('a value "true"', given.aValue, () => {
-							Given('the config file cannot be written', given.theConfigFileCannotBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config nested variable "liskJS.testnet" to boolean true', then.itShouldUpdateTheConfigNestedVariableToBoolean);
-										Then('it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
-										Then('it should resolve to an object with message "Successfully set testnet to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
-							Given('the config file can be written', given.theConfigFileCanBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config nested variable "liskJS.testnet" to boolean true', then.itShouldUpdateTheConfigNestedVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set testnet to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config nested variable "liskJS.testnet" to boolean true', then.itShouldUpdateTheConfigNestedVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set testnet to true."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
+							Given(
+								'the config file cannot be written',
+								given.theConfigFileCannotBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should reject with message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config nested variable "liskJS.testnet" to boolean true',
+														then.itShouldUpdateTheConfigNestedVariableToBoolean,
+													);
+													Then(
+														'it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."',
+														then.itShouldResolveToAnObjectWithWarning,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set testnet to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'the config file can be written',
+								given.theConfigFileCanBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config nested variable "liskJS.testnet" to boolean true',
+														then.itShouldUpdateTheConfigNestedVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set testnet to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config nested variable "liskJS.testnet" to boolean true',
+														then.itShouldUpdateTheConfigNestedVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set testnet to true."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						});
 						Given('a value "false"', given.aValue, () => {
-							Given('the config file cannot be written', given.theConfigFileCannotBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should reject with message "Config file could not be written: your changes will not be persisted."', then.itShouldRejectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config nested variable "liskJS.testnet" to boolean false', then.itShouldUpdateTheConfigNestedVariableToBoolean);
-										Then('it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."', then.itShouldResolveToAnObjectWithWarning);
-										Then('it should resolve to an object with message "Successfully set testnet to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
-							Given('the config file can be written', given.theConfigFileCanBeWritten, () => {
-								Given('Vorpal is in non-interactive mode', given.vorpalIsInNonInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config nested variable "liskJS.testnet" to boolean false', then.itShouldUpdateTheConfigNestedVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set testnet to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-								Given('Vorpal is in interactive mode', given.vorpalIsInInteractiveMode, () => {
-									When('the action is called with the variable and the value', when.theActionIsCalledWithTheVariableAndTheValue, () => {
-										Then('it should update the config nested variable "liskJS.testnet" to boolean false', then.itShouldUpdateTheConfigNestedVariableToBoolean);
-										Then('it should write the updated config to the config file', then.itShouldWriteTheUpdatedConfigToTheConfigFile);
-										Then('it should resolve to an object with message "Successfully set testnet to false."', then.itShouldResolveToAnObjectWithMessage);
-									});
-								});
-							});
+							Given(
+								'the config file cannot be written',
+								given.theConfigFileCannotBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should reject with message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config nested variable "liskJS.testnet" to boolean false',
+														then.itShouldUpdateTheConfigNestedVariableToBoolean,
+													);
+													Then(
+														'it should resolve to an object with warning "Config file could not be written: your changes will not be persisted."',
+														then.itShouldResolveToAnObjectWithWarning,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set testnet to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'the config file can be written',
+								given.theConfigFileCanBeWritten,
+								() => {
+									Given(
+										'Vorpal is in non-interactive mode',
+										given.vorpalIsInNonInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config nested variable "liskJS.testnet" to boolean false',
+														then.itShouldUpdateTheConfigNestedVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set testnet to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'Vorpal is in interactive mode',
+										given.vorpalIsInInteractiveMode,
+										() => {
+											When(
+												'the action is called with the variable and the value',
+												when.theActionIsCalledWithTheVariableAndTheValue,
+												() => {
+													Then(
+														'it should update the config nested variable "liskJS.testnet" to boolean false',
+														then.itShouldUpdateTheConfigNestedVariableToBoolean,
+													);
+													Then(
+														'it should write the updated config to the config file',
+														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+													);
+													Then(
+														'it should resolve to an object with message "Successfully set testnet to false."',
+														then.itShouldResolveToAnObjectWithMessage,
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						});
 					});
 				});

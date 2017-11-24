@@ -197,11 +197,13 @@ export function thePassphraseIsProvidedViaThePrompt() {
 	const { vorpal, passphrase } = this.test.ctx;
 
 	vorpal.activeCommand.prompt.onFirstCall().resolves({ passphrase });
-	this.test.ctx.getPromptPassphraseCall = () => vorpal.activeCommand.prompt.firstCall;
+	this.test.ctx.getPromptPassphraseCall = () =>
+		vorpal.activeCommand.prompt.firstCall;
 
 	if (typeof inputUtils.getPassphrase.resolves === 'function') {
 		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-		this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.firstCall;
+		this.test.ctx.getGetPassphrasePassphraseCall = () =>
+			inputUtils.getPassphrase.firstCall;
 	}
 }
 
@@ -279,11 +281,13 @@ export function theSecondPassphraseAndTheDataAreProvidedViaStdIn() {
 }
 
 export function thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn() {
-	const {
-		passphrase, secondPassphrase, password, data,
-	} = this.test.ctx;
+	const { passphrase, secondPassphrase, password, data } = this.test.ctx;
 
-	readline.createInterface.returns(createFakeInterface(`${passphrase}\n${secondPassphrase}\n${password}\n${data}`));
+	readline.createInterface.returns(
+		createFakeInterface(
+			`${passphrase}\n${secondPassphrase}\n${password}\n${data}`,
+		),
+	);
 
 	this.test.ctx.passphraseIsRequired = true;
 	this.test.ctx.secondPassphraseIsRequired = true;
@@ -293,7 +297,9 @@ export function thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvided
 
 export function thePassphraseIsStoredInEnvironmentalVariable() {
 	const { passphrase } = this.test.ctx;
-	const environmentalVariableName = getFirstQuotedString(this.test.parent.title);
+	const environmentalVariableName = getFirstQuotedString(
+		this.test.parent.title,
+	);
 
 	process.env[environmentalVariableName] = passphrase;
 
@@ -302,7 +308,9 @@ export function thePassphraseIsStoredInEnvironmentalVariable() {
 }
 
 export function environmentalVariableIsNotSet() {
-	const environmentalVariableName = getFirstQuotedString(this.test.parent.title);
+	const environmentalVariableName = getFirstQuotedString(
+		this.test.parent.title,
+	);
 
 	delete process.env[environmentalVariableName];
 

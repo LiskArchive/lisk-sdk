@@ -16,10 +16,7 @@
 import lockfile from 'lockfile';
 import defaultConfig from '../../../defaultConfig.json';
 import * as currentConfig from '../../../src/utils/config';
-import {
-	getFirstBoolean,
-	getBooleans,
-} from '../utils';
+import { getFirstBoolean, getBooleans } from '../utils';
 
 export function aConfig() {
 	const config = {

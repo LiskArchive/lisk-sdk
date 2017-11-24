@@ -18,6 +18,9 @@ import * as then from '../../steps/3_then';
 
 describe('api util', () => {
 	Given('a lisk api instance', given.aLiskAPIInstance, () => {
-		Then('the lisk instance should be a lisk-js api instance', then.theLiskAPIInstanceShouldBeALiskJSApiInstance);
+		Then(
+			'the lisk instance should be a lisk-js api instance',
+			then.theLiskAPIInstanceShouldBeALiskJSApiInstance,
+		);
 	});
 });

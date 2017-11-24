@@ -33,7 +33,7 @@ export function aLiskObjectThatCanCreateTransactions() {
 		'createSignature',
 		'createDelegate',
 		'createVote',
-	].forEach((methodName) => {
+	].forEach(methodName => {
 		transactions[methodName].returns(createdTransaction);
 	});
 

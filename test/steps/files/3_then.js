@@ -18,50 +18,56 @@ import * as fsUtils from '../../../src/utils/fs';
 
 export function itShouldWriteTheUpdatedConfigToTheConfigFile() {
 	const { filePath, config } = this.test.ctx;
-	return (fsUtils.writeJsonSync).should.be.calledWithExactly(filePath, config);
+	return fsUtils.writeJsonSync.should.be.calledWithExactly(filePath, config);
 }
 
 export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
 	const { filePath } = this.test.ctx;
-	return (fs.readFileSync).should.be.calledWithExactly(filePath, 'utf8');
+	return fs.readFileSync.should.be.calledWithExactly(filePath, 'utf8');
 }
 
 export function jSONParseShouldBeCalledWithTheFileContentsAsAString() {
 	const { fileContents } = this.test.ctx;
-	return (JSON.parse).should.be.calledWithExactly(fileContents);
+	return JSON.parse.should.be.calledWithExactly(fileContents);
 }
 
 export function jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
 	const { fileContents } = this.test.ctx;
-	return (JSON.parse).should.be.calledWithExactly(fileContents.slice(1));
+	return JSON.parse.should.be.calledWithExactly(fileContents.slice(1));
 }
 
 export function theParsedFileContentsShouldBeReturned() {
 	const { returnValue, parsedFileContents } = this.test.ctx;
-	return (returnValue).should.equal(parsedFileContents);
+	return returnValue.should.equal(parsedFileContents);
 }
 
 export function jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
 	const { objectToWrite } = this.test.ctx;
 	const tab = '\t';
-	return (JSON.stringify).should.be.calledWithExactly(objectToWrite, null, tab);
+	return JSON.stringify.should.be.calledWithExactly(objectToWrite, null, tab);
 }
 
 export function fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
 	const { filePath, stringifiedObject } = this.test.ctx;
-	return (fs.writeFileSync).should.be.calledWithExactly(filePath, stringifiedObject);
+	return fs.writeFileSync.should.be.calledWithExactly(
+		filePath,
+		stringifiedObject,
+	);
 }
 
 export function theDefaultConfigShouldBeWrittenToTheConfigFile() {
 	const { filePath, defaultConfig } = this.test.ctx;
-	return (fsUtils.writeJsonSync).should.be.calledWithExactly(filePath, defaultConfig);
+	return fsUtils.writeJsonSync.should.be.calledWithExactly(
+		filePath,
+		defaultConfig,
+	);
 }
 
 export function theConfigFileShouldNotBeWritten() {
-	return (fsUtils.writeJsonSync).should.not.be.called();
+	return fsUtils.writeJsonSync.should.not.be.called();
 }
 
 export function itShouldResolveToTheFirstLineOfTheFile() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(passphrase);
+	return returnValue.should.be.fulfilledWith(passphrase);
 }

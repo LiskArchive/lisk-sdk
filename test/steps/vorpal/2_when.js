@@ -13,31 +13,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	wrapActionCreator,
-	createCommand,
-} from '../../../src/utils/helpers';
+import { wrapActionCreator, createCommand } from '../../../src/utils/helpers';
 import * as inputUtils from '../../../src/utils/input/utils';
 import execFile from '../../../src/execFile';
-import {
-	getFirstQuotedString,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export function theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions() {
-	const {
-		action, lifetime, keysgroup, minimum, options,
-	} = this.test.ctx;
+	const { action, lifetime, keysgroup, minimum, options } = this.test.ctx;
 	const returnValue = action({
-		lifetime: lifetime.toString(), keysgroup, minimum: minimum.toString(), options,
+		lifetime: lifetime.toString(),
+		keysgroup,
+		minimum: minimum.toString(),
+		options,
 	});
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
 }
 
 export function theActionIsCalledWithTheAmountTheAddressAndTheOptions() {
-	const {
-		action, amount, address, options,
-	} = this.test.ctx;
+	const { action, amount, address, options } = this.test.ctx;
 	const returnValue = action({ amount, address, options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -58,7 +52,11 @@ export function theActionIsCalledWithTheIVAndTheOptions() {
 }
 
 export function theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions() {
-	const { action, cipherAndIv: { cipher: passphrase, iv }, options } = this.test.ctx;
+	const {
+		action,
+		cipherAndIv: { cipher: passphrase, iv },
+		options,
+	} = this.test.ctx;
 
 	if (typeof inputUtils.getData.resolves === 'function') {
 		inputUtils.getData.onFirstCall().resolves(passphrase);
@@ -83,9 +81,7 @@ export function execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunctio
 }
 
 export function execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheExitFunction() {
-	const {
-		lisky, filePath, options, exit,
-	} = this.test.ctx;
+	const { lisky, filePath, options, exit } = this.test.ctx;
 	try {
 		const returnValue = execFile(lisky, filePath, options, exit);
 		this.test.ctx.returnValue = returnValue;
@@ -98,20 +94,19 @@ export function execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheE
 }
 
 export function theActionIsCalledWithTheMessageTheNonceTheSenderPublicKeyAndTheOptions() {
-	const {
-		action, message, nonce, senderPublicKey, options,
-	} = this.test.ctx;
+	const { action, message, nonce, senderPublicKey, options } = this.test.ctx;
 	const returnValue = action({
-		message, nonce, senderPublicKey, options,
+		message,
+		nonce,
+		senderPublicKey,
+		options,
 	});
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
 }
 
 export function theActionIsCalledWithTheNonceTheSenderPublicKeyAndTheOptions() {
-	const {
-		action, nonce, senderPublicKey, options,
-	} = this.test.ctx;
+	const { action, nonce, senderPublicKey, options } = this.test.ctx;
 	const returnValue = action({ nonce, senderPublicKey, options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
@@ -125,9 +120,7 @@ export function theActionIsCalledWithTheRecipientAndTheOptions() {
 }
 
 export function theActionIsCalledWithTheRecipientTheMessageAndTheOptions() {
-	const {
-		action, recipient, message, options,
-	} = this.test.ctx;
+	const { action, recipient, message, options } = this.test.ctx;
 	const returnValue = action({ recipient, message, options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);

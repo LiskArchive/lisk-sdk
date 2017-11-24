@@ -14,16 +14,18 @@
  *
  */
 import * as mnemonicInstance from '../../../src/utils/mnemonic';
-import {
-	getFirstQuotedString,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export function aValidMnemonicPassphrase() {
-	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(
+		this.test.parent.title,
+	);
 }
 
 export function anInvalidMnemonicPassphrase() {
-	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(
+		this.test.parent.title,
+	);
 }
 
 export function thePassphraseIsGeneratedByTheCreateMnemonicPassphraseFunction() {

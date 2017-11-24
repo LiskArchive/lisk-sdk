@@ -13,9 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	createErrorHandler,
-} from '../../../src/utils/helpers';
+import { createErrorHandler } from '../../../src/utils/helpers';
 
 export function createErrorHandlerIsCalledWithThePrefix() {
 	const { prefix } = this.test.ctx;

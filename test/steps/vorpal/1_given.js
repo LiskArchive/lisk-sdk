@@ -38,7 +38,9 @@ export function anAction() {
 
 export function anOptionsListIncluding() {
 	const options = getQuotedStrings(this.test.parent.title);
-	this.test.ctx.optionsList = options.map(optionName => commonOptions[optionName]);
+	this.test.ctx.optionsList = options.map(
+		optionName => commonOptions[optionName],
+	);
 }
 
 export function aDescription() {
@@ -59,12 +61,16 @@ export function anActionCreatorThatCreatesAnActionThatResolvesToAnObject() {
 		testing: 123,
 	};
 	this.test.ctx.testObject = testObject;
-	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().resolves(testObject));
+	this.test.ctx.actionCreator = sandbox
+		.stub()
+		.returns(sandbox.stub().resolves(testObject));
 }
 
 export function anActionCreatorThatCreatesAnActionThatRejectsWithAnError() {
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().rejects(new Error(DEFAULT_ERROR_MESSAGE)));
+	this.test.ctx.actionCreator = sandbox
+		.stub()
+		.returns(sandbox.stub().rejects(new Error(DEFAULT_ERROR_MESSAGE)));
 }
 
 export function aParametersObjectWithTheOptions() {
@@ -76,7 +82,7 @@ export function aVorpalInstance() {
 	const vorpal = new Vorpal();
 	const capturedOutput = [];
 	const handleOutput = output => capturedOutput.push(output);
-	vorpal.pipe((outputs) => {
+	vorpal.pipe(outputs => {
 		if (capturedOutput) {
 			outputs.forEach(handleOutput);
 		}

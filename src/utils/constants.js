@@ -13,7 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const COMMAND_TYPES = ['account', 'address', 'block', 'delegate', 'transaction'];
+export const COMMAND_TYPES = [
+	'account',
+	'address',
+	'block',
+	'delegate',
+	'transaction',
+];
 
 export const SINGULARS = {
 	accounts: 'account',

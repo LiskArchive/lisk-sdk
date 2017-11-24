@@ -13,15 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	COMMAND_TYPES,
-	SINGULARS,
-} from '../utils/constants';
-import {
-	createCommand,
-	deAlias,
-	processQueryResult,
-} from '../utils/helpers';
+import { COMMAND_TYPES, SINGULARS } from '../utils/constants';
+import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
 import query from '../utils/query';
 
 const description = `Gets an array of information from the blockchain. Types available: accounts, addresses, blocks, delegates, transactions.
@@ -42,8 +35,9 @@ export const actionCreator = () => async ({ type, inputs }) => {
 
 	const queries = inputs.map(query.handlers[deAlias(singularType)]);
 
-	return Promise.all(queries)
-		.then(results => results.map(processQueryResult(singularType)));
+	return Promise.all(queries).then(results =>
+		results.map(processQueryResult(singularType)),
+	);
 };
 
 const list = createCommand({

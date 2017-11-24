@@ -21,7 +21,10 @@ describe('show warranty command', () => {
 	Given('an action "show warranty"', given.anAction, () => {
 		Given('a warranty information text', given.aWarrantyInformationText, () => {
 			When('the action is called', when.theActionIsCalled, () => {
-				Then('it should resolve to the warranty information', then.itShouldResolveToTheWarrantyInformation);
+				Then(
+					'it should resolve to the warranty information',
+					then.itShouldResolveToTheWarrantyInformation,
+				);
 			});
 		});
 	});

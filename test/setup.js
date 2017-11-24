@@ -21,14 +21,16 @@ import 'should-sinon';
 import './givenWhenThen';
 
 process.env.NODE_ENV = 'test';
-process.env.LISKY_CONFIG_DIR = process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
+process.env.LISKY_CONFIG_DIR =
+	process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
 
 should.use((_, Assertion) => {
 	Assertion.add('hexString', function hexString() {
 		this.params = {
 			operator: 'to be hex string',
 		};
-		(Buffer.from(this.obj, 'hex').toString('hex'))
+		Buffer.from(this.obj, 'hex')
+			.toString('hex')
 			.should.equal(this.obj);
 	});
 });

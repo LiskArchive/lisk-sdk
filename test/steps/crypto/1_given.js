@@ -16,10 +16,7 @@
 import lisk from 'lisk-js';
 import cryptoInstance from '../../../src/utils/cryptoModule';
 import * as inputUtils from '../../../src/utils/input/utils';
-import {
-	getFirstQuotedString,
-	getQuotedStrings,
-} from '../utils';
+import { getFirstQuotedString, getQuotedStrings } from '../utils';
 
 export function aCryptoInstance() {
 	this.test.ctx.cryptoInstance = cryptoInstance;
@@ -87,7 +84,9 @@ export function aPassphraseWithPublicKey() {
 }
 
 export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
-	const [passphrase, privateKey, publicKey, address] = getQuotedStrings(this.test.parent.title);
+	const [passphrase, privateKey, publicKey, address] = getQuotedStrings(
+		this.test.parent.title,
+	);
 	const keys = {
 		privateKey,
 		publicKey,
@@ -158,7 +157,9 @@ export function aRecipient() {
 }
 
 export function aRecipientPassphraseWithPrivateKeyAndPublicKey() {
-	const [passphrase, privateKey, publicKey] = getQuotedStrings(this.test.parent.title);
+	const [passphrase, privateKey, publicKey] = getQuotedStrings(
+		this.test.parent.title,
+	);
 	this.test.ctx.recipientPassphrase = passphrase;
 	this.test.ctx.recipientKeys = {
 		privateKey,

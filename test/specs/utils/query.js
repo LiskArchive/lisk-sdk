@@ -20,38 +20,89 @@ import * as then from '../../steps/3_then';
 describe('Query class', () => {
 	Given('a lisk API instance', given.aLiskAPIInstance, () => {
 		Given('a query instance', given.aQueryInstance, () => {
-			Then('the query instance should have the Lisk API instance as a client', then.theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient);
-			Then('the query instance should have a handler for "account"', then.theQueryInstanceShouldHaveAHandlerFor);
-			Then('the query instance should have a handler for "block"', then.theQueryInstanceShouldHaveAHandlerFor);
-			Then('the query instance should have a handler for "delegate"', then.theQueryInstanceShouldHaveAHandlerFor);
-			Then('the query instance should have a handler for "transaction"', then.theQueryInstanceShouldHaveAHandlerFor);
+			Then(
+				'the query instance should have the Lisk API instance as a client',
+				then.theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient,
+			);
+			Then(
+				'the query instance should have a handler for "account"',
+				then.theQueryInstanceShouldHaveAHandlerFor,
+			);
+			Then(
+				'the query instance should have a handler for "block"',
+				then.theQueryInstanceShouldHaveAHandlerFor,
+			);
+			Then(
+				'the query instance should have a handler for "delegate"',
+				then.theQueryInstanceShouldHaveAHandlerFor,
+			);
+			Then(
+				'the query instance should have a handler for "transaction"',
+				then.theQueryInstanceShouldHaveAHandlerFor,
+			);
 			describe('#getBlock', () => {
 				Given('a block ID "5650160629533476718"', given.aBlockID, () => {
-					When('the query instance gets a block using the ID', when.theQueryInstanceGetsABlockUsingTheID, () => {
-						Then('the lisk instance should send a request to the blocks/get API endpoint with the block ID', then.theLiskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID);
-					});
+					When(
+						'the query instance gets a block using the ID',
+						when.theQueryInstanceGetsABlockUsingTheID,
+						() => {
+							Then(
+								'the lisk instance should send a request to the blocks/get API endpoint with the block ID',
+								then.theLiskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID,
+							);
+						},
+					);
 				});
 			});
 			describe('#getAccount', () => {
 				Given('an address "13782017140058682841L"', given.anAddress, () => {
-					When('the query instance gets an account using the address', when.theQueryInstanceGetsAnAccountUsingTheAddress, () => {
-						Then('the lisk instance should send a request to the accounts API endpoint with the address', then.theLiskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress);
-					});
+					When(
+						'the query instance gets an account using the address',
+						when.theQueryInstanceGetsAnAccountUsingTheAddress,
+						() => {
+							Then(
+								'the lisk instance should send a request to the accounts API endpoint with the address',
+								then.theLiskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress,
+							);
+						},
+					);
 				});
 			});
 			describe('#getTransaction', () => {
-				Given('a transaction ID "16388447461355055139"', given.aTransactionID, () => {
-					When('the query instance gets a transaction using the ID', when.theQueryInstanceGetsATransactionUsingTheID, () => {
-						Then('the lisk instance should send a request to the transactions/get API endpoint with the transaction ID', then.theLiskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID);
-					});
-				});
+				Given(
+					'a transaction ID "16388447461355055139"',
+					given.aTransactionID,
+					() => {
+						When(
+							'the query instance gets a transaction using the ID',
+							when.theQueryInstanceGetsATransactionUsingTheID,
+							() => {
+								Then(
+									'the lisk instance should send a request to the transactions/get API endpoint with the transaction ID',
+									then.theLiskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID,
+								);
+							},
+						);
+					},
+				);
 			});
 			describe('#getDelegate', () => {
-				Given('a delegate username "lightcurve"', given.aDelegateUsername, () => {
-					When('the query instance gets a delegate using the username', when.theQueryInstanceGetsADelegateUsingTheUsername, () => {
-						Then('the lisk instance should send a request to the delegates/get API endpoint with the username', then.theLiskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername);
-					});
-				});
+				Given(
+					'a delegate username "lightcurve"',
+					given.aDelegateUsername,
+					() => {
+						When(
+							'the query instance gets a delegate using the username',
+							when.theQueryInstanceGetsADelegateUsingTheUsername,
+							() => {
+								Then(
+									'the lisk instance should send a request to the delegates/get API endpoint with the username',
+									then.theLiskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername,
+								);
+							},
+						);
+					},
+				);
 			});
 		});
 	});

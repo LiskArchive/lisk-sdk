@@ -19,10 +19,25 @@ import * as then from '../../steps/3_then';
 
 describe('transactions util', () => {
 	Given('a transactions object', given.aTransactionsObject, () => {
-		Then('it should have a function for creating a type 0 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
-		Then('it should have a function for creating a type 1 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
-		Then('it should have a function for creating a type 2 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
-		Then('it should have a function for creating a type 3 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
-		Then('it should have a function for creating a type 4 transaction', then.itShouldHaveAFunctionForCreatingATypeTransaction);
+		Then(
+			'it should have a function for creating a type 0 transaction',
+			then.itShouldHaveAFunctionForCreatingATypeTransaction,
+		);
+		Then(
+			'it should have a function for creating a type 1 transaction',
+			then.itShouldHaveAFunctionForCreatingATypeTransaction,
+		);
+		Then(
+			'it should have a function for creating a type 2 transaction',
+			then.itShouldHaveAFunctionForCreatingATypeTransaction,
+		);
+		Then(
+			'it should have a function for creating a type 3 transaction',
+			then.itShouldHaveAFunctionForCreatingATypeTransaction,
+		);
+		Then(
+			'it should have a function for creating a type 4 transaction',
+			then.itShouldHaveAFunctionForCreatingATypeTransaction,
+		);
 	});
 });

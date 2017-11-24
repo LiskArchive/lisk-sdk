@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getFirstQuotedString,
-	getQuotedStrings,
-} from '../utils';
+import { getFirstQuotedString, getQuotedStrings } from '../utils';
 import { ValidationError } from '../../../src/utils/error';
 
 export function stringArguments() {

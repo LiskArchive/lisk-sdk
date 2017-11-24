@@ -50,25 +50,19 @@ const setUpFsStubs = () => {
 };
 
 const setUpFsUtilsStubs = () => {
-	[
-		'readJsonSync',
-		'writeJsonSync',
-	].forEach(methodName => sandbox.stub(fsUtils, methodName));
+	['readJsonSync', 'writeJsonSync'].forEach(methodName =>
+		sandbox.stub(fsUtils, methodName),
+	);
 };
 
 const setUpConsoleStubs = () => {
-	[
-		'info',
-		'warn',
-		'error',
-	].forEach(methodName => sandbox.stub(console, methodName));
+	['info', 'warn', 'error'].forEach(methodName =>
+		sandbox.stub(console, methodName),
+	);
 };
 
 const setUpJSONStubs = () => {
-	[
-		'parse',
-		'stringify',
-	].forEach(methodName => sandbox.stub(JSON, methodName));
+	['parse', 'stringify'].forEach(methodName => sandbox.stub(JSON, methodName));
 };
 
 const setUpLockfileStubs = () => {
@@ -141,38 +135,37 @@ const setUpInputStubs = () => {
 };
 
 const setUpInputUtilsStubs = () => {
-	[
-		'getStdIn',
-		'getData',
-		'getPassphrase',
-	].forEach(methodName => sandbox.stub(inputUtils, methodName));
+	['getStdIn', 'getData', 'getPassphrase'].forEach(methodName =>
+		sandbox.stub(inputUtils, methodName),
+	);
 	inputUtils.getStdIn.resolves({});
 };
 
 function setUpPrintStubs() {
-	[
-		'logError',
-		'logWarning',
-	].forEach(methodName => sandbox.stub(print, methodName));
+	['logError', 'logWarning'].forEach(methodName =>
+		sandbox.stub(print, methodName),
+	);
 
 	const printFunction = sandbox.spy();
 	sandbox.stub(print, 'printResult').returns(printFunction);
 	this.test.ctx.printFunction = printFunction;
 }
 
-const setUpEnvVariable = variable => function setUpEnv() {
-	this.test.ctx.initialEnv = this.test.ctx.initialEnv || {};
-	this.test.ctx.initialEnv[variable] = process.env[variable];
-};
+const setUpEnvVariable = variable =>
+	function setUpEnv() {
+		this.test.ctx.initialEnv = this.test.ctx.initialEnv || {};
+		this.test.ctx.initialEnv[variable] = process.env[variable];
+	};
 
-const restoreEnvVariable = variable => function restoreEnv() {
-	const { initialEnv } = this.test.ctx;
-	if (typeof initialEnv[variable] !== 'undefined') {
-		process.env[variable] = initialEnv[variable];
-	} else {
-		delete process.env[variable];
-	}
-};
+const restoreEnvVariable = variable =>
+	function restoreEnv() {
+		const { initialEnv } = this.test.ctx;
+		if (typeof initialEnv[variable] !== 'undefined') {
+			process.env[variable] = initialEnv[variable];
+		} else {
+			delete process.env[variable];
+		}
+	};
 
 export function setUpCommandCreateAccount() {
 	setUpCryptoStubs();

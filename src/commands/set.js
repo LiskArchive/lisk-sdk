@@ -26,9 +26,10 @@ const description = `Sets configuration <variable> to <value>. Variables availab
 	- set name my_custom_lisky
 `;
 
-const WRITE_FAIL_WARNING = 'Config file could not be written: your changes will not be persisted.';
+const WRITE_FAIL_WARNING =
+	'Config file could not be written: your changes will not be persisted.';
 
-const writeConfigToFile = (newConfig) => {
+const writeConfigToFile = newConfig => {
 	try {
 		writeJsonSync(configFilePath, newConfig);
 		return true;
@@ -66,12 +67,12 @@ const attemptWriteToFile = (variable, value) => {
 	return result;
 };
 
-const setBoolean = (variable, path) => (value) => {
+const setBoolean = (variable, path) => value => {
 	if (!checkBoolean(value)) {
 		throw new Error('Value must be a boolean.');
 	}
 
-	const newValue = (value === 'true');
+	const newValue = value === 'true';
 	path.reduce(setNestedConfigProperty(newValue), config);
 
 	if (variable === 'testnet') {
@@ -81,7 +82,7 @@ const setBoolean = (variable, path) => (value) => {
 	return attemptWriteToFile(variable, value);
 };
 
-const setString = (variable, path) => (value) => {
+const setString = (variable, path) => value => {
 	path.reduce(setNestedConfigProperty(value), config);
 	return attemptWriteToFile(variable, value);
 };

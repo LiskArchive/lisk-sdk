@@ -103,7 +103,9 @@ export function theDirectoryCanBeCreated() {}
 export function theFileDoesNotExist() {
 	const { filePath } = this.test.ctx;
 	const error = new Error('ENOENT: no such file or directory');
-	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
+	const streamStub = createStreamStub(
+		(type, callback) => type === 'error' && callback(error),
+	);
 
 	fs.existsSync.withArgs(filePath).returns(false);
 	fs.readFileSync.throws(error);
@@ -125,9 +127,13 @@ export function theFileCanBeWritten() {}
 export function theFileCannotBeRead() {
 	const { filePath } = this.test.ctx;
 	const error = new Error('EACCES: permission denied');
-	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
+	const streamStub = createStreamStub(
+		(type, callback) => type === 'error' && callback(error),
+	);
 
-	fs.accessSync.withArgs(filePath, fs.constants.R_OK).throws('Cannot read file');
+	fs.accessSync
+		.withArgs(filePath, fs.constants.R_OK)
+		.throws('Cannot read file');
 	fs.readFileSync.throws(error);
 	fs.createReadStream.returns(streamStub);
 	fsUtils.readJsonSync.throws('Cannot read file');
@@ -135,7 +141,10 @@ export function theFileCannotBeRead() {
 
 export function theFileCanBeRead() {
 	const { fileContents } = this.test.ctx;
-	const streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(fileContents)));
+	const streamStub = createStreamStub(
+		(type, callback) =>
+			type === 'data' && setImmediate(() => callback(fileContents)),
+	);
 
 	if (typeof readline.createInterface.returns === 'function') {
 		readline.createInterface.returns(createFakeInterface(fileContents));
@@ -147,7 +156,9 @@ export function theFileCanBeRead() {
 export function anUnknownErrorOccursWhenReadingTheFile() {
 	const errorMessage = getFirstQuotedString(this.test.parent.title);
 	const error = new Error(errorMessage);
-	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
+	const streamStub = createStreamStub(
+		(type, callback) => type === 'error' && callback(error),
+	);
 
 	fs.createReadStream.returns(streamStub);
 	fs.readFileSync.throws(error);

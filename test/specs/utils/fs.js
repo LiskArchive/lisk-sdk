@@ -21,27 +21,59 @@ import * as then from '../../steps/3_then';
 describe('fs module', () => {
 	beforeEach(setUpUtilFs);
 	describe('#readJsonSync', () => {
-		Given('there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"', given.thereIsAFileWithUtf8EncodedJSONContentsAtPath, () => {
-			When('the JSON is read', when.theJSONIsRead, () => {
-				Then('fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
-				Then('JSON.parse should be called with the file contents as a string', then.jSONParseShouldBeCalledWithTheFileContentsAsAString);
-				Then('the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
-			});
-			Given('the file has a BOM', given.theFileHasABOM, () => {
+		Given(
+			'there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"',
+			given.thereIsAFileWithUtf8EncodedJSONContentsAtPath,
+			() => {
 				When('the JSON is read', when.theJSONIsRead, () => {
-					Then('fs.readFileSync should be called with the path and encoding', then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding);
-					Then('JSON.parse should be called with the file contents as a string without the BOM', then.jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM);
-					Then('the parsed file contents should be returned', then.theParsedFileContentsShouldBeReturned);
+					Then(
+						'fs.readFileSync should be called with the path and encoding',
+						then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding,
+					);
+					Then(
+						'JSON.parse should be called with the file contents as a string',
+						then.jSONParseShouldBeCalledWithTheFileContentsAsAString,
+					);
+					Then(
+						'the parsed file contents should be returned',
+						then.theParsedFileContentsShouldBeReturned,
+					);
 				});
-			});
-		});
+				Given('the file has a BOM', given.theFileHasABOM, () => {
+					When('the JSON is read', when.theJSONIsRead, () => {
+						Then(
+							'fs.readFileSync should be called with the path and encoding',
+							then.fsReadFileSyncShouldBeCalledWithThePathAndEncoding,
+						);
+						Then(
+							'JSON.parse should be called with the file contents as a string without the BOM',
+							then.jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM,
+						);
+						Then(
+							'the parsed file contents should be returned',
+							then.theParsedFileContentsShouldBeReturned,
+						);
+					});
+				});
+			},
+		);
 	});
 	describe('#writeJsonSync', () => {
-		Given('there is an object that should be written to path "/some/path/to/file.json"', given.thereIsAnObjectThatShouldBeWrittenToPath, () => {
-			When('the JSON is written', when.theJSONIsWritten, () => {
-				Then('JSON.stringify should be called with the object using tab indentation', then.jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation);
-				Then('fs.writeFileSync should be called with the path and the stringified JSON', then.fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON);
-			});
-		});
+		Given(
+			'there is an object that should be written to path "/some/path/to/file.json"',
+			given.thereIsAnObjectThatShouldBeWrittenToPath,
+			() => {
+				When('the JSON is written', when.theJSONIsWritten, () => {
+					Then(
+						'JSON.stringify should be called with the object using tab indentation',
+						then.jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation,
+					);
+					Then(
+						'fs.writeFileSync should be called with the path and the stringified JSON',
+						then.fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON,
+					);
+				});
+			},
+		);
 	});
 });

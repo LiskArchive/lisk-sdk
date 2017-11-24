@@ -14,10 +14,7 @@
  *
  */
 import transactions from '../../../src/utils/transactions';
-import {
-	getNumbers,
-	getTransactionCreatorFunctionNameByType,
-} from '../utils';
+import { getNumbers, getTransactionCreatorFunctionNameByType } from '../utils';
 import {
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
@@ -25,24 +22,39 @@ import {
 
 export function itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier() {
 	const {
-		passphrase, secondPassphrase, votePublicKeys, unvotePublicKeys,
+		passphrase,
+		secondPassphrase,
+		votePublicKeys,
+		unvotePublicKeys,
 	} = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
 	const allVotes = [...votes, ...unvotes];
-	return (transactions.createVote).should.be.calledWithExactly(passphrase, allVotes, secondPassphrase);
+	return transactions.createVote.should.be.calledWithExactly(
+		passphrase,
+		allVotes,
+		secondPassphrase,
+	);
 }
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, secondPassphrase, unvotePublicKeys } = this.test.ctx;
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	return (transactions.createVote).should.be.calledWithExactly(passphrase, unvotes, secondPassphrase);
+	return transactions.createVote.should.be.calledWithExactly(
+		passphrase,
+		unvotes,
+		secondPassphrase,
+	);
 }
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAPlus() {
 	const { passphrase, secondPassphrase, votePublicKeys } = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
-	return (transactions.createVote).should.be.calledWithExactly(passphrase, votes, secondPassphrase);
+	return transactions.createVote.should.be.calledWithExactly(
+		passphrase,
+		votes,
+		secondPassphrase,
+	);
 }
 
 export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier() {
@@ -50,76 +62,125 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 	const votes = prependPlusToPublicKeys(votePublicKeys);
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
 	const allVotes = [...votes, ...unvotes];
-	return (transactions.createVote).should.be.calledWithExactly(passphrase, allVotes, null);
+	return transactions.createVote.should.be.calledWithExactly(
+		passphrase,
+		allVotes,
+		null,
+	);
 }
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, unvotePublicKeys } = this.test.ctx;
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	return (transactions.createVote).should.be.calledWithExactly(passphrase, unvotes, null);
+	return transactions.createVote.should.be.calledWithExactly(
+		passphrase,
+		unvotes,
+		null,
+	);
 }
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAPlus() {
 	const { passphrase, votePublicKeys } = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
-	return (transactions.createVote).should.be.calledWithExactly(passphrase, votes, null);
+	return transactions.createVote.should.be.calledWithExactly(
+		passphrase,
+		votes,
+		null,
+	);
 }
 
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase() {
-	const {
-		passphrase, secondPassphrase, address, amount,
-	} = this.test.ctx;
-	return (transactions.createTransaction).should.be.calledWithExactly(address, amount, passphrase, secondPassphrase);
+	const { passphrase, secondPassphrase, address, amount } = this.test.ctx;
+	return transactions.createTransaction.should.be.calledWithExactly(
+		address,
+		amount,
+		passphrase,
+		secondPassphrase,
+	);
 }
 
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountAndThePassphrase() {
 	const { passphrase, address, amount } = this.test.ctx;
-	return (transactions.createTransaction).should.be.calledWithExactly(address, amount, passphrase, null);
+	return transactions.createTransaction.should.be.calledWithExactly(
+		address,
+		amount,
+		passphrase,
+		null,
+	);
 }
 
 export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const { transactionsObject } = this.test.ctx;
 	const transactionType = getNumbers(this.test.title)[0];
-	const transactionFunctionName = getTransactionCreatorFunctionNameByType(transactionType);
-	return (transactionsObject).should.have.key(transactionFunctionName).and.be.type('function');
+	const transactionFunctionName = getTransactionCreatorFunctionNameByType(
+		transactionType,
+	);
+	return transactionsObject.should.have
+		.key(transactionFunctionName)
+		.and.be.type('function');
 }
 
 export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
-	return (transactions.createSignature).should.be.calledWith(passphrase, secondPassphrase);
+	return transactions.createSignature.should.be.calledWith(
+		passphrase,
+		secondPassphrase,
+	);
 }
 
 export function itShouldResolveToTheCreatedTransaction() {
 	const { returnValue, createdTransaction } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(createdTransaction);
+	return returnValue.should.be.fulfilledWith(createdTransaction);
 }
 
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {
 	const { passphrase, delegateUsername } = this.test.ctx;
-	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, null);
+	return transactions.createDelegate.should.be.calledWithExactly(
+		passphrase,
+		delegateUsername,
+		null,
+	);
 }
 
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheSecondPassphraseAndTheDelegateUsername() {
 	const { passphrase, secondPassphrase, delegateUsername } = this.test.ctx;
-	return (transactions.createDelegate).should.be.calledWithExactly(passphrase, delegateUsername, secondPassphrase);
+	return transactions.createDelegate.should.be.calledWithExactly(
+		passphrase,
+		delegateUsername,
+		secondPassphrase,
+	);
 }
 
 export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
 	const {
-		passphrase, secondPassphrase, keysgroup, lifetime, minimum,
+		passphrase,
+		secondPassphrase,
+		keysgroup,
+		lifetime,
+		minimum,
 	} = this.test.ctx;
-	const publicKeysWithPlus = keysgroup.map((publicKey) => {
+	const publicKeysWithPlus = keysgroup.map(publicKey => {
 		return `+${publicKey}`;
 	});
-	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, secondPassphrase, publicKeysWithPlus, lifetime, minimum);
+	return transactions.createMultisignature.should.be.calledWithExactly(
+		passphrase,
+		secondPassphrase,
+		publicKeysWithPlus,
+		lifetime,
+		minimum,
+	);
 }
 
 export function itShouldCreateACreateMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
-	const {
-		passphrase, keysgroup, lifetime, minimum,
-	} = this.test.ctx;
-	const publicKeysWithPlus = keysgroup.map((publicKey) => {
+	const { passphrase, keysgroup, lifetime, minimum } = this.test.ctx;
+	const publicKeysWithPlus = keysgroup.map(publicKey => {
 		return `+${publicKey}`;
 	});
-	return (transactions.createMultisignature).should.be.calledWithExactly(passphrase, null, publicKeysWithPlus, lifetime, minimum);
+	return transactions.createMultisignature.should.be.calledWithExactly(
+		passphrase,
+		null,
+		publicKeysWithPlus,
+		lifetime,
+		minimum,
+	);
 }

@@ -33,35 +33,52 @@ const chars = {
 	middle: '│',
 };
 
-const getNestedValue = data => keyString => keyString.split('.').reduce((obj, key) => obj[key], data);
+const getNestedValue = data => keyString =>
+	keyString.split('.').reduce((obj, key) => obj[key], data);
 
 const addValuesToTable = (table, data) => {
 	const nestedValues = table.options.head.map(getNestedValue(data));
-	const valuesToPush = nestedValues.map(value => (Array.isArray(value) ? value.join('\n') : value));
+	const valuesToPush = nestedValues.map(
+		value => (Array.isArray(value) ? value.join('\n') : value),
+	);
 	return valuesToPush.length && table.push(valuesToPush);
 };
 
 const reduceKeys = (keys, row) => {
-	const newKeys = Object.keys(row)
-		.filter(key =>
-			!keys.includes(key)
-			&& row[key] !== undefined
-			&& !(row[key] instanceof Error));
+	const newKeys = Object.keys(row).filter(
+		key =>
+			!keys.includes(key) &&
+			row[key] !== undefined &&
+			!(row[key] instanceof Error),
+	);
 	return keys.concat(newKeys);
 };
 
-const getKeys = data => Object.entries(data).map(([parentKey, value]) => (
-	Object.prototype.toString.call(value) === '[object Object]'
-		? getKeys(value).reduce((nestedKeys, childKey) => [...nestedKeys, `${parentKey}.${childKey}`], [])
-		: [parentKey]
-))
-	.reduce((flattenedKeys, keysToBeFlattened) => [...flattenedKeys, ...keysToBeFlattened], []);
+const getKeys = data =>
+	Object.entries(data)
+		.map(
+			([parentKey, value]) =>
+				Object.prototype.toString.call(value) === '[object Object]'
+					? getKeys(value).reduce(
+							(nestedKeys, childKey) => [
+								...nestedKeys,
+								`${parentKey}.${childKey}`,
+							],
+							[],
+						)
+					: [parentKey],
+		)
+		.reduce(
+			(flattenedKeys, keysToBeFlattened) => [
+				...flattenedKeys,
+				...keysToBeFlattened,
+			],
+			[],
+		);
 
-const tablify = (data) => {
+const tablify = data => {
 	const dataIsArray = Array.isArray(data);
-	const head = dataIsArray
-		? data.reduce(reduceKeys, [])
-		: getKeys(data);
+	const head = dataIsArray ? data.reduce(reduceKeys, []) : getKeys(data);
 
 	const table = new Table({
 		head,

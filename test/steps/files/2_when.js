@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	readJsonSync,
-	writeJsonSync,
-} from '../../../src/utils/fs';
+import { readJsonSync, writeJsonSync } from '../../../src/utils/fs';
 
 export function theJSONIsRead() {
 	const { filePath } = this.test.ctx;

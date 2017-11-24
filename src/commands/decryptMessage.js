@@ -23,7 +23,10 @@ const description = `Decrypts a previously encrypted message from a given sender
 	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
 
-const processInputs = (nonce, senderPublicKey, message) => ({ passphrase, data }) =>
+const processInputs = (nonce, senderPublicKey, message) => ({
+	passphrase,
+	data,
+}) =>
 	cryptoModule.decryptMessage({
 		cipher: message || data,
 		nonce,
@@ -32,7 +35,10 @@ const processInputs = (nonce, senderPublicKey, message) => ({ passphrase, data }
 	});
 
 export const actionCreator = vorpal => async ({
-	message, nonce, senderPublicKey, options,
+	message,
+	nonce,
+	senderPublicKey,
+	options,
 }) => {
 	const passphraseSource = options.passphrase;
 	const messageSource = options.message;
@@ -45,21 +51,19 @@ export const actionCreator = vorpal => async ({
 		passphrase: {
 			source: passphraseSource,
 		},
-		data: message ? null : {
-			source: messageSource,
-		},
-	})
-		.then(processInputs(nonce, senderPublicKey, message));
+		data: message
+			? null
+			: {
+					source: messageSource,
+				},
+	}).then(processInputs(nonce, senderPublicKey, message));
 };
 
 const decryptMessage = createCommand({
 	command: 'decrypt message <senderPublicKey> <nonce> [message]',
 	description,
 	actionCreator,
-	options: [
-		commonOptions.passphrase,
-		commonOptions.message,
-	],
+	options: [commonOptions.passphrase, commonOptions.message],
 	errorPrefix: 'Could not decrypt message',
 });
 

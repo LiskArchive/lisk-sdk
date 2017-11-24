@@ -15,155 +15,191 @@
  */
 import lisk from 'lisk-js';
 import cryptoInstance from '../../../src/utils/cryptoModule';
-import {
-	getFirstQuotedString,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export function itShouldGetTheKeysForThePassphrase() {
 	const { passphrase } = this.test.ctx;
-	return (cryptoInstance.getKeys).should.be.calledWithExactly(passphrase);
+	return cryptoInstance.getKeys.should.be.calledWithExactly(passphrase);
 }
 
 export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(cryptoResult);
+	return returnValue.should.be.fulfilledWith(cryptoResult);
 }
 
 export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
 	const { cipherAndIv: { cipher, iv }, password } = this.test.ctx;
-	return (cryptoInstance.decryptPassphrase).should.be.calledWithExactly({ cipher, iv, password });
+	return cryptoInstance.decryptPassphrase.should.be.calledWithExactly({
+		cipher,
+		iv,
+		password,
+	});
 }
 
 export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey() {
 	const { returnValue, cryptoResult, publicKey } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(Object.assign({}, cryptoResult, { publicKey }));
+	return returnValue.should.be.fulfilledWith(
+		Object.assign({}, cryptoResult, { publicKey }),
+	);
 }
 
 export function itShouldEncryptThePassphraseUsingThePassword() {
 	const { passphrase, password } = this.test.ctx;
-	return (cryptoInstance.encryptPassphrase).should.be.calledWithExactly({ passphrase, password });
+	return cryptoInstance.encryptPassphrase.should.be.calledWithExactly({
+		passphrase,
+		password,
+	});
 }
 
 export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(cryptoResult);
+	return returnValue.should.be.fulfilledWith(cryptoResult);
 }
 
 export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
-	const {
-		message, nonce, passphrase, senderPublicKey,
-	} = this.test.ctx;
-	return (cryptoInstance.decryptMessage).should.be.calledWithExactly({
-		cipher: message, nonce, passphrase, senderPublicKey,
+	const { message, nonce, passphrase, senderPublicKey } = this.test.ctx;
+	return cryptoInstance.decryptMessage.should.be.calledWithExactly({
+		cipher: message,
+		nonce,
+		passphrase,
+		senderPublicKey,
 	});
 }
 
 export function itShouldResolveToTheResultOfDecryptingTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(cryptoResult);
+	return returnValue.should.be.fulfilledWith(cryptoResult);
 }
 
 export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
 	const { message, passphrase, recipient } = this.test.ctx;
-	return (cryptoInstance.encryptMessage).should.be.calledWithExactly({ message, passphrase, recipient });
+	return cryptoInstance.encryptMessage.should.be.calledWithExactly({
+		message,
+		passphrase,
+		recipient,
+	});
 }
 
 export function itShouldResolveToTheResultOfEncryptingTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(cryptoResult);
+	return returnValue.should.be.fulfilledWith(cryptoResult);
 }
 
 export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
 	const {
-		returnValue, passphrase, keys: { publicKey }, address,
+		returnValue,
+		passphrase,
+		keys: { publicKey },
+		address,
 	} = this.test.ctx;
 	const expectedObject = {
 		passphrase,
 		publicKey,
 		address,
 	};
-	return (returnValue).should.be.fulfilledWith(expectedObject);
+	return returnValue.should.be.fulfilledWith(expectedObject);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
 	const { keys: { publicKey } } = this.test.ctx;
-	return (lisk.crypto.getAddressFromPublicKey).should.be.calledWithExactly(publicKey);
+	return lisk.crypto.getAddressFromPublicKey.should.be.calledWithExactly(
+		publicKey,
+	);
 }
 
 export function theCryptoInstanceShouldHaveName() {
 	const { cryptoInstance: crypto } = this.test.ctx;
 	const name = getFirstQuotedString(this.test.title);
-	return (crypto.constructor).should.have.property('name').equal(name);
+	return crypto.constructor.should.have.property('name').equal(name);
 }
 
 export function theCryptoInstanceShouldHaveLiskJSAsAProperty() {
 	const { cryptoInstance: crypto } = this.test.ctx;
-	return (crypto).should.have.property('liskCrypto').equal(lisk.crypto);
+	return crypto.should.have.property('liskCrypto').equal(lisk.crypto);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {
 	const { passphrase } = this.test.ctx;
-	return (lisk.crypto.getKeys).should.be.calledWithExactly(passphrase);
+	return lisk.crypto.getKeys.should.be.calledWithExactly(passphrase);
 }
 
 export function theKeysShouldBeReturned() {
 	const { returnValue, keys } = this.test.ctx;
-	return (returnValue).should.eql(keys);
+	return returnValue.should.eql(keys);
 }
 
 export function theErrorResponseShouldBeHandled() {
 	const { returnValue, errorMessage } = this.test.ctx;
-	return (returnValue).should.eql({ error: errorMessage });
+	return returnValue.should.eql({ error: errorMessage });
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
 	const { passphrase, password } = this.test.ctx;
-	return (lisk.crypto.encryptPassphraseWithPassword).should.be.calledWithExactly(passphrase, password);
+	return lisk.crypto.encryptPassphraseWithPassword.should.be.calledWithExactly(
+		passphrase,
+		password,
+	);
 }
 
 export function theEncryptedPassphraseAndIVShouldBeReturned() {
 	const { returnValue, cipherAndIv } = this.test.ctx;
-	return (returnValue).should.eql(cipherAndIv);
+	return returnValue.should.eql(cipherAndIv);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
 	const { cipherAndIv, password } = this.test.ctx;
-	return (lisk.crypto.decryptPassphraseWithPassword).should.be.calledWithExactly(cipherAndIv, password);
+	return lisk.crypto.decryptPassphraseWithPassword.should.be.calledWithExactly(
+		cipherAndIv,
+		password,
+	);
 }
 
 export function theDecryptedPassphraseShouldBeReturned() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return (returnValue).should.eql({ passphrase });
+	return returnValue.should.eql({ passphrase });
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
 	const { message, passphrase, recipientKeys } = this.test.ctx;
-	return (lisk.crypto.encryptMessageWithSecret).should.be.calledWithExactly(message, passphrase, recipientKeys.publicKey);
+	return lisk.crypto.encryptMessageWithSecret.should.be.calledWithExactly(
+		message,
+		passphrase,
+		recipientKeys.publicKey,
+	);
 }
 
 export function theEncryptedMessageAndNonceShouldBeReturned() {
 	const { returnValue, cipherAndNonce } = this.test.ctx;
-	return (returnValue).should.eql(cipherAndNonce);
+	return returnValue.should.eql(cipherAndNonce);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
-	const { cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys } = this.test.ctx;
-	return (lisk.crypto.decryptMessageWithSecret).should.be.calledWithExactly(cipher, nonce, recipientPassphrase, keys.publicKey);
+	const {
+		cipherAndNonce: { cipher, nonce },
+		recipientPassphrase,
+		keys,
+	} = this.test.ctx;
+	return lisk.crypto.decryptMessageWithSecret.should.be.calledWithExactly(
+		cipher,
+		nonce,
+		recipientPassphrase,
+		keys.publicKey,
+	);
 }
 
 export function theDecryptedMessageShouldBeReturned() {
 	const { returnValue, message } = this.test.ctx;
-	return (returnValue).should.eql({ message });
+	return returnValue.should.eql({ message });
 }
 
 export function itShouldResolveToThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(passphrase);
+	return returnValue.should.be.fulfilledWith(passphrase);
 }
 
 export function itShouldReturnAnObjectWithThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith({
+	return returnValue.should.be.fulfilledWith({
 		passphrase,
 		secondPassphrase: null,
 		password: null,
@@ -173,7 +209,7 @@ export function itShouldReturnAnObjectWithThePassphrase() {
 
 export function itShouldReturnAnObjectWithTheSecondPassphrase() {
 	const { returnValue, secondPassphrase } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith({
+	return returnValue.should.be.fulfilledWith({
 		passphrase: null,
 		secondPassphrase,
 		password: null,
@@ -183,7 +219,7 @@ export function itShouldReturnAnObjectWithTheSecondPassphrase() {
 
 export function itShouldReturnAnObjectWithThePassword() {
 	const { returnValue, password } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith({
+	return returnValue.should.be.fulfilledWith({
 		passphrase: null,
 		secondPassphrase: null,
 		password,
@@ -193,7 +229,7 @@ export function itShouldReturnAnObjectWithThePassword() {
 
 export function itShouldReturnAnObjectWithTheData() {
 	const { returnValue, data } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith({
+	return returnValue.should.be.fulfilledWith({
 		passphrase: null,
 		secondPassphrase: null,
 		password: null,
@@ -203,9 +239,13 @@ export function itShouldReturnAnObjectWithTheData() {
 
 export function itShouldReturnAnObjectWithThePassphraseTheSecondPassphraseThePasswordAndTheData() {
 	const {
-		returnValue, passphrase, secondPassphrase, password, data,
+		returnValue,
+		passphrase,
+		secondPassphrase,
+		password,
+		data,
 	} = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith({
+	return returnValue.should.be.fulfilledWith({
 		passphrase,
 		secondPassphrase,
 		password,

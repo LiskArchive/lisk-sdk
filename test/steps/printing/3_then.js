@@ -23,162 +23,181 @@ import tablify from '../../../src/utils/tablify';
 export function consoleErrorShouldBeCalledWithTheFirstStringInRedAndTheOtherArguments() {
 	const { testArguments } = this.test.ctx;
 	const redArgument = chalk.red(testArguments[0]);
-	(console.error).should.be.calledWithExactly(redArgument, ...testArguments.slice(1));
+	console.error.should.be.calledWithExactly(
+		redArgument,
+		...testArguments.slice(1),
+	);
 }
 
 export function consoleErrorShouldBeCalledWithTheStringsInRed() {
 	const { testArguments } = this.test.ctx;
 	const redArguments = testArguments.map(arg => chalk.red(arg));
-	(console.error).should.be.calledWithExactly(...redArguments);
+	console.error.should.be.calledWithExactly(...redArguments);
 }
 
 export function consoleWarnShouldBeCalledWithTheFirstStringInYellowAndTheOtherArguments() {
 	const { testArguments } = this.test.ctx;
 	const yellowArgument = chalk.yellow(testArguments[0]);
-	(console.warn).should.be.calledWithExactly(yellowArgument, ...testArguments.slice(1));
+	console.warn.should.be.calledWithExactly(
+		yellowArgument,
+		...testArguments.slice(1),
+	);
 }
 
 export function consoleWarnShouldBeCalledWithTheStringsInYellow() {
 	const { testArguments } = this.test.ctx;
 	const yellowArguments = testArguments.map(arg => chalk.yellow(arg));
-	(console.warn).should.be.calledWithExactly(...yellowArguments);
+	console.warn.should.be.calledWithExactly(...yellowArguments);
 }
 
 export function itShouldPrintTheErrorMessageInRed() {
 	const { testError: { message }, validationErrorMessage } = this.test.ctx;
-	return (message).should.be.equal(chalk.red(validationErrorMessage));
+	return message.should.be.equal(chalk.red(validationErrorMessage));
 }
 
 export function theErrorShouldBePrintedWithThePrefix() {
 	const { printFunction, errorMessage, prefix } = this.test.ctx;
-	return (printFunction).should.be.calledWithExactly({
+	return printFunction.should.be.calledWithExactly({
 		error: `${prefix}: ${errorMessage}`,
 	});
 }
 
 export function theObjectShouldBePrinted() {
 	const { printFunction, testObject } = this.test.ctx;
-	return (printFunction).should.be.calledWithExactly(testObject);
+	return printFunction.should.be.calledWithExactly(testObject);
 }
 
 export function aTableShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const tableOutput = tablify(result).toString();
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(tableOutput);
+	return vorpal.activeCommand.log.should.be.calledWithExactly(tableOutput);
 }
 
 export function prettyJSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const prettyJsonOutput = JSON.stringify(result, null, '\t');
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
+	return vorpal.activeCommand.log.should.be.calledWithExactly(prettyJsonOutput);
 }
 
 export function prettyJSONOutputShouldBeLoggedWithoutANSICodes() {
 	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
 	const prettyJsonOutput = JSON.stringify(resultWithoutANSICodes, null, '\t');
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
+	return vorpal.activeCommand.log.should.be.calledWithExactly(prettyJsonOutput);
 }
 
 export function jSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(result);
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
+	return vorpal.activeCommand.log.should.be.calledWithExactly(jsonOutput);
 }
 
 export function jSONOutputShouldBeLoggedWithoutANSICodes() {
 	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(resultWithoutANSICodes);
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
+	return vorpal.activeCommand.log.should.be.calledWithExactly(jsonOutput);
 }
 
 export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
 	const { config } = this.test.ctx;
-	return (shouldUseJsonOutput).should.be.calledWithExactly(config, {});
+	return shouldUseJsonOutput.should.be.calledWithExactly(config, {});
 }
 
 export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
 	const { config } = this.test.ctx;
-	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, {});
+	return shouldUsePrettyOutput.should.be.calledWithExactly(config, {});
 }
 
 export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions() {
 	const { config, options } = this.test.ctx;
-	return (shouldUseJsonOutput).should.be.calledWithExactly(config, options);
+	return shouldUseJsonOutput.should.be.calledWithExactly(config, options);
 }
 
 export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions() {
 	const { config, options } = this.test.ctx;
-	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, options);
+	return shouldUsePrettyOutput.should.be.calledWithExactly(config, options);
 }
 
 export function theReturnedTableShouldHaveNoHead() {
 	const { returnValue } = this.test.ctx;
-	return (returnValue.options).should.have.property('head').eql([]);
+	return returnValue.options.should.have.property('head').eql([]);
 }
 
 export function theReturnedTableShouldHaveNoRows() {
 	const { returnValue } = this.test.ctx;
-	return (returnValue).should.have.length(0);
+	return returnValue.should.have.length(0);
 }
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectKeys() {
 	const { returnValue, testObject } = this.test.ctx;
 	const keys = Object.keys(testObject);
-	return (returnValue.options).should.have.property('head').eql(keys);
+	return returnValue.options.should.have.property('head').eql(keys);
 }
 
 export function theReturnedTableShouldHaveARowWithTheObjectValues() {
 	const { returnValue, testObject } = this.test.ctx;
 	const values = Object.values(testObject);
-	return (returnValue[0]).should.eql(values);
+	return returnValue[0].should.eql(values);
 }
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
 	const { returnValue } = this.test.ctx;
 	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue'];
-	return (returnValue.options).should.have.property('head').eql(keys);
+	return returnValue.options.should.have.property('head').eql(keys);
 }
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys() {
 	const { returnValue } = this.test.ctx;
-	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue', 'nested.asset.publicKey', 'nested.asset.keys.more'];
-	return (returnValue.options).should.have.property('head').eql(keys);
+	const keys = [
+		'root',
+		'nested.object',
+		'nested.testing',
+		'nested.nullValue',
+		'nested.asset.publicKey',
+		'nested.asset.keys.more',
+	];
+	return returnValue.options.should.have.property('head').eql(keys);
 }
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
 	const { returnValue } = this.test.ctx;
 	const values = ['value', 'values', 123, null];
-	return (returnValue[0]).should.eql(values);
+	return returnValue[0].should.eql(values);
 }
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues() {
 	const { returnValue } = this.test.ctx;
-	const values = ['value', 'values', 123, null, 'aPublicKeyString', 'publicKey1\npublicKey2'];
-	return (returnValue[0]).should.eql(values);
+	const values = [
+		'value',
+		'values',
+		123,
+		null,
+		'aPublicKeyString',
+		'publicKey1\npublicKey2',
+	];
+	return returnValue[0].should.eql(values);
 }
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
 	const { returnValue, testArray } = this.test.ctx;
 	const keys = Object.keys(testArray[0]);
-	return (returnValue.options).should.have.property('head').eql(keys);
+	return returnValue.options.should.have.property('head').eql(keys);
 }
 
 export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
 	const { returnValue, testArray } = this.test.ctx;
 	return testArray.forEach((testObject, i) => {
 		const values = Object.values(testObject);
-		return (returnValue[i]).should.eql(values);
+		return returnValue[i].should.eql(values);
 	});
 }
 
 export function theReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
 	const { returnValue, testArray } = this.test.ctx;
-	const uniqueKeys = testArray
-		.reduce((keys, testObject) => {
-			const newKeys = Object.keys(testObject).filter(key => !keys.includes(key));
-			return [...keys, ...newKeys];
-		}, []);
-	return (returnValue.options).should.have.property('head').eql(uniqueKeys);
+	const uniqueKeys = testArray.reduce((keys, testObject) => {
+		const newKeys = Object.keys(testObject).filter(key => !keys.includes(key));
+		return [...keys, ...newKeys];
+	}, []);
+	return returnValue.options.should.have.property('head').eql(uniqueKeys);
 }
 
 export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues() {
@@ -187,7 +206,7 @@ export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues(
 		const row = returnValue[i];
 		const values = Object.values(testObject);
 
-		values.forEach(value => (row).should.containEql(value));
+		values.forEach(value => row.should.containEql(value));
 		return row
 			.filter(value => !values.includes(value))
 			.forEach(value => should(value).be.undefined());

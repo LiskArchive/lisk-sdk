@@ -19,14 +19,14 @@ import config from './config';
 import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
-const removeAnsi = result => Object.entries(result)
-	.reduce(
+const removeAnsi = result =>
+	Object.entries(result).reduce(
 		(strippedResult, [key, value]) =>
-			Object.assign({}, strippedResult, { [key]: stripAnsi(value) })
-		, {},
+			Object.assign({}, strippedResult, { [key]: stripAnsi(value) }),
+		{},
 	);
 
-export const printResult = (vorpal, options = {}) => (result) => {
+export const printResult = (vorpal, options = {}) => result => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
 	const prettifyOutput = shouldUsePrettyOutput(config, options);
 	const resultToPrint = useJsonOutput ? removeAnsi(result) : result;
@@ -53,9 +53,9 @@ const PLACEHOLDERS = [
 const wrapLogFunction = (fn, colour) => (...args) => {
 	const colourArg = arg => chalk[colour](arg);
 	const isPlaceholderPresent = placeholder => args[0].includes(placeholder);
-	return (PLACEHOLDERS.some(isPlaceholderPresent)
+	return PLACEHOLDERS.some(isPlaceholderPresent)
 		? fn(colourArg(args[0]), ...args.slice(1))
-		: fn(...args.map(colourArg)));
+		: fn(...args.map(colourArg));
 };
 
 export const logWarning = wrapLogFunction(console.warn, 'yellow');

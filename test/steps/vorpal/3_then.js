@@ -14,64 +14,70 @@
  *
  */
 import commonOptions from '../../../src/utils/options';
-import {
-	getCommandInstance,
-} from '../utils';
+import { getCommandInstance } from '../utils';
 
 export function theVorpalCommandInstanceShouldHaveTheAlias() {
 	const { vorpal, command, alias } = this.test.ctx;
 	const { _aliases } = getCommandInstance(vorpal, command);
-	return (_aliases).should.be.eql([alias]);
+	return _aliases.should.be.eql([alias]);
 }
 
 export function theVorpalCommandInstanceShouldHaveTheAutocompleteList() {
 	const { vorpal, command, autocompleteList } = this.test.ctx;
 	const { _autocomplete } = getCommandInstance(vorpal, command);
-	return (_autocomplete).should.be.equal(autocompleteList);
+	return _autocomplete.should.be.equal(autocompleteList);
 }
 
 export function theVorpalCommandInstanceShouldHaveTheDescription() {
 	const { vorpal, command, description } = this.test.ctx;
 	const { _description } = getCommandInstance(vorpal, command);
-	return (_description).should.be.equal(description);
+	return _description.should.be.equal(description);
 }
 
 export function theVorpalCommandInstanceShouldHaveTheProvidedOptions() {
 	const { vorpal, command, optionsList } = this.test.ctx;
 	const { options } = getCommandInstance(vorpal, command);
-	return optionsList.forEach(myOption => (options).should.matchAny(option => option.flags === `${myOption[0]}`));
+	return optionsList.forEach(myOption =>
+		options.should.matchAny(option => option.flags === `${myOption[0]}`),
+	);
 }
 
 export function theVorpalCommandInstanceShouldHaveTheJsonOption() {
 	const { vorpal, command } = this.test.ctx;
 	const { options } = getCommandInstance(vorpal, command);
-	return (options).should.matchAny(option => option.flags === commonOptions.json[0]);
+	return options.should.matchAny(
+		option => option.flags === commonOptions.json[0],
+	);
 }
 
 export function theVorpalCommandInstanceShouldHaveTheNoJsonOption() {
 	const { vorpal, command } = this.test.ctx;
 	const { options } = getCommandInstance(vorpal, command);
-	return (options).should.matchAny(option => option.flags === commonOptions.noJson[0]);
+	return options.should.matchAny(
+		option => option.flags === commonOptions.noJson[0],
+	);
 }
 
 export function theVorpalCommandInstanceShouldHaveThePrettyOption() {
 	const { vorpal, command } = this.test.ctx;
 	const { options } = getCommandInstance(vorpal, command);
-	return (options).should.matchAny(option => option.flags === commonOptions.pretty[0]);
+	return options.should.matchAny(
+		option => option.flags === commonOptions.pretty[0],
+	);
 }
 
 export function theVorpalInstanceShouldHaveTheCommand() {
 	const { vorpal, command } = this.test.ctx;
 	const commandInstance = getCommandInstance(vorpal, command);
-	return (commandInstance).should.be.ok();
+	return commandInstance.should.be.ok();
 }
 
 export function aUIParentShouldBeSet() {
 	const { vorpal } = this.test.ctx;
-	return (vorpal.ui.parent).should.equal(vorpal);
+	return vorpal.ui.parent.should.equal(vorpal);
 }
 
 export function theUIParentShouldBeMaintained() {
 	const { vorpal, vorpalUIParent } = this.test.ctx;
-	return (vorpal.ui.parent).should.equal(vorpalUIParent);
+	return vorpal.ui.parent.should.equal(vorpalUIParent);
 }

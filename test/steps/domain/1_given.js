@@ -19,7 +19,6 @@ import {
 	getFirstNumber,
 } from '../utils';
 
-
 export function publicKeysThatShouldBeVotedFor() {
 	this.test.ctx.votePublicKeys = getQuotedStrings(this.test.parent.title);
 }

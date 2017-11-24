@@ -13,9 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	processQueryResult,
-} from '../../../src/utils/helpers';
+import { processQueryResult } from '../../../src/utils/helpers';
 
 export function processQueryResultIsCalledWithTheTypeThenTheResult() {
 	const { type, result } = this.test.ctx;

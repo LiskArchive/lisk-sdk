@@ -20,7 +20,7 @@ export const setUpVorpalWithCommand = (command, capturedOutput) => {
 	const vorpal = new Vorpal();
 
 	vorpal.use(command);
-	vorpal.pipe((outputs) => {
+	vorpal.pipe(outputs => {
 		if (capturedOutput) {
 			outputs.forEach(handleOutput);
 		}
@@ -29,8 +29,9 @@ export const setUpVorpalWithCommand = (command, capturedOutput) => {
 	return vorpal;
 };
 
-// eslint-disable-next-line no-underscore-dangle
-export const createCommandFilter = commandName => command => command._name === commandName;
+export const createCommandFilter = commandName => command =>
+	// eslint-disable-next-line no-underscore-dangle
+	command._name === commandName;
 
 export const getCommands = (vorpal, commandName) =>
 	vorpal.commands.filter(createCommandFilter(commandName));
@@ -38,5 +39,5 @@ export const getCommands = (vorpal, commandName) =>
 export const requiredArgsFilter = arg => arg.required;
 
 export const getRequiredArgs = (vorpal, commandName) =>
-// eslint-disable-next-line no-underscore-dangle
+	// eslint-disable-next-line no-underscore-dangle
 	getCommands(vorpal, commandName)[0]._args.filter(requiredArgsFilter);

@@ -19,10 +19,17 @@ import * as then from '../../steps/3_then';
 
 describe('show copyright command', () => {
 	Given('an action "show copyright"', given.anAction, () => {
-		Given('a copyright information text', given.aCopyrightInformationText, () => {
-			When('the action is called', when.theActionIsCalled, () => {
-				Then('it should resolve to the copyright information', then.itShouldResolveToTheCopyrightInformation);
-			});
-		});
+		Given(
+			'a copyright information text',
+			given.aCopyrightInformationText,
+			() => {
+				When('the action is called', when.theActionIsCalled, () => {
+					Then(
+						'it should resolve to the copyright information',
+						then.itShouldResolveToTheCopyrightInformation,
+					);
+				});
+			},
+		);
 	});
 });

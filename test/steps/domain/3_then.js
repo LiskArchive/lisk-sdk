@@ -16,41 +16,41 @@
 
 export function itShouldReturnThePublicKeyPrependedWithAMinus() {
 	const { publicKeys, returnValue } = this.test.ctx;
-	const publicKeysWithMinus = publicKeys.map((publicKey) => {
+	const publicKeysWithMinus = publicKeys.map(publicKey => {
 		return `-${publicKey}`;
 	});
-	return (returnValue).should.eql(publicKeysWithMinus);
+	return returnValue.should.eql(publicKeysWithMinus);
 }
 
 export function itShouldReturnThePublicKeyPrependedWithAPlus() {
 	const { publicKeys, returnValue } = this.test.ctx;
-	const publicKeysWithPlus = publicKeys.map((publicKey) => {
+	const publicKeysWithPlus = publicKeys.map(publicKey => {
 		return `+${publicKey}`;
 	});
-	return (returnValue).should.eql(publicKeysWithPlus);
+	return returnValue.should.eql(publicKeysWithPlus);
 }
 
 export function itShouldReturnThePublicKeys() {
 	const { returnValue, publicKeys } = this.test.ctx;
-	return (returnValue).should.eql(publicKeys);
+	return returnValue.should.eql(publicKeys);
 }
 
 export function itShouldReturnTheBlock() {
 	const { returnValue, block } = this.test.ctx;
-	return (returnValue).should.equal(block);
+	return returnValue.should.equal(block);
 }
 
 export function itShouldReturnAnObjectWithTheAddress() {
 	const { returnValue, address } = this.test.ctx;
-	return (returnValue).should.eql({ address });
+	return returnValue.should.eql({ address });
 }
 
 export function itShouldReturnTheAlias() {
 	const { returnValue, alias } = this.test.ctx;
-	return (returnValue).should.be.equal(alias);
+	return returnValue.should.be.equal(alias);
 }
 
 export function itShouldReturnTheType() {
 	const { returnValue, type } = this.test.ctx;
-	return (returnValue).should.be.equal(type);
+	return returnValue.should.be.equal(type);
 }

@@ -15,9 +15,7 @@
  */
 import liskAPIInstance from '../../../src/utils/api';
 import queryInstance from '../../../src/utils/query';
-import {
-	getFirstQuotedString,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export function aResultWithError() {
 	const error = getFirstQuotedString(this.test.parent.title);

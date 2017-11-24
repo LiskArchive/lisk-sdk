@@ -30,7 +30,7 @@ import * as set from '../../src/commands/set';
 import * as showCopyright from '../../src/commands/showCopyright';
 import * as showWarranty from '../../src/commands/showWarranty';
 
-export const DEFAULT_ERROR_MESSAGE = 'Cannot read property \'length\' of null';
+export const DEFAULT_ERROR_MESSAGE = "Cannot read property 'length' of null";
 
 const BOOLEANS = {
 	true: true,
@@ -43,29 +43,24 @@ const regExpBooleans = /(true|false)/;
 
 export const getFirstQuotedString = title => title.match(regExpQuotes)[1];
 
-export const getQuotedStrings = (title) => {
+export const getQuotedStrings = title => {
 	const globalRegExp = new RegExp(regExpQuotes, 'g');
-	return title
-		.match(globalRegExp)
-		.map(match => match.match(regExpQuotes)[1]);
+	return title.match(globalRegExp).map(match => match.match(regExpQuotes)[1]);
 };
 
 export const getFirstNumber = title => Number(title.match(regExpNumbers)[0]);
 
-export const getNumbers = (title) => {
+export const getNumbers = title => {
 	const globalRegExp = new RegExp(regExpNumbers, 'g');
-	return title
-		.match(globalRegExp)
-		.map(Number);
+	return title.match(globalRegExp).map(Number);
 };
 
-export const getFirstBoolean = title => BOOLEANS[title.match(regExpBooleans)[1]];
+export const getFirstBoolean = title =>
+	BOOLEANS[title.match(regExpBooleans)[1]];
 
-export const getBooleans = (title) => {
+export const getBooleans = title => {
 	const globalRegExp = new RegExp(regExpBooleans, 'g');
-	return title
-		.match(globalRegExp)
-		.map(key => BOOLEANS[key]);
+	return title.match(globalRegExp).map(key => BOOLEANS[key]);
 };
 
 export const getCommandInstance = (vorpal, command) => {
@@ -73,27 +68,31 @@ export const getCommandInstance = (vorpal, command) => {
 	return vorpal.find(commandStem);
 };
 
-export const getActionCreator = actionName => ({
-	'create account': createAccount.actionCreator,
-	'decrypt message': decryptMessage.actionCreator,
-	'decrypt passphrase': decryptPassphrase.actionCreator,
-	'encrypt message': encryptMessage.actionCreator,
-	'encrypt passphrase': encryptPassphrase.actionCreator,
-	'create transaction register delegate': createTransactionRegisterDelegate.actionCreator,
-	'create transaction cast votes': createTransactionCastVotes.actionCreator,
-	'create transaction create multisignature account': createTransactionCreateMultisignatureAccount.actionCreator,
-	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
-	'create transaction transfer': createTransactionTransfer.actionCreator,
-	config: config.actionCreator,
-	get: get.actionCreator,
-	list: list.actionCreator,
-	set: set.actionCreator,
-	'show copyright': showCopyright.actionCreator,
-	'show warranty': showWarranty.actionCreator,
-})[actionName];
+export const getActionCreator = actionName =>
+	({
+		'create account': createAccount.actionCreator,
+		'decrypt message': decryptMessage.actionCreator,
+		'decrypt passphrase': decryptPassphrase.actionCreator,
+		'encrypt message': encryptMessage.actionCreator,
+		'encrypt passphrase': encryptPassphrase.actionCreator,
+		'create transaction register delegate':
+			createTransactionRegisterDelegate.actionCreator,
+		'create transaction cast votes': createTransactionCastVotes.actionCreator,
+		'create transaction create multisignature account':
+			createTransactionCreateMultisignatureAccount.actionCreator,
+		'create transaction register second passphrase':
+			createTransactionRegisterSecondPassphrase.actionCreator,
+		'create transaction transfer': createTransactionTransfer.actionCreator,
+		config: config.actionCreator,
+		get: get.actionCreator,
+		list: list.actionCreator,
+		set: set.actionCreator,
+		'show copyright': showCopyright.actionCreator,
+		'show warranty': showWarranty.actionCreator,
+	}[actionName]);
 
 export const createFakeInterface = value => ({
-	on: ((type, callback) => {
+	on: (type, callback) => {
 		if (type === 'line') {
 			value.split('\n').forEach(callback);
 		}
@@ -101,7 +100,7 @@ export const createFakeInterface = value => ({
 			callback();
 		}
 		return createFakeInterface(value);
-	}),
+	},
 });
 
 export const createStreamStub = on => ({
@@ -112,12 +111,18 @@ export const createStreamStub = on => ({
 
 export function getTransactionCreatorFunctionNameByType(transactionType) {
 	switch (transactionType) {
-	case 0:	return 'createTransaction';
-	case 1: return 'signTransaction';
-	case 2:	return 'createDelegate';
-	case 3: return 'createVote';
-	case 4: return 'createMultisignature';
-	default: throw new Error(`Transaction type ${transactionType} is not supported`);
+		case 0:
+			return 'createTransaction';
+		case 1:
+			return 'signTransaction';
+		case 2:
+			return 'createDelegate';
+		case 3:
+			return 'createVote';
+		case 4:
+			return 'createMultisignature';
+		default:
+			throw new Error(`Transaction type ${transactionType} is not supported`);
 	}
 }
 

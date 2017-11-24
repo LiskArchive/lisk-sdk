@@ -34,9 +34,8 @@ const description = `Creates a transaction which will cast votes (or unvotes) fo
 const processInputs = votes => ({ passphrase, secondPassphrase }) =>
 	transactions.createVote(passphrase, votes, secondPassphrase);
 
-const processVotesInput = async votes => (votes.includes(':')
-	? getData(votes)
-	: votes);
+const processVotesInput = async votes =>
+	votes.includes(':') ? getData(votes) : votes;
 
 const processVotes = votes =>
 	votes
@@ -54,7 +53,9 @@ export const actionCreator = vorpal => async ({ options }) => {
 	} = options;
 
 	if (!votes && !unvotes) {
-		throw new Error('At least one of votes and/or unvotes options must be provided.');
+		throw new Error(
+			'At least one of votes and/or unvotes options must be provided.',
+		);
 	}
 
 	if (votes === unvotes) {
@@ -89,12 +90,13 @@ export const actionCreator = vorpal => async ({ options }) => {
 			source: passphraseSource,
 			repeatPrompt: true,
 		},
-		secondPassphrase: !secondPassphraseSource ? null : {
-			source: secondPassphraseSource,
-			repeatPrompt: true,
-		},
-	})
-		.then(processInputs(allVotes));
+		secondPassphrase: !secondPassphraseSource
+			? null
+			: {
+					source: secondPassphraseSource,
+					repeatPrompt: true,
+				},
+	}).then(processInputs(allVotes));
 };
 
 const createTransactionCastVotes = createCommand({

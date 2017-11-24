@@ -15,13 +15,14 @@
  */
 import { crypto as liskCrypto } from 'lisk-js';
 
-const wrapFunction = fn => function wrappedFunction(...args) {
-	try {
-		return fn(...args);
-	} catch ({ message: error }) {
-		return { error };
-	}
-};
+const wrapFunction = fn =>
+	function wrappedFunction(...args) {
+		try {
+			return fn(...args);
+		} catch ({ message: error }) {
+			return { error };
+		}
+	};
 
 class Crypto {
 	constructor() {
@@ -34,21 +35,27 @@ class Crypto {
 			'decryptPassphrase',
 			'getKeys',
 			'getAddressFromPublicKey',
-		].forEach((methodName) => {
+		].forEach(methodName => {
 			this[methodName] = wrapFunction(this[methodName].bind(this));
 		});
 	}
 
 	encryptMessage({ message, passphrase, recipient }) {
-		return this.liskCrypto.encryptMessageWithSecret(message, passphrase, recipient);
+		return this.liskCrypto.encryptMessageWithSecret(
+			message,
+			passphrase,
+			recipient,
+		);
 	}
 
-	decryptMessage({
-		cipher, nonce, passphrase, senderPublicKey,
-	}) {
+	decryptMessage({ cipher, nonce, passphrase, senderPublicKey }) {
 		return {
-			message: this.liskCrypto
-				.decryptMessageWithSecret(cipher, nonce, passphrase, senderPublicKey),
+			message: this.liskCrypto.decryptMessageWithSecret(
+				cipher,
+				nonce,
+				passphrase,
+				senderPublicKey,
+			),
 		};
 	}
 
@@ -58,7 +65,10 @@ class Crypto {
 
 	decryptPassphrase({ cipher, iv, password }) {
 		return {
-			passphrase: this.liskCrypto.decryptPassphraseWithPassword({ cipher, iv }, password),
+			passphrase: this.liskCrypto.decryptPassphraseWithPassword(
+				{ cipher, iv },
+				password,
+			),
 		};
 	}
 

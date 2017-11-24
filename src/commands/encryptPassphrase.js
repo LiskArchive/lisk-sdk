@@ -32,8 +32,8 @@ const processInputs = outputPublicKey => ({ passphrase, password }) => {
 	const cipherAndIv = cryptoModule.encryptPassphrase({ passphrase, password });
 	return outputPublicKey
 		? Object.assign({}, cipherAndIv, {
-			publicKey: cryptoModule.getKeys(passphrase).publicKey,
-		})
+				publicKey: cryptoModule.getKeys(passphrase).publicKey,
+			})
 		: cipherAndIv;
 };
 
@@ -53,8 +53,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 			source: passwordSource,
 			repeatPrompt: true,
 		},
-	})
-		.then(processInputs(outputPublicKey));
+	}).then(processInputs(outputPublicKey));
 };
 
 const encryptPassphrase = createCommand({

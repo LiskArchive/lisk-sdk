@@ -19,7 +19,11 @@ const getTestFn = (rootTestFn, { only, skip } = {}) => {
 	return rootTestFn;
 };
 
-const createPreStep = (prefix, modifiers) => (description, beforeEachHook, suiteBody) => {
+const createPreStep = (prefix, modifiers) => (
+	description,
+	beforeEachHook,
+	suiteBody,
+) => {
 	const suiteFn = getTestFn(describe, modifiers);
 	suiteFn(`${prefix} ${description}`, () => {
 		beforeEach(beforeEachHook);

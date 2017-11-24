@@ -17,9 +17,7 @@ import {
 	shouldUseJsonOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
-import {
-	printResult,
-} from '../../../src/utils/print';
+import { printResult } from '../../../src/utils/print';
 import tablify from '../../../src/utils/tablify';
 
 export function logErrorIsCalledWithTheArguments() {

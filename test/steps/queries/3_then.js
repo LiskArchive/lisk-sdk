@@ -13,38 +13,36 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getFirstQuotedString,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
 	const { queryInstance, liskAPIInstance } = this.test.ctx;
-	return (queryInstance).should.have.property('client').equal(liskAPIInstance);
+	return queryInstance.should.have.property('client').equal(liskAPIInstance);
 }
 
 export function theQueryInstanceShouldHaveAHandlerFor() {
 	const { queryInstance } = this.test.ctx;
 	const item = getFirstQuotedString(this.test.title);
-	return (queryInstance.handlers).should.have.property(item).be.Function();
+	return queryInstance.handlers.should.have.property(item).be.Function();
 }
 
 export function itShouldResolveToTheResultOfTheQuery() {
 	const { returnValue, queryResult } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(queryResult);
+	return returnValue.should.be.fulfilledWith(queryResult);
 }
 
 export function itShouldResolveToAnArrayOfQueryResults() {
 	const { returnValue, inputs, queryResult } = this.test.ctx;
 	const arrayOfQueryResults = inputs.map(() => queryResult);
-	return (returnValue).should.be.fulfilledWith(arrayOfQueryResults);
+	return returnValue.should.be.fulfilledWith(arrayOfQueryResults);
 }
 
 export function theResultShouldBeReturned() {
 	const { returnValue, result } = this.test.ctx;
-	return (returnValue).should.equal(result);
+	return returnValue.should.equal(result);
 }
 
 export function theResultStrippedOfANSICodesShouldBeReturned() {
 	const { returnValue, resultWithoutANSICodes } = this.test.ctx;
-	return (returnValue).should.eql(resultWithoutANSICodes);
+	return returnValue.should.eql(resultWithoutANSICodes);
 }

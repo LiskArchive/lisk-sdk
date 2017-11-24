@@ -16,7 +16,8 @@
 import fs from 'fs';
 import childProcess from 'child_process';
 
-const handleError = (lisky, error) => lisky.log(error.trim ? error.trim() : error);
+const handleError = (lisky, error) =>
+	lisky.log(error.trim ? error.trim() : error);
 
 const DIST_PATH = `${__dirname}/../dist`;
 
@@ -47,7 +48,10 @@ const executeCommand = (lisky, commands, options) => {
 
 			const remainingCommands = commands.slice(1);
 			return remainingCommands.length
-				? executeCommand(lisky, remainingCommands, options).then(resolve, reject)
+				? executeCommand(lisky, remainingCommands, options).then(
+						resolve,
+						reject,
+					)
 				: resolve();
 		});
 	});
@@ -60,8 +64,10 @@ const execFile = (lisky, path, options, exit) => {
 		.filter(Boolean)
 		.filter(line => !line.match(/^[\s]*#/));
 
-	return executeCommand(lisky, commands, options)
-		.then(() => exit(0), () => exit(1));
+	return executeCommand(lisky, commands, options).then(
+		() => exit(0),
+		() => exit(1),
+	);
 };
 
 export default execFile;

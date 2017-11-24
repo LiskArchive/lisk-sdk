@@ -21,7 +21,10 @@ describe('config command', () => {
 	Given('a config', given.aConfig, () => {
 		Given('an action "config"', given.anAction, () => {
 			When('the action is called', when.theActionIsCalled, () => {
-				Then('it should resolve to the config', then.itShouldResolveToTheConfig);
+				Then(
+					'it should resolve to the config',
+					then.itShouldResolveToTheConfig,
+				);
 			});
 		});
 	});

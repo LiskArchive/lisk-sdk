@@ -30,7 +30,11 @@ const processInputs = (recipient, message) => ({ passphrase, data }) =>
 		recipient,
 	});
 
-export const actionCreator = vorpal => async ({ recipient, message, options }) => {
+export const actionCreator = vorpal => async ({
+	recipient,
+	message,
+	options,
+}) => {
 	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
 
@@ -43,21 +47,19 @@ export const actionCreator = vorpal => async ({ recipient, message, options }) =
 			source: passphraseSource,
 			repeatPrompt: true,
 		},
-		data: message ? null : {
-			source: messageSource,
-		},
-	})
-		.then(processInputs(recipient, message));
+		data: message
+			? null
+			: {
+					source: messageSource,
+				},
+	}).then(processInputs(recipient, message));
 };
 
 const encryptMessage = createCommand({
 	command: 'encrypt message <recipient> [message]',
 	description,
 	actionCreator,
-	options: [
-		commonOptions.passphrase,
-		commonOptions.message,
-	],
+	options: [commonOptions.passphrase, commonOptions.message],
 	errorPrefix: 'Could not encrypt message',
 });
 
