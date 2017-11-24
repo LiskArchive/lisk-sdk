@@ -95,8 +95,8 @@ Transfer.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Calls getSender based on transaction recipientId and
-  * @param {transaction} transaction
+ * Applies transaction to confirmed state.
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
@@ -107,7 +107,7 @@ Transfer.prototype.apply = function (transaction, block, sender, cb) {
 };
 
 /**
- * Calls getSender based on transaction recipientId
+ * Undoes confirmed state of transaction.
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
