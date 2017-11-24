@@ -20,11 +20,11 @@ import defaultConfig from '../../defaultConfig.json';
 import {
 	readJsonSync,
 	writeJsonSync,
-} from '../utils/fs';
+} from './fs';
 import {
 	logWarning,
 	logError,
-} from './error';
+} from './print';
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';
