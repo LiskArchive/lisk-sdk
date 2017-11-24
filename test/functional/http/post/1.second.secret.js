@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	describe('transactions processing', function () {
 
 		it('using second passphrase on a fresh account should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
+			transaction = node.lisk.transaction.createTransaction(utils.accounts.eAccount.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -118,7 +118,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 0 - sending funds', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, account.secondPassword);
+				transaction = node.lisk.transaction.createTransaction(utils.accounts.eAccount.address, 1, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -165,7 +165,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 3 - voting delegate', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], account.secondPassword);
+				transaction = node.lisk.vote.createVote(account.password, ['+' + utils.accounts.eAccount.publicKey], account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -178,7 +178,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 4 - registering multisignature account', function () {
 
 			it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + utils.accounts.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -238,7 +238,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 0 - sending funds', function () {
 
 			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password);
+				transaction = node.lisk.transaction.createTransaction(utils.accounts.eAccount.address, 1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -248,7 +248,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using second passphrase not matching registered secondPublicKey should fail', function () {
-				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, 'invalid password');
+				transaction = node.lisk.transaction.createTransaction(utils.accounts.eAccount.address, 1, account.password, 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -258,7 +258,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using correct second passphrase should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, account.password, account.secondPassword);
+				transaction = node.lisk.transaction.createTransaction(utils.accounts.eAccount.address, 1, account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
@@ -331,7 +331,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 3 - voting delegate', function () {
 
 			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey]);
+				transaction = node.lisk.vote.createVote(account.password, ['+' + utils.accounts.eAccount.publicKey]);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -341,7 +341,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using second passphrase not matching registered secondPublicKey should fail', function () {
-				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], 'invalid password');
+				transaction = node.lisk.vote.createVote(account.password, ['+' + utils.accounts.eAccount.publicKey], 'invalid password');
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -351,7 +351,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using correct second passphrase should be ok', function () {
-				transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], account.secondPassword);
+				transaction = node.lisk.vote.createVote(account.password, ['+' + utils.accounts.eAccount.publicKey], account.secondPassword);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
@@ -364,7 +364,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		describe('type 4 - registering multisignature account', function () {
 
 			it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + utils.accounts.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -374,7 +374,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using second passphrase not matching registered secondPublicKey should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + utils.accounts.eAccount.publicKey, '+' + accountNoFunds.publicKey, '+' + accountMinimalFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -384,7 +384,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 
 			it('using correct second passphrase should be ok', function () {
-				transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + utils.accounts.eAccount.publicKey, '+' + accountNoFunds.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

@@ -355,7 +355,7 @@ describe('GET /api/transactions', function () {
 			it('using multiple senderId should return transactions', function () {
 				var params = [
 					'senderId=' + utils.accounts.gAccount.address,
-					'senderId=' + node.eAccount.address
+					'senderId=' + utils.accounts.eAccount.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -363,7 +363,7 @@ describe('GET /api/transactions', function () {
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([utils.accounts.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].senderId);
+							node.expect([utils.accounts.gAccount.address, utils.accounts.eAccount.address]).to.include(res.body.transactions[i].senderId);
 						}
 					}
 				});
@@ -402,7 +402,7 @@ describe('GET /api/transactions', function () {
 			it('using multiple recipientId should return transactions', function () {
 				var params = [
 					'recipientId=' + utils.accounts.gAccount.address,
-					'recipientId=' + node.eAccount.address
+					'recipientId=' + utils.accounts.eAccount.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
@@ -410,7 +410,7 @@ describe('GET /api/transactions', function () {
 					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([utils.accounts.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].recipientId);
+							node.expect([utils.accounts.gAccount.address, utils.accounts.eAccount.address]).to.include(res.body.transactions[i].recipientId);
 						}
 					}
 				});

@@ -100,7 +100,7 @@ function invalidAssets (option, badTransactions) {
 				transaction = node.lisk.vote.createVote(utils.accounts.gAccount.password, []);
 				break;
 			case 'multisignature':
-				transaction = node.lisk.multisignature.createMultisignature(utils.accounts.gAccount.password, null, ['+' + node.eAccount.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(utils.accounts.gAccount.password, null, ['+' + utils.accounts.eAccount.publicKey], 1, 2);
 				break;
 			case 'dapp':
 				transaction = node.lisk.dapp.createDapp(utils.accounts.gAccount.password, null, node.guestbookDapp);

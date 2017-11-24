@@ -265,9 +265,9 @@ describe('vote', function () {
 
 		it('should return error when removing vote for delegate sender has not voted', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['-' + node.eAccount.publicKey];
+			transaction.asset.votes = ['-' + utils.accounts.eAccount.publicKey];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Failed to remove vote, delegate "' + node.eAccount.delegateName + '" was not voted for');
+				expect(err).to.equal('Failed to remove vote, delegate "' + utils.accounts.eAccount.delegateName + '" was not voted for');
 				done();
 			});
 		});
@@ -385,7 +385,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.eAccount.publicKey];
 			vote.checkConfirmedDelegates(transaction, done);
 		});
 
@@ -436,7 +436,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + utils.accounts.eAccount.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, done);
 		});
 

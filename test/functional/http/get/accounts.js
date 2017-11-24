@@ -163,11 +163,11 @@ describe('GET /accounts', function () {
 			});
 
 			it('using valid username name should result account', function () {
-				return accountsEndpoint.makeRequest({username: node.eAccount.delegateName}, 200).then(function (res) {
+				return accountsEndpoint.makeRequest({username: utils.accounts.eAccount.delegateName}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
-					res.body.data[0].address.should.be.eql(node.eAccount.address);
-					res.body.data[0].publicKey.should.be.eql(node.eAccount.publicKey);
-					res.body.data[0].delegate.username.should.to.eql(node.eAccount.delegateName);
+					res.body.data[0].address.should.be.eql(utils.accounts.eAccount.address);
+					res.body.data[0].publicKey.should.be.eql(utils.accounts.eAccount.publicKey);
+					res.body.data[0].delegate.username.should.to.eql(utils.accounts.eAccount.delegateName);
 				});
 			});
 		});
@@ -253,10 +253,10 @@ describe('GET /accounts', function () {
 		});
 
 		it('should return delegate properties for a delegate account', function () {
-			return accountsEndpoint.makeRequest({address: node.eAccount.address}, 200).then(function (res) {
-				res.body.data[0].address.should.be.eql(node.eAccount.address);
-				res.body.data[0].publicKey.should.be.eql(node.eAccount.publicKey);
-				res.body.data[0].delegate.username.should.be.eql(node.eAccount.delegateName);
+			return accountsEndpoint.makeRequest({address: utils.accounts.eAccount.address}, 200).then(function (res) {
+				res.body.data[0].address.should.be.eql(utils.accounts.eAccount.address);
+				res.body.data[0].publicKey.should.be.eql(utils.accounts.eAccount.publicKey);
+				res.body.data[0].delegate.username.should.be.eql(utils.accounts.eAccount.delegateName);
 			});
 		});
 

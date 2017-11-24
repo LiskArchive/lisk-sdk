@@ -542,7 +542,7 @@ describe('transaction', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(sender);
 			// Different publicKey for multisignature account
-			vs.multisignatures = [node.eAccount.publicKey];
+			vs.multisignatures = [utils.accounts.eAccount.publicKey];
 			transaction.requesterPublicKey = validKeypair.publicKey.toString('hex');
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);

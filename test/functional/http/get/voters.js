@@ -14,7 +14,7 @@ var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 
 describe('GET /api/voters', function () {
 
-	var validVotedDelegate = node.eAccount;
+	var validVotedDelegate = utils.accounts.eAccount;
 	var validNotVotedDelegate = utils.accounts.gAccount;
 	var validNotExistingAddress = '11111111111111111111L';
 
@@ -152,7 +152,7 @@ describe('GET /api/voters', function () {
 
 				describe('when address param provided', function () {
 
-					var validAddress = node.eAccount.address;
+					var validAddress = utils.accounts.eAccount.address;
 					var validAddressParams = ['address=' + validAddress];
 
 					it('should return status = 200', function () {
@@ -164,7 +164,7 @@ describe('GET /api/voters', function () {
 
 				describe('when publicKey param provided', function () {
 
-					var validPublicKey = node.eAccount.publicKey;
+					var validPublicKey = utils.accounts.eAccount.publicKey;
 					var validPublicKeyParams = ['publicKey=' + validPublicKey];
 
 					it('should return status = 200', function () {
@@ -176,7 +176,7 @@ describe('GET /api/voters', function () {
 
 				describe('when username param provided', function () {
 
-					var validUsername = node.eAccount.delegateName;
+					var validUsername = utils.accounts.eAccount.delegateName;
 					var validUsernameParams = ['username=' + validUsername];
 
 					it('should return status = 200', function () {
@@ -190,9 +190,9 @@ describe('GET /api/voters', function () {
 			describe('when all required params (address, publicKey, username) provided', function () {
 
 				var response;
-				var validAddress = node.eAccount.address;
-				var validPublicKey = node.eAccount.publicKey;
-				var validUsername = node.eAccount.delegateName;
+				var validAddress = utils.accounts.eAccount.address;
+				var validPublicKey = utils.accounts.eAccount.publicKey;
+				var validUsername = utils.accounts.eAccount.delegateName;
 				var validMergedParams = ['address=' + validAddress + '&publicKey=' + validPublicKey + '&username=' + validUsername];
 
 				before(function () {
