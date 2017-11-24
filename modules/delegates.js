@@ -83,7 +83,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 	var currentSlot = slot;
 	var lastSlot = slots.getLastSlot(currentSlot);
 
-	//TODO: Figure out why this is snakecase, seems nice but doesn't match code standards
+	// TODO: Figure out why this is snakecase, seems nice but doesn't match code standards
 	for (; currentSlot < lastSlot; currentSlot += 1) {
 		var delegate_pos = currentSlot % slots.delegates;
 		var delegate_id = __private.delegatesList[delegate_pos];
@@ -292,7 +292,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			return setImmediate(cb, 'Account not found');
 		}
 
-		// TODO: Check from new tx pool for u_ state
+		// TODO: Check unconfirmed state from transaction pool
 		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
 		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
 		var additions = 0, removals = 0;
