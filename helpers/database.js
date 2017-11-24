@@ -29,7 +29,7 @@ var queryFilesCommands = {};
  * @private
  * @param {Object} pgp - pg promise
  * @param {Object} db - pg connection
- * @param {Object} logger instance
+ * @param {Object} logger - logger instance
  */
 function Migrator (pgp, db, logger) {
 	var self = this;
@@ -119,7 +119,7 @@ function Migrator (pgp, db, logger) {
 	};
 
 	/**
-	 * Creates and execute a db query for each pending migration, insert migration to database.
+	 * Applies pending migrations to the database.
 	 * @method
 	 * @param {Array} pendingMigrations 
 	 * @param {function} cb - Callback function
@@ -144,7 +144,7 @@ function Migrator (pgp, db, logger) {
 	/**
 	 * Inserts into `migrations` table the previous applied migration.
 	 * @method
-	 * @param {Object} file - migration file details
+	 * @param {Object} file - Migration file object
 	 * @param {function} cb - Callback function
 	 * @return {function} cb with error
 	 */
