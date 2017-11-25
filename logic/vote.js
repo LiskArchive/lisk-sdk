@@ -57,7 +57,7 @@ Vote.prototype.calculateFee = function (transaction, sender) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|function} returns error if invalid field | 
+ * @returns {setImmediateCallback|function} returns error if invalid field |
  * calls checkConfirmedDelegates.
  */
 Vote.prototype.verify = function (transaction, sender, cb) {
@@ -130,7 +130,7 @@ Vote.prototype.verifyVote = function (vote, cb) {
  * @implements {modules.delegates.checkConfirmedDelegates}
  * @param {transaction} transaction
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
+ * @return {setImmediateCallback} cb, err(if transaction id is not in
  * exceptions votes list)
  */
 Vote.prototype.checkConfirmedDelegates = function (transaction, cb) {
@@ -150,7 +150,7 @@ Vote.prototype.checkConfirmedDelegates = function (transaction, cb) {
  * @implements {modules.delegates.checkUnconfirmedDelegates}
  * @param {Object} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
+ * @return {setImmediateCallback} cb, err(if transaction id is not in
  * exceptions votes list)
  */
 Vote.prototype.checkUnconfirmedDelegates = function (transaction, cb) {
@@ -194,11 +194,7 @@ Vote.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Calls checkConfirmedDelegates based on transaction data and
- * merges account to sender address with votes as delegates.
- * @implements {checkConfirmedDelegates}
- * @implements {scope.account.merge}
- * @implements {slots.calcRound}
+ * Applies transaction to confirmed state.
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -206,30 +202,11 @@ Vote.prototype.getBytes = function (transaction) {
  * @todo delete unnecessary var parent = this
  */
 Vote.prototype.apply = function (transaction, block, sender, cb) {
-	var parent = this;
-
-	async.series([
-		function (seriesCb) {
-			self.checkConfirmedDelegates(transaction, seriesCb);
-		},
-		function (seriesCb) {
-			parent.scope.account.merge(sender.address, {
-				delegates: transaction.asset.votes,
-				blockId: block.id,
-				round: slots.calcRound(block.height)
-			}, function (err) {
-				return setImmediate(cb, err);
-			});
-		}
-	], cb);
+	return setImmediate(cb);
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
- * sender address with inverted votes as delegates.
- * @implements {Diff}
- * @implements {scope.account.merge}
- * @implements {slots.calcRound}
+ * Undoes confirmed state of transaction.
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
@@ -238,51 +215,23 @@ Vote.prototype.apply = function (transaction, block, sender, cb) {
  */
 Vote.prototype.undo = function (transaction, block, sender, cb) {
 	if (transaction.asset.votes === null) { return setImmediate(cb); }
-
-	var votesInvert = Diff.reverse(transaction.asset.votes);
-
-	this.scope.account.merge(sender.address, {
-		delegates: votesInvert,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	
+	return setImmediate(cb);
 };
 
 /**
- * Calls checkUnconfirmedDelegates based on transaction data and
- * merges account to sender address with votes as unconfirmed delegates.
- * @implements {checkUnconfirmedDelegates}
- * @implements {scope.account.merge}
+ * Applies transaction to unconfirmed state.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
  * @todo delete unnecessary var parent = this
  */
 Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	var parent = this;
-
-	async.series([
-		function (seriesCb) {
-			self.checkUnconfirmedDelegates(transaction, seriesCb);
-		},
-		function (seriesCb) {
-			parent.scope.account.merge(sender.address, {
-				u_delegates: transaction.asset.votes
-			}, function (err) {
-				return setImmediate(seriesCb, err);
-			});
-		}
-	], cb);
+	return setImmediate(cb);
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
- * sender address with inverted votes as unconfirmed delegates.
- * @implements {Diff}
- * @implements {scope.account.merge}
- * @implements {slots.calcRound}
+ * Undoes unconfirmed state of transaction.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
@@ -290,12 +239,8 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  */
 Vote.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	if (transaction.asset.votes === null) { return setImmediate(cb); }
-
-	var votesInvert = Diff.reverse(transaction.asset.votes);
-
-	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (err) {
-		return setImmediate(cb, err);
-	});
+	
+	return setImmediate(cb);
 };
 
 /**
@@ -355,8 +300,9 @@ Vote.prototype.dbRead = function (raw) {
 Vote.prototype.dbTable = 'votes';
 
 Vote.prototype.dbFields = [
-	'votes',
-	'transactionId'
+	'transaction_id',
+	'public_key',
+	'votes'
 ];
 
 /**
@@ -365,12 +311,21 @@ Vote.prototype.dbFields = [
  * @return {Object[]} table, fields, values.
  */
 Vote.prototype.dbSave = function (transaction) {
+	var publicKey;
+
+	try {
+		publicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+	} catch (e) {
+		throw e;
+	}
+
 	return {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
-			transactionId: transaction.id
+			transaction_id: transaction.id,
+			public_key: publicKey,
+			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null
 		}
 	};
 };
@@ -379,7 +334,7 @@ Vote.prototype.dbSave = function (transaction) {
  * Checks sender multisignatures and transaction signatures.
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
+ * @return {boolean} True if transaction signatures greather than
  * sender multimin or there are not sender multisignatures.
  */
 Vote.prototype.ready = function (transaction, sender) {

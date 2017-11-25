@@ -115,7 +115,7 @@ describe('BlockRewardsSQL @slow', function () {
 		});
 	});
 
-	describe('checking SQL function calcBlockReward(int)', function () {
+	describe('checking SQL function calculate_block_reward(int)', function () {
 
 		it('when height is undefined should return null', function (done) {
 			// Height, expected reward, callback
@@ -226,13 +226,13 @@ describe('BlockRewardsSQL @slow', function () {
 				done('Should not pass');
 			}).catch(function (err) {
 				expect(err).to.be.an('error');
-				expect(err.message).to.contain('function calcblockreward(bigint) does not exist');
+				expect(err.message).to.contain('function calculate_block_reward(bigint) does not exist');
 				done();
 			});
 		});
 	});
 
-	describe('checking SQL function calcSupply(int)', function () {
+	describe('checking SQL function calculate_supply(int)', function () {
 
 		it('when height is undefined should return null', function (done) {
 			calcSupply(undefined, null, done);
@@ -341,15 +341,15 @@ describe('BlockRewardsSQL @slow', function () {
 				done('Should not pass');
 			}).catch(function (err) {
 				expect(err).to.be.an('error');
-				expect(err.message).to.contain('function calcsupply(bigint) does not exist');
+				expect(err.message).to.contain('function calculate_supply(bigint) does not exist');
 				done();
 			});
 		});
 	});
 
-	describe('checking completely SQL functions calcSupply(int) and calcBlockReward(int)', function () {
+	describe('checking completely SQL functions calculate_supply(int) and calculate_block_reward(int)', function () {
 
-		describe('check if calcBlockReward_test can fail', function () {
+		describe('check if calculate_block_reward can fail', function () {
 
 			it('calcBlockReward_test should return 1000 for 1000 not matching block rewards', function (done) {
 				db.query(sql.calcBlockReward_test, {height_start: 1, height_end: 1000, expected_reward: 1}).then(function (rows) {

@@ -19,23 +19,23 @@ var pathFiles = [
 	'./helpers/z_schema.js',
 
 	'./logic/account.js',
-	'./logic/blockReward.js', // @slow
+	 './logic/blockReward.js', // @slow
 	'./logic/delegate.js',
 	'./logic/inTransfer.js',
 	'./logic/peer.js',
 	'./logic/peers.js',
-	'./logic/multisignature.js',
+	'./logic/multisignature.js', // TODO: Needs fixing
 	'./logic/transaction.js',
 	'./logic/transactionPool.js',
 	'./logic/transfer.js',
-	'./logic/vote.js',
+	'./logic/vote.js', // TODO: Needs fixing
 	'./logic/outTransfer.js',
 
 	'./modules/accounts.js',
 	'./modules/app.js',
 	'./modules/blocks.js',
-	'./modules/blocks/process.js',
-	'./modules/blocks/verify.js',
+	'./modules/blocks/process.js', // Needs fixing
+	'./modules/blocks/verify.js', // Many failures for node 8, related to verify try/catch, need to properly apply blocks to DB
 	'./modules/cache.js',
 	'./modules/dapps.js',
 	'./modules/delegates.js',

@@ -82,6 +82,7 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
  * @param {function} cb - Callback function.
  */
 Accounts.prototype.getAccount = function (filter, fields, cb) {
+	// TODO: Find a better hack, this one is not good
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
 		delete filter.publicKey;
@@ -110,7 +111,8 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
  * @returns {setImmediateCallback} Errors.
  * @returns {function()} Call to logic.account.get().
  */
-Accounts.prototype.setAccountAndGet = function (data, cb) {
+// TODO: Remove this bad boy, replace with only get :D
+Accounts.prototype.getSender = function (data, cb) {
 	var address = data.address || null;
 	var err;
 
@@ -134,48 +136,32 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		}
 	}
 
-	library.logic.account.set(address, data, function (err) {
+	library.logic.account.get({address: address}, function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.logic.account.get({address: address}, cb);
+
+		// Sets account variables for fresh accounts
+		// TODO: Refactor after transaction pool rewrite
+		if (account === null && data.type === transactionTypes.SEND) {
+			account = {};
+			account.balance = 0;
+			account.address = address;
+			account.publicKey = data.publicKey;
+			account.username = null;
+			account.secondPublicKey = null;
+			account.multisignatures = null;
+		} else if (account === null) {
+			err = 'Account does not exist';
+		} else if (account.address && !account.publicKey) {
+			account.publicKey = data.publicKey;
+			account.username = null;
+			account.secondPublicKey = null;
+			account.multisignatures = null;
+		}
+
+		return setImmediate(cb, err, account);
 	});
-};
-
-/**
- * Validates input address and calls logic.account.merge().
- * @implements module:accounts#Account~merge
- * @param {Object} data - Contains address and public key.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} for errors wit address and public key.
- * @returns {function} calls to logic.account.merge().
- * @todo improve publicKey validation try/catch
- */
-Accounts.prototype.mergeAccountAndGet = function (data, cb) {
-	var address = data.address || null;
-	var err;
-
-	if (address === null) {
-		if (data.publicKey) {
-			address = self.generateAddressByPublicKey(data.publicKey);
-		} else {
-			err = 'Missing address or public key';
-		}
-	}
-
-	if (!address) {
-		err = 'Invalid public key';
-	}
-
-	if (err) {
-		if (typeof cb === 'function') {
-			return setImmediate(cb, err);
-		} else {
-			throw err;
-		}
-	}
-
-	return library.logic.account.merge(address, data, cb);
 };
 
 // Events
@@ -244,11 +230,9 @@ Accounts.prototype.shared = {
 
 					return {
 						address: account.address,
-						unconfirmedBalance: account.u_balance,
+						unconfirmedBalance: account.u_balance, // TODO: Set this in memory
 						balance: account.balance,
 						publicKey: account.publicKey,
-						unconfirmedSignature: account.u_secondSignature,
-						secondSignature: account.secondSignature,
 						secondPublicKey: account.secondPublicKey,
 						delegate: delegate
 					};

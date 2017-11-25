@@ -114,7 +114,7 @@ Signature.prototype.getBytes = function (transaction) {
 
 /**
  * Sets account second signature from transaction asset.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Uses publicKey from asset signature.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender - Uses the address
@@ -122,7 +122,7 @@ Signature.prototype.getBytes = function (transaction) {
  * @return {setImmediateCallback} for errors
  */
 Signature.prototype.apply = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({
+	modules.accounts.getSender({
 		address: sender.address,
 		secondSignature: 1,
 		u_secondSignature: 0,
@@ -132,14 +132,14 @@ Signature.prototype.apply = function (transaction, block, sender, cb) {
 
 /**
  * Sets account second signature to null.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Signature.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({
+	modules.accounts.getSender({
 		address: sender.address,
 		secondSignature: 0,
 		u_secondSignature: 1,
@@ -149,7 +149,7 @@ Signature.prototype.undo = function (transaction, block, sender, cb) {
 
 /**
  * Activates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender
@@ -157,23 +157,24 @@ Signature.prototype.undo = function (transaction, block, sender, cb) {
  * @return {setImmediateCallback} Error if second signature is already enabled.
  */
 Signature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	if (sender.u_secondSignature || sender.secondSignature) {
+	if (sender.secondPublicKey) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb);
+	return setImmediate(cb);
 };
 
 /**
  * Deactivates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Signature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 0}, cb);
+	
+	return setImmediate(cb);
 };
 /**
  * @typedef signature
@@ -228,11 +229,12 @@ Signature.prototype.dbRead = function (raw) {
 	}
 };
 
-Signature.prototype.dbTable = 'signatures';
+Signature.prototype.dbTable = 'second_signature';
 
 Signature.prototype.dbFields = [
-	'transactionId',
-	'publicKey'
+	'transaction_id',
+	'second_public_key',
+	'public_key'
 ];
 
 /**
@@ -243,19 +245,22 @@ Signature.prototype.dbFields = [
  */
 Signature.prototype.dbSave = function (transaction) {
 	var publicKey;
-
+	var secondPublicKey;
+	
 	try {
-		publicKey = Buffer.from(transaction.asset.signature.publicKey, 'hex');
+		publicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+		secondPublicKey = Buffer.from(transaction.asset.signature.publicKey, 'hex');
 	} catch (e) {
 		throw e;
 	}
-
+	
 	return {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			transactionId: transaction.id,
-			publicKey: publicKey
+			transaction_id: transaction.id,
+			second_public_key: secondPublicKey,
+			public_key: publicKey
 		}
 	};
 };

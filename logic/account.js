@@ -38,86 +38,27 @@ function Account (db, schema, logger, cb) {
 		logger: logger,
 	};
 
-	this.table = 'mem_accounts';
+	this.table = 'accounts_list';
 	/**
 	 * @typedef {Object} account
 	 * @property {string} username - Lowercase, between 1 and 20 chars.
-	 * @property {boolean} isDelegate
-	 * @property {boolean} u_isDelegate
-	 * @property {boolean} secondSignature
-	 * @property {boolean} u_secondSignature
-	 * @property {string} u_username
 	 * @property {address} address - Uppercase, between 1 and 22 chars.
 	 * @property {publicKey} publicKey
 	 * @property {publicKey} secondPublicKey
 	 * @property {number} balance - Between 0 and totalAmount from constants.
-	 * @property {number} u_balance - Between 0 and totalAmount from constants.
-	 * @property {number} vote
-	 * @property {number} rate
-	 * @property {String[]} delegates - From mem_account2delegates table, filtered by address.
-	 * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address.
-	 * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address.
-	 * @property {String[]} u_multisignatures - From mem_account2u_multisignatures table, filtered by address.
+	 * @property {number} votes
+	 * @property {number} rank
 	 * @property {number} multimin - Between 0 and 17.
-	 * @property {number} u_multimin - Between 0 and 17.
 	 * @property {number} multilifetime - Between 1 and 72.
-	 * @property {number} u_multilifetime - Between 1 and 72.
-	 * @property {string} blockId
-	 * @property {boolean} nameexist
-	 * @property {boolean} u_nameexist
-	 * @property {number} producedblocks
-	 * @property {number} missedblocks
+	 * @property {number} vote
+	 * @property {number} producedblocks - Between -1 and 1.
+	 * @property {number} missedblocks - Between -1 and 1.
 	 * @property {number} fees
 	 * @property {number} rewards
-	 * @property {boolean} virgin
 	 */
 	this.model = [
 		{
 			name: 'username',
-			type: 'String',
-			filter: {
-				type: 'string',
-				case: 'lower',
-				maxLength: 20,
-				minLength: 1
-			},
-			conv: String,
-			immutable: true
-		},
-		{
-			name: 'isDelegate',
-			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
-			conv: Boolean
-		},
-		{
-			name: 'u_isDelegate',
-			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
-			conv: Boolean
-		},
-		{
-			name: 'secondSignature',
-			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
-			conv: Boolean
-		},
-		{
-			name: 'u_secondSignature',
-			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
-			conv: Boolean
-		},
-		{
-			name: 'u_username',
 			type: 'String',
 			filter: {
 				type: 'string',
@@ -177,25 +118,25 @@ function Account (db, schema, logger, cb) {
 			expression: '("balance")::bigint'
 		},
 		{
-			name: 'u_balance',
+			name: 'votes',
 			type: 'BigInt',
 			filter: {
 				required: true,
 				type: 'integer',
 				minimum: 0,
-				maximum: constants.totalAmount
+				maximum: constants.activeDelegates
 			},
 			conv: Number,
-			expression: '("u_balance")::bigint'
+			expression: '("votes")::int'
 		},
 		{
-			name: 'rate',
+			name: 'voters',
 			type: 'BigInt',
 			filter: {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '("rate")::bigint'
+			expression: '("voters")::int'
 		},
 		{
 			name: 'delegates',
@@ -205,17 +146,7 @@ function Account (db, schema, logger, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
-		},
-		{
-			name: 'u_delegates',
-			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
+			expression: '(SELECT ARRAY_AGG(ENCODE(v.delegate_public_key, \'hex\')) AS delegates FROM (SELECT DISTINCT ON (delegate_public_key) voter_address, delegate_public_key, type FROM votes_details WHERE voter_address = a.address ORDER BY delegate_public_key, timestamp DESC) v WHERE v.type = \'add\')'
 		},
 		{
 			name: 'multisignatures',
@@ -225,30 +156,10 @@ function Account (db, schema, logger, cb) {
 				uniqueItems: true
 			},
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2multisignatures WHERE "accountId" = a."address")'
-		},
-		{
-			name: 'u_multisignatures',
-			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
-			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_multisignatures WHERE "accountId" = a."address")'
+			expression: '(SELECT ARRAY_AGG(ENCODE(mm.public_key, \'hex\')) FROM multisignatures_member mm, accounts a WHERE a.public_key = mm.master_public_key)'
 		},
 		{
 			name: 'multimin',
-			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 17
-			},
-			conv: Number
-		},
-		{
-			name: 'u_multimin',
 			type: 'SmallInt',
 			filter: {
 				type: 'integer',
@@ -268,49 +179,13 @@ function Account (db, schema, logger, cb) {
 			conv: Number
 		},
 		{
-			name: 'u_multilifetime',
-			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 72
-			},
-			conv: Number
-		},
-		{
-			name: 'blockId',
-			type: 'String',
-			filter: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
-			conv: String
-		},
-		{
-			name: 'nameexist',
-			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
-			conv: Boolean
-		},
-		{
-			name: 'u_nameexist',
-			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
-			conv: Boolean
-		},
-		{
 			name: 'fees',
 			type: 'BigInt',
 			filter: {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(a."fees")::bigint'
+			expression: '(d."fees")'
 		},
 		{
 			name: 'rank',
@@ -319,7 +194,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."rank")::bigint'
+			expression: '(d."rank")'
 		},
 		{
 			name: 'rewards',
@@ -343,22 +218,13 @@ function Account (db, schema, logger, cb) {
 			name: 'producedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_forged_cnt")::bigint'
+			expression: '(d."blocks_forged_count")'
 		},
 		{
 			name: 'missedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_missed_cnt")::bigint'
-		},
-		{
-			name: 'virgin',
-			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
-			conv: Boolean,
-			immutable: true
+			expression: '(d."blocks_missed_count")'
 		},
 		{
 			name: 'approval',
@@ -689,7 +555,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 			}
 		}
 	});
-
+	
 	var self = this;
 
 	this.scope.db.query(sql.query, sql.values).then(function (rows) {
@@ -754,226 +620,12 @@ Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks
 };
 
 /**
- * Sets fields for specific address in mem_accounts table.
- * @param {address} address
- * @param {Object} fields
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb | 'Account#set error'.
- */
-Account.prototype.set = function (address, fields, cb) {
-	// Verify public key
-	this.verifyPublicKey(fields.publicKey);
-
-	// Normalize address
-	address = String(address).toUpperCase();
-	fields.address = address;
-
-	var sql = jsonSql.build({
-		type: 'insertorupdate',
-		table: this.table,
-		conflictFields: ['address'],
-		values: this.toDB(fields),
-		modifier: this.toDB(fields)
-	});
-
-	this.scope.db.none(sql.query, sql.values).then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#set error');
-	});
-};
-
-/**
- * Updates account from mem_account with diff data belonging to an editable field.
- * @param {address} address
- * @param {Object} diff - Must contains only mem_account editable fields.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
- */
-Account.prototype.merge = function (address, diff, cb) {
-	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {};
-
-	// Verify public key
-	this.verifyPublicKey(diff.publicKey);
-
-	// Normalize address
-	address = String(address).toUpperCase();
-
-	this.editable.forEach(function (value) {
-		var val, i;
-
-		if (diff[value] !== undefined) {
-			var trueValue = diff[value];
-			switch (self.conv[value]) {
-				case String:
-					update[value] = trueValue;
-					break;
-				case Number:
-					if (isNaN(trueValue) || trueValue === Infinity) {
-						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
-					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
-						update.$inc = update.$inc || {};
-						update.$inc[value] = Math.floor(trueValue);
-					} else if (trueValue < 0) {
-						update.$dec = update.$dec || {};
-						update.$dec[value] = Math.floor(Math.abs(trueValue));
-						// If decrementing u_balance on account
-						if (update.$dec.u_balance) {
-							// Remove virginity and ensure marked columns become immutable
-							update.virgin = 0;
-						}
-					}
-					break;
-				case Array:
-					if (Object.prototype.toString.call(trueValue[0]) === '[object Object]') {
-						for (i = 0; i < trueValue.length; i++) {
-							val = trueValue[i];
-							if (val.action === '-') {
-								delete val.action;
-								remove_object[value] = remove_object[value] || [];
-								remove_object[value].push(val);
-							} else if (val.action === '+') {
-								delete val.action;
-								insert_object[value] = insert_object[value] || [];
-								insert_object[value].push(val);
-							} else {
-								delete val.action;
-								insert_object[value] = insert_object[value] || [];
-								insert_object[value].push(val);
-							}
-						}
-					} else {
-						for (i = 0; i < trueValue.length; i++) {
-							var math = trueValue[i][0];
-							val = null;
-							if (math === '-') {
-								val = trueValue[i].slice(1);
-								remove[value] = remove[value] || [];
-								remove[value].push(val);
-							} else if (math === '+') {
-								val = trueValue[i].slice(1);
-								insert[value] = insert[value] || [];
-								insert[value].push(val);
-							} else {
-								val = trueValue[i];
-								insert[value] = insert[value] || [];
-								insert[value].push(val);
-							}
-						}
-					}
-					break;
-			}
-		}
-	});
-
-	var sqles = [];
-
-	if (Object.keys(remove).length) {
-		Object.keys(remove).forEach(function (el) {
-			var sql = jsonSql.build({
-				type: 'remove',
-				table: self.table + '2' + el,
-				condition: {
-					dependentId: {$in: remove[el]},
-					accountId: address
-				}
-			});
-			sqles.push(sql);
-		});
-	}
-
-	if (Object.keys(insert).length) {
-		Object.keys(insert).forEach(function (el) {
-			for (var i = 0; i < insert[el].length; i++) {
-				var sql = jsonSql.build({
-					type: 'insert',
-					table: self.table + '2' + el,
-					values: {
-						accountId: address,
-						dependentId: insert[el][i]
-					}
-				});
-				sqles.push(sql);
-			}
-		});
-	}
-
-	if (Object.keys(remove_object).length) {
-		Object.keys(remove_object).forEach(function (el) {
-			remove_object[el].accountId = address;
-			var sql = jsonSql.build({
-				type: 'remove',
-				table: self.table + '2' + el,
-				condition: remove_object[el]
-			});
-			sqles.push(sql);
-		});
-	}
-
-	if (Object.keys(insert_object).length) {
-		Object.keys(insert_object).forEach(function (el) {
-			insert_object[el].accountId = address;
-			for (var i = 0; i < insert_object[el].length; i++) {
-				var sql = jsonSql.build({
-					type: 'insert',
-					table: self.table + '2' + el,
-					values: insert_object[el]
-				});
-				sqles.push(sql);
-			}
-		});
-	}
-
-	if (Object.keys(update).length) {
-		var sql = jsonSql.build({
-			type: 'update',
-			table: this.table,
-			modifier: update,
-			condition: {
-				address: address
-			}
-		});
-		sqles.push(sql);
-	}
-
-	function done (err) {
-		if (cb.length !== 2) {
-			return setImmediate(cb, err);
-		} else {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			self.get({address: address}, cb);
-		}
-	}
-
-	var queries = sqles.map(function (sql) {
-		return pgp.as.format(sql.query, sql.values);
-	}).join('');
-
-	if (!cb) {
-		return queries;
-	}
-
-	if (queries.length === 0) {
-		return done();
-	}
-
-	this.scope.db.none(queries).then(function () {
-		return done();
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return done('Account#merge error');
-	});
-};
-
-/**
  * Removes an account from mem_account table based on address.
  * @param {address} address
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Data with address | Account#remove error.
  */
+// TODO: Completely deprecated, DB Handles
 Account.prototype.remove = function (address, cb) {
 	var sql = jsonSql.build({
 		type: 'remove',

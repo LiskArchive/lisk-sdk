@@ -69,7 +69,7 @@ function Delegates (cb, scope) {
 	);
 
 	setImmediate(cb, null, self);
-}	
+}
 
 /**
  * Gets slot time and keypair.
@@ -83,6 +83,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 	var currentSlot = slot;
 	var lastSlot = slots.getLastSlot(currentSlot);
 
+	// TODO: Figure out why this is snakecase, seems nice but doesn't match code standards
 	for (; currentSlot < lastSlot; currentSlot += 1) {
 		var delegate_pos = currentSlot % slots.delegates;
 		var delegate_id = __private.delegatesList[delegate_pos];
@@ -240,7 +241,7 @@ __private.toggleForgingStatus = function (publicKey, secretKey, cb) {
 			return setImmediate(cb, err);
 		}
 
-		if (account && account.isDelegate) {
+		if (account && account.username) {
 			var forgingStatus;
 
 			if (actionEnable) {
@@ -267,7 +268,7 @@ __private.toggleForgingStatus = function (publicKey, secretKey, cb) {
 
 /**
  * Checks each vote integrity and controls total votes don't exceed active delegates.
- * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
+ * Calls modules.voters.getVotes() to validate delegate account and votes accounts.
  * @private
  * @implements module:accounts#Account#getAccount
  * @param {publicKey} publicKey
@@ -281,8 +282,8 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');
 	}
-
-	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
+	
+	modules.accounts.getAccount({address: modules.accounts.generateAddressByPublicKey(publicKey)}, function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -291,6 +292,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 			return setImmediate(cb, 'Account not found');
 		}
 
+		// TODO: Check unconfirmed state from transaction pool
 		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
 		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
 		var additions = 0, removals = 0;
@@ -315,12 +317,12 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				return setImmediate(cb, 'Invalid public key');
 			}
 
-			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
+			modules.accounts.getAccount({ publicKey: publicKey }, function (err, account) {
 				if (err) {
 					return setImmediate(cb, err);
 				}
 
-				if (!account) {
+				if (!account.username) {
 					return setImmediate(cb, 'Delegate not found');
 				}
 
@@ -393,7 +395,7 @@ __private.loadDelegates = function (cb) {
 				return setImmediate(seriesCb, ['Account with public key:', keypair.publicKey.toString('hex'), 'not found'].join(' '));
 			}
 
-			if (account.isDelegate) {
+			if (account.username) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 				library.logger.info(['Forging enabled on account:', account.address].join(' '));
 			} else {
@@ -415,7 +417,7 @@ __private.loadDelegates = function (cb) {
 Delegates.prototype.generateDelegateList = function (cb) {
 	library.db.query(sql.delegateList).then(function (result) {
 		__private.delegatesList = result[0].list;
-		return setImmediate(cb);
+		return setImmediate(cb, null, __private.delegatesList);
 	}).catch(function (err) {
 		return setImmediate(cb, err);
 	});
@@ -434,8 +436,9 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		throw 'Missing query argument';
 	}
 	modules.accounts.getAccounts({
-		isDelegate: 1,
-		sort: { 'vote': -1, 'publicKey': 1 }
+		// TODO: Will need to be upgraded if JSON-SQL is updated with HEAD
+		username: { $isnot: null },
+		sort: { 'votes': -1, 'publicKey': 1 }
 	}, ['username', 'address', 'publicKey', 'vote', 'missedblocks', 'producedblocks'], function (err, delegates) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -654,8 +657,8 @@ Delegates.prototype.internal = {
 			if (req.body.publicKey) {
 				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.body.publicKey]});
 			} else {
-				var delegates_cnt = _.keys(__private.keypairs).length;
-				return setImmediate(cb, null, {enabled: delegates_cnt > 0, delegates: _.keys(__private.keypairs)});
+				var delegates_count = _.keys(__private.keypairs).length;
+				return setImmediate(cb, null, {enabled: delegates_count > 0, delegates: _.keys(__private.keypairs)});
 			}
 		});
 	},

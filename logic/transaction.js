@@ -278,8 +278,9 @@ Transaction.prototype.checkConfirmed = function (transaction, cb) {
  * @param {account} sender
  * @returns {Object} With exceeded boolean and error: address, balance
  */
+// TODO: Adjust accepted arguments, balance no longer used
 Transaction.prototype.checkBalance = function (amount, balance, transaction, sender) {
-	var exceededBalance = new bignum(sender[balance].toString()).lessThan(amount);
+	var exceededBalance = new bignum(sender.balance.toString()).lessThan(amount);
 	var exceeded = (transaction.blockId !== this.scope.genesisblock.block.id && exceededBalance);
 
 	return {
@@ -381,22 +382,22 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 	}
 
 	// Check for missing sender second signature
-	if (!transaction.requesterPublicKey && sender.secondSignature && !transaction.signSignature && transaction.blockId !== this.scope.genesisblock.block.id) {
+	if (!transaction.requesterPublicKey && sender.secondPublicKey && !transaction.signSignature && transaction.blockId !== this.scope.genesisblock.block.id) {
 		return setImmediate(cb, 'Missing sender second signature');
 	}
 
 	// If second signature provided, check if sender has one enabled
-	if (!transaction.requesterPublicKey && !sender.secondSignature && (transaction.signSignature && transaction.signSignature.length > 0)) {
+	if (!transaction.requesterPublicKey && !sender.secondPublicKey && (transaction.signSignature && transaction.signSignature.length > 0)) {
 		return setImmediate(cb, 'Sender does not have a second signature');
 	}
 
 	// Check for missing requester second signature
-	if (transaction.requesterPublicKey && requester.secondSignature && !transaction.signSignature) {
+	if (transaction.requesterPublicKey && requester.secondPublicKey && !transaction.signSignature) {
 		return setImmediate(cb, 'Missing requester second signature');
 	}
 
 	// If second signature provided, check if requester has one enabled
-	if (transaction.requesterPublicKey && !requester.secondSignature && (transaction.signSignature && transaction.signSignature.length > 0)) {
+	if (transaction.requesterPublicKey && !requester.secondPublicKey && (transaction.signSignature && transaction.signSignature.length > 0)) {
 		return setImmediate(cb, 'Requester does not have a second signature');
 	}
 
@@ -422,8 +423,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid sender address');
 	}
 
-	// Determine multisignatures from sender or transaction asset
-	var multisignatures = sender.multisignatures || sender.u_multisignatures || [];
+	var multisignatures = sender.multisignatures || [];
 	if (multisignatures.length === 0) {
 		if (transaction.asset && transaction.asset.multisignature && transaction.asset.multisignature.keysgroup) {
 
@@ -471,7 +471,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 	}
 
 	// Verify second signature
-	if (requester.secondSignature || sender.secondSignature) {
+	if (requester.secondPublicKey || sender.secondPublicKey) {
 		try {
 			valid = false;
 			valid = this.verifySecondSignature(transaction, (requester.secondPublicKey || sender.secondPublicKey), transaction.signSignature);
@@ -661,6 +661,7 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
 
 	// Check confirmed sender balance
 	var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
+	// TODO: Check if this is done by pool in all the scenarios
 	var senderBalance = this.checkBalance(amount, 'balance', transaction, sender);
 
 	if (senderBalance.exceeded) {
@@ -670,31 +671,13 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
 	amount = amount.toNumber();
 
 	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: slots.calcRound(block.height)});
-	this.scope.account.merge(sender.address, {
-		balance: -amount,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		/**
-		 * calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
-		 * DApp, InTransfer or OutTransfer.
-		 */
-		__private.types[transaction.type].apply.call(this, transaction, block, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {
-					balance: amount,
-					blockId: block.id,
-					round: slots.calcRound(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
+
+	/**
+	 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
+	 * DApp, InTransfer or OutTransfer.
+	 */
+	__private.types[transaction.type].apply.call(this, transaction, block, sender, function (err) {
+		return setImmediate(cb, err);
 	}.bind(this));
 };
 
@@ -712,31 +695,16 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
  */
 Transaction.prototype.undo = function (transaction, block, sender, cb) {
 	var amount = new bignum(transaction.amount.toString());
-	    amount = amount.plus(transaction.fee.toString()).toNumber();
+	amount = amount.plus(transaction.fee.toString()).toNumber();
 
 	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height)});
-	this.scope.account.merge(sender.address, {
-		balance: amount,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, function (err, sender) {
+	
+	__private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
+		} else {
+			return setImmediate(cb);
 		}
-
-		__private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {
-					balance: -amount,
-					blockId: block.id,
-					round: slots.calcRound(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
 	}.bind(this));
 };
 
@@ -769,21 +737,13 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
 	}
 
 	amount = amount.toNumber();
-
-	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
+	
+	__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
+		} else {
+			return setImmediate(cb);
 		}
-
-		__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
 	}.bind(this));
 };
 
@@ -803,38 +763,31 @@ Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	var amount = new bignum(transaction.amount.toString());
 	    amount = amount.plus(transaction.fee.toString()).toNumber();
 
-	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
+	__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
+		} else {
+			return setImmediate(cb);
 		}
-
-		__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-		}.bind(this));
 	}.bind(this));
 };
 
-Transaction.prototype.dbTable = 'trs';
+Transaction.prototype.dbTable = 'transactions';
 
 Transaction.prototype.dbFields = [
-	'id',
-	'blockId',
+	'transaction_id',
+	'block_id',
 	'type',
 	'timestamp',
-	'senderPublicKey',
-	'requesterPublicKey',
-	'senderId',
-	'recipientId',
+	'sender_public_key',
+	'requester_public_key',
+	'recipient_public_key',
+	'sender_address',
+	'recipient_address',
 	'amount',
 	'fee',
 	'signature',
-	'signSignature',
+	'second_signature',
 	'signatures'
 ];
 
@@ -850,13 +803,14 @@ Transaction.prototype.dbSave = function (transaction) {
 		throw 'Unknown transaction type ' + transaction.type;
 	}
 
-	var senderPublicKey, signature, signSignature, requesterPublicKey;
+	var senderPublicKey, signature, signSignature, requesterPublicKey, recipientPublicKey;
 
 	try {
 		senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
 		signature = Buffer.from(transaction.signature, 'hex');
 		signSignature = transaction.signSignature ? Buffer.from(transaction.signSignature, 'hex') : null;
 		requesterPublicKey = transaction.requesterPublicKey ? Buffer.from(transaction.requesterPublicKey, 'hex') : null;
+		recipientPublicKey = transaction.recipientPublicKey ? Buffer.from(transaction.recipientPublicKey, 'hex') : null;
 	} catch (e) {
 		throw e;
 	}
@@ -866,18 +820,19 @@ Transaction.prototype.dbSave = function (transaction) {
 			table: this.dbTable,
 			fields: this.dbFields,
 			values: {
-				id: transaction.id,
-				blockId: transaction.blockId,
+				transaction_id: transaction.id,
+				block_id: transaction.blockId,
 				type: transaction.type,
 				timestamp: transaction.timestamp,
-				senderPublicKey: senderPublicKey,
-				requesterPublicKey: requesterPublicKey,
-				senderId: transaction.senderId,
-				recipientId: transaction.recipientId || null,
+				sender_public_key: senderPublicKey,
+				requester_public_key: requesterPublicKey,
+				recipient_public_key: recipientPublicKey,
+				sender_address: transaction.senderId,
+				recipient_address: transaction.recipientId || null,
 				amount: transaction.amount,
 				fee: transaction.fee,
 				signature: signature,
-				signSignature: signSignature,
+				second_signature: signSignature,
 				signatures: transaction.signatures ? transaction.signatures.join(',') : null,
 			}
 		}

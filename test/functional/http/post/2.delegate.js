@@ -57,10 +57,21 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	});
 
 	describe('transactions processing', function () {
-
-		it('with no funds should fail', function () {
+		
+		it('when sender not present on blockchain should fail', function () {
 			transaction = node.lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
 
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+		
+		// TODO: Test this after an account is made empty
+		it.skip('when sender has no funds should fail', function () {
+			transaction = node.lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
+			
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
 				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');

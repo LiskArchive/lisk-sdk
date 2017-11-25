@@ -120,11 +120,11 @@ describe('accounts', function () {
 	describe('getAccounts', function () {
 
 		it('should get accounts for the filter provided', function (done) {
-			accounts.getAccounts({secondSignature: 0}, function (err, res) {
+			accounts.getAccounts({secondPublicKey: {$isnot: null}}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
 				expect(res.filter(function (a) {
-					return a.secondSignature != 0;
+					return a.secondPublicKey != 0;
 				}).length).to.equal(0);
 				done();
 			});

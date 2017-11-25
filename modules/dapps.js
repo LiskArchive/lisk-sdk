@@ -101,7 +101,7 @@ __private.list = function (filter, cb) {
 	var params = {}, where = [];
 
 	if (filter.transactionId) {
-		where.push('"transactionId" = ${transactionId}');
+		where.push('"transaction_id" = ${transactionId}');
 		params.transactionId = filter.transactionId;
 	}
 

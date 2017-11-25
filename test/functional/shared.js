@@ -35,8 +35,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		it('good transactions should not be unconfirmed', function () {
 			return node.Promise.map(goodTransactions, function (transaction) {
 				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});

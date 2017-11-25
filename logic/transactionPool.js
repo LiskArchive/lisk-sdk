@@ -668,7 +668,7 @@ __private.getTransactionList = function (transactions, reverse, limit) {
  * Gets sender account, verifies multisignatures, gets requester,
  * process transaction and verifies.
  * @private
- * @implements {accounts.setAccountAndGet}
+ * @implements {accounts.getSender}
  * @implements {accounts.getAccount}
  * @implements {logic.transaction.process}
  * @implements {logic.transaction.verify}
@@ -683,9 +683,10 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 	}
 
 	async.waterfall([
-		function setAccountAndGet (waterCb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
+		function getSender (waterCb) {
+			modules.accounts.getSender({publicKey: transaction.senderPublicKey, transaction: transaction}, waterCb);
 		},
+		// TODO: Determine if we need this. Need to refactor for getSender response
 		function getRequester (sender, waterCb) {
 			var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
 

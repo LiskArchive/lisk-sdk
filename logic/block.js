@@ -241,19 +241,19 @@ Block.prototype.verifySignature = function (block) {
 Block.prototype.dbTable = 'blocks';
 
 Block.prototype.dbFields = [
-	'id',
+	'block_id',
 	'version',
 	'timestamp',
 	'height',
-	'previousBlock',
-	'numberOfTransactions',
-	'totalAmount',
-	'totalFee',
+	'previous_block_id',
+	'total_transactions',
+	'total_amount',
+	'total_fee',
 	'reward',
-	'payloadLength',
-	'payloadHash',
-	'generatorPublicKey',
-	'blockSignature'
+	'payload_length',
+	'payload_hash',
+	'generator_public_key',
+	'signature'
 ];
 
 /**
@@ -277,19 +277,19 @@ Block.prototype.dbSave = function (block) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			id: block.id,
+			block_id: block.id,
 			version: block.version,
 			timestamp: block.timestamp,
 			height: block.height,
-			previousBlock: block.previousBlock || null,
-			numberOfTransactions: block.numberOfTransactions,
-			totalAmount: block.totalAmount,
-			totalFee: block.totalFee,
+			previous_block_id: block.previousBlock || null,
+			total_transactions: block.numberOfTransactions,
+			total_amount: block.totalAmount,
+			total_fee: block.totalFee,
 			reward: block.reward || 0,
-			payloadLength: block.payloadLength,
-			payloadHash: payloadHash,
-			generatorPublicKey: generatorPublicKey,
-			blockSignature: blockSignature
+			payload_length: block.payloadLength,
+			payload_hash: payloadHash,
+			generator_public_key: generatorPublicKey,
+			signature: blockSignature
 		}
 	};
 };

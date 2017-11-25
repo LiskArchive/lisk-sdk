@@ -50,7 +50,7 @@ DApp.prototype.calculateFee = function (transaction, sender) {
 };
 
 /**
- * Verifies transaction and dapp fields. Checks dapp name and link in 
+ * Verifies transaction and dapp fields. Checks dapp name and link in
  * `dapps` table.
  * @implements {library.db.query}
  * @param {transaction} transaction
@@ -241,9 +241,10 @@ DApp.prototype.getBytes = function (transaction) {
  * @return {setImmediateCallback} cb
  */
 DApp.prototype.apply = function (transaction, block, sender, cb) {
+	// Deletes dapp name and link from unconfirmed state
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
-	
+
 	return setImmediate(cb);
 };
 
@@ -259,7 +260,7 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Checks if dapp name and link exists, if not adds them to private 
+ * Checks if dapp name and link exists, if not adds them to private
  * unconfirmed variables.
  * @param {transaction} transaction
  * @param {account} sender
@@ -267,6 +268,7 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
  * @return {setImmediateCallback} cb|errors
  */
 DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+	// TODO: Move to verify function
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
@@ -406,7 +408,8 @@ DApp.prototype.dbFields = [
 	'link',
 	'category',
 	'icon',
-	'transactionId'
+	'transaction_id',
+	'owner_public_key'
 ];
 
 /**
@@ -427,7 +430,8 @@ DApp.prototype.dbSave = function (transaction) {
 			link: transaction.asset.dapp.link || null,
 			icon: transaction.asset.dapp.icon || null,
 			category: transaction.asset.dapp.category,
-			transactionId: transaction.id
+			transaction_id: transaction.id,
+			owner_public_key: transaction.senderPublicKey
 		}
 	};
 };
@@ -450,7 +454,7 @@ DApp.prototype.afterSave = function (transaction, cb) {
  * Checks sender multisignatures and transaction signatures.
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
+ * @return {boolean} True if transaction signatures greather than
  * sender multimin or there are not sender multisignatures.
  */
 DApp.prototype.ready = function (transaction, sender) {
