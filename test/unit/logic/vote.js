@@ -262,7 +262,7 @@ describe('vote', function () {
 			});
 		});
 		
-		// TODO: Needs to apply block to populate user
+		// TODO: Need to apply block to create the account
 		it.skip('should return error when removing vote for delegate sender has not voted', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = ['-' + node.eAccount.publicKey];
@@ -334,7 +334,7 @@ describe('vote', function () {
 			});
 		});
 		
-		// TODO: Need to apply block to create the user.
+		// TODO: Need to apply block to create the account
 		it.skip('should verify transaction with correct params', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = ['-904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37'];
