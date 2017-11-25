@@ -1,15 +1,19 @@
 'use strict';
 
-var node      = require('../../node.js');
-var _         = node._;
-var bignum    = node.bignum;
-var expect    = node.expect;
-var slots     = require('../../../helpers/slots.js');
+var node = require('../../node.js');
+var _ = node._;
+var bignum = node.bignum;
+var expect = node.expect;
+var slots = require('../../../helpers/slots.js');
 var DBSandbox = require('../../common/globalBefore').DBSandbox;
-var Promise   = require('bluebird');
+var Promise = require('bluebird');
 
 describe('SQL triggers related to accounts', function () {
-	var dbSandbox, library, deleteLastBlockPromise, processed_txs = [];
+
+	var dbSandbox;
+	var library;
+	var deleteLastBlockPromise;
+	var processed_txs = [];
 
 	before(function (done) {
 		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_accounts');
@@ -27,6 +31,7 @@ describe('SQL triggers related to accounts', function () {
 
 	before(function (done) {
 		deleteLastBlockPromise = Promise.promisify(library.modules.blocks.chain.deleteLastBlock);
+
 		// Load forging delegates
 		var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
 		loadDelegates(done);
@@ -39,6 +44,7 @@ describe('SQL triggers related to accounts', function () {
 
 	function normalizeAccounts(rows) {
 		var accounts = {};
+
 		_.each(rows, function (row) {
 			accounts[row.address] = {
 				transaction_id: row.transaction_id,
@@ -49,6 +55,7 @@ describe('SQL triggers related to accounts', function () {
 				balance: row.balance
 			};
 		});
+
 		return accounts;
 	}
 
@@ -70,14 +77,15 @@ describe('SQL triggers related to accounts', function () {
 		});
 	}
 
-    function getTransactionsByIds (ids) {
-        return library.db.query('SELECT * FROM transactions WHERE transaction_id IN (${ids:csv})', {ids: ids}).then(function (rows) {
-            return rows;
-        });
-    }
+	function getTransactionsByIds (ids) {
+		return library.db.query('SELECT * FROM transactions WHERE transaction_id IN (${ids:csv})', {ids: ids}).then(function (rows) {
+			return rows;
+		});
+	}
 
 	function getExpectedAccounts(transactions) {
 		var expected = {};
+
 		_.each(transactions, function (tx) {
 			// Update recipient
 			if (tx.recipientId) {
@@ -113,6 +121,7 @@ describe('SQL triggers related to accounts', function () {
 				expected[tx.senderId].balance = new bignum(expected[tx.senderId].balance).minus(tx.amount).minus(tx.fee).toString();
 			}
 		});
+
 		return expected;
 	}
 
@@ -122,6 +131,7 @@ describe('SQL triggers related to accounts', function () {
 
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp);
+
 			return library.rewiredModules.delegates.__get__('__private.delegatesList')[(slot + offset) % slots.delegates];
 		}
 
@@ -135,11 +145,14 @@ describe('SQL triggers related to accounts', function () {
 				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				var delegate = getNextForger();
 				var keypair = keypairs[delegate];
-				//node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate public_key: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+
+				// node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate public_key: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 					if (err) { return seriesCb(err); }
+
 					last_block = library.modules.blocks.lastBlock.get();
-					//node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+					// node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+
 					return seriesCb(err);
 				});
 			}
@@ -150,7 +163,7 @@ describe('SQL triggers related to accounts', function () {
 
 	function addTransactionsAndForge (transactions, cb) {
 		function addTransaction (transaction, cb) {
-			//node.debug('	Add transaction ID: ' + transaction.id);
+			// node.debug('		Add transaction ID: ' + transaction.id);
 			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 			// See: modules.transport.__private.receiveTransaction
 			transaction = library.logic.transaction.objectNormalize(transaction);
@@ -179,11 +192,12 @@ describe('SQL triggers related to accounts', function () {
 				}, 100);
 			}
 		], function (err) {
-			cb(err);
+			return cb(err);
 		});
 	}
 
 	describe('balances calculations', function () {
+
 		var balance = '9999999807716836';
 		var amount = '950525433';
 		var fee = '10000000';
@@ -191,11 +205,13 @@ describe('SQL triggers related to accounts', function () {
 
 		it('using JavaScript should fail', function () {
 			var result = (Number(balance) - (Number(amount) + Number(fee))).toString();
+
 			expect(result).to.not.equal(expected);
 		});
 
 		it('using BigNumber should be ok', function () {
 			var result = new bignum(balance).minus(new bignum(amount).plus(fee)).toString();
+
 			expect(result).to.equal(expected);
 		});
 
@@ -218,14 +234,17 @@ describe('SQL triggers related to accounts', function () {
 		});
 
 		describe('transactions', function () {
+
 			var last_random_account;
 
-			describe('signle transaction', function () {
+			describe('single transaction', function () {
 
 				describe('type 0 - TRANSFER', function () {
+
 					var last_tx;
 
 					describe ('non-virgin account to new account', function () {
+
 						var sender_before;
 						var transactions = [];
 
@@ -252,14 +271,18 @@ describe('SQL triggers related to accounts', function () {
 								return getAccountByAddress(node.gAccount.address).then(function (accounts) {
 									var sender = accounts[node.gAccount.address];
 									var tx = transactions[0];
+
 									sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
+
 									expect(sender_before.balance).to.equal(sender.balance);
 								});
 							});
 						});
 
 						describe('recipient', function () {
-							var recipient, tx;
+
+							var recipient;
+							var tx;
 
 							before(function () {
 								tx = transactions[0];
@@ -288,7 +311,8 @@ describe('SQL triggers related to accounts', function () {
 						});
 					}); // END: non-virgin account to new account
 
-					describe ('non-virgin account to existing virgin account', function () {
+					describe('non-virgin account to existing virgin account', function () {
+
 						var sender_before;
 						var recipient_before;
 						var transactions = [];
@@ -315,14 +339,18 @@ describe('SQL triggers related to accounts', function () {
 								return getAccountByAddress(node.gAccount.address).then(function (accounts) {
 									var sender = accounts[node.gAccount.address];
 									var tx = transactions[0];
+
 									sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
+
 									expect(sender_before.balance).to.equal(sender.balance);
 								});
 							});
 						});
 
 						describe('recipient', function () {
-							var recipient, tx;
+
+							var recipient;
+							var tx;
 
 							before(function () {
 								tx = transactions[0];
@@ -348,12 +376,14 @@ describe('SQL triggers related to accounts', function () {
 
 							it('should credit balance', function () {
 								var expected = new bignum(recipient_before.balance).plus(tx.amount).toString();
+
 								expect(recipient.balance).to.equal(expected);
 							});
 						});
 					}); // END: non-virgin account to existing virgin account
 
 					describe ('non-virgin account to self', function () {
+
 						var account_before;
 						var transactions = [];
 
@@ -373,7 +403,9 @@ describe('SQL triggers related to accounts', function () {
 						});
 
 						describe('account', function () {
-							var account, tx;
+
+							var account;
+							var tx;
 
 							before(function () {
 								tx = transactions[0];
@@ -384,6 +416,7 @@ describe('SQL triggers related to accounts', function () {
 
 							it('should substract only fee', function () {
 								account_before.balance = new bignum(account_before.balance).minus(tx.fee).toString();
+
 								expect(account_before.balance).to.equal(account.balance);
 							});
 
@@ -400,11 +433,12 @@ describe('SQL triggers related to accounts', function () {
 					}); // END: non-virgin account to self
 
 					describe ('virgin account to new account', function () {
+
 						var sender_before;
 						var transactions = [];
 
 						before(function () {
-							return getAccountByAddress(last_random_account.address).then(function (accounts) {						
+							return getAccountByAddress(last_random_account.address).then(function (accounts) {
 								sender_before = accounts[last_random_account.address];
 
 								var tx = node.lisk.transaction.createTransaction(
@@ -419,6 +453,7 @@ describe('SQL triggers related to accounts', function () {
 						});
 
 						describe('sender', function () {
+
 							var sender, tx;
 
 							before(function () {
@@ -434,6 +469,7 @@ describe('SQL triggers related to accounts', function () {
 
 							it('should substract balance', function () {
 								sender_before.balance = new bignum(sender_before.balance).minus(tx.amount).minus(tx.fee).toString();
+
 								expect(sender_before.balance).to.equal(sender.balance);
 							});
 
@@ -448,6 +484,7 @@ describe('SQL triggers related to accounts', function () {
 						});
 
 						describe('recipient', function () {
+
 							var recipient, tx;
 
 							before(function () {
@@ -478,6 +515,7 @@ describe('SQL triggers related to accounts', function () {
 					}); // END: virgin account to new account
 
 					describe ('virgin account to self', function () {
+
 						var account_before;
 						var transactions = [];
 
@@ -507,7 +545,9 @@ describe('SQL triggers related to accounts', function () {
 						});
 
 						describe('account', function () {
-							var account, tx;
+
+							var account;
+							var tx;
 
 							before(function () {
 								tx = last_tx = transactions[1];
@@ -519,6 +559,7 @@ describe('SQL triggers related to accounts', function () {
 							it('should substract only fee', function () {
 								account_before.balance = new bignum(account_before.balance).minus(tx.fee).toString();
 								expect(account_before.balance).to.equal(account.balance);
+
 								var expected = new bignum(transactions[0].amount).minus(tx.fee).toString();
 								expect(account.balance).to.equal(expected);
 							});
@@ -536,6 +577,7 @@ describe('SQL triggers related to accounts', function () {
 					}); // END: virgin account to self
 
 					describe ('delete block with transaction that issued public_key creation', function () {
+
 						var account_before;
 
 						before(function () {
@@ -544,39 +586,42 @@ describe('SQL triggers related to accounts', function () {
 							});
 						});
 
-                        describe('after delete last block', function () {
-                            var last_block, new_last_block;
+						describe('after delete last block', function () {
 
-                            before(function () {
-                                last_block = library.modules.blocks.lastBlock.get();
-                                return deleteLastBlockPromise().then(function () {
-                                    new_last_block = library.modules.blocks.lastBlock.get();
-								})
-                            });
+							var last_block;
+							var new_last_block;
 
-                            it('last block ID should be different', function () {
+							before(function () {
+								last_block = library.modules.blocks.lastBlock.get();
+								return deleteLastBlockPromise().then(function () {
+									new_last_block = library.modules.blocks.lastBlock.get();
+								});
+							});
+
+							it('last block ID should be different', function () {
 								expect(last_block.id).to.not.equal(new_last_block.id);
-                            });
+							});
 
-                            it('last block height should be lower by 1', function () {
-                                expect(last_block.height).to.equal(new_last_block.height+1);
-                            });
+							it('last block height should be lower by 1', function () {
+								expect(last_block.height).to.equal(new_last_block.height+1);
+							});
 
-                            it('all transactions included in last block should be deleted', function() {
-                            	var txs_ids = [];
+							it('all transactions included in last block should be deleted', function() {
+								var txs_ids = [];
 
-                                _.each(last_block.transactions, function(tx) {
+								_.each(last_block.transactions, function(tx) {
 									txs_ids.push(tx.id);
 								});
 
-                                return getTransactionsByIds(txs_ids).then(function (rows) {
-                                	expect(rows).to.be.an('array');
-                                	expect(rows.length).to.equal(0);
+								return getTransactionsByIds(txs_ids).then(function (rows) {
+									expect(rows).to.be.an('array');
+									expect(rows.length).to.equal(0);
 								});
-							})
-                        });
+							});
+						});
 
 						describe('account', function () {
+
 							var account;
 
 							before(function () {
@@ -587,6 +632,7 @@ describe('SQL triggers related to accounts', function () {
 
 							it('should credit fee back', function () {
 								account_before.balance = new bignum(account_before.balance).plus(last_tx.fee).toString();
+
 								expect(account_before.balance).to.equal(account.balance);
 							});
 
@@ -603,9 +649,11 @@ describe('SQL triggers related to accounts', function () {
 				}); // END: type 0 - TRANSFER
 
 				describe('type 1 - SIGNATURE', function () {
+
 					var last_tx;
 
 					describe ('from virgin account', function () {
+
 						var account_before;
 						var transactions = [];
 
@@ -634,7 +682,9 @@ describe('SQL triggers related to accounts', function () {
 						});
 
 						describe('account', function () {
-							var account, tx;
+
+							var account;
+							var tx;
 
 							before(function () {
 								tx = last_tx = transactions[1];
@@ -646,6 +696,7 @@ describe('SQL triggers related to accounts', function () {
 							it('should substract only fee', function () {
 								account_before.balance = new bignum(account_before.balance).minus(tx.fee).toString();
 								expect(account_before.balance).to.equal(account.balance);
+
 								var expected = new bignum(transactions[0].amount).minus(tx.fee).toString();
 								expect(account.balance).to.equal(expected);
 							});
@@ -663,7 +714,9 @@ describe('SQL triggers related to accounts', function () {
 							it('should insert transaction id and signature to signature table', function () {
 								return getSignatureByTxId(tx.id).then(function (signatures) {
 									expect(signatures.length).to.equal(1);
+
 									var sig = signatures[0];
+
 									expect(sig.transaction_id).to.equal(tx.id);
 									expect(sig.second_public_key.toString('hex')).to.equal(last_random_account.secondPublicKey);
 								});
@@ -672,7 +725,7 @@ describe('SQL triggers related to accounts', function () {
 					}); // END: from virgin account
 				}); // END: type 1 - SIGNATURE
 
-			}); // END: signle transaction
+			}); // END: single transaction
 		}); // END: transactions
 	});
 });
