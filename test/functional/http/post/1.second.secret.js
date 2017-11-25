@@ -77,7 +77,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 		
-		// TODO: This should be done with an existing empty account
+		// TODO: Test with an existing empty account
 		it.skip('with no funds should fail', function () {
 			transaction = node.lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
 			
@@ -126,7 +126,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 		describe('type 1 - second secret', function () {
 
-			// TODO: Reenable when unconfirmed states work in new TX POOL
+			// TODO: Re-enable when unconfirmed states are working in the new transaction pool
 			it.skip('with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
 				transaction = node.lisk.signature.createSignature(accountDuplicate.password, 'secondpassword');
 
