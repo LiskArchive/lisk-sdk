@@ -717,7 +717,7 @@ describe('multisignature', function () {
 	describe('undoUnconfirmed', function () {
 
 		beforeEach(function (done) {
-			//accountMock.merge = sinon.stub().callsArg(2);
+			// accountMock.merge = sinon.stub().callsArg(2);
 			multisignature.undoUnconfirmed(transaction, sender, done);
 		});
 
