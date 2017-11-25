@@ -6,7 +6,7 @@ BEGIN
 END
 $$;
 
-/* RENAME transfers Stuff */
-ALTER TABLE transfer RENAME "transactionId" TO "transaction_id";
+-- Rename columns on 'transfer' table
+ALTER TABLE transfer RENAME "transactionId" TO transaction_id;
 
-END;
+COMMIT;
