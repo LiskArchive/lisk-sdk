@@ -85,7 +85,6 @@ describe.skip('blocks/process', function () {
 					var cs = new db.$config.pgp.helpers.ColumnSet(
 						table.fields, {table: table.name}
 					);
-					console.log(cs);
 					var insert = db.$config.pgp.helpers.insert(table.data, cs);
 					db.none(insert)
 						.then(function () {
