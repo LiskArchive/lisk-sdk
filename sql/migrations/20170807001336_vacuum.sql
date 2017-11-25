@@ -1,3 +1,3 @@
 -- Perform garbage-collect on 'blocks' table, update statistics for query planner
--- Need to be executed to keep high migration performance if migration is performed right after restore from snapshot
+-- Needs to be executed in order to keep high migration performance if migration is performed immediately after restoring from a snapshot
 VACUUM(FULL, ANALYZE) blocks;
