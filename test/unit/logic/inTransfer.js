@@ -666,7 +666,6 @@ describe('inTransfer', function () {
 		});
 		
 		it('should return result containing values.dapp_id = transaction.asset.inTransfer.dappId', function () {
-			console.log(dbSaveResult);
 			expect(dbSaveResult).to.have.nested.property('values.dapp_id').equal(transaction.asset.inTransfer.dappId);
 		});
 
