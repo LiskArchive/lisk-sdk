@@ -34,7 +34,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		is directly related to the maximum number of allowed votes per account. Another independent
 		account is credited and performs tests uniquely to delegates from this scenario.
 	*/
-	
+
 	// First Scenario
 	var accountMaxVotesPerTransaction = node.randomAccount();
 	var delegatesMaxVotesPerTransaction = [];
@@ -159,7 +159,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(delegateAssetAccount, 'votes', badTransactions);
+		shared.invalidAssets('votes', badTransactions);
 	});
 
 	describe('transactions processing', function () {
@@ -213,18 +213,18 @@ describe('POST /api/transactions (type 3) votes', function () {
 				badTransactions.push(transaction);
 			});
 		});
-		
+
 		it('upvoting when sender not on blockchain should fail', function () {
 			accountNoFunds = node.randomAccount();
 			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + node.eAccount.publicKey]);
-			
+
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
 				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
 				badTransactions.push(transaction);
 			});
 		});
-		
+
 		// TODO: Test this after an account is made empty
 		it.skip('upvoting when sender has no funds should fail', function () {
 			accountNoFunds = node.randomAccount();

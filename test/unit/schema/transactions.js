@@ -57,7 +57,7 @@ describe('transactions', function () {
 				minAmount: 0,
 				maxAmount: 1,
 				minConfirmations: 1,
-				orderBy: 'username',
+				sort: 'username',
 				limit: 500,
 				offset: 0 
 			};

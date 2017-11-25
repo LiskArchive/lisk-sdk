@@ -62,28 +62,6 @@ node.fees = {
 	dataFee: node.constants.fees.data
 };
 
-// Test application
-node.guestbookDapp = {
-	category: 0,
-	name: 'Lisk Guestbook',
-	description: 'The official Lisk guestbook',
-	tags: 'guestbook message sidechain',
-	type: 0,
-	link: 'https://github.com/MaxKK/guestbookDapp/archive/master.zip',
-	icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png'
-};
-
-// Test application
-node.blockDataDapp = {
-	category: 1,
-	name: 'BlockData',
-	description: 'Blockchain based home monitoring tool',
-	tags: 'monitoring temperature power sidechain',
-	type: 0,
-	link: 'https://github.com/MaxKK/blockDataDapp/archive/master.zip',
-	icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
-};
-
 // Existing delegate account
 node.eAccount = {
 	address: '10881167371402274308L',
@@ -103,7 +81,7 @@ node.gAccount = {
 	key: 'elephant tree paris dragon chair galaxy',
 };
 
-node.swaggerDef = swaggerHelper.getSwaggerSpec();;
+node.swaggerDef = swaggerHelper.getSwaggerSpec();
 
 // Optional logging
 if (process.env.SILENT === 'true') {
@@ -262,7 +240,7 @@ node.randomUsername = function () {
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = node.randomString.generate({
-		length: node.randomNumber(1, 15),
+		length: 15,
 		charset: custom
 	});
 
@@ -278,7 +256,7 @@ node.randomDelegateName = function () {
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = node.randomString.generate({
-		length: node.randomNumber(1, 19),
+		length: 19,
 		charset: custom
 	});
 
@@ -294,7 +272,7 @@ node.randomCapitalUsername = function () {
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
 	var username = node.randomString.generate({
-		length: node.randomNumber(1, 15),
+		length: 15,
 		charset: custom
 	});
 
@@ -306,7 +284,7 @@ node.randomApplicationName = function () {
 	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	return node.randomString.generate({
-		length: node.randomNumber(1, 32),
+		length: node.randomNumber(5, 32),
 		charset: custom
 	});
 };
@@ -325,6 +303,10 @@ node.randomApplication = function () {
 
 	return application;
 };
+
+// Test applications
+node.guestbookDapp = node.randomApplication();
+node.blockDataDapp = node.randomApplication();
 
 // Returns a basic random account
 node.randomAccount = function () {

@@ -51,7 +51,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(account, 'dapp', badTransactions);
+		shared.invalidAssets('dapp', badTransactions);
 
 		describe('category', function () {
 			
