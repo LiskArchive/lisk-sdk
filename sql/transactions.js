@@ -61,7 +61,6 @@ var TransactionsSql = {
 	getInTransferByIds: 'SELECT "transaction_id", "dapp_id" AS "in_dapp_id" FROM intransfer WHERE "transaction_id" IN (${id:csv})',
 
 	getOutTransferByIds: 'SELECT "transaction_id", "dapp_id" AS "ot_dapp_id", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transaction_id" IN (${id:csv})'
-
 };
 
 module.exports = TransactionsSql;
