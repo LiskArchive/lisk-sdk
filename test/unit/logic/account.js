@@ -125,7 +125,6 @@ describe('account', function () {
 		it('should get all fields if fields parameters is not set', function (done) {
 			account.get({address: validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
-				console.log(res);
 				expect(Object.keys(res)).to.eql(Object.keys(validAccount));
 				done();
 			});
