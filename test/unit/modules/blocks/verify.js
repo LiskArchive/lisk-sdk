@@ -809,7 +809,7 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		// TODO: Refactor to set sender
+		// TODO: Rewrite to set sender
 		it.skip('should fail when transaction is already confirmed (fork:2)', function (done) {
 			block2 = blocksVerify.deleteBlockProperties(block2);
 
@@ -868,7 +868,7 @@ describe('blocks/verify', function () {
 	});
 
 	// Sends a block to network, don't save it locally.
-	// TODO: Rewrite this test, generating the account this way wont work
+	// TODO: Rewrite this test, generating the account this way won't work
 	describe.skip('processBlock() for valid block {broadcast: true, saveBlock: false}', function () {
 		
 		it('should generate account', function (done) {
