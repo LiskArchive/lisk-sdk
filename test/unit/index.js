@@ -24,18 +24,18 @@ var pathFiles = [
 	'./logic/inTransfer.js',
 	'./logic/peer.js',
 	'./logic/peers.js',
-	'./logic/multisignature.js', // NEED FIXING
+	'./logic/multisignature.js', // TODO: Needs fixing
 	'./logic/transaction.js',
 	'./logic/transactionPool.js',
 	'./logic/transfer.js',
-	'./logic/vote.js', // NEED FIXING
+	'./logic/vote.js', // TODO: Needs fixing
 	'./logic/outTransfer.js',
 
 	'./modules/accounts.js',
 	'./modules/app.js',
 	'./modules/blocks.js',
-	'./modules/blocks/process.js', // NEED FIXING
-	'./modules/blocks/verify.js', // Many failures for node 8 related to verify try/catch, need to properly apply blocks to DB
+	'./modules/blocks/process.js', // Needs fixing
+	'./modules/blocks/verify.js', // Many failures for node 8, related to verify try/catch, need to properly apply blocks to DB
 	'./modules/cache.js',
 	'./modules/dapps.js',
 	'./modules/delegates.js',
