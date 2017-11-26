@@ -262,7 +262,7 @@ paths:
         - $ref: '#/parameters/publicKey'
       responses:
         200:
-          description: search results matching criteria
+          description: Search results matching criteria
           schema:
             $ref: '#/definitions/ForgingStatusResponse'
         400:
@@ -349,7 +349,7 @@ paths:
       x-lisk-cache-enabled: true
       description:
         By passing in the appropriate options, you can search for
-        specified Delegate in the system, otherwise returns a list
+        specified delegate in the system, otherwise returns a list
       produces:
       - application/json
       parameters:
@@ -373,7 +373,7 @@ paths:
           maxLength: 20
         - in: query
           name: sort
-          description: fields to sort on to query
+          description: Fields to sort on to query
           required: false
           type: string
           enum:
@@ -387,7 +387,7 @@ paths:
             - missedBlocks:desc
       responses:
         200:
-          description: search results matching criteria
+          description: Search results matching criteria
           schema:
             $ref: '#/definitions/DelegatesResponse'
         400:
@@ -419,7 +419,7 @@ paths:
         - $ref: '#/parameters/offset'
       responses:
         200:
-          description: search results matching criteria
+          description: Search results matching criteria
           schema:
             $ref: '#/definitions/ForgersResponse'
         400:
@@ -668,7 +668,7 @@ definitions:
       - links
     properties:
       data:
-        description: Response for the delegates endpoint
+        description: List of delegates
         type: array
         items:
           $ref: '#/definitions/DelegateWithAccount'
@@ -723,11 +723,11 @@ definitions:
             type: integer
             example: 10
           lastBlockSlot:
-            description: The slot for last processed blocked
+            description: Slot of the last processed block
             type: integer
             example: 10
           lastBlock:
-            description: Number of last processed block
+            description: ID of the last processed block
             type: integer
             example: 10
       links:
@@ -757,7 +757,7 @@ definitions:
     properties:
       forging:
         type: boolean
-        description: Status of forging for searched delegate
+        description: Forging status of the queried delegate
         example: true
       publicKey:
         type: string
