@@ -11,27 +11,26 @@ var bignum = require('../../helpers/bignum.js');
 var slots = require('../../helpers/slots.js');
 
 // Private fields
-var modules; 
+var modules;
 var library;
 var self;
 var __private = {};
 var pool = {};
 
 /**
- * Initializes variables, sets cycle for transaction pool timer and
- * transaction pool expiry timer.
+ * Initializes variables and starts processPool/expiry/invalid timers.
  * @memberof module:transactions
  * @class
- * @classdesc Main TransactionPool logic.
+ * @classdesc Transaction pool logic.
  * @implements {processPool}
  * @implements {expireTransactions}
  * @implements {resetInvalidTransactions}
- * @param {bus} bus
- * @param {Object} ed
- * @param {Transaction} transaction - transaction logic instance
- * @param {Account} account - account logic instance
- * @param {Object} logger
- * @param {Object} configPool - config values for pool
+ * @param {bus} bus - Bus instance.
+ * @param {Object} ed - Ed instance.
+ * @param {object} transaction - Transaction logic instance.
+ * @param {Account} account - Account logic instance.
+ * @param {Object} logger - Logger instance.
+ * @param {Object} configPool - Config values for the pool.
  * @param {function} cbPool - Callback function.
  */
 // Constructor
@@ -54,6 +53,7 @@ function TransactionPool (bus, ed, transaction, account, logger, configPool, cbP
 			}
 		},
 	};
+
 	self = this;
 
 	pool = {
@@ -70,7 +70,7 @@ function TransactionPool (bus, ed, transaction, account, logger, configPool, cbP
 	function nextProcessPool (cb) {
 		self.processPool(function (err) {
 			if (err) {
-				library.logger.log('processPool transaction timer', err);
+				library.logger.log('ProcessPool transaction timer', err);
 			}
 			return setImmediate(cb);
 		});
@@ -107,12 +107,12 @@ function TransactionPool (bus, ed, transaction, account, logger, configPool, cbP
 
 // Private
 /**
- * Gets all or limited number of transactions from input object list and returns ordered array.
+ * Gets transactions from a pool list.
  * @private
- * @param {transaction{}} transactions
- * @param {boolean} reverse
- * @param {number} limit
- * @return {transaction[]}
+ * @param {object} transactionsInPool - Name of pool list.
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {array} Of ordered transactions in pool list.
  */
 __private.getTransactionsFromPoolList = function (transactionsInPool, reverse, limit) {
 	var transactions = _.orderBy(transactionsInPool, ['receivedAt'],['asc']);
@@ -127,10 +127,10 @@ __private.getTransactionsFromPoolList = function (transactionsInPool, reverse, l
 };
 
 /**
- * Gets transactions from all pool lists based on filter.
+ * Gets all transactions from the pool lists matching a search criteria.
  * @private
- * @param {Object} filter search criteria
- * @return {Objetc} transactions by pool list
+ * @param {Object} filter - Search criteria.
+ * @return {Object} Of pool lists with matched transactions.
  */
 __private.getAllTransactionsByFilter = function (filter) {
 	var transactions = {
@@ -143,9 +143,9 @@ __private.getAllTransactionsByFilter = function (filter) {
 };
 
 /**
- * Returns true if the id is present in at least one of the pool lists transactions.
+ * Checks if a transaction id is present in at least one of the pool lists.
  * @private
- * @param {string} id
+ * @param {string} id - Transaction id.
  * @return {boolean}
  */
 __private.transactionInPool = function (id) {
@@ -159,12 +159,12 @@ __private.transactionInPool = function (id) {
 };
 
 /**
- * Checks if pool is ready to receive a new transaction and the incoming
- * transaction was not already processed by pool.
+ * Checks if the pool is ready to receive a new transaction,
+ * and whether the received transaction was already processed.
  * @private
  * @implements {__private.countTransactionsInPool}
  * @implements {__private.transactionInPool}
- * @param {Object} transaction
+ * @param {object} transaction - Transaction object.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction
  */
@@ -172,21 +172,24 @@ __private.checkPoolAvailability = function (transaction, cb) {
 	if (pool.invalid.transactions[transaction.id] !== undefined) {
 		return setImmediate(cb, 'Transaction is already processed as invalid: ' + transaction.id);
 	}
+
 	if (__private.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already in pool: ' + transaction.id);
 	}
+
 	if (__private.countTransactionsInPool() >= library.config.transactions.pool.storageLimit) {
 		return setImmediate(cb, 'Transaction pool is full');
 	}
+
 	return setImmediate(cb, null, transaction);
 };
 
 /**
- * Obtains sender from accounts table, if address does not exists,
- * returns a default account object.
+ * Obtains the transaction sender from the accounts table.
+ * If the sender's address does not exist, returns a default account object.
  * @private
  * @implements {modules.accounts.setAccountAndGet}
- * @param {Object} transaction
+ * @param {object} transaction - Transaction object.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
@@ -197,11 +200,11 @@ __private.setAccountAndGet = function (transaction, cb) {
 };
 
 /**
- * Obtains requester from accounts table
+ * Obtains the transaction requester from the accounts table.
  * @private
  * @implements {modules.accounts.getAccount}
- * @param {Object} transaction
- * @param {Object} sender
+ * @param {object} transaction - Transaction object.
+ * @param {Object} sender - Sender account.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender, requester
  */
@@ -226,13 +229,13 @@ __private.getRequester = function (transaction, sender, cb) {
 };
 
 /**
- * Process transaction.
+ * Processes a transaction.
  * @private
  * @implements {library.logic.transaction.process}
  * @implements {__private.addInvalid}
- * @param {Object} transaction
- * @param {Object} sender
- * @param {Object} requester
+ * @param {object} transaction - Transaction object.
+ * @param {Object} sender - Sender account.
+ * @param {Object} requester - Requester account.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
@@ -241,18 +244,19 @@ __private.processTransaction = function (transaction, sender, requester, cb) {
 		if (err) {
 			__private.addInvalid(transaction.id);
 			return setImmediate(cb, err);
-		} 
+		}
+
 		return setImmediate(cb, null, transaction, sender);
 	});
 };
 
 /**
- * Verifies transaction.
+ * Verifies a transaction.
  * @private
  * @implements {library.logic.transaction.verify}
  * @implements {__private.addInvalid}
- * @param {Object} transaction
- * @param {Object} sender
+ * @param {object} transaction - Transaction object.
+ * @param {Object} sender - Sender account.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
@@ -261,17 +265,18 @@ __private.verifyTransaction = function (transaction, sender, cb) {
 		if (err) {
 			__private.addInvalid(transaction.id);
 		}
+
 		return setImmediate(cb, err, transaction, sender);
 	});
 };
 
 /**
- * Verifies if transaction type is repeated into pool from same sender.
+ * Verifies if a transaction type is already in the pool from the same sender.
  * @private
  * @implements {library.logic.transaction.verify}
  * @implements {__private.addInvalid}
- * @param {Object} transaction
- * @param {Object} sender
+ * @param {object} transaction - Transaction object.
+ * @param {Object} sender - Sender account.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
@@ -286,19 +291,20 @@ __private.verifyTransactionTypeInPool = function (transaction, sender, cb) {
 };
 
 /**
- * Adds transaction to verify pending or ready.
+ * Adds a transaction to the verify, pending or ready pool list.
  * @private
  * @implements {__private.addToPoolList}
  * @implements {__private.addReadyAndPrepareBroadcast}
- * @param {Object} transaction
+ * @param {object} transaction - Transaction object.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
 __private.moveToVerified = function (transaction, cb) {
-	var receiveAt = transaction.receivedAt.getTime();
+	var receivedAt = transaction.receivedAt.getTime();
 	var timestamp = slots.getRealTime(transaction.timestamp);
-	// Add transactions to pending if they are multisignature, they have signatures or timestamp is in future
-	if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures) || receiveAt < timestamp) {
+
+	// Add transactions to pending if they of type multisignature, they have signatures or timestamp is in future
+	if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures) || receivedAt < timestamp) {
 		__private.addToPoolList(transaction, pool.verified.pending, cb);
 	} else {
 		__private.addReadyAndPrepareBroadcast(transaction, cb);
@@ -306,9 +312,9 @@ __private.moveToVerified = function (transaction, cb) {
 };
 
 /**
- * Adds transactions to verified pool list.
- * Checks if transaction is in pool, pool limit, performs basic transaction validations
- * and advanced transaction validations: verify and check balance.
+ * Adds a transaction to the verified pool list.
+ * Checks if the transaction is in the pool, or if pool limit has been reached.
+ * Performs basic and advanced transaction validations: verify and check balance.
  * @private
  * @implements {__private.checkPoolAvailability}
  * @implements {__private.setAccountAndGet}
@@ -316,8 +322,8 @@ __private.moveToVerified = function (transaction, cb) {
  * @implements {__private.processTransaction}
  * @implements {__private.verifyTransaction}
  * @implements {__private.moveToVerified}
- * @param {Transaction} transaction
- * @param {boolean} broadcast
+ * @param {object} transaction - Transaction object.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -345,15 +351,16 @@ __private.addToVerified = function (transaction, broadcast, cb) {
 };
 
 /**
- * Adds transactions to unverified pool list.
- * Checks if transaction is in pool, pool limit and performs basic transaction validations.
+ * Adds a transaction to the unverified pool list.
+ * Checks if the transaction is in the pool, or if pool limit has been reached.
+ * Performs basic transaction validations.
  * @private
  * @implements {__private.checkPoolAvailability}
  * @implements {__private.setAccountAndGet}
  * @implements {__private.getAccount}
  * @implements {__private.processTransaction}
- * @param {Transaction} transaction
- * @param {boolean} broadcast
+ * @param {object} transaction - Transaction object.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -378,10 +385,11 @@ __private.addToUnverified = function (transaction, broadcast, cb) {
 };
 
 /**
- * Adds transactions to pool list, increment counter only if transaction id is not present.
+ * Adds a transaction to the pool list.
+ * Increments pool list counter only if transaction id is not present.
  * @private
- * @param {transaction} transaction
- * @param {Object} poolList
+ * @param {object} transaction - Transaction object.
+ * @param {Object} poolList - Pool list object.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -394,9 +402,10 @@ __private.addToPoolList = function (transaction, poolList, cb) {
 };
 
 /**
- * Adds transactions to pool ready and to broadcast queue if broadcast flag is present.
+ * Adds a transaction to the ready pool list.
+ * Adds the transaction to the broadcast queue if its broadcast flag is true.
  * @private
- * @param {transaction} transaction
+ * @param {object} transaction - Transaction object.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -409,10 +418,10 @@ __private.addReadyAndPrepareBroadcast = function (transaction, cb) {
 };
 
 /**
- * Creates signature based on multisignature transaction and secret.
+ * Creates a signature for the given multisignature transaction and secret.
  * @private
- * @param {transaction} transaction
- * @param {String} secret
+ * @param {object} transaction - Transaction object.
+ * @param {String} secret - Secret passphrase,
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -420,18 +429,19 @@ __private.createSignature = function (transaction, secret, cb) {
 	var hash = crypto.createHash('sha256').update(secret, 'utf8').digest();
 	var keypair = library.ed.makeKeypair(hash);
 	var publicKey = keypair.publicKey.toString('hex');
-	
+
 	if (transaction.asset.multisignature.keysgroup.indexOf('+' + publicKey) === -1) {
 		return setImmediate(cb, 'Permission to sign transaction denied');
 	}
+
 	var signature = library.logic.transaction.multisign(keypair, transaction);
 	return setImmediate(cb, null, signature);
 };
 
 /**
- * Adds transaction id to invalid pool list.
+ * Adds a transaction id to the invalid pool list.
  * @private
- * @param {string} id
+ * @param {string} id - Transaction id.
  */
 __private.addInvalid = function (id) {
 	pool.invalid.transactions[id] = true;
@@ -439,11 +449,11 @@ __private.addInvalid = function (id) {
 };
 
 /**
- * Deletes id from pool list.
+ * Deletes a transaction by id from a pool list.
  * @private
- * @param {string} id
- * @param {Object} poolList
- * @return {boolean} true if transaction id is on the list and was deleted
+ * @param {string} id - Transaction id.
+ * @param {Object} poolList - Pool list object.
+ * @return {boolean} True if transaction id was found and deleted.
  */
 __private.delete = function (id, poolList) {
 	var transaction = poolList.transactions[id];
@@ -453,26 +463,27 @@ __private.delete = function (id, poolList) {
 		delete poolList.transactions[id];
 		poolList.count--;
 		return true;
+	} else {
+		return false;
 	}
-	return false;
 };
 
 /**
  * Sums unverified, verified.pending and verified.ready counters.
  * @private
- * @return {Number} Total = unverified + pending + ready
+ * @return {Number} Of unverified + pending + ready.
  */
 __private.countTransactionsInPool = function () {
 	return pool.unverified.count + pool.verified.pending.count + pool.verified.ready.count;
 };
 
 /**
- * Removes expired transactions from pool list.
+ * Removes expired transactions from a pool list.
  * @private
  * @implements {__private.getTransactionTimeOut}
  * @implements {__private.delete}
- * @param {Object[]} poolList
- * @param {function} cb - Callback function
+ * @param {Object} poolList - Pool list object.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} cb|error
  */
 __private.expireTransactionsFromList = function (poolList, cb) {
@@ -490,6 +501,7 @@ __private.expireTransactionsFromList = function (poolList, cb) {
 			__private.delete(transaction.id, poolList);
 			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
 		}
+
 		return setImmediate(eachCb);
 	}, function () {
 		return setImmediate(cb);
@@ -497,10 +509,10 @@ __private.expireTransactionsFromList = function (poolList, cb) {
 };
 
 /**
- * Calculates timeout based on transaction.
+ * Calculates expiry timeout for a transaction based on type.
  * @private
- * @param {transaction} transaction
- * @return {number} timeOut
+ * @param {object} transaction - Transaction object.
+ * @return {number} Of transaction timeout.
  */
 __private.getTransactionTimeOut = function (transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
@@ -513,12 +525,12 @@ __private.getTransactionTimeOut = function (transaction) {
 };
 
 /**
- * Gets sender account, and verifies transaction.
+ * Gets the transaction sender from the accounts table, and then verifies the transaction.
  * @private
  * @implements {__private.setAccountAndGet}
  * @implements {__private.verifyTransaction}
- * @param {transaction} transaction
- * @param {function} cb - Callback function
+ * @param {object} transaction - Transaction object.
+ * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} errors | sender
  */
 __private.processUnverifiedTransaction = function (transaction, cb) {
@@ -533,7 +545,7 @@ __private.processUnverifiedTransaction = function (transaction, cb) {
 // Public methods
 /**
  * Bounds input parameters to private variable modules.
- * @param {Accounts} accounts
+ * @param {Accounts} accounts - Accounts module instance.
  */
 TransactionPool.prototype.bind = function (accounts) {
 	modules = {
@@ -557,9 +569,9 @@ TransactionPool.prototype.getUsage = function () {
 };
 
 /**
- * Gets transaction based on transaction id.
+ * Gets a transaction by id.
  * Checks all pool lists: unverified, pending, ready.
- * @param {string} id
+ * @param {string} id - Transaction id.
  * @return {Object} transaction, status
  */
 TransactionPool.prototype.get = function (id) {
@@ -578,7 +590,7 @@ TransactionPool.prototype.get = function (id) {
 			status: 'pending'
 		};
 	}
-	
+
 	transaction = pool.verified.ready.transactions[id];
 	if (transaction !== undefined) {
 		return {
@@ -586,6 +598,7 @@ TransactionPool.prototype.get = function (id) {
 			status: 'ready'
 		};
 	}
+
 	return {
 		transaction: undefined,
 		status: 'Transaction not in pool'
@@ -593,12 +606,12 @@ TransactionPool.prototype.get = function (id) {
 };
 
 /**
- * Gets all transactions based on limited filters.
+ * Gets all transactions matching a search criteria.
  * @implements {__private.getTransactionsFromPoolList}
  * @implements {__private.getAllTransactionsByFilter}
- * @param {string} filter
- * @param {Object} params
- * @return {[transaction]} transaction list based on filter.
+ * @param {string} filter - Search criteria.
+ * @param {Object} params - Parameters given to each pool list.
+ * @return {array} Of matched transactions.
  */
 TransactionPool.prototype.getAll = function (filter, params) {
 	switch (filter) {
@@ -623,22 +636,24 @@ TransactionPool.prototype.getAll = function (filter, params) {
 
 /**
  * Gets ready transactions ordered by fee and received time.
- * @param {number} limit
+ * @param {number} limit - Limit applied to results.
  * @return {transaction[]}
  */
 TransactionPool.prototype.getReady = function (limit) {
 	var transactionsReady = _.orderBy(pool.verified.ready.transactions, ['fee', 'receivedAt', 'id'],['desc', 'asc', 'desc']);
+
 	if (limit && limit < transactionsReady.length) {
 		transactionsReady.splice(limit);
 	}
+
 	return transactionsReady;
 };
 
 /**
- * Checks if sender has enough credit to apply transaction.
- * Balance - payments + receipts should be equal or greather than transaction fee + amount.
- * @param {transaction} transaction
- * @param {address} sender
+ * Checks if a sender has enough funds to apply a transaction.
+ * Balance - (debits + credits) should be equal or greather than transaction fee + amount.
+ * @param {object} transaction - Transaction object.
+ * @param {address} sender - Sender address.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} err, transactions
  */
@@ -651,11 +666,13 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
+
 		if (account === null) {
 			account = {};
 			account.balance = 0;
 		}
-		// total payments
+
+		// Total payments
 		paymentTransactions = self.getAll('sender_id', {id: sender.address});
 		if (paymentTransactions.ready.length > 0) {
 			paymentTransactions.ready.forEach(function (paymentTransaction) {
@@ -665,8 +682,8 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 				poolBalance = poolBalance.minus(paymentTransaction.fee.toString());
 			});
 		}
-		
-		// total receipts
+
+		// Total receipts
 		receiptTransactions = self.getAll('recipient_id', {id: sender.address});
 		if (receiptTransactions.ready.length > 0) {
 			receiptTransactions.ready.forEach(function (receiptTransaction) {
@@ -676,7 +693,7 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 			});
 		}
 
-		// total balance
+		// Total balance
 		var balance = new bignum(account.balance.toString());
 		balance = balance.plus(poolBalance);
 
@@ -700,8 +717,8 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 /**
  * Validates a transaction and adds it to the verified pool list.
  * @implements {__private.addToVerified}
- * @param {transaction} transaction
- * @param {boolean} broadcast
+ * @param {object} transaction - Transaction object.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -710,10 +727,10 @@ TransactionPool.prototype.addFromPublic = function (transaction, broadcast, cb) 
 };
 
 /**
- * Adds transactions to unverified pool list.
+ * Adds an array of transactions to the unverified pool list.
  * @implements {__private.addToUnverified}
- * @param {transaction} transactions
- * @param {boolean} broadcast
+ * @param {array} transactions - Array of transactions.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -721,6 +738,7 @@ TransactionPool.prototype.addFromPeer = function (transactions, broadcast, cb) {
 	if (!Array.isArray(transactions)) {
 		transactions = [transactions];
 	}
+
 	async.eachSeries(transactions, function (transaction, cb) {
 		__private.addToUnverified(transaction, broadcast, cb);
 	}, function (err) {
@@ -729,10 +747,10 @@ TransactionPool.prototype.addFromPeer = function (transactions, broadcast, cb) {
 };
 
 /**
- * Adds transactions to verified.ready pool list.
+ * Adds an array of transactions to the verified.ready pool list.
  * @implements {__private.addToPoolList}
  * @implements {delete}
- * @param {[transaction]} transactions - Array of transactions
+ * @param {[transaction]} transactions - Array of transactions.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -749,10 +767,10 @@ TransactionPool.prototype.addReady = function (transactions, cb) {
 };
 
 /**
- * Creates and adds signature to multisignature transaction.
+ * Creates and adds a signature to a multisignature transaction.
  * @implements {__private.createSignature}
- * @param {String} transactionId transaction id
- * @param {String} secret secret
+ * @param {String} transactionId - Transaction id.
+ * @param {String} secret - Secret passphrase.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -764,7 +782,7 @@ TransactionPool.prototype.addSignature = function (transactionId, secret, cb) {
 		return setImmediate(cb, 'Transaction not in pool');
 	}
 
-	// TODO: replace with checkSignature to reflect API 1.0.18 functionality
+	// TODO: Replace with checkSignature to reflect API 1.0.18 functionality
 	__private.createSignature(multisignatureTransaction, secret, function (err, signature) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -773,17 +791,17 @@ TransactionPool.prototype.addSignature = function (transactionId, secret, cb) {
 			library.logger.error(['Transaction already signed:', transactionId].join(' '));
 			return setImmediate(cb, 'Transaction already signed');
 		}
-	
+
 		multisignatureTransaction.signatures.push(signature);
 		return setImmediate(cb);
 	});
 };
 
 /**
- * Deletes transaction from pool list.
+ * Deletes a transaction from the pool lists by id.
  * @implements {__private.delete}
- * @param {string} id transaction id
- * @return {Array} names of cleared lists
+ * @param {string} id - Transaction id.
+ * @return {Array} Of cleared pool lists.
  */
 TransactionPool.prototype.delete = function (id) {
 	var clearedList = [];
@@ -794,6 +812,7 @@ TransactionPool.prototype.delete = function (id) {
 			clearedList.push(poolList[index]);
 		}
 	});
+
 	if (clearedList.length > 1) {
 		library.logger.debug(['Cleared duplicated transaction in pool list:', clearedList, 'transaction id:', id].join(' '));
 	}
@@ -802,10 +821,10 @@ TransactionPool.prototype.delete = function (id) {
 };
 
 /**
- * Deletes transactions from pool lists and rechecks balance for ready transactions
+ * Deletes transactions from pool lists, and rechecks balance for ready transactions.
  * @implements {self.delete}
- * @param {string} id transaction id
- * @return {Array} names of cleared lists
+ * @param {string} id - Transaction id.
+ * @return {Array} Of cleared pool lists.
  */
 TransactionPool.prototype.sanitizeTransactions = function (transactions) {
 	transactions.forEach(function (transaction) {
@@ -814,15 +833,15 @@ TransactionPool.prototype.sanitizeTransactions = function (transactions) {
 };
 
 /**
- * Pulls transactions from unverified, perform verifications and if successful
- * push to either verified.pending (when transaction is multisign or timestamp is in 
- * future) or verified.ready otherwise.
+ * Pulls transactions from unverified, performs verifications, and if successful
+ * pushes them to either verified.pending (when transaction is multisign or timestamp is in
+ * future), otherwise to verified.ready.
  * @implements {__private.delete}
  * @implements {__private.processUnverifiedTransaction}
  * @implements {self.checkBalance}
  * @implements {__private.moveToVerified}
  * @implements {__private.addReadyAndPrepareBroadcast}
- * @param {function} cb
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} err | cb
  */
 TransactionPool.prototype.processPool = function (cb) {
@@ -855,12 +874,12 @@ TransactionPool.prototype.processPool = function (cb) {
 			if (pool.verified.pending.count === 0) {
 				return setImmediate(seriesCb);
 			}
-			// process pool.verified.pending (multisig transactions signs), and take care 
-			// about moving transactions from `verified.pending` to `verified.ready`
+			// Process pool.verified.pending (multisig transactions signs), and moves
+			// transactions from `verified.pending` to `verified.ready`
 			async.eachSeries(pool.verified.pending.transactions, function (transaction, eachSeriesCb) {
 				// Check multisignatures
-				if (transaction.type === transactionTypes.MULTI && 
-					Array.isArray(transaction.signatures) && 
+				if (transaction.type === transactionTypes.MULTI &&
+					Array.isArray(transaction.signatures) &&
 					transaction.signatures.length >= transaction.asset.multisignature.min
 				) {
 					__private.delete(transaction.id, pool.verified.pending);
@@ -880,13 +899,12 @@ TransactionPool.prototype.processPool = function (cb) {
 };
 
 /**
- * Expires transactions.
+ * Expires transactions according to their individual timeout.
  * @implements {__private.expireTransactionsFromList}
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error, cb
  */
 TransactionPool.prototype.expireTransactions = function (cb) {
-
 	async.series([
 		function (seriesCb) {
 			__private.expireTransactionsFromList(pool.unverified, seriesCb);
@@ -904,6 +922,7 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 
 /**
  * Reset invalid transactions.
+ * @return {number} Of invalid transactions reset.
  */
 TransactionPool.prototype.resetInvalidTransactions = function () {
 	var counter = 0;
@@ -913,6 +932,7 @@ TransactionPool.prototype.resetInvalidTransactions = function () {
 		delete pool.invalid.transactions[transaction];
 		counter++;
 	}
+
 	pool.invalid.count = 0;
 	return counter;
 };
