@@ -307,9 +307,9 @@ __private.dbSave = function (cb) {
 
 /**
 * Calculates consensus for as a ratio active to matched peers.
-* @param {Array<Peer>} active - active peers (with connected state)
-* @param {Array<Peer>} matched - peers with same as system broadhash
-* @returns {number|undefined} - return consensus or undefined if config.forging.force = true
+* @param {Array<Peer>} active - Active peers (with connected state).
+* @param {Array<Peer>} matched - Peers with same as system broadhash.
+* @returns {number|undefined} - Consensus or undefined if config.forging.force = true.
 */
 Peers.prototype.getConsensus = function (active, matched) {
 	if (library.config.forging.force) {
