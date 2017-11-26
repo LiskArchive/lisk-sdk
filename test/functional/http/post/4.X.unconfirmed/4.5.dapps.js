@@ -6,27 +6,27 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 
-describe('POST /api/transactions (validate type 4 on top of type 4)', function () {
+describe('POST /api/transactions (unconfirmed type 5 on top of type 4)', function () {
 
 	var scenarios = {
 		'regular': new shared.MultisigScenario(),
 	};
 
-	var transaction, signature;
+	var transaction;
 	var badTransactions = [];
 	var goodTransactions = [];
 
 	localShared.beforeValidationPhase(scenarios);
 
-	describe('registering multisig', function () {
+	describe('registering dapp', function () {
 
-		it('with an account already registered should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, 1, 2);
+		it('regular scenario should be ok', function () {
+			transaction = node.lisk.dapp.createDapp(scenarios.regular.account.password, null, node.guestbookDapp);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Account already has multisignatures enabled');
-				badTransactions.push(transaction);
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				goodTransactions.push(transaction);
 			});
 		});
 	});

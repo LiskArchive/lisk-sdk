@@ -18,7 +18,7 @@ function beforeUnconfirmedPhase (account) {
 				return waitForConfirmations([transaction.id]);
 			})
 			.then(function () {
-				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword, 1);
+				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -54,7 +54,7 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return waitForConfirmations([transaction.id]);
 			})
 			.then(function (res) {
-				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword, 1);
+				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction);
 			})

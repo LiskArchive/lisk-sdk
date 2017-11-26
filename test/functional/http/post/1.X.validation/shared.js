@@ -19,7 +19,7 @@ function beforeValidationPhase (account) {
 				return waitForConfirmations([transaction.id]);
 			})
 			.then(function () {
-				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword, 1);
+				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction);
 			})

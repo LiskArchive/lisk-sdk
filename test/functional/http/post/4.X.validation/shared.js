@@ -14,7 +14,6 @@ function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		// Crediting accounts
 		return node.Promise.all(Object.keys(scenarios).map(function (type) {
 			if (type === 'no_funds') {
 				return;
