@@ -4,11 +4,9 @@ var debug = require('debug')('swagger:lisk:error_handler');
 var util = require('util');
 
 module.exports = function create (fittingDef, bagpipes) {
-
 	debug('config: %j', fittingDef);
 
 	return function lisk_error_handler (context, next) {
-
 		if (!util.isError(context.error)) { return next(); }
 
 		var err = context.error;
@@ -26,6 +24,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		debug('exec: %s', context.error.message);
 		debug('status: %s', context.statusCode);
+		debug('stack: %s', context.error.stack);
 
 		if (context.statusCode === 500) {
 			if(!fittingDef.handle500Errors) {

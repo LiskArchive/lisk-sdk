@@ -1,6 +1,50 @@
 'use strict';
 
-describe('system', function () {
+var genesisDelegates = require('../../genesisDelegates.json');
+var modulesLoader = require('./../../common/modulesLoader');
+var node = require('./../../node.js');
+var expect = require('chai').expect;
+var DBSandbox = require('./../../common/globalBefore.js').DBSandbox;
+
+describe('node', function () {
+
+	var testDelegate = genesisDelegates.delegates[0];
+
+	var library;
+	var __private;
+
+	var db;
+	var dbSandbox;
+
+	before(function (done) {
+		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_modules_node');
+		dbSandbox.create(function (err, __db) {
+			modulesLoader.db = __db;
+			db = __db;
+			done(err);
+		});
+	});
+
+	after(function (done) {
+		dbSandbox.destroy();
+		node.appCleanup(done);
+	});
+
+	before(function (done) {
+		node.initApplication(function (err, scope) {
+			library = scope;
+
+			// Set delegates module as loaded to allow manual forging
+			library.rewiredModules.delegates.__set__('__private.loaded', true);
+			setTimeout(done, 5000);
+		}, {db: modulesLoader.db});
+	});
+
+	before(function (done) {
+		// Load forging delegates
+		__private = library.rewiredModules.delegates.__get__('__private');
+		__private.loadDelegates(done);
+	});
 
 	describe('constructor', function () {
 
@@ -24,6 +68,90 @@ describe('system', function () {
 		it('should call callback with error = null');
 
 		it('should call callback with result as a Node instance');
+	});
+
+	describe('internal', function () {
+
+		var node_module;
+
+		before(function () {
+			node_module = library.modules.node;
+		});
+
+		function updateForgingStatus (testDelegate, action, cb) {
+			node_module.internal.getForgingStatus(testDelegate.publicKey, function (err, res) {
+				if ((res[0].forging && action === 'disable') || (!res[0].forging && action === 'enable')) {
+					node_module.internal.toggleForgingStatus(testDelegate.publicKey, testDelegate.key, cb);
+				} else {
+					cb(err, {
+						publicKey: testDelegate.publicKey,
+						key: testDelegate.key
+					});
+				}
+			});
+		}
+
+		describe('toggleForgingStatus', function () {
+
+			var defaultKey;
+
+			before(function () {
+				defaultKey = library.config.forging.defaultKey;
+			});
+
+			it('should return error with invalid key', function (done) {
+				node_module.internal.toggleForgingStatus(testDelegate.publicKey, 'Invalid key', function (err) {
+					expect(err).to.equal('Invalid key and public key combination');
+					done();
+				});
+			});
+
+			it('should return error with invalid publicKey', function (done) {
+				var invalidPublicKey = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
+
+				node_module.internal.toggleForgingStatus(invalidPublicKey, defaultKey, function (err) {
+					expect(err).equal('Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found');
+					done();
+				});
+			});
+
+			it('should return error with non delegate account', function (done) {
+				node_module.internal.toggleForgingStatus(node.gAccount.publicKey, node.gAccount.password, function (err) {
+					expect(err).equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
+					done();
+				});
+			});
+
+			it('should toggle forging from enabled to disabled', function (done) {
+				updateForgingStatus(testDelegate, 'enable', function (err) {
+					expect(err).to.not.exist;
+
+					node_module.internal.toggleForgingStatus(testDelegate.publicKey, defaultKey, function (err, res) {
+						expect(err).to.not.exist;
+						expect(res).to.eql({
+							publicKey: testDelegate.publicKey,
+							forging: false
+						});
+						done();
+					});
+				});
+			});
+
+			it('should toggle forging from disabled to enabled', function (done) {
+				updateForgingStatus(testDelegate, 'disable', function (err) {
+					expect(err).to.not.exist;
+
+					node_module.internal.toggleForgingStatus(testDelegate.publicKey, defaultKey, function (err, res) {
+						expect(err).to.not.exist;
+						expect(res).to.eql({
+							publicKey: testDelegate.publicKey,
+							forging: true
+						});
+						done();
+					});
+				});
+			});
+		});
 	});
 
 	describe('shared', function () {

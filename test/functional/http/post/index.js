@@ -47,9 +47,11 @@ var pathFiles = [
 	'./4.X.validation/4.5.dapps',
 	'./4.X.validation/4.6.dapps.inTransfer',
 	'./4.X.validation/4.7.dapps.outTransfer',
-	
+
 	// Large number of transactions
-	'./3.votes'
+	'./3.votes',
+
+	'./../put/node'
 ];
 
 parallelTests(pathFiles, 'test/functional/http/post/');

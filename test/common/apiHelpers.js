@@ -98,6 +98,10 @@ function sendTransaction (transaction, cb) {
 	http.post('/api/transactions', {transactions: [transaction]}, httpResponseCallbackHelper.bind(null, cb));
 }
 
+function sendTransactions (transactions, cb) {
+	http.post('/api/transactions', {transactions: transactions}, httpResponseCallbackHelper.bind(null, cb));
+}
+
 function sendSignature (signature, transaction, cb) {
 	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpResponseCallbackHelper.bind(null, cb));
 }
@@ -236,6 +240,7 @@ var getMultisignaturesTransactionsPromise = node.Promise.promisify(getMultisigna
 var getPendingMultisignaturesPromise = node.Promise.promisify(getPendingMultisignatures);
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendTransactionPromise = node.Promise.promisify(sendTransaction);
+var sendTransactionsPromise = node.Promise.promisify(sendTransactions);
 var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
 var registerDelegatePromise = node.Promise.promisify(registerDelegate);
@@ -262,6 +267,7 @@ module.exports = {
 	getPendingMultisignaturesPromise: getPendingMultisignaturesPromise,
 	sendSignaturePromise: sendSignaturePromise,
 	sendTransactionPromise: sendTransactionPromise,
+	sendTransactionsPromise: sendTransactionsPromise,
 	creditAccount: creditAccount,
 	creditAccountPromise: creditAccountPromise,
 	getCount: getCount,

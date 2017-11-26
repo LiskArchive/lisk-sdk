@@ -98,7 +98,6 @@ var config = {
 	},
 	api: {
 		blocks: { http: './api/http/blocks.js' },
-		delegates: { http: './api/http/delegates.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
