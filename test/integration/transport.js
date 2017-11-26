@@ -35,6 +35,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			before(function () {
 				var secretsMaxLength = Math.ceil(devConfig.forging.secret.length / configurations.length);
 				var secrets = _.clone(devConfig.forging.secret);
+
 				configurations.forEach(function (configuration, index) {
 					configuration.forging.force = false;
 					configuration.forging.secret = secrets.slice(index * secretsMaxLength, (index + 1) * secretsMaxLength);
