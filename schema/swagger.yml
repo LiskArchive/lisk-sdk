@@ -252,7 +252,7 @@ paths:
         - Node
         - Delegates
         - Private
-      summary: returns the status of Forging for a delegate
+      summary: Returns the forging status of a delegate
       operationId: getForgingStatus
       description:
         By querying by publicKey, a delegates forging status on a node can be determined
@@ -286,7 +286,7 @@ paths:
         - Node
         - Delegates
         - Private
-      summary: Toggles forging for the associated Delegate
+      summary: Toggles the forging status of a delegate
       operationId: updateForgingStatus
       description:
         Upon passing the correct key and publicKey, forging will be enabled or disabled
@@ -344,7 +344,7 @@ paths:
     get:
       tags:
       - Delegates
-      summary: requests a list of Delegates data
+      summary: Requests a list of delegates
       operationId: getDelegates
       x-lisk-cache-enabled: true
       description:
@@ -408,7 +408,7 @@ paths:
     get:
       tags:
         - Delegates
-      summary: requests a list of next forgers
+      summary: Requests a list of next forgers
       operationId: getForgers
       description:
         By passing in the appropriate options, you can get a list of the next forgers
