@@ -334,13 +334,12 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 	modules.blocks.isActive.set(true);
 
 	async.series({
-		// TODO: new series: after validate block, validate each transaction and insert into database,
+		// TODO: New series: after validating block, validate each transaction and insert into database,
 		// sanitize transactionPool: delete transaction.id and if sender or receipt are in ready pool
 		// list, checkbalance again
-
 		applyTransactions: function (seriesCb) {
 			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-				// TODO: improve transaction to avoid call getAccount to get sender address
+				// TODO: Improve transaction to avoid call getAccount to get sender address
 				modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
