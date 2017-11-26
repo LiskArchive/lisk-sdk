@@ -40,7 +40,7 @@ module.exports = function create (fittingDef, bagpipes) {
 					logger.debug('Cache - Sending cached response for url:', context.request.url);
 					context.response.json(cachedValue);
 				} else {
-					next(null, context.input);
+					return next(null, context.input);
 				}
 			});
 		}
@@ -50,10 +50,10 @@ module.exports = function create (fittingDef, bagpipes) {
 			if(context.statusCode === 200 || context.response.statusCode === 200) {
 				logger.debug('Cache - Setting response cache for url:', context.request.url);
 				cache.setJsonForKey(cacheKey, context.input, function (err) {
-					next(null, context.input);
+					return next(null, context.input);
 				});
 			} else {
-				next(null, context.input);
+				return next(null, context.input);
 			}
 		}
 	};
