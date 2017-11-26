@@ -18,7 +18,7 @@ describe('POST /api/transactions (unconfirmed type 7 on top of type 4)', functio
 
 	localShared.beforeValidationPhaseWithDapp(scenarios);
 
-	describe('sending inTransfer', function () {
+	describe('sending outTransfer', function () {
 
 		it('regular scenario should be ok', function () {
 			transaction = node.lisk.transfer.createOutTransfer(scenarios.regular.dapp.id, node.randomTransaction().id, node.randomAccount().address, 1, scenarios.regular.account.password);

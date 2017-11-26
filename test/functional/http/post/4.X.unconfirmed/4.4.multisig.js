@@ -18,7 +18,7 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 4)', functio
 
 	localShared.beforeValidationPhase(scenarios);
 
-	describe('registering multisig', function () {
+	describe('registering multisignature', function () {
 
 		it('duplicate submission should be ok and only first transaction to arrive should be confirmed', function () {
 			transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, 1, 1);

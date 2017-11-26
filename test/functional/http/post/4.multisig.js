@@ -135,7 +135,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				});
 			});
 
-			it('just math operator should fail', function () {
+			it('using just math operator should fail', function () {
 				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+', '+'], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
