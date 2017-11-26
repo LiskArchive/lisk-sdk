@@ -415,7 +415,7 @@ __private.loadDelegates = function (cb) {
 Delegates.prototype.generateDelegateList = function (cb) {
 	library.db.query(sql.delegateList).then(function (result) {
 		__private.delegatesList = result[0].list;
-		// TODO: wait 0.9.10 backport to 1.0.0 to get delegate list
+		// TODO: Wait for 0.9.10 backport to 1.0.0 to get delegate list
 		return setImmediate(cb, null, __private.delegatesList);
 	}).catch(function (err) {
 		return setImmediate(cb, err);
