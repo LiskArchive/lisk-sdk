@@ -111,6 +111,7 @@ node._.mixin({
 			return s1lower.localeCompare(s2lower) * sortFactor;
 		});
 	},
+
 	/**
 	 * Lodash mixin to check occurrence of a value in end of of array
 	 *
@@ -119,7 +120,6 @@ node._.mixin({
 	 * @return {boolean}
 	 */
 	appearsInLast: function (arr, valueCheck) {
-
 		// Get list of indexes of desired value
 		var indices = node._.compact(arr.map(function (data, index) {
 			if (data === valueCheck ) { return index; }
@@ -134,7 +134,6 @@ node._.mixin({
 			return false;
 		}
 	}
-
 }, {chain: false});
 
 // Optional logging

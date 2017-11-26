@@ -69,7 +69,6 @@ NodeController.getStatus = function (context, next) {
 };
 
 NodeController.getForgingStatus = function (context, next) {
-
 	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
@@ -85,7 +84,6 @@ NodeController.getForgingStatus = function (context, next) {
 };
 
 NodeController.updateForgingStatus = function (context, next) {
-
 	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));

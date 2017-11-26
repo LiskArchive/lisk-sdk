@@ -21,10 +21,9 @@ var validator = require('../helpers/swagger').getValidator();
  * @param {Object} logger - Application Logger
  * @param {Object} scope - Application Scope
  * @param {function} cb - Callback function.
- * @returns {void} 
+ * @returns {void}
  */
 function bootstrapSwagger (app, config, logger, scope, cb) {
-
 	// Register modules to be used in swagger fittings
 	require('../helpers/swagger_module_registry').bind(scope);
 
@@ -46,7 +45,6 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 	};
 
 	SwaggerRunner.create(swaggerConfig, function (err, runner) {
-
 		if (err) {
 			// Some error occurred in configuring the swagger
 			if (err.validationErrors) {

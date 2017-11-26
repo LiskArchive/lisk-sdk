@@ -87,7 +87,6 @@ Node.prototype.internal = {
 
 // Public methods
 Node.prototype.shared = {
-
 	getConstants: function (req, cb) {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');

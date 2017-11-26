@@ -335,7 +335,6 @@ __private.loadDelegates = function (cb) {
 };
 
 // Public methods
-
 /**
  * Updates the forging status of an account, valid actions are enable and disable.
  * @param {publicKey} publicKey - PublicKey
@@ -484,7 +483,7 @@ Delegates.prototype.getForgers = function (query, cb) {
 		data.map(function (forger) {
 			forger.nextSlot = __private.delegatesList.indexOf(forger.publicKey) + currentSlot + 1;
 
-			return forger; 
+			return forger;
 		});
 		return setImmediate(cb, null, data);
 	}).catch(function (error) {
@@ -657,7 +656,6 @@ Delegates.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.shared = {
-
 	/**
 	 * Search forgers based on the query parameters
 	 *

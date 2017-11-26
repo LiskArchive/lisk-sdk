@@ -6,7 +6,6 @@ var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var node = require('../../../node');
 var genesisDelegates = require('../../../genesisDelegates.json');
 
-
 describe('PUT /node/status/forging', function () {
 
 	var validDelegate = genesisDelegates.delegates[0];
@@ -15,9 +14,7 @@ describe('PUT /node/status/forging', function () {
 
 	before(function () {
 		return forgingStatusEndpoint.makeRequest({publicKey: validDelegate.publicKey}, 200).then(function (res) {
-
 			if(!res.body.data[0].forging) {
-
 				return toggleForgingEndpoint.makeRequest({data: {publicKey: validDelegate.publicKey, decryptionKey: validDelegate.key}}, 200)
 					.then(function (res) {
 						res.body.data[0].publicKey.should.be.eql(validDelegate.publicKey);

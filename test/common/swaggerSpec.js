@@ -177,7 +177,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		res.statusCode.should.be.eql(expectedResponseCode);
 		res.headers['content-type'].should.match(/json/);
 		res.body.should.be.validResponse(self.getResponseSpecPath(expectedResponseCode));
-		
+
 		return res;
 	})
 		.catch(function (eror){

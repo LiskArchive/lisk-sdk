@@ -69,7 +69,6 @@ DelegatesController.getDelegates = function (context, next) {
 };
 
 DelegatesController.getForgers = function (context, next) {
-
 	var params = context.request.swagger.params;
 
 	var filters = {
