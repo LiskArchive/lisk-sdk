@@ -25,8 +25,7 @@ var self;
 __private.assetTypes = {};
 
 /**
- * Initializes library with scope content and generates a Transfer instance
- * and a TransactionPool instance.
+ * Initializes library with scope content and generates a Transfer instance.
  * Calls logic.transaction.attachAssetType().
  * @memberof module:transactions
  * @class
@@ -61,9 +60,9 @@ function Transactions (cb, scope) {
 
 // Private methods
 /**
- * Counts totals and gets transaction list from `trs_list` view.
+ * Counts totals and gets a transaction list from the db.
  * @private
- * @param {Object} filter
+ * @param {Object} filter - Filter object.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | data: {transactions, count}
  */
@@ -245,10 +244,10 @@ __private.getAssetForIdsBasedOnType = function (ids, type) {
 };
 
 /**
- * Gets transaction by calling parameter method.
+ * Gets a transaction from the pool.
  * @private
- * @param {Object} method
- * @param {Object} req
+ * @param {Object} method - Pool list method.
+ * @param {Object} req - Request object.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | data: {transaction}
  */
@@ -269,11 +268,11 @@ __private.getPooledTransaction = function (method, req, cb) {
 };
 
 /**
- * Gets transactions by calling parameter method.
+ * Gets pooled transactions.
  * Filters by senderPublicKey or address if they are present.
  * @private
- * @param {Object} method
- * @param {Object} req
+ * @param {Object} method - Pool list method.
+ * @param {Object} req - Request object.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | data: {transactions, count}
  */
@@ -304,9 +303,9 @@ __private.getPooledTransactions = function (method, req, cb) {
 
 // Public methods
 /**
- * Check if transaction is in pool.
+ * Checks if a transaction is in the pool.
  * @implements {transactionPool.get}
- * @param {string} id
+ * @param {string} id - Transaction id.
  * @return {boolean} False if transaction not in pool.
  */
 Transactions.prototype.transactionInPool = function (id) {
@@ -315,10 +314,10 @@ Transactions.prototype.transactionInPool = function (id) {
 };
 
 /**
- * Gets transaction from pool and check if is in pending signature list.
+ * Gets a transaction from the pool, and checks if it's pending signatures.
  * @implements {transactionPool.get}
- * @param {string} id
- * @return {transaction|undefined} Calls transactionPool.getMultisignatureTransaction
+ * @param {string} id - Transaction id.
+ * @return {transaction|undefined} Transaction object or undefined.
  */
 Transactions.prototype.getMultisignatureTransaction = function (id) {
 	var transaction = library.logic.transactionPool.get(id);
@@ -326,75 +325,74 @@ Transactions.prototype.getMultisignatureTransaction = function (id) {
 };
 
 /**
- * Gets unconfirmed transactions based on limit.
+ * Gets unconfirmed transactions, with a limit option.
  * @implements {transactionPool.getReady}
- * @param {number} limit
- * @return {transaction[]}
+ * @param {number} limit - Limit applied to results.
+ * @return {transaction[]} Calls transactionPool.getReady
  */
 Transactions.prototype.getUnconfirmedTransactionList = function (limit) {
 	return library.logic.transactionPool.getReady(limit);
 };
 
 /**
- * Gets queued transactions based on limit and reverse option.
+ * Gets queued transactions, with limit and reverse options.
  * @implements {transactionPool.getAll}
- * @param {boolean} reverse
- * @param {number} limit
- * @return {transaction[]}
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {transaction[]} Calls transactionPool.getAll
  */
 Transactions.prototype.getQueuedTransactionList = function (reverse, limit) {
 	return library.logic.transactionPool.getAll('unverified', {reverse: reverse, limit: limit});
 };
 
 /**
- * Gets multisignature transactions based on limit.
+ * Gets multisignature transactions, with a limit option.
  * @implements {transactionPool.getAll}
- * @param {boolean} reverse
- * @param {number} limit
- * @return {function} Calls transactionPool.getQueuedTransactionList
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {transaction[]} Calls transactionPool.getQueuedTransactionList
  */
 Transactions.prototype.getMultisignatureTransactionList = function (reverse, limit) {
 	return library.logic.transactionPool.getAll('pending', {reverse: reverse, limit: limit});
 };
 
 /**
- * Gets ready, pending and unverified transactions based on limit and reverse option.
+ * Gets ready, pending and unverified transactions, with limit and reverse options.
  * @implements {transactionPool.getMergedTransactionList}
- * @param {boolean} reverse
- * @param {number} limit
- * @return {function} ready + pending + unverified
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {transaction[]} Calls transactionPool.getMergedTransactionList
  */
 Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
 	return library.logic.transactionPool.getMergedTransactionList(reverse, limit);
 };
 
 /**
- * Removes transaction from unconfirmed, queued and multisignature.
+ * Removes an unconfirmed transaction from the pool.
  * @implements {transactionPool.delete}
- * @param {string} id
- * @return {function} Calls transactionPool.removeUnconfirmedTransaction
+ * @param {string} id - Transaction id.
+ * @return {boolean} Calls transactionPool.delete
  */
 Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 	return library.logic.transactionPool.delete(id);
 };
 
 /**
- * Removes transactions from pool lists if they are present and rechecks pool balance 
- * for sender.
+ * Removes transactions from the pool if they are present, and rechecks pool balance for sender.
  * @implements {transactionPool.sanitazeTransactions}
- * @param {string} id
- * @return {function} Calls transactionPool.sanitazeTransactions
+ * @param {string} id - Transaction id.
+ * @return {undefined} Calls transactionPool.sanitazeTransactions
  */
 Transactions.prototype.sanitizeTransactionPool = function (transactions) {
 	return library.logic.transactionPool.sanitizeTransactions(transactions);
 };
 
 /**
- * Adds a transaction to pool list if pass all validations.
+ * Adds a transaction to the pool if it passes all validations.
  * @implements {transactionPool.addFromPublic}
- * @param {string} caller peer or public
- * @param {transaction} transaction
- * @param {boolean} broadcast
+ * @param {string} caller - Name of caller: 'peer' or 'public'.
+ * @param {object} transaction - Transaction object.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  */
 Transactions.prototype.processUnconfirmedTransaction = function (caller, transaction, broadcast, cb) {
@@ -405,16 +403,17 @@ Transactions.prototype.processUnconfirmedTransaction = function (caller, transac
 };
 
 /**
- * Adds a transaction to pool list. It will be processed later by processPool worker.
+ * Adds a transaction to pool list for later processing by processPool worker.
  * @implements {transactionPool.addFromPeer}
- * @param {transaction} transactions
- * @param {boolean} broadcast
+ * @param {array} transactions - Transactions received from peer.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  */
 Transactions.prototype.processPeerTransactions = function (transactions, broadcast, cb) {
 	return library.logic.transactionPool.addFromPeer(transactions, broadcast, cb);
 };
 
+// TODO: Remove this function
 /**
  * Gets unconfirmed transactions list and applies unconfirmed transactions.
  * @param {function} cb - Callback function.
@@ -424,34 +423,34 @@ Transactions.prototype.applyUnconfirmedList = function (cb) {
 	return __private.transactionPool.applyUnconfirmedList(cb);
 };
 
+// TODO: Remove this function
 /**
  * Applies unconfirmed list to unconfirmed Ids.
- * @param {string[]} ids
+ * @param {string[]} ids - Transaction IDs.
  * @param {function} cb - Callback function.
  * @return {function} Calls transactionPool.applyUnconfirmedIds
  */
 Transactions.prototype.applyUnconfirmedIds = function (ids, cb) {
-	// TODO: delete this function
 	cb();
 };
 
+// TODO: Remove this function
 /**
  * Undoes unconfirmed list from queue.
  * @param {function} cb - Callback function.
  * @return {function} Calls transactionPool.undoUnconfirmedList
  */
 Transactions.prototype.undoUnconfirmedList = function (cb) {
-	// TODO: delete this function
 	cb();
 };
 
 /**
  * Applies confirmed transaction.
  * @implements {logic.transaction.apply}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
+ * @param {transaction} transaction - Transaction being applied.
+ * @param {object} block - Block that transaction is being applied within.
+ * @param {object} sender - Sender account.
+ * @param {function} cb - Callback function.
  */
 Transactions.prototype.apply = function (transaction, block, sender, cb) {
 	library.logger.debug('Applying confirmed transaction', transaction.id);
@@ -461,10 +460,10 @@ Transactions.prototype.apply = function (transaction, block, sender, cb) {
 /**
  * Undoes confirmed transaction.
  * @implements {logic.transaction.undo}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
+ * @param {transaction} transaction - Transaction being undone.
+ * @param {object} block - Block that transaction is being undone within.
+ * @param {object} sender - Sender account.
+ * @param {function} cb - Callback function.
  */
 Transactions.prototype.undo = function (transaction, block, sender, cb) {
 	library.logger.debug('Undoing confirmed transaction', transaction.id);
@@ -475,10 +474,10 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
  * Gets requester if requesterPublicKey and calls applyUnconfirmed.
  * @implements {modules.accounts.getAccount}
  * @implements {logic.transaction.applyUnconfirmed}
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors
+ * @param {object} transaction - Transaction object.
+ * @param {object} sender - Sender account.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} For error.
  */
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
@@ -505,12 +504,12 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 };
 
 /**
- * Validates account and Undoes unconfirmed transaction.
+ * Validates account and undoes unconfirmed transaction.
  * @implements {modules.accounts.getAccount}
  * @implements {logic.transaction.undoUnconfirmed}
- * @param {transaction} transaction
- * @param {function} cb
- * @return {setImmediateCallback} For error
+ * @param {object} transaction - Transaction object.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} For error.
  */
 Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
 	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
@@ -523,10 +522,11 @@ Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
 	});
 };
 
+// TODO: Remove this function
 /**
- * Receives transactions
- * @param {transaction[]} transactions
- * @param {Object} broadcast
+ * Receives transactions.
+ * @param {array} transactions - Received transactions.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  * @return {function} Calls transactionPool.receiveTransactions
  */
@@ -574,7 +574,7 @@ Transactions.prototype.onBind = function (scope) {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
+ * @todo Implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
 Transactions.prototype.shared = {
@@ -583,7 +583,7 @@ Transactions.prototype.shared = {
 			function (waterCb) {
 				// Query parameters which can have 1 or multiple values are parsed as strings when the have 1 value. We need to convert string into an array of length 1
 				_.each(req.body, function (value, key) {
-					// Dealing with parameters which must be array to array if they are string 
+					// Dealing with parameters which must be array to array if they are string
 					if (_.includes(['senderId', 'recipientId', 'senderPublicKey', 'recipientPublicKey'], key) && typeof value === 'string') {
 						req.body[key] = [value];
 					}
