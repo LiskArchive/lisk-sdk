@@ -214,13 +214,13 @@ function enableForgingOnDelegates (done) {
 	testNodeConfigs.forEach(function (testNodeConfig) {
 		testNodeConfig.secrets.forEach(function (keys) {
 			var enableForgingPromise = popsicle.put({
-				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging',
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/node/status/forging',
 				headers: {
 					'Accept': 'application/json',
-					'Content-Type': 'application/x-www-form-urlencoded'
+					'Content-Type': 'application/json'
 				},
 				body: {
-					key: 'elephant tree paris dragon chair galaxy',
+					decryptionKey: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey
 				}
 			});
