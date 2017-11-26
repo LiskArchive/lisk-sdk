@@ -85,9 +85,8 @@ node.swaggerDef = swaggerHelper.getSwaggerSpec();
 
 node._.mixin({
 	/**
-	 * Lodash mixin to sort collection case-insensitively
-	 *
-	 * @param {Array} arr
+	 * Lodash mixin to sort collection case-insensitively.
+	 * @param {Array} arr - Array to be sorted.
 	 * @param {string} [sortOrder=asc] - Sorting order asc|desc
 	 * @return {*}
 	 */
@@ -113,10 +112,9 @@ node._.mixin({
 	},
 
 	/**
-	 * Lodash mixin to check occurrence of a value in end of of array
-	 *
-	 * @param {Array} arr
-	 * @param {*} valueCheck
+	 * Lodash mixin to check occurrence of a value in end of of array.
+	 * @param {Array} arr - Array to be checked.
+	 * @param {*} valueCheck - Value to check for.
 	 * @return {boolean}
 	 */
 	appearsInLast: function (arr, valueCheck) {

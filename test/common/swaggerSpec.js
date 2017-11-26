@@ -201,7 +201,7 @@ SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
 };
 
 /**
- * Get full path of an endpoint
+ * Get full path of an endpoint.
  *
  * @return {string}
  */

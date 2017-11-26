@@ -41,11 +41,9 @@ function Node (cb, scope) {
 
 Node.prototype.internal = {
 	/**
-	 * Get forging status for a public key
-	 *
-	 * @param {string }publicKey
-	 * @param {function} cb - Callback function
-	 *
+	 * Get the forging status of a delegate.
+	 * @param {string} publicKey - Public key of delegate.
+	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getForgingStatus: function (publicKey, cb) {
@@ -68,12 +66,10 @@ Node.prototype.internal = {
 	},
 
 	/**
-	 * Toggle current forging status for a list of delegate
-	 *
-	 * @param {string} publicKey
-	 * @param {string} decryptionKey
-	 * @param {function} cb - Callback function
-	 *
+	 * Toggle the forging status of a delegate.
+	 * @param {string} publicKey - Public key of a delegate.
+	 * @param {string} decryptionKey - Key used to decrypt encrypted passphrase.
+	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
 	toggleForgingStatus: function (publicKey, decryptionKey, cb) {

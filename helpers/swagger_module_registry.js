@@ -4,9 +4,8 @@
 var __private = {};
 
 /**
- * A module to reference the scope of the application between swagger pipeline
- *
- * @param {Object} scope - Application Scope
+ * A module to reference the scope of the application between swagger pipeline.
+ * @param {Object} scope - Application scope.
  */
 function bind (scope) {
 	__private = {
@@ -16,7 +15,7 @@ function bind (scope) {
 }
 
 /**
- * Get cache module
+ * Get cache module.
  * @return {Object}
  */
 function getCache () {
@@ -24,7 +23,7 @@ function getCache () {
 }
 
 /**
- * Get system logger
+ * Get system logger.
  * @return {Object}
  */
 function getLogger () {

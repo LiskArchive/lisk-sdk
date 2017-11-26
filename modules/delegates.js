@@ -337,9 +337,9 @@ __private.loadDelegates = function (cb) {
 // Public methods
 /**
  * Updates the forging status of an account, valid actions are enable and disable.
- * @param {publicKey} publicKey - PublicKey
- * @param {string} secretKey - key used to decrypt encrypted passphrase
- * @param {function} cb
+ * @param {publicKey} publicKey - Public key of delegate.
+ * @param {string} secretKey - Key used to decrypt encrypted passphrase.
+ * @param {function} cb - Callback function.
  * @returns {setImmediateCallback}
  */
 Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
@@ -456,11 +456,10 @@ Delegates.prototype.getDelegates = function (query, cb) {
 };
 
 /**
- * Gets list forgers based on query parameters
- * @param {Object} query
- * @param {int} query.limit
- * @param {int} query.offset
- *
+ * Gets a list forgers based on query parameters.
+ * @param {Object} query - Query object.
+ * @param {int} query.limit - Limit applied to results.
+ * @param {int} query.offset - Offset value for results.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error| object
  */
@@ -558,9 +557,8 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 };
 
 /**
- * Get key pair list of delegates
- *
- * @return {*}
+ * Get an object of key pairs for delegates enabled for forging.
+ * @return {object} Of delegate key pairs.
  */
 Delegates.prototype.getForgersKeyPairs = function () {
 	return __private.keypairs;
@@ -657,14 +655,11 @@ Delegates.prototype.isLoaded = function () {
  */
 Delegates.prototype.shared = {
 	/**
-	 * Search forgers based on the query parameters
-	 *
-	 * @param {Object} filters - Filters applied to results
-	 * @param {int} filters.limit - Limit applied to results
-	 * @param {int} filters.offset - Offset value for results
-	 *
-	 * @param {function} cb - Callback function
-	 *
+	 * Search forgers based on the query parameters passed.
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getForgers: function (filters, cb) {
@@ -688,21 +683,18 @@ Delegates.prototype.shared = {
 	},
 
 	/**
-	 * Search accounts based on the query parameter passed.
-	 *
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.address - Account address
-	 * @param {string} filters.publicKey - Public key associated to account
-	 * @param {string} filters.secondPublicKey - Second public key associated to account
-	 * @param {string} filters.username - Username associated to account
-	 * @param {string} filters.sort - Field to sort results by
-	 * @param {string} filters.search - Field to sort results by
-	 * @param {string} filters.rank - Field to sort results by
-	 * @param {int} filters.limit - Limit applied to results
-	 * @param {int} filters.offset - Offset value for results
-	 *
-	 * @param {function} cb - Callback function
-	 *
+	 * Search accounts based on the query parameters passed.
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.address - Account address.
+	 * @param {string} filters.publicKey - Public key associated to account.
+	 * @param {string} filters.secondPublicKey - Second public key associated to account.
+	 * @param {string} filters.username - Username associated to account.
+	 * @param {string} filters.sort - Field to sort results by.
+	 * @param {string} filters.search - Field to sort results by.
+	 * @param {string} filters.rank - Field to sort results by.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getDelegates: function (filters, cb) {
