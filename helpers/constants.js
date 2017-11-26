@@ -114,7 +114,9 @@ var constants = {
 	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+	secondsPerHour: 3600,
+	signatureTransactionTimeOutMultiplier: 8
 };
 
 module.exports = constants;

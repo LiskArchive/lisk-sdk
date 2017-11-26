@@ -508,6 +508,7 @@ node.initApplication = function (cb, initScope) {
 			}],
 			logic: ['db', 'bus', 'schema', 'network', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../logic/transaction.js');
+				var TransactionPool = require('../logic/transactions/pool.js');
 				var Block = require('../logic/block.js');
 				var Multisignature = require('../logic/multisignature.js');
 				var Account = require('../logic/account.js');
@@ -539,6 +540,9 @@ node.initApplication = function (cb, initScope) {
 					}],
 					transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
 						new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
+					}],
+					transactionPool: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', 'transaction', function (scope, cb) {
+						new TransactionPool(scope.bus, scope.ed, scope.transaction, scope.account, scope.logger, node.config.transactions.pool, cb);
 					}],
 					block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 						new Block(scope.ed, scope.schema, scope.transaction, cb);

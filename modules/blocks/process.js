@@ -7,6 +7,7 @@ var Peer = require('../../logic/peer.js');
 var schema = require('../../schema/blocks.js');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
+var bson = require('../../helpers/bson.js');
 
 var modules, library, self, __private = {};
 
@@ -469,45 +470,42 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
  */
 Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 	// Get transactions that will be included in block
-	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
-	var ready = [];
-
-	async.eachSeries(transactions, function (transaction, cb) {
-		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
-			if (err || !sender) {
-				return setImmediate(cb, 'Sender not found');
-			}
-
-			// Check transaction depends on type
-			if (library.logic.transaction.ready(transaction, sender)) {
-				// Verify transaction
-				library.logic.transaction.verify(transaction, sender, function (err) {
-					ready.push(transaction);
-					return setImmediate(cb);
-				});
-			} else {
-				return setImmediate(cb);
-			}
+	var ready = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
+	var lastBlock = modules.blocks.lastBlock.get();
+	var block;
+	
+	try {
+		// Create a block
+		block = library.logic.block.create({
+			keypair: keypair,
+			timestamp: timestamp,
+			previousBlock: lastBlock,
+			transactions: ready
 		});
-	}, function () {
-		var block;
+	} catch (e) {
+		library.logger.error(e.stack);
+		return setImmediate(cb, e);
+	}
 
-		try {
-			// Create a block
-			block = library.logic.block.create({
-				keypair: keypair,
-				timestamp: timestamp,
-				previousBlock: modules.blocks.lastBlock.get(),
-				transactions: ready
-			});
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, e);
-		}
+	/* TODO: Apply this logic as part of #449
+	// Set block missed values
+	block.id = library.logic.block.getId(block);
+	block.height = lastBlock.height + 1;
 
-		// Start block processing - broadcast: true, saveBlock: true
-		modules.blocks.verify.processBlock(block, true, cb, true);
-	});
+	// Delete default properties
+	var blockReduced = modules.blocks.verify.deleteBlockProperties(block);
+	var serializedBlockReduced = bson.serialize(blockReduced);
+
+	// Broadcast block - broadcast: true
+	modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, block.id, true);
+
+	// Apply block - saveBlock: true
+	modules.blocks.chain.applyBlock(block, true, cb);
+	*/
+
+	// TODO: Delete this logic as part of #449
+	// Start block processing - broadcast: true, saveBlock: true
+	modules.blocks.verify.processBlock(block, true, cb, true);
 };
 
 /**

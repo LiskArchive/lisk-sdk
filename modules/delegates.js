@@ -419,6 +419,7 @@ __private.loadDelegates = function (cb) {
 Delegates.prototype.generateDelegateList = function (cb) {
 	library.db.query(sql.delegateList).then(function (result) {
 		__private.delegatesList = result[0].list;
+		// TODO: Wait for 0.9.10 backport to 1.0.0 to get delegate list
 		return setImmediate(cb, null, __private.delegatesList);
 	}).catch(function (err) {
 		return setImmediate(cb, err);
@@ -565,7 +566,7 @@ Delegates.prototype.onRoundChanged = function (data) {
 
 /**
  * Loads delegates.
- * @implements module:transactions#Transactions~fillPool
+ * @implements module:transactions#Transactions~processPool
  */
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
@@ -581,7 +582,7 @@ Delegates.prototype.onBlockchainReady = function () {
 
 			async.waterfall([
 				__private.forge,
-				modules.transactions.fillPool
+				modules.transactions.processPool
 			], function () {
 				return setImmediate(cb);
 			});

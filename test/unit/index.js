@@ -32,6 +32,7 @@ var pathFiles = [
 	'./logic/transfer.js',
 	'./logic/vote.js', // TODO: Needs fixing
 	'./logic/outTransfer.js',
+	'./logic/transactions/pool.js',
 
 	'./modules/accounts.js',
 	'./modules/app.js',

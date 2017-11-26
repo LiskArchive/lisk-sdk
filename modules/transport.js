@@ -194,7 +194,6 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 		if (!transaction) {
 			return setImmediate(eachSeriesCb, 'Unable to process transaction. Transaction is undefined.');
 		}
-		transaction.bundled = true;
 
 		__private.receiveTransaction(transaction, peer, extraLogMessage, function (err) {
 			if (err) {
@@ -235,12 +234,16 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	}
 
 	library.balancesSequence.add(function (cb) {
+		var caller;
+
 		if (!peer) {
 			library.logger.debug('Received transaction ' + transaction.id + ' from public client');
+			caller = 'public';
 		} else {
 			library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + library.logic.peers.peersManager.getAddress(peer.nonce));
+			caller = 'peer';
 		}
-		modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
+		modules.transactions.processUnconfirmedTransaction(caller, transaction, true, function (err) {
 			if (err) {
 				library.logger.debug(['Transaction', id].join(' '), err.toString());
 				if (transaction) { library.logger.debug('Transaction', transaction); }
