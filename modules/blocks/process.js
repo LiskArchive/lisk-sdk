@@ -486,7 +486,8 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 		library.logger.error(e.stack);
 		return setImmediate(cb, e);
 	}
-	/* Apply this logic as part of 449
+
+	/* TODO: Apply this logic as part of #449
 	// Set block missed values
 	block.id = library.logic.block.getId(block);
 	block.height = lastBlock.height + 1;
@@ -494,13 +495,15 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 	// Delete default properties
 	var blockReduced = modules.blocks.verify.deleteBlockProperties(block);
 	var serializedBlockReduced = bson.serialize(blockReduced);
+
 	// Broadcast block - broadcast: true
 	modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, block.id, true);
 
 	// Apply block - saveBlock: true
 	modules.blocks.chain.applyBlock(block, true, cb);
-*/
-	// delete this logic as part of 449
+	*/
+
+	// TODO: Delete this logic as part of #449
 	// Start block processing - broadcast: true, saveBlock: true
 	modules.blocks.verify.processBlock(block, true, cb, true);
 };
