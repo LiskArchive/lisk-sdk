@@ -2,27 +2,27 @@
 
 var BlocksSql = {
   sortFields: [
-    'id',
+    'block_id',
     'timestamp',
     'height',
-    'previousBlock',
-    'totalAmount',
-    'totalFee',
+    'previous_block_id',
+    'total_amount',
+    'total_fee',
     'reward',
-    'numberOfTransactions',
-    'generatorPublicKey'
+    'total_transactions',
+    'generator_public_key'
   ],
 
-  getGenesisBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
+  getGenesisBlockId: 'SELECT "block_id" AS id FROM blocks WHERE "block_id" = ${id}',
 
-  deleteBlock: 'DELETE FROM blocks WHERE "id" = ${id};',
+  deleteBlock: 'DELETE FROM blocks WHERE "block_id" = ${id};',
 
   aggregateBlocksReward: function (params) {
     return [
       'WITH',
       'delegate AS (SELECT',
-        '1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE(${generatorPublicKey}, \'hex\') LIMIT 1),',
-      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE pk = DECODE(${generatorPublicKey}, \'hex\')',
+        '1 FROM delegates d  where d."public_key" = DECODE(${generatorPublicKey}, \'hex\') LIMIT 1),',
+      'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE public_key = DECODE(${generatorPublicKey}, \'hex\')',
           (params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
           (params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
       ')',
@@ -53,15 +53,15 @@ var BlocksSql = {
 
   getCommonBlock: function (params) {
     return [
-      'SELECT COUNT("id")::int FROM blocks WHERE "id" = ${id}',
-      (params.previousBlock ? 'AND "previousBlock" = ${previousBlock}' : ''),
+      'SELECT COUNT("block_id")::int FROM blocks WHERE "block_id" = ${id}',
+      (params.previous_block_id ? 'AND "previous_block_id" = ${previousBlock}' : ''),
       'AND "height" = ${height}'
     ].filter(Boolean).join(' ');
   },
 
-  countByRowId: 'SELECT COUNT("rowId")::int FROM blocks',
+  countByRowId: 'SELECT COUNT("row_id")::int FROM blocks',
 
-  getHeightByLastId: 'SELECT "height" FROM blocks WHERE "id" = ${lastId}',
+  getHeightByLastId: 'SELECT "height" FROM blocks WHERE "block_id" = ${lastId}',
 
   loadBlocksData: function (params) {
     var limitPart;
@@ -85,9 +85,9 @@ var BlocksSql = {
 
   loadLastBlock: 'SELECT * FROM full_blocks_list WHERE "b_height" = (SELECT MAX("height") FROM blocks) ORDER BY "b_height", "t_rowId"',
 
-  getBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
+  getBlockId: 'SELECT "block_id" FROM blocks WHERE "block_id" = ${id}',
 
-  deleteAfterBlock: 'DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = ${id});'
+  deleteAfterBlock: 'DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "block_id" = ${id});'
 };
 
 module.exports = BlocksSql;

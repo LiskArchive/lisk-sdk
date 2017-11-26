@@ -1,7 +1,7 @@
 [
   {
     "name":"blocks",
-    "fields":["id", "rowId", "version", "timestamp", "height", "previousBlock", "numberOfTransactions", "totalAmount", "totalFee", "reward", "payloadLength", "payloadHash", "generatorPublicKey", "blockSignature"],
+    "fields":["block_id", "row_id", "version", "timestamp", "height", "previous_block_id", "total_transactions", "total_amount", "total_fee", "reward", "payload_length", "payload_hash", "generator_public_key", "signature"],
     "data":[
 			{
 				"id": "14919657220353560309",

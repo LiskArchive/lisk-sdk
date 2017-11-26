@@ -57,7 +57,7 @@ Delegate.prototype.verify = function (transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	if (sender.isDelegate) {
+	if (sender.username) {
 		return setImmediate(cb, 'Account is already a delegate');
 	}
 
@@ -144,84 +144,50 @@ Delegate.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * Checks transaction delegate and calls modules.accounts.getSender() with username.
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @todo delete extra parameter block.
  */
 Delegate.prototype.apply = function (transaction, block, sender, cb) {
-	var data = {
-		address: sender.address,
-		u_isDelegate: 0,
-		isDelegate: 1,
-		vote: 0,
-		u_username: null,
-		username: transaction.asset.delegate.username
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 /**
- * Checks transaction delegate and no nameexist and calls modules.accounts.setAccountAndGet() with u_username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * Checks transaction delegate and no nameexist and calls modules.accounts.getSender() with u_username.
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @todo delete extra parameter block.
  */
 Delegate.prototype.undo = function (transaction, block, sender, cb) {
-	var data = {
-		address: sender.address,
-		u_isDelegate: 1,
-		isDelegate: 0,
-		vote: 0,
-		username: null,
-		u_username: transaction.asset.delegate.username
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with u_username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * Checks transaction delegate and calls modules.accounts.getSender() with u_username.
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	var data = {
-		address: sender.address,
-		u_isDelegate: 1,
-		isDelegate: 0,
-		username: null,
-		u_username: transaction.asset.delegate.username
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with
+ * Checks transaction delegate and calls modules.accounts.getSender() with
  * username and u_username both null.
- * @implements module:accounts#Accounts~setAccountAndGet
+ * @implements module:accounts#Accounts~getSender
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	var data = {
-		address: sender.address,
-		u_isDelegate: 0,
-		isDelegate: 0,
-		username: null,
-		u_username: null
-	};
-
-	modules.accounts.setAccountAndGet(data, cb);
+	return setImmediate(cb);
 };
 
 Delegate.prototype.schema = {
@@ -276,9 +242,9 @@ Delegate.prototype.dbRead = function (raw) {
 Delegate.prototype.dbTable = 'delegates';
 
 Delegate.prototype.dbFields = [
-	'tx_id',
+	'transaction_id',
 	'name',
-	'pk',
+	'public_key',
 	'address'
 ];
 
@@ -292,9 +258,9 @@ Delegate.prototype.dbSave = function (transaction) {
 		table: this.dbTable,
 		fields: this.dbFields,
 		values: {
-			tx_id: transaction.id,
+			transaction_id: transaction.id,
 			name: transaction.asset.delegate.username,
-			pk: Buffer.from(transaction.senderPublicKey, 'hex'),
+			public_key: Buffer.from(transaction.senderPublicKey, 'hex'),
 			address: transaction.senderId
 		}
 	};

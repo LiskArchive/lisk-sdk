@@ -54,9 +54,20 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			});
 		});
 
-		it('when sender has no funds should fail', function () {
+		it('when sender not present on blockchain should fail', function () {
 			transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
 
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').that.to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+		
+		// TODO: Test this after an account is made empty
+		it.skip('when sender has no funds should fail', function () {
+			transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
+			
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
 				node.expect(res).to.have.nested.property('body.message').that.to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
@@ -132,17 +143,6 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			
 			it('using -1 should be ok', function () {
 				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, -1);
-
-				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// goodTransactions.push(transaction);
-				});
-			});
-
-			it('using 1 should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, node.gAccount.password, null, null, 1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

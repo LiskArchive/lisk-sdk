@@ -81,7 +81,7 @@ describe('Delegate list SQL functions', function () {
 		});
 	}
 
-	describe('generateDelegatesList()', function () {
+	describe('generate_delegates_list()', function () {
 
 		describe('results', function () {
 
@@ -432,7 +432,7 @@ describe('Delegate list SQL functions', function () {
 		});
 	});
 
-	describe('getDelegatesList()', function () {
+	describe('get_delegates_list()', function () {
 
 		it('SQL results should be equal to native - real 101 delegates from current database', function (done) {
 			db.task(function (t) {

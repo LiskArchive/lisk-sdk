@@ -8,57 +8,35 @@ var httpApi = require('../../helpers/httpApi');
  * - End point: `/api/delegates`
  * - Public API:
  * 	- get 	/
- * 	- get 	/count
- * 	- get 	/search
- * 	- get 	/voters
- * 	- get 	/get
- * 	- get 	/fee
- * 	- get 	/forging/getForgedByAccount
- * 	- get	/getNextForgers
+ * 	- get 	/forgers
  * - Private API:
- * 	- post 	/forging/enable
- * 	- post 	/forging/disable
- * 	- get 	/forging/status
- * - Debug API:
- * 	- get	/forging/disableAll
- * 	- get	/forging/enableAll
+ * 	- put 	/forging
+ * 	- get 	/forging
  * @memberof module:delegates
  * @requires helpers/Router
  * @requires helpers/httpApi
  * @constructor
  * @param {Object} delegatesModule - Module delegate instance.
  * @param {scope} app - Network app.
+ * @param {Logger} logger - Application logger.
+ * @param {Cache} cache - Cache module.
  */
-// Constructor
 function DelegatesHttpApi (delegatesModule, app, logger, cache) {
 
 	var router = new Router();
 
-	// attach a middlware to endpoints
+	// Attach a middleware to endpoints
 	router.attachMiddlwareForUrls(httpApi.middleware.useCache.bind(null, logger, cache), ['get /']);
 
 	router.map(delegatesModule.shared, {
 		'get /': 'getDelegates',
-		'get /count': 'count',
-		'get /search': 'search',
-		'get /voters': 'getVoters',
-		'get /get': 'getDelegate',
-		'get /fee': 'getFee',
-		'get /forging/getForgedByAccount': 'getForgedByAccount',
-		'get /getNextForgers': 'getNextForgers'
-	});
+		'get /forgers': 'getForgers'
+	}, {responseWithCode: true});
 
 	router.map(delegatesModule.internal, {
 		'put /forging': 'forgingToggle',
-		'get /forging/status': 'forgingStatus'
-	});
-
-	if (process.env.DEBUG) {
-		router.map(delegatesModule.internal, {
-			'get /forging/disableAll': 'forgingDisableAll',
-			'get /forging/enableAll': 'forgingEnableAll'
-		});
-	}
+		'get /forging': 'forgingStatus'
+	}, {responseWithCode: true});
 
 	httpApi.registerEndpoint('/api/delegates', app, router, delegatesModule.isLoaded);
 }

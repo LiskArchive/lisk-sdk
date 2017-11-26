@@ -82,6 +82,7 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
  * @param {function} cb - Callback function.
  */
 Accounts.prototype.getAccount = function (filter, fields, cb) {
+	// TODO: Find a better hack, this one is not good
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
 		delete filter.publicKey;
@@ -110,7 +111,8 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
  * @returns {setImmediateCallback} Errors.
  * @returns {function()} Call to logic.account.get().
  */
-Accounts.prototype.setAccountAndGet = function (data, cb) {
+// TODO: Remove this bad boy, replace with only get :D
+Accounts.prototype.getSender = function (data, cb) {
 	var address = data.address || null;
 	var err;
 
@@ -134,48 +136,32 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		}
 	}
 
-	library.logic.account.set(address, data, function (err) {
+	library.logic.account.get({address: address}, function (err, account) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.logic.account.get({address: address}, cb);
+
+		// Sets account variables for fresh accounts
+		// TODO: Refactor after transaction pool rewrite
+		if (account === null && data.type === transactionTypes.SEND) {
+			account = {};
+			account.balance = 0;
+			account.address = address;
+			account.publicKey = data.publicKey;
+			account.username = null;
+			account.secondPublicKey = null;
+			account.multisignatures = null;
+		} else if (account === null) {
+			err = 'Account does not exist';
+		} else if (account.address && !account.publicKey) {
+			account.publicKey = data.publicKey;
+			account.username = null;
+			account.secondPublicKey = null;
+			account.multisignatures = null;
+		}
+
+		return setImmediate(cb, err, account);
 	});
-};
-
-/**
- * Validates input address and calls logic.account.merge().
- * @implements module:accounts#Account~merge
- * @param {Object} data - Contains address and public key.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} for errors wit address and public key.
- * @returns {function} calls to logic.account.merge().
- * @todo improve publicKey validation try/catch
- */
-Accounts.prototype.mergeAccountAndGet = function (data, cb) {
-	var address = data.address || null;
-	var err;
-
-	if (address === null) {
-		if (data.publicKey) {
-			address = self.generateAddressByPublicKey(data.publicKey);
-		} else {
-			err = 'Missing address or public key';
-		}
-	}
-
-	if (!address) {
-		err = 'Invalid public key';
-	}
-
-	if (err) {
-		if (typeof cb === 'function') {
-			return setImmediate(cb, err);
-		} else {
-			throw err;
-		}
-	}
-
-	return library.logic.account.merge(address, data, cb);
 };
 
 // Events
@@ -211,53 +197,53 @@ Accounts.prototype.isLoaded = function () {
 Accounts.prototype.shared = {
 	/**
 	 * Search accounts based on the query parameter passed.
-	 * @param {Request} req
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.address - Account address
+	 * @param {string} filters.publicKey - Public key associated to account
+	 * @param {string} filters.secondPublicKey - Second public key associated to account
+	 * @param {string} filters.username - Username associated to account
+	 * @param {string} filters.sort - Field to sort results by
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getAccounts: function (req, cb) {
-		library.schema.validate(req.body, schema.getAccounts, function (err) {
+	getAccounts: function (filters, cb) {
+		library.logic.account.getAll(filters, function (err, accounts) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
+				return setImmediate(cb, err);
 			}
 
-			library.logic.account.getAll(req.body, function (err, accounts) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err, apiCodes.BAD_REQUEST));
-				}
-				accounts = accounts.map(function (account) {
-					var delegate = {};
+			accounts = accounts.map(function (account) {
+				var delegate = {};
 
-					// Only create delegate properties if account has a username
-					if (account.username) {
-						delegate = {
-							username: account.username,
-							vote: account.vote,
-							rewards: account.rewards,
-							producedBlocks: account.producedBlocks,
-							missedBlocks: account.missedBlocks,
-							rank: account.rank,
-							approval: account.approval,
-							productivity: account.productivity
-						};
-					}
-
-					return {
-						address: account.address,
-						unconfirmedBalance: account.u_balance,
-						balance: account.balance,
-						publicKey: account.publicKey,
-						unconfirmedSignature: account.u_secondSignature,
-						secondSignature: account.secondSignature,
-						secondPublicKey: account.secondPublicKey,
-						delegate: delegate
+				// Only create delegate properties if account has a username
+				if (account.username) {
+					delegate = {
+						username: account.username,
+						vote: account.vote,
+						rewards: account.rewards,
+						producedBlocks: account.producedBlocks,
+						missedBlocks: account.missedBlocks,
+						rank: account.rank,
+						approval: account.approval,
+						productivity: account.productivity
 					};
-				});
+				}
 
-				return setImmediate(cb, null, {
-					accounts: accounts
-				});
+				return {
+					address: account.address,
+					unconfirmedBalance: account.u_balance,
+					balance: account.balance,
+					publicKey: account.publicKey,
+					unconfirmedSignature: account.u_secondSignature,
+					secondSignature: account.secondSignature,
+					secondPublicKey: account.secondPublicKey,
+					delegate: delegate
+				};
 			});
+
+			return setImmediate(cb, null, accounts);
 		});
 	}
 };

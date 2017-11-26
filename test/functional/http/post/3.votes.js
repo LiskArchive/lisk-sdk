@@ -20,6 +20,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 	var accountNoFunds = node.randomAccount();
 	var accountMinimalFunds = node.randomAccount();
 	var accountDuplicates = node.randomAccount();
+	var delegateAssetAccount = node.randomAccount();
 
 	/*
 	Creating two scenarios with two isolated set of accounts
@@ -33,7 +34,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		is directly related to the maximum number of allowed votes per account. Another independent
 		account is credited and performs tests uniquely to delegates from this scenario.
 	*/
-	
+
 	// First Scenario
 	var accountMaxVotesPerTransaction = node.randomAccount();
 	var delegatesMaxVotesPerTransaction = [];
@@ -49,7 +50,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 		var transaction4 = node.lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * node.normalizer, node.gAccount.password);
 		var transaction5 = node.lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * node.normalizer, node.gAccount.password);
 		var transaction6 = node.lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, node.gAccount.password);
-		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5, transaction6);
+		var transaction7 = node.lisk.transaction.createTransaction(delegateAssetAccount.address, 1000 * node.normalizer, node.gAccount.password);
+		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5, transaction6, transaction7);
 
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
@@ -157,7 +159,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(delegateAccount, 'votes', badTransactions);
+		shared.invalidAssets('votes', badTransactions);
 	});
 
 	describe('transactions processing', function () {
@@ -212,13 +214,25 @@ describe('POST /api/transactions (type 3) votes', function () {
 			});
 		});
 
-		it('upvoting with no funds should fail', function () {
+		it('upvoting when sender not on blockchain should fail', function () {
 			accountNoFunds = node.randomAccount();
 			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+
+		// TODO: Test this after an account is made empty
+		it.skip('upvoting when sender has no funds should fail', function () {
+			accountNoFunds = node.randomAccount();
+			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + node.eAccount.publicKey]);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Account not found');
 				badTransactions.push(transaction);
 			});
 		});

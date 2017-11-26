@@ -35,8 +35,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		it('good transactions should not be unconfirmed', function () {
 			return node.Promise.map(goodTransactions, function (transaction) {
 				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+					node.expect(res).to.have.property('success').to.be.ok;
+					node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});
@@ -83,26 +83,32 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	});
 };
 
-function invalidAssets (account, option, badTransactions) {
+function invalidAssets (option, badTransactions) {
 
 	var transaction;
 
 	beforeEach(function () {
 		switch(option) {
 			case 'signature':
-				transaction = node.lisk.signature.createSignature(account.password, node.randomPassword());
+				transaction = node.lisk.signature.createSignature(node.gAccount.password, node.randomPassword());
 				break;
 			case 'delegate':
-				transaction = node.lisk.delegate.createDelegate(account.password, node.randomDelegateName());
+				transaction = node.lisk.delegate.createDelegate(node.gAccount.password, node.randomDelegateName());
 				break;
 			case 'votes':
-				transaction = node.lisk.vote.createVote(account.password, []);
+				transaction = node.lisk.vote.createVote(node.gAccount.password, []);
 				break;
 			case 'multisignature':
-				transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + node.eAccount.publicKey], 1, 2);
 				break;
 			case 'dapp':
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, node.guestbookDapp);
+				break;
+			case 'inTransfer':
+				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
+				break;
+			case 'outTransfer':
+				transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.gAccount.address, Date.now(), node.gAccount.password);
 				break;
 		};
 	});
@@ -158,19 +164,28 @@ function invalidAssets (account, option, badTransactions) {
 	});
 }
 
-function MultisigScenario (size, amount) {
+function MultisigScenario (options) {
+	if (!options) {
+		var options = {};
+	}
+
 	this.account = node.randomAccount();
 	this.members = [];
 	this.keysgroup = [];
 
+	if(!options.members) {
+		options.members = 3;
+	}
 	var i, auxAccount;
-	for (i = 0; i < size - 1; i++) {
+	for (i = 0; i < options.members - 1; i++) {
 		auxAccount = node.randomAccount();
 		this.members.push(auxAccount);
 		this.keysgroup.push('+' + auxAccount.publicKey);
 	}
 
-	this.amount = amount || 100000000000;
+	this.min = options.min || options.members - 1;
+	this.lifetime = options.lifetime || 1;
+	this.amount = options.amount || 100000000000;
 }
 
 module.exports = {

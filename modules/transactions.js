@@ -7,7 +7,7 @@ var crypto = require('crypto');
 var extend = require('extend');
 var apiCodes = require('../helpers/apiCodes.js');
 var ApiError = require('../helpers/apiError.js');
-var OrderBy = require('../helpers/orderBy.js');
+var sortBy = require('../helpers/sort_by.js').sortBy;
 var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactions/pool.js');
@@ -86,7 +86,7 @@ __private.list = function (filter, cb) {
 		minConfirmations:    'confirmations >= ${minConfirmations}',
 		limit: null,
 		offset: null,
-		orderBy: null,
+		sort: null,
 		// FIXME: Backward compatibility, should be removed after transitional period
 		ownerAddress: null,
 		ownerPublicKey: null
@@ -148,8 +148,8 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit, maximum is 1000');
 	}
 
-	var orderBy = OrderBy(
-		filter.orderBy, {
+	var sort = sortBy(
+		filter.sort, {
 			sortFields: sql.sortFields,
 			fieldPrefix: function (sortField) {
 				if (['height'].indexOf(sortField) > -1) {
@@ -163,8 +163,8 @@ __private.list = function (filter, cb) {
 		}
 	);
 
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
+	if (sort.error) {
+		return setImmediate(cb, sort.error);
 	}
 
 	var rawTransactionRows;
@@ -178,8 +178,8 @@ __private.list = function (filter, cb) {
 		return library.db.query(sql.list({
 			where: where,
 			owner: owner,
-			sortField: orderBy.sortField,
-			sortMethod: orderBy.sortMethod
+			sortField: sort.sortField,
+			sortMethod: sort.sortMethod
 		}), params);
 	}).then(function (rows) {
 		rawTransactionRows = rows;
@@ -482,6 +482,9 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
 Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
 
+	// TODO: Remove applyUnconfirmed entirely
+	return setImmediate(cb);
+
 	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else {
@@ -583,7 +586,7 @@ Transactions.prototype.shared = {
 			function (waterCb) {
 				// Query parameters which can have 1 or multiple values are parsed as strings when the have 1 value. We need to convert string into an array of length 1
 				_.each(req.body, function (value, key) {
-					// Dealing with parameters which must be array to array if they are string
+					// Deal with parameters which must be array to array if they are string
 					if (_.includes(['senderId', 'recipientId', 'senderPublicKey', 'recipientPublicKey'], key) && typeof value === 'string') {
 						req.body[key] = [value];
 					}

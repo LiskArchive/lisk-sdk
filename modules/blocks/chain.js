@@ -250,10 +250,10 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 	// Initialize block progress tracker
 	var tracker = modules.blocks.utils.getBlockProgressLogger(block.transactions.length, block.transactions.length / 100, 'Genesis block loading');
 	async.eachSeries(block.transactions, function (transaction, cb) {
-		// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
+		// Apply transactions through getSender, bypassing unconfirmed/confirmed states
 		// FIXME: Poor performance - every transaction cause SQL query to be executed
 		// WARNING: DB_WRITE
-		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
+		modules.accounts.getSender({publicKey: transaction.senderPublicKey, transaction: transaction}, function (err, sender) {
 			if (err) {
 				return setImmediate(cb, {
 					message: err,
@@ -461,7 +461,9 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					}, function (cb) {
 						// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
 						// WARNING: DB_WRITE
-						modules.transactions.undoUnconfirmed(transaction, cb);
+						// TODO: Refactor that function, async.series is not needed anymore
+						// modules.transactions.undoUnconfirmed(transaction, cb);
+						cb();
 					}, function (cb) {
 						return setImmediate(cb);
 					}
