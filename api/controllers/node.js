@@ -27,7 +27,8 @@ NodeController.getConstants = function (context, next) {
 
 			data = _.cloneDeep(data);
 
-			// Perform required typecasts for integer or bignum attributes when returning a response to the API
+			// Perform required typecasts for integer
+			// or bignum properties when returning an API response
 			data.supply = data.supply.toString();
 			data.milestone = data.milestone.toString();
 			data.reward = data.reward.toString();
@@ -56,8 +57,8 @@ NodeController.getStatus = function (context, next) {
 
 			data = _.cloneDeep(data);
 
-			// Check if attributes are null, then set it to 0
-			// as per schema defined for these attributes in swagger
+			// Check if properties are null, then set it to 0
+			// as per schema defined for these properties in swagger
 			data.networkHeight = data.networkHeight || 0;
 			data.consensus = data.consensus || 0;
 

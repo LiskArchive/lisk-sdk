@@ -14,7 +14,7 @@ module.exports = function create (fittingDef, bagpipes) {
 	return function lisk_cache (context, next) {
 		debug('exec', mode);
 
-		// If its not a swagger operation don't serve from pipeline
+		// If not a swagger operation don't serve from pipeline
 		if (!context.request.swagger.operation) {
 			return new Error('Not a swagger operation, will not process cache for response.');
 		}

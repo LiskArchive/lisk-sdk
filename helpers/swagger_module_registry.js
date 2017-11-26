@@ -1,6 +1,6 @@
 'use strict';
 
-// Private Fields
+// Private fields
 var __private = {};
 
 /**
