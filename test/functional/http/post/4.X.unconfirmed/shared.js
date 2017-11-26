@@ -18,6 +18,7 @@ function beforeValidationPhase (scenarios) {
 			if (type === 'no_funds') {
 				return;
 			}
+
 			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, node.gAccount.password);
 			transactionsToWaitFor.push(transaction.id);
 
@@ -52,6 +53,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 			if (type === 'no_funds') {
 				return;
 			}
+
 			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, node.gAccount.password);
 			transactionsToWaitFor.push(transaction.id);
 
@@ -65,7 +67,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 			})
 			.then(function () {
 				return node.Promise.all(Object.keys(scenarios).map(function (type) {
-					scenarios[type].dapp = node.randomApplication(); 
+					scenarios[type].dapp = node.randomApplication();
 					var transaction = node.lisk.dapp.createDapp(scenarios[type].account.password, null, scenarios[type].dapp);
 					scenarios[type].dapp.id = transaction.id;
 					transactionsToWaitFor.push(transaction.id);

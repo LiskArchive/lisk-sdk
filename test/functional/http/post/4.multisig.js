@@ -13,13 +13,13 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 	var scenarios = {
 		'no_funds': new shared.MultisigScenario(
-			{ 
-				'amount' : 0 
+			{
+				'amount' : 0
 			}
 		),
 		'minimal_funds': new shared.MultisigScenario(
-			{ 
-				'amount': constants.fees.multisignature * 3 
+			{
+				'amount': constants.fees.multisignature * 3
 			}
 		),
 		'max_members': new shared.MultisigScenario(
@@ -173,7 +173,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Array is too long (' + (constants.multisigConstraints.keysgroup.maxItems + 1) + '), maximum ' + constants.multisigConstraints.keysgroup.maxItems);
 					badTransactions.push(transaction);
 				});
-			});	
+			});
 		});
 
 		describe('min', function () {
@@ -262,7 +262,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				.then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-					
+
 					scenarios.regular.transaction = transaction;
 
 					return node.Promise.map(scenarios.regular.members, function (member) {
@@ -286,18 +286,18 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				.then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-					
+
 					return waitForConfirmations([transaction.id]);
 				})
-				.then(function () {				
+				.then(function () {
 					transaction = node.lisk.multisignature.createMultisignature(scenarios.regular_with_second_signature.account.password, scenarios.regular_with_second_signature.account.secondPassword, scenarios.regular_with_second_signature.keysgroup, 1, 2);
 
 					return sendTransactionPromise(transaction);
-				})	
+				})
 				.then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-					
+
 					scenarios.regular_with_second_signature.transaction = transaction;
 
 					return node.Promise.all(node.Promise.map(scenarios.regular_with_second_signature.members, function (member) {
@@ -320,7 +320,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				
+
 				scenarios.unsigned.transaction = transaction;
 				pendingMultisignatures.push(scenarios.unsigned.transaction);
 			});
