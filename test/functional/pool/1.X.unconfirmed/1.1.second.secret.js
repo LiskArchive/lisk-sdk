@@ -25,7 +25,7 @@ describe('POST /api/transactions (unconfirmed type 1 on top of type 1)', functio
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				// TODO: Enable when transaction pool order is fixed
-				//goodTransactions.push(transaction);
+				// goodTransactions.push(transaction);
 			});
 		});
 	});

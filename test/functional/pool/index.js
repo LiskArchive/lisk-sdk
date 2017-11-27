@@ -3,7 +3,6 @@
 var parallelTests = require('../../common/parallelTests').parallelTests;
 
 var pathFiles = [
-
 	'./1.X.unconfirmed/1.0.transfer',
 	'./1.X.unconfirmed/1.1.second.secret',
 	'./1.X.unconfirmed/1.2.delegate',
