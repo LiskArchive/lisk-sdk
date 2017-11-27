@@ -605,6 +605,11 @@ __private.loadBlocksFromNetwork = function (cb) {
  * @todo check err actions
  */
 __private.sync = function (cb) {
+	// Skip sync if block processing is active
+	if (modules.blocks.isActive.get()) {
+		return setImmediate(cb, 'Block processing is active, skipping sync');
+	}
+
 	library.logger.info('Starting sync');
 	library.bus.message('syncStarted');
 
@@ -612,10 +617,6 @@ __private.sync = function (cb) {
 	__private.syncTrigger(true);
 
 	async.series({
-		undoUnconfirmedList: function (seriesCb) {
-			library.logger.debug('Undoing unconfirmed transactions before sync');
-			return modules.transactions.undoUnconfirmedList(seriesCb);
-		},
 		getPeersBefore: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus before sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
@@ -629,10 +630,6 @@ __private.sync = function (cb) {
 		getPeersAfter: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus after sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
-		},
-		applyUnconfirmedList: function (seriesCb) {
-			library.logger.debug('Applying unconfirmed transactions after sync');
-			return modules.transactions.applyUnconfirmedList(seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;
