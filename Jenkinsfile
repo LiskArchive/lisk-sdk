@@ -38,6 +38,7 @@ pipeline {
 			steps {
 				sh '''
 				npm run build
+				npm run build:check
 				npm run build:browsertest
 				HTTP_PORT=808${EXECUTOR_NUMBER:-0}
 				npm run serve:browsertest -- -p $HTTP_PORT >access.log 2>&1 &

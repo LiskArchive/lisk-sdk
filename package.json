@@ -15,6 +15,7 @@
 		"serve:browsertest": "http-server browsertest",
 		"jenkins": "grunt jenkins --verbose",
 		"build": "grunt build",
+		"build:check": "node -e \"require('./dist-node')\"",
 		"build:browsertest": "grunt build-browsertest",
 		"precommit": "lint-staged && npm run eslint",
 		"prepush": "npm run eslint && npm test",
