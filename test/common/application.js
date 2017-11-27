@@ -270,7 +270,7 @@ function __init (initScope, done) {
 			// Overwrite syncing function to prevent interfere with tests
 			scope.modules.loader.syncing = function () {
 				return false;
-			}
+			};
 
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {

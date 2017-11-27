@@ -606,9 +606,9 @@ __private.loadBlocksFromNetwork = function (cb) {
  */
 __private.sync = function (cb) {
 	// Skip sync if block processing is active
-    if (modules.blocks.isActive.get()) {
-        return setImmediate(cb, 'Block processing is active, skipping sync');
-    }
+	if (modules.blocks.isActive.get()) {
+		return setImmediate(cb, 'Block processing is active, skipping sync');
+	}
 
 	library.logger.info('Starting sync');
 	library.bus.message('syncStarted');
