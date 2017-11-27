@@ -34,6 +34,7 @@ describe('GET /api/voters', function () {
 		describe('required fields', function () {
 
 			describe('when params are not defined', function () {
+
 				it('should fail with error message to require any of param', function () {
 					return votersEndpoint.makeRequest({}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
@@ -46,6 +47,7 @@ describe('GET /api/voters', function () {
 			});
 
 			describe('when only sort param provided', function () {
+
 				it('should fail with error message to require any of param', function () {
 					return votersEndpoint.makeRequest({sort: 'username:asc'}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
@@ -58,6 +60,7 @@ describe('GET /api/voters', function () {
 			});
 
 			describe('when only offset param provided', function () {
+
 				it('should fail with error message to require any of param', function () {
 					return votersEndpoint.makeRequest({offset: 1}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
@@ -70,6 +73,7 @@ describe('GET /api/voters', function () {
 			});
 
 			describe('when sort params provided', function () {
+
 				it('should fail with error message to require any of param', function () {
 					return votersEndpoint.makeRequest({sort: 'username:asc'}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
@@ -82,6 +86,7 @@ describe('GET /api/voters', function () {
 			});
 
 			describe('when all required params (address, publicKey, username) provided', function () {
+
 				it('should return the result for when querying with delegate_101 data', function () {
 					return votersEndpoint.makeRequest({
 						address: node.eAccount.address,
@@ -201,11 +206,13 @@ describe('GET /api/voters', function () {
 					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
 					node.gAccount.password
 				);
+
 				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
 					length: 10,
 					charset: 'alphabetic',
 					capitalization: 'lowercase'
 				}));
+
 				var voteByExtraDelegateVoterTransaction = node.lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
 
 				return sendTransactionPromise(enrichExtraDelegateVoterTransaction)

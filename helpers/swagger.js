@@ -25,7 +25,6 @@ var resolvedSwaggerSpec = null;
  * @return {Object} - Instance of z-schema validator.
  */
 function getValidator () {
-
 	// Get validator instace attached to Swagger
 	var validator = SwayHelpers.getJSONSchemaValidator();
 
@@ -82,7 +81,6 @@ function getSwaggerSpec () {
  * @return {object}
  */
 function generateParamsErrorObject (params, messages, codes) {
-
 	if (!codes){ codes = []; }
 
 	var error = new Error('Validation errors');
@@ -92,6 +90,7 @@ function generateParamsErrorObject (params, messages, codes) {
 		var def = p.parameterObject;
 		return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
 	});
+
 	return error;
 }
 

@@ -34,8 +34,10 @@ function Voters (cb, scope) {
 
 var getDelegate = function (query, cb) {
 	var dbQuery = _.assign({}, query, {sort: {}});
+
 	delete dbQuery.limit;
 	delete dbQuery.offset;
+
 	return modules.accounts.getAccount(dbQuery, ['publicKey', 'username', 'address', 'balance'], cb);
 };
 
@@ -78,7 +80,6 @@ Voters.prototype.isLoaded = function () {
 
 // Public methods
 Voters.prototype.shared = {
-
 	/**
 	 * API function for getting the delegate including his voters
 	 * @param {Object} filters
@@ -101,6 +102,7 @@ Voters.prototype.shared = {
 			if (err) {
 				return setImmediate(cb, err);
 			}
+
 			results.delegate.voters = results.populatedVoters;
 			results.delegate.votes = results.votersCount;
 
