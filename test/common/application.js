@@ -267,6 +267,11 @@ function __init (initScope, done) {
 			currentAppScope = scope;
 			node.debug('initApplication: Rewired modules available');
 
+			// Overwrite syncing function to prevent interfere with tests
+			scope.modules.loader.syncing = function () {
+				return false;
+			}
+
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {
 				node.debug('initApplication: Fake onBlockchainReady event called');
