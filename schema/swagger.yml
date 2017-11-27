@@ -101,7 +101,7 @@ paths:
       operationId: getDapps
       description:
         By passing in the appropriate options, you can search for
-        specified a dapp in the system, otherwise returns a list
+        a specified dapp in the system, otherwise returns a list
       produces:
       - application/json
       parameters:
@@ -349,7 +349,7 @@ paths:
       x-lisk-cache-enabled: true
       description:
         By passing in the appropriate options, you can search for
-        specified delegate in the system, otherwise returns a list
+        a specified delegate in the system, otherwise returns a list
       produces:
       - application/json
       parameters:
@@ -440,12 +440,12 @@ paths:
     get:
       tags:
         - Blocks
-      summary: requests blocks data
+      summary: Requests blocks data
       operationId: getBlocks
       x-lisk-cache-enabled: true
       description:
         By passing in the appropriate options, you can search for
-        specified Block in the system
+        a specified block in the system
       produces:
         - application/json
       parameters:
@@ -460,7 +460,7 @@ paths:
           format: publicKey
         - in: query
           name: sort
-          description: fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -475,7 +475,7 @@ paths:
           default: height:desc
       responses:
         200:
-          description: search results matching criteria
+          description: Search results matching criteria
           schema:
             $ref: '#/definitions/BlocksResponse'
         400:
