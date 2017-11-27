@@ -5,8 +5,14 @@ var modulesLoader = require('../../../common/modulesLoader');
 
 var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
 var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/apiHelpers');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+var _ = node._;
 
-describe('GET /api/blocks', function () {
+describe('GET /blocks', function () {
+
+	var blocksEndpoint = new swaggerEndpoint('GET /blocks');
 
 	// Testnet genesis block data
 	var block = {
@@ -19,26 +25,18 @@ describe('GET /api/blocks', function () {
 
 	var testBlocksUnder101 = false;
 
-	function expectValidNonEmptyBlocks (res) {
-		node.expect(res.statusCode).equal(200);
-		node.expect(res).to.have.nested.property('body.blocks').that.is.an('array').and.is.not.empty;
-		node.expect(res).to.have.nested.property('body.blocks.0.id').to.be.a('string');
-		node.expect(res).to.have.nested.property('body.blocks.0.totalAmount').to.be.a('number');
-		node.expect(res).to.have.nested.property('body.blocks.0.totalFee').to.be.a('number');
-		node.expect(res).to.have.nested.property('body.blocks.0.generatorId').to.be.a('string');
-		node.expect(res).to.have.nested.property('body.blocks.0.blockSignature').to.be.a('string');
-		node.expect(res).to.have.nested.property('body.blocks.0.height').to.be.a('number').and.to.be.at.least(1);
-		if (res.body.blocks[0].height === 1) {
-			node.expect(res).to.have.nested.property('body.blocks.0.previousBlock').to.be.null;
-		} else {
-			node.expect(res).to.have.nested.property('body.blocks.0.previousBlock').to.be.a('string');
-		}
+	function expectHeightCheck (res) {
+		res.body.data.forEach(function (block) {
+			if (block.height === 1) {
+				block.previousBlockId.should.be.empty;
+			}
+		});
 	}
 
 	describe('from (cache)', function () {
 
 		var cache;
-		var url = '/api/blocks?';
+		var url = blocksEndpoint.getPath() + '?';
 		var getJsonForKeyPromise;
 
 		before(function (done) {
@@ -68,104 +66,108 @@ describe('GET /api/blocks', function () {
 			var params = [
 				'height=' + block.blockHeight
 			];
+			var initialResponse = null;
 
-			return getBlocksPromise(params).then(function (res) {
-				node.expect(res).to.have.nested.property('body.blocks').that.is.an('array');
-				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
+			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
+				expectHeightCheck(res);
+				initialResponse = res;
 				return node.Promise.all([0, 10, 100].map(function (delay) {
 					return node.Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
-				})).then(function (responses) {
-					node.expect(responses).to.deep.include(res.body);
-				});
+				}));
+			}).then(function (responses) {
+				responses.should.deep.include(initialResponse.body);
 			});
 		});
 
 		it('should not cache if response is not a success', function () {
-			var height = -1000;
-			var params = [
-				'height=' + height
-			];
 
-			return getBlocksPromise(params).then(function (res) {
-				node.expect(res).to.have.nested.property('body.message').to.equal('Value ' + height + ' is less than minimum 1');
-				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(null);
-				});
+			var params = [
+				'height=' + -100
+			];
+			var initialResponse = null;
+
+			return blocksEndpoint.makeRequest({height: -100}, 400).then(function (res) {
+				expectSwaggerParamError(res, 'height');
+				initialResponse = res;
+				return getJsonForKeyPromise(url + params.join('&'));
+			}).then(function (response) {
+				node.expect(response).to.eql(null);
 			});
 		});
 
 		it('should remove entry from cache on new block', function () {
-			var auxResponse;
 			var params = [
 				'height=' + block.blockHeight
 			];
-			
-			return getBlocksPromise(params)
-				.then(function (res) {
-					expectValidNonEmptyBlocks(res);
-					auxResponse = res.body;
-					// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-					return node.Promise.all([0, 10, 100].map(function (delay) {
-						return node.Promise.delay(delay).then(function () {
-							return getJsonForKeyPromise(url + params.join('&'));
-						});
-					})).then(function (responses) {
-						node.expect(responses).to.deep.include(auxResponse);
+			var initialResponse = null;
+
+			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
+				expectHeightCheck(res);
+				initialResponse = res;
+				return node.Promise.all([0, 10, 100].map(function (delay) {
+					return node.Promise.delay(delay).then(function () {
+						return getJsonForKeyPromise(url + params.join('&'));
 					});
-				})
-				.then(function () {
-					return onNewBlockPromise();
-				})
-				.then(function () {
-					return getJsonForKeyPromise(url + params.join('&'));
-				})
-				.then(function (result) {
-					node.expect(result).to.eql(null);
-				});
+				}));
+			}).then(function (responses) {
+				responses.should.deep.include(initialResponse.body);
+			}).then(function () {
+				return onNewBlockPromise();
+			}).then(function () {
+				return getJsonForKeyPromise(url + params.join('&'));
+			}).then(function (result) {
+				node.expect(result).to.eql(null);
+			});
 		});
 	});
 
 	describe('?', function () {
 
-		describe('id', function () {
+		describe('blockId', function () {
+
+			it('using invalid blockId = "InvalidId" format should fail with error', function () {
+				return blocksEndpoint.makeRequest({blockId: 'InvalidId'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'blockId');
+				});
+			});
 
 			it('using genesisblock id should return the result', function () {
 				var id = '6524861224470851795';
-				var params = [
-					'id=' + id
-				];
 
-				return getBlocksPromise(params).then(function (res){
-					expectValidNonEmptyBlocks(res);
-					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').that.have.nested.property('0.id').equal(id);
+				return blocksEndpoint.makeRequest({blockId: id}, 200).then(function (res) {
+					res.body.data[0].id.should.equal(id);
+					expectHeightCheck(res);
 				});
 			});
 
 			it('using unknown id should return empty blocks array', function () {
-				var id = '9928719876370886655';
-				var params = [
-					'id=' + id
-				];
-
-				return getBlocksPromise(params).then(function (res){
-					node.expect(res.statusCode).equal(200);
-					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').and.to.be.empty;
+				return blocksEndpoint.makeRequest({blockId: '9928719876370886655'}, 200).then(function (res) {
+					res.body.data.should.be.empty;
+					expectHeightCheck(res);
 				});
 			});
 		});
 
 		describe('height', function () {
 
-			it('using correct params should be ok', function () {
-				var params = [
-					'height=' + block.blockHeight
-				];
+			it('using invalid height = 0 should fail with error', function () {
+				return blocksEndpoint.makeRequest({height: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'height');
+				});
+			});
 
-				return getBlocksPromise(params).then(function (res){
-					expectValidNonEmptyBlocks(res);
-					node.expect(res).to.have.nested.property('body.blocks.0.height').to.be.a('number').equal(block.blockHeight);
+			it('using invalid height = -1 should fail with error', function () {
+				return blocksEndpoint.makeRequest({height: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'height');
+				});
+			});
+
+			it('using correct params should be ok', function () {
+				return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
+					res.body.data[0].height.should.equal(block.blockHeight);
+					expectHeightCheck(res);
 				});
 			});
 
@@ -173,90 +175,104 @@ describe('GET /api/blocks', function () {
 				if (!testBlocksUnder101) {
 					return this.skip();
 				}
-				var params = [
-					'height=' + 10
-				];
 
-				return getBlocksPromise(params).then(function (res) {
-					expectValidNonEmptyBlocks(res.body);
-					node.expect(res).to.have.nested.property('body.blocks.0.height').to.be.a('number').equal(10);
+				return blocksEndpoint.makeRequest({height: 10}, 200).then(function (res) {
+					res.body.data[0].height.should.equal(10);
+					expectHeightCheck(res);
 				});
 			});
 		});
 
 		describe('generatorPublicKey', function () {
 
-			it('using correct params should be ok', function () {
-				var params = [
-					'generatorPublicKey=' + block.generatorPublicKey
-				];
-
-				return getBlocksPromise(params).then(function (res) {
-					expectValidNonEmptyBlocks(res);
-					for (var i = 0; i < res.body.blocks.length; i++) {
-						node.expect(res.body.blocks[i].generatorPublicKey).to.equal(block.generatorPublicKey);
-					}
+			it('using invalid generatorPublicKey = "InvalidKey" format should fail with error', function () {
+				return blocksEndpoint.makeRequest({generatorPublicKey: 'InvalidKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'generatorPublicKey');
 				});
 			});
-		});
-
-		describe('totalFee', function () {
 
 			it('using correct params should be ok', function () {
-				var params = [
-					'totalFee=' + block.totalFee
-				];
-
-				return getBlocksPromise(params).then(function (res) {
-					expectValidNonEmptyBlocks(res);
-					for (var i = 0; i < res.body.blocks.length; i++) {
-						node.expect(res.body.blocks[i].totalFee).to.equal(block.totalFee);
-					}
+				return blocksEndpoint.makeRequest({generatorPublicKey: block.generatorPublicKey}, 200).then(function (res) {
+					res.body.data[0].generatorPublicKey.should.equal(block.generatorPublicKey);
+					expectHeightCheck(res);
 				});
 			});
 		});
 
 		describe('sort', function () {
 
-			it('using "height:asc" should be ok', function () {
-				var params = [
-					'sort=' + 'height:asc'
-				];
+			describe('height', function () {
 
-				return getBlocksPromise(params).then(function (res) {
-					expectValidNonEmptyBlocks(res);
-					for (var i = 0; i < res.body.blocks.length; i++) {
-						if (res.body.blocks[i + 1] != null) {
-							node.expect(res.body.blocks[i].height).to.be.below(res.body.blocks[i + 1].height);
-						}
-					}
+				it('using "height:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'height:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('height').sortNumbers().should.be.eql(_.map(res.body.data, 'height'));
+					});
+				});
+
+				it('using "height:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'height:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('height').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'height'));
+					});
+				});
+
+				it('using empty params should sort results by descending height', function () {
+					return blocksEndpoint.makeRequest({}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('height').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'height'));
+					});
 				});
 			});
 
-			it('using "height:desc" should be ok', function () {
-				var params = [
-					'sort=' + 'height:desc'
-				];
+			describe('totalAmount', function () {
 
-				return getBlocksPromise(params).then(function (res) {
-					expectValidNonEmptyBlocks(res);
-					for (var i = 0; i < res.body.blocks.length; i++) {
-						if (res.body.blocks[i + 1] != null) {
-							node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
-						}
-					}
+				it('using "totalAmount:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalAmount:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('forged.totalAmount').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('forged.totalAmount').map(_.toInteger).value());
+					});
+				});
+
+				it('using "totalAmount:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalAmount:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('forged.totalAmount').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('forged.totalAmount').map(_.toInteger).value());
+					});
 				});
 			});
 
-			it('using empty params should sort results by descending height', function () {
-				var params = [];
+			describe('totalFee', function () {
 
-				return getBlocksPromise(params).then(function (res) {
-					for (var i = 0; i < res.body.blocks.length; i++) {
-						if (res.body.blocks[i + 1] != null) {
-							node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
-						}
-					}
+				it('using "totalFee:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalFee:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('forged.totalFee').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('forged.totalFee').map(_.toInteger).value());
+					});
+				});
+
+				it('using "totalFee:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalFee:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('forged.totalFee').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('forged.totalFee').map(_.toInteger).value());
+					});
+				});
+			});
+
+			describe('timestamp', function () {
+
+				it('using "timestamp:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'timestamp:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('timestamp').sortNumbers().should.be.eql(_.map(res.body.data, 'timestamp'));
+					});
+				});
+
+				it('using "timestamp:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'timestamp:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('timestamp').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'timestamp'));
+					});
 				});
 			});
 		});
@@ -264,74 +280,38 @@ describe('GET /api/blocks', function () {
 		describe('limit', function () {
 
 			it('using string should return bad request response', function () {
-				var limit = 'one';
-				var params = [
-					'limit=' + limit
-				];
-
-				return getBlocksPromise(params).then(function (res){
-					node.expect(res.statusCode).equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Expected type integer but found type string');
+				return blocksEndpoint.makeRequest({limit: 'one'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
 				});
 			});
 
 			it('using -1 should return bad request response', function () {
-				var limit = -1;
-				var params = [
-					'limit=' + limit
-				];
-
-				return getBlocksPromise(params).then(function (res){
-					node.expect(res.statusCode).equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Value -1 is less than minimum 1');
+				return blocksEndpoint.makeRequest({limit: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
 				});
 			});
 
 			it('using 0 should return bad request response', function () {
-				var limit = 0;
-				var params = [
-					'limit=' + limit
-				];
-
-				return getBlocksPromise(params).then(function (res){
-					node.expect(res.statusCode).equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Value 0 is less than minimum 1');
+				return blocksEndpoint.makeRequest({limit: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
 				});
 			});
 
 			it('using 1 should be ok', function () {
-				var limit = 1;
-				var params = [
-					'limit=' + limit
-				];
-
-				return getBlocksPromise(params).then(function (res){
-					expectValidNonEmptyBlocks(res);
-					node.expect(res).to.have.nested.property('body.blocks').that.is.an('array').and.have.a.lengthOf.at.most(limit);
+				return blocksEndpoint.makeRequest({limit: 1}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
 				});
 			});
 
 			it('using 100 should be ok', function () {
-				var limit = 100;
-				var params = [
-					'limit=' + limit
-				];
-
-				return getBlocksPromise(params).then(function (res) {
-					expectValidNonEmptyBlocks(res);
-					node.expect(res).to.have.nested.property('body.blocks').that.is.an('array').and.have.a.lengthOf.at.most(limit);
+				return blocksEndpoint.makeRequest({limit: 100}, 200).then(function (res) {
+					res.body.data.should.have.length(100);
 				});
 			});
 
 			it('using > 100 should return bad request response', function () {
-				var limit = 101;
-				var params = [
-					'limit=' + limit
-				];
-
-				return getBlocksPromise(params).then(function (res){
-					node.expect(res.statusCode).equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Value 101 is greater than maximum 100');
+				return blocksEndpoint.makeRequest({limit: 101}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
 				});
 			});
 		});
@@ -339,38 +319,20 @@ describe('GET /api/blocks', function () {
 		describe('offset', function () {
 
 			it('using string should return bad request response', function () {
-				var offset = 'one';
-				var params = [
-					'offset=' + offset
-				];
-
-				return getBlocksPromise(params).then(function (res){
-					node.expect(res.statusCode).equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Expected type integer but found type string');
+				return blocksEndpoint.makeRequest({offset: 'one'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
 				});
 			});
 
 			it('using -1 should return bad request response', function () {
-				var offset = -1;
-				var params = [
-					'offset=' + offset
-				];
-
-				return getBlocksPromise(params).then(function (res) {
-					node.expect(res.statusCode).equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Value -1 is less than minimum 0');
+				return blocksEndpoint.makeRequest({offset: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
 				});
 			});
 
 			it('using 1 should be ok', function () {
-				var offset = 1;
-				var params = [
-					'offset=' + offset
-				];
-
-				return getBlocksPromise(params).then(function (res) {
-					expectValidNonEmptyBlocks(res);
-					node.expect(res).to.have.nested.property('body.blocks').to.be.an('array').that.have.nested.property('0.height').to.be.above(1);
+				return blocksEndpoint.makeRequest({offset: 1}, 200).then(function (res) {
+					res.body.data[0].height.should.be.above(1);
 				});
 			});
 		});
