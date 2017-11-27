@@ -27,6 +27,16 @@ describe('POST /api/transactions (unconfirmed type 5 on top of type 1)', functio
 				badTransactions.push(transaction);
 			});
 		});
+
+		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
+			transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				goodTransactions.push(transaction);
+			});
+		});
 	});
 
 	describe('confirmation', function () {

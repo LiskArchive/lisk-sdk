@@ -11,6 +11,7 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 	var transaction;
 	var badTransactions = [];
 	var goodTransactions = [];
+	var pendingMultisignatures = [];
 
 	var account = node.randomAccount();
 
@@ -27,10 +28,20 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 				badTransactions.push(transaction);
 			});
 		});
+
+		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
+			transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey], 1, 1);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				pendingMultisignatures.push(transaction);
+			});
+		});
 	});
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		shared.confirmationPhase(goodTransactions, badTransactions, pendingMultisignatures);
 	});
 });
