@@ -252,7 +252,7 @@ paths:
         - Node
         - Delegates
         - Private
-      summary: Returns the forging status of a delegate
+      summary: Requests forging status of a delegate
       operationId: getForgingStatus
       description:
         By querying by publicKey, a delegates forging status on a node can be determined
@@ -440,7 +440,7 @@ paths:
     get:
       tags:
         - Votes
-      summary: equests vote data for a given delegate.
+      summary: Requests voters of a delegate.
       operationId: getVoters
       description:
         This API call returns all votes for a given delegate. Must provide at least one of the filter parameters.
