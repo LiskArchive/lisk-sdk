@@ -81,16 +81,16 @@ Voters.prototype.isLoaded = function () {
 // Public methods
 Voters.prototype.shared = {
 	/**
-	 * API function for getting the delegate including his voters
-	 * @param {Object} filters
-	 * @param {string} filters.username
-	 * @param {string} filters.address
-	 * @param {string} filters.publicKey
-	 * @param {string} filters.secondPublicKey
-	 * @param {string} filters.sort
-	 * @param {int} filters.offset
-	 * @param {int} filters.limit
-	 * @param {function} cb
+	 * API function for getting the delegate including his voters.
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.username - Username associated to account.
+	 * @param {string} filters.address - Account address.
+	 * @param {string} filters.publicKey - Public key associated to account.
+	 * @param {string} filters.secondPublicKey - Second public key associated to account.
+	 * @param {string} filters.sort - Field to sort results by.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
 	 */
 	getVoters: function (filters, cb) {
 		async.autoInject({
