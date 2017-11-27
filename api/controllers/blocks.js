@@ -40,22 +40,13 @@ BlocksController.getBlocks = function (context, next) {
 
 		data = _.map(data, function (block) {
 
-			block.forged = {
-				numberOfTransactions: block.numberOfTransactions,
-				totalAmount: block.totalAmount.toString(),
-				totalFee: block.totalFee.toString(),
-				reward: block.reward.toString(),
-				totalForged: block.totalForged
-			};
-
+			block.totalAmount = block.totalAmount.toString();
+			block.totalFee = block.totalFee.toString();
+			block.reward = block.reward.toString();
+			block.totalForged = block.totalForged.toString();
 			block.generatorAddress = block.generatorId;
 			block.previousBlockId = block.previousBlock || '';
 
-			delete block.numberOfTransactions;
-			delete block.totalAmount;
-			delete block.totalFee;
-			delete block.reward;
-			delete block.totalForged;
 			delete block.previousBlock;
 			delete block.generatorId;
 

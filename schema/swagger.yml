@@ -849,14 +849,18 @@ definitions:
       - height
       - timestamp
       - generatorPublicKey
-      - forged
+      - numberOfTransactions
+      - totalAmount
+      - totalFee
+      - reward
+      - totalForged
     properties:
       id:
         type: string
         format: id
         minLength: 1
         maxLength: 20
-        example: 6258354802676165798
+        example: "6258354802676165798"
       version:
         type: integer
         example: 0
@@ -893,28 +897,22 @@ definitions:
       previousBlockId:
         type: string
         format: id
-        example: 15918760246746894806
-      forged:
-        $ref: '#/definitions/BlockFees'
-
-  BlockFees:
-    type: object
-    properties:
+        example: "15918760246746894806"
       numberOfTransactions:
         type: integer
         example: 15
       totalAmount:
         type: string
-        example: 150000000
+        example: "150000000"
       totalFee:
         type: string
-        example: 15000000
+        example: "15000000"
       reward:
         type: string
-        example: 50000000
+        example: "50000000"
       totalForged:
         type: string
-        example: 65000000
+        example: "65000000"
 
   ForgingStatus:
     type: object
