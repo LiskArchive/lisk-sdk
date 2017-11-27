@@ -18,8 +18,8 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;
-	const secret = 'secret';
-	const secondSecret = 'second secret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey =
@@ -37,8 +37,8 @@ describe('#registerSecondPassphrase transaction', () => {
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		registerSecondPassphraseTransaction = registerSecondPassphrase({
-			secret,
-			secondSecret,
+			passphrase,
+			secondPassphrase,
 		});
 	});
 
@@ -52,7 +52,11 @@ describe('#registerSecondPassphrase transaction', () => {
 
 	it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 		const offset = -10;
-		registerSecondPassphrase({ secret, secondSecret, timeOffset: offset });
+		registerSecondPassphrase({
+			passphrase,
+			secondPassphrase,
+			timeOffset: offset,
+		});
 
 		getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 	});
@@ -155,8 +159,8 @@ describe('#registerSecondPassphrase transaction', () => {
 
 			it('should have the correct publicKey if the provided second passphrase is an empty string', () => {
 				registerSecondPassphraseTransaction = registerSecondPassphrase({
-					secret,
-					secondSecret: '',
+					passphrase,
+					secondPassphrase: '',
 				});
 				registerSecondPassphraseTransaction.asset.signature.publicKey.should.be.equal(
 					emptyStringPublicKey,

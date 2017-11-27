@@ -20,8 +20,8 @@ describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const recipientId = '58191285901858109L';
 	const testData = 'data';
-	const secret = 'secret';
-	const secondSecret = 'second secret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
@@ -38,13 +38,13 @@ describe('#transfer transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with first secret', () => {
+	describe('with first passphrase', () => {
 		describe('without data', () => {
 			beforeEach(() => {
 				transferTransaction = transfer({
 					recipientId,
 					amount,
-					secret,
+					passphrase,
 				});
 			});
 
@@ -61,7 +61,7 @@ describe('#transfer transaction', () => {
 				transfer({
 					recipientId,
 					amount,
-					secret,
+					passphrase,
 					timeOffset: offset,
 				});
 
@@ -141,7 +141,7 @@ describe('#transfer transaction', () => {
 				transferTransaction = transfer({
 					recipientId,
 					amount,
-					secret,
+					passphrase,
 					data: testData,
 				});
 			});
@@ -151,7 +151,7 @@ describe('#transfer transaction', () => {
 					.bind(null, {
 						recipientId,
 						amount,
-						secret,
+						passphrase,
 						data: Buffer.from('hello'),
 					})
 					.should.throw(
@@ -177,13 +177,13 @@ describe('#transfer transaction', () => {
 		});
 	});
 
-	describe('with first and second secret', () => {
+	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			transferTransaction = transfer({
 				recipientId,
 				amount,
-				secret,
-				secondSecret,
+				passphrase,
+				secondPassphrase,
 			});
 		});
 
@@ -191,8 +191,8 @@ describe('#transfer transaction', () => {
 			transferTransaction = transfer({
 				recipientId,
 				amount,
-				secret,
-				secondSecret,
+				passphrase,
+				secondPassphrase,
 				data: testData,
 			});
 

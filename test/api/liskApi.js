@@ -43,8 +43,8 @@ describe('Lisk API module', () => {
 		nethash: '123',
 		version: '0.0.0a',
 	});
-	const defaultSecret = 'secret';
-	const defaultSecondSecret = 'second secret';
+	const defaultPassphrase = 'secret';
+	const defaultSecondPassphrase = 'second secret';
 	const GET = 'GET';
 	const POST = 'POST';
 	const defaultRequestLimit = 10;
@@ -871,15 +871,15 @@ describe('Lisk API module', () => {
 				const options = {
 					recipientId,
 					amount: defaultAmount,
-					secret: defaultSecret,
-					secondSecret: defaultSecondSecret,
+					passphrase: defaultPassphrase,
+					secondPassphrase: defaultSecondPassphrase,
 				};
 
 				LSK.transferLSK(
 					recipientId,
 					defaultAmount,
-					defaultSecret,
-					defaultSecondSecret,
+					defaultPassphrase,
+					defaultSecondPassphrase,
 					callback,
 				);
 				LSK.sendRequest.should.be.calledWithExactly(

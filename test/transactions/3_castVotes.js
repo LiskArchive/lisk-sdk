@@ -17,8 +17,8 @@ import castVotes from '../../src/transactions/3_castVotes';
 const time = require('../../src/transactions/utils/time');
 
 describe('#castVotes transaction', () => {
-	const secret = 'secret';
-	const secondSecret = 'second secret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const publicKeys = [`+${publicKey}`];
@@ -34,9 +34,9 @@ describe('#castVotes transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with first secret', () => {
+	describe('with first passphrase', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes({ secret, delegates: publicKeys });
+			castVotesTransaction = castVotes({ passphrase, delegates: publicKeys });
 		});
 
 		it('should create a cast votes transaction', () => {
@@ -49,7 +49,7 @@ describe('#castVotes transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			castVotes({ secret, delegates: publicKeys, timeOffset: offset });
+			castVotes({ passphrase, delegates: publicKeys, timeOffset: offset });
 
 			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
@@ -149,12 +149,12 @@ describe('#castVotes transaction', () => {
 		});
 	});
 
-	describe('with first and second secret', () => {
+	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({
-				secret,
+				passphrase,
 				delegates: publicKeys,
-				secondSecret,
+				secondPassphrase,
 			});
 		});
 

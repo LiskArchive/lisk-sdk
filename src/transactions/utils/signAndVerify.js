@@ -18,32 +18,32 @@ import getTransactionHash from './getTransactionHash';
 /**
  * @method signTransaction
  * @param transaction Object
- * @param secret string
+ * @param passphrase string
  *
  * @return {string}
  */
 
-export const signTransaction = (transaction, secret) => {
+export const signTransaction = (transaction, passphrase) => {
 	const transactionHash = getTransactionHash(transaction);
-	return crypto.signData(transactionHash, secret);
+	return crypto.signData(transactionHash, passphrase);
 };
 
 /**
  * @method multiSignTransaction
  * @param transaction Object
- * @param secret string
+ * @param passphrase string
  *
  * @return {string}
  */
 
-export const multiSignTransaction = (transaction, secret) => {
+export const multiSignTransaction = (transaction, passphrase) => {
 	const transactionToSign = Object.assign({}, transaction);
 	delete transactionToSign.signature;
 	delete transactionToSign.signSignature;
 
 	const transactionHash = getTransactionHash(transactionToSign);
 
-	return crypto.signData(transactionHash, secret);
+	return crypto.signData(transactionHash, passphrase);
 };
 
 /**

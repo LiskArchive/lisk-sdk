@@ -21,8 +21,8 @@ describe('#transferOutOfDapp', () => {
 	const transactionId = '9876567';
 	const recipientId = '989234L';
 	const dappId = '1234213';
-	const secret = 'secret';
-	const secondSecret = 'secondSecret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'secondSecret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = (10 * fixedPoint).toString();
@@ -39,14 +39,14 @@ describe('#transferOutOfDapp', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with first secret', () => {
+	describe('with first passphrase', () => {
 		beforeEach(() => {
 			transferOutOfDappTransaction = transferOutOfDapp({
 				dappId,
 				transactionId,
 				recipientId,
 				amount,
-				secret,
+				passphrase,
 			});
 		});
 
@@ -64,7 +64,7 @@ describe('#transferOutOfDapp', () => {
 				transactionId,
 				recipientId,
 				amount,
-				secret,
+				passphrase,
 				timeOffset: offset,
 			});
 
@@ -156,15 +156,15 @@ describe('#transferOutOfDapp', () => {
 			});
 		});
 
-		describe('with first and second secret', () => {
+		describe('with first and second passphrase', () => {
 			beforeEach(() => {
 				transferOutOfDappTransaction = transferOutOfDapp({
 					dappId,
 					transactionId,
 					recipientId,
 					amount,
-					secret,
-					secondSecret,
+					passphrase,
+					secondPassphrase,
 				});
 			});
 

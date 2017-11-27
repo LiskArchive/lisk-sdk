@@ -26,8 +26,8 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
  * @param {Object} Object - Object
  * @param {String} Object.dappId
  * @param {String} Object.amount
- * @param {String} Object.secret
- * @param {String} Object.secondSecret
+ * @param {String} Object.passphrase
+ * @param {String} Object.secondPassphrase
  * @param {Number} Object.timeOffset
  *
  * @return {Object}
@@ -36,11 +36,11 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
 const transferIntoDapp = ({
 	dappId,
 	amount,
-	secret,
-	secondSecret,
+	passphrase,
+	secondPassphrase,
 	timeOffset,
 }) => {
-	const keys = cryptoModule.getKeys(secret);
+	const keys = cryptoModule.getKeys(passphrase);
 
 	const transaction = {
 		type: 6,
@@ -56,7 +56,7 @@ const transferIntoDapp = ({
 		},
 	};
 
-	return prepareTransaction(transaction, secret, secondSecret);
+	return prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default transferIntoDapp;

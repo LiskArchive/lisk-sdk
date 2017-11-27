@@ -217,18 +217,18 @@ export default class LiskAPI {
 	 * @method transferLSK
 	 * @param recipientId
 	 * @param amount
-	 * @param secret
-	 * @param secondSecret
+	 * @param passphrase
+	 * @param secondPassphrase
 	 * @param callback
 	 *
 	 * @return {Object}
 	 */
 
-	transferLSK(recipientId, amount, secret, secondSecret, callback) {
+	transferLSK(recipientId, amount, passphrase, secondPassphrase, callback) {
 		return this.sendRequest(
 			POST,
 			'transactions',
-			{ recipientId, amount, secret, secondSecret },
+			{ recipientId, amount, passphrase, secondPassphrase },
 			callback,
 		);
 	}

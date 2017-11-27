@@ -16,14 +16,14 @@ import { bufferToHex, getAddress } from './convert';
 import hash from './hash';
 
 /**
- * @method getPrivateAndPublicKeyBytesFromSecret
- * @param secret
+ * @method getPrivateAndPublicKeyBytesFromPassphrase
+ * @param passphrase
  *
  * @return {object}
  */
 
-export const getPrivateAndPublicKeyBytesFromSecret = secret => {
-	const hashed = hash(secret, 'utf8');
+export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
+	const hashed = hash(passphrase, 'utf8');
 
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(hashed);
 
@@ -34,15 +34,15 @@ export const getPrivateAndPublicKeyBytesFromSecret = secret => {
 };
 
 /**
- * @method getPrivateAndPublicKeyFromSecret
- * @param secret
+ * @method getPrivateAndPublicKeyFromPassphrase
+ * @param passphrase
  *
  * @return {object}
  */
 
-export const getPrivateAndPublicKeyFromSecret = secret => {
-	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromSecret(
-		secret,
+export const getPrivateAndPublicKeyFromPassphrase = passphrase => {
+	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromPassphrase(
+		passphrase,
 	);
 
 	return {
@@ -53,22 +53,22 @@ export const getPrivateAndPublicKeyFromSecret = secret => {
 
 /**
  * @method getKeys
- * @param secret string
+ * @param passphrase string
  *
  * @return {object}
  */
 
-export const getKeys = getPrivateAndPublicKeyFromSecret;
+export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
 /**
- * @method getAddressAndPublicKeyFromSecret
- * @param secret
+ * @method getAddressAndPublicKeyFromPassphrase
+ * @param passphrase
  *
  * @return {object}
  */
 
-export const getAddressAndPublicKeyFromSecret = secret => {
-	const accountKeys = getKeys(secret);
+export const getAddressAndPublicKeyFromPassphrase = passphrase => {
+	const accountKeys = getKeys(passphrase);
 	const accountAddress = getAddress(accountKeys.publicKey);
 
 	return {

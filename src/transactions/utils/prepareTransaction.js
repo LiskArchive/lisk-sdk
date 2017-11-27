@@ -15,19 +15,19 @@
 import { signTransaction } from './signAndVerify';
 import getTransactionId from './getTransactionId';
 
-const secondSignTransaction = (transactionObject, secondSecret) =>
+const secondSignTransaction = (transactionObject, secondPassphrase) =>
 	Object.assign({}, transactionObject, {
-		signSignature: signTransaction(transactionObject, secondSecret),
+		signSignature: signTransaction(transactionObject, secondPassphrase),
 	});
 
-const prepareTransaction = (transaction, secret, secondSecret) => {
+const prepareTransaction = (transaction, passphrase, secondPassphrase) => {
 	const singleSignedTransaction = Object.assign({}, transaction, {
-		signature: signTransaction(transaction, secret),
+		signature: signTransaction(transaction, passphrase),
 	});
 
 	const signedTransaction =
-		typeof secondSecret === 'string' && transaction.type !== 1
-			? secondSignTransaction(singleSignedTransaction, secondSecret)
+		typeof secondPassphrase === 'string' && transaction.type !== 1
+			? secondSignTransaction(singleSignedTransaction, secondPassphrase)
 			: singleSignedTransaction;
 
 	const transactionWithId = Object.assign({}, signedTransaction, {

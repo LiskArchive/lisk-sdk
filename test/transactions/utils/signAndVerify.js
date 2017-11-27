@@ -23,7 +23,7 @@ import cryptoModule from '../../../src/crypto';
 const getTransactionHash = require('../../../src/transactions/utils/getTransactionHash');
 
 describe('signAndVerify transaction utils', () => {
-	const defaultSecret =
+	const defaultPassphrase =
 		'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPublicKey =
 		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
@@ -71,17 +71,17 @@ describe('signAndVerify transaction utils', () => {
 
 		beforeEach(() => {
 			transaction = Object.assign({}, defaultTransaction);
-			signature = signTransaction(transaction, defaultSecret);
+			signature = signTransaction(transaction, defaultPassphrase);
 		});
 
 		it('should get the transaction hash', () => {
 			getTransactionHashStub.should.be.calledWithExactly(transaction);
 		});
 
-		it('should sign the transaction hash with the secret', () => {
+		it('should sign the transaction hash with the passphrase', () => {
 			cryptoSignDataStub.should.be.calledWithExactly(
 				defaultHash,
-				defaultSecret,
+				defaultPassphrase,
 			);
 		});
 
@@ -117,7 +117,7 @@ describe('signAndVerify transaction utils', () => {
 			getTransactionHashStub.returns(defaultMultisignatureHash);
 			signature = multiSignTransaction(
 				multiSignatureTransaction,
-				defaultSecret,
+				defaultPassphrase,
 			);
 		});
 
@@ -126,10 +126,10 @@ describe('signAndVerify transaction utils', () => {
 			getTransactionHashStub.args[0].should.not.have.property('signSignature');
 		});
 
-		it('should sign the transaction hash with the secret', () => {
+		it('should sign the transaction hash with the passphrase', () => {
 			cryptoSignDataStub.should.be.calledWithExactly(
 				defaultMultisignatureHash,
-				defaultSecret,
+				defaultPassphrase,
 			);
 		});
 

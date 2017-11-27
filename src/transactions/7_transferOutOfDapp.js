@@ -28,8 +28,8 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
  * @param {String} Object.transactionId
  * @param {String} Object.recipientId
  * @param {String} Object.amount
- * @param {String} Object.secret
- * @param {String} Object.secondSecret
+ * @param {String} Object.passphrase
+ * @param {String} Object.secondPassphrase
  * @param {Number} Object.timeOffset
  *
  * @return {Object}
@@ -40,11 +40,11 @@ const transferOutOfDapp = ({
 	transactionId,
 	recipientId,
 	amount,
-	secret,
-	secondSecret,
+	passphrase,
+	secondPassphrase,
 	timeOffset,
 }) => {
-	const keys = cryptoModule.getKeys(secret);
+	const keys = cryptoModule.getKeys(passphrase);
 
 	const transaction = {
 		type: 7,
@@ -61,7 +61,7 @@ const transferOutOfDapp = ({
 		},
 	};
 
-	return prepareTransaction(transaction, secret, secondSecret);
+	return prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default transferOutOfDapp;
