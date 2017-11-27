@@ -82,7 +82,6 @@ describe('GET /blocks', function () {
 		});
 
 		it('should not cache if response is not a success', function () {
-
 			var params = [
 				'height=' + -100
 			];

@@ -39,7 +39,6 @@ BlocksController.getBlocks = function (context, next) {
 		data = _.cloneDeep(data);
 
 		data = _.map(data, function (block) {
-
 			block.totalAmount = block.totalAmount.toString();
 			block.totalFee = block.totalFee.toString();
 			block.reward = block.reward.toString();

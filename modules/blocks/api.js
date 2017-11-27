@@ -163,6 +163,7 @@ API.prototype.getBlocks = function (filters, cb) {
 			if (err) {
 				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
 			}
+
 			return setImmediate(cb, null, data);
 		});
 	}, cb);
