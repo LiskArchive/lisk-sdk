@@ -131,6 +131,20 @@ node._.mixin({
 		} else {
 			return false;
 		}
+	},
+
+	/**
+	 * Lodash mixin to sort integer array correctly. Node default sort method sort them by ASCII codes.
+	 * @param {Array} arr - Array to be sorted.
+	 * @param {string} [sortOrder=asc] - Sorting order asc|desc
+	 * @return {*}
+	 */
+	sortNumbers: function (arr, sortOrder) {
+		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
+
+		return arr.sort(function (a, b) {
+			return (a - b) * sortFactor;
+		});
 	}
 }, {chain: false});
 

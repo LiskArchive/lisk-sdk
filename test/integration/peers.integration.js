@@ -429,7 +429,7 @@ describe('integration', function () {
 					});
 				})).then(function (results) {
 					nodesBlocks = results.map(function (res) {
-						return JSON.parse(res.body).blocks;
+						return JSON.parse(res.body).data;
 					});
 					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
 				});

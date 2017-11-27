@@ -146,32 +146,27 @@ __private.list = function (filter, cb) {
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 			blocks.push(library.logic.block.dbRead(rows[i]));
 		}
-		return setImmediate(cb, null, {blocks: blocks});
+		return setImmediate(cb, null, blocks);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Blocks#list error');
 	});
 };
 
-API.prototype.getBlocks = function (req, cb) {
+API.prototype.getBlocks = function (filters, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.schema.validate(req.body, schema.getBlocks, function (err) {
-		if (err) {
-			return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
-		}
+	library.dbSequence.add(function (cb) {
+		__private.list(filters, function (err, data) {
+			if (err) {
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
+			}
 
-		library.dbSequence.add(function (cb) {
-			__private.list(req.body, function (err, data) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
-				}
-				return setImmediate(cb, null, {blocks: data.blocks, count: data.count});
-			});
-		}, cb);
-	});
+			return setImmediate(cb, null, data);
+		});
+	}, cb);
 };
 
 /**
