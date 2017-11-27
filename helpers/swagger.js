@@ -14,20 +14,15 @@ var resolvedSwaggerSpec = null;
 
 /**
  * Uses Default Swagger Validator and extend with custom formats.
- *
  * @name swagger
  * @memberof module:helpers
- *
  * @requires module:helpers:z_schema
  * @requires sway
- *
  */
 
-
 /**
- * Get Extended version of swagger validator
- *
- * @return {Object} - Instance of z-schema validator
+ * Get extended version of swagger validator.
+ * @return {Object} - Instance of z-schema validator.
  */
 function getValidator () {
 
@@ -44,9 +39,8 @@ function getValidator () {
 }
 
 /**
- * Get Resolved Swagger Spec in JSON format
- *
- * @return {Promise} - Resolved promise with content of resolved json spec
+ * Get resolved swagger spec in JSON format.
+ * @return {Promise} - Resolved promise with content of resolved json spec.
  */
 function getResolvedSwaggerSpec () {
 
@@ -72,20 +66,18 @@ function getResolvedSwaggerSpec () {
 }
 
 /**
- * Get Swagger Spec in JSON format
- *
- * @return {Object} - JSON object with swagger spec
+ * Get swagger spec in JSON format.
+ * @return {Object} - JSON object with swagger spec.
  */
 function getSwaggerSpec () {
 	return YAML.safeLoad(fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml')));
 }
 
 /**
- * Generate swagger based param error object to handle custom errors
- *
- * @param {Array} params - List of param objects
- * @param {Array} messages - List of error messages
- * @param {Array} [codes] - List of codes for particular error
+ * Generate swagger based param error object to handle custom errors.
+ * @param {Array} params - List of param objects.
+ * @param {Array} messages - List of error messages.
+ * @param {Array} [codes] - List of codes for particular error.
  *
  * @return {object}
  */
