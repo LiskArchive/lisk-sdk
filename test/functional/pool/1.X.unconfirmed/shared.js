@@ -1,10 +1,10 @@
 'use strict';
 
-var node = require('../../../../node');
-var shared = require('../../../shared');
+var node = require('../../../node');
+var shared = require('../../shared');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 function beforeUnconfirmedPhase (account) {
 	before(function () {

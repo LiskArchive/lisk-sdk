@@ -97,6 +97,11 @@ module.exports = function (grunt) {
 				maxBuffer: maxBufferSize
 			},
 
+			testFunctionalPool: {
+				command: 'export NODE_ENV=test TEST_TYPE=func && node test/functional/pool/index.js',
+				maxBuffer: maxBufferSize
+			},
+
 			testIntegration: {
 				command: './node_modules/.bin/_mocha --bail test/integration/peers.integration.js ',
 				maxBuffer: maxBufferSize
@@ -169,6 +174,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('test-functional-http-get', ['eslint', 'exec:testFunctionalHttpGet']);
 	grunt.registerTask('test-functional-http-get-extensive', ['eslint', 'exec:testFunctionalHttpGetExtensive']);
 	grunt.registerTask('test-functional-http-post', ['eslint', 'exec:testFunctionalHttpPost']);
+	grunt.registerTask('test-functional-pool', ['eslint', 'exec:testFunctionalPool']);
 	grunt.registerTask('test-integration', ['eslint', 'exec:testIntegration']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {

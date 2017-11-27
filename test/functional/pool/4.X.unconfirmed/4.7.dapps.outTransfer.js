@@ -1,12 +1,12 @@
 'use strict';
 
-var node = require('../../../../node');
-var shared = require('../../../shared');
+var node = require('../../../node');
+var shared = require('../../shared');
 var localShared = require('./shared');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
-describe('POST /api/transactions (unconfirmed type 5 on top of type 4)', function () {
+describe('POST /api/transactions (unconfirmed type 7 on top of type 4)', function () {
 
 	var scenarios = {
 		'regular': new shared.MultisigScenario(),
@@ -16,12 +16,12 @@ describe('POST /api/transactions (unconfirmed type 5 on top of type 4)', functio
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	localShared.beforeValidationPhase(scenarios);
+	localShared.beforeValidationPhaseWithDapp(scenarios);
 
-	describe('registering dapp', function () {
+	describe('sending outTransfer', function () {
 
 		it('regular scenario should be ok', function () {
-			transaction = node.lisk.dapp.createDapp(scenarios.regular.account.password, null, node.guestbookDapp);
+			transaction = node.lisk.transfer.createOutTransfer(scenarios.regular.dapp.id, node.randomTransaction().id, node.randomAccount().address, 1, scenarios.regular.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
