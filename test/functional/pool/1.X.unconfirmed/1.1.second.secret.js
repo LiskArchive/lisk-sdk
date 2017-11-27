@@ -1,10 +1,10 @@
 'use strict';
 
-var node = require('../../../../node');
-var shared = require('../../../shared');
+var node = require('../../../node');
+var shared = require('../../shared');
 var localShared = require('./shared');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
 describe('POST /api/transactions (unconfirmed type 1 on top of type 1)', function () {
 

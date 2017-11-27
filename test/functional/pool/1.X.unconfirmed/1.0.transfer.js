@@ -1,12 +1,12 @@
 'use strict';
 
-var node = require('../../../../node');
-var shared = require('../../../shared');
+var node = require('../../../node');
+var shared = require('../../shared');
 var localShared = require('./shared');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
-describe('POST /api/transactions (unconfirmed type 3 on top of type 1)', function () {
+describe('POST /api/transactions (unconfirmed type 0 on top of type 1)', function () {
 
 	var transaction;
 	var badTransactions = [];
@@ -16,10 +16,10 @@ describe('POST /api/transactions (unconfirmed type 3 on top of type 1)', functio
 
 	localShared.beforeUnconfirmedPhase(account);
 
-	describe('voting delegate', function () {
+	describe('sending funds', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], account.secondPassword);
+			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);

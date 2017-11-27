@@ -1,12 +1,12 @@
 'use strict';
 
-var node = require('../../../../node');
-var shared = require('../../../shared');
+var node = require('../../../node');
+var shared = require('../../shared');
 var localShared = require('./shared');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
-describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', function () {
+describe('POST /api/transactions (unconfirmed type 7 on top of type 1)', function () {
 
 	var transaction;
 	var badTransactions = [];
@@ -14,12 +14,12 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 
 	var account = node.randomAccount();
 
-	localShared.beforeUnconfirmedPhase(account);
+	localShared.beforeUnconfirmedPhaseWithDapp(account);
 
-	describe('creating multisig', function () {
+	describe('outTransfer', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey], 1, 1);
+			transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.transactionId, node.randomTransaction().id, node.randomAccount().address, 10 * node.normalizer, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);

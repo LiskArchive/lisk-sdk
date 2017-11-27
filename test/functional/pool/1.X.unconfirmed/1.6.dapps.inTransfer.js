@@ -1,12 +1,12 @@
 'use strict';
 
-var node = require('../../../../node');
-var shared = require('../../../shared');
+var node = require('../../../node');
+var shared = require('../../shared');
 var localShared = require('./shared');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
-describe('POST /api/transactions (unconfirmed type 0 on top of type 1)', function () {
+describe('POST /api/transactions (unconfirmed type 6 on top of type 1)', function () {
 
 	var transaction;
 	var badTransactions = [];
@@ -14,12 +14,12 @@ describe('POST /api/transactions (unconfirmed type 0 on top of type 1)', functio
 
 	var account = node.randomAccount();
 
-	localShared.beforeUnconfirmedPhase(account);
+	localShared.beforeUnconfirmedPhaseWithDapp(account);
 
-	describe('sending funds', function () {
+	describe('inTransfer', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, account.password, account.secondPassword);
+			transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
