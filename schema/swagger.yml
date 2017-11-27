@@ -252,7 +252,7 @@ paths:
         - Node
         - Delegates
         - Private
-      summary: Returns the forging status of a delegate
+      summary: Requests forging status of a delegate
       operationId: getForgingStatus
       description:
         By querying by publicKey, a delegates forging status on a node can be determined
@@ -373,7 +373,7 @@ paths:
           maxLength: 20
         - in: query
           name: sort
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -482,6 +482,56 @@ paths:
           description: Malformed query or parameters
           schema:
             $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /voters:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: Requests voters of a delegate.
+      operationId: getVoters
+      description:
+        This API call returns all voters of a delegate. Must provide at least one of the filter parameters.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Voters list
+          schema:
+            $ref: '#/definitions/VotersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
@@ -928,6 +978,33 @@ definitions:
         type: string
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         format: publicKey
+
+  VotersResponse:
+    description: Voters endpoint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/DelegateWithVoters'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
 
   Forger:
     type: object
@@ -1394,3 +1471,56 @@ definitions:
         example: 70
       account:
         $ref: '#/definitions/Account'
+
+  DelegateWithVoters:
+    type: object
+    required:
+      - username
+      - address
+      - votes
+      - balance
+      - voters
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      votes:
+        type: integer
+        example: 108877
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      balance:
+        type: string
+        example: 1081560729258
+      voters:
+        type: array
+        items:
+          $ref: '#/definitions/Voter'
+
+  Voter:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258

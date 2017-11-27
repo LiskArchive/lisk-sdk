@@ -100,7 +100,6 @@ var config = {
 		multisignatures: { http: './api/http/multisignatures.js' },
 		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		voters: { http: './api/http/voters.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
