@@ -373,7 +373,7 @@ paths:
           maxLength: 20
         - in: query
           name: sort
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -443,7 +443,7 @@ paths:
       summary: Requests voters of a delegate.
       operationId: getVoters
       description:
-        This API call returns all votes for a given delegate. Must provide at least one of the filter parameters.
+        This API call returns all voters of a delegate. Must provide at least one of the filter parameters.
       produces:
         - application/json
       parameters:
@@ -455,7 +455,7 @@ paths:
         - $ref: '#/parameters/limit'
         - in: query
           name: sort
-          description: fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -465,7 +465,7 @@ paths:
             - balance:desc
       responses:
         200:
-          description: Voters List
+          description: Voters list
           schema:
             $ref: '#/definitions/VotersResponse'
         400:
@@ -473,7 +473,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         404:
-          description: Requested resoure not found based on provided filters
+          description: Requested resource not found based on provided filters
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
@@ -815,7 +815,7 @@ definitions:
         format: publicKey
 
   VotersResponse:
-    description: Dapps endpoint response
+    description: Voters endpoint response
     type: object
     required:
       - data
