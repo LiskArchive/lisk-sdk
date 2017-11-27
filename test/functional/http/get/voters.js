@@ -35,7 +35,7 @@ describe('GET /api/voters', function () {
 
 			describe('when params are not defined', function () {
 
-				it('should fail with error message to require any of param', function () {
+				it('should fail with error message requiring any of param', function () {
 					return votersEndpoint.makeRequest({}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
 						expectSwaggerParamError(res, 'username');
@@ -48,7 +48,7 @@ describe('GET /api/voters', function () {
 
 			describe('when only sort param provided', function () {
 
-				it('should fail with error message to require any of param', function () {
+				it('should fail with error message requiring any of param', function () {
 					return votersEndpoint.makeRequest({sort: 'username:asc'}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
 						expectSwaggerParamError(res, 'username');
@@ -61,7 +61,7 @@ describe('GET /api/voters', function () {
 
 			describe('when only offset param provided', function () {
 
-				it('should fail with error message to require any of param', function () {
+				it('should fail with error message requiring any of param', function () {
 					return votersEndpoint.makeRequest({offset: 1}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
 						expectSwaggerParamError(res, 'username');
@@ -74,7 +74,7 @@ describe('GET /api/voters', function () {
 
 			describe('when sort params provided', function () {
 
-				it('should fail with error message to require any of param', function () {
+				it('should fail with error message requiring any of param', function () {
 					return votersEndpoint.makeRequest({sort: 'username:asc'}, 400).then(function (res) {
 						res.body.errors.should.have.length(4);
 						expectSwaggerParamError(res, 'username');
@@ -87,7 +87,7 @@ describe('GET /api/voters', function () {
 
 			describe('when all required params (address, publicKey, username) provided', function () {
 
-				it('should return the result for when querying with delegate_101 data', function () {
+				it('should return the expected result as when db has only 101 delegates', function () {
 					return votersEndpoint.makeRequest({
 						address: node.eAccount.address,
 						publicKey: node.eAccount.publicKey,
@@ -113,15 +113,15 @@ describe('GET /api/voters', function () {
 				});
 			});
 
-			it('using valid existing publicKey of genesis delegate should return the result', function () {
+			it('using valid existing publicKey of genesis delegate should return the expected result', function () {
 				return votersEndpoint.makeRequest({publicKey: validVotedDelegate.publicKey}, 200).then(expectValidVotedDelegateResponse);
 			});
 
-			it('using valid existing publicKey of genesis account should return the never voted result', function () {
+			it('using valid existing publicKey of genesis account should return the expected result of having never been voted for', function () {
 				return votersEndpoint.makeRequest({publicKey: validNotVotedDelegate.publicKey}, 200).then(expectValidNotVotedDelegateResponse);
 			});
 
-			it('using valid not existing publicKey should return empty response and code = 404', function () {
+			it('using valid inexistent publicKey should return empty response and code = 404', function () {
 				return votersEndpoint.makeRequest({publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8'}, 404);
 			});
 		});
@@ -140,7 +140,7 @@ describe('GET /api/voters', function () {
 				});
 			});
 
-			it('using valid not existing secondPublicKey should return empty response and code = 404', function () {
+			it('using valid inexistent secondPublicKey should return empty response and code = 404', function () {
 				return votersEndpoint.makeRequest({secondPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8'}, 404);
 			});
 		});
@@ -159,15 +159,15 @@ describe('GET /api/voters', function () {
 				});
 			});
 
-			it('using valid existing address of genesis delegate should return the result', function () {
+			it('using valid existing address of genesis delegate should return the expected result', function () {
 				return votersEndpoint.makeRequest({address: validVotedDelegate.address}, 200).then(expectValidVotedDelegateResponse);
 			});
 
-			it('using valid existing address of genesis account should return the never voted result', function () {
+			it('using valid existing address of genesis account should return the expected result of having never been voted for', function () {
 				return votersEndpoint.makeRequest({address: validNotVotedDelegate.address}, 200).then(expectValidNotVotedDelegateResponse);
 			});
 
-			it('using valid not existing address should return empty response and code = 404', function () {
+			it('using valid inexistent address should return empty response and code = 404', function () {
 				return votersEndpoint.makeRequest({address: validNotExistingAddress}, 404);
 			});
 		});
@@ -186,11 +186,11 @@ describe('GET /api/voters', function () {
 				});
 			});
 
-			it('using valid existing username of genesis delegate should return the result', function () {
+			it('using valid existing username of genesis delegate should return the expected result', function () {
 				return votersEndpoint.makeRequest({username: validVotedDelegate.delegateName}, 200).then(expectValidVotedDelegateResponse);
 			});
 
-			it('using valid not existing username should return empty response and code = 404', function () {
+			it('using valid inexistent username should return empty response and code = 404', function () {
 				return votersEndpoint.makeRequest({username: 'unknownusername'}, 404);
 			});
 		});
@@ -288,7 +288,7 @@ describe('GET /api/voters', function () {
 
 			describe('limit=2 & offset=1', function () {
 
-				it('should return 2 voters, containing 1 from previous result', function () {
+				it('should return 2 voters, containing 1 from the previous result', function () {
 					var voters = null;
 
 					return votersEndpoint.makeRequest({limit: 2, offset: 0, username: validVotedDelegate.delegateName}, 200).then(function (res) {
