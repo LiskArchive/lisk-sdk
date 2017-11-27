@@ -305,7 +305,7 @@ describe('GET /blocks', function () {
 
 			it('using 100 should be ok', function () {
 				return blocksEndpoint.makeRequest({limit: 100}, 200).then(function (res) {
-					res.body.data.should.have.length(100);
+					res.body.data.length.should.be.at.most(100);
 				});
 			});
 
