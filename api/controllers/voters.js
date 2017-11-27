@@ -54,7 +54,7 @@ VotersController.getVoters = function (context, next) {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
-				return next('Requested delegate can\'t found.');
+				return next('Delegate not found');
 			} else {
 				return next(err);
 			}
