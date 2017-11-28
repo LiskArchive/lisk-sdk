@@ -257,7 +257,7 @@ describe('httpApi', function () {
 					sanitizeReturnFunction = sanitizeResultFunction(validReqMock, validRes, validSanitizeCallback);
 				});
 
-				it('should call req.sanitize with req[property], schema and cb as arguments',function () {
+				it('should call req.sanitize with req[property], schema and cb as arguments', function () {
 					expect(validReqMock.sanitize.calledWith(validReqMock[validProperty],validSchema)).to.be.true;
 				});
 
@@ -312,7 +312,6 @@ describe('httpApi', function () {
 		describe.skip('applyAPIAccessRules', function () {
 
 			var validConfig;
-
 
 			before(function () {
 				validConfig = {
@@ -431,7 +430,7 @@ describe('httpApi', function () {
 					validCache.isReady.returns(false);
 				});
 
-				it('should call next function',function () {
+				it('should call next function', function () {
 					expect(validNextSpy.calledOnce).to.be.true;
 				});
 			});
@@ -473,7 +472,7 @@ describe('httpApi', function () {
 						});
 					});*/
 
-					it('should call next function',function () {
+					it('should call next function', function () {
 						expect(validNextSpy.calledOnce).to.be.true;
 					});
 				});
@@ -488,12 +487,12 @@ describe('httpApi', function () {
 						expect(validRes.json).to.be.a('function');
 					});
 
-					it('should call next function',function () {
+					it('should call next function', function () {
 						expect(validNextSpy.calledOnce).to.be.true;
 					});
 				});
 
-				describe('when cachedValue = true and err = false',function () {
+				describe('when cachedValue = true and err = false', function () {
 
 					before(function () {
 						validCachedValue = 'cachedValue';
@@ -505,7 +504,7 @@ describe('httpApi', function () {
 						validCache.getJsonForKey.yields(validErr, validCachedValue);
 					});
 
-					it('should call logger.debug',function () {
+					it('should call logger.debug', function () {
 						expect(loggerMock.debug.called).to.be.true;
 					});
 
@@ -594,6 +593,7 @@ describe('httpApi', function () {
 
 			it('should call res.status(500).json() with error in json format', function () {
 				var tmp_error = validError.code ? validError.code : apiCodes.INTERNAL_SERVER_ERROR;
+
 				expect(validRes.status.calledWith(tmp_error)).to.be.true;
 				expect(validRes.json.calledOnce).to.be.true;
 			});
@@ -607,7 +607,7 @@ describe('httpApi', function () {
 
 			describe('when response is empty', function () {
 
-				it('should call res.status with Code = 204 and res.json', function () {
+				it('should call res.status with code = 204 and res.json', function () {
 					expect(validRes.status.calledWith(apiCodes.EMPTY_RESOURCES_OK)).to.be.true;
 					expect(validRes.json.calledOnce).to.be.true;
 				});
@@ -621,7 +621,7 @@ describe('httpApi', function () {
 					};
 				});
 
-				it('should call res.status with Code = 200 and res.json', function () {
+				it('should call res.status with code = 200 and res.json', function () {
 					expect(validRes.status.calledWith(apiCodes.OK)).to.be.true;
 					expect(validRes.json.calledOnce).to.be.true;
 				});
@@ -629,7 +629,7 @@ describe('httpApi', function () {
 		});
 	});
 
-	describe('registerEndpoint',function () {
+	describe('registerEndpoint', function () {
 
 		var validRoute, validApp, validRouter, validIsLoaded;
 
