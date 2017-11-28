@@ -5,8 +5,10 @@ var expect = require('chai').expect;
 
 var node = require('../../node');
 var application = require('../../common/application.js');
-var sql = require('../../sql/blockRewards.js');
+var sql = require('../common/sql/blockRewards.js');
+
 var constants = require('../../../helpers/constants.js');
+
 var modulesLoader = require('../../common/modulesLoader');
 
 function calcBlockReward (height, reward, done) {
