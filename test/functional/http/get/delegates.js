@@ -4,7 +4,7 @@ var node = require('../../../node.js');
 var _ = node._;
 var modulesLoader = require('../../../common/modulesLoader');
 var constants = require('../../../../helpers/constants');
-var genesisDelegates = require('../../../genesisDelegates.json');
+var genesisDelegates = require('../../../data/genesisDelegates.json');
 
 var apiHelpers = require('../../../common/apiHelpers');
 var creditAccountPromise = apiHelpers.creditAccountPromise;

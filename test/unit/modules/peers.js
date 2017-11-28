@@ -8,7 +8,7 @@ var randomstring = require('randomstring');
 var sinon = require('sinon');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-var config = require('../../config.json');
+var config = require('../../data/config.json');
 var Peer = require('../../../logic/peer');
 var PeersLogic = require('../../../logic/peers');
 var PeersModule = require('../../../modules/peers');

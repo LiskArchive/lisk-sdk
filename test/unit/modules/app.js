@@ -1,7 +1,7 @@
 'use strict';
 
 var constants = require('../../../helpers/constants');
-var config = require('../../config.json');
+var config = require('../../data/config.json');
 
 describe('app', function () {
 

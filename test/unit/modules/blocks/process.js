@@ -6,7 +6,7 @@ var async = require('async');
 var application = require('../../../common/application.js');
 var node = require('../../../node');
 var modulesLoader = require('../../../common/modulesLoader');
-var genesisBlock = require('../../../../genesisBlock.json');
+var genesisBlock = require('../../../data/genesisBlock.json');
 var loadTables = require('./processTablesData.json');
 var clearDatabaseTable = require('../../../common/DBSandbox.js').clearDatabaseTable;
 

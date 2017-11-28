@@ -15,7 +15,7 @@ var swaggerHelper = require('../helpers/swagger');
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
-node.config = require('../config.json');
+node.config = require('./data/config.json');
 node.constants = require('../helpers/constants.js');
 node.dappCategories = require('../helpers/dappCategories.js');
 node.dappTypes = require('../helpers/dappTypes.js');
@@ -400,7 +400,6 @@ node.randomTransaction = function (offset) {
 node.randomPassword = function () {
 	return Math.random().toString(36).substring(7);
 };
-
 
 before('wait for node to be ready', function (done) {
 	require('./common/globalBefore').waitUntilBlockchainReady(done);

@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var sinon = require('sinon');
-var devConfig = require('../config.json');
+var devConfig = require('../data/config.json');
 var utils = require('./utils');
 var setup = require('./setup');
 var scenarios = require('./scenarios');

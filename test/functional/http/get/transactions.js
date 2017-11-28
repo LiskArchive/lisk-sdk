@@ -6,7 +6,7 @@ var lisk = node.lisk;
 var transactionSortFields = require('../../../../sql/transactions').sortFields;
 var modulesLoader = require('../../../common/modulesLoader');
 var transactionTypes = require('../../../../helpers/transactionTypes');
-var genesisblock = require('../../../genesisBlock.json');
+var genesisblock = require('../../../data/genesisBlock.json');
 var constants = require('../../../../helpers/constants');
 
 var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;

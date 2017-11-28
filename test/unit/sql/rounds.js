@@ -12,7 +12,7 @@ var sinon   = require('sinon');
 // Application specific
 var application = require('../../common/application.js');
 var bignum    = require('../../../helpers/bignum.js');
-var config    = require('../../../config.json');
+var config = require('../../data/config.json');
 var constants = require('../../../helpers/constants');
 var node      = require('../../node.js');
 var slots     = require('../../../helpers/slots.js');

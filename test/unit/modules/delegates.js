@@ -3,9 +3,11 @@
 var expect = require('chai').expect;
 
 var node = require('./../../node.js');
+var genesisDelegates = require('../../data/genesisDelegates.json');
+
 var modulesLoader = require('./../../common/modulesLoader');
 var application = require('../../common/application.js');
-var genesisDelegates = require('../../genesisDelegates.json');
+var DBSandbox = require('./../../common/globalBefore.js').DBSandbox;
 
 describe('delegates', function () {
 

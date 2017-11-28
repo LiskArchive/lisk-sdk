@@ -1,6 +1,6 @@
 'use strict';
 
-var genesisDelegates = require('../../genesisDelegates.json');
+var genesisDelegates = require('../../data/genesisDelegates.json');
 var modulesLoader = require('./../../common/modulesLoader');
 var node = require('./../../node.js');
 var expect = require('chai').expect;

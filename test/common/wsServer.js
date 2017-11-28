@@ -6,7 +6,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster').SocketCluster;
 
-var testConfig = require('../config.json');
+var testConfig = require('../data/config.json');
 
 var wsServer = {
 	validNonce: randomstring.generate(16),

@@ -8,7 +8,7 @@ var scClient = require('socketcluster-client');
 var node = require('../../node');
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var Rules = require('../../../api/ws/workers/rules');
-var testConfig = require('../../config.json');
+var testConfig = require('../../data/config.json');
 var wsServer = require('../../common/wsServer');
 var WSClient = require('../../common/wsClient');
 

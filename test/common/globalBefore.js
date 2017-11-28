@@ -3,8 +3,10 @@
 var async = require('async');
 var popsicle = require('popsicle');
 
-var config = require('../../config.json');
-var genesisblock = require('../genesisBlock.json');
+var config = require('../data/config.json');
+var database = require('../../helpers/database.js');
+var genesisblock = require('../data/genesisBlock.json');
+
 var ed = require('../../helpers/ed.js');
 var z_schema = require('../../helpers/z_schema.js');
 

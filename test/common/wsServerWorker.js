@@ -2,7 +2,7 @@
 
 var sinon = require('sinon');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
-var testConfig = require('../config.json');
+var testConfig = require('../data/config.json');
 
 var necessaryRPCEndpoints = {
 	status: sinon.stub().callsArgWith(1, null, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash}),

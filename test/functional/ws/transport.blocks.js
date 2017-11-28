@@ -3,7 +3,7 @@
 var node = require('../../node.js');
 var ws = require('../../common/wsCommunication');
 
-var genesisblock = require('../../genesisBlock.json');
+var genesisblock = require('../../data/genesisBlock.json');
 var verify = require('../../../modules/blocks/verify.js');
 var bson = require('../../../helpers/bson.js');
 
