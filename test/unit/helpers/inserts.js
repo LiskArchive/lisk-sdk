@@ -16,7 +16,6 @@ describe('inserts', function () {
 		var validConcat;
 		var validCoughtException;
 
-
 		before(function () {
 			validRecord = {
 				table: 'table',
@@ -25,7 +24,6 @@ describe('inserts', function () {
 			validValues = [];
 			validConcat = null;
 		});
-
 
 		describe('when Inserts throws', function () {
 
