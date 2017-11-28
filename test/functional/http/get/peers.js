@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var node = require('../../../node.js');
-var WSServer = require('../../../common/wsServerMaster');
+var WSServer = require('../../../common/ws/serverMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
 

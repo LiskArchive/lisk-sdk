@@ -2,7 +2,7 @@
 
 var node = require('../../node.js');
 var http = require('../../common/httpCommunication.js');
-var ws = require('../../common/wsCommunication.js');
+var ws = require('../../common/ws/communication.js');
 
 function postTransactions (transactions, done) {
 	ws.call('postTransactions', {

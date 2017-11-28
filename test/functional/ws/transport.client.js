@@ -7,13 +7,13 @@ var randomstring = require('randomstring');
 var sinon = require('sinon');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-var config = require('../../../data/config.json');
+var config = require('../../data/config.json');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 var transport = require('../../../api/ws/transport');
 var System = require('../../../modules/system');
 var node = require('../../node');
-var WSClient = require('../../common/wsClient');
+var WSClient = require('../../common/ws/client');
 
 describe('ClientRPCStub', function () {
 

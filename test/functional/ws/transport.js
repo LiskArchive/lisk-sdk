@@ -9,8 +9,8 @@ var node = require('../../node');
 var randomPeer = require('../../common/objectStubs').randomPeer;
 var Rules = require('../../../api/ws/workers/rules');
 var testConfig = require('../../data/config.json');
-var wsServer = require('../../common/wsServer');
-var WSClient = require('../../common/wsClient');
+var wsServer = require('../../common/ws/server');
+var WSClient = require('../../common/ws/client');
 
 describe('RPC', function () {
 

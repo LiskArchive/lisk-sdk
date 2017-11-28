@@ -6,7 +6,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster').SocketCluster;
 
-var testConfig = require('../data/config.json');
+var testConfig = require('../../data/config.json');
 
 var wsServer = {
 	validNonce: randomstring.generate(16),
@@ -60,7 +60,7 @@ var wsServer = {
 		wsEngine: 'uws',
 		appName: 'testWSServer',
 		secretKey: 'liskSecretKey',
-		workerController: __dirname + '/wsServer.js'
+		workerController: __dirname + '/server.js'
 	}
 };
 

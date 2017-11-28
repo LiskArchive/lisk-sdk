@@ -2,7 +2,7 @@
 
 var node = require('../../node');
 var shared = require('../shared');
-var ws = require('../../common/wsCommunication');
+var ws = require('../../common/ws/communication');
 
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', {

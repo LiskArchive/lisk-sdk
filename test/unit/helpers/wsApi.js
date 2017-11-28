@@ -13,7 +13,7 @@ var randomString = require('randomstring');
 var config = node.config;
 var wsApi = require('../../../helpers/wsApi');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-var WSClient = require('../../common/wsClient');
+var WSClient = require('../../common/ws/client');
 var System = require('../../../modules/system');
 var typeRepresentatives = require('../../common/typesRepresentatives.js');
 

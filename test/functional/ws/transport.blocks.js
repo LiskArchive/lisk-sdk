@@ -1,7 +1,7 @@
 'use strict';
 
 var node = require('../../node.js');
-var ws = require('../../common/wsCommunication');
+var ws = require('../../common/ws/communication');
 
 var genesisblock = require('../../data/genesisBlock.json');
 var verify = require('../../../modules/blocks/verify.js');

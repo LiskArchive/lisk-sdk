@@ -10,9 +10,9 @@ var node = require('../../node');
 var randomString = require('randomstring');
 var scClient = require('socketcluster-client');
 var testConfig = require('../../data/config.json');
-var ws = require('../../common/wsCommunication');
-var wsServer = require('../../common/wsServer');
-var WSClient = require('../../common/wsClient');
+var ws = require('../../common/ws/communication');
+var wsServer = require('../../common/ws/server');
+var WSClient = require('../../common/ws/client');
 
 describe('handshake', function () {
 

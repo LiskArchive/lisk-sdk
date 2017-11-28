@@ -1,3 +1,4 @@
+'use strict';
 
 var randomstring = require('randomstring');
 var SocketCluster = require('socketcluster').SocketCluster;

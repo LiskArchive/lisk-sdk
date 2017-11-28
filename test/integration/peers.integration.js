@@ -13,7 +13,7 @@ var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockc
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var baseConfig = require('../data/config.json');
-var WSClient = require('../common/wsClient');
+var WSClient = require('../common/ws/client');
 var Logger = require('../../logger');
 var logger = new Logger({filename: 'integrationTestsLogger.logs', echo: 'log'});
 
