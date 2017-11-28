@@ -1,8 +1,8 @@
 'use strict';
 
 var node = require('../../node.js');
-var http = require('../../common/httpCommunication.js');
 var ws = require('../../common/ws/communication.js');
+var shared = require('../shared');
 
 function postTransactions (transactions, done) {
 	ws.call('postTransactions', {
@@ -41,22 +41,15 @@ describe('postTransactions @slow', function () {
 			}, function () {
 				return (count >= maximum);
 			}, function (err) {
-				done(err);
+				node.expect(err).to.be.null;
+				var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
+				node.waitForBlocks(blocksToWait, function (err, res) {
+					done();
+				});
 			});
 		});
 
-		it('should confirm all transactions', function (done) {
-			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
-			node.waitForBlocks(blocksToWait, function (err) {
-				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						node.expect(res.body).to.have.property('transaction').that.is.an('object');
-						return setImmediate(eachSeriesCb);
-					});
-				}, done);
-			});
-		}).timeout(500000);
+		shared.confirmationPhase(transactions);
 	});
 
 	describe('sending 1000 single transfers to random addresses', function () {
@@ -83,21 +76,14 @@ describe('postTransactions @slow', function () {
 			}, function () {
 				return (count >= maximum);
 			}, function (err) {
-				done(err);
+				node.expect(err).to.be.null;
+				var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
+				node.waitForBlocks(blocksToWait, function (err, res) {
+					done();
+				});
 			});
 		});
 
-		it('should confirm all transactions', function (done) {
-			var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
-			node.waitForBlocks(blocksToWait, function (err) {
-				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-					http.get('/api/transactions/get?id=' + transaction.id, function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
-						node.expect(res.body).to.have.property('transaction').that.is.an('object');
-						return setImmediate(eachSeriesCb);
-					});
-				}, done);
-			});
-		}).timeout(500000);
+		shared.confirmationPhase(transactions);
 	});
 });
