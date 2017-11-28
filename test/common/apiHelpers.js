@@ -98,6 +98,10 @@ function sendTransaction (transaction, cb) {
 	http.post('/api/transactions', {transactions: [transaction]}, httpResponseCallbackHelper.bind(null, cb));
 }
 
+function sendTransactions (transactions, cb) {
+	http.post('/api/transactions', {transactions: transactions}, httpResponseCallbackHelper.bind(null, cb));
+}
+
 function sendSignature (signature, transaction, cb) {
 	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpResponseCallbackHelper.bind(null, cb));
 }
@@ -117,7 +121,7 @@ function registerDelegate (account, cb) {
 }
 
 function getForgingStatus (params, cb) {
-	var url = '/api/delegates/forging/status';
+	var url = '/api/delegates/forging';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
@@ -162,8 +166,8 @@ function getForgedByAccount (params, cb) {
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
-function getNextForgers (params, cb) {
-	var url = '/api/delegates/getNextForgers';
+function getForgers (params, cb) {
+	var url = '/api/delegates/forgers';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
@@ -181,7 +185,7 @@ function getBlocks (params, cb) {
 }
 
 function waitForConfirmations (transactions, limitHeight) {
-	limitHeight = limitHeight || 10;
+	limitHeight = limitHeight || 15;
 
 	function checkConfirmations (transactions) {
 		return node.Promise.all(transactions.map(function (transactionId) {
@@ -214,13 +218,6 @@ function waitForConfirmations (transactions, limitHeight) {
 	return waitUntilLimit(limitHeight);
 }
 
-function getDapps (params, cb) {
-	var url = '/api/dapps';
-	url = paramsHelper(url, params);
-
-	http.get(url, httpResponseCallbackHelper.bind(null, cb));
-}
-
 /**
  * Validate if the validation response contains error for a specific param
  *
@@ -243,6 +240,7 @@ var getMultisignaturesTransactionsPromise = node.Promise.promisify(getMultisigna
 var getPendingMultisignaturesPromise = node.Promise.promisify(getPendingMultisignatures);
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendTransactionPromise = node.Promise.promisify(sendTransaction);
+var sendTransactionsPromise = node.Promise.promisify(sendTransactions);
 var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
 var registerDelegatePromise = node.Promise.promisify(registerDelegate);
@@ -253,10 +251,9 @@ var getVotersPromise = node.Promise.promisify(getVoters);
 var searchDelegatesPromise = node.Promise.promisify(searchDelegates);
 var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
 var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
-var getNextForgersPromise = node.Promise.promisify(getNextForgers);
+var getForgersPromise = node.Promise.promisify(getForgers);
 var getAccountsPromise = node.Promise.promisify(getAccounts);
 var getBlocksPromise = node.Promise.promisify(getBlocks);
-var getDappsPromise = node.Promise.promisify(getDapps);
 
 module.exports = {
 	getTransactionByIdPromise: getTransactionByIdPromise,
@@ -270,6 +267,7 @@ module.exports = {
 	getPendingMultisignaturesPromise: getPendingMultisignaturesPromise,
 	sendSignaturePromise: sendSignaturePromise,
 	sendTransactionPromise: sendTransactionPromise,
+	sendTransactionsPromise: sendTransactionsPromise,
 	creditAccount: creditAccount,
 	creditAccountPromise: creditAccountPromise,
 	getCount: getCount,
@@ -285,11 +283,10 @@ module.exports = {
 	searchDelegatesPromise: searchDelegatesPromise,
 	putForgingDelegatePromise: putForgingDelegatePromise,
 	getForgedByAccountPromise: getForgedByAccountPromise,
-	getNextForgersPromise: getNextForgersPromise,
+	getForgersPromise: getForgersPromise,
 	getAccounts: getAccounts,
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
 	waitForConfirmations: waitForConfirmations,
-	getDappsPromise: getDappsPromise,
 	expectSwaggerParamError: expectSwaggerParamError
 };

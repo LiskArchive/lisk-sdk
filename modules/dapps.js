@@ -5,7 +5,7 @@ var ApiError = require('../helpers/apiError.js');
 var DApp = require('../logic/dapp.js');
 var dappCategories = require('../helpers/dappCategories.js');
 var InTransfer = require('../logic/inTransfer.js');
-var OrderBy = require('../helpers/orderBy.js');
+var sortBy = require('../helpers/sort_by.js').sortBy;
 var OutTransfer = require('../logic/outTransfer.js');
 var schema = require('../schema/dapps.js');
 var sql = require('../sql/dapps.js');
@@ -93,7 +93,7 @@ function DApps (cb, scope) {
  * @private
  * @implements {library.db.query}
  * @param {Object} filter - Could contains type, name, category, link, limit,
- * offset, orderBy
+ * offset, sort
  * @param {function} cb
  * @return {setImmediateCallback} error description | rows data
  */
@@ -147,20 +147,20 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var orderBy = OrderBy(
-		filter.orderBy, {
+	var sort = sortBy(
+		filter.sort, {
 			sortFields: sql.sortFields
 		}
 	);
 
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
+	if (sort.error) {
+		return setImmediate(cb, sort.error);
 	}
 
 	library.db.query(sql.list({
 		where: where,
-		sortField: orderBy.sortField,
-		sortMethod: orderBy.sortMethod
+		sortField: sort.sortField,
+		sortMethod: sort.sortMethod
 	}), params).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
@@ -212,20 +212,48 @@ DApps.prototype.isLoaded = function () {
  */
 DApps.prototype.shared = {
 
-	getDapps: function (req, cb) {
-		library.schema.validate(req.body, schema.list, function (err) {
+	/**
+	 * Utility method to get dapps.
+	 *
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.transactionId - Registration transaction ID to query
+	 * @param {string} parameters.name - Name to query - Fuzzy search
+	 * @param {string} parameters.sort - Sort field
+	 * @param {int} parameters.limit - Limit applied to results
+	 * @param {int} parameters.offset - Offset value for results
+	 * @param {function} cb - Callback function
+	 * @return {Array.<Object>}
+	 */
+	getDapps: function (parameters, cb) {
+		__private.list(parameters, function (err, dapps) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
+				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
+			} else {
+				return setImmediate(cb, null, dapps);
 			}
-			__private.list(req.body, function (err, dapps) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
-				} else {
-					return setImmediate(cb, null, {dapps: dapps});
-				}
-			});
 		});
 	}
+};
+
+// Shared API
+shared.getGenesis = function (req, cb) {
+	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
+		if (rows.length === 0) {
+			return setImmediate(cb, 'Application genesis block not found');
+		} else {
+			var row = rows[0];
+
+			return setImmediate(cb, null, {
+				pointId: row.id,
+				pointHeight: row.height,
+				authorId: row.authorId,
+				dappid: req.dappid
+			});
+		}
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'DApp#getGenesis error');
+	});
 };
 
 // Export

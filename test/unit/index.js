@@ -17,8 +17,10 @@ var pathFiles = [
 	'./helpers/slots.js',
 	'./helpers/wsApi.js',
 	'./helpers/z_schema.js',
+	'./helpers/sort_by.js',
 
 	'./logic/account.js',
+	'./logic/block.js',
 	'./logic/blockReward.js', // @slow
 	'./logic/delegate.js',
 	'./logic/inTransfer.js',

@@ -1,29 +1,31 @@
 'use strict';
 
 var node = require('../../../node.js');
+var _ = node._;
 var modulesLoader = require('../../../common/modulesLoader');
+var constants = require('../../../../helpers/constants');
 var genesisDelegates = require('../../../genesisDelegates.json');
 
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var registerDelegatePromise = require('../../../common/apiHelpers').registerDelegatePromise;
-var getDelegatesPromise = require('../../../common/apiHelpers').getDelegatesPromise;
-var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
-var getDelegateVotersPromise = require('../../../common/apiHelpers').getDelegateVotersPromise;
-var getForgingStatusPromise = require('../../../common/apiHelpers').getForgingStatusPromise;
-var searchDelegatesPromise = require('../../../common/apiHelpers').searchDelegatesPromise;
-var putForgingDelegatePromise = require('../../../common/apiHelpers').putForgingDelegatePromise;
-var getForgedByAccountPromise = require('../../../common/apiHelpers').getForgedByAccountPromise;
-var getNextForgersPromise = require('../../../common/apiHelpers').getNextForgersPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-
+var apiHelpers = require('../../../common/apiHelpers');
+var creditAccountPromise = apiHelpers.creditAccountPromise;
+var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
+var getForgingStatusPromise = apiHelpers.getForgingStatusPromise;
+var getDelegatesPromise = apiHelpers.getDelegatesPromise;
+var putForgingDelegatePromise = apiHelpers.putForgingDelegatePromise;
+var getForgersPromise = apiHelpers.getForgersPromise;
+var waitForConfirmations = apiHelpers.waitForConfirmations;
+var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
 var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /api/delegates', function () {
+describe('GET /delegates', function () {
+	var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
+	var validDelegate = genesisDelegates.delegates[0];
+	var validNotExistingPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
 
-	var testDelegate = genesisDelegates.delegates[0];
-	
 	describe('from (cache)', function () {
+
 		var cache;
 		var getJsonForKeyPromise;
 
@@ -32,16 +34,16 @@ describe('GET /api/delegates', function () {
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
 				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
-				node.expect(err).to.not.exist;
-				node.expect(__cache).to.be.an('object');
+				node.should.not.exist(err);
+				__cache.should.be.an('object');
 				return done(err);
 			});
 		});
 
 		afterEach(function (done) {
 			cache.flushDb(function (err, status) {
-				node.expect(err).to.not.exist;
-				node.expect(status).to.equal('OK');
+				node.should.not.exist(err);
+				status.should.equal('OK');
 				done(err);
 			});
 		});
@@ -50,49 +52,52 @@ describe('GET /api/delegates', function () {
 			cache.quit(done);
 		});
 
-		it('cache delegates when response is a success', function () {
-			var url;
-			url = '/api/delegates';
+		it('should cache delegates when response is successful', function () {
+			var url = delegatesEndpoint.getPath();
 			var params = [];
 
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(res);
+			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
+				return node.Promise.all([0, 10, 100].map(function (delay) {
+					return node.Promise.delay(delay).then(function () {
+						return getJsonForKeyPromise(url + params.join('&'));
+					});
+				})).then(function (responses) {
+					responses.should.deep.include(res.body);
 				});
 			});
 		});
 
-		it('should not cache if response is not a success', function () {
+		it('should not cache delegates when response is unsuccessful', function () {
 			var url, params;
-			url = '/api/delegates?';
+			url = delegatesEndpoint.getPath();
 			params = [
-				'orderBy=' + 'unknown:asc'
+				'sort=invalidValue'
 			];
 
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Invalid sort field');
+			return delegatesEndpoint.makeRequest({sort: 'invalidValue'}, 400).then(function (res) {
+
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(null);
+					node.should.not.exist(response);
 				});
 			});
 		});
 
 		it('should flush cache on the next round @slow', function () {
 			var url;
-			url = '/api/delegates';
+			url = delegatesEndpoint.getPath();
 			var params = [];
 
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				return getJsonForKeyPromise(url).then(function (response) {
-					node.expect(response).to.eql(res);
-					return onNewRoundPromise().then(function (res) {
+			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
+				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
+				return node.Promise.all([0, 10, 100].map(function (delay) {
+					return node.Promise.delay(delay).then(function () {
+						return getJsonForKeyPromise(url + params.join('&'));
+					});
+				})).then(function (responses) {
+					responses.should.deep.include(res.body);
+					return onNewRoundPromise().then(function () {
 						return getJsonForKeyPromise(url).then(function (result) {
-							node.expect(result).to.eql(null);
+							node.should.not.exist(result);
 						});
 					});
 				});
@@ -102,985 +107,378 @@ describe('GET /api/delegates', function () {
 
 	describe('/', function () {
 
-		it('using no params should be ok', function () {
-			var params = [];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-				node.expect(res.delegates[0]).to.have.property('username');
-				node.expect(res.delegates[0]).to.have.property('address');
-				node.expect(res.delegates[0]).to.have.property('publicKey');
-				node.expect(res.delegates[0]).to.have.property('vote');
-				node.expect(res.delegates[0]).to.have.property('rank');
-				node.expect(res.delegates[0]).to.have.property('productivity');
+		it('using no params should return genesis delegates with default limit', function () {
+			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
+				res.body.data.should.have.lengthOf(10);
 			});
 		});
 
-		it('using orderBy="unknown:asc" should fail', function () {
-			var params = [
-				'orderBy=' + 'unknown:asc'
-			];
+		it('using no params but with higher limit should return all genesis delegates', function () {
+			var data = [];
 
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Invalid sort field');
+			return delegatesEndpoint.makeRequest({limit: 100}, 200).then(function (res) {
+				data = res.body.data;
+
+				return delegatesEndpoint.makeRequest({offset: 100, limit: 100}, 200);
+			}).then(function (res) {
+				data.push.apply(data, res.body.data);
+
+				data.should.have.lengthOf(101);
 			});
 		});
 
-		it('using orderBy="approval:asc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'approval:asc'
-			];
+		describe('publicKey', function () {
 
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
+			it('using no publicKey should return an empty array', function () {
+				return delegatesEndpoint.makeRequest({publicKey: ''}, 200).then(function (res) {
+					res.body.data.should.be.empty;
+				});
 			});
-		});
 
-		it('using orderBy="productivity:asc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'productivity:asc'
-			];
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
+			it('using invalid publicKey should fail', function () {
+				return delegatesEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
 			});
-		});
 
-		it('using orderBy="rank:asc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'rank:asc'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-				for (var i = 0; i < res.delegates.length; i++) {
-					if (res.delegates[i + 1] != null) {
-						node.expect(res.delegates[i].rank).to.be.at.below(res.delegates[i + 1].rank);
-					}
-				}
+			it('using valid existing publicKey of genesis delegate should return the result', function () {
+				return delegatesEndpoint.makeRequest({publicKey: validDelegate.publicKey}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+					res.body.data[0].account.publicKey.should.be.eql(validDelegate.publicKey);
+				});
 			});
-		});
 
-		it('using orderBy="rank:desc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'rank:desc'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-				for (var i = 0; i < res.delegates.length; i++) {
-					if (res.delegates[i + 1] != null) {
-						node.expect(res.delegates[i].rank).to.be.at.above(res.delegates[i + 1].rank);
-					}
-				}
-			});
-		});
-
-		it('using orderBy="vote:asc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'vote:asc'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-				for (var i = 0; i < res.delegates.length; i++) {
-					if (res.delegates[i + 1] != null) {
-						node.expect(parseInt(res.delegates[i].vote)).to.be.at.most(parseInt(res.delegates[i + 1].vote));
-					}
-				}
-			});
-		});
-
-		it('using orderBy="vote:desc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'vote:desc'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-				for (var i = 0; i < res.delegates.length; i++) {
-					if (res.delegates[i + 1] != null) {
-						node.expect(parseInt(res.delegates[i].vote)).to.be.at.least(parseInt(res.delegates[i + 1].vote));
-					}
-				}
-			});
-		});
-
-		it('using orderBy="username:asc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'username:asc'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-			});
-		});
-
-		it('using orderBy="address:asc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'address:asc'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-			});
-		});
-
-		it('using orderBy="publicKey:asc" should be ok', function () {
-			var params = [
-				'orderBy=' + 'publicKey:asc'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-			});
-		});
-
-		it('using string limit should fail', function () {
-			var params = [
-				'limit=' + 'one'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Expected type integer but found type string');
-			});
-		});
-
-		it('using limit=-1 should fail', function () {
-			var params = [
-				'limit=' + -1
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Value -1 is less than minimum 1');
-			});
-		});
-
-		it('using limit=0 should fail', function () {
-			var params = [
-				'limit=' + 0
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Value 0 is less than minimum 1');
-			});
-		});
-
-		it('using limit=1 should be ok', function () {
-			var params = [
-				'limit=' + 1
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(1);
-			});
-		});
-
-		it('using limit=101 should be ok', function () {
-			var params = [
-				'limit=' + 101
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
-			});
-		});
-
-		it('using limit > 101 should fail', function () {
-			var params = [
-				'limit=' + 102
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Value 102 is greater than maximum 101');
-			});
-		});
-
-		it('using string offset should fail', function () {
-			var params = [
-				'offset=' + 'one'
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Expected type integer but found type string');
-			});
-		});
-
-		it('using offset=1 should be ok', function () {
-			var params = [
-				'offset=' + 1
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf.at.least(100);
-			});
-		});
-
-		it('using offset=-1 should fail', function () {
-			var params = [
-				'offset=' + -1
-			];
-
-			return getDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Value -1 is less than minimum 0');
-			});
-		});
-
-		it('using orderBy with any of sort fields should not place NULLs first', function () {
-			var delegatesSortFields = ['approval', 'productivity', 'rank', 'vote'];
-			delegatesSortFields.forEach(function (sortField) {
-				var params = [
-					'orderBy=' + sortField
-				];
-				return getDelegatesPromise(params).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('delegates').that.is.an('array');
-
-					var dividedIndices = res.delegates.reduce(function (memo, peer, index) {
-						memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
-						return memo;
-					}, { notNullIndices: [], nullIndices: [] });
-
-					if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
-						var ascOrder = function (a, b) { return a - b; };
-						dividedIndices.notNullIndices.sort(ascOrder);
-						dividedIndices.nullIndices.sort(ascOrder);
-
-						node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
-							.to.be.at.most(dividedIndices.nullIndices[0]);
-					}
+			it('using valid not existing publicKey should return an empty array', function () {
+				return delegatesEndpoint.makeRequest({publicKey: validNotExistingPublicKey}, 200).then(function (res) {
+					res.body.data.should.be.empty;
 				});
 			});
 		});
-	});
 
-	describe('/count', function () {
+		describe('secondPublicKey', function () {
 
-		it('should be ok', function () {
-			return getCountPromise('delegates').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('count').to.be.at.least(101);
+			var secondSecretAccount = node.randomAccount();
 
+			var creditTransaction = node.lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, node.gAccount.password);
+			var signatureTransaction = node.lisk.signature.createSignature(secondSecretAccount.password, secondSecretAccount.secondPassword);
+			var delegateTransaction = node.lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
+
+			before(function () {
+				return sendTransactionsPromise([creditTransaction]).then(function (res) {
+					res.statusCode.should.be.eql(200);
+					return waitForConfirmations([creditTransaction.id]);
+				}).then(function () {
+					return sendTransactionsPromise([signatureTransaction, delegateTransaction]);
+				}).then(function (res) {
+					res.statusCode.should.be.eql(200);
+					return waitForConfirmations([signatureTransaction.id, delegateTransaction.id]);
+				});
+			});
+
+			it('using no secondPublicKey should return an empty array', function () {
+				return delegatesEndpoint.makeRequest({secondPublicKey: ''}, 200).then(function (res) {
+					res.body.data.should.be.empty;
+				});
+			});
+
+			it('using invalid secondPublicKey should fail', function () {
+				return delegatesEndpoint.makeRequest({secondPublicKey: 'invalidAddress'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'secondPublicKey');
+				});
+			});
+
+			it('using valid existing secondPublicKey of delegate should return the result', function () {
+				return delegatesEndpoint.makeRequest({secondPublicKey: secondSecretAccount.secondPublicKey}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+					res.body.data[0].account.secondPublicKey.should.be.eql(secondSecretAccount.secondPublicKey);
+				});
+			});
+
+			it('using valid not existing secondPublicKey should return an empty array', function () {
+				return delegatesEndpoint.makeRequest({secondPublicKey: validNotExistingPublicKey}, 200).then(function (res) {
+					res.body.data.should.be.empty;
+				});
 			});
 		});
-	});
 
-	describe('/voters', function () {
+		describe('address', function () {
 
-		var transactionsToWaitFor = [];
-		var account = node.randomAccount();
+			it('using no address should return a schema error', function () {
+				return delegatesEndpoint.makeRequest({address: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
+				});
+			});
 
-		// Crediting account and vote delegate
-		before(function () {
-			var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
-			var promises = [];
-			promises.push(sendTransactionPromise(transaction));
+			it('using invalid address should fail', function () {
+				return delegatesEndpoint.makeRequest({address: 'invalidAddress'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
+				});
+			});
 
-			return node.Promise.all(promises)
-				.then(function (results) {
-					results.forEach(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+			it('using valid existing address of genesis delegate should return the result', function () {
+				return delegatesEndpoint.makeRequest({address: validDelegate.address}, 200).then(function (res) {
+					res.body.data[0].account.address.should.eql(validDelegate.address);
+				});
+			});
+
+			it('using valid not existing address should return an empty array', function () {
+				return delegatesEndpoint.makeRequest({address: '1111111111111111111L'}, 200).then(function (res) {
+					res.body.data.should.be.empty;
+				});
+			});
+		});
+
+		describe('username', function () {
+
+			it('using no username should return a schema error', function () {
+				return delegatesEndpoint.makeRequest({username: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'username');
+				});
+			});
+
+			it('using invalid username should fail', function () {
+				return delegatesEndpoint.makeRequest({username: 1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'username');
+				});
+			});
+
+			it('using valid existing username of genesis delegate should return the result', function () {
+				return delegatesEndpoint.makeRequest({username: validDelegate.username}, 200).then(function (res) {
+					res.body.data[0].username.should.eql(validDelegate.username);
+				});
+			});
+
+			it('using valid not existing username should return an empty array', function () {
+				return delegatesEndpoint.makeRequest({username: 'unknownusername'}, 200).then(function (res) {
+					res.body.data.should.be.empty;
+				});
+			});
+		});
+
+		describe('search', function () {
+
+			it('using blank search should fail', function () {
+				return delegatesEndpoint.makeRequest({search: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'search');
+				});
+			});
+
+			it('using the special match all character should return all results', function () {
+				return delegatesEndpoint.makeRequest({search: '%'}, 200).then(function (res) {
+					res.body.data.should.have.length.of.at.least(10);
+				});
+			});
+
+			it('using valid search with length=1 should be ok', function () {
+				return delegatesEndpoint.makeRequest({search: 'g'}, 200);
+			});
+
+			it('using search with length=20 should be ok', function () {
+				return delegatesEndpoint.makeRequest({search: 'genesis_123456789012'}, 200);
+			});
+
+			it('using search with length > 20 should fail', function () {
+				return delegatesEndpoint.makeRequest({search: 'genesis_1234567890123'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'search');
+				});
+			});
+
+			it('using search="genesis_1" should return 13 delegates', function () {
+				return delegatesEndpoint.makeRequest({search: 'genesis_1', limit: 20}, 200).then(function (res) {
+					res.body.data.should.have.length(13);
+					res.body.data.map(function (d) { /^genesis_1.*/.test(d.username).should.be.true; });
+				});
+			});
+
+			it('using search="genesis_10" should return 3 delegates', function () {
+				return delegatesEndpoint.makeRequest({search: 'genesis_10'}, 200).then(function (res) {
+					res.body.data.should.have.length(3);
+					res.body.data.map(function (d) { /^genesis_10.*/.test(d.username).should.be.true; });
+				});
+			});
+
+			it('using search="genesis_101" should return 1 delegate', function () {
+				return delegatesEndpoint.makeRequest({search: 'genesis_101'}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+					res.body.data[0].username.should.eql('genesis_101');
+				});
+			});
+
+			it('using higher limit should return 101 delegates', function () {
+				return delegatesEndpoint.makeRequest({search: 'genesis_', limit: 100}, 200).then(function (res) {
+					res.body.data.should.have.length(100);
+					res.body.data.map(function (d) { /^genesis_.*/.test(d.username).should.be.true; });
+				});
+			});
+		});
+
+		describe('sort', function () {
+
+			it('using sort="unknown:asc" should not sort results', function () {
+				return delegatesEndpoint.makeRequest({sort: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'sort');
+				});
+			});
+
+			it('using sort="rank:asc" should sort results in ascending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'rank:asc'}, 200).then(function (res) {
+					_.map(res.data, 'rank').sort().should.eql(_.map(res.data, 'rank'));
+				});
+			});
+
+			it('using sort="rank:desc" should sort results in descending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'rank:asc'}, 200).then(function (res) {
+					_.map(res.data, 'rank').sort().reverse().should.eql(_.map(res.data, 'rank'));
+				});
+			});
+
+			it('using sort="username:asc" should sort results in ascending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'username:asc'}, 200).then(function (res) {
+					_(res.data).map('username').dbSort().should.eql(_.map(res.data, 'username'));
+				});
+			});
+
+			it('using sort="username:desc" should sort results in descending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'username:desc'}, 200).then(function (res) {
+					_(res.data).map('username').dbSort('desc').should.eql(_.map(res.data, 'username'));
+				});
+			});
+
+			it('using sort="missedBlocks:asc" should sort results in ascending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'missedBlocks:asc'}, 200).then(function (res) {
+					_.map(res.data, 'missedBlocks').sort().should.eql(_.map(res.data, 'missedBlocks'));
+				});
+			});
+
+			it('using sort="missedBlocks:desc" should sort results in descending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'missedBlocks:desc'}, 200).then(function (res) {
+					_.map(res.data, 'missedBlocks').sort().reverse().should.eql(_.map(res.data, 'missedBlocks'));
+				});
+			});
+
+			it('using sort="productivity:asc" should sort results in ascending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'productivity:asc'}, 200).then(function (res) {
+					_.map(res.data, 'productivity').sort().should.eql(_.map(res.data, 'productivity'));
+				});
+			});
+
+			it('using sort="productivity:desc" should sort results in descending order', function () {
+				return delegatesEndpoint.makeRequest({sort: 'productivity:desc'}, 200).then(function (res) {
+					_.map(res.data, 'productivity').sort().reverse().should.eql(_.map(res.data, 'productivity'));
+				});
+			});
+
+			it('using sort with any of sort fields should not place NULLs first', function () {
+				var delegatesSortFields = ['rank', 'username', 'missedBlocks', 'productivity'];
+				return node.Promise.all(delegatesSortFields.map(function (sortField) {
+					return delegatesEndpoint.makeRequest({sort: sortField + ':asc'}, 200).then(function (res) {
+						_(_.map(res.data, sortField)).appearsInLast(null);
 					});
-					transactionsToWaitFor.push(transaction.id);
-					return waitForConfirmations(transactionsToWaitFor);
-				})
-				.then(function (res) {
-					var transaction = node.lisk.vote.createVote(account.password, ['+' + node.eAccount.publicKey], null);
-					transactionsToWaitFor = [];
-					transactionsToWaitFor.push(transaction.id);
-					return sendTransactionPromise(transaction);
-				})
-				.then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
-					return waitForConfirmations(transactionsToWaitFor);
+				}));
+			});
+		});
+
+		describe('limit', function () {
+
+			it('using string limit should fail', function () {
+				return delegatesEndpoint.makeRequest({limit: 'one'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
 				});
-		});
+			});
 
-		it('using no publicKey should be ok', function () {
-			var params = [
-				'publicKey='
-			];
+			it('using limit=-1 should fail', function () {
+				return delegatesEndpoint.makeRequest({limit: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
+			});
 
-			return getDelegateVotersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('accounts').that.is.an('array');
+			it('using limit=0 should fail', function () {
+				return delegatesEndpoint.makeRequest({limit: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
+			});
+
+			it('using limit=1 should be ok', function () {
+				return delegatesEndpoint.makeRequest({limit: 1}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+				});
+			});
+
+			it('using limit=101 should be ok', function () {
+				return delegatesEndpoint.makeRequest({limit: 100}, 200).then(function (res) {
+					res.body.data.should.have.length(100);
+				});
+			});
+
+			it('using limit > 100 should fail', function () {
+				return delegatesEndpoint.makeRequest({limit: 101}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
 			});
 		});
 
-		it('using invalid publicKey should fail', function () {
-			var params = [
-				'publicKey=' + 'notAPublicKey'
-			];
+		describe('offset', function () {
 
-			return getDelegateVotersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
+			it('using string offset should fail', function () {
+				return delegatesEndpoint.makeRequest({offset: 'one'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
+				});
 			});
-		});
 
-		it('using valid publicKey should be ok', function () {
-			var params = [
-				'publicKey=' + node.eAccount.publicKey
-			];
-
-			return getDelegateVotersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('accounts').that.is.an('array');
-				var flag = 0;
-				for (var i = 0; i < res.accounts.length; i++) {
-					if (res.accounts[i].address === account.address) {
-						flag = 1;
-					}
-				}
-				node.expect(flag).to.equal(1);
+			it('using offset=1 should be ok', function () {
+				return delegatesEndpoint.makeRequest({offset: 1, limit: 10}, 200).then(function (res) {
+					res.body.data.should.have.lengthOf.at.least(10);
+				});
 			});
-		});
-	});
 
-	describe('/search', function () {
-
-		it('using no criteria should fail', function () {
-			var params = [];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using blank criteria should fail', function () {
-			var params = [
-				'q='
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using wildcard criteria should be ok', function () {
-			var params = [
-				'q=' + '%' // 1 character
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-			});
-		});
-
-		it('using criteria with length=1 should be ok', function () {
-			var params = [
-				'q=' + 'g' // 1 character
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-			});
-		});
-
-		it('using criteria with length=20 should be ok', function () {
-			var params = [
-				'q=' + 'genesis_123456789012' // 20 characters
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-			});
-		});
-
-		it('using criteria with length > 20 should fail', function () {
-			var params = [
-				'q=' + 'genesis_1234567890123' // 21 characters
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using critera="genesis_1" should return 13 delegates', function () {
-			var params = [
-				'q=' + 'genesis_1'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(13);
-			});
-		});
-
-		it('using critera="genesis_10" should return 3 delegates', function () {
-			var params = [
-				'q=' + 'genesis_10'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(3);
-			});
-		});
-
-		it('using critera="genesis_101" should return 1 delegate', function () {
-			var params = [
-				'q=' + 'genesis_101'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(1);
-			});
-		});
-
-		it('using critera="genesis_101" should have all properties', function () {
-			var params = [
-				'q=' + 'genesis_101'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(1);
-				node.expect(res.delegates[0]).to.have.property('rank').that.is.an('number');
-				node.expect(res.delegates[0]).to.have.property('username').that.is.an('string');
-				node.expect(res.delegates[0]).to.have.property('address').that.is.an('string');
-				node.expect(res.delegates[0]).to.have.property('publicKey').that.is.an('string');
-				node.expect(res.delegates[0]).to.have.property('vote').that.is.an('string');
-				node.expect(res.delegates[0]).to.have.property('producedblocks').that.is.an('number');
-				node.expect(res.delegates[0]).to.have.property('missedblocks').that.is.an('number');
-				node.expect(res.delegates[0]).to.have.property('approval').that.is.an('number');
-				node.expect(res.delegates[0]).to.have.property('productivity').that.is.an('number');
-				node.expect(res.delegates[0]).to.have.property('voters_cnt').that.is.an('number');
-				node.expect(res.delegates[0]).to.have.property('register_timestamp').that.is.an('number');
-			});
-		});
-
-		it('using no limit should be ok', function () {
-			var params = [
-				'q=' + 'genesis_'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(101);
-			});
-		});
-
-		it('using string limit should fail', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'limit=' + 'one'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using limit=-100 should fail', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'limit=' + -100
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using limit=-1 should fail', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'limit=' + -1
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using limit=0 should fail', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'limit=' + 0
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using limit=1 should be ok', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'limit=' + 1
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(1);
-			});
-		});
-
-		it('using limit=1000 should be ok', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'limit=' + 1000
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(101);
-			});
-		});
-
-		it('using limit > 1000 should fail', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'limit=' + 1001
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using orderBy="unknown:asc" should fail', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'orderBy=' + 'unknown:asc'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error');
-			});
-		});
-
-		it('using no orderBy should be ordered by ascending username', function () {
-			var params = [
-				'q=' + 'genesis_'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(101);
-				node.expect(res.delegates[0]).to.have.property('username');
-				node.expect(res.delegates[0].username).to.equal('genesis_1');
-				node.expect(res.delegates[24]).to.have.property('username');
-				node.expect(res.delegates[24].username).to.equal('genesis_3');
-			});
-		});
-
-		it('using orderBy="username:asc" should be ordered by ascending username', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'orderBy=' + 'username:asc'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(101);
-				node.expect(res.delegates[0]).to.have.property('username');
-				node.expect(res.delegates[0].username).to.equal('genesis_1');
-				node.expect(res.delegates[24]).to.have.property('username');
-				node.expect(res.delegates[24].username).to.equal('genesis_3');
-			});
-		});
-
-		it('using orderBy="username:desc" should be ordered by descending username', function () {
-			var params = [
-				'q=' + 'genesis_',
-				'orderBy=' + 'username:desc'
-			];
-
-			return searchDelegatesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.length(101);
-				node.expect(res.delegates[0]).to.have.property('username');
-				node.expect(res.delegates[0].username).to.equal('genesis_99');
-				node.expect(res.delegates[24]).to.have.property('username');
-				node.expect(res.delegates[24].username).to.equal('genesis_77');
-			});
-		});
-	});
-
-	describe('/forging/status', function () {
-
-		it('using no params should be ok', function () {
-			var params = [];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('enabled').to.be.true;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-			});
-		});
-
-		it('using invalid publicKey should fail', function () {
-			var params = [
-				'publicKey=' + 'invalidPublicKey'
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Object didn\'t pass validation for format publicKey: invalidPublicKey');
-			});
-		});
-
-		it('using empty publicKey should be ok', function () {
-			var params = [
-				'publicKey='
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('enabled').to.be.true;
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-
-			});
-		});
-
-		it('using existing publicKey should be ok', function () {
-			var params = [
-				'publicKey=' + testDelegate.publicKey
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('enabled').that.is.a('boolean');
-
-			});
-		});
-
-		it('using enabled publicKey should be ok', function () {
-			var params = [
-				'publicKey=' + '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('enabled').to.be.true;
-
-			});
-		});
-	});
-
-	describe('/forging', function () {
-
-		before(function () {
-			var params = [
-				'publicKey=' + testDelegate.publicKey
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('enabled').to.be.a('boolean');
-				if (!res.enabled) {
-					var params = {
-						publicKey: testDelegate.publicKey,
-						key: testDelegate.key
-					};
-					return putForgingDelegatePromise(params).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('publicKey').equal(testDelegate.publicKey);
-						node.expect(res).to.have.property('forging').equal(true);
-					});
-				}
-			});
-		});
-
-		it('using no params should fail', function () {
-			var params = {};
-			return putForgingDelegatePromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').not.to.be.ok;
-				node.expect(res).to.have.property('error').to.be.a('string').and.to.contain('Missing required property: ');
-			});
-		});
-
-		it('using invalid publicKey should fail', function () {
-			var invalidPublicKey = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
-			var params = {
-				publicKey: invalidPublicKey,
-				key: testDelegate.key
-			};
-			return putForgingDelegatePromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').not.to.be.ok;
-				node.expect(res).to.have.property('error').to.be.a('string').and.to.contain(['Delegate with publicKey:', invalidPublicKey, 'not found'].join(' '));
-			});
-		});
-
-		it('using invalid key should fail', function () {
-			var params = {
-				publicKey: testDelegate.publicKey,
-				key: 'invalid key'
-			};
-
-			return putForgingDelegatePromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').not.to.be.ok;
-				node.expect(res).to.have.property('error').to.be.a('string').and.to.contain('Invalid key and public key combination');
-			});
-		});
-
-		it('using valid params should be ok', function () {
-			var params = {
-				publicKey: testDelegate.publicKey,
-				key: testDelegate.key
-			};
-
-			return putForgingDelegatePromise(params).then(function (res) {
-				node.expect(res).to.have.property('publicKey').equal(testDelegate.publicKey);
-				node.expect(res).to.have.property('forging').to.be.a('boolean');
-			});
-		});
-
-		it('using valid params should toggle forging status', function () {
-			var params = [
-				'publicKey=' + testDelegate.publicKey
-			];
-
-			return getForgingStatusPromise(params).then(function (res) {
-				var currentStatus = res.enabled;
-				var params = {
-					publicKey: testDelegate.publicKey,
-					key: testDelegate.key
-				};
-
-				return putForgingDelegatePromise(params).then(function (res) {
-					node.expect(res).to.have.property('publicKey').equal(testDelegate.publicKey);
-					node.expect(res).to.have.property('forging').to.not.equal(currentStatus);
+			it('using offset=-1 should fail', function () {
+				return delegatesEndpoint.makeRequest({offset: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
 				});
 			});
 		});
 	});
 
-	describe('/forging/getForgedByAccount', function () {
+	describe('GET /forgers', function () {
 
-		it('using no params should fail', function () {
-			var params = [];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Missing required property: generatorPublicKey');
-			});
-		});
-
-		it('using valid params should be ok', function () {
-			var params = [
-				'generatorPublicKey=' + testDelegate.publicKey
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('fees').that.is.a('string');
-				node.expect(res).to.have.property('rewards').that.is.a('string');
-				node.expect(res).to.have.property('forged').that.is.a('string');
-			});
-		});
-
-		it('using valid params with borders should be ok', function () {
-			var params = [
-				'generatorPublicKey=' + testDelegate.publicKey,
-				'start=' + 0,
-				'end=' + 0
-			];
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('fees').that.is.a('string').and.eql('0');
-				node.expect(res).to.have.property('rewards').that.is.a('string').and.eql('0');
-				node.expect(res).to.have.property('forged').that.is.a('string').and.eql('0');
-				node.expect(res).to.have.property('count').that.is.a('string').and.eql('0');
-			});
-		});
-
-		it('using unknown generatorPublicKey should fail', function () {
-			var params = [
-				'generatorPublicKey=' + node.randomAccount().publicKey
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Account not found');
-			});
-		});
-
-		it('using unknown generatorPublicKey with borders should fail', function () {
-			var params = [
-				'generatorPublicKey=' + node.randomAccount().publicKey,
-				'start=' + 0,
-				'end=' + 0
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Account not found or is not a delegate');
-			});
-		});
-
-		it('using invalid generatorPublicKey should fail', function () {
-			var params = [
-				'generatorPublicKey=' + 'invalidPublicKey',
-				'start=' + 0,
-				'end=' + 0
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Object didn\'t pass validation for format publicKey: invalidPublicKey');
-			});
-		});
-
-		it('using no start should be ok', function () {
-			var params = [
-				'generatorPublicKey=' + testDelegate.publicKey,
-				'end=' + 0
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('fees').that.is.a('string').and.eql('0');
-				node.expect(res).to.have.property('rewards').that.is.a('string').and.eql('0');
-				node.expect(res).to.have.property('forged').that.is.a('string').and.eql('0');
-				node.expect(res).to.have.property('count').that.is.a('string').and.eql('0');
-			});
-		});
-
-		it('using no end should be ok', function () {
-			var params = [
-				'generatorPublicKey=' + testDelegate.publicKey,
-				'start=' + 0
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('fees').that.is.a('string');
-				node.expect(res).to.have.property('rewards').that.is.a('string');
-				node.expect(res).to.have.property('forged').that.is.a('string');
-				node.expect(res).to.have.property('count').that.is.a('string');
-			});
-		});
-
-		it('using string start should fail', function () {
-			var params = [
-				'generatorPublicKey=' + testDelegate.publicKey,
-				'start=' + 'one',
-				'end=' + 0
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Expected type integer but found type string');
-			});
-		});
-
-		it('using string end should fail', function () {
-			var params = [
-				'generatorPublicKey=' + testDelegate.publicKey,
-				'start=' + 0,
-				'end=' + 'two'
-			];
-
-			return getForgedByAccountPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.eql('Expected type integer but found type string');
-			});
-		});
-	});
-
-	describe('/getNextForgers', function () {
+		var forgersEndpoint = new swaggerEndpoint('GET /delegates/forgers');
 
 		it('using no params should be ok', function () {
-			var params = [];
-
-			return getNextForgersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('currentBlock').that.is.a('number');
-				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
-				node.expect(res).to.have.property('currentSlot').that.is.a('number');
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(10);
+			return forgersEndpoint.makeRequest({}, 200).then(function (res) {
+				res.body.data.should.have.length(10);
 			});
 		});
 
 		it('using limit=1 should be ok', function () {
-			var params = [
-				'limit=1'
-			];
-
-			return getNextForgersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('currentBlock').that.is.a('number');
-				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
-				node.expect(res).to.have.property('currentSlot').that.is.a('number');
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(1);
+			return forgersEndpoint.makeRequest({limit: 1}, 200).then(function (res) {
+				res.body.data.should.have.length(1);
 			});
 		});
 
-		it('using limit=101 should be ok', function () {
-			var params = [
-				'limit=101'
-			];
+		it('using offset=1 limit=10 should be ok', function () {
+			return forgersEndpoint.makeRequest({limit: 10, offset: 1}, 200).then(function (res) {
+				res.body.data.should.have.length(10);
+			});
+		});
 
-			return getNextForgersPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('currentBlock').that.is.a('number');
-				node.expect(res).to.have.property('currentBlockSlot').that.is.a('number');
-				node.expect(res).to.have.property('currentSlot').that.is.a('number');
-				node.expect(res).to.have.property('delegates').that.is.an('array');
-				node.expect(res.delegates).to.have.lengthOf(101);
+		describe('slot numbers are correct', function () {
+
+			var forgersData;
+
+			before(function () {
+				return forgersEndpoint.makeRequest({}, 200).then(function (res) {
+					forgersData = res.body;
+				});
+			});
+
+			it('lastBlockSlot should be less or equal to currentSlot', function () {
+				forgersData.meta.lastBlockSlot.should.be.at.most(forgersData.meta.currentSlot);
+			});
+
+			it('every forger nextSlot should be greater than currentSlot', function () {
+				forgersData.data.forEach(function (forger) {
+					forgersData.meta.currentSlot.should.be.at.most(forger.nextSlot);
+				});
 			});
 		});
 	});

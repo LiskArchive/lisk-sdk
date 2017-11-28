@@ -7,7 +7,7 @@ var crypto = require('crypto');
 var extend = require('extend');
 var apiCodes = require('../helpers/apiCodes.js');
 var ApiError = require('../helpers/apiError.js');
-var OrderBy = require('../helpers/orderBy.js');
+var sortBy = require('../helpers/sort_by.js').sortBy;
 var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
@@ -94,7 +94,7 @@ __private.list = function (filter, cb) {
 		minConfirmations:    'confirmations >= ${minConfirmations}',
 		limit: null,
 		offset: null,
-		orderBy: null,
+		sort: null,
 		// FIXME: Backward compatibility, should be removed after transitional period
 		ownerAddress: null,
 		ownerPublicKey: null
@@ -156,8 +156,8 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit, maximum is 1000');
 	}
 
-	var orderBy = OrderBy(
-		filter.orderBy, {
+	var sort = sortBy(
+		filter.sort, {
 			sortFields: sql.sortFields,
 			fieldPrefix: function (sortField) {
 				if (['height'].indexOf(sortField) > -1) {
@@ -171,8 +171,8 @@ __private.list = function (filter, cb) {
 		}
 	);
 
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
+	if (sort.error) {
+		return setImmediate(cb, sort.error);
 	}
 
 	var rawTransactionRows;
@@ -186,8 +186,8 @@ __private.list = function (filter, cb) {
 		return library.db.query(sql.list({
 			where: where,
 			owner: owner,
-			sortField: orderBy.sortField,
-			sortMethod: orderBy.sortMethod
+			sortField: sort.sortField,
+			sortMethod: sort.sortMethod
 		}), params);
 	}).then(function (rows) {
 		rawTransactionRows = rows;

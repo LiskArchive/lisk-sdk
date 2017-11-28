@@ -6,7 +6,6 @@ var crypto = require('crypto');
 
 var apiCodes = require('../helpers/apiCodes');
 var ApiError = require('../helpers/apiError');
-var OrderBy = require('../helpers/orderBy');
 var sql = require('../sql/voters');
 var schema = require('../schema/voters');
 
@@ -34,15 +33,20 @@ function Voters (cb, scope) {
 }
 
 var getDelegate = function (query, cb) {
-	return modules.accounts.getAccount(_.assign({}, query, {sort: {}}), ['publicKey', 'address', 'balance'], cb);
+	var dbQuery = _.assign({}, query, {sort: {}});
+
+	delete dbQuery.limit;
+	delete dbQuery.offset;
+
+	return modules.accounts.getAccount(dbQuery, ['publicKey', 'username', 'address', 'balance'], cb);
 };
 
-var getVotersForDelegates = function (delegate, cb) {
+var getVotersForDelegates = function (filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
-	library.db.one(sql.getVoters, {publicKey: delegate.publicKey}).then(function (row) {
-		var addresses = (row.accountIds) ? row.accountIds : [];
+	library.db.query(sql.getVoters, {publicKey: delegate.publicKey, limit: filters.limit, offset: filters.offset}).then(function (rows) {
+		var addresses = rows.map(function (a) { return a.accountId; });
 		return setImmediate(cb, null, addresses);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -51,7 +55,20 @@ var getVotersForDelegates = function (delegate, cb) {
 };
 
 var populateVoters = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'username', 'publicKey', 'secondPublicKey'], cb);
+	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'publicKey'], cb);
+};
+
+var getVotersCountForDelegates = function (delegate, cb) {
+	if (!delegate) {
+		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
+	}
+
+	library.db.one(sql.getVotersCount, {publicKey: delegate.publicKey}).then(function (row) {
+		return setImmediate(cb, null, parseInt(row.votersCount));
+	}).catch(function (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Failed to get voters for delegate: ' + delegate.publicKey);
+	});
 };
 
 /**
@@ -63,30 +80,33 @@ Voters.prototype.isLoaded = function () {
 
 // Public methods
 Voters.prototype.shared = {
-
 	/**
-	 * API function for getting the delegate including his voters
-	 * @param {Object} req
-	 * @param {function} cb
+	 * API function for getting the delegate including his voters.
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.username - Username associated to account.
+	 * @param {string} filters.address - Account address.
+	 * @param {string} filters.publicKey - Public key associated to account.
+	 * @param {string} filters.secondPublicKey - Second public key associated to account.
+	 * @param {string} filters.sort - Field to sort results by.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
 	 */
-	getVoters: function (req, cb) {
-		library.schema.validate(req.body, schema.getVoters, function (err) {
+	getVoters: function (filters, cb) {
+		async.autoInject({
+			delegate: getDelegate.bind(null, filters),
+			votersCount: ['delegate', getVotersCountForDelegates],
+			votersAddresses: ['delegate', getVotersForDelegates.bind(null, filters)],
+			populatedVoters: ['votersAddresses', populateVoters.bind(null, filters.sort)]
+		}, function (err, results) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
+				return setImmediate(cb, err);
 			}
-			async.autoInject({
-				delegate: getDelegate.bind(null, req.body),
-				votersAddresses: ['delegate', getVotersForDelegates],
-				populatedVoters: ['votersAddresses', populateVoters.bind(null, req.body.sort)]
-			}, function (err, results) {
-				if (err) {
-					return setImmediate(cb, err instanceof ApiError ? err : new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
-				}
-				results.delegate.voters = results.populatedVoters;
-				results.delegate.votes = results.populatedVoters.length;
-				delete results.delegate.publicKey;
-				return setImmediate(cb, null, results.delegate);
-			});
+
+			results.delegate.voters = results.populatedVoters;
+			results.delegate.votes = results.votersCount;
+
+			return setImmediate(cb, null, results.delegate);
 		});
 	}
 };

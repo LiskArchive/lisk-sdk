@@ -44,6 +44,16 @@ swagger:
       name: lisk_error_handler
       handle500Errors: true
 
+    _pre_response_cache:
+      name: lisk_cache
+      swagger_cache_key: x-lisk-cache-enabled
+      mode: pre_response
+
+    _post_response_cache:
+      name: lisk_cache
+      swagger_cache_key: x-lisk-cache-enabled
+      mode: post_response
+
     # For more details https://github.com/theganyo/swagger-node-runner/releases/tag/v0.6.10
     _swagger_security:
       name: swagger_security
@@ -61,6 +71,8 @@ swagger:
       - _swagger_security
       - _swagger_validate
       - express_compatibility
+      - _pre_response_cache
       - _router
       - _response_formatter
+      - _post_response_cache
 

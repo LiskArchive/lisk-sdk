@@ -105,14 +105,14 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 
 	var originalLimit = params.limit;
 
-	modules.peers.list(params, function (err, peers, consensus) {
+	modules.peers.list(params, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
 		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
-			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
-			self.consensus = consensus;
+			self.consensus = modules.peers.getConsensus(peers);
+			library.logger.info(['Broadhash consensus now', self.consensus, '%'].join(' '));
 		}
 
 		return setImmediate(cb, null, peers);

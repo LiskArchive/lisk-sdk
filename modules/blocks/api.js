@@ -4,7 +4,7 @@ var apiCodes = require('../../helpers/apiCodes.js');
 var ApiError = require('../../helpers/apiError.js');
 var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
-var OrderBy = require('../../helpers/orderBy.js');
+var sortBy = require('../../helpers/sort_by.js').sortBy;
 var schema = require('../../schema/blocks.js');
 var sql = require('../../sql/blocks.js');
 
@@ -55,7 +55,7 @@ function API (logger, db, block, schema, dbSequence) {
  * @param  {number}   filter.reward Block reward
  * @param  {number}   filter.limit Limit of blocks to retrieve, default: 100, max: 100
  * @param  {number}   filter.offset Offset from where to start
- * @param  {string}   filter.orderBy Sort order, default: height:desc
+ * @param  {string}   filter.sort Sort order, default: height:desc
  * @param  {function} cb Callback function
  * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
@@ -124,21 +124,21 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var orderBy = OrderBy(
-		(filter.orderBy || 'height:desc'), {
+	var sort = sortBy(
+		(filter.sort || 'height:desc'), {
 			sortFields: sql.sortFields,
 			fieldPrefix: 'b_'
 		}
 	);
 
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
+	if (sort.error) {
+		return setImmediate(cb, sort.error);
 	}
 
 	library.db.query(sql.list({
 		where: where,
-		sortField: orderBy.sortField,
-		sortMethod: orderBy.sortMethod
+		sortField: sort.sortField,
+		sortMethod: sort.sortMethod
 	}), params).then(function (rows) {
 		var blocks = [];
 		// Normalize blocks
@@ -146,32 +146,27 @@ __private.list = function (filter, cb) {
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 			blocks.push(library.logic.block.dbRead(rows[i]));
 		}
-		return setImmediate(cb, null, {blocks: blocks});
+		return setImmediate(cb, null, blocks);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Blocks#list error');
 	});
 };
 
-API.prototype.getBlocks = function (req, cb) {
+API.prototype.getBlocks = function (filters, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.schema.validate(req.body, schema.getBlocks, function (err) {
-		if (err) {
-			return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
-		}
+	library.dbSequence.add(function (cb) {
+		__private.list(filters, function (err, data) {
+			if (err) {
+				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
+			}
 
-		library.dbSequence.add(function (cb) {
-			__private.list(req.body, function (err, data) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
-				}
-				return setImmediate(cb, null, {blocks: data.blocks, count: data.count});
-			});
-		}, cb);
-	});
+			return setImmediate(cb, null, data);
+		});
+	}, cb);
 };
 
 /**

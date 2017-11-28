@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('lodash');
 var randomstring = require('randomstring');
 var node = require('../../../node.js');
+var _ = node._;
 var apiCodes = require('../../../../helpers/apiCodes.js');
 var constants = require('../../../../helpers/constants.js');
 
@@ -10,31 +10,23 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
 
 describe('GET /api/voters', function () {
 
+	var votersEndpoint = new swaggerEndpoint('GET /voters');
 	var validVotedDelegate = node.eAccount;
 	var validNotVotedDelegate = node.gAccount;
 	var validNotExistingAddress = '11111111111111111111L';
 
 	function expectValidVotedDelegateResponse (res) {
-		node.expect(res).to.have.property('status').equal(apiCodes.OK);
-		node.expect(res).to.have.nested.property('body.address').that.is.a('string');
-		node.expect(res).to.have.nested.property('body.balance').that.is.a('string');
-		node.expect(res).to.have.nested.property('body.voters').that.is.an('array').and.have.a.lengthOf.at.least(1);
-		node.expect(res).to.have.nested.property('body.voters.0.address').that.is.a('string').and.have.a.lengthOf.at.least(2);
-		node.expect(res).to.have.nested.property('body.voters.0.username');
-		node.expect(res).to.have.nested.property('body.voters.0.publicKey').that.is.a('string').and.have.a.lengthOf(64);
-		node.expect(res).to.have.nested.property('body.voters.0.balance').that.is.a('string');
-		node.expect(res).to.have.nested.property('body.votes').that.is.a('number').equal(res.body.voters.length);
+		res.body.data.votes.should.be.least(res.body.data.voters.length);
 	}
 
 	function expectValidNotVotedDelegateResponse (res) {
-		node.expect(res).to.have.property('status').equal(apiCodes.OK);
-		node.expect(res).to.have.nested.property('body.address').that.is.a('string');
-		node.expect(res).to.have.nested.property('body.balance').that.is.a('string');
-		node.expect(res).to.have.nested.property('body.voters').that.is.an('array').and.to.be.empty;
-		node.expect(res).to.have.nested.property('body.votes').that.is.a('number').equal(0);
+		res.body.data.votes.should.be.equal(0);
+		res.body.data.voters.should.be.empty;
 	}
 
 	describe('?', function () {
@@ -43,358 +35,167 @@ describe('GET /api/voters', function () {
 
 			describe('when params are not defined', function () {
 
-				var response;
-				var emptyParams =  [];
-
-				before(function () {
-					return getVotersPromise(emptyParams).then(function (res) {
-						response = res;
+				it('should fail with error message requiring any of param', function () {
+					return votersEndpoint.makeRequest({}, 400).then(function (res) {
+						res.body.errors.should.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
 					});
-				});
-
-				it('should return message = Data does not match any schemas from "anyOf"', function () {
-					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
-				});
-
-				it('should return status = 400', function () {
-					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
-				});
-			});
-
-			describe('when only limit param provided', function () {
-
-				var response;
-				var validLimit = 1;
-				var validLimitParams = ['limit=' + validLimit];
-
-				before(function () {
-					return getVotersPromise(validLimitParams).then(function (res) {
-						response = res;
-					});
-				});
-
-				it('should return message = Data does not match any schemas from "anyOf"', function () {
-					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
-				});
-
-				it('should return status = 400', function () {
-					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
 				});
 			});
 
 			describe('when only sort param provided', function () {
 
-				var response;
-				var validSort = 'address';
-				var validSortParams = ['sort=' + validSort];
-
-				before(function () {
-					return getVotersPromise(validSortParams).then(function (res) {
-						response = res;
+				it('should fail with error message requiring any of param', function () {
+					return votersEndpoint.makeRequest({sort: 'username:asc'}, 400).then(function (res) {
+						res.body.errors.should.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
 					});
-				});
-
-				it('should return message = Data does not match any schemas from "anyOf"', function () {
-					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
-				});
-
-				it('should return status = 400', function () {
-					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
 				});
 			});
 
 			describe('when only offset param provided', function () {
 
-				var response;
-				var validOffset = 1;
-				var validOffsetParams = ['offset=' + validOffset];
-
-				before(function () {
-					return getVotersPromise(validOffsetParams).then(function (res) {
-						response = res;
+				it('should fail with error message requiring any of param', function () {
+					return votersEndpoint.makeRequest({offset: 1}, 400).then(function (res) {
+						res.body.errors.should.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
 					});
-				});
-
-				it('should return message = Data does not match any schemas from "anyOf"', function () {
-					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
-				});
-
-				it('should return status = 400', function () {
-					node.expect(response).to.have.property('status').equal(apiCodes.BAD_REQUEST);
 				});
 			});
 
-			describe('when offset, sort, limit params provided', function () {
+			describe('when sort params provided', function () {
 
-				var response;
-				var validOffset = 1;
-				var validLimit = 1;
-				var validSort = 'address';
-				var validMergedParams = ['offset=' + validOffset + '&sort=' + validSort + '&validLimit=' + validLimit];
-
-				before(function () {
-					return getVotersPromise(validMergedParams).then(function (res) {
-						response = res;
-					});
-				});
-
-				it('should return message = Data does not match any schemas from "anyOf"', function () {
-					node.expect(response).to.have.nested.property('body.message').equal('Data does not match any schemas from \'anyOf\'');
-				});
-
-				it('should return status = 400', function () {
-					node.expect(response).to.have.property('status').equal(400);
-				});
-			});
-
-			describe('when one of required params provided', function () {
-
-				describe('when address param provided', function () {
-
-					var validAddress = node.eAccount.address;
-					var validAddressParams = ['address=' + validAddress];
-
-					it('should return status = 200', function () {
-						return getVotersPromise(validAddressParams).then(function (res) {
-							node.expect(res).to.have.property('status').equal(200);
-						});
-					});
-				});
-
-				describe('when publicKey param provided', function () {
-
-					var validPublicKey = node.eAccount.publicKey;
-					var validPublicKeyParams = ['publicKey=' + validPublicKey];
-
-					it('should return status = 200', function () {
-						return getVotersPromise(validPublicKeyParams).then(function (res) {
-							node.expect(res).to.have.property('status').equal(200);
-						});
-					});
-				});
-
-				describe('when username param provided', function () {
-
-					var validUsername = node.eAccount.delegateName;
-					var validUsernameParams = ['username=' + validUsername];
-
-					it('should return status = 200', function () {
-						return getVotersPromise(validUsernameParams).then(function (res) {
-							node.expect(res).to.have.property('status').equal(200);
-						});
+				it('should fail with error message requiring any of param', function () {
+					return votersEndpoint.makeRequest({sort: 'username:asc'}, 400).then(function (res) {
+						res.body.errors.should.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 				});
 			});
 
 			describe('when all required params (address, publicKey, username) provided', function () {
 
-				var response;
-				var validAddress = node.eAccount.address;
-				var validPublicKey = node.eAccount.publicKey;
-				var validUsername = node.eAccount.delegateName;
-				var validMergedParams = ['address=' + validAddress + '&publicKey=' + validPublicKey + '&username=' + validUsername];
-
-				before(function () {
-					return getVotersPromise(validMergedParams).then(function (res) {
-						response = res;
+				it('should return the expected result as when db has only 101 delegates', function () {
+					return votersEndpoint.makeRequest({
+						address: node.eAccount.address,
+						publicKey: node.eAccount.publicKey,
+						username: node.eAccount.delegateName
+					}, 200).then(function (res) {
+						expectValidVotedDelegateResponse(res);
 					});
-				});
-
-				it('should return the result for when querying with delegate_101 data', function () {
-					expectValidVotedDelegateResponse(response);
-				});
-
-				it('should return status = 200', function () {
-					node.expect(response).to.have.property('status').equal(apiCodes.OK);
 				});
 			});
 		});
 
 		describe('publicKey', function () {
 
-			it('using no publicKey should return empty response and code = 204', function () {
-				var params = [
-					'publicKey='
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
-					node.expect(res).to.have.property('body').that.is.empty;
+			it('using no publicKey should fail', function () {
+				return votersEndpoint.makeRequest({publicKey: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
 				});
 			});
 
 			it('using invalid publicKey should fail', function () {
-				var params = [
-					'publicKey=' + 'invalidPublicKey'
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
-					node.expect(res).to.have.nested.property('body.message').equal('Object didn\'t pass validation for format publicKey: invalidPublicKey');
+				return votersEndpoint.makeRequest({publicKey: 'invalidPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
 				});
 			});
 
-			it('using valid existing publicKey of genesis delegate should return the result', function () {
-				var params = [
-					'publicKey=' + validVotedDelegate.publicKey
-				];
-				return getVotersPromise(params).then(expectValidVotedDelegateResponse);
+			it('using valid existing publicKey of genesis delegate should return the expected result', function () {
+				return votersEndpoint.makeRequest({publicKey: validVotedDelegate.publicKey}, 200).then(expectValidVotedDelegateResponse);
 			});
 
-			it('using valid existing publicKey of genesis account should return the never voted result', function () {
-				var params = [
-					'publicKey=' + validNotVotedDelegate.publicKey
-				];
-				return getVotersPromise(params).then(expectValidNotVotedDelegateResponse);
+			it('using valid existing publicKey of genesis account should return the expected result of having never been voted for', function () {
+				return votersEndpoint.makeRequest({publicKey: validNotVotedDelegate.publicKey}, 200).then(expectValidNotVotedDelegateResponse);
 			});
 
-			it('using valid not existing publicKey should return empty response and code = 204', function () {
-
-				var validNotExistingPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
-				var params = [
-					'publicKey=' + validNotExistingPublicKey
-				];
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
-					node.expect(res).to.have.property('body').that.is.empty;
-				});
+			it('using valid inexistent publicKey should return empty response and code = 404', function () {
+				return votersEndpoint.makeRequest({publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8'}, 404);
 			});
 		});
 
 		describe('secondPublicKey', function () {
 
-			it('using no secondPublicKey should return empty response and code = 204', function () {
-				var params = [
-					'secondPublicKey='
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
-					node.expect(res).to.have.property('body').that.is.empty;
+			it('using no secondPublicKey should fail', function () {
+				return votersEndpoint.makeRequest({secondPublicKey: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'secondPublicKey');
 				});
 			});
 
 			it('using invalid secondPublicKey should fail', function () {
-				var params = [
-					'secondPublicKey=' + 'invalidSecondPublicKey'
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
-					node.expect(res).to.have.nested.property('body.message').equal('Object didn\'t pass validation for format publicKey: invalidSecondPublicKey');
+				return votersEndpoint.makeRequest({secondPublicKey: 'invalidSecondPublicKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'secondPublicKey');
 				});
 			});
 
-			it('using valid not existing secondPublicKey should return empty response and code = 204', function () {
-
-				var validNotExistingSecondPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
-				var params = [
-					'secondPublicKey=' + validNotExistingSecondPublicKey
-				];
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
-					node.expect(res).to.have.property('body').that.is.empty;
-				});
+			it('using valid inexistent secondPublicKey should return empty response and code = 404', function () {
+				return votersEndpoint.makeRequest({secondPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8'}, 404);
 			});
 		});
 
 		describe('address', function () {
 
-			it('using no address should return message = "String is too short (0 chars), minimum 2"', function () {
-				var params = [
-					'address='
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
-					node.expect(res).to.have.nested.property('body.message').equal('String is too short (0 chars), minimum 2');
+			it('using no address should fail', function () {
+				return votersEndpoint.makeRequest({address: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
 				});
 			});
 
 			it('using invalid address should fail', function () {
-				var params = [
-					'address=' + 'invalidAddress'
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
-					node.expect(res).to.have.nested.property('body.message').equal('Object didn\'t pass validation for format address: invalidAddress');
+				return votersEndpoint.makeRequest({address: 'invalidAddress'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
 				});
 			});
 
-			it('using valid existing address of genesis delegate should return the result', function () {
-				var params = [
-					'address=' + validVotedDelegate.address
-				];
-				return getVotersPromise(params).then(expectValidVotedDelegateResponse);
+			it('using valid existing address of genesis delegate should return the expected result', function () {
+				return votersEndpoint.makeRequest({address: validVotedDelegate.address}, 200).then(expectValidVotedDelegateResponse);
 			});
 
-			it('using valid existing address of genesis account should return the never voted result', function () {
-				var params = [
-					'address=' + validNotVotedDelegate.address
-				];
-				return getVotersPromise(params).then(expectValidNotVotedDelegateResponse);
+			it('using valid existing address of genesis account should return the expected result of having never been voted for', function () {
+				return votersEndpoint.makeRequest({address: validNotVotedDelegate.address}, 200).then(expectValidNotVotedDelegateResponse);
 			});
 
-			it('using valid not existing address should return empty response and code = 204', function () {
-
-				var params = [
-					'address=' + validNotExistingAddress
-				];
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
-					node.expect(res).to.have.property('body').that.is.empty;
-				});
+			it('using valid inexistent address should return empty response and code = 404', function () {
+				return votersEndpoint.makeRequest({address: validNotExistingAddress}, 404);
 			});
 		});
 
 		describe('username', function () {
 
-			it('using no username should return message = "String is too short (0 chars), minimum 1"', function () {
-				var params = [
-					'username='
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
-					node.expect(res).to.have.nested.property('body.message').equal('String is too short (0 chars), minimum 1');
+			it('using no username should fail', function () {
+				return votersEndpoint.makeRequest({username: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'username');
 				});
 			});
 
 			it('using invalid username as a number should fail', function () {
-				var number = 1;
-				var params = [
-					'username=' + number
-				];
-
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.BAD_REQUEST);
-					node.expect(res).to.have.nested.property('body.message').equal('Expected type string but found type integer');
+				return votersEndpoint.makeRequest({username: 1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'username');
 				});
 			});
 
-			it('using valid existing username of genesis delegate should return the result', function () {
-				var params = [
-					'username=' + validVotedDelegate.delegateName
-				];
-				return getVotersPromise(params).then(expectValidVotedDelegateResponse);
+			it('using valid existing username of genesis delegate should return the expected result', function () {
+				return votersEndpoint.makeRequest({username: validVotedDelegate.delegateName}, 200).then(expectValidVotedDelegateResponse);
 			});
 
-			it('using valid not existing username should return empty response and code = 204', function () {
-
-				var validNotExistingUsername = 'unknownusername';
-
-				var params = [
-					'username=' + validNotExistingUsername
-				];
-				return getVotersPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').equal(apiCodes.NO_CONTENT);
-					node.expect(res).to.have.property('body').that.is.empty;
-				});
+			it('using valid inexistent username should return empty response and code = 404', function () {
+				return votersEndpoint.makeRequest({username: 'unknownusername'}, 404);
 			});
 		});
 
-		describe('sort, limit, offset', function () {
+		describe('sort', function () {
 
 			var validExtraDelegateVoter = node.randomAccount();
 			var validExtraVoter = node.randomAccount();
@@ -405,11 +206,13 @@ describe('GET /api/voters', function () {
 					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
 					node.gAccount.password
 				);
+
 				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
 					length: 10,
 					charset: 'alphabetic',
 					capitalization: 'lowercase'
 				}));
+
 				var voteByExtraDelegateVoterTransaction = node.lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
 
 				return sendTransactionPromise(enrichExtraDelegateVoterTransaction)
@@ -435,24 +238,18 @@ describe('GET /api/voters', function () {
 				describe('username', function () {
 
 					it('should return voters in ascending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=username:asc'
-						];
-						return getVotersPromise(params).then(function (res) {
+						return votersEndpoint.makeRequest({sort: 'username:asc', username: validVotedDelegate.delegateName}, 200).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('username').map('username').value()).to.be.eql(_.map(res.body.voters, 'username'));
+							res.body.data.username.should.equal(validVotedDelegate.delegateName);
+							_(res.body.data.voters).sortBy('username').map('username').value().should.to.be.eql(_.map(res.body.data.voters, 'username'));
 						});
 					});
 
 					it('should return voters in descending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=username:desc'
-						];
-						return getVotersPromise(params).then(function (res) {
+						return votersEndpoint.makeRequest({sort: 'username:desc', username: validVotedDelegate.delegateName}, 200).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters).sortBy('username').reverse().map('username').value()).to.be.eql(_.map(res.body.voters, 'username'));
+							res.body.data.username.should.equal(validVotedDelegate.delegateName);
+							_(res.body.data.voters).sortBy('username').reverse().map('username').value().should.to.be.eql(_.map(res.body.data.voters, 'username'));
 						});
 					});
 				});
@@ -460,33 +257,48 @@ describe('GET /api/voters', function () {
 				describe('balance', function () {
 
 					it('should return voters in ascending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=balance:asc'
-						];
-						return getVotersPromise(params).then(function (res) {
+						return votersEndpoint.makeRequest({sort: 'balance:asc', username: validVotedDelegate.delegateName}, 200).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters.map(function (account) {
-								return Number(account.balance);
-							})).sortBy().value()).to.be.eql(_.map(res.body.voters, function (account) {
-								return Number(account.balance);
-							}));
+							res.body.data.username.should.equal(validVotedDelegate.delegateName);
+							_.map(res.body.data.voters, 'balance').sort().should.to.be.eql(_.map(res.body.data.voters, 'balance'));
 						});
 					});
 
 					it('should return voters in descending order', function () {
-						var params = [
-							'username=' + validVotedDelegate.delegateName,
-							'sort=balance:desc'
-						];
-						return getVotersPromise(params).then(function (res) {
+						return votersEndpoint.makeRequest({sort: 'balance:desc', username: validVotedDelegate.delegateName}, 200).then(function (res) {
 							expectValidVotedDelegateResponse(res);
-							node.expect(_(res.body.voters.map(function (account) {
-								return Number(account.balance);
-							})).sortBy().reverse().value()).to.be.eql(_.map(res.body.voters, function (account) {
-								return Number(account.balance);
-							}));
+							res.body.data.username.should.equal(validVotedDelegate.delegateName);
+							_.map(res.body.data.voters, 'balance').sort().reverse().should.to.be.eql(_.map(res.body.data.voters, 'balance'));
 						});
+					});
+				});
+			});
+		});
+
+		describe('limit & offset', function () {
+
+			describe('limit=2', function () {
+
+				it('should return 2 voters', function () {
+					return votersEndpoint.makeRequest({limit: 2, username: validVotedDelegate.delegateName}, 200).then(function (res) {
+						res.body.data.voters.should.have.length(2);
+					});
+				});
+			});
+
+			describe('limit=2 & offset=1', function () {
+
+				it('should return 2 voters, containing 1 from the previous result', function () {
+					var voters = null;
+
+					return votersEndpoint.makeRequest({limit: 2, offset: 0, username: validVotedDelegate.delegateName}, 200).then(function (res) {
+						res.body.data.voters.should.have.length(2);
+
+						voters = _.map(res.body.data.voters, 'address');
+
+						return votersEndpoint.makeRequest({limit: 2, offset: 1, username: validVotedDelegate.delegateName}, 200);
+					}).then(function (res) {
+						_.intersection(voters, _.map(res.body.data.voters, 'address')).should.have.length(1);
 					});
 				});
 			});

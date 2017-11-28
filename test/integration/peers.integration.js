@@ -214,13 +214,13 @@ function enableForgingOnDelegates (done) {
 	testNodeConfigs.forEach(function (testNodeConfig) {
 		testNodeConfig.secrets.forEach(function (keys) {
 			var enableForgingPromise = popsicle.put({
-				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging',
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/node/status/forging',
 				headers: {
 					'Accept': 'application/json',
-					'Content-Type': 'application/x-www-form-urlencoded'
+					'Content-Type': 'application/json'
 				},
 				body: {
-					key: 'elephant tree paris dragon chair galaxy',
+					decryptionKey: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey
 				}
 			});
@@ -429,7 +429,7 @@ describe('integration', function () {
 					});
 				})).then(function (results) {
 					nodesBlocks = results.map(function (res) {
-						return JSON.parse(res.body).blocks;
+						return JSON.parse(res.body).data;
 					});
 					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
 				});

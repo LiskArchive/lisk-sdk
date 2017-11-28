@@ -110,34 +110,40 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 	var headers = {'Accept': 'application/json'};
 	var formData = false;
 	var self = this;
-	var callPath = self.path;
+	var callPath = self.getPath();
 
 	return this.resolveJSONRefs().then(function () {
-
 		_.each(_.keys(parameters), function (param){
 			var p = _.find(self.spec.parameters, {name: param});
-			if(p.in === 'query') {
+
+			// If a swagger defined parameter
+			if (p) {
+				if(p.in === 'query') {
+					query[param] = parameters[param];
+				} else if (p.in === 'body') {
+					post = parameters[param];
+				} else if (p.in === 'path') {
+					callPath = callPath.replace('{' + param + '}', parameters[param]);
+				} else if (p.in === 'formData') {
+					post = parameters[param];
+					formData = true;
+				} else if (p.in === 'header') {
+					headers[param] = parameters[param];
+				}
+			} else {
+				// If not a swagger defined parameter consider as query param
 				query[param] = parameters[param];
-			} else if (p.in === 'body') {
-				post[param] = parameters[param];
-			} else if (p.in === 'path') {
-				callPath = callPath.replace('{' + param + '}', parameters[param]);
-			} else if (p.in === 'formData') {
-				post[param] = parameters[param];
-				formData = true;
-			} else if (p.in === 'header') {
-				headers[param] = parameters[param];
 			}
 		});
 
 		var req = node.supertest(node.baseUrl);
 
 		if (self.method === 'post') {
-			req = req.post(apiSpec.basePath + callPath);
+			req = req.post(callPath);
 		} else if (self.method === 'put') {
-			req = req.put(apiSpec.basePath + callPath);
+			req = req.put(callPath);
 		} else if (self.method === 'get') {
-			req = req.get(apiSpec.basePath + callPath);
+			req = req.get(callPath);
 		}
 
 		_.each(_.keys(headers), function (header){
@@ -171,7 +177,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		res.statusCode.should.be.eql(expectedResponseCode);
 		res.headers['content-type'].should.match(/json/);
 		res.body.should.be.validResponse(self.getResponseSpecPath(expectedResponseCode));
-		
+
 		return res;
 	})
 		.catch(function (eror){
@@ -180,6 +186,28 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		});
 };
 
+/**
+ * Perform the actual HTTP request on individual parameter set.
+ *
+ * @param {Object} [parameters] - Array of JSON objects for individual request passed to +makeRequest+
+ * @param {int} [responseCode] - Expected response code. Will override what was used in constructor
+ * @return {*|Promise<any>}
+ */
+SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
+	var self = this;
+	var requests = [];
+	parameters.forEach(function (paramSet) { requests.push(self.makeRequest(paramSet, responseCode)); });
+	return node.Promise.all(requests);
+};
+
+/**
+ * Get full path of an endpoint.
+ *
+ * @return {string}
+ */
+SwaggerTestSpec.prototype.getPath = function () {
+	return apiSpec.basePath + this.path;
+};
 
 /**
  * A helper method to create an object swagger test spec

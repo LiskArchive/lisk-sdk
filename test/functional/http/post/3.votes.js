@@ -157,7 +157,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets(delegateAccount, 'votes', badTransactions);
+		shared.invalidAssets('votes', badTransactions);
 	});
 
 	describe('transactions processing', function () {
@@ -328,7 +328,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//badTransactions.push(transaction);
+					// badTransactions.push(transaction);
 				})
 				.then(function (res) {
 					// Transaction with same info but different ID (due to timeOffSet parameter)
@@ -340,7 +340,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//goodTransactions.push(transaction);
+					// goodTransactions.push(transaction);
 				});
 		});
 	});
@@ -457,7 +457,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//badTransactionsEnforcement.push(transaction);
+					// badTransactionsEnforcement.push(transaction);
 				})
 				.then(function (res) {
 					// Transaction with same info but different ID (due to timeOffSet parameter)
@@ -469,7 +469,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					node.expect(res).to.have.property('status').to.equal(200);
 					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					//goodTransactionsEnforcement.push(transaction);
+					// goodTransactionsEnforcement.push(transaction);
 				});
 		});
 	});
