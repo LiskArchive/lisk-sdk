@@ -229,14 +229,14 @@ describe('GET /blocks', function () {
 				it('using "totalAmount:asc" should be ok', function () {
 					return blocksEndpoint.makeRequest({sort: 'totalAmount:asc'}, 200).then(function (res) {
 						expectHeightCheck(res);
-						_(res.body.data).map('forged.totalAmount').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('forged.totalAmount').map(_.toInteger).value());
+						_(res.body.data).map('totalAmount').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('totalAmount').map(_.toInteger).value());
 					});
 				});
 
 				it('using "totalAmount:desc" should be ok', function () {
 					return blocksEndpoint.makeRequest({sort: 'totalAmount:desc'}, 200).then(function (res) {
 						expectHeightCheck(res);
-						_(res.body.data).map('forged.totalAmount').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('forged.totalAmount').map(_.toInteger).value());
+						_(res.body.data).map('totalAmount').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('totalAmount').map(_.toInteger).value());
 					});
 				});
 			});
@@ -246,14 +246,14 @@ describe('GET /blocks', function () {
 				it('using "totalFee:asc" should be ok', function () {
 					return blocksEndpoint.makeRequest({sort: 'totalFee:asc'}, 200).then(function (res) {
 						expectHeightCheck(res);
-						_(res.body.data).map('forged.totalFee').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('forged.totalFee').map(_.toInteger).value());
+						_(res.body.data).map('totalFee').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('totalFee').map(_.toInteger).value());
 					});
 				});
 
 				it('using "totalFee:desc" should be ok', function () {
 					return blocksEndpoint.makeRequest({sort: 'totalFee:desc'}, 200).then(function (res) {
 						expectHeightCheck(res);
-						_(res.body.data).map('forged.totalFee').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('forged.totalFee').map(_.toInteger).value());
+						_(res.body.data).map('totalFee').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('totalFee').map(_.toInteger).value());
 					});
 				});
 			});
