@@ -195,79 +195,6 @@ __private.decryptSecret = function (encryptedSecret, key) {
 };
 
 /**
- * Updates the forging status of an account, valid actions are enable and disable.
- * @private
- * @param {publicKey} publicKey - PublicKey
- * @param {string} secretKey - key used to decrypt encrypted passphrase
- * @param {function} cb
- * @returns {setImmediateCallback}
- */
-__private.toggleForgingStatus = function (publicKey, secretKey, cb) {
-	var actionEnable = false;
-	var actionDisable = false;
-
-	var keypair;
-	var encryptedList, decryptedSecret, encryptedItem;
-	encryptedList = library.config.forging.secret;
-	encryptedItem = _.find(encryptedList, function (item) {
-		return item.publicKey === publicKey;
-	});
-
-	if (!!encryptedItem) {
-		try {
-			decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, secretKey);
-		} catch (e) {
-			return setImmediate(cb, 'Invalid key and public key combination');
-		}
-
-		keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
-	} else {
-		return setImmediate(cb, ['Delegate with publicKey:', publicKey, 'not found'].join(' '));
-	}
-
-	if (keypair.publicKey.toString('hex') !== publicKey) {
-		return setImmediate(cb, 'Invalid key and public key combination');
-	}
-
-	if (__private.keypairs[keypair.publicKey.toString('hex')]) {
-		actionDisable = true;
-	}
-
-	if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
-		actionEnable = true;
-	}
-
-	modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		if (account && account.isDelegate) {
-			var forgingStatus;
-
-			if (actionEnable) {
-				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-				forgingStatus = true;
-				library.logger.info('Forging enabled on account: ' + account.address);
-			}
-
-			if (actionDisable) {
-				delete __private.keypairs[keypair.publicKey.toString('hex')];
-				forgingStatus = false;
-				library.logger.info('Forging disabled on account: ' + account.address);
-			}
-
-			return setImmediate(cb, null, {
-				publicKey: publicKey,
-				forging: forgingStatus
-			});
-		} else {
-			return setImmediate(cb, 'Delegate not found');
-		}
-	});
-};
-
-/**
  * Checks each vote integrity and controls total votes don't exceed active delegates.
  * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
  * @private
@@ -408,6 +335,77 @@ __private.loadDelegates = function (cb) {
 };
 
 // Public methods
+/**
+ * Updates the forging status of an account, valid actions are enable and disable.
+ * @param {publicKey} publicKey - Public key of delegate.
+ * @param {string} secretKey - Key used to decrypt encrypted passphrase.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback}
+ */
+Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
+	var actionEnable = false;
+	var actionDisable = false;
+
+	var keypair;
+	var encryptedList, decryptedSecret, encryptedItem;
+	encryptedList = library.config.forging.secret;
+	encryptedItem = _.find(encryptedList, function (item) {
+		return item.publicKey === publicKey;
+	});
+
+	if (!!encryptedItem) {
+		try {
+			decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, secretKey);
+		} catch (e) {
+			return setImmediate(cb, 'Invalid key and public key combination');
+		}
+
+		keypair = library.ed.makeKeypair(crypto.createHash('sha256').update(decryptedSecret, 'utf8').digest());
+	} else {
+		return setImmediate(cb, ['Delegate with publicKey:', publicKey, 'not found'].join(' '));
+	}
+
+	if (keypair.publicKey.toString('hex') !== publicKey) {
+		return setImmediate(cb, 'Invalid key and public key combination');
+	}
+
+	if (__private.keypairs[keypair.publicKey.toString('hex')]) {
+		actionDisable = true;
+	}
+
+	if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
+		actionEnable = true;
+	}
+
+	modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+
+		if (account && account.isDelegate) {
+			var forgingStatus;
+
+			if (actionEnable) {
+				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+				forgingStatus = true;
+				library.logger.info('Forging enabled on account: ' + account.address);
+			}
+
+			if (actionDisable) {
+				delete __private.keypairs[keypair.publicKey.toString('hex')];
+				forgingStatus = false;
+				library.logger.info('Forging disabled on account: ' + account.address);
+			}
+
+			return setImmediate(cb, null, {
+				publicKey: publicKey,
+				forging: forgingStatus
+			});
+		} else {
+			return setImmediate(cb, 'Delegate not found');
+		}
+	});
+};
 
 /**
  * Get delegates list for current round.
@@ -454,6 +452,41 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		'productivity'
 	], function (err, delegates) {
 		return setImmediate(cb, err, delegates);
+	});
+};
+
+/**
+ * Gets a list forgers based on query parameters.
+ * @param {Object} query - Query object.
+ * @param {int} query.limit - Limit applied to results.
+ * @param {int} query.offset - Offset value for results.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} error| object
+ */
+Delegates.prototype.getForgers = function (query, cb) {
+	query.limit = query.limit || 10;
+	query.offset = query.offset || 0;
+
+	var currentSlot = slots.getSlotNumber();
+	var forgerKeys = [];
+
+	for (var i = query.offset + 1; i <= slots.delegates && i <= query.limit + query.offset; i++) {
+		if (__private.delegatesList[(currentSlot + i) % slots.delegates]) {
+			forgerKeys.push(__private.delegatesList[(currentSlot + i) % slots.delegates]);
+		}
+	}
+
+	library.db.query(sql.getDelegatesByPublicKeys, {
+		publicKeys: forgerKeys
+	}).then(function (data) {
+		data.map(function (forger) {
+			forger.nextSlot = __private.delegatesList.indexOf(forger.publicKey) + currentSlot + 1;
+
+			return forger;
+		});
+		return setImmediate(cb, null, data);
+	}).catch(function (error) {
+		return setImmediate(cb, error);
 	});
 };
 
@@ -521,6 +554,14 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 		library.logger.error('Expected generator: ' + delegate_id + ' Received generator: ' + block.generatorPublicKey);
 		return setImmediate(cb, 'Failed to verify slot: ' + currentSlot);
 	}
+};
+
+/**
+ * Get an object of key pairs for delegates enabled for forging.
+ * @return {object} Of delegate key pairs.
+ */
+Delegates.prototype.getForgersKeyPairs = function () {
+	return __private.keypairs;
 };
 
 // Events
@@ -607,85 +648,61 @@ Delegates.prototype.isLoaded = function () {
 	return !!modules;
 };
 
-// Internal API
-/**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-Delegates.prototype.internal = {
-	forgingStatus: function (req, cb) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return setImmediate(cb, new ApiError('Access denied', apiCodes.FORBIDDEN));
-		}
-
-		library.schema.validate(req.body, schema.forgingStatus, function (err) {
-			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
-			}
-
-			if (req.body.publicKey) {
-				return setImmediate(cb, null, {enabled: !!__private.keypairs[req.body.publicKey]});
-			} else {
-				var delegates_cnt = _.keys(__private.keypairs).length;
-				return setImmediate(cb, null, {enabled: delegates_cnt > 0, delegates: _.keys(__private.keypairs)});
-			}
-		});
-	},
-	forgingToggle: function (req, cb) {
-		if (!checkIpInList(library.config.forging.access.whiteList, req.ip)) {
-			return setImmediate(cb, new ApiError('Access denied', apiCodes.FORBIDDEN));
-		}
-
-		library.schema.validate(req.body, schema.toggleForging, function (err) {
-			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
-			}
-
-			__private.toggleForgingStatus(req.body.publicKey, req.body.key, function (err, res) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
-				}
-				return setImmediate(cb, null, res);
-			});
-		});
-	}
-};
-
 // Shared API
 /**
  * @todo implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.shared = {
-
-	getForgers: function (req, cb) {
-		var currentBlock = modules.blocks.lastBlock.get();
-		var limit = req.body.limit || 10;
-
-		var currentBlockSlot = slots.getSlotNumber(currentBlock.timestamp);
+	/**
+	 * Search forgers based on the query parameters passed.
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
+	 * @returns {setImmediateCallbackObject}
+	 */
+	getForgers: function (filters, cb) {
+		var lastBlock = modules.blocks.lastBlock.get();
+		var lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 		var currentSlot = slots.getSlotNumber();
-		var nextForgers = [];
 
-		for (var i = 1; i <= slots.delegates && i <= limit; i++) {
-			if (__private.delegatesList[(currentSlot + i) % slots.delegates]) {
-				nextForgers.push(__private.delegatesList[(currentSlot + i) % slots.delegates]);
+		modules.delegates.getForgers(filters, function (err, forgers) {
+			if (err) {
+				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 			}
-		}
 
-		return setImmediate(cb, null, {currentBlock: currentBlock.height, currentBlockSlot: currentBlockSlot, currentSlot: currentSlot, delegates: nextForgers});
+			return setImmediate(cb, null, {
+				data: forgers,
+				meta: {
+					lastBlock: lastBlock.height,
+					lastBlockSlot: lastBlockSlot,
+					currentSlot: currentSlot
+				}});
+		});
 	},
 
-	getDelegates: function (req, cb) {
-		library.schema.validate(req.body, schema.getDelegates, function (err) {
+	/**
+	 * Search accounts based on the query parameters passed.
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.address - Account address.
+	 * @param {string} filters.publicKey - Public key associated to account.
+	 * @param {string} filters.secondPublicKey - Second public key associated to account.
+	 * @param {string} filters.username - Username associated to account.
+	 * @param {string} filters.sort - Field to sort results by.
+	 * @param {string} filters.search - Field to sort results by.
+	 * @param {string} filters.rank - Field to sort results by.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
+	 * @returns {setImmediateCallbackObject}
+	 */
+	getDelegates: function (filters, cb) {
+		modules.delegates.getDelegates(filters, function (err, delegates) {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.BAD_REQUEST));
+				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 			}
-			modules.delegates.getDelegates(req.body, function (err, delegates) {
-				if (err) {
-					return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
-				}
-				return setImmediate(cb, null, {delegates: delegates, count: delegates.length});
-			});
+			return setImmediate(cb, null,  delegates);
 		});
 	}
 };

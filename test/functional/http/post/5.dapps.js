@@ -13,8 +13,6 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 	var transactionsToWaitFor = [];
 	var badTransactions = [];
 	var goodTransactions = [];
-	var badTransactionsEnforcement = [];
-	var goodTransactionsEnforcement = [];
 
 	var account = node.randomAccount();
 	var accountNoFunds = node.randomAccount();
@@ -45,6 +43,19 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
+				return waitForConfirmations(transactionsToWaitFor);
+			})
+			.then(function () {
+				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+
+				return sendTransactionPromise(transaction);
+			})
+			.then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(200);
+				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+
+				node.guestbookDapp.id = transaction.id;
+				transactionsToWaitFor.push(node.guestbookDapp.id);
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
@@ -440,6 +451,30 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 	describe('transactions processing', function () {
 
+		it('using registered name should fail', function () {
+			var dapp = node.randomApplication();
+			dapp.name = node.guestbookDapp.name;
+			transaction = node.lisk.dapp.createDapp(account.password, null, dapp);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application name already exists: ' + dapp.name);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('using registered link should fail', function () {
+			var dapp = node.randomApplication();
+			dapp.link = node.guestbookDapp.link;
+			transaction = node.lisk.dapp.createDapp(account.password, null, dapp);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				node.expect(res).to.have.property('status').to.equal(400);
+				node.expect(res).to.have.nested.property('body.message').to.equal('Application link already exists: ' + dapp.link);
+				badTransactions.push(transaction);
+			});
+		});
+
 		it('with no funds should fail', function () {
 			transaction = node.lisk.dapp.createDapp(accountNoFunds.password, null, node.randomApplication());
 
@@ -549,33 +584,5 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 	describe('confirmation', function () {
 
 		shared.confirmationPhase(goodTransactions, badTransactions);
-	});
-
-	describe('validation', function () {
-
-		it('using registered name should fail', function () {
-			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Application name already exists: ' + dappDuplicateNameFail.name);
-				badTransactionsEnforcement.push(transaction);
-			});
-		});
-
-		it('using registered link should fail', function () {
-			transaction = node.lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Application link already exists: ' + dappDuplicateLinkFail.link);
-				badTransactionsEnforcement.push(transaction);
-			});
-		});
-	});
-
-	describe('confirm validation', function () {
-
-		shared.confirmationPhase(goodTransactionsEnforcement, badTransactionsEnforcement);
 	});
 });

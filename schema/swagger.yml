@@ -39,6 +39,8 @@ tags:
   description: Transactions related API calls
 - name: Votes
   description: Votes related API calls
+- name: Private
+  description: Private endpoint only authorized to whitelisted IPs
 
 schemes:
   - https
@@ -99,7 +101,7 @@ paths:
       operationId: getDapps
       description:
         By passing in the appropriate options, you can search for
-        specified a dapp in the system, otherwise returns a list
+        a specified dapp in the system, otherwise returns a list
       produces:
       - application/json
       parameters:
@@ -243,6 +245,302 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /node/status/forging:
+    x-swagger-router-controller: node
+    get:
+      tags:
+        - Node
+        - Delegates
+        - Private
+      summary: Requests forging status of a delegate
+      operationId: getForgingStatus
+      description:
+        By querying by publicKey, a delegates forging status on a node can be determined
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/publicKey'
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        403:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+    put:
+      tags:
+        - Node
+        - Delegates
+        - Private
+      summary: Toggles the forging status of a delegate
+      operationId: updateForgingStatus
+      description:
+        Upon passing the correct key and publicKey, forging will be enabled or disabled
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Secret key for the delegate account
+          required: true
+          schema:
+            type: object
+            required:
+              - decryptionKey
+              - publicKey
+            properties:
+              decryptionKey:
+                type: string
+                example: "happy tree friends"
+                minLength: 5
+              publicKey:
+                type: string
+                example: "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
+                format: publicKey
+      responses:
+        200:
+          description: Delegate forging toggled on or off
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        403:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        404:
+          description: Provided public key not found
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /delegates:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+      - Delegates
+      summary: Requests a list of delegates
+      operationId: getDelegates
+      x-lisk-cache-enabled: true
+      description:
+        By passing in the appropriate options, you can search for
+        a specified delegate in the system, otherwise returns a list
+      produces:
+      - application/json
+      parameters:
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - name: search
+          in: query
+          description: Fuzzy delegate username to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - name: rank
+          in: query
+          description: Delegate rank to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - rank:asc
+            - rank:desc
+            - productivity:asc
+            - productivity:desc
+            - missedBlocks:asc
+            - missedBlocks:desc
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/DelegatesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /delegates/forgers:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+        - Delegates
+      summary: Requests a list of next forgers
+      operationId: getForgers
+      description:
+        By passing in the appropriate options, you can get a list of the next forgers
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /blocks:
+    x-swagger-router-controller: blocks
+    get:
+      tags:
+        - Blocks
+      summary: Requests blocks data
+      operationId: getBlocks
+      x-lisk-cache-enabled: true
+      description:
+        By passing in the appropriate options, you can search for
+        a specified block in the system
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/blockId'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: generatorPublicKey
+          description: generatorPublicKey to query
+          type: string
+          format: publicKey
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - height:asc
+            - height:desc
+            - totalAmount:asc
+            - totalAmount:desc
+            - totalFee:asc
+            - totalFee:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: height:desc
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/BlocksResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /voters:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: Requests voters of a delegate.
+      operationId: getVoters
+      description:
+        This API call returns all voters of a delegate. Must provide at least one of the filter parameters.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Voters list
+          schema:
+            $ref: '#/definitions/VotersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
 parameters:
   ip:
     name: ip
@@ -344,6 +642,14 @@ parameters:
     description: Delegate username to query
     type: string
     format: username
+    minLength: 1
+    maxLength: 20
+  blockId:
+    name: blockId
+    in: query
+    description: BlockId to query
+    type: string
+    format: id
     minLength: 1
     maxLength: 20
 
@@ -467,6 +773,262 @@ definitions:
             example: 100
       links:
         type: object
+
+  DelegatesResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of delegates
+        type: array
+        items:
+          $ref: '#/definitions/DelegateWithAccount'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  ForgersResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of forgers
+        type: array
+        items:
+          $ref: '#/definitions/Forger'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+          - currentSlot
+          - lastBlockSlot
+          - lastBlock
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+          currentSlot:
+            description: Currently active slot
+            type: integer
+            example: 10
+          lastBlockSlot:
+            description: Slot of the last processed block
+            type: integer
+            example: 10
+          lastBlock:
+            description: ID of the last processed block
+            type: integer
+            example: 10
+      links:
+        type: object
+
+  ForgingStatusResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ForgingStatus'
+      meta:
+        type: object
+      links:
+        type: object
+
+  BlocksResponse:
+    description: Blocks response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Block'
+      meta:
+       type: object
+       required:
+         - offset
+         - limit
+       properties:
+         offset:
+           description: Offset value for results
+           type: integer
+           example: 0
+         limit:
+           description: Limit applied to results
+           type: integer
+           example: 100
+      links:
+        type: object
+
+  Block:
+    type: object
+    required:
+      - id
+      - height
+      - timestamp
+      - generatorPublicKey
+      - numberOfTransactions
+      - totalAmount
+      - totalFee
+      - reward
+      - totalForged
+    properties:
+      id:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      version:
+        type: integer
+        example: 0
+        minimum: 0
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      timestamp:
+        type: integer
+        example: 28227090
+      generatorAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      generatorPublicKey:
+        type: string
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      payloadLength:
+        type: integer
+        example: 117
+        minimum: 0
+      payloadHash:
+        type: string
+        format: hex
+        example: 4e4d91be041e09a2e54bb7dd38f1f2a02ee7432ec9f169ba63cd1f193a733dd2
+      blockSignature:
+        type: string
+        format: signature
+        example: a3733254aad600fa787d6223002278c3400be5e8ed4763ae27f9a15b80e20c22ac9259dc926f4f4cabdf0e4f8cec49308fa8296d71c288f56b9d1e11dfe81e07
+      confirmations:
+        type: integer
+        example: 200
+      previousBlockId:
+        type: string
+        format: id
+        example: "15918760246746894806"
+      numberOfTransactions:
+        type: integer
+        example: 15
+      totalAmount:
+        type: string
+        example: "150000000"
+      totalFee:
+        type: string
+        example: "15000000"
+      reward:
+        type: string
+        example: "50000000"
+      totalForged:
+        type: string
+        example: "65000000"
+
+  ForgingStatus:
+    type: object
+    required:
+      - forging
+      - publicKey
+    properties:
+      forging:
+        type: boolean
+        description: Forging status of the queried delegate
+        example: true
+      publicKey:
+        type: string
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        format: publicKey
+
+  VotersResponse:
+    description: Voters endpoint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/DelegateWithVoters'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  Forger:
+    type: object
+    required:
+      - username
+      - publicKey
+      - address
+      - nextSlot
+    properties:
+      username:
+        type: string
+        format: username
+        example: isabella
+      publicKey:
+        type: string
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        format: publicKey
+      address:
+        type: string
+        format: address
+        example: 6251001604903637008L
+      nextSlot:
+        type: number
+        example: 4368793
 
   Dapp:
     type: object
@@ -685,6 +1247,26 @@ definitions:
         type: boolean
         example: false
 
+  NotFoundError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  AccessDeniedError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
   UnexpectedError:
     type: object
     required:
@@ -769,6 +1351,25 @@ definitions:
         type: string
         description: Param description specified in schema
 
+  Account:
+    type: object
+    required:
+      - address
+      - publicKey
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+
   AccountExtended:
     type: object
     required:
@@ -832,3 +1433,94 @@ definitions:
       rank:
         type: integer
         example: 70
+
+  DelegateWithAccount:
+    type: object
+    required:
+      - username
+      - vote
+      - account
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      vote:
+        type: string
+        example: 1081560729258
+      rewards:
+        type: string
+        example: 510000000
+      producedBlocks:
+        type: integer
+        example: 20131
+      missedBlocks:
+        type: integer
+        example: 427
+      rate:
+        type: integer
+        example: 91
+      approval:
+        type: number
+        example: 14.22
+      productivity:
+        type: number
+        example: 96.41
+      rank:
+        type: integer
+        example: 70
+      account:
+        $ref: '#/definitions/Account'
+
+  DelegateWithVoters:
+    type: object
+    required:
+      - username
+      - address
+      - votes
+      - balance
+      - voters
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      votes:
+        type: integer
+        example: 108877
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      balance:
+        type: string
+        example: 1081560729258
+      voters:
+        type: array
+        items:
+          $ref: '#/definitions/Voter'
+
+  Voter:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258

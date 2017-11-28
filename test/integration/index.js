@@ -1,1 +1,3 @@
-require('./peers.integration');
+'use strict';
+
+require('./transport');
