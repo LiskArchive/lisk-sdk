@@ -9,7 +9,7 @@ var fs = require('fs');
 var popsicle = require('popsicle');
 var Promise = require('bluebird');
 var scClient = require('socketcluster-client');
-var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockchainReady;
+var untilBlockchainReady = require('../common/utils/wait').untilBlockchainReady;
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var baseConfig = require('../data/config.json');
@@ -236,7 +236,7 @@ function enableForgingOnDelegates (done) {
 
 function waitForAllNodesToBeReady (done) {
 	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
-		waitUntilBlockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
+		untilBlockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
 	}, done);
 }
 

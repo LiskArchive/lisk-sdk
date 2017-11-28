@@ -1,14 +1,8 @@
 'use strict';
 
-var async = require('async');
 var popsicle = require('popsicle');
 
-var config = require('../data/config.json');
-var database = require('../../helpers/database.js');
-var genesisblock = require('../data/genesisBlock.json');
-
-var ed = require('../../helpers/ed.js');
-var z_schema = require('../../helpers/z_schema.js');
+var config = require('../../fixtures/config.json');
 
 /**
  * @param {function} cb
@@ -16,7 +10,7 @@ var z_schema = require('../../helpers/z_schema.js');
  * @param {number} [timeout=200] timeout
  * @param {string} [baseUrl='http://localhost:5000'] timeout
  */
-function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
+function untilBlockchainReady (cb, retries, timeout, baseUrl) {
 	if (!retries) {
 		retries = 10;
 	}
@@ -49,10 +43,11 @@ function waitUntilBlockchainReady (cb, retries, timeout, baseUrl) {
 				} else {
 					return cb('Server is not responding');
 				}
+
 			});
 	})();
 }
 
 module.exports = {
-	waitUntilBlockchainReady: waitUntilBlockchainReady
+	untilBlockchainReady: untilBlockchainReady
 };

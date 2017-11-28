@@ -9,6 +9,7 @@ var _  = require('lodash');
 
 var application = require('../../common/application.js');
 var node = require('./../../node.js');
+var DBSandbox = require('../../common/dbSandbox').DBSandbox;
 
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff.js');

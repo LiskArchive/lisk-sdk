@@ -13,7 +13,7 @@ var expect = require('chai').expect;
 var _  = require('lodash');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
+var DBSandbox = require('../../common/dbSandbox').DBSandbox;
 
 var modulesLoader = require('../../common/modulesLoader');
 var Transaction = require('../../../logic/transaction.js');
