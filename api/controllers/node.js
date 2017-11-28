@@ -1,9 +1,12 @@
 'use strict';
 
 var _ = require('lodash');
+var checkIpInList = require('../../helpers/checkIpInList.js');
+var apiCodes = require('../../helpers/apiCodes');
 
 // Private Fields
 var modules;
+var config;
 
 /**
  * Initializes with scope content and private variables:
@@ -14,6 +17,7 @@ var modules;
  */
 function NodeController (scope) {
 	modules = scope.modules;
+	config = scope.config;
 }
 
 NodeController.getConstants = function (context, next) {
@@ -23,7 +27,8 @@ NodeController.getConstants = function (context, next) {
 
 			data = _.cloneDeep(data);
 
-			// Perform required typecasts for integer or bignum attributes when returning a response to the API
+			// Perform required typecasts for integer
+			// or bignum properties when returning an API response
 			data.supply = data.supply.toString();
 			data.milestone = data.milestone.toString();
 			data.reward = data.reward.toString();
@@ -52,8 +57,8 @@ NodeController.getStatus = function (context, next) {
 
 			data = _.cloneDeep(data);
 
-			// Check if attributes are null, then set it to 0
-			// as per schema defined for these attributes in swagger
+			// Check if properties are null, then set it to 0
+			// as per schema defined for these properties in swagger
 			data.networkHeight = data.networkHeight || 0;
 			data.consensus = data.consensus || 0;
 
@@ -61,6 +66,40 @@ NodeController.getStatus = function (context, next) {
 		} catch (error) {
 			next(error);
 		}
+	});
+};
+
+NodeController.getForgingStatus = function (context, next) {
+	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
+		context.statusCode = apiCodes.FORBIDDEN;
+		return next(new Error('Access Denied'));
+	}
+
+	var publicKey = context.request.swagger.params.publicKey.value;
+
+	modules.node.internal.getForgingStatus(publicKey, function (err, data) {
+		if (err) { return next(err); }
+
+		next(null, data);
+	});
+};
+
+NodeController.updateForgingStatus = function (context, next) {
+	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
+		context.statusCode = apiCodes.FORBIDDEN;
+		return next(new Error('Access Denied'));
+	}
+
+	var publicKey = context.request.swagger.params.data.value.publicKey;
+	var decryptionKey = context.request.swagger.params.data.value.decryptionKey;
+
+	modules.node.internal.toggleForgingStatus(publicKey, decryptionKey, function (err, data) {
+		if (err) {
+			context.statusCode = apiCodes.NOT_FOUND;
+			return next(err);
+		}
+
+		next(null, [data]);
 	});
 };
 

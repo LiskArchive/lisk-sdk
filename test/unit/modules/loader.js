@@ -90,7 +90,7 @@ describe('loader', function () {
 			];
 
 			var goodPeers = loaderModule.findGoodPeers(peers);
-			expect(goodPeers).to.have.property('height').equal(HEIGHT_TWO); //good peers - above my height (above and equal 2)
+			expect(goodPeers).to.have.property('height').equal(HEIGHT_TWO); // Good peers - above my height (above and equal 2)
 			expect(goodPeers).to.have.property('peers').to.be.an('array').to.have.lengthOf(3);
 			expect(_.isEqualWith(goodPeers.peers, [
 				{

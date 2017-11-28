@@ -110,7 +110,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 	var headers = {'Accept': 'application/json'};
 	var formData = false;
 	var self = this;
-	var callPath = self.path;
+	var callPath = self.getPath();
 
 	return this.resolveJSONRefs().then(function () {
 		_.each(_.keys(parameters), function (param){
@@ -121,11 +121,11 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 				if(p.in === 'query') {
 					query[param] = parameters[param];
 				} else if (p.in === 'body') {
-					post[param] = parameters[param];
+					post = parameters[param];
 				} else if (p.in === 'path') {
 					callPath = callPath.replace('{' + param + '}', parameters[param]);
 				} else if (p.in === 'formData') {
-					post[param] = parameters[param];
+					post = parameters[param];
 					formData = true;
 				} else if (p.in === 'header') {
 					headers[param] = parameters[param];
@@ -139,11 +139,11 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		var req = node.supertest(node.baseUrl);
 
 		if (self.method === 'post') {
-			req = req.post(apiSpec.basePath + callPath);
+			req = req.post(callPath);
 		} else if (self.method === 'put') {
-			req = req.put(apiSpec.basePath + callPath);
+			req = req.put(callPath);
 		} else if (self.method === 'get') {
-			req = req.get(apiSpec.basePath + callPath);
+			req = req.get(callPath);
 		}
 
 		_.each(_.keys(headers), function (header){
@@ -177,7 +177,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		res.statusCode.should.be.eql(expectedResponseCode);
 		res.headers['content-type'].should.match(/json/);
 		res.body.should.be.validResponse(self.getResponseSpecPath(expectedResponseCode));
-		
+
 		return res;
 	})
 		.catch(function (eror){
@@ -198,6 +198,15 @@ SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
 	var requests = [];
 	parameters.forEach(function (paramSet) { requests.push(self.makeRequest(paramSet, responseCode)); });
 	return node.Promise.all(requests);
+};
+
+/**
+ * Get full path of an endpoint.
+ *
+ * @return {string}
+ */
+SwaggerTestSpec.prototype.getPath = function () {
+	return apiSpec.basePath + this.path;
 };
 
 /**

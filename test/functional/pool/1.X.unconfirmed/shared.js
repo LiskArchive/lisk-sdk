@@ -1,10 +1,10 @@
 'use strict';
 
-var node = require('../../../../node');
-var shared = require('../../../shared');
+var node = require('../../../node');
+var shared = require('../../shared');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
+var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 function beforeUnconfirmedPhase (account) {
 	before(function () {
@@ -18,7 +18,7 @@ function beforeUnconfirmedPhase (account) {
 				return waitForConfirmations([transaction.id]);
 			})
 			.then(function () {
-				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword, 1);
+				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -54,7 +54,7 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return waitForConfirmations([transaction.id]);
 			})
 			.then(function (res) {
-				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword, 1);
+				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction);
 			})
