@@ -415,7 +415,7 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
 Delegates.prototype.generateDelegateList = function (cb) {
 	library.db.query(sql.delegateList).then(function (result) {
 		__private.delegatesList = result[0].list;
-		return setImmediate(cb);
+		return setImmediate(cb, null, __private.delegatesList);
 	}).catch(function (err) {
 		return setImmediate(cb, err);
 	});
