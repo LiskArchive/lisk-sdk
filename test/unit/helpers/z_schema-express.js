@@ -43,7 +43,7 @@ describe('z_schema.express', function () {
 		validNextCb.reset();
 	});
 
-	it('should add a sanitize-function to the request-object', function () {
+	it('should add a sanitize function to the request-object', function () {
 		expect(validReq.sanitize).to.be.a('function');
 	});
 
@@ -59,13 +59,13 @@ describe('z_schema.express', function () {
 				validErr = [{'message' : 'message','path': 'a/path'}];
 				validValid = false;
 				validObject = {
-					isValid: validValid,
-					issues: validIssues
+					isValid: false,
+					issues: validErr
 				};
 				validZSchema.validate.returns(validObject);
 			});
 
-			it('should return', function () {
+			it('should return invalid object', function () {
 				expect(reqSanitizeFunctionResult).to.eq(validObject);
 			});
 		});
@@ -82,7 +82,7 @@ describe('z_schema.express', function () {
 				validZSchema.validate.returns(validObject);
 			});
 
-			it('should return', function () {
+			it('should return valid object', function () {
 				expect(reqSanitizeFunctionResult).to.eq(validObject);
 			});
 		});
