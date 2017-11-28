@@ -4,7 +4,7 @@ var _ = require('lodash');
 var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var prefixedPeer = require('../../fixtures/peers').peer;
 var Peer = require('../../../logic/peer');
 
 var peersManager = require('../../../helpers/peersManager');
@@ -31,7 +31,7 @@ describe('PeersManager', function () {
 		var validPeer;
 
 		beforeEach(function () {
-			validPeer = new Peer(randomPeer);
+			validPeer = new Peer(prefixedPeer);
 			peersManager.peers = {};
 			peersManager.addressToNonceMap = {};
 			peersManager.nonceToAddressMap = {};

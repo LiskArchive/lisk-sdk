@@ -11,7 +11,7 @@ var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modulesLoader');
 
-var typesRepresentatives = require('../../common/typesRepresentatives.js');
+var typesRepresentatives = require('../../fixtures/typesRepresentatives.js');
 
 var Signature = rewire('../../../logic/signature.js');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';

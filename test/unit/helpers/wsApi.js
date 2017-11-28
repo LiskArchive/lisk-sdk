@@ -15,7 +15,7 @@ var wsApi = require('../../../helpers/wsApi');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var WSClient = require('../../common/ws/client');
 var System = require('../../../modules/system');
-var typeRepresentatives = require('../../common/typesRepresentatives.js');
+var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
 
 describe('handshake', function () {
 

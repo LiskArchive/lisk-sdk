@@ -6,7 +6,7 @@ var expect = require('chai').expect;
 var sinon = require('sinon');
 var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
 var PeerUpdateError = require('../../../../../api/ws/rpc/failureCodes').PeerUpdateError;
-var randomPeer = require('../../../../common/objectStubs').randomPeer;
+var prefixedPeer = require('../../../../fixtures/peers').peer;
 var connectionsTable = require('../../../../../api/ws/workers/connectionsTable');
 var PeersUpdateRules = require('../../../../../api/ws/workers/peersUpdateRules');
 var Rules = require('../../../../../api/ws/workers/rules');
@@ -33,7 +33,7 @@ describe('PeersUpdateRules', function () {
 		peersUpdateRules = new PeersUpdateRules(slaveWAMPServerMock);
 		peersUpdateRules.slaveToMasterSender.send = sinon.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(3, null);
 		actionCb.reset();
-		validPeer = _.clone(randomPeer);
+		validPeer = _.clone(prefixedPeer);
 		connectionsTable.nonceToConnectionIdMap = {};
 		connectionsTable.connectionIdToNonceMap = {};
 	});

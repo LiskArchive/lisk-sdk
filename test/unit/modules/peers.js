@@ -13,7 +13,7 @@ var Peer = require('../../../logic/peer');
 var PeersLogic = require('../../../logic/peers');
 var PeersModule = require('../../../modules/peers');
 var modulesLoader = require('../../common/modulesLoader');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var prefixedPeer = require('../../fixtures/peers').peer;
 var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
 
 describe('peers', function () {
@@ -71,10 +71,10 @@ describe('peers', function () {
 	describe('update', function () {
 
 		it('should insert new peer', function (done) {
-			peers.update(randomPeer);
+			peers.update(prefixedPeer);
 			getPeers(function (err, __peers) {
 				expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
-				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
+				expect(__peers[0]).to.have.property('string').equal(prefixedPeer.ip + ':' + prefixedPeer.port);
 				done();
 			});
 		});
@@ -99,11 +99,11 @@ describe('peers', function () {
 
 		it('should update existing peer', function (done) {
 
-			peers.update(randomPeer);
+			peers.update(prefixedPeer);
 
 			getPeers(function (err, __peers) {
-				expect(__peers[0]).to.have.property('height').equal(randomPeer.height);
-				var toUpdate = _.clone(randomPeer);
+				expect(__peers[0]).to.have.property('height').equal(prefixedPeer.height);
+				var toUpdate = _.clone(prefixedPeer);
 				toUpdate.height += 1;
 				peers.update(toUpdate);
 				getPeers(function (err, __peers) {
@@ -116,15 +116,15 @@ describe('peers', function () {
 
 		it('should not insert new peer if address changed but nonce is the same', function (done) {
 
-			peers.update(randomPeer);
+			peers.update(prefixedPeer);
 
 			getPeers(function (err, __peers) {
-				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
-				var toUpdate = _.clone(randomPeer);
+				expect(__peers[0]).to.have.property('string').equal(prefixedPeer.ip + ':' + prefixedPeer.port);
+				var toUpdate = _.clone(prefixedPeer);
 				toUpdate.port += 1;
 				peers.update(toUpdate);
 				getPeers(function (err, __peers) {
-					expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
+					expect(__peers[0]).to.have.property('string').equal(prefixedPeer.ip + ':' + prefixedPeer.port);
 					done();
 				});
 			});
@@ -133,11 +133,11 @@ describe('peers', function () {
 
 		it('should insert new peer if address and nonce changed', function (done) {
 
-			peers.update(randomPeer);
+			peers.update(prefixedPeer);
 
 			getPeers(function (err, __peers) {
-				expect(__peers[0]).to.have.property('string').equal(randomPeer.ip + ':' + randomPeer.port);
-				var secondPeer = _.clone(randomPeer);
+				expect(__peers[0]).to.have.property('string').equal(prefixedPeer.ip + ':' + prefixedPeer.port);
+				var secondPeer = _.clone(prefixedPeer);
 				secondPeer.port += 1;
 				secondPeer.nonce = randomstring.generate(16);
 				peers.update(secondPeer);
@@ -146,7 +146,7 @@ describe('peers', function () {
 					var peersAddresses = __peers.map(function (p) {
 						return p.string;
 					});
-					expect(peersAddresses.indexOf(randomPeer.ip + ':' + randomPeer.port) !== -1).to.be.ok;
+					expect(peersAddresses.indexOf(prefixedPeer.ip + ':' + prefixedPeer.port) !== -1).to.be.ok;
 					expect(peersAddresses.indexOf(secondPeer.ip + ':' + secondPeer.port) !== -1).to.be.ok;
 					done();
 				});
@@ -170,7 +170,7 @@ describe('peers', function () {
 		describe('when inserted', function () {
 
 			beforeEach(function () {
-				peers.update(randomPeer);
+				peers.update(prefixedPeer);
 			});
 
 			it('should list the inserted peer after insert', function (done) {
@@ -207,11 +207,11 @@ describe('peers', function () {
 
 		it('should remove added peer', function (done) {
 
-			peers.update(randomPeer);
+			peers.update(prefixedPeer);
 
 			getPeers(function (err, __peers) {
 				expect(__peers).to.be.an('array').and.to.have.lengthOf(1);
-				expect(peers.remove(randomPeer)).to.be.ok;
+				expect(peers.remove(prefixedPeer)).to.be.ok;
 				getPeers(function (err, __peers) {
 					expect(__peers).to.be.an('array').and.to.have.lengthOf(0);
 					done();
@@ -229,17 +229,17 @@ describe('peers', function () {
 		var ip = require('ip');
 
 		it('should accept peer with public ip', function () {
-			expect(peers.acceptable([randomPeer])).that.is.an('array').and.to.deep.equal([randomPeer]);
+			expect(peers.acceptable([prefixedPeer])).that.is.an('array').and.to.deep.equal([prefixedPeer]);
 		});
 
 		it('should not accept peer with private ip', function () {
-			var privatePeer = _.clone(randomPeer);
+			var privatePeer = _.clone(prefixedPeer);
 			privatePeer.ip = '127.0.0.1';
 			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
 		});
 
 		it('should not accept peer with host\'s nonce', function () {
-			var peer = _.clone(randomPeer);
+			var peer = _.clone(prefixedPeer);
 			peer.nonce = systemNonce;
 			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
 		});

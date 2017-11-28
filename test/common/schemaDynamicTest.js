@@ -8,7 +8,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var util = require('util');
 
-var typesRepresentatives = require('./typesRepresentatives');
+var typesRepresentatives = require('../fixtures/typesRepresentatives');
 
 var allTypes = typesRepresentatives.allTypes;
 var arrays = typesRepresentatives.arrays;

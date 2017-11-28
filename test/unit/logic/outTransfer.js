@@ -11,7 +11,7 @@ var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var slots = require('../../../helpers/slots.js');
 var modulesLoader = require('../../common/modulesLoader');
-var typesRepresentatives = require('../../common/typesRepresentatives');
+var typesRepresentatives = require('../../fixtures/typesRepresentatives');
 
 var OutTransfer = rewire('../../../logic/outTransfer.js');
 var sql = require('../../../sql/dapps.js');

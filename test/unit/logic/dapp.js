@@ -15,7 +15,7 @@ var modulesLoader = require('../../common/modulesLoader.js');
 var Dapp = rewire('../../../logic/dapp.js');
 var sql = require('../../../sql/dapps.js');
 
-var typeRepresentatives = require('../../common/typesRepresentatives.js');
+var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
 
 var testData = require('./testData/dapp.js');
 

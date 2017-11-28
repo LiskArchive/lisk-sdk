@@ -8,7 +8,7 @@ var sinon = require('sinon');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var modulesLoader = require('../../common/modulesLoader');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var prefixedPeer = require('../../fixtures/peers').peer;
 var Peers = require('../../../logic/peers.js');
 var Peer = require('../../../logic/peer.js');
 
@@ -34,7 +34,7 @@ describe('peers', function () {
 
 	beforeEach(function () {
 		peersModuleMock.acceptable = sinon.stub().returnsArg(0);
-		validPeer = _.assign({}, randomPeer);
+		validPeer = _.assign({}, prefixedPeer);
 	});
 
 	function removeAll () {

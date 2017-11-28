@@ -2,7 +2,7 @@
 
 var node = require('../../../node');
 var shared = require('../../shared');
-var typesRepresentatives = require('../../../common/typesRepresentatives');
+var typesRepresentatives = require('../../../fixtures/typesRepresentatives');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;

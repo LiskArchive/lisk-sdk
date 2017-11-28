@@ -6,7 +6,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
 
 var node = require('../../node');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var prefixedPeer = require('../../fixtures/peers').peer;
 var Rules = require('../../../api/ws/workers/rules');
 var testConfig = require('../../data/config.json');
 var wsServer = require('../../common/ws/server');
@@ -43,10 +43,10 @@ describe('RPC', function () {
 			beforeEach(function () {
 				validAcceptRequest = {
 					authKey: 'authentication key',
-					peer: randomPeer,
+					peer: prefixedPeer,
 					updateType: Rules.UPDATES.INSERT
 				};
-				validPeer = _.clone(randomPeer);
+				validPeer = _.clone(prefixedPeer);
 			});
 
 			describe('schema', function () {
@@ -175,7 +175,7 @@ describe('RPC', function () {
 		var validPeer;
 
 		beforeEach(function () {
-			validPeer = _.clone(randomPeer);
+			validPeer = _.clone(prefixedPeer);
 		});
 
 		it('should return list of peers', function (done) {
