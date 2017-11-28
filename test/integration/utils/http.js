@@ -67,7 +67,7 @@ module.exports = {
 			if (res.status !== apiCodes.OK) {
 				throw new Error('Unable to get blocks from peer: ' + res.body);
 			}
-			return JSON.parse(res.body).blocks;
+			return JSON.parse(res.body).data;
 		});
 	},
 
