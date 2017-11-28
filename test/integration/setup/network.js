@@ -22,10 +22,8 @@ module.exports = {
 			});
 		});
 		Promise.all(enableForgingPromises).then(function (forgingResults) {
-			return cb(forgingResults.map(function (result) {
-				return result.forging;
-			}).some(function (isForging) {
-				return !isForging;
+			return cb(forgingResults.some(function (forgingResult) {
+				return !forgingResult.forging;
 			}) ? 'Enabling forging failed for some of delegates' : null);
 		}).catch(function (error) {
 			return cb(error);

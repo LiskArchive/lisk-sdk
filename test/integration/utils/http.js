@@ -5,7 +5,7 @@ var apiCodes = require('../../../helpers/apiCodes');
 
 var headers = {
 	'Accept': 'application/json',
-	'Content-Type': 'application/x-www-form-urlencoded'
+	'Content-Type': 'application/json'
 };
 
 var endpoints = {
@@ -38,7 +38,7 @@ var endpoints = {
 				return 'http://' + ip + ':' + port + '/api/transactions';
 			},
 			enableForging: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/delegates/forging';
+				return 'http://' + ip + ':' + port + '/api/node/status/forging';
 			},
 			getTransactions: function (ip, port) {
 				return 'http://' + ip + ':' + port + '/api/transactions';
@@ -106,16 +106,16 @@ module.exports = {
 			url: endpoints.versions[currentVersion].enableForging(ip || '127.0.0.1', port || 4000),
 			headers: headers,
 			body: {
-				key: 'elephant tree paris dragon chair galaxy',
+				decryptionKey: 'elephant tree paris dragon chair galaxy',
 				publicKey: keys.publicKey
 			}
 		}).then(function (res) {
 			if (res.status !== apiCodes.OK) {
 				throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey);
 			}
-			return JSON.parse(res.body);
-		}).catch(function () {
-			throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey);
+			return JSON.parse(res.body).data[0];
+		}).catch(function (err) {
+			throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey + JSON.stringify(err));
 		});
 	}
 };
