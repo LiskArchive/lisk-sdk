@@ -6,12 +6,16 @@ var path = require('path');
 
 // Created this before in global scope as its dependency of test/node.js
 if(typeof before !== 'function') {
-	global.before = function before (cb) { cb(); };
+	global.before = function before (description, cb) {
+		cb = typeof description === 'function' ? description : cb;
+		cb();
+	};
 }
 
+var application = require('../test/common/application.js');
 var node = require('../test/node');
 
-node.initApplication(function (err, scope) {
+application.init({}, function (err, scope) {
 
 	var replServer = repl.start({
 		prompt: 'lisk-core [' + scope.config.db.database + '] > ',

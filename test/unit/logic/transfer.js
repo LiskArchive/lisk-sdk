@@ -7,10 +7,10 @@ var _  = require('lodash');
 var chai = require('chai');
 var expect = require('chai').expect;
 
+var application = require('../../common/application.js');
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants.js');
 
@@ -97,28 +97,22 @@ describe('transfer', function () {
 	var transferBindings;
 	var accountModule;
 
-	var dbSandbox;
-
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transfer');
-		dbSandbox.create(function (err, __db) {
-			node.initApplication(function (err, scope) {
-				accountModule = scope.modules.accounts;
-				transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
-				transferBindings = {
-					account: accountModule
-				};
-				transfer.bind(accountModule);
-				transactionLogic = scope.logic.transaction;
-				transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
-				done();
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_logic_transfer'}}, function (err, scope) {
+			accountModule = scope.modules.accounts;
+			transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
+			transferBindings = {
+				account: accountModule
+			};
+			transfer.bind(accountModule);
+			transactionLogic = scope.logic.transaction;
+			transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	describe('bind', function () {

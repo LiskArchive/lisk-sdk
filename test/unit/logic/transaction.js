@@ -7,10 +7,10 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
+var application = require('../../common/application.js');
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var transactionTypes = require('../../../helpers/transactionTypes');
 var slots = require('../../../helpers/slots');
@@ -134,27 +134,20 @@ describe('transaction', function () {
 
 	var transactionLogic;
 	var accountModule;
-	var db;
-	var dbSandbox;
 
 	before(function (done) {
 		var transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transactions');
-		dbSandbox.create(function (err, __db) {
-			db = __db;
-			node.initApplication(function (err, scope) {
-				transactionLogic = scope.logic.transaction;
-				accountModule = scope.modules.accounts;
-				transfer.bind(accountModule);
-				transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
-				done();
-			}, {db: db});
+		application.init({sandbox: {name: 'lisk_test_logic_transactions'}}, function (err, scope) {
+			transactionLogic = scope.logic.transaction;
+			accountModule = scope.modules.accounts;
+			transfer.bind(accountModule);
+			transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	describe('attachAssetType', function () {

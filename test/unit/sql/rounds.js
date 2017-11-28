@@ -10,16 +10,15 @@ var rewire  = require('rewire');
 var sinon   = require('sinon');
 
 // Application specific
+var application = require('../../common/application.js');
 var bignum    = require('../../../helpers/bignum.js');
 var config    = require('../../../config.json');
 var constants = require('../../../helpers/constants');
 var node      = require('../../node.js');
 var slots     = require('../../../helpers/slots.js');
-var DBSandbox     = require('../../common/globalBefore').DBSandbox;
 
 describe('Rounds-related SQL triggers', function () {
 
-	var dbSandbox;
 	var originalBlockRewardsOffset;
 	var library;
 	var mem_state, delegates_state, round_blocks = [];
@@ -144,22 +143,23 @@ describe('Rounds-related SQL triggers', function () {
 	}
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_sql_rounds');
-		dbSandbox.create(function (err, __db) {
+		originalBlockRewardsOffset = node.constants.rewards.offset;
+		node.constants.rewards.offset = 150;
+		application.init({
+			sandbox: {
+				name: 'lisk_test_sql_rounds'
+			},
+			waitForGenesisBlock: false
+		}, function (err, scope) {
 			// Force rewards start at 150-th block
-			originalBlockRewardsOffset = node.constants.rewards.offset;
-			node.constants.rewards.offset = 150;
-			node.initApplication(function (err, scope) {
-				library = scope;
-				done(err);
-			}, {db: __db, waitForGenesisBlock: false});
+			library = scope;
+			done(err);
 		});
 	});
 
 	after(function (done) {
 		node.constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	afterEach(function () {
@@ -979,7 +979,7 @@ describe('Rounds-related SQL triggers', function () {
 							}
 							return blocks;
 						}, {})
-						.then (function (blocks) {
+						.then(function (blocks) {
 							expect(delegates_rewards).to.deep.equal(blocks);
 						});
 					});
