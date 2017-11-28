@@ -4,6 +4,7 @@ var apiCodes = require('../helpers/apiCodes.js');
 var ApiError = require('../helpers/apiError.js');
 var Signature = require('../logic/signature.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
+var _ = require('lodash');
 
 // Private fields
 var modules, library, self, __private = {};
@@ -72,15 +73,38 @@ Signatures.prototype.onBind = function (scope) {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
+ * Public methods, accessible via API
  */
 Signatures.prototype.shared = {
-	postSignatures: function (req, cb) {
-		return modules.transport.shared.postSignatures(req.body, function (err, res) {
+
+	/**
+	 * Post signatures for transactions
+	 *
+	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
+	 * @param {function} cb - Callback function
+	 * @return {setImmediateCallback}
+	 */
+	postSignatures: function (signatures, cb) {
+
+		var modifiedSignatures = _.map(signatures, function (signature) {
+			signature.transaction = signature.transactionId;
+			delete signature.transactionId;
+			return signature;
+		});
+
+
+		return modules.transport.shared.postSignatures({signatures: modifiedSignatures}, function (err, res) {
+			var processingError = /(error|processing)/ig;
+			var badRequestBodyError = /(invalid|signature)/ig;
+
 			if (res.success === false) {
-				var errorCode = res.message === 'Invalid signatures body' ? apiCodes.BAD_REQUEST : apiCodes.INTERNAL_SERVER_ERROR;
-				return setImmediate(cb, new ApiError(res.message, errorCode));
+				if (processingError.exec(res.message).length === 2) {
+					return setImmediate(cb, new ApiError(res.message, apiCodes.PROCESSING_ERROR));
+				} else if(badRequestBodyError.exec(res.message).length === 2) {
+					return setImmediate(cb, new ApiError(res.message, apiCodes.BAD_REQUEST));
+				} else {
+					return setImmediate(cb, new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR));
+				}
 			} else {
 				return setImmediate(cb, null, {status: 'Signature Accepted'});
 			}

@@ -138,7 +138,7 @@ __private.receiveSignatures = function (query, cb) {
 						library.logger.debug(err, signature);
 					}
 
-					return setImmediate(eachSeriesCb);
+					return setImmediate(eachSeriesCb, err);
 				});
 			}, seriesCb);
 		}

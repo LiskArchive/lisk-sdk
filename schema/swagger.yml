@@ -541,6 +541,50 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /signatures:
+    x-swagger-router-controller: signatures
+    post:
+      tags:
+        - Signatures
+      summary: submits an array of signatures objects to sign multisignature transactions
+      operationId: postSignatures
+      description:
+        submits signature(s) to sign a multisignature transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: signatures
+          description: Signatures object to submit to the network
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Signature'
+      responses:
+        200:
+          description: Signature is accepted by the node for processing
+          schema:
+            $ref: '#/definitions/SignaturesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        409:
+          description: Some error related to processing of request
+          schema:
+            $ref: '#/definitions/ProcessingError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
 parameters:
   ip:
     name: ip
@@ -892,6 +936,56 @@ definitions:
       links:
         type: object
 
+  SignaturesResponse:
+    description: Blocks response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: object
+        required:
+          - message
+        properties:
+          message:
+            type: string
+            minLength: 1
+      meta:
+       type: object
+       required:
+         - status
+       properties:
+         status:
+           description: Acceptance status for signatures
+           type: boolean
+           example: true
+      links:
+        type: object
+
+  Signature:
+    type: object
+    required:
+      - transactionId
+      - publicKey
+      - signature
+    properties:
+      transactionId:
+        type: string
+        format: id
+        example: "222675625422353767"
+        minLength: 1
+        maxLength: 20
+      publicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      signature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+
   Block:
     type: object
     required:
@@ -928,6 +1022,7 @@ definitions:
         example: 12668885769632475474L
       generatorPublicKey:
         type: string
+        format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
       payloadLength:
         type: integer
@@ -1246,6 +1341,16 @@ definitions:
       syncing:
         type: boolean
         example: false
+
+  ProcessingError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
 
   NotFoundError:
     type: object
