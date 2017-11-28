@@ -340,59 +340,42 @@ describe('httpApi', function () {
 
 				describe('when config.peers.enabled = true and checkIpInList() = false', function () {
 
-					it('should call rejectDisallowed with "true" and "true" as argument', function () {
-
-					});
+					it('should call rejectDisallowed with "true" and "true" as argument');
 				});
 
 				describe('when config.peers.enabled = false', function () {
 
-					it('should call rejectDisallowed with "false" and "false" as arguments', function () {
-
-					});
+					it('should call rejectDisallowed with "false" and "false" as arguments');
 				});
 
 				describe('when checkIpInList() = true and config.peers.enabled = true', function () {
 
-					it('should call rejectDisallowed with "false" and "true" as arguments', function () {
-
-					});
+					it('should call rejectDisallowed with "false" and "true" as arguments');
 				});
 			});
 
 			describe('when req.url does not match regex(/^\\/peer[\\/]?.*!/)', function () {
 
-				/*it('should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false', function () {
-					//expect(validConfig.peers.enabled).to.be.true;
-					//expect(checkIpInlistStub.calledWith(validConfig.peers.access.blacklist,validReq.ip, false)).to.be.true;
-				});*/
+				it('should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false');
 
 				describe('when config.api.enabled = true and checkIpInList() = true and config.api.access.public = false', function () {
 
-					it('should call rejectDisallowed with "true" and "true" as arguments', function () {
-
-					});
+					it('should call rejectDisallowed with "true" and "true" as arguments');
 				});
 
 				describe('when config.api.enabled = true and config.api.access.public = true and checkIpInList() = false', function () {
 
-					it('should call rejectDisallowed with "true" and "true" as arguments', function () {
-
-					});
+					it('should call rejectDisallowed with "true" and "true" as arguments');
 				});
 
 				describe('when config.api.enabled = false', function () {
 
-					it('should call rejectDisallowed "false" and "false"', function () {
-
-					});
+					it('should call rejectDisallowed "false" and "false"');
 				});
 
 				describe('when config.api.enabled.public = true and checkIpInList() = false and config.api.access = false', function () {
 
-					it('should call rejectDisallowed "false" and "true"', function () {
-
-					});
+					it('should call rejectDisallowed "false" and "true"');
 				});
 			});
 		});
@@ -455,22 +438,23 @@ describe('httpApi', function () {
 					it('should add json function to response', function () {
 						expect(validRes.json).to.be.a('function');
 					});
-					//not tested, bc defined function is not executed at this point
-					/*describe('when res.statusCode = 200 (OK)', function () {
+
+					// Not tested, because defined function is not executed at this point
+					describe.skip('when res.statusCode = 200 (OK)', function () {
 
 						before(function () {
 							validRes.statusCode = 200;
 						});
 
 						it('should call logger.debug with "cached response for key: api/url"', function () {
-							expect(loggerMock.debug.calledWith("cached response for key: api/url")).to.be.true;
+							expect(loggerMock.debug.calledWith('cached response for key: api/url')).to.be.true;
 						});
 
 						it('should call cache.setJsonForKey with key, response as arguments', function () {
-							//expect(validCache.setJsonForKey.calledWith(validReq.url, validCachedValue));
+							// expect(validCache.setJsonForKey.calledWith(validReq.url, validCachedValue));
 							expect(validCache.setJsonForKey.calledWith(validReq.url, validCachedValue)).to.be.true;
 						});
-					});*/
+					});
 
 					it('should call next function', function () {
 						expect(validNextSpy.calledOnce).to.be.true;
