@@ -1,6 +1,7 @@
 'use strict';
 
 var node = require('../node');
+var _ = node._;
 var typesRepresentatives = require('../common/typesRepresentatives');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
@@ -14,10 +15,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			var transactionToWaitFor = goodTransactions.map(function (transaction) {
-				return [transaction.id];
-			});
-			return waitForConfirmations(transactionToWaitFor);
+			return waitForConfirmations(_.map(goodTransactions, 'id'));
 		});
 
 		it('bad transactions should not be confirmed', function () {
@@ -186,6 +184,10 @@ function MultisigScenario (options) {
 	this.min = options.min || options.members - 1;
 	this.lifetime = options.lifetime || 1;
 	this.amount = options.amount || 100000000000;
+
+	this.multiSigTransaction = node.lisk.multisignature.createMultisignature(this.account.password, null, this.keysgroup, this.lifetime, this.min);
+	this.creditTransaction = node.lisk.transaction.createTransaction(this.account.address, this.amount, node.gAccount.password);
+	this.secondSignatureTransaction = node.lisk.signature.createSignature(this.account.password, this.account.secondPassword);
 }
 
 module.exports = {

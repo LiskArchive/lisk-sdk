@@ -4,8 +4,6 @@ var node = require('../../../node.js');
 var shared = require('../../shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
 var getPendingMultisignaturesPromise = require('../../../common/apiHelpers').getPendingMultisignaturesPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 

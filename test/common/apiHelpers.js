@@ -229,6 +229,21 @@ function expectSwaggerParamError (res, param) {
 	res.body.errors.map(function (p) { return p.name; }).should.contain(param);
 }
 
+/**
+ * Create a signature object for POST /api/signatures endpoint
+ *
+ * @param {Object} transaction
+ * @param {Object} signer
+ * @return {{signature: string, transactionId: string, publicKey: string}}
+ */
+function createSignatureObject (transaction, signer) {
+	return {
+		transactionId: transaction.id,
+		publicKey: signer.publicKey,
+		signature: node.lisk.multisignature.signTransaction(transaction, signer.password)
+	};
+}
+
 var getTransactionByIdPromise = node.Promise.promisify(getTransactionById);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
@@ -288,5 +303,6 @@ module.exports = {
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
 	waitForConfirmations: waitForConfirmations,
-	expectSwaggerParamError: expectSwaggerParamError
+	expectSwaggerParamError: expectSwaggerParamError,
+	createSignatureObject: createSignatureObject
 };
