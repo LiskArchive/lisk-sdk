@@ -29,21 +29,23 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 		logger: logger,
 		bus: bus,
 		logic: {
-			transaction: transaction,
+			transaction: transaction
 		},
 		config: {
 			broadcasts: {
 				broadcastInterval: broadcastInterval,
-				releaseLimit: releaseLimit,
-			},
-		},
+				releaseLimit: releaseLimit
+			}
+		}
 	};
 	self = this;
 
-	self.unconfirmed = { transactions: [], index: {} };
-	self.bundled = { transactions: [], index: {} };
-	self.queued = { transactions: [], index: {} };
-	self.multisignature = { transactions: [], index: {} };
+	// Init transactions storage pools
+	self.unconfirmed    = {transactions: [], index: {}};
+	self.bundled        = {transactions: [], index: {}};
+	self.queued         = {transactions: [], index: {}};
+	self.multisignature = {transactions: [], index: {}};
+
 	self.expiryInterval = 30000;
 	self.bundledInterval = library.config.broadcasts.broadcastInterval;
 	self.bundleLimit = library.config.broadcasts.releaseLimit;
