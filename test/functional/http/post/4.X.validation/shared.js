@@ -3,12 +3,12 @@
 var node = require('../../../../node');
 var shared = require('../../../shared');
 
+var swaggerEndpoint = require('../../../../common/swaggerSpec');
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
-var apiCodes = require('../../../../../helpers/apiCodes');
+var createSignatureObject = require('../../../../common/apiHelpers').createSignatureObject;
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-var sendSignaturePromise = require('../../../../common/apiHelpers').sendSignaturePromise;
+var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
 function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
@@ -42,16 +42,16 @@ function beforeValidationPhase (scenarios) {
 				}));
 			})
 			.then(function () {
-				return node.Promise.all(Object.keys(scenarios).map(function (type) {
-					return node.Promise.all(node.Promise.map(scenarios[type].members, function (member) {
-						var signature = node.lisk.multisignature.signTransaction(scenarios[type].transaction, member.password);
-
-						return sendSignaturePromise(signature, scenarios[type].transaction).then(function (res) {
-							node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-							node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-						});
-					}));
-				}));
+				var signatures = [];
+				Object.keys(scenarios).map(function (type) {
+					scenarios[type].members.map(function (member) {
+						signatures.push(createSignatureObject(scenarios[type].transaction, member));
+					});
+				});
+				return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
+					res.body.meta.status.should.be.true;
+					res.body.data.message.should.be.equal('Signature Accepted');
+				});
 			})
 			.then(function () {
 				return waitForConfirmations(transactionsToWaitFor);
@@ -93,14 +93,16 @@ function sendAndSignMultisigTransaction (type, scenario) {
 			node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 		})
 		.then(function () {
-			return node.Promise.all(node.Promise.map(scenario.members, function (member) {
-				var signature = node.lisk.multisignature.signTransaction(transaction, member.password);
+			var signatures = [];
 
-				return sendSignaturePromise(signature, transaction).then(function (res) {
-					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-					node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-				});
-			}));
+			scenario.members.map(function (member) {
+				signatures.push(createSignatureObject(transaction, member));
+			});
+
+			return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
+				res.body.meta.status.should.be.true;
+				res.body.data.message.should.be.equal('Signature Accepted');
+			});
 		})
 		.then(function () {
 			return transaction;

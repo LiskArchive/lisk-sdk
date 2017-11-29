@@ -102,10 +102,6 @@ function sendTransactions (transactions, cb) {
 	http.post('/api/transactions', {transactions: transactions}, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function sendSignature (signature, transaction, cb) {
-	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpResponseCallbackHelper.bind(null, cb));
-}
-
 function creditAccount (address, amount, cb) {
 	var transaction = lisk.transaction.createTransaction(address, amount, node.gAccount.password);
 	sendTransaction(transaction, cb);
@@ -256,7 +252,6 @@ var getPendingMultisignaturesPromise = node.Promise.promisify(getPendingMultisig
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendTransactionPromise = node.Promise.promisify(sendTransaction);
 var sendTransactionsPromise = node.Promise.promisify(sendTransactions);
-var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
 var registerDelegatePromise = node.Promise.promisify(registerDelegate);
 var getForgingStatusPromise = node.Promise.promisify(getForgingStatus);
@@ -280,7 +275,6 @@ module.exports = {
 	getMultisignaturesTransactionPromise: getMultisignaturesTransactionPromise,
 	getMultisignaturesTransactionsPromise: getMultisignaturesTransactionsPromise,
 	getPendingMultisignaturesPromise: getPendingMultisignaturesPromise,
-	sendSignaturePromise: sendSignaturePromise,
 	sendTransactionPromise: sendTransactionPromise,
 	sendTransactionsPromise: sendTransactionsPromise,
 	creditAccount: creditAccount,

@@ -8,7 +8,6 @@ var constants = require('../../../../helpers/constants');
 var apiHelpers = require('../../../common/apiHelpers');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
-var sendSignaturePromise = apiHelpers.sendSignaturePromise;
 var waitForConfirmations = apiHelpers.waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
