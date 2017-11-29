@@ -468,15 +468,7 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 				// DATABASE write. Update delegates accounts
 				modules.rounds.tick(block, seriesCb);
 			}
-		},
-		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
-		// TODO: See undoUnconfirmedList discussion above.
-		applyUnconfirmedIds: function (seriesCb) {
-			// DATABASE write
-			modules.transactions.applyUnconfirmedIds(unconfirmedTransactionIds, function (err) {
-				return setImmediate(seriesCb, err);
-			});
-		},
+		}
 	}, function (err) {
 		// Allow shutdown, database writes are finished.
 		modules.blocks.isActive.set(false);
