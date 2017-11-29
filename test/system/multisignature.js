@@ -111,17 +111,17 @@ describe('multisignature', function () {
 		});
 	}
 
-	describe('with LISK sent to multisig account', function () {
+	describe('with LISK sent to multisignature account', function () {
 
 		var multisigAccount;
 
-		before('send funds to multisig account', function (done) {
+		before('send funds to multisignature account', function (done) {
 			multisigAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
 			addTransactionsAndForge([sendTransaction], done);
 		});
 
-		describe('from multisig account', function () {
+		describe('from multisignature account', function () {
 
 			var multisigSender;
 
@@ -252,17 +252,17 @@ describe('multisignature', function () {
 		});
 	});
 
-	describe('with LISK sent to multisig account', function () {
+	describe('with LISK sent to multisignature account', function () {
 
 		var multisigAccount;
 
-		before('send funds to multisig account', function (done) {
+		before('send funds to multisignature account', function (done) {
 			multisigAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
 			addTransactionsAndForge([sendTransaction], done);
 		});
 
-		describe('from multisig account', function () {
+		describe('from multisignature account', function () {
 
 			var multisigSender;
 
@@ -273,7 +273,7 @@ describe('multisignature', function () {
 				});
 			});
 
-			describe('after forging Block with multisig transaction', function () {
+			describe('after forging block with multisignature transaction', function () {
 
 				var multisigTransaction;
 				var signer1 = node.randomAccount();
