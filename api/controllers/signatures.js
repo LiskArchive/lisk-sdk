@@ -18,16 +18,15 @@ function SignaturesController (scope) {
 }
 
 SignaturesController.postSignatures = function (context, next) {
-
 	var signatures = context.request.swagger.params.signatures.value;
 
 	modules.signatures.shared.postSignatures(signatures, function (err, data) {
-
 		if(err) {
 			if(err instanceof ApiError){
 				context.statusCode = err.code;
 				delete err.code;
 			}
+
 			return next(err);
 		}
 

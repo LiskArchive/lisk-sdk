@@ -49,7 +49,6 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 	var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
 	before(function () {
-
 		var transactions = [];
 
 		Object.keys(scenarios).map(function (type) {

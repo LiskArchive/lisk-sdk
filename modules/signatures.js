@@ -85,13 +85,11 @@ Signatures.prototype.shared = {
 	 * @return {setImmediateCallback}
 	 */
 	postSignatures: function (signatures, cb) {
-
 		var modifiedSignatures = _.map(signatures, function (signature) {
 			signature.transaction = signature.transactionId;
 			delete signature.transactionId;
 			return signature;
 		});
-
 
 		return modules.transport.shared.postSignatures({signatures: modifiedSignatures}, function (err, res) {
 			var processingError = /(error|processing)/ig;
