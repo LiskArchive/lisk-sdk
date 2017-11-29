@@ -3,9 +3,12 @@
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
+var swaggerEndpoint = require('../../../../common/swaggerSpec');
+var apiHelpers = require('../../../../common/apiHelpers');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-var sendSignaturePromise = require('../../../../common/apiHelpers').sendSignaturePromise;
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+var createSignatureObject = apiHelpers.createSignatureObject;
+var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
 describe('POST /api/transactions (validate type 4 on top of type 1)', function () {
 
@@ -54,21 +57,21 @@ describe('POST /api/transactions (validate type 4 on top of type 1)', function (
 	describe('signing transaction', function () {
 
 		it('with all the signatures should be ok', function () {
-			signature = node.lisk.multisignature.signTransaction(transaction, account2.password);
+			signature = createSignatureObject(transaction, account2);
 
-			return sendSignaturePromise(signature, transaction)
-				.then(function (res) {
-					node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
+			return signatureEndpoint.makeRequest({signatures: [signature]}, 200).then(function (res) {
+				res.body.meta.status.should.be.true;
+				res.body.data.message.should.be.equal('Signature Accepted');
 
-					signature = node.lisk.multisignature.signTransaction(transaction, account3.password);
+				signature = createSignatureObject(transaction, account3);
 
-					return sendSignaturePromise(signature, transaction);
-				})
-				.then(function (res) {
-					node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
+				return signatureEndpoint.makeRequest({signatures: [signature]}, 200);
+			}).then(function (res) {
+				res.body.meta.status.should.be.true;
+				res.body.data.message.should.be.equal('Signature Accepted');
 
-					goodTransactions.push(transaction);
-				});
+				goodTransactions.push(transaction);
+			});
 		});
 	});
 

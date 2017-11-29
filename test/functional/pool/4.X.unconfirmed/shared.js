@@ -5,10 +5,6 @@ var shared = require('../../shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-var apiCodes = require('../../../../helpers/apiCodes');
-
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
 
 function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];

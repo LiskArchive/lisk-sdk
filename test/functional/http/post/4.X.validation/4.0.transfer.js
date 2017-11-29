@@ -3,11 +3,14 @@
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
-var apiCodes = require('../../../../../helpers/apiCodes');
 var constants = require('../../../../../helpers/constants');
+var swaggerEndpoint = require('../../../../common/swaggerSpec');
+var apiHelpers = require('../../../../common/apiHelpers');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-var sendSignaturePromise = require('../../../../common/apiHelpers').sendSignaturePromise;
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+var createSignatureObject = apiHelpers.createSignatureObject;
+
+var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
 describe('POST /api/transactions (validate type 0 on top of type 4)', function () {
 
@@ -60,11 +63,11 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 				pendingMultisignatures.push(transaction);
 			})
 				.then(function () {
-					signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0].password);
+					signature = createSignatureObject(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0]);
 
-					return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
-						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
+					return signatureEndpoint.makeRequest({signatures: [signature]}, 200).then(function (res) {
+						res.body.meta.status.should.be.true;
+						res.body.data.message.should.be.equal('Signature Accepted');
 					});
 				});
 		});

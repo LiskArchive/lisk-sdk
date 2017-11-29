@@ -102,10 +102,6 @@ function sendTransactions (transactions, cb) {
 	http.post('/api/transactions', {transactions: transactions}, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function sendSignature (signature, transaction, cb) {
-	http.post('/api/signatures', {signature: {signature: signature, transaction: transaction.id}}, httpResponseCallbackHelper.bind(null, cb));
-}
-
 function creditAccount (address, amount, cb) {
 	var transaction = lisk.transaction.createTransaction(address, amount, node.gAccount.password);
 	sendTransaction(transaction, cb);
@@ -229,6 +225,21 @@ function expectSwaggerParamError (res, param) {
 	res.body.errors.map(function (p) { return p.name; }).should.contain(param);
 }
 
+/**
+ * Create a signature object for POST /api/signatures endpoint
+ *
+ * @param {Object} transaction - Transaction object
+ * @param {Object} signer - Signer object including public key and password
+ * @return {{signature: string, transactionId: string, publicKey: string}}
+ */
+function createSignatureObject (transaction, signer) {
+	return {
+		transactionId: transaction.id,
+		publicKey: signer.publicKey,
+		signature: node.lisk.multisignature.signTransaction(transaction, signer.password)
+	};
+}
+
 var getTransactionByIdPromise = node.Promise.promisify(getTransactionById);
 var getTransactionsPromise = node.Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
@@ -241,7 +252,6 @@ var getPendingMultisignaturesPromise = node.Promise.promisify(getPendingMultisig
 var creditAccountPromise = node.Promise.promisify(creditAccount);
 var sendTransactionPromise = node.Promise.promisify(sendTransaction);
 var sendTransactionsPromise = node.Promise.promisify(sendTransactions);
-var sendSignaturePromise = node.Promise.promisify(sendSignature);
 var getCountPromise = node.Promise.promisify(getCount);
 var registerDelegatePromise = node.Promise.promisify(registerDelegate);
 var getForgingStatusPromise = node.Promise.promisify(getForgingStatus);
@@ -265,7 +275,6 @@ module.exports = {
 	getMultisignaturesTransactionPromise: getMultisignaturesTransactionPromise,
 	getMultisignaturesTransactionsPromise: getMultisignaturesTransactionsPromise,
 	getPendingMultisignaturesPromise: getPendingMultisignaturesPromise,
-	sendSignaturePromise: sendSignaturePromise,
 	sendTransactionPromise: sendTransactionPromise,
 	sendTransactionsPromise: sendTransactionsPromise,
 	creditAccount: creditAccount,
@@ -288,5 +297,6 @@ module.exports = {
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
 	waitForConfirmations: waitForConfirmations,
-	expectSwaggerParamError: expectSwaggerParamError
+	expectSwaggerParamError: expectSwaggerParamError,
+	createSignatureObject: createSignatureObject
 };
