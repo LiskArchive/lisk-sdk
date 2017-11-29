@@ -5,14 +5,13 @@ var bignum = require('../../../helpers/bignum');
 
 describe('BigNumber', function () {
 
-	var validBuf,
-		validOpts,
-		bignumResult,
-		validSeed,
-		validBufferSeed,
-		validBufferSeedSize2,
-		validBufferSeedMpint;
-
+	var validBuf;
+	var validOpts;
+	var bignumResult;
+	var validSeed;
+	var validBufferSeed;
+	var validBufferSeedSize2;
+	var validBufferSeedMpint;
 
 	describe('fromBuffer', function () {
 
@@ -222,6 +221,7 @@ describe('BigNumber', function () {
 			});
 
 			describe('when passed only little endian option', function () {
+
 				before(function () {
 					validOpts = {endian:'little'};
 				});
