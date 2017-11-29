@@ -179,7 +179,7 @@ describe('BigNumber', function () {
 			describe('when passed size 1 and big endian options', function () {
 
 				before(function () {
-					validOpts = {size:1,endian:'big'};
+					validOpts = {size: 1, endian: 'big'};
 				});
 
 				it('should return validBufferSeed', function () {
@@ -190,7 +190,7 @@ describe('BigNumber', function () {
 			describe('when passed size 2 buffer and little endian', function () {
 
 				before(function () {
-					validOpts = {size:2,endian:'little'};
+					validOpts = {size: 2, endian: 'little'};
 				});
 
 				it('should return validBufferSeedSize2', function () {
@@ -201,7 +201,7 @@ describe('BigNumber', function () {
 			describe('when passed only a size option', function () {
 
 				before(function () {
-					validOpts = {size:1};
+					validOpts = {size: 1};
 				});
 
 				it('should return validBufferSeed', function () {
@@ -212,7 +212,7 @@ describe('BigNumber', function () {
 			describe('when passed only big endian option', function () {
 
 				before(function () {
-					validOpts = {endian:'big'};
+					validOpts = {endian: 'big'};
 				});
 
 				it('should return validBufferSeed', function () {
@@ -223,7 +223,7 @@ describe('BigNumber', function () {
 			describe('when passed only little endian option', function () {
 
 				before(function () {
-					validOpts = {endian:'little'};
+					validOpts = {endian: 'little'};
 				});
 
 				it('should return validBufferSeed', function () {
