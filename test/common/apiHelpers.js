@@ -228,8 +228,8 @@ function expectSwaggerParamError (res, param) {
 /**
  * Create a signature object for POST /api/signatures endpoint
  *
- * @param {Object} transaction
- * @param {Object} signer
+ * @param {Object} transaction - Transaction object
+ * @param {Object} signer - Signer object including public key and password
  * @return {{signature: string, transactionId: string, publicKey: string}}
  */
 function createSignatureObject (transaction, signer) {
