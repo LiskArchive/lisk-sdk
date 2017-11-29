@@ -152,7 +152,7 @@ TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, lim
  * @param {number} [limit]
  * @return {getTransactionList} Calls getTransactionList
  */
-TransactionPool.prototype.getBundledTransactionList  = function (reverse, limit) {
+__private.getBundledTransactionList  = function (reverse, limit) {
 	return __private.getTransactionList(self.bundled.transactions, reverse, limit);
 };
 
@@ -368,7 +368,7 @@ TransactionPool.prototype.countMultisignature = function () {
  */
 TransactionPool.prototype.receiveTransactions = function (transactions, broadcast, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
-		self.processUnconfirmedTransaction(transaction, broadcast, cb);
+		__private.processUnconfirmedTransaction(transaction, broadcast, cb);
 	}, function (err) {
 		return setImmediate(cb, err, transactions);
 	});
@@ -401,7 +401,7 @@ TransactionPool.prototype.reindexQueues = function () {
  * @return {setImmediateCallback} err | cb
  */
 TransactionPool.prototype.processBundled = function (cb) {
-	var bundled = self.getBundledTransactionList(true, self.bundleLimit);
+	var bundled = __private.getBundledTransactionList(true, self.bundleLimit);
 
 	async.eachSeries(bundled, function (transaction, eachSeriesCb) {
 		if (!transaction) {
@@ -444,7 +444,7 @@ TransactionPool.prototype.processBundled = function (cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback|queueTransaction} error | queueTransaction
  */
-TransactionPool.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
+__private.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
 	if (self.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already processed: ' + transaction.id);
 	} else {
