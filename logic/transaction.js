@@ -808,27 +808,38 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		cb = requester;
 	}
 
-	// Check unconfirmed sender balance
+	// Calculate amount for substraction (always positive here)
 	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
+
+	// Check unconfirmed sender balance
 	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
 
 	if (senderBalance.exceeded) {
 		return setImmediate(cb, senderBalance.error);
 	}
 
+	// Convert amount to number
+	// WARNING: Unsafe for amounts larger than Number.MAX_SAFE_INTEGER
 	amount = amount.toNumber();
 
+	// Apply balances change - credit negative amount to u_balance
 	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
 		if (err) {
+			// Apply balances failed - return error
 			return setImmediate(cb, err);
 		}
 
+		// Perform type-specific apply unconfirmed
 		__private.types[trs.type].applyUnconfirmed.call(this, trs, sender, function (err) {
 			if (err) {
+				// Type-specific apply unconfirmed failed - try to rollback apply (credit back amount to u_balance)
 				this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
+					// Return error when apply rollback or type-specific apply failed
+					// WARNING: If apply rollback failed - we have inconsistent u_balance in database
 					return setImmediate(cb, err2 || err);
 				});
 			} else {
+				// Everything is fine - apply unconfirmed completed
 				return setImmediate(cb);
 			}
 		}.bind(this));
@@ -848,20 +859,28 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
+	// Calculate balances to add (always positive here)
 	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
+	// Undo balances change - credit amount to u_balance
 	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
 		if (err) {
+			// Undo balances failed - return error
 			return setImmediate(cb, err);
 		}
 
+		// Perform type-specific undo unconfirmed
 		__private.types[trs.type].undoUnconfirmed.call(this, trs, sender, function (err) {
 			if (err) {
+				// Type-specific undo unconfirmed failed - try to rollback undo (credit back negative amount to u_balance)
 				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
+					// Return error when undo rollback or type-specific undo failed
+					// WARNING: If undo rollback failed - we have inconsistent u_balance in database
 					return setImmediate(cb, err2 || err);
 				});
 			} else {
+				// Everything is fine - undo unconfirmed completed
 				return setImmediate(cb);
 			}
 		}.bind(this));
