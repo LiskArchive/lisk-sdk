@@ -78,10 +78,9 @@ Signatures.prototype.onBind = function (scope) {
 Signatures.prototype.shared = {
 
 	/**
-	 * Post signatures for transactions
-	 *
-	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
-	 * @param {function} cb - Callback function
+	 * Post signatures for transactions.
+	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures.
+	 * @param {function} cb - Callback function.
 	 * @return {setImmediateCallback}
 	 */
 	postSignatures: function (signatures, cb) {
