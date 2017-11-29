@@ -21,7 +21,7 @@ describe('BigNumber', function () {
 			validBufferSeedSize2 = Buffer.from('mSYYt4k1R+iz53WadkM=', 'base64');
 		});
 
-		describe('when it throws', function () {
+		describe('when it throws an error', function () {
 
 			describe('when passed a buffer not divisible by the size option', function () {
 
@@ -33,7 +33,7 @@ describe('BigNumber', function () {
 					validBuf = validBufferSeed;
 				});
 
-				it('should return RangeError', function () {
+				it('should throw RangeError', function () {
 					expect(function () {
 						bignum.fromBuffer(validBuf, validOpts);
 					}).throws('Buffer length (14) must be a multiple of size (3)');
@@ -41,7 +41,7 @@ describe('BigNumber', function () {
 			});
 		});
 
-		describe('when it does not throw', function () {
+		describe('when it does not throw an error', function () {
 
 			before(function () {
 				validBuf = validBufferSeed;
@@ -52,7 +52,7 @@ describe('BigNumber', function () {
 				bignumResult = bignum.fromBuffer(validBuf, validOpts);
 			});
 
-			describe('when opts don`t have a size attribute', function () {
+			describe('when opts does not have a size attribute', function () {
 
 				it('should set opts to an empty object', function () {
 					expect(bignumResult).to.eql(new bignum(validSeed));
@@ -117,7 +117,7 @@ describe('BigNumber', function () {
 			validBufferSeedMpint = Buffer.from('AAAADiaZtxg1iehH57OadUN2', 'base64');
 		});
 
-		describe('when it throws', function () {
+		describe('when it throws an error', function () {
 
 			describe('when opts equal an unsupported string', function () {
 
@@ -129,7 +129,7 @@ describe('BigNumber', function () {
 					bignumResult = new bignum(validSeed);
 				});
 
-				it('should return RangeError', function () {
+				it('should throw RangeError', function () {
 					expect(bignumResult.toBuffer(validOpts)
 					).to.eq('Unsupported Buffer representation');
 				});
@@ -152,7 +152,7 @@ describe('BigNumber', function () {
 			});
 		});
 
-		describe('when it does not throw', function () {
+		describe('when it does not throw an error', function () {
 
 			var toBufferResult;
 
