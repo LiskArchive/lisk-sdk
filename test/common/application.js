@@ -22,7 +22,7 @@ var currentAppScope;
 function init (options, cb) {
 	options = options ? options : {};
 	options.scope = options.scope ? options.scope : {};
-	// wait for genesisBlock only if false is provided
+	// Wait for genesisBlock only if false is provided
 	options.scope.waitForGenesisBlock = options.waitForGenesisBlock !== false;
 
 	if (options.sandbox) {
