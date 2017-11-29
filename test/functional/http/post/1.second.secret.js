@@ -9,6 +9,8 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (type 1) register second secret', function () {
 
 	var transaction;
@@ -16,10 +18,10 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
-	var accountNoFunds = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
-	var accountNoSecondPassword = node.randomAccount();
+	var account = randomUtil.account();
+	var accountNoFunds = randomUtil.account();
+	var accountMinimalFunds = randomUtil.account();
+	var accountNoSecondPassword = randomUtil.account();
 
 	// Crediting accounts
 	before(function () {

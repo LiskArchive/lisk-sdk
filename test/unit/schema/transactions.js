@@ -7,6 +7,8 @@ var schema = require('../../../schema/transactions.js');
 var constants = require('../../../helpers/constants.js');
 var validator = new ZSchema();
 
+var randomUtil = require('../../common/utils/random');
+
 describe('transactions', function () {
 
 	// TODO: Add tests for other transaction schemas
@@ -31,8 +33,8 @@ describe('transactions', function () {
 		var testBody;
 
 		beforeEach(function () {
-			var account1PublicKey = node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
-			var account2PublicKey = node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+			var account1PublicKey = node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
+			var account2PublicKey = node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
 
 			testBody = {
 				blockId: '1465651642158264047',

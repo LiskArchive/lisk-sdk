@@ -8,6 +8,8 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', function () {
 
 	var transaction;
@@ -15,7 +17,7 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 	var goodTransactions = [];
 	var pendingMultisignatures = [];
 
-	var account = node.randomAccount();
+	var account = randomUtil.account();
 
 	localShared.beforeUnconfirmedPhase(account);
 

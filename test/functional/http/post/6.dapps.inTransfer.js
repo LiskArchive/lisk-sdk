@@ -10,6 +10,8 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var getAccountsPromise = require('../../../common/apiHelpers').getAccountsPromise;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
 	var transaction;
@@ -17,8 +19,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
+	var account = randomUtil.account();
+	var accountMinimalFunds = randomUtil.account();
 
 	// Crediting accounts
 	before(function () {
@@ -40,7 +42,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -48,9 +50,9 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				node.guestbookDapp.id = transaction.id;
-				transactionsToWaitFor.push(node.guestbookDapp.id);
-				transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, node.blockDataDapp);
+				randomUtil.guestbookDapp.id = transaction.id;
+				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
+				transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, randomUtil.blockDataDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -58,8 +60,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				node.blockDataDapp.id = transaction.id;
-				transactionsToWaitFor.push(node.blockDataDapp.id);
+				randomUtil.blockDataDapp.id = transaction.id;
+				transactionsToWaitFor.push(randomUtil.blockDataDapp.id);
 
 				return waitForConfirmations(transactionsToWaitFor);
 			});
@@ -72,7 +74,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		describe('dappId', function () {
 
 			it('without should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), node.gAccount.password);
 				delete transaction.asset.inTransfer.dappId;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -83,7 +85,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), node.gAccount.password);
 				transaction.asset.inTransfer.dappId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -94,7 +96,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), node.gAccount.password);
 				transaction.asset.inTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -105,7 +107,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), node.gAccount.password);
 				transaction.asset.inTransfer.dappId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -116,7 +118,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), node.gAccount.password);
 				transaction.asset.inTransfer.dappId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -151,7 +153,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		describe('amount', function () {
 
 			it('using < 0 should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, -1, node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, -1, node.gAccount.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -167,7 +169,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
 						var balance = res.body.data[0].balance;
 						var amount = new node.bignum(balance).plus('1').toNumber();
-						transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, amount, account.password);
+						transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, amount, account.password);
 
 						return sendTransactionPromise(transaction);
 					})
@@ -194,7 +196,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		});
 
 		it('using valid but inexistent transaction id as dapp id should fail', function () {
-			var inexistentId = node.randomTransaction().id;
+			var inexistentId = randomUtil.transaction().id;
 			transaction = node.lisk.transfer.createInTransfer(inexistentId, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -215,7 +217,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		});
 
 		it('with correct data should be ok', function () {
-			transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, 10 * node.normalizer, node.gAccount.password);
+			transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * node.normalizer, node.gAccount.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -227,7 +229,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		describe('from the author itself', function (){
 
 			it('with minimal funds should fail', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.blockDataDapp.id, 1, accountMinimalFunds.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.blockDataDapp.id, 1, accountMinimalFunds.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -237,7 +239,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with enough funds should be ok', function () {
-				transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, 10 * node.normalizer, account.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * node.normalizer, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

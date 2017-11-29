@@ -12,7 +12,7 @@ var waitForBlocks = node.Promise.promisify(waitFor.blocks);
 
 var http = {
 	abstractRequest: function (options, done) {
-		var request = node.api[options.verb.toLowerCase()](options.path);
+		var request = test.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
 		request.expect(function (response) {

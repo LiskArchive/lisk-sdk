@@ -7,13 +7,16 @@ var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
 
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
+var node = require('./../../node');
 var modulesLoader = require('../../common/modulesLoader');
 
-var typesRepresentatives = require('../../fixtures/typesRepresentatives.js');
+var typesRepresentatives = require('../../fixtures/typesRepresentatives');
 
-var Signature = rewire('../../../logic/signature.js');
+var Signature = rewire('../../../logic/signature');
+var constants = require('../../../helpers/constants');
+var ed = require('../../../helpers/ed');
+
+
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
@@ -151,7 +154,7 @@ describe('signature', function () {
 			});
 
 			it('should return constants.fees.secondSignature', function () {
-				expect(fee).to.equal(node.constants.fees.secondSignature);
+				expect(fee).to.equal(constants.fees.secondSignature);
 			});
 		});
 

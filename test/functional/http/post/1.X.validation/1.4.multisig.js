@@ -12,15 +12,17 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var createSignatureObject = apiHelpers.createSignatureObject;
 var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
+var randomUtil = require('../../../../common/utils/random');
+
 describe('POST /api/transactions (validate type 4 on top of type 1)', function () {
 
 	var transaction, signature;
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
-	var account2 = node.randomAccount();
-	var account3 = node.randomAccount();
+	var account = randomUtil.account();
+	var account2 = randomUtil.account();
+	var account3 = randomUtil.account();
 
 	localShared.beforeValidationPhase(account);
 

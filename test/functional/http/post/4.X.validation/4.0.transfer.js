@@ -14,6 +14,8 @@ var createSignatureObject = apiHelpers.createSignatureObject;
 
 var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
+var randomUtil = require('../../../../common/utils/random');
+
 describe('POST /api/transactions (validate type 0 on top of type 4)', function () {
 
 	var scenarios = {
@@ -46,7 +48,7 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 	describe('sending funds', function () {
 
 		it('without_signatures scenario should be ok and never confirmed', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenarios.without_signatures.account.password);
+			transaction = node.lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.without_signatures.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -56,7 +58,7 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 		});
 
 		it('minimum_not_reached scenario should be ok and never confirmed without minimum required signatures', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenarios.minimum_not_reached.account.password);
+			transaction = node.lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.minimum_not_reached.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

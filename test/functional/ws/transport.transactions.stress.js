@@ -2,11 +2,14 @@
 
 require('../functional.js');
 
+var constants = require('../../../helpers/constants');
+
 var node = require('../../node.js');
-var ws = require('../../common/ws/communication.js');
 var shared = require('../shared');
 
+var ws = require('../../common/ws/communication.js');
 var waitFor = require('../../common/utils/waitFor');
+var randomUtil = require('../../common/utils/random');
 
 function postTransactions (transactions, done) {
 	ws.call('postTransactions', {
@@ -28,8 +31,8 @@ describe('postTransactions @slow', function () {
 
 				for (var i = 0; i < node.config.broadcasts.releaseLimit; i++) {
 					var transaction = node.lisk.transaction.createTransaction(
-						node.randomAccount().address,
-						node.randomNumber(100000000, 1000000000),
+						randomUtil.account().address,
+						randomUtil.number(100000000, 1000000000),
 						node.gAccount.password
 					);
 
@@ -46,7 +49,7 @@ describe('postTransactions @slow', function () {
 				return (count >= maximum);
 			}, function (err) {
 				node.expect(err).to.be.null;
-				var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
+				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 				waitFor.blocks(blocksToWait, function (err, res) {
 					done();
 				});
@@ -65,8 +68,8 @@ describe('postTransactions @slow', function () {
 		before(function (done) {
 			node.async.doUntil(function (next) {
 				var transaction = node.lisk.transaction.createTransaction(
-					node.randomAccount().address,
-					node.randomNumber(100000000, 1000000000),
+					randomUtil.account().address,
+					randomUtil.number(100000000, 1000000000),
 					node.gAccount.password
 				);
 
@@ -81,7 +84,7 @@ describe('postTransactions @slow', function () {
 				return (count >= maximum);
 			}, function (err) {
 				node.expect(err).to.be.null;
-				var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
+				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 				waitFor.blocks(blocksToWait, function (err, res) {
 					done();
 				});

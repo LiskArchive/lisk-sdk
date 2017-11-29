@@ -138,7 +138,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			}
 		});
 
-		var req = node.supertest(node.baseUrl);
+		var req = test.supertest(test.baseUrl);
 
 		if (self.method === 'post') {
 			req = req.post(callPath);

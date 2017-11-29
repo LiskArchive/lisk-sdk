@@ -8,20 +8,22 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (unconfirmed type 0 on top of type 1)', function () {
 
 	var transaction;
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
+	var account = randomUtil.account();
 
 	localShared.beforeUnconfirmedPhase(account);
 
 	describe('sending funds', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, account.password, account.secondPassword);
+			transaction = node.lisk.transaction.createTransaction(randomUtil.account().address, 1, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -31,7 +33,7 @@ describe('POST /api/transactions (unconfirmed type 0 on top of type 1)', functio
 		});
 
 		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, account.password);
+			transaction = node.lisk.transaction.createTransaction(randomUtil.account().address, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

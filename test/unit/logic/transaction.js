@@ -7,27 +7,27 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var application = require('../../common/application.js');
-var node = require('./../../node.js');
+var node = require('../../node');
 var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum.js');
+var bignum = require('../../../helpers/bignum');
 var DBSandbox = require('../../common/dbSandbox').DBSandbox;
 var application = require('../../common/application');
 
 var transactionTypes = require('../../../helpers/transactionTypes');
 var slots = require('../../../helpers/slots');
+var constants = require('../../../helpers/constants');
 
 var modulesLoader = require('../../common/modulesLoader');
-var Transaction = require('../../../logic/transaction.js');
 
-var Vote = require('../../../logic/vote.js');
-var Transfer = require('../../../logic/transfer.js');
-var Delegate = require('../../../logic/delegate.js');
-var Signature = require('../../../logic/signature.js');
-var Multisignature = require('../../../logic/multisignature.js');
-var Dapp = require('../../../logic/dapp.js');
-var InTransfer = require('../../../logic/inTransfer.js');
-var OutTransfer = require('../../../logic/outTransfer.js');
+var Transaction = require('../../../logic/transaction');
+var Vote = require('../../../logic/vote');
+var Transfer = require('../../../logic/transfer');
+var Delegate = require('../../../logic/delegate');
+var Signature = require('../../../logic/signature');
+var Multisignature = require('../../../logic/multisignature');
+var Dapp = require('../../../logic/dapp');
+var InTransfer = require('../../../logic/inTransfer');
+var OutTransfer = require('../../../logic/outTransfer');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -668,7 +668,7 @@ describe('transaction', function () {
 
 		it('should return error when transaction amount is invalid', function (done) {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = node.constants.totalAmount + 10;
+			transactionDataClone.amount = constants.totalAmount + 10;
 
 			createAndProcess(transactionDataClone, sender, function (err, transaction) {
 				transactionLogic.verify(transaction, sender, {}, function (err) {
@@ -680,7 +680,7 @@ describe('transaction', function () {
 
 		it('should return error when account balance is less than transaction amount', function (done) {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = node.constants.totalAmount;
+			transactionDataClone.amount = constants.totalAmount;
 
 			createAndProcess(transactionDataClone, sender, function (err, transaction) {
 				transactionLogic.verify(transaction, sender, {}, function (err) {

@@ -67,9 +67,28 @@ function newRound (cb) {
 	});
 };
 
+// Returns current block height
+function getHeight (cb) {
+	var request = popsicle.get(test.baseUrl + '/api/node/status');
+
+	request.use(popsicle.plugins.parse(['json']));
+
+	request.then(function (res) {
+		if (res.status !== 200) {
+			return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
+		} else {
+			return setImmediate(cb, null, res.body.data.height);
+		}
+	});
+
+	request.catch(function (err) {
+		return setImmediate(cb, err);
+	});
+};
+
 // Waits for (n) blocks to be created
 function blocks (blocksToWait, cb) {
-	node.getHeight(function (err, height) {
+	getHeight(function (err, height) {
 		if (err) {
 			return cb(err);
 		} else {
@@ -89,9 +108,9 @@ function waitForNewBlock (height, blocksToWait, cb) {
 
 	node.async.doWhilst(
 		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
+			var request = popsicle.get(test.baseUrl + '/api/node/status');
 
-			request.use(node.popsicle.plugins.parse(['json']));
+			request.use(popsicle.plugins.parse(['json']));
 
 			request.then(function (res) {
 				if (res.status !== 200) {

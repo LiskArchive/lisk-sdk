@@ -9,6 +9,8 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (type 3) votes', function () {
 
 	var transaction;
@@ -18,10 +20,10 @@ describe('POST /api/transactions (type 3) votes', function () {
 	var badTransactionsEnforcement = [];
 	var goodTransactionsEnforcement = [];
 
-	var delegateAccount = node.randomAccount();
-	var accountNoFunds = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
-	var accountDuplicates = node.randomAccount();
+	var delegateAccount = randomUtil.account();
+	var accountNoFunds = randomUtil.account();
+	var accountMinimalFunds = randomUtil.account();
+	var accountDuplicates = randomUtil.account();
 
 	/*
 	Creating two scenarios with two isolated set of accounts
@@ -37,10 +39,10 @@ describe('POST /api/transactions (type 3) votes', function () {
 	*/
 	
 	// First Scenario
-	var accountMaxVotesPerTransaction = node.randomAccount();
+	var accountMaxVotesPerTransaction = randomUtil.account();
 	var delegatesMaxVotesPerTransaction = [];
 	// Second Scenario
-	var accountMaxVotesPerAccount = node.randomAccount();
+	var accountMaxVotesPerAccount = randomUtil.account();
 	var delegatesMaxVotesPerAccount = [];
 
 	before(function () {
@@ -72,7 +74,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				var transactionsCreditMaxVotesPerTransaction = [];
 				var promisesCreditsMaxVotesPerTransaction = [];
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
-					var tempAccount = node.randomAccount();
+					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, node.gAccount.password);
 					transactionsCreditMaxVotesPerTransaction.push(transaction);
@@ -91,7 +93,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				var transactionsCreditMaxVotesPerAccount = [];
 				var promisesCreditsMaxVotesPerAccount = [];
 				for (var i = 0; i < constants.activeDelegates; i++) {
-					var tempAccount = node.randomAccount();
+					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, node.gAccount.password);
 					transactionsCreditMaxVotesPerAccount.push(transaction);
@@ -215,7 +217,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('upvoting with no funds should fail', function () {
-			accountNoFunds = node.randomAccount();
+			accountNoFunds = randomUtil.account();
 			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + node.eAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {

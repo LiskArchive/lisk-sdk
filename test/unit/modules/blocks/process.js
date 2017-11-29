@@ -11,6 +11,8 @@ var loadTables = require('./processTablesData.json');
 var modulesLoader = require('../../../common/modulesLoader');
 var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 
+var constants = require('../../../../helpers/constants');
+
 describe('blocks/process', function () {
 
 	var blocksProcess;

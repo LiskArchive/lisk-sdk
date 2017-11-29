@@ -22,6 +22,8 @@ var waitForConfirmations = apiHelpers.waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('GET /delegates', function () {
 	var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
 	var validDelegate = genesisDelegates.delegates[0];
@@ -160,7 +162,7 @@ describe('GET /delegates', function () {
 
 		describe('secondPublicKey', function () {
 
-			var secondSecretAccount = node.randomAccount();
+			var secondSecretAccount = randomUtil.account();
 
 			var creditTransaction = node.lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, node.gAccount.password);
 			var signatureTransaction = node.lisk.signature.createSignature(secondSecretAccount.password, secondSecretAccount.secondPassword);

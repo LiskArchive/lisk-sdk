@@ -7,16 +7,18 @@ var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
 
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var slots = require('../../../helpers/slots.js');
+var node = require('./../../node');
+
 var modulesLoader = require('../../common/modulesLoader');
 var typesRepresentatives = require('../../fixtures/typesRepresentatives');
 
-var OutTransfer = rewire('../../../logic/outTransfer.js');
-var sql = require('../../../sql/dapps.js');
+var OutTransfer = rewire('../../../logic/outTransfer');
+var sql = require('../../../sql/dapps');
+var ed = require('../../../helpers/ed');
+var constants = require('../../../helpers/constants');
+var slots = require('../../../helpers/slots');
 
-var testData = require('./testData/outTransfer.js');
+var testData = require('./testData/outTransfer');
 
 var validPassword = testData.validPassword;
 var validKeypair = testData.validKeypair;
@@ -111,7 +113,7 @@ describe('outTransfer', function () {
 	describe('calculateFee', function () {
 
 		it('should return constants.fees.send', function () {
-			expect(outTransfer.calculateFee(transaction)).to.equal(node.constants.fees.send);
+			expect(outTransfer.calculateFee(transaction)).to.equal(constants.fees.send);
 		});
 	});
 

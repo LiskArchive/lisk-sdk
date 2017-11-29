@@ -10,6 +10,8 @@ var jobsQueue = require('../../../helpers/jobsQueue');
 var TransactionPool = require('../../../logic/transactionPool');
 var modulesLoader = require('../../common/modulesLoader');
 
+var randomUtil = require('../../common/utils/random');
+
 describe('txPool', function () {
 
 	var txPool;
@@ -60,7 +62,7 @@ describe('txPool', function () {
 		});
 
 		it('should process transaction if valid and insert transaction into queue', function (done) {
-			var account = node.randomAccount();
+			var account = randomUtil.account();
 			var transaction = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
 
 			txPool.receiveTransactions([transaction], false, function (err) {

@@ -1,5 +1,7 @@
 'use strict';/*eslint*/
 
+var node = require('../../node.js');
+
 var crypto = require('crypto');
 var _  = require('lodash');
 
@@ -7,9 +9,12 @@ var rewire = require('rewire');
 var sinon   = require('sinon');
 
 var ed = require('../../../helpers/ed');
+var constants = require('../../../helpers/constants');
 var modulesLoader = require('../../common/modulesLoader');
 var SchemaDynamicTest = require('../common/schemaDynamicTest.js');
-var node = require('../../node.js');
+
+var randomUtil = require('../../common/utils/random');
+
 var expect = node.expect;
 
 var Delegate = rewire('../../../logic/delegate.js');
@@ -133,7 +138,7 @@ describe('delegate', function () {
 	describe('calculateFee', function () {
 
 		it('should return the correct fee for delegate transaction', function () {
-			expect(delegate.calculateFee(transaction)).to.equal(node.constants.fees.delegate);
+			expect(delegate.calculateFee(transaction)).to.equal(constants.fees.delegate);
 		});
 	});
 
@@ -278,7 +283,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error = null and valid transaction when username contains symbols which are valid', function (done) {
-				transaction.asset.delegate.username = node.randomUsername() + '!@.';
+				transaction.asset.delegate.username = randomUtil.username() + '!@.';
 				accountsMock.getAccount.withArgs({username: transaction.asset.delegate.username}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err, returnedTransaction) {

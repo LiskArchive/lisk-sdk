@@ -6,6 +6,8 @@ var node = require('../../node');
 var shared = require('../shared');
 var ws = require('../../common/ws/communication');
 
+var randomUtil = require('../../common/utils/random');
+
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', {
 		transactions: [transaction]
@@ -17,10 +19,10 @@ describe('Posting transaction (type 0)', function () {
 	var transaction;
 	var goodTransactions = [];
 	var badTransactions = [];
-	var account = node.randomAccount();
+	var account = randomUtil.account();
 
 	beforeEach(function () {
-		transaction = node.randomTransaction();
+		transaction = randomUtil.transaction();
 	});
 
 	describe('transaction processing', function () {

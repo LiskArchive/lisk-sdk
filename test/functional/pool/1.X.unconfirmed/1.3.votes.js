@@ -8,13 +8,15 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (unconfirmed type 3 on top of type 1)', function () {
 
 	var transaction;
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
+	var account = randomUtil.account();
 
 	localShared.beforeUnconfirmedPhase(account);
 

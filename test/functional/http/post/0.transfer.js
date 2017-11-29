@@ -9,17 +9,19 @@ var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (type 0) transfer funds', function () {
 	
 	var transaction;
-	var goodTransaction = node.randomTransaction();
+	var goodTransaction = randomUtil.transaction();
 	var badTransactions = [];
 	var goodTransactions = [];
 	// Low-frills deep copy
 	var cloneGoodTransaction = JSON.parse(JSON.stringify(goodTransaction));
 	
-	var account = node.randomAccount();
-	var accountOffset = node.randomAccount();
+	var account = randomUtil.account();
+	var accountOffset = randomUtil.account();
 
 	describe('schema validations', function () {
 		
@@ -36,7 +38,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 	describe('transaction processing', function () {
 
 		it('mutating data used to build the transaction id should fail', function () {
-			transaction = node.randomTransaction();
+			transaction = randomUtil.transaction();
 			transaction.timestamp += 1;
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -164,7 +166,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 				invalidCases.forEach(function (test) {
 					it('using ' + test.description + ' should fail', function () {
-						var accountAdditionalData = node.randomAccount();
+						var accountAdditionalData = randomUtil.account();
 						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password);
 						transaction.asset.data = test.input;
 
@@ -184,7 +186,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					
 				validCases.forEach(function (test) {
 					it('using ' + test.description + ' should be ok', function () {
-						var accountAdditionalData = node.randomAccount();
+						var accountAdditionalData = randomUtil.account();
 						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, node.gAccount.password, null, test.input);
 						
 						return sendTransactionPromise(transaction).then(function (res) {

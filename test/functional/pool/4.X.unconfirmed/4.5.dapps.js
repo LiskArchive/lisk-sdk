@@ -8,6 +8,8 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (unconfirmed type 5 on top of type 4)', function () {
 
 	var scenarios = {
@@ -23,7 +25,7 @@ describe('POST /api/transactions (unconfirmed type 5 on top of type 4)', functio
 	describe('registering dapp', function () {
 
 		it('regular scenario should be ok', function () {
-			transaction = node.lisk.dapp.createDapp(scenarios.regular.account.password, null, node.guestbookDapp);
+			transaction = node.lisk.dapp.createDapp(scenarios.regular.account.password, null, randomUtil.guestbookDapp);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

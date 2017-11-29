@@ -13,9 +13,11 @@ var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirma
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('GET /accounts', function () {
 
-	var account = node.randomAccount();
+	var account = randomUtil.account();
 	var accountsEndpoint = new swaggerEndpoint('GET /accounts');
 
 	describe('?', function () {
@@ -114,7 +116,7 @@ describe('GET /accounts', function () {
 
 		describe.only('secondPublicKey', function () {
 
-			var secondPublicKeyAccount = node.randomAccount();
+			var secondPublicKeyAccount = randomUtil.account();
 			var creditTransaction = node.lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, node.gAccount.password);
 			var signatureTransaction = node.lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
 

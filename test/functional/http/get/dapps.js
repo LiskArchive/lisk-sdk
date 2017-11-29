@@ -8,16 +8,18 @@ var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirma
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('GET /dapps', function () {
 
 	var dappsEndpoint = new swaggerEndpoint('GET /dapps');
 
 	var transactionsToWaitFor = [];
 
-	var account = node.randomAccount();
-	var dapp1 = node.randomApplication();
+	var account = randomUtil.account();
+	var dapp1 = randomUtil.application();
 	dapp1.category = 1;
-	var dapp2 = node.randomApplication();
+	var dapp2 = randomUtil.application();
 	dapp2.category = 2;
 	var registeredDappsAmount = 2;
 
@@ -206,7 +208,7 @@ describe('GET /dapps', function () {
 
 				var sum = 0;
 				for (var i = 1; i <= 20; i++) {
-					transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+					transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 					transactionsToWaitFor.push(transaction.id);
 					promises.push(sendTransactionPromise(transaction));
 					sum = sum + i;

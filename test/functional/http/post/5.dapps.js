@@ -9,6 +9,8 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (type 5) register dapp', function () {
 
 	var transaction;
@@ -16,17 +18,17 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
-	var accountNoFunds = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
+	var account = randomUtil.account();
+	var accountNoFunds = randomUtil.account();
+	var accountMinimalFunds = randomUtil.account();
 
 	// Variables to check unconfirmed states
-	var dappDuplicate = node.randomApplication();
-	var dappDuplicateNameSuccess = node.randomApplication();
-	var dappDuplicateNameFail = node.randomApplication();
+	var dappDuplicate = randomUtil.application();
+	var dappDuplicateNameSuccess = randomUtil.application();
+	var dappDuplicateNameFail = randomUtil.application();
 	dappDuplicateNameSuccess.name = dappDuplicateNameFail.name;
-	var dappDuplicateLinkSuccess = node.randomApplication();
-	var dappDuplicateLinkFail = node.randomApplication();
+	var dappDuplicateLinkSuccess = randomUtil.application();
+	var dappDuplicateLinkFail = randomUtil.application();
 	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
 
 	// Crediting accounts
@@ -48,7 +50,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -56,8 +58,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				node.guestbookDapp.id = transaction.id;
-				transactionsToWaitFor.push(node.guestbookDapp.id);
+				randomUtil.guestbookDapp.id = transaction.id;
+				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
 				return waitForConfirmations(transactionsToWaitFor);
 			});
 	});
@@ -69,7 +71,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		describe('category', function () {
 			
 			it('without should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				delete transaction.asset.dapp.category;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -80,7 +82,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with string should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.category = '0';
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -91,7 +93,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer less than minimum should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.category = -1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -102,7 +104,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer greater than maximum should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.category = 9;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -113,7 +115,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with correct integer should be ok', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
@@ -126,7 +128,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		describe('description', function () {
 
 			it('without should be ok', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				delete application.description;
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -139,7 +141,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.description = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -150,7 +152,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with empty string should be ok', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.description = '';
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -163,7 +165,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with string longer than maximum(160) should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.description = node.randomString.generate({
 					length: 161
 				});
@@ -180,7 +182,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		describe('icon', function () {
 
 			it('without should be ok', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				delete application.icon;
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -193,7 +195,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.icon = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -204,7 +206,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with invalid url should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.icon = 'invalidUrl';
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -217,7 +219,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with invalid file type should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.icon += '.invalid';
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -233,7 +235,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		describe('link', function () {
 
 			it('with empty string should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.link = '';
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -246,7 +248,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.link = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -258,7 +260,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 
 			it('with invalid extension type should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.link += '.invalid';
 				
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -274,7 +276,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		describe('name', function () {
 			
 			it('without should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				delete transaction.asset.dapp.name;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -285,7 +287,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.name = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -296,7 +298,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with empty string should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.name = '';
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -307,7 +309,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with string longer than maximum(32) should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.name = node.randomString.generate({
 					length: 33
 				});
@@ -324,7 +326,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		describe('tags', function () {
 
 			it('without should be ok', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				delete application.tags;
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -337,7 +339,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.tags = 0;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -348,7 +350,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with empty string should be ok', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.tags = '';
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -361,7 +363,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with string longer than maximum(160) should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.tags = node.randomString.generate({
 					length: 161
 				});
@@ -375,8 +377,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with several should be ok', function () {
-				var application = node.randomApplication();
-				application.tags += ',' + node.randomApplicationName();
+				var application = randomUtil.application();
+				application.tags += ',' + randomUtil.applicationName();
 
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
@@ -388,7 +390,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with duplicate tag should be ok', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				var tag = application.tags;
 				application.tags += ',' + tag;
 
@@ -405,7 +407,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		describe('type', function () {
 			
 			it('without should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				delete transaction.asset.dapp.type;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -416,7 +418,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with negative integer should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.type = -1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -427,7 +429,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer smaller than minimum should fail', function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				transaction.asset.dapp.type = -1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -438,7 +440,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 
 			it('with integer greater than maximum should fail', function () {
-				var application = node.randomApplication();
+				var application = randomUtil.application();
 				application.type = 2;
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
 
@@ -454,8 +456,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 	describe('transactions processing', function () {
 
 		it('using registered name should fail', function () {
-			var dapp = node.randomApplication();
-			dapp.name = node.guestbookDapp.name;
+			var dapp = randomUtil.application();
+			dapp.name = randomUtil.guestbookDapp.name;
 			transaction = node.lisk.dapp.createDapp(account.password, null, dapp);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -466,8 +468,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		});
 
 		it('using registered link should fail', function () {
-			var dapp = node.randomApplication();
-			dapp.link = node.guestbookDapp.link;
+			var dapp = randomUtil.application();
+			dapp.link = randomUtil.guestbookDapp.link;
 			transaction = node.lisk.dapp.createDapp(account.password, null, dapp);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -478,7 +480,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		});
 
 		it('with no funds should fail', function () {
-			transaction = node.lisk.dapp.createDapp(accountNoFunds.password, null, node.randomApplication());
+			transaction = node.lisk.dapp.createDapp(accountNoFunds.password, null, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -488,7 +490,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		});
 
 		it('with minimal funds should be ok', function () {
-			transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, node.randomApplication());
+			transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -498,7 +500,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		});
 
 		it('with valid params should be ok', function () {
-			transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+			transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

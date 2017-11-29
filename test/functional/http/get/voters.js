@@ -11,6 +11,8 @@ var constants = require('../../../../helpers/constants.js');
 var waitFor = require('../../../common/utils/waitFor');
 var waitForBlocksPromise = node.Promise.promisify(waitFor.blocks);
 
+var randomUtil = require('../../../common/utils/random');
+
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
@@ -201,8 +203,8 @@ describe('GET /api/voters', function () {
 
 		describe('sort', function () {
 
-			var validExtraDelegateVoter = node.randomAccount();
-			var validExtraVoter = node.randomAccount();
+			var validExtraDelegateVoter = randomUtil.account();
+			var validExtraVoter = randomUtil.account();
 
 			before(function () {
 				var enrichExtraDelegateVoterTransaction = node.lisk.transaction.createTransaction(

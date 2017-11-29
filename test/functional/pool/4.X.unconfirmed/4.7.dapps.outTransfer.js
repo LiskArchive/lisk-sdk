@@ -8,6 +8,8 @@ var localShared = require('./shared');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (unconfirmed type 7 on top of type 4)', function () {
 
 	var scenarios = {
@@ -23,7 +25,7 @@ describe('POST /api/transactions (unconfirmed type 7 on top of type 4)', functio
 	describe('sending outTransfer', function () {
 
 		it('regular scenario should be ok', function () {
-			transaction = node.lisk.transfer.createOutTransfer(scenarios.regular.dapp.id, node.randomTransaction().id, node.randomAccount().address, 1, scenarios.regular.account.password);
+			transaction = node.lisk.transfer.createOutTransfer(scenarios.regular.dapp.id, randomUtil.transaction().id, randomUtil.account().address, 1, scenarios.regular.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

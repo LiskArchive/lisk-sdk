@@ -10,6 +10,8 @@ var _  = require('lodash');
 var node = require('./../../node.js');
 var application = require('../../common/application');
 
+var randomUtil = require('../../common/utils/random');
+
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff.js');
 var transactionTypes = require('../../../helpers/transactionTypes');
@@ -204,7 +206,7 @@ describe('vote', function () {
 
 	describe('calculateFee', function () {
 		it('should return the correct fee', function () {
-			expect(vote.calculateFee()).to.equal(node.constants.fees.vote);
+			expect(vote.calculateFee()).to.equal(constants.fees.vote);
 		});
 	});
 
@@ -555,7 +557,7 @@ describe('vote', function () {
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
-				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+				return '+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
 			});
 			expect(function () {
 				vote.objectNormalize.call(transactionLogic, transaction);

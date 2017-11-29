@@ -6,6 +6,8 @@ var shared = require('../../shared');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var randomUtil = require('../../../common/utils/random');
+
 function beforeUnconfirmedPhase (account) {
 	before(function () {
 		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
@@ -41,7 +43,7 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return waitForConfirmations([transaction.id]);
 			})
 			.then(function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, node.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -49,7 +51,7 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-				node.guestbookDapp.transactionId = transaction.id;
+				randomUtil.guestbookDapp.transactionId = transaction.id;
 
 				return waitForConfirmations([transaction.id]);
 			})

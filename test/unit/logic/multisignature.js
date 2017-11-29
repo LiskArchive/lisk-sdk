@@ -15,15 +15,19 @@ var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants');
 var DBSandbox = require('../../common/dbSandbox').DBSandbox;
 
-var modulesLoader = require('../../common/modulesLoader');
-var Transaction = require('../../../logic/transaction.js');
-var AccountLogic = require('../../../logic/account.js');
-var AccountModule = require('../../../modules/accounts.js');
+var randomUtil = require('../../common/utils/random');
 
-var Multisignature = rewire('../../../logic/multisignature.js');
-var slots = require('../../../helpers/slots.js');
-var Diff = require('../../../helpers/diff.js');
-var testData = require('./testData/multisignature.js');
+var modulesLoader = require('../../common/modulesLoader');
+var Transaction = require('../../../logic/transaction');
+var AccountLogic = require('../../../logic/account');
+var AccountModule = require('../../../modules/accounts');
+
+var Multisignature = rewire('../../../logic/multisignature');
+var slots = require('../../../helpers/slots');
+var Diff = require('../../../helpers/diff');
+var constants = require('../../../helpers/constants');
+
+var testData = require('./testData/multisignature');
 
 var validPassword = testData.validPassword;
 var validKeypair = testData.validKeypair;
@@ -56,7 +60,7 @@ describe('multisignature', function () {
 			merge: sinon.mock().callsArg(2)
 		};
 		accountsMock = {
-			generateAddressByPublicKey: sinon.stub().returns(node.lisk.crypto.getKeys(node.randomPassword()).publicKey),
+			generateAddressByPublicKey: sinon.stub().returns(node.lisk.crypto.getKeys(randomUtil.password()).publicKey),
 			setAccountAndGet: sinon.stub().callsArg(1)
 		};
 		transaction = _.cloneDeep(validTransaction);
@@ -125,26 +129,26 @@ describe('multisignature', function () {
 
 		it('should return correct fee based on formula for 1 keysgroup', function () {
 			transaction.asset.multisignature.keysgroup = [
-				'+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey
+				'+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey
 			];
 			expect(multisignature.calculateFee(transaction).toString()).to.equal('1000000000');
 		});
 
 
 		it('should return correct fee based on formula for 4 keysgroup', function () {
-			transaction.asset.multisignature.keysgroup = new Array(4).fill('+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
+			transaction.asset.multisignature.keysgroup = new Array(4).fill('+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey);
 
 			expect(multisignature.calculateFee(transaction).toString()).to.equal('2500000000');
 		});
 
 		it('should return correct fee based on formula for 8 keysgroup', function () {
-			transaction.asset.multisignature.keysgroup = new Array(8).fill('+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
+			transaction.asset.multisignature.keysgroup = new Array(8).fill('+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey);
 
 			expect(multisignature.calculateFee(transaction).toString()).to.equal('4500000000');
 		});
 
 		it('should return correct fee based on formula for 16 keysgroup', function () {
-			transaction.asset.multisignature.keysgroup = new Array(16).fill('+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
+			transaction.asset.multisignature.keysgroup = new Array(16).fill('+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey);
 
 			expect(multisignature.calculateFee(transaction).toString()).to.equal('8500000000');
 		});
@@ -253,7 +257,7 @@ describe('multisignature', function () {
 			before(function () {
 				transaction.asset.multisignature.min = 15;
 				transaction.asset.keysgroup = _.map(new Array(16), function () {
-					return '+' + node.randomAccount().publicKey;
+					return '+' + randomUtil.account().publicKey;
 				});
 			});
 
@@ -292,7 +296,7 @@ describe('multisignature', function () {
 		describe('when sender has multisignature enbled', function () {
 
 			it('should call callback with error = "Account already has multisignatures enabled"', function (done) {
-				sender.multisignatures = [node.lisk.crypto.getKeys(node.randomPassword()).publicKey];
+				sender.multisignatures = [node.lisk.crypto.getKeys(randomUtil.password()).publicKey];
 
 				multisignature.verify(transaction, sender, function (err) {
 					expect(err).to.equal('Account already has multisignatures enabled');
@@ -317,7 +321,7 @@ describe('multisignature', function () {
 		describe('when keysgroup has an entry which does not start with + character', function () {
 
 			it('should call callback with error = "Invalid math operator in multisignature keysgroup"', function (done) {
-				transaction.asset.multisignature.keysgroup.push('-' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey);
+				transaction.asset.multisignature.keysgroup.push('-' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey);
 
 				multisignature.verify(transaction, node.gAccount, function (err) {
 					expect(err).to.equal('Invalid math operator in multisignature keysgroup');
@@ -837,7 +841,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', function () {
-				var lifetime = node.constants.multisigConstraints.lifetime.minimum - 1;
+				var lifetime = constants.multisigConstraints.lifetime.minimum - 1;
 				var transaction	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], lifetime, 2);
 
 				expect(function () {
@@ -846,7 +850,7 @@ describe('multisignature', function () {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', function () {
-				var lifetime = node.constants.multisigConstraints.lifetime.maximum + 1;
+				var lifetime = constants.multisigConstraints.lifetime.maximum + 1;
 				var transaction	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], lifetime, 2);
 
 				expect(function () {
@@ -887,7 +891,7 @@ describe('multisignature', function () {
 
 			it('should return error when array length is greater than maximum acceptable value', function () {
 				var keysgroup = Array.apply(null, Array(constants.multisigConstraints.keysgroup.maxItems + 1)).map(function () {
-					return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+					return '+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
 				});
 				var transaction	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, keysgroup, 1, 2);
 
@@ -899,7 +903,7 @@ describe('multisignature', function () {
 
 		it('should return transaction when asset is valid', function () {
 			var transaction	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, Array.apply(null, Array(10)).map(function () {
-				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+				return '+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
 			}), 1, 2);
 
 			expect(multisignature.objectNormalize(transaction)).to.eql(transaction);

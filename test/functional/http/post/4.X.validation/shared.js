@@ -10,6 +10,8 @@ var createSignatureObject = require('../../../../common/apiHelpers').createSigna
 
 var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
+var randomUtil = require('../../../../common/utils/random');
+
 function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
 
@@ -64,7 +66,7 @@ function sendAndSignMultisigTransaction (type, scenario) {
 
 	switch (type) {
 		case 'transfer':
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenario.account.password);
+			transaction = node.lisk.transaction.createTransaction(randomUtil.account().address, 1, scenario.account.password);
 			break;
 		case 'signature':
 			transaction = node.lisk.signature.createSignature(scenario.account.password, scenario.account.secondPassword);
@@ -76,14 +78,14 @@ function sendAndSignMultisigTransaction (type, scenario) {
 			transaction = node.lisk.vote.createVote(scenario.account.password, ['+' + node.eAccount.publicKey]);
 			break;
 		case 'dapp':
-			transaction = node.lisk.dapp.createDapp(scenario.account.password, null, node.guestbookDapp);
-			node.guestbookDapp.id = transaction.id;
+			transaction = node.lisk.dapp.createDapp(scenario.account.password, null, randomUtil.guestbookDapp);
+			randomUtil.guestbookDapp.id = transaction.id;
 			break;
 		case 'inTransfer':
-			transaction = node.lisk.transfer.createInTransfer(node.guestbookDapp.id, 1, scenario.account.password);
+			transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, scenario.account.password);
 			break;
 		case 'outTransfer':
-			transaction = node.lisk.transfer.createOutTransfer(node.guestbookDapp.id, node.randomTransaction().id, node.randomAccount().address, 1, scenario.account.password);
+			transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, randomUtil.account().address, 1, scenario.account.password);
 			break;
 	};
 

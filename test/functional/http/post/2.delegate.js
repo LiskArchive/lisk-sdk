@@ -9,6 +9,8 @@ var constants = require('../../../../helpers/constants');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('POST /api/transactions (type 2) register delegate', function () {
 
 	var transaction;
@@ -18,11 +20,11 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	var badTransactionsEnforcement = [];
 	var goodTransactionsEnforcement = [];
 
-	var account = node.randomAccount();
-	var accountNoFunds = node.randomAccount();
-	var accountMinimalFunds = node.randomAccount();
-	var accountUpperCase = node.randomAccount();
-	var accountFormerDelegate = node.randomAccount();
+	var account = randomUtil.account();
+	var accountNoFunds = randomUtil.account();
+	var accountMinimalFunds = randomUtil.account();
+	var accountUpperCase = randomUtil.account();
+	var accountFormerDelegate = randomUtil.account();
 
 	// Crediting accounts
 	before(function () {

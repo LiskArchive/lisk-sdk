@@ -24,12 +24,14 @@ var getMultisignaturesTransactionsPromise = require('../../../common/apiHelpers'
 var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var randomUtil = require('../../../common/utils/random');
+
 describe('GET /api/transactions', function () {
 
 	var transactionList = [];
 
-	var account = node.randomAccount();
-	var account2 = node.randomAccount();
+	var account = randomUtil.account();
+	var account2 = randomUtil.account();
 	var minAmount = 20 * node.normalizer; // 20 LSK
 	var maxAmount = 100 * node.normalizer; // 100 LSK
 
@@ -782,7 +784,7 @@ describe('GET /api/transactions', function () {
 
 		it('using valid transaction with data field should be ok', function () {
 			var amountToSend = 123456789;
-			var expectedFee = node.expectedFeeForTransactionWithData(amountToSend);
+			var expectedFee = randomUtil.expectedFeeForTransactionWithData(amountToSend);
 			var data = 'extra information';
 			var transaction = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
