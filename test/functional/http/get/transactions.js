@@ -1,5 +1,7 @@
 'use strict';
 
+require('../../functional.js');
+
 var _ = require('lodash');
 var node = require('../../../node');
 var lisk = node.lisk;

@@ -1,9 +1,11 @@
 'use strict';
 
+require('../../functional.js');
+
+var node = require('../../../node');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var node = require('../../../node');
 var genesisDelegates = require('../../../data/genesisDelegates.json');
 
 describe('PUT /node/status/forging', function () {

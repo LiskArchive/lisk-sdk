@@ -1,5 +1,7 @@
 'use strict';
 
+require('../functional.js');
+
 var _ = require('lodash');
 var expect = require('chai').expect;
 var sinon = require('sinon');

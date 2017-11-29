@@ -1,5 +1,7 @@
 'use strict';
 
+require('../functional.js');
+
 var _ = require('lodash');
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');

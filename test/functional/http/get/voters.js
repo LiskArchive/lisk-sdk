@@ -1,5 +1,7 @@
 'use strict';
 
+require('../../functional.js');
+
 var randomstring = require('randomstring');
 var node = require('../../../node.js');
 var _ = node._;

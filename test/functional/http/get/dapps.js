@@ -1,5 +1,7 @@
 'use strict';
 
+require('../../functional.js');
+
 var node = require('../../../node.js');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;

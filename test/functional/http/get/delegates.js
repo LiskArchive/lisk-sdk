@@ -1,5 +1,7 @@
 'use strict';
 
+require('../../functional.js');
+
 var node = require('../../../node.js');
 var _ = node._;
 var modulesLoader = require('../../../common/modulesLoader');

@@ -1,5 +1,7 @@
 'use strict';
 
+require('../../functional.js');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
