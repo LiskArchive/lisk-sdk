@@ -1,5 +1,5 @@
 'use strict';
 
 before(function (done) {
-	require('../common/utils/wait').untilBlockchainReady(done);
+	require('../common/utils/waitFor').blockchainReady(done);
 });

@@ -2,6 +2,8 @@
 
 require('../functional.js');
 
+var test = require('../../test');
+
 var node = require('../../node.js');
 var ws = require('../../common/ws/communication');
 
@@ -35,7 +37,7 @@ describe('WS transport blocks', function () {
 
 		it('using valid headers should be ok', function (done) {
 			ws.call('blocks', null, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(res).to.have.property('blocks').that.is.an('array');
 				res.blocks.forEach(function (block) {
 					node.expect(block).to.have.property('b_id').that.is.a('string');
@@ -90,7 +92,7 @@ describe('WS transport blocks', function () {
 
 		it('using no params should fail', function (done) {
 			ws.call('blocksCommon', function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(res).to.be.undefined;
 				node.expect(err).to.equal('Missing required property: ids: #/');
 				done();
@@ -99,7 +101,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids == "";"";"" should fail', function (done) {
 			ws.call('blocksCommon', {ids: '"";"";""'}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(err).to.equal('Invalid block id sequence');
 				done();
 			});
@@ -107,7 +109,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids == \'\',\'\',\'\' should fail', function (done) {
 			ws.call('blocksCommon',  {ids: '\'\',\'\',\'\''}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				node.expect(err).to.equal('Invalid block id sequence');
 				done();
@@ -116,7 +118,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids == "","","" should fail', function (done) {
 			ws.call('blocksCommon', {ids: '"","",""'}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(err).to.equal('Invalid block id sequence');
 				done();
 			});
@@ -124,7 +126,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids == one,two,three should fail', function (done) {
 			ws.call('blocksCommon', {ids: 'one,two,three'}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(err).to.equal('Invalid block id sequence');
 				done();
 			});
@@ -132,7 +134,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids == "1","2","3" should be ok and return null common block', function (done) {
 			ws.call('blocksCommon', {ids: '"1","2","3"'}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				node.expect(res).to.have.property('common').to.be.null;
 				done();
@@ -141,7 +143,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids == \'1\',\'2\',\'3\' should be ok and return null common block', function (done) {
 			ws.call('blocksCommon', {ids: '\'1\',\'2\',\'3\''}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				node.expect(res).to.have.property('common').to.be.null;
 				done();
@@ -150,7 +152,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids == 1,2,3 should be ok and return null common block', function (done) {
 			ws.call('blocksCommon', {ids: '1,2,3'}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				node.expect(res).to.have.property('common').to.be.null;
 				done();
@@ -159,7 +161,7 @@ describe('WS transport blocks', function () {
 
 		it('using ids which include genesisblock.id should be ok', function (done) {
 			ws.call('blocksCommon', {ids: [genesisblock.id.toString(),'2','3'].join(',')}, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				node.expect(res).to.have.property('common').to.be.an('object');
 				node.expect(res.common).to.have.property('height').that.is.a('number');
@@ -175,7 +177,7 @@ describe('WS transport blocks', function () {
 
 		it('using no block should fail', function (done) {
 			ws.call('postBlock', function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(err).to.contain('Failed to validate block schema');
 				done();
 			});
@@ -187,7 +189,7 @@ describe('WS transport blocks', function () {
 			genesisblock = verify.prototype.deleteBlockProperties(genesisblock);
 
 			ws.call('postBlock', { block: bson.serialize(genesisblock) }, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(err).to.contain('Failed to validate block schema');
 				genesisblock.blockSignature = blockSignature;
 				done();
@@ -201,7 +203,7 @@ describe('WS transport blocks', function () {
 				}
 			});
 			ws.call('postBlock', { block: bson.serialize(testBlock) }, function (err, res) {
-				node.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
+				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				node.expect(res).to.have.property('blockId').to.equal('2807833455815592401');
 				done();
 			});

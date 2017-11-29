@@ -6,6 +6,8 @@ var node = require('../../node.js');
 var ws = require('../../common/ws/communication.js');
 var shared = require('../shared');
 
+var waitFor = require('../../common/utils/waitFor');
+
 function postTransactions (transactions, done) {
 	ws.call('postTransactions', {
 		transactions: transactions
@@ -45,7 +47,7 @@ describe('postTransactions @slow', function () {
 			}, function (err) {
 				node.expect(err).to.be.null;
 				var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
-				node.waitForBlocks(blocksToWait, function (err, res) {
+				waitFor.blocks(blocksToWait, function (err, res) {
 					done();
 				});
 			});
@@ -80,7 +82,7 @@ describe('postTransactions @slow', function () {
 			}, function (err) {
 				node.expect(err).to.be.null;
 				var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock);
-				node.waitForBlocks(blocksToWait, function (err, res) {
+				waitFor.blocks(blocksToWait, function (err, res) {
 					done();
 				});
 			});

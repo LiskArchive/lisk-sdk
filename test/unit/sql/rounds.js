@@ -1,5 +1,9 @@
 'use strict';
 
+
+var test = require('../../test');
+var node = require('../../node.js');
+
 // Utils
 var _       = require('lodash');
 var async   = require('async');
@@ -14,6 +18,7 @@ var config = require('../../data/config.json');
 
 var bignum    = require('../../../helpers/bignum.js');
 var constants = require('../../../helpers/constants');
+
 var slots     = require('../../../helpers/slots.js');
 
 var application = require('../../common/application');
@@ -114,7 +119,7 @@ describe('Rounds-related SQL triggers', function () {
 		var feesPerDelegate = new bignum(feesTotal.toPrecision(15)).dividedBy(slots.delegates).floor();
 		var feesRemaining   = new bignum(feesTotal.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates));
 
-		node.debug('	Total fees: ' + feesTotal.toString() + ' Fees per delegates: ' + feesPerDelegate.toString() + ' Remaining fees: ' + feesRemaining + 'Total rewards: ' + rewardsTotal);
+		test.debug('	Total fees: ' + feesTotal.toString() + ' Fees per delegates: ' + feesPerDelegate.toString() + ' Remaining fees: ' + feesRemaining + 'Total rewards: ' + rewardsTotal);
 		
 		_.each(blocks, function (block, index) {
 			var pk = block.generatorPublicKey.toString('hex');
@@ -400,7 +405,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		function addTransaction (transaction, cb) {
-			node.debug('	Add transaction ID: ' + transaction.id);
+			test.debug('	Add transaction ID: ' + transaction.id);
 			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 			// See: modules.transport.__private.receiveTransaction
 			transaction = library.logic.transaction.objectNormalize(transaction);
@@ -435,11 +440,11 @@ describe('Rounds-related SQL triggers', function () {
 					var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 					var delegate = getNextForger();
 					var keypair = keypairs[delegate];
-					node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+					test.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 					library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 						if (err) { return seriesCb(err); }
 						last_block = library.modules.blocks.lastBlock.get();
-						node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+						test.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 						return seriesCb(err);
 					});
 				}
@@ -615,7 +620,7 @@ describe('Rounds-related SQL triggers', function () {
 					);
 					transactions.push(transaction);
 				}
-				node.debug('	Processing block ' + blocks_processed + ' of ' + blocks_cnt + ' with ' + transactions.length + ' transactions');
+				test.debug('	Processing block ' + blocks_processed + ' of ' + blocks_cnt + ' with ' + transactions.length + ' transactions');
 
 				tickAndValidate(transactions).then(untilCb).catch(untilCb);
 			}, function (err) {
@@ -907,7 +912,7 @@ describe('Rounds-related SQL triggers', function () {
 
 				async.doUntil(function (untilCb) {
 					++blocks_processed;
-					node.debug('	Processing block ' + blocks_processed + ' of ' + blocks_to_forge);
+					test.debug('	Processing block ' + blocks_processed + ' of ' + blocks_to_forge);
 
 					tickAndValidate([]).then(untilCb).catch(untilCb);
 				}, function (err) {
@@ -927,7 +932,7 @@ describe('Rounds-related SQL triggers', function () {
 				// Forge blocks until end of a round
 				async.doUntil(function (untilCb) {
 					++blocks_processed;
-					node.debug('	Processing block ' + blocks_processed);
+					test.debug('	Processing block ' + blocks_processed);
 
 					tickAndValidate([]).then(function () {
 						last_block = library.modules.blocks.lastBlock.get();

@@ -147,13 +147,6 @@ node._.mixin({
 	}
 }, {chain: false});
 
-// Optional logging
-if (process.env.SILENT === 'true') {
-	node.debug = function () {};
-} else {
-	node.debug = console.log.bind(console, '[' + strftime('%F %T', new Date()) + ']');
-}
-
 // Random LSK amount
 node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 
@@ -190,89 +183,6 @@ node.getHeight = function (cb) {
 	request.catch(function (err) {
 		return setImmediate(cb, err);
 	});
-};
-
-// Run callback on new round
-node.onNewRound = function (cb) {
-	node.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			var nextRound = slots.calcRound(height);
-			var blocksToWait = nextRound * slots.delegates - height;
-			node.debug('blocks to wait: '.grey, blocksToWait);
-			node.waitForNewBlock(height, blocksToWait, cb);
-		}
-	});
-};
-
-// Upon detecting a new block, do something
-node.onNewBlock = function (cb) {
-	node.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			node.waitForNewBlock(height, 2, cb);
-		}
-	});
-};
-
-// Waits for (n) blocks to be created
-node.waitForBlocks = function (blocksToWait, cb) {
-	node.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			node.waitForNewBlock(height, blocksToWait, cb);
-		}
-	});
-};
-
-// Waits for a new block to be created
-node.waitForNewBlock = function (height, blocksToWait, cb) {
-	if (blocksToWait === 0) {
-		return setImmediate(cb, null, height);
-	}
-
-	var actualHeight = height;
-	var counter = 1;
-	var target = height + blocksToWait;
-
-	node.async.doWhilst(
-		function (cb) {
-			var request = node.popsicle.get(node.baseUrl + '/api/node/status');
-
-			request.use(node.popsicle.plugins.parse(['json']));
-
-			request.then(function (res) {
-				if (res.status !== 200) {
-					return cb(['Received bad response code', res.status, res.url].join(' '));
-				}
-
-				node.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
-
-				if (target === res.body.data.height) {
-					height = res.body.data.height;
-				}
-
-				setTimeout(cb, 1000);
-			});
-
-			request.catch(function (err) {
-				return cb(err);
-			});
-		},
-		function () {
-			return actualHeight >= height;
-		},
-		function (err) {
-			if (err) {
-				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, height);
-			}
-		}
-	);
 };
 
 // Returns a random index for an array

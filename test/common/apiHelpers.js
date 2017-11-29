@@ -1,11 +1,14 @@
 'use strict';
 
+var test = require('../test');
+var node = require('../node');
+
 var lisk = require('lisk-js');
 
-var node = require('../node');
 var constants = require('../../helpers/constants');
 
-var waitForBlocks = node.Promise.promisify(node.waitForBlocks);
+var waitFor = require('./utils/waitFor');
+var waitForBlocks = node.Promise.promisify(waitFor.blocks);
 
 var http = {
 	abstractRequest: function (options, done) {
@@ -23,15 +26,15 @@ var http = {
 		}
 
 		var verb = options.verb.toUpperCase();
-		node.debug(['> Path:'.grey, verb, options.path].join(' '));
+		test.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
-			node.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
+			test.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
 		}
 
 		if (done) {
 			request.end(function (err, res) {
-				node.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
-				node.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
+				test.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
+				test.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
 				done(err, res);
 			});
 		} else {

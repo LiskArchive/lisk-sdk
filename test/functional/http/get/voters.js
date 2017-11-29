@@ -8,10 +8,12 @@ var _ = node._;
 var apiCodes = require('../../../../helpers/apiCodes.js');
 var constants = require('../../../../helpers/constants.js');
 
+var waitFor = require('../../../common/utils/waitFor');
+var waitForBlocksPromise = node.Promise.promisify(waitFor.blocks);
+
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
 

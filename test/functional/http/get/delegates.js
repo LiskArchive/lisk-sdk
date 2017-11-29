@@ -8,6 +8,9 @@ var modulesLoader = require('../../../common/modulesLoader');
 var constants = require('../../../../helpers/constants');
 var genesisDelegates = require('../../../data/genesisDelegates.json');
 
+var waitFor = require('../../../common/utils/waitFor');
+var onNewRoundPromise = node.Promise.promisify(waitFor.newRound);
+
 var apiHelpers = require('../../../common/apiHelpers');
 var creditAccountPromise = apiHelpers.creditAccountPromise;
 var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
@@ -16,8 +19,6 @@ var getDelegatesPromise = apiHelpers.getDelegatesPromise;
 var putForgingDelegatePromise = apiHelpers.putForgingDelegatePromise;
 var getForgersPromise = apiHelpers.getForgersPromise;
 var waitForConfirmations = apiHelpers.waitForConfirmations;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
-var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 

@@ -5,8 +5,10 @@ require('../../functional.js');
 var node = require('../../../node.js');
 var modulesLoader = require('../../../common/modulesLoader');
 
+var waitFor = require('../../../common/utils/waitFor');
+
 var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var waitForBlocksPromise = node.Promise.promisify(waitFor.blocks);
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -115,7 +117,7 @@ describe('GET /blocks', function () {
 			}).then(function (responses) {
 				responses.should.deep.include(initialResponse.body);
 			}).then(function () {
-				return onNewBlockPromise();
+				return waitForBlocksPromise(1);
 			}).then(function () {
 				return getJsonForKeyPromise(url + params.join('&'));
 			}).then(function (result) {

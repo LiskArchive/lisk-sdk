@@ -1,8 +1,10 @@
 'use strict';
 
+var test = require('../test');
+var node = require('../node');
+
 var _ = require('lodash');
 
-var node = require('../node');
 var swaggerHelper = require('../../helpers/swagger');
 
 var apiSpec = node.swaggerDef;
@@ -159,18 +161,18 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			req = req.send(post);
 		}
 
-		node.debug(['> URI:'.grey, req.method, req.url].join(' '));
+		test.debug(['> URI:'.grey, req.method, req.url].join(' '));
 
 		if(!_.isEmpty(query)) {
-			node.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
+			test.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
 		}
 		if(!_.isEmpty(post)) {
-			node.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
+			test.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
 		}
 		return req;
 	}).then(function (res) {
 
-		node.debug('> Response:'.grey, JSON.stringify(res.body));
+		test.debug('> Response:'.grey, JSON.stringify(res.body));
 
 		var expectedResponseCode = responseCode || self.responseCode;
 
@@ -181,7 +183,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		return res;
 	})
 		.catch(function (eror){
-			node.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
+			test.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
 			throw eror;
 		});
 };
