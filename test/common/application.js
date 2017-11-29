@@ -97,7 +97,6 @@ function __init (initScope, done) {
 				var genesisblock = require('../genesisBlock.json');
 				cb(null, {block: genesisblock});
 			},
-
 			schema: function (cb) {
 				var z_schema = require('../../helpers/z_schema.js');
 				cb(null, new z_schema());
@@ -145,15 +144,12 @@ function __init (initScope, done) {
 				});
 				cb(null, sequence);
 			}],
-
 			swagger: ['network', 'modules', 'logger', function (scope, cb) {
 				swagger(scope.network.app, scope.config, scope.logger, scope, cb);
 			}],
-
 			ed: function (cb) {
 				cb(null, require('../../helpers/ed.js'));
 			},
-
 			bus: ['ed', function (scope, cb) {
 				var changeCase = require('change-case');
 
@@ -281,6 +277,7 @@ function __init (initScope, done) {
 				scope.modules.delegates.onBlockchainReady = function () {};
 				return done(err, scope);
 			}
+
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {
 				node.debug('initApplication: Fake onBlockchainReady event called');
