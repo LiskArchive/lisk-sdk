@@ -795,7 +795,7 @@ Transactions.prototype.shared = {
 									return setImmediate(cb, e.toString());
 								}
 
-								modules.transactions.receiveTransactions([transaction], true, cb);
+								self.receiveTransactions([transaction], true, cb);
 							});
 						});
 					} else {
@@ -834,7 +834,7 @@ Transactions.prototype.shared = {
 								return setImmediate(cb, e.toString());
 							}
 
-							modules.transactions.receiveTransactions([transaction], true, cb);
+							self.receiveTransactions([transaction], true, cb);
 						});
 					}
 				});
