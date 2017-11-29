@@ -390,8 +390,9 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 			}
 		},
 		sanitizeTransactionPool: function (seriesCb) {
-			modules.transactions.sanitizeTransactionPool(block.transactions);
-			return seriesCb();
+			modules.transactions.sanitizeTransactionPool(block.transactions, function () {
+				return seriesCb();
+			});
 		}
 	}, function (err) {
 		// Allow shutdown, database writes are finished.
