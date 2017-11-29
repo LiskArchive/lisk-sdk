@@ -424,18 +424,6 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 };
 
 /**
- * Checks kind of unconfirmed transaction and process it, resets queue
- * if limit reached.
- * @param {transaction} transaction
- * @param {Object} broadcast
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.processUnconfirmedTransaction
- */
-Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	return __private.transactionPool.processUnconfirmedTransaction(transaction, broadcast, cb);
-};
-
-/**
  * Gets unconfirmed transactions list and applies unconfirmed transactions.
  * @param {function} cb - Callback function.
  * @return {function} Calls transactionPool.applyUnconfirmedList

@@ -67,7 +67,7 @@ describe('multisignature', function () {
 		// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 		// See: modules.transport.__private.receiveTransaction
 		library.balancesSequence.add(function (sequenceCb) {
-			library.modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
+			library.modules.transactions.receiveTransactions([transaction], true, function (err) {
 				if (err) {
 					return setImmediate(sequenceCb, err.toString());
 				} else {

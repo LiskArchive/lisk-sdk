@@ -211,7 +211,7 @@ __private.loadSignatures = function (cb) {
  * @implements {library.logic.transaction.objectNormalize}
  * @implements {modules.peers.remove}
  * @implements {library.balancesSequence.add}
- * @implements {modules.transactions.processUnconfirmedTransaction}
+ * @implements {modules.transactions.receiveTransactions}
  * @param {function} cb
  * @return {setImmediateCallback} cb, err
  * @todo missed error propagation when balancesSequence.add
@@ -272,7 +272,7 @@ __private.loadTransactions = function (cb) {
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 				library.balancesSequence.add(function (cb) {
 					transaction.bundled = true;
-					modules.transactions.processUnconfirmedTransaction(transaction, false, cb);
+					modules.transactions.receiveTransactions([transaction], false, cb);
 				}, function (err) {
 					if (err) {
 						// TODO: Validate if must include error propagation.

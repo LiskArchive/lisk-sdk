@@ -215,7 +215,7 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
  * @implements {library.logic.transaction.objectNormalize}
  * @implements {__private.removePeer}
  * @implements {library.balancesSequence.add}
- * @implements {modules.transactions.processUnconfirmedTransaction}
+ * @implements {modules.transactions.receiveTransactions}
  * @param {transaction} transaction
  * @param {peer} peer
  * @param {string} extraLogMessage
@@ -237,7 +237,7 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 
 	library.balancesSequence.add(function (cb) {
 		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + peer.string);
-		modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
+		modules.transactions.receiveTransactions([transaction], true, function (err) {
 			if (err) {
 				library.logger.debug(['Transaction', id].join(' '), err.toString());
 				if (transaction) { library.logger.debug('Transaction', transaction); }
