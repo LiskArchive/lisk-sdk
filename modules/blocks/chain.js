@@ -339,9 +339,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
-	// List of unconfirmed transactions ids.
-	var unconfirmedTransactionIds;
-
 	async.series({
 		// Rewind any unconfirmed transactions before applying block.
 		// TODO: It should be possible to remove this call if we can guarantee that only this function is processing transactions atomically. Then speed should be improved further.
@@ -354,7 +351,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 
 					return process.exit(0);
 				} else {
-					unconfirmedTransactionIds = ids;
 					return setImmediate(seriesCb);
 				}
 			});
@@ -374,12 +370,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 						}
 
 						appliedTransactions[transaction.id] = transaction;
-
-						// Remove the transaction from the node queue, if it was present.
-						var index = unconfirmedTransactionIds.indexOf(transaction.id);
-						if (index >= 0) {
-							unconfirmedTransactionIds.splice(index, 1);
-						}
 
 						return setImmediate(eachSeriesCb);
 					});
