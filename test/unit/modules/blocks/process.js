@@ -3,12 +3,13 @@
 var expect = require('chai').expect;
 var async = require('async');
 
-var application = require('../../../common/application.js');
 var node = require('../../../node');
-var modulesLoader = require('../../../common/modulesLoader');
 var genesisBlock = require('../../../data/genesisBlock.json');
+var application = require('../../../common/application');
 var loadTables = require('./processTablesData.json');
-var clearDatabaseTable = require('../../../common/DBSandbox.js').clearDatabaseTable;
+
+var modulesLoader = require('../../../common/modulesLoader');
+var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 
 describe('blocks/process', function () {
 

@@ -14,6 +14,7 @@ var constants = require('../../../helpers/constants.js');
 var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
 var modulesLoader = require('../../common/modulesLoader');
+var application = require('../../common/application');
 
 var validAccount = {
 	username: 'genesis_100',

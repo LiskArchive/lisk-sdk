@@ -11,7 +11,7 @@ var application = require('../../common/application.js');
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
-var DBSandbox = require('../../common/dbSandbox').DBSandbox;
+var application = require('../../common/application');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var constants = require('../../../helpers/constants.js');
 

@@ -9,13 +9,14 @@ var Promise = require('bluebird');
 var rewire  = require('rewire');
 var sinon   = require('sinon');
 
-// Application specific
-var application = require('../../common/application.js');
-var bignum    = require('../../../helpers/bignum.js');
-var config = require('../../data/config.json');
-var constants = require('../../../helpers/constants');
 var node      = require('../../node.js');
+var config = require('../../data/config.json');
+
+var bignum    = require('../../../helpers/bignum.js');
+var constants = require('../../../helpers/constants');
 var slots     = require('../../../helpers/slots.js');
+
+var application = require('../../common/application');
 
 describe('Rounds-related SQL triggers', function () {
 

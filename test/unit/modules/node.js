@@ -1,10 +1,12 @@
 'use strict';
 
+var expect = require('chai').expect;
+
+var node = require('./../../node.js');
+var application = require('../../common/application');
+
 var genesisDelegates = require('../../data/genesisDelegates.json');
 var modulesLoader = require('./../../common/modulesLoader');
-var node = require('./../../node.js');
-var expect = require('chai').expect;
-var application = require('../../common/application.js');
 
 describe('node', function () {
 

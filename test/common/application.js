@@ -94,22 +94,23 @@ function __init (initScope, done) {
 				cb(null, node.config);
 			},
 			genesisblock: function (cb) {
-				var genesisblock = require('../genesisBlock.json');
-				cb(null, {block: genesisblock});
+				var genesisblock = require('../data/genesisBlock.json');
+				cb(null, { block: genesisblock });
 			},
+
 			schema: function (cb) {
 				var z_schema = require('../../helpers/z_schema.js');
 				cb(null, new z_schema());
 			},
 			network: function (cb) {
 				// Init with empty function
-				cb(null, {io: {sockets: {emit: function () {}}}, app: require('express')()});
+				cb(null, { io: { sockets: { emit: function () { } } }, app: require('express')() });
 			},
 			webSocket: ['config', 'logger', 'network', function (scope, cb) {
 				// Init with empty functions
 				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-				var dummySocketCluster = {on: function () {}};
+				var dummySocketCluster = { on: function () { } };
 				var dummyWAMPServer = new MasterWAMPServer(dummySocketCluster, {});
 				var wsRPC = require('../../api/ws/rpc/wsRPC.js').wsRPC;
 
@@ -144,12 +145,15 @@ function __init (initScope, done) {
 				});
 				cb(null, sequence);
 			}],
+
 			swagger: ['network', 'modules', 'logger', function (scope, cb) {
 				swagger(scope.network.app, scope.config, scope.logger, scope, cb);
 			}],
+
 			ed: function (cb) {
 				cb(null, require('../../helpers/ed.js'));
 			},
+
 			bus: ['ed', function (scope, cb) {
 				var changeCase = require('change-case');
 
@@ -162,13 +166,13 @@ function __init (initScope, done) {
 
 						// Iterate over modules and execute event functions (on*)
 						modules.forEach(function (module) {
-							if (typeof(module[eventName]) === 'function') {
+							if (typeof (module[eventName]) === 'function') {
 								jobsQueue.jobs = {};
 								module[eventName].apply(module[eventName], args);
 							}
 							if (module.submodules) {
 								node.async.each(module.submodules, function (submodule) {
-									if (submodule && typeof(submodule[eventName]) === 'function') {
+									if (submodule && typeof (submodule[eventName]) === 'function') {
 										submodule[eventName].apply(submodule[eventName], args);
 									}
 								});
@@ -196,7 +200,7 @@ function __init (initScope, done) {
 				wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 
 				// Register RPC
-				var transportModuleMock = {internal: {}, shared: {}};
+				var transportModuleMock = { internal: {}, shared: {} };
 				transport(transportModuleMock);
 				cb();
 			}],
@@ -303,7 +307,7 @@ function __init (initScope, done) {
 
 function cleanup (done) {
 	node.async.eachSeries(currentAppScope.modules, function (module, cb) {
-		if (typeof(module.cleanup) === 'function') {
+		if (typeof (module.cleanup) === 'function') {
 			module.cleanup(cb);
 		} else {
 			cb();

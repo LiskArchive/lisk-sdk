@@ -9,7 +9,6 @@ var sinon   = require('sinon');
 var strftime = require('strftime').utc();
 
 // Application specific
-var Sequence  = require('../helpers/sequence.js');
 var slots     = require('../helpers/slots.js');
 var swaggerHelper = require('../helpers/swagger');
 
@@ -402,7 +401,7 @@ node.randomPassword = function () {
 };
 
 before('wait for node to be ready', function (done) {
-	require('./common/globalBefore').waitUntilBlockchainReady(done);
+	require('./common/utils/wait').untilBlockchainReady(done);
 });
 
 // Exports

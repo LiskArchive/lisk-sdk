@@ -5,15 +5,13 @@ var sinon = require('sinon');
 
 var node = require('../../node');
 
-var application = require('../../common/application.js');
-var DBSandbox = require('../../common/dbSandbox').DBSandbox;
+var application = require('../../common/application');
 var jobsQueue = require('../../../helpers/jobsQueue');
 var TransactionPool = require('../../../logic/transactionPool');
 var modulesLoader = require('../../common/modulesLoader');
 
 describe('txPool', function () {
 
-	var dbSandbox;
 	var txPool;
 	var jobsQueueRegisterStub;
 

@@ -6,7 +6,7 @@ var node = require('./../../node.js');
 var genesisDelegates = require('../../data/genesisDelegates.json');
 
 var modulesLoader = require('./../../common/modulesLoader');
-var application = require('../../common/application.js');
+var application = require('../../common/application');
 
 describe('delegates', function () {
 

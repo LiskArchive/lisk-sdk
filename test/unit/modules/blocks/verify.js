@@ -3,15 +3,17 @@
 var expect = require('chai').expect;
 var async = require('async');
 var sinon = require('sinon');
+var crypto = require('crypto');
 
 var node = require('../../../node');
-var application = require('../../../common/application.js');
-var modulesLoader = require('../../../common/modulesLoader');
-var exceptions = require('../../../../helpers/exceptions.js');
-var clearDatabaseTable = require('../../../common/DBSandbox.js').clearDatabaseTable;
+var application = require('../../../common/application');
 
-var crypto = require('crypto');
-var bson = require('../../../../helpers/bson.js');
+var exceptions = require('../../../../helpers/exceptions');
+var bson = require('../../../../helpers/bson');
+
+var modulesLoader = require('../../../common/modulesLoader');
+var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
+
 
 var previousBlock = {
 	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
@@ -220,6 +222,7 @@ describe('blocks/verify', function () {
 	var db;
 
 	before(function (done) {
+<<<<<<< HEAD
 		application.init({
 			sandbox: {
 				name: 'lisk_test_blocks_verify'
@@ -229,6 +232,9 @@ describe('blocks/verify', function () {
 			},
 			waitForGenesisBlock: false
 		}, function (err, scope) {
+=======
+		application.init(function (err, scope) {
+>>>>>>> 2ba03380... Create common/application.js
 			scope.modules.blocks.verify.onBind(scope.modules);
 			scope.modules.delegates.onBind(scope.modules);
 			scope.modules.transactions.onBind(scope.modules);
