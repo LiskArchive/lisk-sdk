@@ -117,17 +117,6 @@ TransactionPool.prototype.getUnconfirmedTransaction = function (id) {
 };
 
 /**
- * Gets bundled transactions based on transaction id.
- * @param {string} id
- * @return {transaction[]}
- * @todo This function is never called
- */
-TransactionPool.prototype.getBundledTransaction = function (id) {
-	var index = self.bundled.index[id];
-	return self.bundled.transactions[index];
-};
-
-/**
  * Gets queued transactions based on transaction id.
  * @param {string} id
  * @return {transaction[]}
