@@ -103,13 +103,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('using username longer than 20 characters should fail', function () {
-			var username = node.randomString.generate({
-				length: 20+1,
-				charset: 'alphabetic',
-				capitalization: 'lowercase'
-			});
-
-			transaction = node.lisk.delegate.createDelegate(account.password, username);
+			var delegateName = randomUtil.delegateName() + 'x';
+			transaction = node.lisk.delegate.createDelegate(account.password, delegateName);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);

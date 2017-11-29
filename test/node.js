@@ -27,7 +27,6 @@ node.expect = node.chai.expect;
 node.should = node.chai.should();
 node.lisk = require('lisk-js');
 node.Promise = require('bluebird');
-node.randomString = require('randomstring');
 
 var jobsQueue = require('../helpers/jobsQueue.js');
 
@@ -39,7 +38,6 @@ node.normalizer = 100000000; // Use this to convert LISK amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
 node.version = node.config.version; // Node version
-node.nonce = node.randomString.generate(16);
 
 // Existing delegate account
 node.eAccount = {

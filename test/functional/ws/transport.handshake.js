@@ -9,7 +9,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var node = require('../../node');
-var randomString = require('randomstring');
+var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');
 var testConfig = require('../../data/config.json');
 var ws = require('../../common/ws/communication');
@@ -172,7 +172,7 @@ describe('handshake', function () {
 			 * from: not present nonce, not present connectionId, present on master
 			 * to: present nonce, present connectionId, present on master
 			 */
-			validClientSocketOptions.query.nonce = randomString.generate(16);
+			validClientSocketOptions.query.nonce = randomstring.generate(16);
 			connect();
 		});
 
@@ -181,7 +181,7 @@ describe('handshake', function () {
 			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
-					validClientSocketOptions.query.nonce = randomString.generate(16);
+					validClientSocketOptions.query.nonce = randomstring.generate(16);
 				});
 
 				it('should succeed when connectionId is present', function (done) {
@@ -234,7 +234,7 @@ describe('handshake', function () {
 			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
-					validClientSocketOptions.query.nonce = randomString.generate(16);
+					validClientSocketOptions.query.nonce = randomstring.generate(16);
 				});
 
 				it('should succeed when connectionId is present', function (done) {

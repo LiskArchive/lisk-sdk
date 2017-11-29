@@ -6,7 +6,7 @@ var _  = require('lodash');
 var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
-var randomString = require('randomstring');
+var randomstring = require('randomstring');
 
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
@@ -753,7 +753,7 @@ describe('dapp', function () {
 
 					var invalidDescriptions = [_.fill(new Array(161), 'a'), _.fill(new Array(162), 'b')];
 					var validDescriptions = _.fill(new Array(33), 'a').map(function () {
-						return randomString.generate(Math.random() * 160);
+						return randomstring.generate(Math.random() * 160);
 					});
 
 					invalidTypes.forEach(function (type) {
@@ -790,7 +790,7 @@ describe('dapp', function () {
 
 					var invalidTags = [_.fill(new Array(161), 'a'), _.fill(new Array(81), 'b').join(',')];
 
-					var validTags = [_.fill(new Array(_.toInteger(Math.random() * 80)), randomString.generate(1)).join(','), 'adventure, fantasy'];
+					var validTags = [_.fill(new Array(_.toInteger(Math.random() * 80)), randomstring.generate(1)).join(','), 'adventure, fantasy'];
 
 					invalidTypes.forEach(function (type) {
 

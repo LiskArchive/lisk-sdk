@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var randomstring = require('randomstring');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var constants = require('../../../../helpers/constants');
@@ -166,7 +168,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 			it('with string longer than maximum(160) should fail', function () {
 				var application = randomUtil.application();
-				application.description = node.randomString.generate({
+				application.description = randomstring.generate({
 					length: 161
 				});
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -310,7 +312,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 			it('with string longer than maximum(32) should fail', function () {
 				var application = randomUtil.application();
-				application.name = node.randomString.generate({
+				application.name = randomstring.generate({
 					length: 33
 				});
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);
@@ -364,7 +366,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 			it('with string longer than maximum(160) should fail', function () {
 				var application = randomUtil.application();
-				application.tags = node.randomString.generate({
+				application.tags = randomstring.generate({
 					length: 161
 				});
 				transaction = node.lisk.dapp.createDapp(account.password, null, application);

@@ -2,7 +2,7 @@
 
 var express = require('express');
 var path = require('path');
-var randomString = require('randomstring');
+var randomstring = require('randomstring');
 
 var _ = require('lodash');
 
@@ -25,7 +25,7 @@ var modulesLoader = new function () {
 
 	this.db = null;
 	this.logger = new Logger({ echo: null, errorLevel: config.fileLogLevel, filename: config.logFileName });
-	config.nonce = randomString.generate(16);
+	config.nonce = randomstring.generate(16);
 	this.scope = {
 		config: config,
 		genesisblock: { block: genesisblock },
@@ -50,7 +50,7 @@ var modulesLoader = new function () {
 				this.argsMessages = [];
 			}
 		},
-		nonce: randomString.generate(16),
+		nonce: randomstring.generate(16),
 		dbSequence: new Sequence({
 			onWarning: function (current, limit) {
 				this.logger.warn('DB queue', current);

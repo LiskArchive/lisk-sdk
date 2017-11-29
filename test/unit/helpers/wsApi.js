@@ -8,7 +8,6 @@ var express = require('express');
 var randomstring = require('randomstring');
 var sinon = require('sinon');
 var _ = require('lodash');
-var randomString = require('randomstring');
 
 var config = node.config;
 var wsApi = require('../../../helpers/wsApi');
@@ -122,7 +121,7 @@ describe('handshake', function () {
 					);
 
 					var validValues = _.map(new Array(10), function () {
-						return randomString.generate(16);
+						return randomstring.generate(16);
 					});
 
 					invalidTypes.forEach(function (type) {
@@ -207,7 +206,7 @@ describe('handshake', function () {
 				describe('nethash', function () {
 
 					var validValues = _.map(new Array(10), function () {
-						return randomString.generate(64);
+						return randomstring.generate(64);
 					});
 
 					var invalidTypes = _.difference(typeRepresentatives.allTypes, 

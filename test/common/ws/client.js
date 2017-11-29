@@ -2,7 +2,7 @@
 
 var scClient = require('socketcluster-client');
 var Promise = require('bluebird');
-var randomString = require('randomstring');
+var randomstring = require('randomstring');
 var testConfig = require('../../data/config.json');
 
 /**
@@ -86,7 +86,7 @@ WSClient.prototype.stop = function () {
 WSClient.generatePeerHeaders = function (ip, port, nonce) {
 	port = port || (Math.floor(Math.random() * 65535) + 1);
 	ip = ip || '127.0.0.1';
-	nonce = nonce || randomString.generate(16);
+	nonce = nonce || randomstring.generate(16);
 	var httpPort = (Math.floor(Math.random() * 65535) + 1);
 	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
 	var os = operatingSystems[((Math.floor(Math.random() * operatingSystems.length)))];

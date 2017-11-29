@@ -203,7 +203,7 @@ var additionalDataValidCases = [
 		expectation: 'string'
 	},
 	{
-		input: node.randomString.generate(constants.additionalData.maxLength),
+		input: faker.random.alphaNumeric(constants.additionalData.maxLength),
 		description: 'maximum chars',
 		expectation: 'string'
 	},	
@@ -211,12 +211,12 @@ var additionalDataValidCases = [
 
 var additionalDataInvalidCases = [
 	{
-		input: node.randomString.generate(constants.additionalData.maxLength - 1) + '现',
+		input: faker.random.alphaNumeric(constants.additionalData.maxLength - 1) + '现',
 		description: 'overflowed string',
 		expectation: 'string'
 	},
 	{
-		input: node.randomString.generate(constants.additionalData.maxLength + 1),
+		input: faker.random.alphaNumeric(constants.additionalData.maxLength + 1),
 		description: 'maximum chars + 1',
 		expectation: 'string'
 	}

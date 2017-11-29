@@ -1,11 +1,11 @@
 'use strict';
 
-var constants = require('../../../helpers/constants');
+var randomstring = require('randomstring');
+var lisk = require('lisk-js');
 
 var node = require('../../node');
 
-var randomString = require('randomString');
-var lisk = require('lisk-js');
+var constants = require('../../../helpers/constants');
 
 var random = {};
 
@@ -21,13 +21,13 @@ random.expectedFeeForTransactionWithData = function (amount) {
 
 // Returns a random username of 16 characters
 random.username = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = randomstring.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = randomstring.generate({
 		length: 15,
 		charset: custom
 	});
@@ -37,13 +37,13 @@ random.username = function () {
 
 // Returns a random delegate name of 20 characters
 random.delegateName = function () {
-	var randomLetter = randomString.generate({
+	var randomLetter = randomstring.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase'
 	});
 	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomString.generate({
+	var username = randomstring.generate({
 		length: 19,
 		charset: custom
 	});
@@ -55,7 +55,7 @@ random.delegateName = function () {
 random.applicationName = function () {
 	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	return randomString.generate({
+	return randomstring.generate({
 		length: random.number(5, 32),
 		charset: custom
 	});
