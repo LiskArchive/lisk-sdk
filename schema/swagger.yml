@@ -546,10 +546,10 @@ paths:
     post:
       tags:
         - Signatures
-      summary: submits an array of signatures objects to sign multisignature transactions
+      summary: Submits an array of signatures objects to sign multisignature transactions
       operationId: postSignatures
       description:
-        submits signature(s) to sign a multisignature transaction
+        Submits signature(s) to sign a multisignature transaction
       consumes:
         - application/json
       produces:
@@ -937,7 +937,7 @@ definitions:
         type: object
 
   SignaturesResponse:
-    description: Blocks response
+    description: Signatures response
     type: object
     required:
       - data
