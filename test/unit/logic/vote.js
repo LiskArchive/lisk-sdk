@@ -7,8 +7,8 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
+var application = require('../../common/application.js');
 var node = require('./../../node.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff.js');
@@ -75,7 +75,6 @@ var validTransaction = {
 
 describe('vote', function () {
 
-	var dbSandbox;
 	var voteBindings;
 	var vote;
 	var accountsModule;
@@ -125,30 +124,26 @@ describe('vote', function () {
 	}
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_vote');
-		dbSandbox.create(function (err, __db) {
-			node.initApplication(function (err, scope) {
-				accountsModule = scope.modules.accounts;
-				delegatesModule = scope.modules.delegates;
-				vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
-				voteBindings = {
-					delegate: delegatesModule,
-					account: accountsModule
-				};
-				vote.bind(delegatesModule);
-				delegatesModule.onBind({
-					accounts: accountsModule
-				});
-				transactionLogic = scope.logic.transaction;
-				transactionLogic.attachAssetType(transactionTypes.VOTE, vote);
-				done();
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_logic_vote'}}, function (err, scope) {
+			accountsModule = scope.modules.accounts;
+			delegatesModule = scope.modules.delegates;
+			vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
+			voteBindings = {
+				delegate: delegatesModule,
+				account: accountsModule
+			};
+			vote.bind(delegatesModule);
+			delegatesModule.onBind({
+				accounts: accountsModule
+			});
+			transactionLogic = scope.logic.transaction;
+			transactionLogic.attachAssetType(transactionTypes.VOTE, vote);
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	before(function (done) {

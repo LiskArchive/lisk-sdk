@@ -5,7 +5,7 @@ var sinon = require('sinon');
 
 var node = require('../../node');
 
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
+var application = require('../../common/application.js');
 var jobsQueue = require('../../../helpers/jobsQueue');
 var TransactionPool = require('../../../logic/transactionPool');
 var modulesLoader = require('../../common/modulesLoader');
@@ -17,34 +17,15 @@ describe('txPool', function () {
 	var jobsQueueRegisterStub;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transactionPool');
-		dbSandbox.create(function (err, __db) {
-			if (err) {
-				return done(err);
-			}
-			// Wait for genesisBlock transaction being applied
-			node.initApplication(function (err, scope) {
-				// Init transaction logic
-				txPool = new TransactionPool(
-					modulesLoader.scope.config.broadcasts.broadcastInterval,
-					modulesLoader.scope.config.broadcasts.releaseLimit,
-					scope.logic.transaction,
-					modulesLoader.scope.bus,
-					modulesLoader.scope.logger
-				);
-				txPool.bind(
-					scope.modules.accounts,
-					null,
-					scope.modules.loader
-				);
-				done();
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_logic_transactionPool'}}, function (err, scope) {
+			// Init transaction logic
+			txPool = scope.rewiredModules.transactions.__get__('__private.transactionPool');
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	beforeEach(function () {

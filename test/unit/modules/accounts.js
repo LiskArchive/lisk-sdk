@@ -11,9 +11,9 @@ var sinon = require('sinon');
 var chai = require('chai');
 var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
+var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
 var modulesLoader = require('../../common/modulesLoader');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
 
 var validAccount = {
 	username: 'genesis_100',
@@ -49,24 +49,19 @@ describe('accounts', function () {
 
 	var accounts;
 	var accountLogic;
-	var dbSandbox;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_accounts');
-		dbSandbox.create(function (err, __db) {
-			node.initApplication(function (err, __scope) {
-				// For correctly initializing setting blocks module
-				__scope.modules.blocks.lastBlock.set({height: 10});
-				accounts = __scope.modules.accounts;
-				accountLogic = __scope.logic.account;
-				done(err);
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_accounts'}}, function (err, scope) {
+			// For correctly initializing setting blocks module
+			scope.modules.blocks.lastBlock.set({height: 10});
+			accounts = scope.modules.accounts;
+			accountLogic = scope.logic.account;
+			done(err);
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	describe('constructor', function () {

@@ -3,8 +3,8 @@
 var node = require('./../../node.js');
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var constants = require('../../../helpers/constants.js');
+var application = require('../../common/application.js');
 
 var crypto = require('crypto');
 var async = require('async');
@@ -59,18 +59,14 @@ describe('account', function () {
 	var dbSandbox;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_accounts');
-		dbSandbox.create(function (err, __db) {
-			node.initApplication(function (err, scope) {
-				account = scope.logic.account;
-				done();
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_logic_accounts'}}, function (err, scope) {
+			account = scope.logic.account;
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	describe('Account', function () {

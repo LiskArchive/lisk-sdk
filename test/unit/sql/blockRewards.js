@@ -4,9 +4,9 @@ var chai = require('chai');
 var expect = require('chai').expect;
 
 var node = require('../../node');
+var application = require('../../common/application.js');
 var sql = require('../../sql/blockRewards.js');
 var constants = require('../../../helpers/constants.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
 var modulesLoader = require('../../common/modulesLoader');
 
 function calcBlockReward (height, reward, done) {
@@ -68,27 +68,24 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 }
 
 var db;
-var dbSandbox;
 var originalBlockRewardsOffset;
 
 describe('BlockRewardsSQL @slow', function () {
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_sql_block_rewards');
-		dbSandbox.create(function (err, __db) {
-			db = __db;
+		application.init({sandbox: {name: 'lisk_test_sql_block_rewards'}}, function (err, scope) {
+			db = scope.db;
 			// Force rewards start at 150-th block
 			originalBlockRewardsOffset = constants.rewards.offset;
 			constants.rewards.distance = 3000000;
 			constants.rewards.offset = 1451520;
-			node.initApplication(done, {db: db});
+			done(err);
 		});
 	});
 
 	after(function (done) {
 		constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	describe('checking SQL function getBlockRewards()', function () {

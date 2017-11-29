@@ -4,7 +4,7 @@ var genesisDelegates = require('../../genesisDelegates.json');
 var modulesLoader = require('./../../common/modulesLoader');
 var node = require('./../../node.js');
 var expect = require('chai').expect;
-var DBSandbox = require('./../../common/globalBefore.js').DBSandbox;
+var application = require('../../common/application.js');
 
 describe('node', function () {
 
@@ -14,36 +14,20 @@ describe('node', function () {
 	var __private;
 
 	var db;
-	var dbSandbox;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_modules_node');
-		dbSandbox.create(function (err, __db) {
-			modulesLoader.db = __db;
-			db = __db;
+		application.init({sandbox: {name: 'lisk_test_modules_node'}}, function (err, scope) {
+			library = scope;
+			// Set delegates module as loaded to allow manual forging
+			library.rewiredModules.delegates.__set__('__private.loaded', true);
+			// Load forging delegates
+			__private = library.rewiredModules.delegates.__get__('__private');
 			done(err);
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
-	});
-
-	before(function (done) {
-		node.initApplication(function (err, scope) {
-			library = scope;
-
-			// Set delegates module as loaded to allow manual forging
-			library.rewiredModules.delegates.__set__('__private.loaded', true);
-			setTimeout(done, 5000);
-		}, {db: modulesLoader.db});
-	});
-
-	before(function (done) {
-		// Load forging delegates
-		__private = library.rewiredModules.delegates.__get__('__private');
-		__private.loadDelegates(done);
+		application.cleanup(done);
 	});
 
 	describe('constructor', function () {
