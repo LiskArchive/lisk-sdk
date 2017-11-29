@@ -2,6 +2,7 @@
 
 var node = require('../../../../node');
 var shared = require('../../../shared');
+var accountFixtures = require('../../../../fixtures/accounts');
 
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
@@ -9,7 +10,7 @@ var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfi
 function beforeValidationPhase (account) {
 
 	before(function () {
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
 
 		return sendTransactionPromise(transaction)
 			.then(function (res) {

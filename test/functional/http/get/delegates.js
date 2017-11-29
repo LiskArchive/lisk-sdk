@@ -2,12 +2,14 @@
 
 require('../../functional.js');
 
-var node = require('../../../node.js');
+var node = require('../../../node');
 var _ = node._;
-var modulesLoader = require('../../../common/modulesLoader');
+
 var constants = require('../../../../helpers/constants');
 var genesisDelegates = require('../../../data/genesisDelegates.json');
+var accountFixtures = require('../../../fixtures/accounts');
 
+var modulesLoader = require('../../../common/modulesLoader');
 var waitFor = require('../../../common/utils/waitFor');
 var onNewRoundPromise = node.Promise.promisify(waitFor.newRound);
 
@@ -19,6 +21,7 @@ var getDelegatesPromise = apiHelpers.getDelegatesPromise;
 var putForgingDelegatePromise = apiHelpers.putForgingDelegatePromise;
 var getForgersPromise = apiHelpers.getForgersPromise;
 var waitForConfirmations = apiHelpers.waitForConfirmations;
+
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -164,7 +167,7 @@ describe('GET /delegates', function () {
 
 			var secondSecretAccount = randomUtil.account();
 
-			var creditTransaction = node.lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, node.gAccount.password);
+			var creditTransaction = node.lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, accountFixtures.genesis.password);
 			var signatureTransaction = node.lisk.signature.createSignature(secondSecretAccount.password, secondSecretAccount.secondPassword);
 			var delegateTransaction = node.lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
 

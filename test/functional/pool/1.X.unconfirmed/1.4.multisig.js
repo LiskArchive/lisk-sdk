@@ -5,6 +5,7 @@ require('../../functional.js');
 var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
+var accountFixtures = require('../../../fixtures/accounts');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
@@ -24,7 +25,7 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 	describe('creating multisig', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey], 1, 1);
+			transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -34,7 +35,7 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 		});
 
 		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey], 1, 1);
+			transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

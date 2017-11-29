@@ -7,6 +7,8 @@ var node = require('../../node');
 
 var constants = require('../../../helpers/constants');
 
+var accountFixtures = require('../../fixtures/accounts');
+
 var random = {};
 
 // Returns a random number between min (inclusive) and max (exclusive)
@@ -98,7 +100,7 @@ random.account = function () {
 
 // Returns an random basic transaction to send 1 LSK from genesis account to a random account
 random.transaction = function (offset) {
-	return lisk.transaction.createTransaction(random.account().address, 1, node.gAccount.password, offset);
+	return lisk.transaction.createTransaction(random.account().address, 1, accountFixtures.genesis.password, offset);
 };
 
 // Returns a random password

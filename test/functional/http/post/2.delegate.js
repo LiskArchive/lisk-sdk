@@ -4,6 +4,8 @@ require('../../functional.js');
 
 var node = require('../../../node');
 var shared = require('../../shared');
+var accountFixtures = require('../../../fixtures/accounts');
+
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -30,10 +32,10 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	before(function () {
 
 		var transactions = [];
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, node.gAccount.password);
-		var transaction3 = node.lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, node.gAccount.password);
-		var transaction4 = node.lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, node.gAccount.password);
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, accountFixtures.genesis.password);
+		var transaction3 = node.lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, accountFixtures.genesis.password);
+		var transaction4 = node.lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, accountFixtures.genesis.password);
 		transactions.push(transaction1);
 		transactions.push(transaction2);
 		transactions.push(transaction3);

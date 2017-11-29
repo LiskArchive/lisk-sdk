@@ -2,12 +2,14 @@
 
 require('../functional.js');
 
+var node = require('../../node');
+var shared = require('../shared');
+var accountFixtures = require('../../fixtures/accounts');
+
+var apiCodes = require('../../../helpers/apiCodes');
 var constants = require('../../../helpers/constants');
 
-var node = require('../../node.js');
-var shared = require('../shared');
-
-var ws = require('../../common/ws/communication.js');
+var ws = require('../../common/ws/communication');
 var waitFor = require('../../common/utils/waitFor');
 var randomUtil = require('../../common/utils/random');
 
@@ -33,7 +35,7 @@ describe('postTransactions @slow', function () {
 					var transaction = node.lisk.transaction.createTransaction(
 						randomUtil.account().address,
 						randomUtil.number(100000000, 1000000000),
-						node.gAccount.password
+						accountFixtures.genesis.password
 					);
 
 					transactions.push(transaction);
@@ -70,7 +72,7 @@ describe('postTransactions @slow', function () {
 				var transaction = node.lisk.transaction.createTransaction(
 					randomUtil.account().address,
 					randomUtil.number(100000000, 1000000000),
-					node.gAccount.password
+					accountFixtures.genesis.password
 				);
 
 				postTransactions([transaction], function (err, res) {

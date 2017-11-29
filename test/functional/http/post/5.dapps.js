@@ -6,11 +6,13 @@ var randomstring = require('randomstring');
 
 var node = require('../../../node');
 var shared = require('../../shared');
+var accountFixtures = require('../../../fixtures/accounts');
+
+var apiCodes = require('../../../../helpers/apiCodes');
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-
 var randomUtil = require('../../../common/utils/random');
 
 describe('POST /api/transactions (type 5) register dapp', function () {
@@ -35,8 +37,8 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 	// Crediting accounts
 	before(function () {
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.dappRegistration, node.gAccount.password);
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.dappRegistration, accountFixtures.genesis.password);
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));

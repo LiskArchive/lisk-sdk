@@ -4,6 +4,7 @@ var expect = require('chai').expect;
 var sinon = require('sinon');
 
 var node = require('../../node');
+var accountFixtures = require('../../fixtures/accounts');
 
 var application = require('../../common/application');
 var jobsQueue = require('../../../helpers/jobsQueue');
@@ -63,7 +64,7 @@ describe('txPool', function () {
 
 		it('should process transaction if valid and insert transaction into queue', function (done) {
 			var account = randomUtil.account();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
+			var transaction = node.lisk.transaction.createTransaction(account.address, 100000000000, accountFixtures.genesis.password);
 
 			txPool.receiveTransactions([transaction], false, function (err) {
 				expect(err).to.not.exist;

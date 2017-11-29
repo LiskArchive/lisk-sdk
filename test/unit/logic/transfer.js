@@ -4,11 +4,11 @@ var crypto = require('crypto');
 var async = require('async');
 var _  = require('lodash');
 var randomstring = require('randomstring');
-
 var chai = require('chai');
 var expect = require('chai').expect;
 
 var node = require('./../../node');
+var accountFixtures = require('../../fixtures/accounts');
 
 var modulesLoader = require('../../common/modulesLoader');
 var application = require('../../common/application');
@@ -22,7 +22,7 @@ var Transfer = require('../../../logic/transfer');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
-var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
+var senderHash = crypto.createHash('sha256').update(accountFixtures.genesis.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
 var validSender = {

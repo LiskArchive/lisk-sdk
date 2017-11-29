@@ -5,9 +5,10 @@ require('../../../functional.js');
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
+var accountFixtures = require('../../../../fixtures/accounts');
+
 var swaggerEndpoint = require('../../../../common/swaggerSpec');
 var apiHelpers = require('../../../../common/apiHelpers');
-
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var createSignatureObject = apiHelpers.createSignatureObject;
 var signatureEndpoint = new swaggerEndpoint('POST /signatures');
@@ -29,7 +30,7 @@ describe('POST /api/transactions (validate type 4 on top of type 1)', function (
 	describe('creating multisig', function () {
 
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
+			transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + accountFixtures.existingDelegate.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -39,7 +40,7 @@ describe('POST /api/transactions (validate type 4 on top of type 1)', function (
 		});
 
 		it('using second passphrase not matching registered secondPublicKey should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + node.eAccount.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
+			transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + accountFixtures.existingDelegate.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);

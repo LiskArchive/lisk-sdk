@@ -53,20 +53,6 @@ function blockchainReady (cb, retries, timeout, baseUrl) {
 	})();
 }
 
-// Run callback on new round
-function newRound (cb) {
-	node.getHeight(function (err, height) {
-		if (err) {
-			return cb(err);
-		} else {
-			var nextRound = slots.calcRound(height);
-			var blocksToWait = nextRound * slots.delegates - height;
-			test.debug('blocks to wait: '.grey, blocksToWait);
-			waitForNewBlock(height, blocksToWait, cb);
-		}
-	});
-};
-
 // Returns current block height
 function getHeight (cb) {
 	var request = popsicle.get(test.baseUrl + '/api/node/status');
@@ -83,6 +69,20 @@ function getHeight (cb) {
 
 	request.catch(function (err) {
 		return setImmediate(cb, err);
+	});
+};
+
+// Run callback on new round
+function newRound (cb) {
+	getHeight(function (err, height) {
+		if (err) {
+			return cb(err);
+		} else {
+			var nextRound = slots.calcRound(height);
+			var blocksToWait = nextRound * slots.delegates - height;
+			test.debug('blocks to wait: '.grey, blocksToWait);
+			waitForNewBlock(height, blocksToWait, cb);
+		}
 	});
 };
 

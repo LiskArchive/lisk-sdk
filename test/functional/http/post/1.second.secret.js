@@ -4,6 +4,8 @@ require('../../functional.js');
 
 var node = require('../../../node');
 var shared = require('../../shared');
+var accountFixtures = require('../../../fixtures/accounts');
+
 var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -25,9 +27,9 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 	// Crediting accounts
 	before(function () {
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, node.gAccount.password);
-		var transaction3 = node.lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, node.gAccount.password);
+		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, accountFixtures.genesis.password);
+		var transaction3 = node.lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, accountFixtures.genesis.password);
 
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
@@ -54,7 +56,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	describe('transactions processing', function () {
 
 		it('using second passphrase on a fresh account should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(node.eAccount.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
+			transaction = node.lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);

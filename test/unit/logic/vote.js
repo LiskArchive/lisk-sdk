@@ -7,24 +7,24 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var node = require('./../../node.js');
-var application = require('../../common/application');
-
-var randomUtil = require('../../common/utils/random');
+var node = require('../../node');
+var accountFixtures = require('../../fixtures/accounts');
 
 var ed = require('../../../helpers/ed');
-var diff = require('../../../helpers/diff.js');
+var diff = require('../../../helpers/diff');
 var transactionTypes = require('../../../helpers/transactionTypes');
-var constants = require('../../../helpers/constants.js');
+var constants = require('../../../helpers/constants');
+var TransactionLogic = require('../../../logic/transaction');
+var Vote = require('../../../logic/vote');
+var Transfer = require('../../../logic/transfer');
+var Delegate = require('../../../logic/delegate');
+var AccountLogic = require('../../../logic/account');
+var AccountModule = require('../../../modules/accounts');
+var DelegateModule = require('../../../modules/delegates');
 
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
 var modulesLoader = require('../../common/modulesLoader');
-var TransactionLogic = require('../../../logic/transaction.js');
-var Vote = require('../../../logic/vote.js');
-var Transfer = require('../../../logic/transfer.js');
-var Delegate = require('../../../logic/delegate.js');
-var AccountLogic = require('../../../logic/account.js');
-var AccountModule = require('../../../modules/accounts.js');
-var DelegateModule = require('../../../modules/delegates.js');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -213,7 +213,7 @@ describe('vote', function () {
 	describe('verify', function () {
 		it('should return error when receipientId and sender id are different', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.recipientId = node.gAccount.address;
+			transaction.recipientId = accountFixtures.genesis.address;
 			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid recipient');
 				done();
@@ -261,9 +261,9 @@ describe('vote', function () {
 
 		it('should return error when removing vote for delegate sender has not voted', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['-' + node.eAccount.publicKey];
+			transaction.asset.votes = ['-' + accountFixtures.existingDelegate.publicKey];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Failed to remove vote, delegate "' + node.eAccount.delegateName + '" was not voted for');
+				expect(err).to.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
 				done();
 			});
 		});
@@ -372,7 +372,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.genesis.publicKey];
 			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
@@ -381,7 +381,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.existingDelegate.publicKey];
 			vote.checkConfirmedDelegates(transaction, done);
 		});
 
@@ -423,7 +423,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.genesis.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
@@ -432,7 +432,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.existingDelegate.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, done);
 		});
 

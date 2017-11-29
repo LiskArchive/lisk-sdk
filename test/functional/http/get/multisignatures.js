@@ -2,10 +2,11 @@
 
 require('../../functional.js');
 
-var constants = require('../../../../helpers/constants');
-
-var node = require('../../../node.js');
+var node = require('../../../node');
 var shared = require('../../shared');
+var accountFixtures = require('../../../fixtures/accounts');
+
+var constants = require('../../../../helpers/constants');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var getPendingMultisignaturesPromise = require('../../../common/apiHelpers').getPendingMultisignaturesPromise;
@@ -19,7 +20,7 @@ describe('GET /api/multisignatures/', function () {
 
 	before(function () {
 		// Crediting accounts
-		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, node.gAccount.password);
+		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
 		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

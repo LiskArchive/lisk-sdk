@@ -4,6 +4,7 @@ var _ = require('lodash');
 
 var node = require('../node');
 var typesRepresentatives = require('../fixtures/typesRepresentatives');
+var accountFixtures = require('../fixtures/accounts');
 
 var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
 var getTransactionsPromise = require('../common/apiHelpers').getTransactionsPromise;
@@ -91,25 +92,25 @@ function invalidAssets (option, badTransactions) {
 	beforeEach(function () {
 		switch(option) {
 			case 'signature':
-				transaction = node.lisk.signature.createSignature(node.gAccount.password, randomUtil.password());
+				transaction = node.lisk.signature.createSignature(accountFixtures.genesis.password, randomUtil.password());
 				break;
 			case 'delegate':
-				transaction = node.lisk.delegate.createDelegate(node.gAccount.password, randomUtil.delegateName());
+				transaction = node.lisk.delegate.createDelegate(accountFixtures.genesis.password, randomUtil.delegateName());
 				break;
 			case 'votes':
-				transaction = node.lisk.vote.createVote(node.gAccount.password, []);
+				transaction = node.lisk.vote.createVote(accountFixtures.genesis.password, []);
 				break;
 			case 'multisignature':
-				transaction = node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + node.eAccount.publicKey], 1, 2);
+				transaction = node.lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 2);
 				break;
 			case 'dapp':
-				transaction = node.lisk.dapp.createDapp(node.gAccount.password, null, randomUtil.guestbookDapp);
+				transaction = node.lisk.dapp.createDapp(accountFixtures.genesis.password, null, randomUtil.guestbookDapp);
 				break;
 			case 'inTransfer':
-				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
 				break;
 			case 'outTransfer':
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, node.gAccount.address, Date.now(), node.gAccount.password);
+				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), accountFixtures.genesis.password);
 				break;
 		};
 	});

@@ -1,11 +1,13 @@
 'use strict';
 
-var node = require('./../../node.js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
 
-var Cache = require('../../../modules/cache.js');
+var node = require('../../node');
+var accountFixtures = require('../../fixtures/accounts');
+
+var Cache = require('../../../modules/cache');
 
 var modulesLoader = require('../../common/modulesLoader');
 var randomUtil = require('../../common/utils/random');
@@ -321,7 +323,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, node.gAccount.secondPassword);
+				var transaction = node.lisk.transaction.createTransaction('1L', 1, accountFixtures.genesis.password, accountFixtures.genesis.secondPassword);
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {

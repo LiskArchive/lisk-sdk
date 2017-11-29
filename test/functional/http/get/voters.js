@@ -3,8 +3,11 @@
 require('../../functional.js');
 
 var randomstring = require('randomstring');
+var _ = require('lodash');
+
 var node = require('../../../node.js');
-var _ = node._;
+var accountFixtures = require('../../../fixtures/accounts');
+
 var apiCodes = require('../../../../helpers/apiCodes.js');
 var constants = require('../../../../helpers/constants.js');
 
@@ -22,8 +25,8 @@ var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwagge
 describe('GET /api/voters', function () {
 
 	var votersEndpoint = new swaggerEndpoint('GET /voters');
-	var validVotedDelegate = node.eAccount;
-	var validNotVotedDelegate = node.gAccount;
+	var validVotedDelegate = accountFixtures.existingDelegate;
+	var validNotVotedDelegate = accountFixtures.genesis;
 	var validNotExistingAddress = '11111111111111111111L';
 
 	function expectValidVotedDelegateResponse (res) {
@@ -95,9 +98,9 @@ describe('GET /api/voters', function () {
 
 				it('should return the expected result as when db has only 101 delegates', function () {
 					return votersEndpoint.makeRequest({
-						address: node.eAccount.address,
-						publicKey: node.eAccount.publicKey,
-						username: node.eAccount.delegateName
+						address: accountFixtures.existingDelegate.address,
+						publicKey: accountFixtures.existingDelegate.publicKey,
+						username: accountFixtures.existingDelegate.delegateName
 					}, 200).then(function (res) {
 						expectValidVotedDelegateResponse(res);
 					});
@@ -210,7 +213,7 @@ describe('GET /api/voters', function () {
 				var enrichExtraDelegateVoterTransaction = node.lisk.transaction.createTransaction(
 					validExtraDelegateVoter.address,
 					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
-					node.gAccount.password
+					accountFixtures.genesis.password
 				);
 
 				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({

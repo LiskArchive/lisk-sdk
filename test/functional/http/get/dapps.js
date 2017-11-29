@@ -3,6 +3,8 @@
 require('../../functional.js');
 
 var node = require('../../../node.js');
+var accountFixtures = require('../../../fixtures/accounts');
+
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
@@ -24,7 +26,7 @@ describe('GET /dapps', function () {
 	var registeredDappsAmount = 2;
 
 	before(function () {
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
 		transactionsToWaitFor.push(transaction.id);
 		return sendTransactionPromise(transaction)
 			.then(function (res) {

@@ -4,12 +4,12 @@ require('../functional.js');
 
 var test = require('../../test');
 
-var node = require('../../node.js');
+var node = require('../../node');
 var ws = require('../../common/ws/communication');
 
 var genesisblock = require('../../data/genesisBlock.json');
-var verify = require('../../../modules/blocks/verify.js');
-var bson = require('../../../helpers/bson.js');
+var verify = require('../../../modules/blocks/verify');
+var bson = require('../../../helpers/bson');
 
 describe('WS transport blocks', function () {
 
