@@ -591,9 +591,10 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 
 					// Remove transaction from queued and multisignature
 					self.purgeTransactionById(transaction.id);
+				} else {
+					__private.moveToUnconfirmed(transaction);
 				}
 
-				__private.moveToUnconfirmed(transaction);
 				return setImmediate(eachSeriesCb);
 			});
 		});
