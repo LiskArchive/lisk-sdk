@@ -161,22 +161,22 @@ describe('transactionPool', function () {
 		return multisignatureTransaction;
 	}
 
+	function getNextForger (offset, cb) {
+		offset = !offset ? 1 : offset;
+
+		var lastBlock = library.modules.blocks.lastBlock.get();
+		var slot = slots.getSlotNumber(lastBlock.timestamp);
+
+		// TODO: Wait for 0.9.10 backport to 1.0.0 to get delegate list
+		// library.modules.delegates.generateDelegateList(lastBlock.height, null, function (err, delegateList) {
+		library.modules.delegates.generateDelegateList(function (err, delegateList) {
+			if (err) { return cb (err); }
+			var nextForger = delegateList[(slot + offset) % slots.delegates];
+			return cb(nextForger);
+		});
+	}
+
 	function forge (cb) {
-		function getNextForger (offset, cb) {
-			offset = !offset ? 1 : offset;
-
-			var last_block = library.modules.blocks.lastBlock.get();
-			var slot = slots.getSlotNumber(last_block.timestamp);
-
-			// TODO: Wait for 0.9.10 backport to 1.0.0 to get delegate list
-			// library.modules.delegates.generateDelegateList(last_block.height, null, function (err, delegateList) {
-			library.modules.delegates.generateDelegateList(function (err, delegateList) {
-				if (err) { return cb (err); }
-				var nextForger = delegateList[(slot + offset) % slots.delegates];
-				return cb(nextForger);
-			});
-		}
-
 		var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
 
 		node.async.waterfall([
@@ -189,16 +189,66 @@ describe('transactionPool', function () {
 			},
 			function (delegate, seriesCb) {
 				var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
-				var last_block = library.modules.blocks.lastBlock.get();
-				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
+				var lastBlock = library.modules.blocks.lastBlock.get();
+				var slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
 				var keypair = keypairs[delegate];
-
-				node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 					if (err) { return seriesCb(err); }
-					last_block = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock.get();
+					return seriesCb(err);
+				});
+			}
+		], function (err) {
+			cb(err);
+		});
+	}
 
-					node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+	function saveBlock (transactions, cb) {
+		var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');
+
+		node.async.waterfall([ 
+			loadDelegates,
+			function (seriesCb) {
+				getNextForger(null, function (delegatePublicKey) {
+					seriesCb(null, delegatePublicKey);
+				});
+			},
+			function createBlock (delegate, seriesCb) {
+				var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
+				var lastBlock = library.modules.blocks.lastBlock.get();
+				var slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
+				var keypair = keypairs[delegate];
+				var timestamp = slots.getSlotTime(slot);
+				var block = library.logic.block.create({
+					keypair: keypair,
+					timestamp: timestamp,
+					previousBlock: lastBlock,
+					transactions: transactions
+				});
+				block.id = library.logic.block.getId(block);
+				block.height = lastBlock.height + 1;
+				seriesCb(null, block);
+			},
+			function applyTransactions (block, seriesCb) {
+				node.async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
+					library.modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
+						if (err) { return seriesCb(err); }
+						if (!transaction.senderId) {
+							transaction.senderId = library.modules.accounts.generateAddressByPublicKey(transaction.senderPublicKey);
+						}				
+						library.modules.transactions.apply(transaction, block, sender, function (err) {
+							return setImmediate(eachSeriesCb, err);
+						});
+					});
+				}, function (err) {
+					return setImmediate(seriesCb, err, block);
+				});
+			},
+			function saveBlock (block, seriesCb) {
+				library.modules.blocks.chain.saveBlock(block, function (err) {
+					if (err) { return seriesCb(err); }
+					library.modules.blocks.lastBlock.set(block);
+					var lastBlock = library.modules.blocks.lastBlock.get();
 					return seriesCb(err);
 				});
 			}
@@ -1409,7 +1459,7 @@ describe('transactionPool', function () {
 
 		it('should be ok when checking account balance with enough LSK for transaction', function (done) {
 			transactionPool.checkBalance(transactions[0], {address: transactions[0].senderId}, function (err, cbBalance) {
-				expect(cbBalance).to.equal('balance: 4999969');
+				expect(cbBalance).to.deep.equal(new node.bignum('499995400000000'));
 				done();
 			});
 		});
@@ -1418,6 +1468,177 @@ describe('transactionPool', function () {
 			transactionPool.checkBalance(invalidsTransactions[0], { address: invalidsTransactions[0].senderId }, function (err, cbBalance) {
 				expect(err).to.equal('Account does not have enough LSK: 2896019180726908125L balance: 0.00001');
 				done();
+			});
+		});
+	});
+
+	describe('sanitize transactions', function () {
+
+		var receivedTransactions;
+		var readyTransactionsBefore;
+		var readyTransactionsAfter;
+
+		describe('calculated balance positive (database balance - incoming block balance - transaction pool balance > 0)', function () {
+
+			it('should be ok when adding a new block', function (done) {
+				setTimeout(function () {
+					receivedTransactions = [node.lisk.transaction.createTransaction(testAccounts[1].account.address, 499990000000000, testAccounts[0].secret)];
+					saveBlock(receivedTransactions, function (err, cbSaveBlock) {
+						expect(err).to.be.null;
+						expect(cbSaveBlock).to.be.undefined;
+						done();
+					});
+				}, 800);
+			});
+
+			it('should be ok when rechecking balance, pool remains the same', function (done) {
+				readyTransactionsBefore = transactionPool.getReady();
+				transactionPool.sanitizeTransactions(receivedTransactions, function () {
+					readyTransactionsAfter = transactionPool.getReady();
+					expect(readyTransactionsAfter.length).equal(readyTransactionsBefore.length);
+					done();
+				});
+			});
+
+			it('should be ok when checking that account balance is positive', function (done) {
+				transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
+					expect(cbBalance.greaterThan('0'));
+					done();
+				});
+			});
+		});
+
+		describe('calculated balance zero (database balance - incoming block balance - transaction pool balance = 0)', function () {
+
+			it('should be ok when transferring funds', function (done) {
+				transactionPool.addReady([node.lisk.transaction.createTransaction(testAccounts[2].account.address, 5360000000, testAccounts[0].secret)], function (err, cbtransaction) {
+					expect(cbtransaction).to.be.undefined;
+					done();
+				});
+			});
+
+			it('should be ok when adding a new block', function (done) {
+				setTimeout(function () {
+					receivedTransactions = [node.lisk.transaction.createTransaction(testAccounts[2].account.address, 10000000, testAccounts[0].secret)];
+					saveBlock(receivedTransactions, function (err, cbSaveBlock) {
+						expect(err).to.be.null;
+						expect(cbSaveBlock).to.be.undefined;
+						done();
+					});
+				}, 800);
+			});
+
+			it('should be ok when rechecking balance, pool remains the same', function (done) {
+				readyTransactionsBefore = transactionPool.getReady();
+				transactionPool.sanitizeTransactions(receivedTransactions, function () {
+					readyTransactionsAfter = transactionPool.getReady();
+					expect(readyTransactionsAfter.length).equal(readyTransactionsBefore.length);
+					done();
+				});
+			});
+
+			it('should be ok when checking that account balance is zero', function (done) {
+				readyTransactionsAfter = transactionPool.getReady();
+				transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
+					expect(cbBalance.equals('0'));
+					done();
+				});
+			});
+		});
+
+		describe('calculated balance negative (database balance - incoming block balance - transaction pool balance < 0)', function () {
+
+			describe('one transaction deleted from pool', function () {
+
+				it('should be ok when adding a new block', function (done) {
+					setTimeout(function () {
+						receivedTransactions = [node.lisk.transaction.createTransaction(testAccounts[2].account.address, 100000000, testAccounts[0].secret)];
+						saveBlock(receivedTransactions, function (err, cbSaveBlock) {
+							expect(err).to.be.null;
+							expect(cbSaveBlock).to.be.undefined;
+							done();
+						});
+					}, 800);
+				});
+
+				it.skip('should be ok when checking that account balance is positive', function (done) {
+					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
+						expect(cbBalance.greaterThan('0'));
+						done();
+					});
+				});
+
+				it('should be ok when rechecking balance and deleting one transaction from pool', function (done) {
+					readyTransactionsBefore = transactionPool.getReady();
+					transactionPool.sanitizeTransactions(receivedTransactions, function () {
+						readyTransactionsAfter = transactionPool.getReady();
+						expect(readyTransactionsAfter.length).equal(readyTransactionsBefore.length - 1);
+						done();
+					});
+				});
+
+				it('should be ok when checking that account balance is positive', function (done) {
+					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
+						expect(cbBalance.greaterThan('0'));
+						done();
+					});
+				});
+			});
+
+			describe('several transactions deleted from pool', function () {
+
+				it('should be ok when transferring funds in multiple transactions', function (done) {
+					var multipleTransfers = [
+						node.lisk.transaction.createTransaction(testAccounts[1].account.address, 100000000, testAccounts[0].secret),
+						node.lisk.transaction.createTransaction(testAccounts[2].account.address, 200000000, testAccounts[0].secret),
+						node.lisk.transaction.createTransaction(testAccounts[3].account.address, 300000000, testAccounts[0].secret)
+					];
+					transactionPool.addReady(multipleTransfers, function (err, cbtransaction) {
+						expect(cbtransaction).to.be.undefined;
+						done();
+					});
+				});
+
+				it.skip('should be ok when checking that account balance is positive', function (done) {
+					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
+						expect(cbBalance.greaterThan('0'));
+						done();
+					});
+				});
+
+				it('should be ok when adding a new block', function (done) {
+					setTimeout(function () {
+						receivedTransactions = [node.lisk.transaction.createTransaction(testAccounts[2].account.address, 500000000, testAccounts[0].secret)];
+						saveBlock(receivedTransactions, function (err, cbSaveBlock) {
+							expect(err).to.be.null;
+							expect(cbSaveBlock).to.be.undefined;
+							done();
+						});
+					}, 800);
+				});
+
+				it.skip('should be ok when checking that account balance is negative', function (done) {
+					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
+						expect(cbBalance.lessThan('0'));
+						done();
+					});
+				});
+
+				it('should be ok when rechecking balance and deleting one transaction from pool', function (done) {
+					readyTransactionsBefore = transactionPool.getReady();
+					transactionPool.sanitizeTransactions(receivedTransactions, function () {
+						readyTransactionsAfter = transactionPool.getReady();
+						expect(readyTransactionsAfter.length).lessThanOrEqualTo(readyTransactionsBefore.length - 2);
+						done();
+					});
+				});
+
+				it('should be ok when checking that account balance is positive', function (done) {
+					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
+						expect(cbBalance.greaterThan('0'));
+						done();
+					});
+				});
 			});
 		});
 	});

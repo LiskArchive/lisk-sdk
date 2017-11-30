@@ -397,6 +397,12 @@ __private.addToPoolList = function (transaction, poolList, cb) {
 	if (poolList.transactions[transaction.id] === undefined) {
 		poolList.count++;
 	}
+
+	// Equalize sender address
+	if (!transaction.senderId) {
+		transaction.senderId = modules.accounts.generateAddressByPublicKey(transaction.senderPublicKey);
+	}
+
 	poolList.transactions[transaction.id] = transaction;
 	return setImmediate(cb);
 };
@@ -554,6 +560,40 @@ TransactionPool.prototype.bind = function (accounts) {
 };
 
 /**
+ * Deletes transactions from pool ready until account balance becomes zero or positive.
+ * @private
+ * @implements {self.delete}
+ * @param {[transaction]} transactions - Array of transactions.
+ * @param {string} balance - Balance of account.
+ */
+__private.popFromReadyUntilCredit = function (transactions, balance) {
+	var transaction;
+	var transactionsToDelete;
+
+	transactionsToDelete = transactions.find(function (transaction) {
+		return balance.plus(transaction.amount.toString()).plus(transaction.fee.toString()).isZero;
+	});
+
+	if (transactionsToDelete === undefined) {
+		transactionsToDelete = _.orderBy(transactions, [function (transaction) {
+			return transaction.amount + transaction.fee;
+		}, 'id'], ['desc', 'desc']);
+	}
+
+	if (!Array.isArray(transactionsToDelete)) {
+		transactionsToDelete = [transactionsToDelete];
+	}
+
+	while (balance.lessThan('0') && transactionsToDelete.length > 0) {
+		transaction = transactionsToDelete.pop();
+		self.delete(transaction.id);
+		balance = balance.plus(transaction.amount.toString()).plus(transaction.fee.toString());
+	}
+
+	return;
+};
+
+/**
  * Gets invalid, unverified, verified.pending and verified.ready counters.
  * @implements {__private.countTransactionsInPool}
  * @return {Object} unverified, pending, ready
@@ -705,12 +745,10 @@ TransactionPool.prototype.checkBalance  = function (transaction, sender, cb) {
 			return setImmediate(cb, [
 				'Account does not have enough LSK:', sender.address,
 				'balance:', balance.div(Math.pow(10,8))
-			].join(' '));
+			].join(' '), balance);
 		}
 
-		return setImmediate(cb, null, [
-			'balance:', balance.div(Math.pow(10,8))
-		].join(' '));
+		return setImmediate(cb, null, balance);
 	});
 };
 
@@ -823,12 +861,31 @@ TransactionPool.prototype.delete = function (id) {
 /**
  * Deletes transactions from pool lists, and rechecks balance for ready transactions.
  * @implements {self.delete}
+ * @implements {self.checkBalance}
+ * @implements {__private.popFromReadyUntilCredit}
  * @param {string} id - Transaction id.
- * @return {Array} Of cleared pool lists.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb
  */
-TransactionPool.prototype.sanitizeTransactions = function (transactions) {
-	transactions.forEach(function (transaction) {
+TransactionPool.prototype.sanitizeTransactions = function (transactions, cb) {
+	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 		self.delete(transaction.id);
+
+		var readyTransactions = _.filter(pool.verified.ready.transactions, {'senderId': transaction.senderId});
+
+		if (readyTransactions.length > 0) {
+			self.checkBalance({amount: 0, fee: 0}, {address: transaction.senderId}, function (err, balance) {
+				if (err) {
+					__private.popFromReadyUntilCredit(readyTransactions, balance);
+				}
+				return setImmediate(eachSeriesCb);
+			});
+		} else {
+			return setImmediate(eachSeriesCb);
+		}
+
+	}, function () {
+		return setImmediate(cb);
 	});
 };
 

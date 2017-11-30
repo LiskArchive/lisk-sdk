@@ -380,11 +380,12 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id) {
 /**
  * Removes transactions from the pool if they are present, and rechecks pool balance for sender.
  * @implements {transactionPool.sanitazeTransactions}
- * @param {string} id - Transaction id.
- * @return {undefined} Calls transactionPool.sanitazeTransactions
+ * @param {[transaction]} transactions - Array of transactions.
+ * @param {function} cb - Callback function.
+ * @return {function} Calls transactionPool.sanitizeTransactions
  */
-Transactions.prototype.sanitizeTransactionPool = function (transactions) {
-	return library.logic.transactionPool.sanitizeTransactions(transactions);
+Transactions.prototype.sanitizeTransactionPool = function (transactions, cb) {
+	return library.logic.transactionPool.sanitizeTransactions(transactions, cb);
 };
 
 /**
