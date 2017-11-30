@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var config = require('../config.json');
 var constants = require('../helpers/constants.js');
@@ -502,31 +503,20 @@ TransactionPool.prototype.fillPool = function (cb) {
 
 // Private
 /**
- * Gets reversed or limited transactions from input parameter.
+ * Gets transactions from requested list, sort them, filter and return as array
  * @private
- * @param {transaction[]} transactions
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {transaction[]}
+ * @param {Object} list - Reference to one of supported transactions list: self.(unconfirmed|bundled|queued|multisignature)
+ * @param {boolean} reverse - If true trasactions order will be reversed
+ * @param {number} [limit] - When supplied list will be cut off
+ * @return {Object[]} - transactions - Array of transactions (or empty array)
  */
-__private.getTransactionList = function (transactions, reverse, limit) {
-	var a = [];
+__private.getTransactionList = function (list, reverse, limit) {
+	// Sort order - default: asc, reverse: desc
+	var order = reverse ? 'desc' : 'asc';
 
-	for (var i = 0; i < transactions.length; i++) {
-		var transaction = transactions[i];
-
-		if (transaction !== false)	{
-			a.push(transaction);
-		}
-	}
-
-	a = reverse ? a.reverse() : a;
-
-	if (limit) {
-		a.splice(limit);
-	}
-
-	return a;
+	// Return sorted array of transactions, limit applied if supplied
+	// - sorts on receivedAt property first, then on id (for case that receivedAt is the same)
+	return _.orderBy(list.transactions, ['receivedAt', 'id'], [order, order]).slice(0, limit);
 };
 
 /**
