@@ -619,21 +619,19 @@ TransactionPool.prototype.expireTransactions = function (cb) {
  * Gets multisignatures and queued transactions based on pool size.
  * Adds unconfirmed transactions and returns unconfirmed list.
  * @implements {modules.loader.syncing}
- * @implements {countUnconfirmed}
  * @implements {getMultisignatureTransactionList}
  * @implements {getQueuedTransactionList}
  * @implements {addUnconfirmedTransaction}
- * @implements {applyUnconfirmedList}
+ * @implements {__private.applyUnconfirmedList}
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback|applyUnconfirmedList} for errors | with transactions
  */
 TransactionPool.prototype.fillPool = function (cb) {
 	if (modules.loader.syncing()) { return setImmediate(cb); }
 
-	var unconfirmedCount = self.countUnconfirmed();
-	library.logger.debug('Transaction pool size: ' + unconfirmedCount);
+	library.logger.debug('Unconfirmed transaction pool size: ' + self.unconfirmed.count);
 
-	if (unconfirmedCount >= constants.maxTxsPerBlock) {
+	if (self.unconfirmed.count >= constants.maxTxsPerBlock) {
 		return setImmediate(cb);
 	} else {
 		var spare = 0, spareMulti;
