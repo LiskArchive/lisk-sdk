@@ -1,14 +1,17 @@
 'use strict';
 
+var _ = require('lodash');
 var expect = require('chai').expect;
-var sinon = require('sinon');
 var rewire = require('rewire');
 var randomstring = require('randomstring');
-var _ = require('lodash');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var sinon = require('sinon');
+
+var constants = require('../../../helpers/constants');
+var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;
 var generateRandomActivePeer = require('../../common/objectStubs').generateRandomActivePeer;
 var modulesLoader = require('../../common/modulesLoader');
-var constants = require('../../../helpers/constants');
+var randomInt = require('../../common/helpers').randomInt;
+var randomPeer = require('../../common/objectStubs').randomPeer;
 
 describe('peers', function () {
 
@@ -22,30 +25,6 @@ describe('peers', function () {
 	var transportModuleMock;
 
 	var NONCE = randomstring.generate(16);
-
-	function randomInt (min, max) {
-		min = Math.ceil(min);
-		max = Math.floor(max);
-		return Math.floor(Math.random() * (max - min + 1)) + min;
-	}
-
-	function generateMatchedAndUnmatchedBroadhashes (unmatchedAmount) {
-		var characterNotPresentInValidBroadhash = '@';
-		var validBroadhash = randomstring.generate({
-			length: 64,
-			custom: 'abcdefghijklmnopqrstuvwxyz0123456789!$&_.'
-		});
-		return _.range(unmatchedAmount).reduce(function (result) {
-			result.unmatchedBroadhashes.push(randomstring.generate({
-				length: 63,
-				custom: 'abcdefghijklmnopqrstuvwxyz0123456789!$&_.'
-			}) + characterNotPresentInValidBroadhash);
-			return result;
-		}, {
-			matchedBroadhash: validBroadhash,
-			unmatchedBroadhashes: []
-		});
-	}
 
 	before(function () {
 		dbMock = {
