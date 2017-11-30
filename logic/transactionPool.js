@@ -253,19 +253,6 @@ TransactionPool.prototype.purgeTransactionById = function (id) {
 	__private.removeTransactionById(self.multisignature, id);
 };
 
-
-/**
- * Removes transaction with specified ID from unconfirmed, queued and multisignature lists
- * @param {string} id - Transaction ID
- * @implements {__private.removeTransactionById}
- */
-TransactionPool.prototype.removeUnconfirmedTransaction = function (id) {
-	__private.removeTransactionById(self.unconfirmed, id);
-	__private.removeTransactionById(self.queued, id);
-	__private.removeTransactionById(self.multisignature, id);
-	// FIXME: Why we don't remove from bundled here?
-};
-
 /**
  * Calls processUnconfirmedTransaction for each transaction.
  * @implements {processUnconfirmedTransaction}
@@ -304,7 +291,6 @@ TransactionPool.prototype.processBundled = function (cb) {
 		__private.processVerifyTransaction(transaction, true, function (err, sender) {
 			if (err) {
 				library.logger.debug('Failed to process / verify bundled transaction: ' + transaction.id, err);
-				self.removeUnconfirmedTransaction(transaction);
 				return setImmediate(eachSeriesCb);
 			} else {
 				self.queueTransaction(transaction, function (err) {
@@ -420,7 +406,6 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 			modules.transactions.undoUnconfirmed(transaction, function (err) {
 				if (err) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
-					self.removeUnconfirmedTransaction(transaction.id);
 				}
 
 				// Remove transaction from unconfirmed list
@@ -561,7 +546,11 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 			});
 		}
 	], function (err, sender) {
-		if (!err) {
+		if (err) {
+			// Remove transaction from queued and multisignature
+			__private.removeTransactionById(self.queued, transaction.id);
+			__private.removeTransactionById(self.multisignature, transaction.id);
+		} else {
 			library.bus.message('unconfirmedTransaction', transaction, broadcast);
 		}
 
@@ -593,13 +582,15 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 		__private.processVerifyTransaction(transaction, false, function (err, sender) {
 			if (err) {
 				library.logger.error('Failed to process / verify unconfirmed transaction: ' + transaction.id, err);
-				self.removeUnconfirmedTransaction(transaction.id);
 				return setImmediate(eachSeriesCb);
 			}
 			modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 				if (err) {
 					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
-					self.removeUnconfirmedTransaction(transaction.id);
+
+					// Remove transaction from queued and multisignature
+					__private.removeTransactionById(self.queued, transaction.id);
+					__private.removeTransactionById(self.multisignature, transaction.id);
 				}
 
 				__private.moveToUnconfirmed(transaction);
