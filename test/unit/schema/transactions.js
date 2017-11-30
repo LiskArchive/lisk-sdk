@@ -1,13 +1,15 @@
-var expect = require('chai').expect;
+'use strict';
 
-var node = require('../../node.js');
+var expect = require('chai').expect;
+var lisk = require('lisk-js');
+
+var randomUtil = require('../../common/utils/random');
+
+var constants = require('../../../helpers/constants.js');
 var ZSchema = require('../../../helpers/z_schema.js');
 var schema = require('../../../schema/transactions.js');
 
-var constants = require('../../../helpers/constants.js');
 var validator = new ZSchema();
-
-var randomUtil = require('../../common/utils/random');
 
 describe('transactions', function () {
 
@@ -33,8 +35,8 @@ describe('transactions', function () {
 		var testBody;
 
 		beforeEach(function () {
-			var account1PublicKey = node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
-			var account2PublicKey = node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
+			var account1PublicKey = lisk.crypto.getKeys(randomUtil.password()).publicKey;
+			var account2PublicKey = lisk.crypto.getKeys(randomUtil.password()).publicKey;
 
 			testBody = {
 				blockId: '1465651642158264047',
@@ -48,8 +50,8 @@ describe('transactions', function () {
 				fee: 20,
 				senderPublicKeys: [account1PublicKey, account2PublicKey],
 				recipientPublicKeys: [account1PublicKey, account2PublicKey],
-				senderIds: [node.lisk.crypto.getAddress(account1PublicKey), node.lisk.crypto.getAddress(account2PublicKey)],
-				recipientIds: [node.lisk.crypto.getAddress(account1PublicKey), node.lisk.crypto.getAddress(account2PublicKey)],
+				senderIds: [lisk.crypto.getAddress(account1PublicKey), lisk.crypto.getAddress(account2PublicKey)],
+				recipientIds: [lisk.crypto.getAddress(account1PublicKey), lisk.crypto.getAddress(account2PublicKey)],
 				fromHeight: 1,
 				toHeight: 2,
 				fromTimestamp: 0,

@@ -2,6 +2,8 @@
 
 require('../../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
@@ -30,7 +32,7 @@ describe('POST /api/transactions (validate type 4 on top of type 1)', function (
 	describe('creating multisig', function () {
 
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + accountFixtures.existingDelegate.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
+			transaction = lisk.multisignature.createMultisignature(account.password, null, ['+' + accountFixtures.existingDelegate.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -40,7 +42,7 @@ describe('POST /api/transactions (validate type 4 on top of type 1)', function (
 		});
 
 		it('using second passphrase not matching registered secondPublicKey should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + accountFixtures.existingDelegate.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
+			transaction = lisk.multisignature.createMultisignature(account.password, 'wrong second password', ['+' + accountFixtures.existingDelegate.publicKey, '+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -50,7 +52,7 @@ describe('POST /api/transactions (validate type 4 on top of type 1)', function (
 		});
 
 		it('using correct second passphrase should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
+			transaction = lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + account2.publicKey, '+' + account3.publicKey], 1, 2);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

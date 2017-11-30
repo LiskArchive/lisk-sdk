@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var test = require('../../../test');
 var node = require('../../../node');
 var shared = require('../../shared');
@@ -50,12 +52,12 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	before(function () {
 		var transactions = [];
-		var transaction1 = node.lisk.transaction.createTransaction(delegateAccount.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.vote, accountFixtures.genesis.password);
-		var transaction3 = node.lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction4 = node.lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction5 = node.lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction6 = node.lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(delegateAccount.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.vote, accountFixtures.genesis.password);
+		var transaction3 = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction4 = lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction5 = lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction6 = lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, accountFixtures.genesis.password);
 		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5, transaction6);
 
 		var promises = [];
@@ -79,7 +81,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
-					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, accountFixtures.genesis.password);
+					var transaction = lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, accountFixtures.genesis.password);
 					transactionsCreditMaxVotesPerTransaction.push(transaction);
 					promisesCreditsMaxVotesPerTransaction.push(sendTransactionPromise(transaction));
 				};
@@ -98,7 +100,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				for (var i = 0; i < constants.activeDelegates; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
-					var transaction = node.lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, accountFixtures.genesis.password);
+					var transaction = lisk.transaction.createTransaction(tempAccount.address, constants.fees.delegate, accountFixtures.genesis.password);
 					transactionsCreditMaxVotesPerAccount.push(transaction);
 					promisesCreditsMaxVotesPerAccount.push(sendTransactionPromise(transaction));
 				};
@@ -116,7 +118,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 			})
 			.then(function (res) {
 				transactionsToWaitFor = [];
-				var transaction = node.lisk.delegate.createDelegate(delegateAccount.password, delegateAccount.username);
+				var transaction = lisk.delegate.createDelegate(delegateAccount.password, delegateAccount.username);
 				return sendTransactionPromise(transaction).then(function (result) {
 					node.expect(result).to.have.property('status').to.equal(200);
 					node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -127,7 +129,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				var promisesDelegatesMaxVotesPerTransaction = [];
 				var transactionsDelegateMaxForPerTransaction = [];
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
-					var transaction = node.lisk.delegate.createDelegate(delegatesMaxVotesPerTransaction[i].password, delegatesMaxVotesPerTransaction[i].username);
+					var transaction = lisk.delegate.createDelegate(delegatesMaxVotesPerTransaction[i].password, delegatesMaxVotesPerTransaction[i].username);
 					transactionsDelegateMaxForPerTransaction.push(transaction);
 					promisesDelegatesMaxVotesPerTransaction.push(sendTransactionPromise(transaction));
 				};
@@ -144,7 +146,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				var transactionsDelegateMaxVotesPerAccount = [];
 				var promisesDelegatesMaxVotesPerAccount = [];
 				for (var i = 0; i < constants.activeDelegates; i++) {
-					var transaction = node.lisk.delegate.createDelegate(delegatesMaxVotesPerAccount[i].password, delegatesMaxVotesPerAccount[i].username);
+					var transaction = lisk.delegate.createDelegate(delegatesMaxVotesPerAccount[i].password, delegatesMaxVotesPerAccount[i].username);
 					transactionsDelegateMaxVotesPerAccount.push(transaction);
 					promisesDelegatesMaxVotesPerAccount.push(sendTransactionPromise(transaction));
 				};
@@ -170,7 +172,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 	describe('transactions processing', function () {
 
 		it('using with invalid publicKey should fail', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+L' + accountFixtures.existingDelegate.publicKey.slice(0, -1)]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['+L' + accountFixtures.existingDelegate.publicKey.slice(0, -1)]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -180,7 +182,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('using with invalid vote length (1 extra character) should fail', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-1' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['-1' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -190,7 +192,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('using invalid vote operator "x" should fail', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['x' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['x' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -200,7 +202,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('using no vote operator should fail', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, [accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, [accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -210,7 +212,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('using a null publicKey inside votes should fail', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, [null]);
+			transaction = lisk.vote.createVote(delegateAccount.password, [null]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -221,7 +223,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 		it('upvoting with no funds should fail', function () {
 			accountNoFunds = randomUtil.account();
-			transaction = node.lisk.vote.createVote(accountNoFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(accountNoFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -231,7 +233,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('upvoting with minimal required amount of funds should be ok', function () {
-			transaction = node.lisk.vote.createVote(accountMinimalFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(accountMinimalFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -241,7 +243,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('downvoting not voted delegate should fail', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['-' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -251,7 +253,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('upvoting with valid params should be ok', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -261,7 +263,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('self upvoting with valid params should be ok', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+' + delegateAccount.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['+' + delegateAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -271,7 +273,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('upvoting ' + constants.maxVotesPerTransaction + ' delegates (maximum votes per transaction) at once should be ok', function () {
-			transaction = node.lisk.vote.createVote(accountMaxVotesPerTransaction.password, delegatesMaxVotesPerTransaction.map(function (delegate) {
+			transaction = lisk.vote.createVote(accountMaxVotesPerTransaction.password, delegatesMaxVotesPerTransaction.map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
 
@@ -283,7 +285,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('upvoting ' + (constants.maxVotesPerTransaction + 1) + ' delegates (maximum votes per transaction + 1) at once should fail', function () {
-			transaction = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, constants.maxVotesPerTransaction + 1).map(function (delegate) {
+			transaction = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, constants.maxVotesPerTransaction + 1).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
 
@@ -295,16 +297,16 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('upvoting ' + constants.activeDelegates + ' delegates (number of actived delegates) separately should be ok', function () {
-			var transaction1 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 33).map(function (delegate) {
+			var transaction1 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 33).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
-			var transaction2 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(33, 66).map(function (delegate) {
+			var transaction2 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(33, 66).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
-			var transaction3 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(66, 99).map(function (delegate) {
+			var transaction3 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(66, 99).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
-			var transaction4 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(99, 102).map(function (delegate) {
+			var transaction4 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(99, 102).map(function (delegate) {
 				return '+' + delegate.publicKey;
 			}));
 
@@ -328,7 +330,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 	describe('unconfirmed state', function () {
 
 		it('upvoting with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = node.lisk.vote.createVote(accountDuplicates.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(accountDuplicates.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
@@ -339,7 +341,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				})
 				.then(function (res) {
 					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = node.lisk.vote.createVote(accountDuplicates.password, ['+' + accountFixtures.existingDelegate.publicKey], null, 1);
+					transaction = lisk.vote.createVote(accountDuplicates.password, ['+' + accountFixtures.existingDelegate.publicKey], null, 1);
 
 					return sendTransactionPromise(transaction);
 				})
@@ -360,7 +362,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 	describe('validation', function () {
 
 		it('upvoting same delegate twice should fail', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -370,7 +372,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('downvoting voted delegate should be ok', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['-' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -380,7 +382,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('self downvoting should be ok', function () {
-			transaction = node.lisk.vote.createVote(delegateAccount.password, ['-' + delegateAccount.publicKey]);
+			transaction = lisk.vote.createVote(delegateAccount.password, ['-' + delegateAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -390,7 +392,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('exceeding maximum of ' + constants.activeDelegates + ' votes (number of actived delegates + 1) should fail', function () {
-			transaction = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(accountMaxVotesPerAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -400,7 +402,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('downvoting ' + constants.maxVotesPerTransaction + ' delegates (maximum votes per transaction) at once should be ok', function () {
-			transaction = node.lisk.vote.createVote(accountMaxVotesPerTransaction.password, delegatesMaxVotesPerTransaction.map(function (delegate) {
+			transaction = lisk.vote.createVote(accountMaxVotesPerTransaction.password, delegatesMaxVotesPerTransaction.map(function (delegate) {
 				return '-' + delegate.publicKey;
 			}));
 
@@ -412,7 +414,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('downvoting ' + (constants.maxVotesPerTransaction + 1) + ' delegates (maximum votes per transaction + 1) at once should fail', function () {
-			transaction = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 34).map(function (delegate) {
+			transaction = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 34).map(function (delegate) {
 				return '-' + delegate.publicKey;
 			}));
 
@@ -424,16 +426,16 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it('downvoting ' + constants.activeDelegates + ' delegates (number of actived delegates) separately should be ok', function () {
-			var transaction1 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 33).map(function (delegate) {
+			var transaction1 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(0, 33).map(function (delegate) {
 				return '-' + delegate.publicKey;
 			}));
-			var transaction2 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(33, 66).map(function (delegate) {
+			var transaction2 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(33, 66).map(function (delegate) {
 				return '-' + delegate.publicKey;
 			}));
-			var transaction3 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(66, 99).map(function (delegate) {
+			var transaction3 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(66, 99).map(function (delegate) {
 				return '-' + delegate.publicKey;
 			}));
-			var transaction4 = node.lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(99, 102).map(function (delegate) {
+			var transaction4 = lisk.vote.createVote(accountMaxVotesPerAccount.password, delegatesMaxVotesPerAccount.slice(99, 102).map(function (delegate) {
 				return '-' + delegate.publicKey;
 			}));
 
@@ -457,7 +459,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 	describe('unconfirmed state after validation', function () {
 
 		it('downvoting with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = node.lisk.vote.createVote(accountDuplicates.password, ['-' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(accountDuplicates.password, ['-' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
@@ -468,7 +470,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				})
 				.then(function (res) {
 					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = node.lisk.vote.createVote(accountDuplicates.password, ['-' + accountFixtures.existingDelegate.publicKey], null, 1);
+					transaction = lisk.vote.createVote(accountDuplicates.password, ['-' + accountFixtures.existingDelegate.publicKey], null, 1);
 
 					return sendTransactionPromise(transaction);
 				})

@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var test = require('../../../test');
 var node = require('../../../node');
 var _ = test._;
@@ -28,7 +30,7 @@ describe('GET /dapps', function () {
 	var registeredDappsAmount = 2;
 
 	before(function () {
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
 		transactionsToWaitFor.push(transaction.id);
 		return sendTransactionPromise(transaction)
 			.then(function (res) {
@@ -37,8 +39,8 @@ describe('GET /dapps', function () {
 			}).then(function () {
 				transactionsToWaitFor = [];
 
-				var transaction1 = node.lisk.dapp.createDapp(account.password, null, dapp1);
-				var transaction2 = node.lisk.dapp.createDapp(account.password, null, dapp2);
+				var transaction1 = lisk.dapp.createDapp(account.password, null, dapp1);
+				var transaction2 = lisk.dapp.createDapp(account.password, null, dapp2);
 				var promises = [];
 				promises.push(sendTransactionPromise(transaction1));
 				promises.push(sendTransactionPromise(transaction2));
@@ -212,7 +214,7 @@ describe('GET /dapps', function () {
 
 				var sum = 0;
 				for (var i = 1; i <= 20; i++) {
-					transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
+					transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 					transactionsToWaitFor.push(transaction.id);
 					promises.push(sendTransactionPromise(transaction));
 					sum = sum + i;

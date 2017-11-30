@@ -3,15 +3,15 @@
 var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
+var lisk = require('lisk-js');
 
 var test = require('../../test');
-var node = require('../../node');
 var accountFixtures = require('../../fixtures/accounts');
-
-var Cache = require('../../../modules/cache');
 
 var modulesLoader = require('../../common/modulesLoader');
 var randomUtil = require('../../common/utils/random');
+
+var Cache = require('../../../modules/cache');
 
 describe('cache', function () {
 
@@ -324,7 +324,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.transaction.createTransaction('1L', 1, accountFixtures.genesis.password, accountFixtures.genesis.secondPassword);
+				var transaction = lisk.transaction.createTransaction('1L', 1, accountFixtures.genesis.password, accountFixtures.genesis.secondPassword);
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
@@ -343,7 +343,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
@@ -362,7 +362,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], function (err) {

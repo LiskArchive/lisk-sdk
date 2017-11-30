@@ -3,6 +3,7 @@
 require('../functional.js');
 
 var async = require('async');
+var lisk = require('lisk-js');
 
 var test = require('../../test');
 var node = require('../../node');
@@ -35,7 +36,7 @@ describe('postTransactions @slow', function () {
 				var bundled = [];
 
 				for (var i = 0; i < test.config.broadcasts.releaseLimit; i++) {
-					var transaction = node.lisk.transaction.createTransaction(
+					var transaction = lisk.transaction.createTransaction(
 						randomUtil.account().address,
 						randomUtil.number(100000000, 1000000000),
 						accountFixtures.genesis.password
@@ -72,7 +73,7 @@ describe('postTransactions @slow', function () {
 
 		before(function (done) {
 			async.doUntil(function (next) {
-				var transaction = node.lisk.transaction.createTransaction(
+				var transaction = lisk.transaction.createTransaction(
 					randomUtil.account().address,
 					randomUtil.number(100000000, 1000000000),
 					accountFixtures.genesis.password

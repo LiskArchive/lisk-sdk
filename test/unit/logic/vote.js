@@ -2,13 +2,16 @@
 
 var crypto = require('crypto');
 var async = require('async');
-
+var lisk = require('lisk-js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var node = require('../../node');
 var accountFixtures = require('../../fixtures/accounts');
+
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
+var modulesLoader = require('../../common/modulesLoader');
 
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff');
@@ -21,10 +24,6 @@ var Delegate = require('../../../logic/delegate');
 var AccountLogic = require('../../../logic/account');
 var AccountModule = require('../../../modules/accounts');
 var DelegateModule = require('../../../modules/delegates');
-
-var application = require('../../common/application');
-var randomUtil = require('../../common/utils/random');
-var modulesLoader = require('../../common/modulesLoader');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -557,7 +556,7 @@ describe('vote', function () {
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
-				return '+' + node.lisk.crypto.getKeys(randomUtil.password()).publicKey;
+				return '+' + lisk.crypto.getKeys(randomUtil.password()).publicKey;
 			});
 			expect(function () {
 				vote.objectNormalize.call(transactionLogic, transaction);

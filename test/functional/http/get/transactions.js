@@ -790,7 +790,7 @@ describe('GET /api/transactions', function () {
 			var amountToSend = 123456789;
 			var expectedFee = randomUtil.expectedFeeForTransactionWithData(amountToSend);
 			var data = 'extra information';
-			var transaction = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
+			var transaction = lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

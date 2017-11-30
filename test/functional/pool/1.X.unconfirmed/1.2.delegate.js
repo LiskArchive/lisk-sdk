@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
@@ -23,7 +25,7 @@ describe('POST /api/transactions (unconfirmed type 2 on top of type 1)', functio
 	describe('registering delegate', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
+			transaction = lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -33,7 +35,7 @@ describe('POST /api/transactions (unconfirmed type 2 on top of type 1)', functio
 		});
 
 		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+			transaction = lisk.delegate.createDelegate(account.password, account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

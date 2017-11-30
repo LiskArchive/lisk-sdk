@@ -1,5 +1,7 @@
 'use strict';
 
+var lisk = require('lisk-js');
+
 var test = require('../../../test');
 var node = require('../../../node');
 var shared = require('../../shared');
@@ -19,7 +21,7 @@ function beforeValidationPhase (scenarios) {
 				return;
 			}
 
-			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
+			var transaction = lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
 			transactionsToWaitFor.push(transaction.id);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -32,7 +34,7 @@ function beforeValidationPhase (scenarios) {
 			})
 			.then(function () {
 				return test.Promise.all(Object.keys(scenarios).map(function (type) {
-					var transaction = node.lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
+					var transaction = lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);
 
@@ -54,7 +56,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 				return;
 			}
 
-			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
+			var transaction = lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
 			transactionsToWaitFor.push(transaction.id);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -68,7 +70,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 			.then(function () {
 				return test.Promise.all(Object.keys(scenarios).map(function (type) {
 					scenarios[type].dapp = randomUtil.application();
-					var transaction = node.lisk.dapp.createDapp(scenarios[type].account.password, null, scenarios[type].dapp);
+					var transaction = lisk.dapp.createDapp(scenarios[type].account.password, null, scenarios[type].dapp);
 					scenarios[type].dapp.id = transaction.id;
 					transactionsToWaitFor.push(transaction.id);
 
@@ -83,7 +85,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 			})
 			.then(function () {
 				return test.Promise.all(Object.keys(scenarios).map(function (type) {
-					var transaction = node.lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
+					var transaction = lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);
 

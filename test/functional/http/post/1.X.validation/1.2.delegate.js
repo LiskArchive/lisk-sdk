@@ -2,6 +2,8 @@
 
 require('../../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
@@ -23,7 +25,7 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 	describe('registering delegate', function () {
 
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+			transaction = lisk.delegate.createDelegate(account.password, account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -33,7 +35,7 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 		});
 
 		it('using second passphrase not matching registered secondPublicKey should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, account.username, 'invalid password');
+			transaction = lisk.delegate.createDelegate(account.password, account.username, 'invalid password');
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -43,7 +45,7 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 		});
 
 		it('using correct second passphrase should be ok', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
+			transaction = lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

@@ -1,5 +1,7 @@
 'use strict';
 
+var lisk = require('lisk-js');
+
 var test = require('../../../../test');
 var node = require('../../../../node');
 var shared = require('../../../shared');
@@ -24,7 +26,7 @@ function beforeValidationPhase (scenarios) {
 			if (type === 'no_funds') {
 				return;
 			}
-			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
+			var transaction = lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
 			transactionsToWaitFor.push(transaction.id);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -37,7 +39,7 @@ function beforeValidationPhase (scenarios) {
 			})
 			.then(function () {
 				return test.Promise.all(Object.keys(scenarios).map(function (type) {
-					var transaction = node.lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
+					var transaction = lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);
 
@@ -70,26 +72,26 @@ function sendAndSignMultisigTransaction (type, scenario) {
 
 	switch (type) {
 		case 'transfer':
-			transaction = node.lisk.transaction.createTransaction(randomUtil.account().address, 1, scenario.account.password);
+			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenario.account.password);
 			break;
 		case 'signature':
-			transaction = node.lisk.signature.createSignature(scenario.account.password, scenario.account.secondPassword);
+			transaction = lisk.signature.createSignature(scenario.account.password, scenario.account.secondPassword);
 			break;
 		case 'delegate':
-			transaction = node.lisk.delegate.createDelegate(scenario.account.password, scenario.account.username);
+			transaction = lisk.delegate.createDelegate(scenario.account.password, scenario.account.username);
 			break;
 		case 'votes':
-			transaction = node.lisk.vote.createVote(scenario.account.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+			transaction = lisk.vote.createVote(scenario.account.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 			break;
 		case 'dapp':
-			transaction = node.lisk.dapp.createDapp(scenario.account.password, null, randomUtil.guestbookDapp);
+			transaction = lisk.dapp.createDapp(scenario.account.password, null, randomUtil.guestbookDapp);
 			randomUtil.guestbookDapp.id = transaction.id;
 			break;
 		case 'inTransfer':
-			transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, scenario.account.password);
+			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, scenario.account.password);
 			break;
 		case 'outTransfer':
-			transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, randomUtil.account().address, 1, scenario.account.password);
+			transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, randomUtil.account().address, 1, scenario.account.password);
 			break;
 	};
 

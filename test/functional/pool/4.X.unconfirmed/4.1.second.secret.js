@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
@@ -23,7 +25,7 @@ describe('POST /api/transactions (unconfirmed type 1 on top of type 4)', functio
 	describe('registering second password', function () {
 
 		it('regular scenario should be ok', function () {
-			transaction = node.lisk.signature.createSignature(scenarios.regular.account.password, scenarios.regular.account.secondPassword);
+			transaction = lisk.signature.createSignature(scenarios.regular.account.password, scenarios.regular.account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

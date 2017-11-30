@@ -2,6 +2,8 @@
 
 require('../../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
@@ -24,7 +26,7 @@ describe('POST /api/transactions (validate type 0 on top of type 1)', function (
 	describe('sending funds', function () {
 
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password);
+			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -34,7 +36,7 @@ describe('POST /api/transactions (validate type 0 on top of type 1)', function (
 		});
 
 		it('using second passphrase not matching registered secondPublicKey should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password, 'invalid password');
+			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password, 'invalid password');
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -44,7 +46,7 @@ describe('POST /api/transactions (validate type 0 on top of type 1)', function (
 		});
 
 		it('using correct second passphrase should be ok', function () {
-			transaction = node.lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password, account.secondPassword);
+			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

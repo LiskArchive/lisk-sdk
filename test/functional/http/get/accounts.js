@@ -2,8 +2,10 @@
 
 require('../../functional.js');
 
-var _ = require('lodash');
-var node = require('../../../node');
+var lisk = require('lisk-js');
+
+var test = require('../../../test');
+var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
@@ -119,8 +121,8 @@ describe('GET /accounts', function () {
 		describe('secondPublicKey', function () {
 
 			var secondPublicKeyAccount = randomUtil.account();
-			var creditTransaction = node.lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, accountFixtures.genesis.password);
-			var signatureTransaction = node.lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
+			var creditTransaction = lisk.transaction.createTransaction(secondPublicKeyAccount.address, constants.fees.secondSignature, accountFixtures.genesis.password);
+			var signatureTransaction = lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
 
 			before(function () {
 				return sendTransactionPromise(creditTransaction).then(function (res) {

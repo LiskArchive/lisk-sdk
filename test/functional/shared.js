@@ -1,5 +1,7 @@
 'use strict';
 
+var lisk = require('lisk-js');
+
 var test = require('../test');
 var node = require('../node');
 var _ = test._;
@@ -92,25 +94,25 @@ function invalidAssets (option, badTransactions) {
 	beforeEach(function () {
 		switch(option) {
 			case 'signature':
-				transaction = node.lisk.signature.createSignature(accountFixtures.genesis.password, randomUtil.password());
+				transaction = lisk.signature.createSignature(accountFixtures.genesis.password, randomUtil.password());
 				break;
 			case 'delegate':
-				transaction = node.lisk.delegate.createDelegate(accountFixtures.genesis.password, randomUtil.delegateName());
+				transaction = lisk.delegate.createDelegate(accountFixtures.genesis.password, randomUtil.delegateName());
 				break;
 			case 'votes':
-				transaction = node.lisk.vote.createVote(accountFixtures.genesis.password, []);
+				transaction = lisk.vote.createVote(accountFixtures.genesis.password, []);
 				break;
 			case 'multisignature':
-				transaction = node.lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 2);
 				break;
 			case 'dapp':
-				transaction = node.lisk.dapp.createDapp(accountFixtures.genesis.password, null, randomUtil.guestbookDapp);
+				transaction = lisk.dapp.createDapp(accountFixtures.genesis.password, null, randomUtil.guestbookDapp);
 				break;
 			case 'inTransfer':
-				transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
+				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
 				break;
 			case 'outTransfer':
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), accountFixtures.genesis.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), accountFixtures.genesis.password);
 				break;
 		};
 	});
@@ -189,9 +191,9 @@ function MultisigScenario (options) {
 	this.lifetime = options.lifetime || 1;
 	this.amount = options.amount || 100000000000;
 
-	this.multiSigTransaction = node.lisk.multisignature.createMultisignature(this.account.password, null, this.keysgroup, this.lifetime, this.min);
-	this.creditTransaction = node.lisk.transaction.createTransaction(this.account.address, this.amount, accountFixtures.genesis.password);
-	this.secondSignatureTransaction = node.lisk.signature.createSignature(this.account.password, this.account.secondPassword);
+	this.multiSigTransaction = lisk.multisignature.createMultisignature(this.account.password, null, this.keysgroup, this.lifetime, this.min);
+	this.creditTransaction = lisk.transaction.createTransaction(this.account.address, this.amount, accountFixtures.genesis.password);
+	this.secondSignatureTransaction = lisk.signature.createSignature(this.account.password, this.account.secondPassword);
 }
 
 module.exports = {

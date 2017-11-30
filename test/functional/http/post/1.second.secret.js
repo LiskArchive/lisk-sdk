@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var test = require('../../../test');
 var node = require('../../../node');
 var shared = require('../../shared');
@@ -28,9 +30,9 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 	// Crediting accounts
 	before(function () {
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, accountFixtures.genesis.password);
-		var transaction3 = node.lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, accountFixtures.genesis.password);
+		var transaction3 = lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, accountFixtures.genesis.password);
 
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
@@ -57,7 +59,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 	describe('transactions processing', function () {
 
 		it('using second passphrase on a fresh account should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
+			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -67,7 +69,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 
 		it('with no funds should fail', function () {
-			transaction = node.lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
+			transaction = lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -77,7 +79,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 
 		it('with minimal required amount of funds should be ok', function () {
-			transaction = node.lisk.signature.createSignature(accountMinimalFunds.password, accountMinimalFunds.secondPassword, -1);
+			transaction = lisk.signature.createSignature(accountMinimalFunds.password, accountMinimalFunds.secondPassword, -1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -87,7 +89,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 
 		it('with valid params should be ok', function () {
-			transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
+			transaction = lisk.signature.createSignature(account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

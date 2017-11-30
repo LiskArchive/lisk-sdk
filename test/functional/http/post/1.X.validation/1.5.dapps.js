@@ -2,6 +2,8 @@
 
 require('../../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
@@ -23,7 +25,7 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 	describe('registering dapp', function () {
 
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
-			transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.application());
+			transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -33,7 +35,7 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 		});
 
 		it('using second passphrase not matching registered secondPublicKey should fail', function () {
-			transaction = node.lisk.dapp.createDapp(account.password, 'wrong second password', randomUtil.application());
+			transaction = lisk.dapp.createDapp(account.password, 'wrong second password', randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -43,7 +45,7 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 		});
 
 		it('using correct second passphrase should be ok', function () {
-			transaction = node.lisk.dapp.createDapp(account.password, account.secondPassword, randomUtil.application());
+			transaction = lisk.dapp.createDapp(account.password, account.secondPassword, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

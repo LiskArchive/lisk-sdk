@@ -2,6 +2,8 @@
 
 require('../../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
@@ -23,7 +25,7 @@ describe('POST /api/transactions (validate type 4 on top of type 4)', function (
 	describe('registering multisig', function () {
 
 		it('with an account already registered should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, 1, 2);
+			transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, 1, 2);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);

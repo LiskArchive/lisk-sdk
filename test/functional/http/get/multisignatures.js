@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -21,7 +23,7 @@ describe('GET /api/multisignatures/', function () {
 
 	before(function () {
 		// Crediting accounts
-		var sendTransaction = node.lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var sendTransaction = lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
 		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -29,7 +31,7 @@ describe('GET /api/multisignatures/', function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
-				transaction = node.lisk.multisignature.createMultisignature(scenario.account.password, null, scenario.keysgroup, 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenario.account.password, null, scenario.keysgroup, 1, 2);
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {

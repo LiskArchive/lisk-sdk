@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var test = require('../../../test');
 var node = require('../../../node');
 var shared = require('../../shared');
@@ -33,10 +35,10 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	before(function () {
 
 		var transactions = [];
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, accountFixtures.genesis.password);
-		var transaction3 = node.lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, accountFixtures.genesis.password);
-		var transaction4 = node.lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, accountFixtures.genesis.password);
+		var transaction3 = lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, accountFixtures.genesis.password);
+		var transaction4 = lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, accountFixtures.genesis.password);
 		transactions.push(transaction1);
 		transactions.push(transaction2);
 		transactions.push(transaction3);
@@ -65,7 +67,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	describe('transactions processing', function () {
 
 		it('with no funds should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
+			transaction = lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -75,7 +77,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('with minimal required amount of funds should be ok', function () {
-			transaction = node.lisk.delegate.createDelegate(accountMinimalFunds.password, accountMinimalFunds.username);
+			transaction = lisk.delegate.createDelegate(accountMinimalFunds.password, accountMinimalFunds.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -85,7 +87,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('using blank username should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, '');
+			transaction = lisk.delegate.createDelegate(account.password, '');
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -96,7 +98,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 		it('using invalid username should fail', function () {
 			var username = '~!@#$ %^&*()_+.,?/';
-			transaction = node.lisk.delegate.createDelegate(account.password, username);
+			transaction = lisk.delegate.createDelegate(account.password, username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -107,7 +109,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 		it('using username longer than 20 characters should fail', function () {
 			var delegateName = randomUtil.delegateName() + 'x';
-			transaction = node.lisk.delegate.createDelegate(account.password, delegateName);
+			transaction = lisk.delegate.createDelegate(account.password, delegateName);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -117,7 +119,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('using uppercase username should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(accountUpperCase.password, accountUpperCase.username.toUpperCase());
+			transaction = lisk.delegate.createDelegate(accountUpperCase.password, accountUpperCase.username.toUpperCase());
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -127,7 +129,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('using valid params should be ok', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+			transaction = lisk.delegate.createDelegate(account.password, account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -145,7 +147,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	describe('validation', function () {
 
 		it('setting same delegate twice should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+			transaction = lisk.delegate.createDelegate(account.password, account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -155,7 +157,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('using existing username should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(accountFormerDelegate.password, account.username);
+			transaction = lisk.delegate.createDelegate(accountFormerDelegate.password, account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -165,7 +167,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it('updating registered delegate should fail', function () {
-			transaction = node.lisk.delegate.createDelegate(account.password, 'newusername');
+			transaction = lisk.delegate.createDelegate(account.password, 'newusername');
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);

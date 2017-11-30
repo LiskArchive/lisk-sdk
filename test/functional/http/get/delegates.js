@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var test = require('../../../test');
 var node = require('../../../node');
 var _ = test._;
@@ -168,9 +170,9 @@ describe('GET /delegates', function () {
 
 			var secondSecretAccount = randomUtil.account();
 
-			var creditTransaction = node.lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, accountFixtures.genesis.password);
-			var signatureTransaction = node.lisk.signature.createSignature(secondSecretAccount.password, secondSecretAccount.secondPassword);
-			var delegateTransaction = node.lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
+			var creditTransaction = lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, accountFixtures.genesis.password);
+			var signatureTransaction = lisk.signature.createSignature(secondSecretAccount.password, secondSecretAccount.secondPassword);
+			var delegateTransaction = lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
 
 			before(function () {
 				return sendTransactionsPromise([creditTransaction]).then(function (res) {

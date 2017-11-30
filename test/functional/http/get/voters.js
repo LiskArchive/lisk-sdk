@@ -3,6 +3,7 @@
 require('../../functional.js');
 
 var randomstring = require('randomstring');
+var lisk = require('lisk-js');
 
 var test = require('../../../test');
 var node = require('../../../node');
@@ -211,19 +212,19 @@ describe('GET /api/voters', function () {
 			var validExtraVoter = randomUtil.account();
 
 			before(function () {
-				var enrichExtraDelegateVoterTransaction = node.lisk.transaction.createTransaction(
+				var enrichExtraDelegateVoterTransaction = lisk.transaction.createTransaction(
 					validExtraDelegateVoter.address,
 					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
 					accountFixtures.genesis.password
 				);
 
-				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
+				var registerExtraVoterAsADelegateTransaction = lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
 					length: 10,
 					charset: 'alphabetic',
 					capitalization: 'lowercase'
 				}));
 
-				var voteByExtraDelegateVoterTransaction = node.lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
+				var voteByExtraDelegateVoterTransaction = lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
 
 				return sendTransactionPromise(enrichExtraDelegateVoterTransaction)
 					.then(function () {

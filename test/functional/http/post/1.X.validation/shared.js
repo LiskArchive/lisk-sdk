@@ -1,5 +1,7 @@
 'use strict';
 
+var lisk = require('lisk-js');
+
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var accountFixtures = require('../../../../fixtures/accounts');
@@ -10,7 +12,7 @@ var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfi
 function beforeValidationPhase (account) {
 
 	before(function () {
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
 
 		return sendTransactionPromise(transaction)
 			.then(function (res) {
@@ -20,7 +22,7 @@ function beforeValidationPhase (account) {
 				return waitForConfirmations([transaction.id]);
 			})
 			.then(function () {
-				transaction = node.lisk.signature.createSignature(account.password, account.secondPassword);
+				transaction = lisk.signature.createSignature(account.password, account.secondPassword);
 
 				return sendTransactionPromise(transaction);
 			})

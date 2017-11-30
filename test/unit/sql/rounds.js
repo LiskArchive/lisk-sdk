@@ -8,19 +8,19 @@ var expect = require('chai').expect;
 var Promise = require('bluebird');
 var rewire = require('rewire');
 var sinon = require('sinon');
+var lisk = require('lisk-js');
 
 var test = require('../../test');
-var node = require('../../node');
 var config = require('../../data/config.json');
 var accountFixtures = require('../../fixtures/accounts');
+
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
 
 // Application specific
 var bignum    = require('../../../helpers/bignum');
 var constants = require('../../../helpers/constants');
 var slots     = require('../../../helpers/slots');
-
-var application = require('../../common/application');
-var randomUtil = require('../../common/utils/random');
 
 describe('Rounds-related SQL triggers', function () {
 
@@ -577,7 +577,7 @@ describe('Rounds-related SQL triggers', function () {
 
 		it('should forge block with 1 TRANSFER transaction to random account, update mem_accounts (native) and delegates (trigger block_insert_delete) tables', function () {
 			var transactions = [];
-			var transaction = node.lisk.transaction.createTransaction(
+			var transaction = lisk.transaction.createTransaction(
 				randomUtil.account().address,
 				randomUtil.number(100000000, 1000000000),
 				accountFixtures.genesis.password
@@ -592,7 +592,7 @@ describe('Rounds-related SQL triggers', function () {
 			var transactions = [];
 
 			for (var i = tx_cnt - 1; i >= 0; i--) {
-				var transaction = node.lisk.transaction.createTransaction(
+				var transaction = lisk.transaction.createTransaction(
 					randomUtil.account().address,
 					randomUtil.number(100000000, 1000000000),
 					accountFixtures.genesis.password
@@ -612,7 +612,7 @@ describe('Rounds-related SQL triggers', function () {
 				++blocks_processed;
 				var transactions = [];
 				for (var t = tx_cnt - 1; t >= 0; t--) {
-					var transaction = node.lisk.transaction.createTransaction(
+					var transaction = lisk.transaction.createTransaction(
 						randomUtil.account().address,
 						randomUtil.number(100000000, 1000000000),
 						accountFixtures.genesis.password
@@ -724,7 +724,7 @@ describe('Rounds-related SQL triggers', function () {
 
 			it('should unvote expected forger of last block of round', function () {
 				var transactions = [];
-				var transaction = node.lisk.vote.createVote(
+				var transaction = lisk.vote.createVote(
 					accountFixtures.genesis.password,
 					['-' + last_block_forger]
 				);
@@ -796,14 +796,14 @@ describe('Rounds-related SQL triggers', function () {
 						// Fund random account
 						var transactions = [];
 						tmp_account = randomUtil.account();
-						var transaction = node.lisk.transaction.createTransaction(tmp_account.address, 5000000000, accountFixtures.genesis.password);
+						var transaction = lisk.transaction.createTransaction(tmp_account.address, 5000000000, accountFixtures.genesis.password);
 						transactions.push(transaction);
 						return tickAndValidate(transactions);
 					})
 					.then(function () {
 						// Register random delegate
 						var transactions = [];
-						var transaction = node.lisk.delegate.createDelegate(tmp_account.password, 'my_little_delegate');
+						var transaction = lisk.delegate.createDelegate(tmp_account.password, 'my_little_delegate');
 						transactions.push(transaction);
 						return tickAndValidate(transactions);
 					});
@@ -816,7 +816,7 @@ describe('Rounds-related SQL triggers', function () {
 
 			it('after finishing round, should unvote expected forger of last block of round and vote new delegate', function () {
 				var transactions = [];
-				var transaction = node.lisk.vote.createVote(
+				var transaction = lisk.vote.createVote(
 					accountFixtures.genesis.password,
 					['-' + last_block_forger, '+' + tmp_account.publicKey]
 				);

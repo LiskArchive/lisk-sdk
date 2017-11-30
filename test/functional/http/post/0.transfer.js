@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -51,7 +53,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 
 		it('using zero amount should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(account.address, 0, accountFixtures.genesis.password);
+			transaction = lisk.transaction.createTransaction(account.address, 0, accountFixtures.genesis.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -61,7 +63,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 
 		it('when sender has no funds should fail', function () {
-			transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
+			transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -71,7 +73,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 
 		it('using entire balance should fail', function () {
-			transaction = node.lisk.transaction.createTransaction(account.address, Math.floor(accountFixtures.genesis.balance) , accountFixtures.genesis.password);
+			transaction = lisk.transaction.createTransaction(account.address, Math.floor(accountFixtures.genesis.balance) , accountFixtures.genesis.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -137,7 +139,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		describe('with offset', function () {
 			
 			it('using -1 should be ok', function () {
-				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, -1);
+				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, -1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
@@ -148,7 +150,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			});
 			
 			it('using future timestamp should fail', function () {
-				transaction = node.lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, 1000);
+				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, 1000);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -169,7 +171,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				invalidCases.forEach(function (test) {
 					it('using ' + test.description + ' should fail', function () {
 						var accountAdditionalData = randomUtil.account();
-						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password);
+						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password);
 						transaction.asset.data = test.input;
 
 						return sendTransactionPromise(transaction).then(function (res) {
@@ -189,7 +191,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				validCases.forEach(function (test) {
 					it('using ' + test.description + ' should be ok', function () {
 						var accountAdditionalData = randomUtil.account();
-						transaction = node.lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password, null, test.input);
+						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password, null, test.input);
 						
 						return sendTransactionPromise(transaction).then(function (res) {
 							node.expect(res).to.have.property('status').to.equal(200);

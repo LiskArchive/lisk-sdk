@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
@@ -25,7 +27,7 @@ describe('POST /api/transactions (unconfirmed type 0 on top of type 4)', functio
 	describe('sending funds', function () {
 
 		it('regular scenario should be ok', function () {
-			transaction = node.lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.regular.account.password);
+			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.regular.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

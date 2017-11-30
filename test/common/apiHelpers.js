@@ -154,7 +154,7 @@ function getCount (param, cb) {
 }
 
 function registerDelegate (account, cb) {
-	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+	var transaction = lisk.delegate.createDelegate(account.password, account.username);
 	sendTransaction(transaction, cb);
 }
 
@@ -278,7 +278,7 @@ function createSignatureObject (transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: node.lisk.multisignature.signTransaction(transaction, signer.password)
+		signature: lisk.multisignature.signTransaction(transaction, signer.password)
 	};
 }
 

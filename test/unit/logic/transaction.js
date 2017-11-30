@@ -2,23 +2,21 @@
 
 var crypto = require('crypto');
 var async = require('async');
-
+var lisk = require('lisk-js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var node = require('../../node');
-var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum');
-var DBSandbox = require('../../common/dbSandbox').DBSandbox;
+var accountFixtures = require('../../fixtures/accounts');
+
+var modulesLoader = require('../../common/modulesLoader');
 var application = require('../../common/application');
 
+var ed = require('../../../helpers/ed');
+var bignum = require('../../../helpers/bignum');
 var transactionTypes = require('../../../helpers/transactionTypes');
 var slots = require('../../../helpers/slots');
 var constants = require('../../../helpers/constants');
-
-var modulesLoader = require('../../common/modulesLoader');
-var accountFixtures = require('../../fixtures/accounts');
 
 var Transaction = require('../../../logic/transaction');
 var Vote = require('../../../logic/vote');
@@ -274,7 +272,7 @@ describe('transaction', function () {
 
 		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
 			var transactionBytesFromLogic = transactionLogic.getBytes(validTransaction);
-			var transactionBytesFromLiskJs = node.lisk.crypto.getBytes(validTransaction);
+			var transactionBytesFromLiskJs = lisk.crypto.getBytes(validTransaction);
 
 			expect(transactionBytesFromLogic.equals(transactionBytesFromLiskJs)).to.be.ok;
 		});
@@ -341,7 +339,7 @@ describe('transaction', function () {
 		});
 
 		it('should not return error when transaction is not confirmed', function (done) {
-			var transaction = node.lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret);
+			var transaction = lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret);
 
 			transactionLogic.checkConfirmed(transaction, function (err) {
 				expect(err).to.not.exist;
@@ -441,7 +439,7 @@ describe('transaction', function () {
 	describe('verify', function () {
 
 		function createAndProcess (transactionData, sender, cb) {
-			var transaction = node.lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret, transactionData.secondSecret);
+			var transaction = lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret, transactionData.secondSecret);
 
 			transactionLogic.process(transaction, sender, function (err, transaction) {
 				cb(err, transaction);

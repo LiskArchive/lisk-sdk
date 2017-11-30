@@ -2,6 +2,8 @@
 
 require('../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../node');
 var shared = require('../shared');
 var ws = require('../../common/ws/communication');
@@ -28,7 +30,7 @@ describe('Posting transaction (type 0)', function () {
 	describe('transaction processing', function () {
 
 		it('when sender has no funds should fail', function (done) {
-			var transaction = node.lisk.transaction.createTransaction('1L', 1, account.password);
+			var transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res).to.have.property('success').to.be.not.ok;

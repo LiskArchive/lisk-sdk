@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
@@ -23,7 +25,7 @@ describe('POST /api/transactions (unconfirmed type 6 on top of type 1)', functio
 	describe('inTransfer', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
+			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.transactionId, 10 * node.normalizer, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -33,7 +35,7 @@ describe('POST /api/transactions (unconfirmed type 6 on top of type 1)', functio
 		});
 
 		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
-			transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.transactionId, 10 * node.normalizer, account.password);
+			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.transactionId, 10 * node.normalizer, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);

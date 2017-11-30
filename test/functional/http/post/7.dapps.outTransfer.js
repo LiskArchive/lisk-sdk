@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-js');
+
 var test = require('../../../test');
 var node = require('../../../node');
 var shared = require('../../shared');
@@ -28,8 +30,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 	// Crediting accounts
 	before(function () {
-		var transaction1 = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction2 = node.lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.dappRegistration, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.dappRegistration, accountFixtures.genesis.password);
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
@@ -46,7 +48,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				transaction = node.lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
+				transaction = lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -56,7 +58,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
-				transaction = node.lisk.dapp.createDapp(accountMinimalFunds.password, null, randomUtil.blockDataDapp);
+				transaction = lisk.dapp.createDapp(accountMinimalFunds.password, null, randomUtil.blockDataDapp);
 
 				return sendTransactionPromise(transaction);
 			})
@@ -78,7 +80,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('dappId', function () {
 
 			it('without should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				delete transaction.asset.outTransfer.dappId;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -89,7 +91,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -100,7 +102,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -111,7 +113,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -122,7 +124,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.dappId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -133,7 +135,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty string should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer('', randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer('', randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -144,7 +146,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with invalid string should fail', function () {
 				var invalidDappId = '1L';
-				transaction = node.lisk.transfer.createOutTransfer(invalidDappId, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(invalidDappId, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -157,7 +159,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('transactionId', function () {
 			
 			it('without should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				delete transaction.asset.outTransfer.transactionId;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -168,7 +170,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -179,7 +181,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -190,7 +192,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -201,7 +203,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.asset.outTransfer.transactionId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -212,7 +214,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('empty string should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, '', accountFixtures.genesis.address, 1, account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, '', accountFixtures.genesis.address, 1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -223,7 +225,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with invalid string should fail', function () {
 				var invalidTransactionId = '1L';
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, invalidTransactionId, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, invalidTransactionId, accountFixtures.genesis.address, Date.now(), account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -236,7 +238,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('recipientId', function () {
 
 			it('with integer should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.recipientId = 1;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -247,7 +249,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.recipientId = 1.2;
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -258,7 +260,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.recipientId = [];
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -269,7 +271,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
 				transaction.recipientId = {};
 
 				return sendTransactionPromise(transaction).then(function (res) {
@@ -280,7 +282,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('empty string should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, '', 1, account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, '', 1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -291,7 +293,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with invalid string should fail', function () {
 				var invalidRecipientId = '1X';
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, invalidRecipientId, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, invalidRecipientId, Date.now(), account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -304,7 +306,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('amount', function () {
 
 			it('using < 0 should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, -1, account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, -1, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -324,7 +326,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 						var balance = res.body.data[0].balance;
 						var amount = new bignum(balance).plus('1').toNumber();
-						transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, amount, account.password);
+						transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, amount, account.password);
 
 						return sendTransactionPromise(transaction);
 					})
@@ -341,7 +343,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 		it('using unknown dapp id should fail', function () {
 			var unknownDappId = '1';
-			transaction = node.lisk.transfer.createOutTransfer(unknownDappId, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
+			transaction = lisk.transfer.createOutTransfer(unknownDappId, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -352,7 +354,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 		it('using valid but inexistent transaction id as dapp id should fail', function () {
 			var inexistentId = randomUtil.transaction().id;
-			transaction = node.lisk.transfer.createOutTransfer(inexistentId, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
+			transaction = lisk.transfer.createOutTransfer(inexistentId, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -362,7 +364,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		});
 
 		it('using unrelated existent transaction id as dapp id should fail', function () {
-			transaction = node.lisk.transfer.createOutTransfer(transactionsToWaitFor[0], randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
+			transaction = lisk.transfer.createOutTransfer(transactionsToWaitFor[0], randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(400);
@@ -372,7 +374,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		});
 
 		it('with correct data should be ok', function () {
-			transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * node.normalizer, account.password);
+			transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * node.normalizer, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
@@ -384,7 +386,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('from the author itself', function () {
 
 			it('with minimal funds should fail', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.blockDataDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * node.normalizer, accountMinimalFunds.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.blockDataDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * node.normalizer, accountMinimalFunds.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(400);
@@ -394,7 +396,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with enough funds should be ok', function () {
-				transaction = node.lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * node.normalizer, account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * node.normalizer, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
