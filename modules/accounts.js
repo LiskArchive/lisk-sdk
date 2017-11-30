@@ -103,8 +103,8 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
 };
 
 /**
- * Validates input address and calls logic.account.set() and logic.account.get().
- * @implements module:accounts#Account~set
+ * Validates input address and calls logic.account.get().
+ * @implements generateAddressByPublicKey
  * @implements module:accounts#Account~get
  * @param {Object} data - Contains address or public key to generate address.
  * @param {function} cb - Callback function.
@@ -142,7 +142,6 @@ Accounts.prototype.getSender = function (data, cb) {
 		}
 
 		// Sets account variables for fresh accounts
-		// TODO: Refactor after transaction pool rewrite
 		if (account === null && data.type === transactionTypes.SEND) {
 			account = {};
 			account.balance = 0;

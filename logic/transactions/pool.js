@@ -188,13 +188,13 @@ __private.checkPoolAvailability = function (transaction, cb) {
  * Obtains the transaction sender from the accounts table.
  * If the sender's address does not exist, returns a default account object.
  * @private
- * @implements {modules.accounts.setAccountAndGet}
+ * @implements {modules.accounts.getSender}
  * @param {object} transaction - Transaction object.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb, transaction, sender
  */
-__private.setAccountAndGet = function (transaction, cb) {
-	modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, cbAccount) {
+__private.getSender = function (transaction, cb) {
+	modules.accounts.getSender({publicKey: transaction.senderPublicKey}, function (err, cbAccount) {
 		return setImmediate(cb, err, transaction, cbAccount);
 	});
 };
@@ -317,7 +317,7 @@ __private.moveToVerified = function (transaction, cb) {
  * Performs basic and advanced transaction validations: verify and check balance.
  * @private
  * @implements {__private.checkPoolAvailability}
- * @implements {__private.setAccountAndGet}
+ * @implements {__private.getSender}
  * @implements {__private.getAccount}
  * @implements {__private.processTransaction}
  * @implements {__private.verifyTransaction}
@@ -331,7 +331,7 @@ __private.addToVerified = function (transaction, broadcast, cb) {
 	transaction.receivedAt = new Date();
 	async.waterfall([
 		async.apply(__private.checkPoolAvailability, transaction),
-		__private.setAccountAndGet,
+		__private.getSender,
 		__private.getRequester,
 		__private.processTransaction,
 		__private.verifyTransaction,
@@ -356,7 +356,7 @@ __private.addToVerified = function (transaction, broadcast, cb) {
  * Performs basic transaction validations.
  * @private
  * @implements {__private.checkPoolAvailability}
- * @implements {__private.setAccountAndGet}
+ * @implements {__private.getSender}
  * @implements {__private.getAccount}
  * @implements {__private.processTransaction}
  * @param {object} transaction - Transaction object.
@@ -367,7 +367,7 @@ __private.addToVerified = function (transaction, broadcast, cb) {
 __private.addToUnverified = function (transaction, broadcast, cb) {
 	async.waterfall([
 		async.apply(__private.checkPoolAvailability, transaction),
-		__private.setAccountAndGet,
+		__private.getSender,
 		__private.getRequester,
 		__private.processTransaction
 	], function (err, transaction, sender) {
@@ -533,7 +533,7 @@ __private.getTransactionTimeOut = function (transaction) {
 /**
  * Gets the transaction sender from the accounts table, and then verifies the transaction.
  * @private
- * @implements {__private.setAccountAndGet}
+ * @implements {__private.getSender}
  * @implements {__private.verifyTransaction}
  * @param {object} transaction - Transaction object.
  * @param {function} cb - Callback function.
@@ -541,7 +541,7 @@ __private.getTransactionTimeOut = function (transaction) {
  */
 __private.processUnverifiedTransaction = function (transaction, cb) {
 	async.waterfall([
-		async.apply(__private.setAccountAndGet, transaction),
+		async.apply(__private.getSender, transaction),
 		__private.verifyTransaction
 	], function (err, transaction, sender) {
 		return setImmediate(cb, err, sender);
