@@ -254,22 +254,15 @@ TransactionPool.prototype.addUnconfirmedTransaction = function (transaction) {
 	__private.addTransaction(self.unconfirmed, transaction);
 };
 /**
- * Removes id from unconfirmed index and transactions.
- * Also removes id from queued and multisignature.
- * @implements {removeQueuedTransaction}
- * @implements {removeMultisignatureTransaction}
- * @param {string} id
+ * Removes transaction with specified ID from unconfirmed, queued and multisignature lists
+ * @param {string} id - Transaction ID
+ * @implements {__private.removeTransactionById}
  */
 TransactionPool.prototype.removeUnconfirmedTransaction = function (id) {
-	var index = self.unconfirmed.index[id];
-
-	if (index !== undefined) {
-		self.unconfirmed.transactions[index] = false;
-		delete self.unconfirmed.index[id];
-	}
-
-	self.removeQueuedTransaction(id);
-	self.removeMultisignatureTransaction(id);
+	__private.removeTransactionById(self.unconfirmed, id);
+	__private.removeTransactionById(self.queued, id);
+	__private.removeTransactionById(self.multisignature, id);
+	// FIXME: Why we don't remove from bundled here?
 };
 
 /**
