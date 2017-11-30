@@ -65,7 +65,7 @@ describe('peers', function () {
 
 		before(function () {
 			validOptions = {};
-			// Set TEST variable in case of public ip address gets generated
+			// Set TEST variable in case public ip address gets generated
 			process.env['NODE_ENV'] = 'TEST';
 		});
 
