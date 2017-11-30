@@ -655,7 +655,7 @@ __private.isTransactionExpired = function (transaction) {
 	var transactionAge = Math.floor((Date.now() - transaction.receivedAt) / 1000);
 
 	return (transactionAge > transactionTimeout);
-}
+};
 
 // Export
 module.exports = TransactionPool;
