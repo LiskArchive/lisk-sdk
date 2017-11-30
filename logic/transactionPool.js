@@ -144,16 +144,6 @@ TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, lim
 };
 
 /**
- * Gets bundled transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
- */
-__private.getBundledTransactionList  = function (reverse, limit) {
-	return __private.getTransactionList(self.bundled, reverse, limit);
-};
-
-/**
  * Gets queued transactions based on limit and reverse option.
  * @param {boolean} reverse
  * @param {number} [limit]
@@ -289,7 +279,7 @@ TransactionPool.prototype.receiveTransactions = function (transactions, broadcas
 /**
  * Gets bundled transactions based on bundled limit.
  * Removes each transaction from bundled and process it.
- * @implements {getBundledTransactionList}
+ * @implements {__private.getTransactionList}
  * @implements {__private.removeTransactionById}
  * @implements {processVerifyTransaction}
  * @implements {removeUnconfirmedTransaction}
@@ -298,13 +288,9 @@ TransactionPool.prototype.receiveTransactions = function (transactions, broadcas
  * @return {setImmediateCallback} err | cb
  */
 TransactionPool.prototype.processBundled = function (cb) {
-	var bundled = __private.getBundledTransactionList(true, self.bundleLimit);
+	var bundled = __private.getTransactionList(self.bundled, true, self.bundleLimit);
 
 	async.eachSeries(bundled, function (transaction, eachSeriesCb) {
-		if (!transaction) {
-			return setImmediate(eachSeriesCb);
-		}
-
 		__private.removeTransactionById(self.bundled, transaction.id);
 		delete transaction.bundled;
 
