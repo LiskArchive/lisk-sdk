@@ -275,6 +275,7 @@ TransactionPool.prototype.removeUnconfirmedTransaction = function (id) {
  */
 TransactionPool.prototype.receiveTransactions = function (transactions, broadcast, cb) {
 	async.eachSeries(transactions, function (transaction, cb) {
+		transaction.receivedAt = Date.now();
 		__private.processUnconfirmedTransaction(transaction, broadcast, cb);
 	}, function (err) {
 		return setImmediate(cb, err, transactions);
@@ -392,7 +393,6 @@ TransactionPool.prototype.queueTransaction = function (transaction, cb) {
 		list = self.queued;
 	}
 
-	transaction.receivedAt = new Date();
 	return __private.checkStorageAndAddTransaction(list, transaction, cb);
 };
 
