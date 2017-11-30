@@ -569,15 +569,15 @@ TransactionPool.prototype.bind = function (accounts) {
 __private.popFromReadyUntilCredit = function (transactions, balance) {
 	var transaction;
 	var transactionsToDelete;
-	
-	transactionsToDelete = transactions.find( function (transaction) {
+
+	transactionsToDelete = transactions.find(function (transaction) {
 		return balance.plus(transaction.amount.toString()).plus(transaction.fee.toString()).isZero;
 	});
 
 	if (transactionsToDelete === undefined) {
-		transactionsToDelete = _.orderBy(transactions, [ function (transaction) {
+		transactionsToDelete = _.orderBy(transactions, [function (transaction) {
 			return transaction.amount + transaction.fee;
-		}, 'id'],['desc', 'desc']);
+		}, 'id'], ['desc', 'desc']);
 	}
 
 	if (!Array.isArray(transactionsToDelete)) {

@@ -1473,6 +1473,7 @@ describe('transactionPool', function () {
 	});
 
 	describe('sanitize transactions', function () {
+
 		var receivedTransactions;
 		var readyTransactionsBefore;
 		var readyTransactionsAfter;
@@ -1601,6 +1602,7 @@ describe('transactionPool', function () {
 						done();
 					});
 				});
+
 				it('should be ok when adding a new block', function (done) {
 					setTimeout(function () {
 						receivedTransactions = [node.lisk.transaction.createTransaction(testAccounts[2].account.address, 500000000, testAccounts[0].secret)];
