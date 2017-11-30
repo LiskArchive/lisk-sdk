@@ -83,7 +83,7 @@ describe('peers', function () {
 		describe('when logic.peers.list returns no records', function () {
 
 			before(function () {
-				peersLogicMock.list.resetHistory();
+				peersLogicMock.list.reset();
 				peersLogicMock.list.returns([]);
 			});
 
@@ -317,7 +317,7 @@ describe('peers', function () {
 		});
 
 		beforeEach(function () {
-			peersLogicMock.upsert.resetHistory();
+			peersLogicMock.upsert.reset();
 			peersLogicMock.upsert.returns(validUpsertResult);
 			updateResult = peers.update(validPeer);
 		});
@@ -363,7 +363,7 @@ describe('peers', function () {
 		});
 
 		beforeEach(function () {
-			peersLogicMock.remove.resetHistory();
+			peersLogicMock.remove.reset();
 			peersLogicMock.remove.returns(validLogicRemoveResult);
 			removeResult = peers.remove(validIp, validPort);
 		});
