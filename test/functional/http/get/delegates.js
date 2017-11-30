@@ -3,9 +3,10 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var chai = require('chai');
+var should = chai.should();
 
 var test = require('../../../test');
-var node = require('../../../node');
 var _ = test._;
 
 var constants = require('../../../../helpers/constants');
@@ -45,7 +46,7 @@ describe('GET /delegates', function () {
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
 				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
-				node.should.not.exist(err);
+				should.not.exist(err);
 				__cache.should.be.an('object');
 				return done(err);
 			});
@@ -53,7 +54,7 @@ describe('GET /delegates', function () {
 
 		afterEach(function (done) {
 			cache.flushDb(function (err, status) {
-				node.should.not.exist(err);
+				should.not.exist(err);
 				status.should.equal('OK');
 				done(err);
 			});
@@ -88,7 +89,7 @@ describe('GET /delegates', function () {
 			return delegatesEndpoint.makeRequest({sort: 'invalidValue'}, 400).then(function (res) {
 
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.should.not.exist(response);
+					should.not.exist(response);
 				});
 			});
 		});
@@ -108,7 +109,7 @@ describe('GET /delegates', function () {
 					responses.should.deep.include(res.body);
 					return onNewRoundPromise().then(function () {
 						return getJsonForKeyPromise(url).then(function (result) {
-							node.should.not.exist(result);
+							should.not.exist(result);
 						});
 					});
 				});

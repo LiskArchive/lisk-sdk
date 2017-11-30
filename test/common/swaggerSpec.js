@@ -1,6 +1,7 @@
 'use strict';
 
 var chai = require('chai');
+var should = chai.should();
 
 var test = require('../test');
 var _ = test._;
