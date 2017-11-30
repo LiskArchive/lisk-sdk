@@ -211,6 +211,34 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 };
 
 /**
+ * Add transaction to specified list if not already present, increase counter for that list
+ * @param {Object} list - Reference to one of supported transactions list: self.(unconfirmed|bundled|queued|multisignature)
+ * @param {Object} transaction
+ */
+__private.addTransaction = function (list, transaction) {
+	if (list.transactions[transaction.id] === undefined) {
+		list.transactions[transaction.id] = transaction;
+		// Increase counter for specified list
+		list.count += 1;
+	}
+}
+
+/**
+ * Remove transaction (based on ID) from specified list if present, decrease counter for that list
+ * @param {Object} list - Reference to one of supported transactions list: self.(unconfirmed|bundled|queued|multisignature)
+ * @param {string} id - Transaction ID
+ */
+__private.removeTransactionById = function (list, id) {
+	if (list.transactions[id]) {
+		// Set to undefined first, then remove (memory leak prevention)
+		list.transactions[id] = undefined;
+		delete list.transactions[id];
+		// Decrease counter for specified list
+		list.count -= 1;
+	}
+}
+
+/**
  * Removes transaction from multisignature or queued and add it to unconfirmed.
  * @param {transaction} transaction
  * @implements {removeMultisignatureTransaction}
