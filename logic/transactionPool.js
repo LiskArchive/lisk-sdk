@@ -166,13 +166,12 @@ TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) 
 /**
  * Gets multisignature transactions based on reverse, ready and limit parameters
  * @param {boolean} reverse - If true trasactions order will be reversed
- * @param {boolean} ready - When true get only transactions that are ready
  * @param {number} [limit] - When supplied list will be cut off
+ * @param {boolean} ready - When true get only transactions that are ready
  * @implements {__private.getTransactionList}
  * @return {Object[]} transactions - Array of transactions
- * @todo Change order extra parameter 'ready', move it to the end
  */
-TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, ready, limit) {
+TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, limit, ready) {
 	if (ready) {
 		// FIXME: Kind of hack here - first we get all multisignature transactions sorted, then we filter and apply limit
 		return _.filter(__private.getTransactionList(self.multisignature, reverse), 'ready').slice(0, limit);
@@ -196,14 +195,14 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 	var unconfirmed = [];
 	var multisignatures = [];
 	var queued = [];
-	
+
     // Grab unconfirmed transactions first with limit of maxTxsPerBlock
 	unconfirmed = self.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	limit -= unconfirmed.length;
 
 	if (limit > 0) {
 		// Then multisignatures (both ready and not ready) with limit of maxTxsPerBlock
-		multisignatures = self.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
+		multisignatures = self.getMultisignatureTransactionList(false, constants.maxTxsPerBlock);
 		limit -= multisignatures.length;
 	}
 
@@ -483,7 +482,7 @@ TransactionPool.prototype.fillPool = function (cb) {
 
 		spare = (constants.maxTxsPerBlock - self.unconfirmed.count);
 		spareMulti = (spare >= multisignaturesLimit) ? multisignaturesLimit : 0;
-		multisignatures = self.getMultisignatureTransactionList(true, true, multisignaturesLimit).slice(0, spareMulti);
+		multisignatures = self.getMultisignatureTransactionList(true, multisignaturesLimit, true).slice(0, spareMulti);
 		spare = Math.abs(spare - multisignatures.length);
 		transactions = self.getQueuedTransactionList(true, constants.maxTxsPerBlock).slice(0, spare);
 		transactions = multisignatures.concat(transactions);
