@@ -285,7 +285,7 @@ TransactionPool.prototype.receiveTransactions = function (transactions, broadcas
  * Gets bundled transactions based on bundled limit.
  * Removes each transaction from bundled and process it.
  * @implements {getBundledTransactionList}
- * @implements {removeBundledTransaction}
+ * @implements {__private.removeTransactionById}
  * @implements {processVerifyTransaction}
  * @implements {removeUnconfirmedTransaction}
  * @implements {queueTransaction}
@@ -300,7 +300,7 @@ TransactionPool.prototype.processBundled = function (cb) {
 			return setImmediate(eachSeriesCb);
 		}
 
-		self.removeBundledTransaction(transaction.id);
+		__private.removeTransactionById(self.bundled, transaction.id);
 		delete transaction.bundled;
 
 		__private.processVerifyTransaction(transaction, true, function (err, sender) {
