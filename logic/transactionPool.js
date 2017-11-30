@@ -407,14 +407,14 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 			modules.transactions.undoUnconfirmed(transaction, function (err) {
 				if (err) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
-				}
+				} else {
+					// Remove transaction from unconfirmed list
+					__private.removeTransactionById(self.unconfirmed, transaction.id);
 
-				// Remove transaction from unconfirmed list
-				__private.removeTransactionById(self.unconfirmed, transaction.id);
-
-				// Check if transaction is expired and if not - add back to queued list
-				if (__private.isTransactionExpired(transaction) === false) {
-					__private.addTransaction(self.queued, transaction);
+					// Check if transaction is expired and if not - add back to queued list
+					if (__private.isTransactionExpired(transaction) === false) {
+						__private.addTransaction(self.queued, transaction);
+					}
 				}
 
 				return setImmediate(eachSeriesCb);
