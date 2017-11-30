@@ -195,7 +195,7 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 
 	if (limit > 0) {
 		// Then queued transactions to limit
-		var queued = self.getQueuedTransactionList(false, limit);
+		queued = self.getQueuedTransactionList(false, limit);
 	}
 
 	return unconfirmed.concat(multisignatures).concat(queued);
