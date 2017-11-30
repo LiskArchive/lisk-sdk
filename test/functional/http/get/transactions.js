@@ -3,6 +3,7 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var test = require('../../../test');
 var node = require('../../../node');
@@ -50,8 +51,8 @@ describe('GET /api/transactions', function () {
 		promises.push(sendTransactionPromise(transaction2));
 		return test.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		}).then(function (res) {
 			transactionList.push(transaction1);
@@ -71,16 +72,16 @@ describe('GET /api/transactions', function () {
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
 				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
-				node.expect(err).to.not.exist;
-				node.expect(__cache).to.be.an('object');
+				expect(err).to.not.exist;
+				expect(__cache).to.be.an('object');
 				return done(err);
 			});
 		});
 
 		afterEach(function (done) {
 			cache.flushDb(function (err, status) {
-				node.expect(err).to.not.exist;
-				node.expect(status).to.equal('OK');
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
 				done(err);
 			});
 		});
@@ -97,15 +98,15 @@ describe('GET /api/transactions', function () {
 			];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
 				return test.Promise.all([0, 10, 100].map(function (delay) {
 					return test.Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
-					node.expect(responses).to.deep.include(res.body);
+					expect(responses).to.deep.include(res.body);
 				});
 			});
 		});
@@ -116,10 +117,10 @@ describe('GET /api/transactions', function () {
 			];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(null);
+					expect(response).to.eql(null);
 				});
 			});
 		});
@@ -146,8 +147,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -166,8 +167,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -177,8 +178,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -188,8 +189,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -199,8 +200,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -215,8 +216,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -231,8 +232,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -242,8 +243,8 @@ describe('GET /api/transactions', function () {
 			var params = [];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').not.empty;
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.transactions').that.is.an('array').not.empty;
 			});
 		});
 
@@ -256,9 +257,9 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').which.has.length(1);
-					node.expect(res.body.transactions[0].id).to.equal(transactionInCheck.id);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array').which.has.length(1);
+					expect(res.body.transactions[0].id).to.equal(transactionInCheck.id);
 				});
 			});
 
@@ -268,8 +269,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -284,16 +285,16 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-					node.expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionTypes.VOTE);
-					node.expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionInCheck.type);
-					node.expect(res).to.have.nested.property('body.transactions[0].id').to.equal(transactionInCheck.id);
-					node.expect(res).to.have.nested.property('body.transactions[0].amount').to.equal(transactionInCheck.amount);
-					node.expect(res).to.have.nested.property('body.transactions[0].fee').to.equal(transactionInCheck.fee);
-					node.expect(res).to.have.nested.property('body.transactions[0].recipientId').to.equal(transactionInCheck.recipientId);
-					node.expect(res).to.have.nested.property('body.transactions[0].senderId').to.equal(transactionInCheck.senderId);
-					node.expect(res).to.have.nested.property('body.transactions[0].asset').to.eql(transactionInCheck.asset);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionTypes.VOTE);
+					expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionInCheck.type);
+					expect(res).to.have.nested.property('body.transactions[0].id').to.equal(transactionInCheck.id);
+					expect(res).to.have.nested.property('body.transactions[0].amount').to.equal(transactionInCheck.amount);
+					expect(res).to.have.nested.property('body.transactions[0].fee').to.equal(transactionInCheck.fee);
+					expect(res).to.have.nested.property('body.transactions[0].recipientId').to.equal(transactionInCheck.recipientId);
+					expect(res).to.have.nested.property('body.transactions[0].senderId').to.equal(transactionInCheck.senderId);
+					expect(res).to.have.nested.property('body.transactions[0].asset').to.eql(transactionInCheck.asset);
 				});
 			});
 		});
@@ -307,8 +308,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -319,11 +320,11 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i]) {
-							node.expect(res.body.transactions[i].type).to.equal(type);
+							expect(res.body.transactions[i].type).to.equal(type);
 						}
 					}
 				});
@@ -338,8 +339,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -349,11 +350,11 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].senderId).to.equal(accountFixtures.genesis.address);
+							expect(res.body.transactions[i].senderId).to.equal(accountFixtures.genesis.address);
 						}
 					}
 				});
@@ -366,11 +367,11 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([accountFixtures.genesis.address, accountFixtures.existingDelegate.address]).to.include(res.body.transactions[i].senderId);
+							expect([accountFixtures.genesis.address, accountFixtures.existingDelegate.address]).to.include(res.body.transactions[i].senderId);
 						}
 					}
 				});
@@ -385,8 +386,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -396,11 +397,11 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].recipientId).to.equal(accountFixtures.genesis.address);
+							expect(res.body.transactions[i].recipientId).to.equal(accountFixtures.genesis.address);
 						}
 					}
 				});
@@ -413,11 +414,11 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([accountFixtures.genesis.address, accountFixtures.existingDelegate.address]).to.include(res.body.transactions[i].recipientId);
+							expect([accountFixtures.genesis.address, accountFixtures.existingDelegate.address]).to.include(res.body.transactions[i].recipientId);
 						}
 					}
 				});
@@ -432,8 +433,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -443,8 +444,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				});
 			});
 		});
@@ -457,8 +458,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -468,8 +469,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				});
 			});
 		});
@@ -483,8 +484,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -495,8 +496,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -507,8 +508,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').to.have.length(10);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array').to.have.length(10);
 				});
 			});
 		});
@@ -524,9 +525,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('amount').sort().reverse().value()).to.eql(_(res.body.transactions).map('amount').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('amount').sort().reverse().value()).to.eql(_(res.body.transactions).map('amount').value());
 					});
 				});
 
@@ -537,9 +538,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('amount').sort().value()).to.eql(_(res.body.transactions).map('amount').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('amount').sort().value()).to.eql(_(res.body.transactions).map('amount').value());
 					});
 				});
 			});
@@ -553,9 +554,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('timestamp').sort().reverse().value()).to.eql(_(res.body.transactions).map('timestamp').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('timestamp').sort().reverse().value()).to.eql(_(res.body.transactions).map('timestamp').value());
 					});
 				});
 
@@ -566,9 +567,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('timestamp').sort().value()).to.eql(_(res.body.transactions).map('timestamp').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('timestamp').sort().value()).to.eql(_(res.body.transactions).map('timestamp').value());
 					});
 				});
 			});
@@ -582,8 +583,8 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 
 						var dividedIndices = res.body.transactions.reduce(function (memo, peer, index) {
 							memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
@@ -595,7 +596,7 @@ describe('GET /api/transactions', function () {
 							dividedIndices.notNullIndices.sort(ascOrder);
 							dividedIndices.nullIndices.sort(ascOrder);
 
-							node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+							expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
 								.to.be.at.most(dividedIndices.nullIndices[0]);
 						}
 					});
@@ -612,15 +613,15 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
 			it('using offset=1 should be ok', function () {
 				return getTransactionsPromise([]).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 
 					var offset = 1;
 					var params = [
@@ -628,11 +629,11 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (result) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 
 						result.body.transactions.forEach(function (transaction){
-							node.expect(res.body.transactions[0].id).not.equal(transaction.id);
+							expect(res.body.transactions[0].id).not.equal(transaction.id);
 						});
 					});
 				});
@@ -647,10 +648,10 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
-						node.expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
+						expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
 					}
 				});
 			});
@@ -664,10 +665,10 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
-						node.expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
+						expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
 					}
 				});
 			});
@@ -685,13 +686,13 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
-							node.expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
-							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+							expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
+							expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
+							expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
 						}
 					}
 				});
@@ -715,12 +716,12 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-					node.expect(res).to.have.nested.property('body.transactions').that.have.length.within(transactionList.length, limit);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.nested.property('body.transactions').that.have.length.within(transactionList.length, limit);
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+							expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
 						}
 					}
 				});
@@ -745,8 +746,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions');
 				});
 			});
 		});
@@ -755,9 +756,9 @@ describe('GET /api/transactions', function () {
 
 			it('should return count of the transactions with response', function () {
 				return getTransactionsPromise({}).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-					node.expect(res).to.have.nested.property('body.count').that.is.a('string');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.nested.property('body.count').that.is.a('string');
 				});
 			});
 		});
@@ -767,12 +768,12 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getCountPromise('transactions').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('confirmed').that.is.an('number');
-				node.expect(res).to.have.property('unconfirmed').that.is.an('number');
-				node.expect(res).to.have.property('unprocessed').that.is.an('number');
-				node.expect(res).to.have.property('unsigned').that.is.an('number');
-				node.expect(res).to.have.property('total').that.is.an('number');
+				expect(res).to.have.property('success').to.be.ok;
+				expect(res).to.have.property('confirmed').that.is.an('number');
+				expect(res).to.have.property('unconfirmed').that.is.an('number');
+				expect(res).to.have.property('unprocessed').that.is.an('number');
+				expect(res).to.have.property('unsigned').that.is.an('number');
+				expect(res).to.have.property('total').that.is.an('number');
 			});
 		});
 	});
@@ -781,8 +782,8 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getQueuedTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(false);
-				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
+				expect(res).to.have.property('success').to.equal(false);
+				expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
 
@@ -793,13 +794,13 @@ describe('GET /api/transactions', function () {
 			var transaction = lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 				return getQueuedTransactionPromise(transaction.id).then(function (result) {
-					node.expect(result).to.have.property('success').to.equal(true);
-					node.expect(result).to.have.property('transaction').that.is.an('object');
-					node.expect(result.transaction.id).to.equal(transaction.id);
+					expect(result).to.have.property('success').to.equal(true);
+					expect(result).to.have.property('transaction').that.is.an('object');
+					expect(result.transaction.id).to.equal(transaction.id);
 				});
 			});
 		});
@@ -809,9 +810,9 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getQueuedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(true);
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res).to.have.property('count').that.is.an('number');
+				expect(res).to.have.property('success').to.equal(true);
+				expect(res).to.have.property('transactions').that.is.an('array');
+				expect(res).to.have.property('count').that.is.an('number');
 			});
 		});
 	});
@@ -820,8 +821,8 @@ describe('GET /api/transactions', function () {
 
 		it('using unknown id should be ok', function () {
 			return getMultisignaturesTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(false);
-				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
+				expect(res).to.have.property('success').to.equal(false);
+				expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
 	});
@@ -830,9 +831,9 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getMultisignaturesTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(true);
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res).to.have.property('count').that.is.an('number');
+				expect(res).to.have.property('success').to.equal(true);
+				expect(res).to.have.property('transactions').that.is.an('array');
+				expect(res).to.have.property('count').that.is.an('number');
 			});
 		});
 	});
@@ -849,7 +850,7 @@ describe('GET /api/transactions', function () {
 		it('using valid id should be ok', function () {
 			var transactionId = unconfirmedTransaction.id;
 			return getUnconfirmedTransactionPromise(transactionId).then(function (res) {
-				node.expect(res).to.have.property('success');
+				expect(res).to.have.property('success');
 			});
 		});
 	});
@@ -858,9 +859,9 @@ describe('GET /api/transactions', function () {
 
 		it('should be ok', function () {
 			return getUnconfirmedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(true);
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res).to.have.property('count').that.is.an('number');
+				expect(res).to.have.property('success').to.equal(true);
+				expect(res).to.have.property('transactions').that.is.an('array');
+				expect(res).to.have.property('count').that.is.an('number');
 			});
 		});
 	});

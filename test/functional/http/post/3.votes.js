@@ -3,6 +3,7 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var test = require('../../../test');
 var node = require('../../../node');
@@ -71,8 +72,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 		return test.Promise.all(promises)
 			.then(function (res) {
 				res.forEach(function (result, index) {
-					node.expect(result).to.have.property('status').to.equal(200);
-					node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					expect(result).to.have.property('status').to.equal(200);
+					expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					transactionsToWaitFor.push(transactions[index].id);
 				});
 
@@ -88,8 +89,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 				return test.Promise.all(promisesCreditsMaxVotesPerTransaction).then(function (results) {
 					results.forEach(function (result, index) {
-						node.expect(result).to.have.property('status').to.equal(200);
-						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(result).to.have.property('status').to.equal(200);
+						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 						transactionsToWaitFor.push(transactionsCreditMaxVotesPerTransaction[index].id);
 					});
 				});
@@ -107,8 +108,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 				return test.Promise.all(promisesCreditsMaxVotesPerAccount).then(function (results) {
 					results.forEach(function (result, index) {
-						node.expect(result).to.have.property('status').to.equal(200);
-						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(result).to.have.property('status').to.equal(200);
+						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 						transactionsToWaitFor.push(transactionsCreditMaxVotesPerAccount[index].id);
 					});
 				});
@@ -120,8 +121,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 				transactionsToWaitFor = [];
 				var transaction = lisk.delegate.createDelegate(delegateAccount.password, delegateAccount.username);
 				return sendTransactionPromise(transaction).then(function (result) {
-					node.expect(result).to.have.property('status').to.equal(200);
-					node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					expect(result).to.have.property('status').to.equal(200);
+					expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					transactionsToWaitFor.push(transaction.id);
 				});
 			})
@@ -136,8 +137,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 				return test.Promise.all(promisesDelegatesMaxVotesPerTransaction).then(function (results) {
 					results.forEach(function (result, index) {
-						node.expect(result).to.have.property('status').to.equal(200);
-						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(result).to.have.property('status').to.equal(200);
+						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 						transactionsToWaitFor.push(transactionsDelegateMaxForPerTransaction[index].id);
 					});
 				});
@@ -153,8 +154,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 				return test.Promise.all(promisesDelegatesMaxVotesPerAccount).then(function (results) {
 					results.forEach(function (result, index) {
-						node.expect(result).to.have.property('status').to.equal(200);
-						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(result).to.have.property('status').to.equal(200);
+						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 						transactionsToWaitFor.push(transactionsDelegateMaxVotesPerAccount[index].id);
 					});
 				});
@@ -175,8 +176,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['+L' + accountFixtures.existingDelegate.publicKey.slice(0, -1)]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
 				badTransactions.push(transaction);
 			});
 		});
@@ -185,8 +186,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['-1' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote length');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote length');
 				badTransactions.push(transaction);
 			});
 		});
@@ -195,8 +196,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['x' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
 				badTransactions.push(transaction);
 			});
 		});
@@ -205,8 +206,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, [accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote format');
 				badTransactions.push(transaction);
 			});
 		});
@@ -215,8 +216,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, [null]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote type');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Invalid vote at index 0 - Invalid vote type');
 				badTransactions.push(transaction);
 			});
 		});
@@ -226,8 +227,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(accountNoFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
@@ -236,8 +237,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(accountMinimalFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -246,8 +247,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['-' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
 				badTransactions.push(transaction);
 			});
 		});
@@ -256,8 +257,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -266,8 +267,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['+' + delegateAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -278,8 +279,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -290,8 +291,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33');
 				badTransactions.push(transaction);
 			});
 		});
@@ -319,8 +320,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			return test.Promise.all(promises)
 				.then(function (res) {
 					res.forEach(function (result) {
-						node.expect(result).to.have.property('status').to.equal(200);
-						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(result).to.have.property('status').to.equal(200);
+						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
 					goodTransactions.push(transaction1, transaction2, transaction3, transaction4);
 				});
@@ -334,8 +335,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// badTransactions.push(transaction);
 				})
@@ -346,8 +347,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// goodTransactions.push(transaction);
 				});
@@ -365,8 +366,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Failed to add vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" already voted for');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Failed to add vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" already voted for');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -375,8 +376,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['-' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -385,8 +386,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(delegateAccount.password, ['-' + delegateAccount.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -395,8 +396,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			transaction = lisk.vote.createVote(accountMaxVotesPerAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Maximum number of ' + constants.activeDelegates + ' votes exceeded (1 too many)');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Maximum number of ' + constants.activeDelegates + ' votes exceeded (1 too many)');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -407,8 +408,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -419,8 +420,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			}));
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long ('+ (constants.maxVotesPerTransaction + 1) + '), maximum ' + constants.maxVotesPerTransaction);
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate vote schema: Array is too long ('+ (constants.maxVotesPerTransaction + 1) + '), maximum ' + constants.maxVotesPerTransaction);
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -448,8 +449,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 			return test.Promise.all(promises)
 				.then(function (res) {
 					res.forEach(function (result) {
-						node.expect(result).to.have.property('status').to.equal(200);
-						node.expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(result).to.have.property('status').to.equal(200);
+						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
 					goodTransactionsEnforcement.push(transaction1, transaction2, transaction3, transaction4);
 				});
@@ -463,8 +464,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 			return sendTransactionPromise(transaction)
 				.then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// badTransactionsEnforcement.push(transaction);
 				})
@@ -475,8 +476,8 @@ describe('POST /api/transactions (type 3) votes', function () {
 					return sendTransactionPromise(transaction);
 				})
 				.then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
 					// goodTransactionsEnforcement.push(transaction);
 				});

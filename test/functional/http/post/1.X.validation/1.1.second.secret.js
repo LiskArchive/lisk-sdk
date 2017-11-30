@@ -3,6 +3,7 @@
 require('../../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var node = require('../../../../node');
 var shared = require('../../../shared');
@@ -28,8 +29,8 @@ describe('POST /api/transactions (validate type 1 on top of type 1)', function (
 			transaction = lisk.signature.createSignature(account.password, randomUtil.password());
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -42,8 +43,8 @@ describe('POST /api/transactions (validate type 1 on top of type 1)', function (
 
 			return sendTransactionPromise(transaction).then(function (res) {
 
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 				badTransactions.push(transaction);
 			});
 		});

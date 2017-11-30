@@ -3,6 +3,7 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var node = require('../../../node');
 var shared = require('../../shared');
@@ -26,7 +27,7 @@ describe('GET /api/multisignatures/', function () {
 		var sendTransaction = lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
 		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(sendTransaction.id);
 				return waitForConfirmations(transactionsToWaitFor);
 			})
@@ -35,7 +36,7 @@ describe('GET /api/multisignatures/', function () {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(res.transactionId);
 			});
 	});
@@ -46,8 +47,8 @@ describe('GET /api/multisignatures/', function () {
 			var params = [];
 			
 			return getPendingMultisignaturesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Missing required property: publicKey');
+				expect(res).to.have.property('success').to.be.not.ok;
+				expect(res).to.have.property('error').to.equal('Missing required property: publicKey');
 			});
 		});
 
@@ -57,8 +58,8 @@ describe('GET /api/multisignatures/', function () {
 			];
 
 			return getPendingMultisignaturesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Expected type string but found type integer');
+				expect(res).to.have.property('success').to.be.not.ok;
+				expect(res).to.have.property('error').to.equal('Expected type string but found type integer');
 			});
 		});
 
@@ -69,8 +70,8 @@ describe('GET /api/multisignatures/', function () {
 			];
 
 			return getPendingMultisignaturesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('error').to.equal('Object didn\'t pass validation for format publicKey: ' + invalidPublicKey);
+				expect(res).to.have.property('success').to.be.not.ok;
+				expect(res).to.have.property('error').to.equal('Object didn\'t pass validation for format publicKey: ' + invalidPublicKey);
 			});
 		});
 
@@ -80,29 +81,29 @@ describe('GET /api/multisignatures/', function () {
 			];
 
 			return getPendingMultisignaturesPromise(params).then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res.transactions.length).to.be.at.least(1);
+				expect(res).to.have.property('success').to.be.ok;
+				expect(res).to.have.property('transactions').that.is.an('array');
+				expect(res.transactions.length).to.be.at.least(1);
 				res.transactions.forEach(function (element) {
 					if (element.transaction.id == transaction.id){
-						node.expect(element).to.have.property('max').that.is.equal(0);
-						node.expect(element).to.have.property('min').that.is.equal(0);
-						node.expect(element).to.have.property('lifetime').that.is.equal(0);
-						node.expect(element).to.have.property('signed').that.is.true;
-						node.expect(element.transaction).to.have.property('type').that.is.equal(transactionTypes.MULTI);
-						node.expect(element.transaction).to.have.property('amount').that.is.equal(0);
-						node.expect(element.transaction).to.have.property('senderPublicKey').that.is.equal(scenario.account.publicKey);
-						node.expect(element.transaction).to.have.property('timestamp').that.is.a('number');
-						node.expect(element.transaction).to.have.property('asset').that.is.an('object');
-						node.expect(element.transaction.asset).to.have.property('multisignature').that.is.an('object');
-						node.expect(element.transaction.asset.multisignature).to.have.property('min').that.is.a('number');
-						node.expect(element.transaction.asset.multisignature).to.have.property('keysgroup').that.is.an('array');
-						node.expect(element.transaction.asset.multisignature).to.have.property('lifetime').that.is.a('number');
-						node.expect(element.transaction).to.have.property('signature').that.is.a('string');
-						node.expect(element.transaction).to.have.property('id').that.is.equal(transaction.id);
-						node.expect(element.transaction).to.have.property('fee').that.is.equal(constants.fees.multisignature * (scenario.keysgroup.length + 1));
-						node.expect(element.transaction).to.have.property('senderId').that.is.eql(scenario.account.address);
-						node.expect(element.transaction).to.have.property('receivedAt').that.is.a('string');
+						expect(element).to.have.property('max').that.is.equal(0);
+						expect(element).to.have.property('min').that.is.equal(0);
+						expect(element).to.have.property('lifetime').that.is.equal(0);
+						expect(element).to.have.property('signed').that.is.true;
+						expect(element.transaction).to.have.property('type').that.is.equal(transactionTypes.MULTI);
+						expect(element.transaction).to.have.property('amount').that.is.equal(0);
+						expect(element.transaction).to.have.property('senderPublicKey').that.is.equal(scenario.account.publicKey);
+						expect(element.transaction).to.have.property('timestamp').that.is.a('number');
+						expect(element.transaction).to.have.property('asset').that.is.an('object');
+						expect(element.transaction.asset).to.have.property('multisignature').that.is.an('object');
+						expect(element.transaction.asset.multisignature).to.have.property('min').that.is.a('number');
+						expect(element.transaction.asset.multisignature).to.have.property('keysgroup').that.is.an('array');
+						expect(element.transaction.asset.multisignature).to.have.property('lifetime').that.is.a('number');
+						expect(element.transaction).to.have.property('signature').that.is.a('string');
+						expect(element.transaction).to.have.property('id').that.is.equal(transaction.id);
+						expect(element.transaction).to.have.property('fee').that.is.equal(constants.fees.multisignature * (scenario.keysgroup.length + 1));
+						expect(element.transaction).to.have.property('senderId').that.is.eql(scenario.account.address);
+						expect(element.transaction).to.have.property('receivedAt').that.is.a('string');
 					}
 				});
 			});

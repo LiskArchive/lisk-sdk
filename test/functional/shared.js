@@ -1,9 +1,9 @@
 'use strict';
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var test = require('../test');
-var node = require('../node');
 var _ = test._;
 var typesRepresentatives = require('../fixtures/typesRepresentatives');
 var accountFixtures = require('../fixtures/accounts');
@@ -30,8 +30,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 					'id=' + transaction.id
 				];
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 				});
 			});
 		});
@@ -39,8 +39,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		it('good transactions should not be unconfirmed', function () {
 			return test.Promise.map(goodTransactions, function (transaction) {
 				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
-					node.expect(res).to.have.property('success').to.be.not.ok;
-					node.expect(res).to.have.property('error').equal('Transaction not found');
+					expect(res).to.have.property('success').to.be.not.ok;
+					expect(res).to.have.property('error').equal('Transaction not found');
 				});
 			});
 		});
@@ -51,8 +51,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 					'id=' + transaction.id
 				];
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
 				});
 			});
 		});
@@ -65,9 +65,9 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 					];
 
 					return getPendingMultisignaturesPromise(params).then(function (res) {
-						node.expect(res).to.have.property('success').to.be.ok;
-						node.expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
-						node.expect(res.transactions[0]).to.have.property('transaction').to.have.property('id').to.equal(transaction.id);
+						expect(res).to.have.property('success').to.be.ok;
+						expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
+						expect(res.transactions[0]).to.have.property('transaction').to.have.property('id').to.equal(transaction.id);
 					});
 				});
 			});
@@ -78,8 +78,8 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 						'id=' + transaction.id
 					];
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 					});
 				});
 			});
@@ -124,8 +124,8 @@ function invalidAssets (option, badTransactions) {
 				transaction.asset = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -135,8 +135,8 @@ function invalidAssets (option, badTransactions) {
 			delete transaction.asset;
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});
@@ -149,8 +149,8 @@ function invalidAssets (option, badTransactions) {
 				transaction.asset[option] = test.input;
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -160,8 +160,8 @@ function invalidAssets (option, badTransactions) {
 			delete transaction.asset[option];
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').that.is.not.empty;
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
 			});
 		});

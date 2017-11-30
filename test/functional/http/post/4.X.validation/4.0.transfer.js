@@ -3,8 +3,8 @@
 require('../../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
-var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
 var constants = require('../../../../../helpers/constants');
@@ -53,8 +53,8 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.without_signatures.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				pendingMultisignatures.push(transaction);
 			});
 		});
@@ -63,8 +63,8 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.minimum_not_reached.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				scenarios.minimum_not_reached.transaction = transaction;
 				pendingMultisignatures.push(transaction);
 			})

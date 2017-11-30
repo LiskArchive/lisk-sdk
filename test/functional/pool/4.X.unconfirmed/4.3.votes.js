@@ -3,8 +3,8 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
-var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -29,8 +29,8 @@ describe('POST /api/transactions (unconfirmed type 3 on top of type 4)', functio
 			transaction = lisk.vote.createVote(scenarios.regular.account.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});

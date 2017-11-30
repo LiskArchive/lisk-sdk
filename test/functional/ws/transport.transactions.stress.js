@@ -4,6 +4,7 @@ require('../functional.js');
 
 var async = require('async');
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var test = require('../../test');
 var node = require('../../node');
@@ -48,13 +49,13 @@ describe('postTransactions @slow', function () {
 				}
 
 				postTransactions(bundled, function (err, res) {
-					node.expect(res).to.have.property('success').to.be.ok;
+					expect(res).to.have.property('success').to.be.ok;
 					next();
 				});
 			}, function () {
 				return (count >= maximum);
 			}, function (err) {
-				node.expect(err).to.be.null;
+				expect(err).to.be.null;
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 				waitFor.blocks(blocksToWait, function (err, res) {
 					done();
@@ -80,8 +81,8 @@ describe('postTransactions @slow', function () {
 				);
 
 				postTransactions([transaction], function (err, res) {
-					node.expect(res).to.have.property('success').to.be.ok;
-					node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+					expect(res).to.have.property('success').to.be.ok;
+					expect(res).to.have.property('transactionId').to.equal(transaction.id);
 					transactions.push(transaction);
 					count++;
 					next();
@@ -89,7 +90,7 @@ describe('postTransactions @slow', function () {
 			}, function () {
 				return (count >= maximum);
 			}, function (err) {
-				node.expect(err).to.be.null;
+				expect(err).to.be.null;
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 				waitFor.blocks(blocksToWait, function (err, res) {
 					done();

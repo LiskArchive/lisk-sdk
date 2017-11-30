@@ -3,8 +3,8 @@
 require('../../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
-var node = require('../../../../node');
 var shared = require('../../../shared');
 var localShared = require('./shared');
 
@@ -28,8 +28,8 @@ describe('POST /api/transactions (validate type 4 on top of type 4)', function (
 			transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, 1, 2);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Account already has multisignatures enabled');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Account already has multisignatures enabled');
 				badTransactions.push(transaction);
 			});
 		});

@@ -3,8 +3,8 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
-var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -30,8 +30,8 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 			transaction = lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -40,8 +40,8 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 			transaction = lisk.multisignature.createMultisignature(account.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				pendingMultisignatures.push(transaction);
 			});
 		});

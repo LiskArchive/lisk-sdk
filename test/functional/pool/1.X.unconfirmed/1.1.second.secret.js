@@ -3,8 +3,8 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
-var node = require('../../../node');
 var shared = require('../../shared');
 var localShared = require('./shared');
 
@@ -28,8 +28,8 @@ describe('POST /api/transactions (unconfirmed type 1 on top of type 1)', functio
 			transaction = lisk.signature.createSignature(account.password, 'secondpassword');
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				// TODO: Enable when transaction pool order is fixed
 				// goodTransactions.push(transaction);
 			});

@@ -3,6 +3,7 @@
 require('../../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var node = require('../../../../node');
 var shared = require('../../../shared');
@@ -28,8 +29,8 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 			transaction = lisk.delegate.createDelegate(account.password, account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -38,8 +39,8 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 			transaction = lisk.delegate.createDelegate(account.password, account.username, 'invalid password');
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -48,8 +49,8 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 			transaction = lisk.delegate.createDelegate(account.password, account.username, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});

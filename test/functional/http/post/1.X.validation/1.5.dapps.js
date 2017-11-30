@@ -3,6 +3,7 @@
 require('../../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var node = require('../../../../node');
 var shared = require('../../../shared');
@@ -28,8 +29,8 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 			transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -38,8 +39,8 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 			transaction = lisk.dapp.createDapp(account.password, 'wrong second password', randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -48,8 +49,8 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 			transaction = lisk.dapp.createDapp(account.password, account.secondPassword, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});

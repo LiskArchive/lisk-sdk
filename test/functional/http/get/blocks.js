@@ -2,6 +2,8 @@
 
 require('../../functional.js');
 
+var expect = require('chai').expect;
+
 var test = require('../../../test');
 var _ = test._;
 var node = require('../../../node');
@@ -50,16 +52,16 @@ describe('GET /blocks', function () {
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
 				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
-				node.expect(err).to.not.exist;
-				node.expect(__cache).to.be.an('object');
+				expect(err).to.not.exist;
+				expect(__cache).to.be.an('object');
 				return done(err);
 			});
 		});
 
 		afterEach(function (done) {
 			cache.flushDb(function (err, status) {
-				node.expect(err).to.not.exist;
-				node.expect(status).to.equal('OK');
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
 				done(err);
 			});
 		});
@@ -98,7 +100,7 @@ describe('GET /blocks', function () {
 				initialResponse = res;
 				return getJsonForKeyPromise(url + params.join('&'));
 			}).then(function (response) {
-				node.expect(response).to.eql(null);
+				expect(response).to.eql(null);
 			});
 		});
 
@@ -123,7 +125,7 @@ describe('GET /blocks', function () {
 			}).then(function () {
 				return getJsonForKeyPromise(url + params.join('&'));
 			}).then(function (result) {
-				node.expect(result).to.eql(null);
+				expect(result).to.eql(null);
 			});
 		});
 	});

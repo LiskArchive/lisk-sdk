@@ -4,8 +4,8 @@ var crypto = require('crypto');
 var _  = require('lodash');
 var rewire = require('rewire');
 var sinon   = require('sinon');
+var expect = require('chai').expect;
 
-var node = require('../../node.js');
 var accountFixtures = require('../../fixtures/accounts');
 
 var ed = require('../../../helpers/ed');
@@ -15,8 +15,6 @@ var Delegate = rewire('../../../logic/delegate.js');
 var modulesLoader = require('../../common/modulesLoader');
 var SchemaDynamicTest = require('../common/schemaDynamicTest.js');
 var randomUtil = require('../../common/utils/random');
-
-var expect = node.expect;
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());

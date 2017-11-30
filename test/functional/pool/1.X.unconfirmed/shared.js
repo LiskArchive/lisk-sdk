@@ -1,6 +1,7 @@
 'use strict';
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var node = require('../../../node');
 var shared = require('../../shared');
@@ -17,8 +18,8 @@ function beforeUnconfirmedPhase (account) {
 
 		return sendTransactionPromise(transaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
 				return waitForConfirmations([transaction.id]);
 			})
@@ -28,8 +29,8 @@ function beforeUnconfirmedPhase (account) {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 	});
 };
@@ -40,8 +41,8 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 
 		return sendTransactionPromise(transaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
 				return waitForConfirmations([transaction.id]);
 			})
@@ -51,8 +52,8 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 				randomUtil.guestbookDapp.transactionId = transaction.id;
 
@@ -64,8 +65,8 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 	});
 };

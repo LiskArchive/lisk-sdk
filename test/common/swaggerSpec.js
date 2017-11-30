@@ -1,8 +1,8 @@
 'use strict';
 
-var test = require('../test');
-var node = require('../node');
+var chai = require('chai');
 
+var test = require('../test');
 var _ = test._;
 
 var swaggerHelper = require('../../helpers/swagger');
@@ -17,7 +17,7 @@ validator.options.assumeAdditional = true;
 // Extend Chai assertion with a new method validResponse
 // to facilitate the validation of swagger response body
 // e.g. res.body.should.be.validResponse
-node.chai.use(function (chai, utils) {
+chai.use(function (chai, utils) {
 	chai.Assertion.addMethod('validResponse', function (responsePath) {
 		var result = validator.validate(utils.flag(this,'object'), apiSpec, {schemaPath: responsePath});
 		var errorDetail = '';

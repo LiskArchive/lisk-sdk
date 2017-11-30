@@ -3,6 +3,7 @@
 require('../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var node = require('../../node');
 var shared = require('../shared');
@@ -33,8 +34,8 @@ describe('Posting transaction (type 0)', function () {
 			var transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
 			postTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.not.ok;
-				node.expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
+				expect(res).to.have.property('success').to.be.not.ok;
+				expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
 				badTransactions.push(transaction);
 				done();
 			});
@@ -42,8 +43,8 @@ describe('Posting transaction (type 0)', function () {
 
 		it('when sender has funds should be ok', function (done) {
 			postTransaction(transaction, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				expect(res).to.have.property('success').to.be.ok;
+				expect(res).to.have.property('transactionId').to.equal(transaction.id);
 				goodTransactions.push(transaction);
 				done();
 			});

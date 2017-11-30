@@ -1,13 +1,12 @@
 'use strict';
 
 var randomstring = require('randomstring');
+var expect = require('chai').expect;
 
-var node = require('../../node.js');
 var Z_schema = require('../../../helpers/z_schema.js');
 var constants = require('../../../helpers/constants.js');
 
 var validator = new Z_schema();
-var expect = node.expect;
 
 describe('schema - custom formats', function () {
 

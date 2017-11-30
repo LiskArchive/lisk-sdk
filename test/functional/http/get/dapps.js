@@ -3,6 +3,7 @@
 require('../../functional.js');
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var test = require('../../../test');
 var node = require('../../../node');
@@ -34,7 +35,7 @@ describe('GET /dapps', function () {
 		transactionsToWaitFor.push(transaction.id);
 		return sendTransactionPromise(transaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.property('status').to.equal(200);
 				return waitForConfirmations(transactionsToWaitFor);
 			}).then(function () {
 				transactionsToWaitFor = [];
@@ -49,7 +50,7 @@ describe('GET /dapps', function () {
 				return test.Promise.all(promises);
 			}).then(function (results) {
 				results.forEach(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.property('status').to.equal(200);
 				});
 				return waitForConfirmations(transactionsToWaitFor);
 			});
@@ -223,7 +224,7 @@ describe('GET /dapps', function () {
 				return test.Promise.all(promises)
 					.then(function (results) {
 						results.forEach(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
+							expect(res).to.have.property('status').to.equal(200);
 						});
 						return waitForConfirmations(transactionsToWaitFor);
 					});
@@ -247,7 +248,7 @@ describe('GET /dapps', function () {
 					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort();
 
-					node.expect(expectedArray).eql(obtainedArray);
+					expect(expectedArray).eql(obtainedArray);
 				});
 			});
 
@@ -257,7 +258,7 @@ describe('GET /dapps', function () {
 					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort().reverse();
 
-					node.expect(expectedArray).eql(obtainedArray);
+					expect(expectedArray).eql(obtainedArray);
 				});
 			});
 		});

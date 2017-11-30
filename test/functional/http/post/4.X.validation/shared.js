@@ -1,9 +1,9 @@
 'use strict';
 
 var lisk = require('lisk-js');
+var expect = require('chai').expect;
 
 var test = require('../../../../test');
-var node = require('../../../../node');
 var shared = require('../../../shared');
 var accountFixtures = require('../../../../fixtures/accounts');
 
@@ -30,8 +30,8 @@ function beforeValidationPhase (scenarios) {
 			transactionsToWaitFor.push(transaction.id);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
@@ -44,8 +44,8 @@ function beforeValidationPhase (scenarios) {
 					transactionsToWaitFor.push(transaction.id);
 
 					return sendTransactionPromise(transaction).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
 				}));
 			})
@@ -97,8 +97,8 @@ function sendAndSignMultisigTransaction (type, scenario) {
 
 	return sendTransactionPromise(transaction)
 		.then(function (res) {
-			node.expect(res).to.have.property('status').to.equal(200);
-			node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+			expect(res).to.have.property('status').to.equal(200);
+			expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 		})
 		.then(function () {
 			var signatures = [];
