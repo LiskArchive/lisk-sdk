@@ -1,18 +1,18 @@
 'use strict';
 
 var randomstring = require('randomstring');
+var _ = require('lodash');
 
-var randomPeer = {
+var randomNormalizedPeer = {
 	'broadhash': '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
-	'dappid': null,
 	'height': 1,
 	'ip': '40.40.40.40',
-	'nonce': randomstring.generate(16),
-	'string': '40.40.40.40:4000',
 	'os': 'unknown',
-	'port': 4000,
+	'port': 5000,
+	'httpPort': 4000,
 	'state': 2,
-	'version': '0.0.0'
+	'version': '0.0.0',
+	'nonce': randomstring.generate(16)
 };
 
 function generateRandomActivePeer () {
@@ -33,6 +33,6 @@ function generateRandomActivePeer () {
 }
 
 module.exports = {
-	randomPeer: randomPeer,
+	randomNormalizedPeer: randomNormalizedPeer,
 	generateRandomActivePeer: generateRandomActivePeer
 };

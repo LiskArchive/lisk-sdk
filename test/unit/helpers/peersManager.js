@@ -4,7 +4,7 @@ var _ = require('lodash');
 var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var randomPeer = require('../../common/objectStubs').randomNormalizedPeer;
 var Peer = require('../../../logic/peer');
 
 var peersManager = require('../../../helpers/peersManager');

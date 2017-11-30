@@ -11,7 +11,7 @@ var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').
 var generateRandomActivePeer = require('../../common/objectStubs').generateRandomActivePeer;
 var modulesLoader = require('../../common/modulesLoader');
 var randomInt = require('../../common/helpers').randomInt;
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var randomPeer = require('../../common/objectStubs').randomNormalizedPeer;
 
 describe('peers', function () {
 

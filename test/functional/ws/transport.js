@@ -6,7 +6,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
 
 var node = require('../../node');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var randomPeer = require('../../common/objectStubs').randomNormalizedPeer;
 var Rules = require('../../../api/ws/workers/rules');
 var testConfig = require('../../config.json');
 var wsServer = require('../../common/wsServer');
