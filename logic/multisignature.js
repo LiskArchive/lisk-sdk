@@ -312,7 +312,7 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		u_multimin: trs.asset.multisignature.min,
 		u_multilifetime: trs.asset.multisignature.lifetime
 	}, function (err) {
-		return setImmediate(cb);
+		return setImmediate(cb, err);
 	});
 };
 
