@@ -221,7 +221,7 @@ __private.addTransaction = function (list, transaction) {
 		// Increase counter for specified list
 		list.count += 1;
 	}
-}
+};
 
 /**
  * Remove transaction (based on ID) from specified list if present, decrease counter for that list
@@ -236,7 +236,7 @@ __private.removeTransactionById = function (list, id) {
 		// Decrease counter for specified list
 		list.count -= 1;
 	}
-}
+};
 
 /**
  * Removes transaction from multisignature or queued list and add it to unconfirmed one.
