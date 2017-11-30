@@ -107,33 +107,30 @@ TransactionPool.prototype.transactionInPool = function (id) {
 };
 
 /**
- * Gets unconfirmed transactions based on transaction id.
+ * Gets unconfirmed transaction with specified ID
  * @param {string} id
- * @return {transaction[]}
+ * @return {(Object|undefined)} transaction
  */
 TransactionPool.prototype.getUnconfirmedTransaction = function (id) {
-	var index = self.unconfirmed.index[id];
-	return self.unconfirmed.transactions[index];
+	return self.unconfirmed.transactions[id];
 };
 
 /**
- * Gets queued transactions based on transaction id.
+ * Gets queued transactions with specified ID
  * @param {string} id
- * @return {transaction[]}
+ * @return {(Object|undefined)} transaction
  */
 TransactionPool.prototype.getQueuedTransaction = function (id) {
-	var index = self.queued.index[id];
-	return self.queued.transactions[index];
+	return self.queued.transactions[id];
 };
 
 /**
  * Gets multisignature transactions based on transaction id.
  * @param {string} id
- * @return {transaction[]}
+ * @return {(Object|undefined)} transaction
  */
 TransactionPool.prototype.getMultisignatureTransaction = function (id) {
-	var index = self.multisignature.index[id];
-	return self.multisignature.transactions[index];
+	return self.multisignature.transactions[id];
 };
 
 /**
