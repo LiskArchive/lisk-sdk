@@ -76,6 +76,14 @@ def cleanup_master() {
 	}
 }
 
+def archive_logs() {
+	sh """
+	cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+	mv logs "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID"
+	"""
+	archiveArtifacts artifacts: "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID/*"
+}
+
 def run_action(action) {
 	try {
 		sh """
@@ -87,15 +95,8 @@ def run_action(action) {
 		currentBuild.result = 'FAILURE'
 		report()
 		error('Stopping build: ' + action + ' failed')
+		archive_logs()
 	}	
-}
-
-def archive_logs() {
-	sh """
-	cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-	mv logs "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID"
-	"""
-	archiveArtifacts artifacts: "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID/*"
 }
 
 def report_coverage(node) {
