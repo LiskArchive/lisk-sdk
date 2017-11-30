@@ -422,8 +422,8 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 
 							return process.exit(0);
 						}
-						// Transaction applied, removed from the unconfirmed list.
-						modules.transactions.removeUnconfirmedTransaction(transaction.id);
+						// Transaction applied, purge transaction from pool
+						modules.transactions.purgeTransactionById(transaction.id);
 						return setImmediate(eachSeriesCb);
 					});
 				});

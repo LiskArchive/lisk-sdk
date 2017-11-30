@@ -241,6 +241,19 @@ __private.moveToUnconfirmed = function (transaction) {
 
 	__private.addTransaction(self.unconfirmed, transaction);
 };
+
+/**
+ * Removes transaction with specified ID from unconfirmed, queued and multisignature lists
+ * @param {string} id - Transaction ID
+ * @implements {__private.removeTransactionById}
+ */
+TransactionPool.prototype.purgeTransactionById = function (id) {
+	__private.removeTransactionById(self.unconfirmed, id);
+	__private.removeTransactionById(self.queued, id);
+	__private.removeTransactionById(self.multisignature, id);
+};
+
+
 /**
  * Removes transaction with specified ID from unconfirmed, queued and multisignature lists
  * @param {string} id - Transaction ID
@@ -409,6 +422,7 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
 					self.removeUnconfirmedTransaction(transaction.id);
 				}
+
 				// Remove transaction from unconfirmed list
 				__private.removeTransactionById(self.unconfirmed, transaction.id);
 

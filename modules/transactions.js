@@ -417,10 +417,10 @@ Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
 /**
  * Removes transaction from unconfirmed, queued and multisignature.
  * @param {string} id
- * @return {function} Calls transactionPool.removeUnconfirmedTransaction
+ * @return {function} Calls transactionPool.purgeTransactionById
  */
-Transactions.prototype.removeUnconfirmedTransaction = function (id) {
-	return __private.transactionPool.removeUnconfirmedTransaction(id);
+Transactions.prototype.purgeTransactionById = function (id) {
+	return __private.transactionPool.purgeTransactionById(id);
 };
 
 /**
