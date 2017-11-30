@@ -596,7 +596,6 @@ __private.loadBlocksFromNetwork = function (cb) {
  * - Applies unconfirmed transactions
  * @private
  * @implements {async.series}
- * @implements {modules.transactions.undoUnconfirmedList}
  * @implements {modules.transport.getPeers}
  * @implements {__private.loadBlocksFromNetwork}
  * @implements {modules.system.update}
