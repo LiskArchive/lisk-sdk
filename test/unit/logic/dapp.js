@@ -8,7 +8,7 @@ var rewire = require('rewire');
 var sinon   = require('sinon');
 var randomstring = require('randomstring');
 
-var node = require('./../../node.js');
+
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modulesLoader.js');
 

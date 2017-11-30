@@ -2,6 +2,7 @@
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 var test = require('../../../test');
 var shared = require('../../shared');
@@ -16,7 +17,7 @@ function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		return test.Promise.all(Object.keys(scenarios).map(function (type) {
+		return Promise.all(Object.keys(scenarios).map(function (type) {
 			if (type === 'no_funds') {
 				return;
 			}
@@ -33,7 +34,7 @@ function beforeValidationPhase (scenarios) {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				return test.Promise.all(Object.keys(scenarios).map(function (type) {
+				return Promise.all(Object.keys(scenarios).map(function (type) {
 					var transaction = lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);
@@ -51,7 +52,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		return test.Promise.all(Object.keys(scenarios).map(function (type) {
+		return Promise.all(Object.keys(scenarios).map(function (type) {
 			if (type === 'no_funds') {
 				return;
 			}
@@ -68,7 +69,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				return test.Promise.all(Object.keys(scenarios).map(function (type) {
+				return Promise.all(Object.keys(scenarios).map(function (type) {
 					scenarios[type].dapp = randomUtil.application();
 					var transaction = lisk.dapp.createDapp(scenarios[type].account.password, null, scenarios[type].dapp);
 					scenarios[type].dapp.id = transaction.id;
@@ -84,7 +85,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				return test.Promise.all(Object.keys(scenarios).map(function (type) {
+				return Promise.all(Object.keys(scenarios).map(function (type) {
 					var transaction = lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);

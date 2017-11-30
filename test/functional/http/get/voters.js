@@ -4,9 +4,9 @@ require('../../functional.js');
 
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
+var Promise = require('bluebird');
 
 var test = require('../../../test');
-var node = require('../../../node');
 var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
@@ -14,7 +14,7 @@ var apiCodes = require('../../../../helpers/apiCodes');
 var constants = require('../../../../helpers/constants');
 
 var waitFor = require('../../../common/utils/waitFor');
-var waitForBlocksPromise = test.Promise.promisify(waitFor.blocks);
+var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 
 var randomUtil = require('../../../common/utils/random');
 

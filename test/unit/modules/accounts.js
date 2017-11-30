@@ -1,7 +1,7 @@
 'use strict';/*eslint*/
 
 var _  = require('lodash');
-var node = require('./../../node.js');
+
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');

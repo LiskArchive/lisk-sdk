@@ -1,13 +1,10 @@
 'use strict';
 
 require('colors');
+var supertest = require('supertest');
 
 // Root object
 var test = {};
-
-test._ = require('lodash');
-test.supertest = require('supertest');
-test.Promise = require('bluebird');
 
 test.config = require('./data/config.json');
 test.config.root = process.cwd();
@@ -21,7 +18,9 @@ if (process.env.SILENT === 'true') {
 
 // Node configuration
 test.baseUrl = 'http://' + test.config.address + ':' + test.config.httpPort;
-test.api = test.supertest(test.baseUrl);
+test.api = supertest(test.baseUrl);
+
+test._ = require('lodash');
 
 test._.mixin({
 	/**
@@ -87,7 +86,6 @@ test._.mixin({
 		});
 	}
 }, { chain: false });
-
 
 // Exports
 module.exports = test;

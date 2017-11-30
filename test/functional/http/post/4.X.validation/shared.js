@@ -2,6 +2,7 @@
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 var test = require('../../../../test');
 var shared = require('../../../shared');
@@ -22,7 +23,7 @@ function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		return test.Promise.all(Object.keys(scenarios).map(function (type) {
+		return Promise.all(Object.keys(scenarios).map(function (type) {
 			if (type === 'no_funds') {
 				return;
 			}
@@ -38,7 +39,7 @@ function beforeValidationPhase (scenarios) {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				return test.Promise.all(Object.keys(scenarios).map(function (type) {
+				return Promise.all(Object.keys(scenarios).map(function (type) {
 					var transaction = lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);

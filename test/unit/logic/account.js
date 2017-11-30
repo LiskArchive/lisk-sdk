@@ -7,7 +7,7 @@ var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
 
-var node = require('./../../node.js');
+
 
 var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants.js');

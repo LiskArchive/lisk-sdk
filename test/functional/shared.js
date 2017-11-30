@@ -2,6 +2,7 @@
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 var test = require('../test');
 var _ = test._;
@@ -25,7 +26,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('bad transactions should not be confirmed', function () {
-			return test.Promise.map(badTransactions, function (transaction) {
+			return Promise.map(badTransactions, function (transaction) {
 				var params = [
 					'id=' + transaction.id
 				];
@@ -37,7 +38,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('good transactions should not be unconfirmed', function () {
-			return test.Promise.map(goodTransactions, function (transaction) {
+			return Promise.map(goodTransactions, function (transaction) {
 				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
 					expect(res).to.have.property('success').to.be.not.ok;
 					expect(res).to.have.property('error').equal('Transaction not found');
@@ -46,7 +47,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('good transactions should be confirmed', function () {
-			return test.Promise.map(goodTransactions, function (transaction) {
+			return Promise.map(goodTransactions, function (transaction) {
 				var params = [
 					'id=' + transaction.id
 				];
@@ -59,7 +60,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		if (pendingMultisignatures) {
 			it('pendingMultisignatures should remain in the pending queue', function () {
-				return test.Promise.map(pendingMultisignatures, function (transaction) {
+				return Promise.map(pendingMultisignatures, function (transaction) {
 					var params = [
 						'publicKey=' + transaction.senderPublicKey
 					];
@@ -73,7 +74,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 			});
 
 			it('pendingMultisignatures should not be confirmed', function () {
-				return test.Promise.map(pendingMultisignatures, function (transaction) {
+				return Promise.map(pendingMultisignatures, function (transaction) {
 					var params = [
 						'id=' + transaction.id
 					];

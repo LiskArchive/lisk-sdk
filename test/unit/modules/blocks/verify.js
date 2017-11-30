@@ -5,7 +5,7 @@ var async = require('async');
 var sinon = require('sinon');
 var crypto = require('crypto');
 
-var node = require('../../../node');
+
 var application = require('../../../common/application');
 
 var exceptions = require('../../../../helpers/exceptions');

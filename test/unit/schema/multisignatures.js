@@ -1,8 +1,9 @@
-var node = require('../../node.js');
+'use strict';
+
+var expect = require('chai').expect;
 
 var ZSchema = require('../../../helpers/z_schema.js');
 var schema = require('../../../schema/multisignatures.js');
-var expect = require('chai').expect;
 
 var validator = new ZSchema();
 

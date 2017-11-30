@@ -4,9 +4,9 @@ require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 var test = require('../../../test');
-var node = require('../../../node');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
@@ -41,7 +41,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		promises.push(sendTransactionPromise(transaction2));
 		promises.push(sendTransactionPromise(transaction3));
 
-		return test.Promise.all(promises)
+		return Promise.all(promises)
 			.then(function (results) {
 				results.forEach(function (res) {
 					expect(res).to.have.property('status').to.equal(200);

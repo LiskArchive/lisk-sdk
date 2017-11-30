@@ -3,7 +3,6 @@
 var faker = require('faker');
 var difference = require('lodash').difference;
 
-var node = require('../node');
 var constants = require('../../helpers/constants');
 
 var arrays = [

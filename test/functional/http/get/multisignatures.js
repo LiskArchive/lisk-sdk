@@ -5,7 +5,6 @@ require('../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var node = require('../../../node');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 

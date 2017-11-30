@@ -7,7 +7,7 @@ var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
 
-var node = require('./../../node.js');
+
 var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');

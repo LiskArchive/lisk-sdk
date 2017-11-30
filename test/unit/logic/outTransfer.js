@@ -7,7 +7,7 @@ var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
 
-var node = require('./../../node');
+
 
 var modulesLoader = require('../../common/modulesLoader');
 var typesRepresentatives = require('../../fixtures/typesRepresentatives');

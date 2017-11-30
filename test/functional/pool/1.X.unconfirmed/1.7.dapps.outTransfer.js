@@ -5,7 +5,7 @@ require('../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var node = ('../../../node');
+
 var shared = require('../../shared');
 var localShared = require('./shared');
 

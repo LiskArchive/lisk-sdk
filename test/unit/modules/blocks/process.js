@@ -3,7 +3,7 @@
 var expect = require('chai').expect;
 var async = require('async');
 
-var node = require('../../../node');
+
 var genesisBlock = require('../../../data/genesisBlock.json');
 var application = require('../../../common/application');
 var loadTables = require('./processTablesData.json');

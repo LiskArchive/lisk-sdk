@@ -2,6 +2,8 @@
 
 var chai = require('chai');
 var should = chai.should();
+var supertest = require('supertest');
+var Promise = require('bluebird');
 
 var test = require('../test');
 var _ = test._;
@@ -79,7 +81,7 @@ function SwaggerTestSpec (method, apiPath, responseCode) {
 
 	this.resolveJSONRefs = function () {
 		if (refsResolved) {
-			return test.Promise.resolve();
+			return Promise.resolve();
 		}
 
 		return swaggerHelper.getResolvedSwaggerSpec().then(function (results) {
@@ -139,7 +141,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			}
 		});
 
-		var req = test.supertest(test.baseUrl);
+		var req = supertest(test.baseUrl);
 
 		if (self.method === 'post') {
 			req = req.post(callPath);
@@ -200,7 +202,7 @@ SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
 	var self = this;
 	var requests = [];
 	parameters.forEach(function (paramSet) { requests.push(self.makeRequest(paramSet, responseCode)); });
-	return test.Promise.all(requests);
+	return Promise.all(requests);
 };
 
 /**

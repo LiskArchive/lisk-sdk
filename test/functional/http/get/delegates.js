@@ -5,6 +5,7 @@ require('../../functional.js');
 var lisk = require('lisk-js');
 var chai = require('chai');
 var should = chai.should();
+var Promise = require('bluebird');
 
 var test = require('../../../test');
 var _ = test._;
@@ -15,7 +16,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 
 var modulesLoader = require('../../../common/modulesLoader');
 var waitFor = require('../../../common/utils/waitFor');
-var onNewRoundPromise = test.Promise.promisify(waitFor.newRound);
+var onNewRoundPromise = Promise.promisify(waitFor.newRound);
 
 var apiHelpers = require('../../../common/apiHelpers');
 var creditAccountPromise = apiHelpers.creditAccountPromise;
@@ -45,7 +46,7 @@ describe('GET /delegates', function () {
 			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
+				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
 				should.not.exist(err);
 				__cache.should.be.an('object');
 				return done(err);
@@ -69,8 +70,8 @@ describe('GET /delegates', function () {
 			var params = [];
 
 			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
-				return test.Promise.all([0, 10, 100].map(function (delay) {
-					return test.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
@@ -101,8 +102,8 @@ describe('GET /delegates', function () {
 
 			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return test.Promise.all([0, 10, 100].map(function (delay) {
-					return test.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
@@ -382,7 +383,7 @@ describe('GET /delegates', function () {
 
 			it('using sort with any of sort fields should not place NULLs first', function () {
 				var delegatesSortFields = ['rank', 'username', 'missedBlocks', 'productivity'];
-				return test.Promise.all(delegatesSortFields.map(function (sortField) {
+				return Promise.all(delegatesSortFields.map(function (sortField) {
 					return delegatesEndpoint.makeRequest({sort: sortField + ':asc'}, 200).then(function (res) {
 						_(_.map(res.data, sortField)).appearsInLast(null);
 					});

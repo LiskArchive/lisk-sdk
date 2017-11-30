@@ -4,9 +4,9 @@ require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 var test = require('../../../test');
-var node = require('../../../node');
 var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
@@ -48,7 +48,7 @@ describe('GET /dapps', function () {
 				promises.push(sendTransactionPromise(transaction2));
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
-				return test.Promise.all(promises);
+				return Promise.all(promises);
 			}).then(function (results) {
 				results.forEach(function (res) {
 					expect(res).to.have.property('status').to.equal(200);
@@ -101,7 +101,7 @@ describe('GET /dapps', function () {
 			});
 
 			it('using known ids should be ok', function () {
-				return test.Promise.map(transactionsToWaitFor, function (transaction) {
+				return Promise.map(transactionsToWaitFor, function (transaction) {
 					return dappsEndpoint.makeRequest({transactionId: transaction}, 200).then(function (res) {
 						res.body.data[0].transactionId.should.be.eql(transaction);
 					});
@@ -222,7 +222,7 @@ describe('GET /dapps', function () {
 					sum = sum + i;
 				}
 
-				return test.Promise.all(promises)
+				return Promise.all(promises)
 					.then(function (results) {
 						results.forEach(function (res) {
 							expect(res).to.have.property('status').to.equal(200);

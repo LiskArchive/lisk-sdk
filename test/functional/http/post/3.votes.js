@@ -4,9 +4,9 @@ require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 var test = require('../../../test');
-var node = require('../../../node');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
@@ -70,7 +70,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		promises.push(sendTransactionPromise(transaction5));
 		promises.push(sendTransactionPromise(transaction6));
 
-		return test.Promise.all(promises)
+		return Promise.all(promises)
 			.then(function (res) {
 				res.forEach(function (result, index) {
 					expect(result).to.have.property('status').to.equal(200);
@@ -88,7 +88,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					promisesCreditsMaxVotesPerTransaction.push(sendTransactionPromise(transaction));
 				};
 
-				return test.Promise.all(promisesCreditsMaxVotesPerTransaction).then(function (results) {
+				return Promise.all(promisesCreditsMaxVotesPerTransaction).then(function (results) {
 					results.forEach(function (result, index) {
 						expect(result).to.have.property('status').to.equal(200);
 						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -107,7 +107,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					promisesCreditsMaxVotesPerAccount.push(sendTransactionPromise(transaction));
 				};
 
-				return test.Promise.all(promisesCreditsMaxVotesPerAccount).then(function (results) {
+				return Promise.all(promisesCreditsMaxVotesPerAccount).then(function (results) {
 					results.forEach(function (result, index) {
 						expect(result).to.have.property('status').to.equal(200);
 						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -136,7 +136,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					promisesDelegatesMaxVotesPerTransaction.push(sendTransactionPromise(transaction));
 				};
 
-				return test.Promise.all(promisesDelegatesMaxVotesPerTransaction).then(function (results) {
+				return Promise.all(promisesDelegatesMaxVotesPerTransaction).then(function (results) {
 					results.forEach(function (result, index) {
 						expect(result).to.have.property('status').to.equal(200);
 						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -153,7 +153,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 					promisesDelegatesMaxVotesPerAccount.push(sendTransactionPromise(transaction));
 				};
 
-				return test.Promise.all(promisesDelegatesMaxVotesPerAccount).then(function (results) {
+				return Promise.all(promisesDelegatesMaxVotesPerAccount).then(function (results) {
 					results.forEach(function (result, index) {
 						expect(result).to.have.property('status').to.equal(200);
 						expect(result).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -318,7 +318,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 			promises.push(sendTransactionPromise(transaction3));
 			promises.push(sendTransactionPromise(transaction4));
 
-			return test.Promise.all(promises)
+			return Promise.all(promises)
 				.then(function (res) {
 					res.forEach(function (result) {
 						expect(result).to.have.property('status').to.equal(200);
@@ -447,7 +447,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 			promises.push(sendTransactionPromise(transaction3));
 			promises.push(sendTransactionPromise(transaction4));
 
-			return test.Promise.all(promises)
+			return Promise.all(promises)
 				.then(function (res) {
 					res.forEach(function (result) {
 						expect(result).to.have.property('status').to.equal(200);

@@ -4,9 +4,9 @@ require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 var test = require('../../../test');
-var node = require('../../../node');
 var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesisBlock.json');
@@ -50,7 +50,7 @@ describe('GET /api/transactions', function () {
 		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, accountFixtures.genesis.password);
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
-		return test.Promise.all(promises).then(function (results) {
+		return Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -72,7 +72,7 @@ describe('GET /api/transactions', function () {
 			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
+				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
 				expect(err).to.not.exist;
 				expect(__cache).to.be.an('object');
 				return done(err);
@@ -102,8 +102,8 @@ describe('GET /api/transactions', function () {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return test.Promise.all([0, 10, 100].map(function (delay) {
-					return test.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
@@ -578,7 +578,7 @@ describe('GET /api/transactions', function () {
 			it('using sort with any of sort fields should not place NULLs first', function () {
 				var params;
 
-				return test.Promise.each(transactionSortFields, function (sortField) {
+				return Promise.each(transactionSortFields, function (sortField) {
 					params = [
 						'sort=' + sortField
 					];
