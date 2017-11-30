@@ -10,6 +10,7 @@ test.supertest = require('supertest');
 test.Promise = require('bluebird');
 
 test.config = require('./data/config.json');
+test.config.root = process.cwd();
 
 // Optional logging
 if (process.env.SILENT === 'true') {

@@ -1,10 +1,9 @@
 'use strict';
 
-var test = require('../../test');
-var node = require('../../node.js');
-
 var popsicle = require('popsicle');
+var async = require('async');
 
+var test = require('../../test');
 var config = require('../../data/config.json');
 
 var slots = require('../../../helpers/slots.js');
@@ -106,7 +105,7 @@ function waitForNewBlock (height, blocksToWait, cb) {
 	var counter = 1;
 	var target = height + blocksToWait;
 
-	node.async.doWhilst(
+	async.doWhilst(
 		function (cb) {
 			var request = popsicle.get(test.baseUrl + '/api/node/status');
 

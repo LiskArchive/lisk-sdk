@@ -1,6 +1,6 @@
 'use strict';
 
-var test = require('../../../test');
+var test = require('../../../../test');
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var accountFixtures = require('../../../../fixtures/accounts');

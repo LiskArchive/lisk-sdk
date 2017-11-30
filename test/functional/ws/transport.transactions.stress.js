@@ -2,6 +2,8 @@
 
 require('../functional.js');
 
+var async = require('async');
+
 var test = require('../../test');
 var node = require('../../node');
 var shared = require('../shared');
@@ -29,7 +31,7 @@ describe('postTransactions @slow', function () {
 		var count = 1;
 
 		before(function (done) {
-			node.async.doUntil(function (next) {
+			async.doUntil(function (next) {
 				var bundled = [];
 
 				for (var i = 0; i < test.config.broadcasts.releaseLimit; i++) {
@@ -69,7 +71,7 @@ describe('postTransactions @slow', function () {
 		var count = 1;
 
 		before(function (done) {
-			node.async.doUntil(function (next) {
+			async.doUntil(function (next) {
 				var transaction = node.lisk.transaction.createTransaction(
 					randomUtil.account().address,
 					randomUtil.number(100000000, 1000000000),

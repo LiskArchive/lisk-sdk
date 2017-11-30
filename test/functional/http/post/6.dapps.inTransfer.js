@@ -8,6 +8,7 @@ var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
+var bignum = require('../../../../helpers/bignum.js');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
@@ -171,7 +172,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 						node.expect(res.body).to.have.nested.property('data').to.have.lengthOf(1);
 
 						var balance = res.body.data[0].balance;
-						var amount = new node.bignum(balance).plus('1').toNumber();
+						var amount = new bignum(balance).plus('1').toNumber();
 						transaction = node.lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, amount, account.password);
 
 						return sendTransactionPromise(transaction);

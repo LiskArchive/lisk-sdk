@@ -7,6 +7,7 @@ var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
+var transactionTypes = require('../../../../helpers/transactionTypes.js');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 var getPendingMultisignaturesPromise = require('../../../common/apiHelpers').getPendingMultisignaturesPromise;
@@ -86,7 +87,7 @@ describe('GET /api/multisignatures/', function () {
 						node.expect(element).to.have.property('min').that.is.equal(0);
 						node.expect(element).to.have.property('lifetime').that.is.equal(0);
 						node.expect(element).to.have.property('signed').that.is.true;
-						node.expect(element.transaction).to.have.property('type').that.is.equal(node.transactionTypes.MULTI);
+						node.expect(element.transaction).to.have.property('type').that.is.equal(transactionTypes.MULTI);
 						node.expect(element.transaction).to.have.property('amount').that.is.equal(0);
 						node.expect(element.transaction).to.have.property('senderPublicKey').that.is.equal(scenario.account.publicKey);
 						node.expect(element.transaction).to.have.property('timestamp').that.is.a('number');
