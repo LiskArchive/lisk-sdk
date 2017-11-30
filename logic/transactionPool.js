@@ -140,7 +140,7 @@ TransactionPool.prototype.getMultisignatureTransaction = function (id) {
  * @return {getTransactionList} Calls getTransactionList
  */
 TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, limit) {
-	return __private.getTransactionList(self.unconfirmed.transactions, reverse, limit);
+	return __private.getTransactionList(self.unconfirmed, reverse, limit);
 };
 
 /**
@@ -150,7 +150,7 @@ TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, lim
  * @return {getTransactionList} Calls getTransactionList
  */
 __private.getBundledTransactionList  = function (reverse, limit) {
-	return __private.getTransactionList(self.bundled.transactions, reverse, limit);
+	return __private.getTransactionList(self.bundled, reverse, limit);
 };
 
 /**
@@ -160,24 +160,24 @@ __private.getBundledTransactionList  = function (reverse, limit) {
  * @return {getTransactionList} Calls getTransactionList
  */
 TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) {
-	return __private.getTransactionList(self.queued.transactions, reverse, limit);
+	return __private.getTransactionList(self.queued, reverse, limit);
 };
 
 /**
- * Gets multisignature transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
- * @todo Avoid mix sync/asyn implementations of the same function
+ * Gets multisignature transactions based on reverse, ready and limit parameters
+ * @param {boolean} reverse - If true trasactions order will be reversed
+ * @param {boolean} ready - When true get only transactions that are ready
+ * @param {number} [limit] - When supplied list will be cut off
+ * @implements {__private.getTransactionList}
+ * @return {Object[]} transactions - Array of transactions
  * @todo Change order extra parameter 'ready', move it to the end
  */
 TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, ready, limit) {
 	if (ready) {
-		return __private.getTransactionList(self.multisignature.transactions, reverse).filter(function (transaction) {
-			return transaction.ready;
-		});
+		// FIXME: Kind of hack here - first we get all multisignature transactions sorted, then we filter and apply limit
+		return _.filter(__private.getTransactionList(self.multisignature, reverse), 'ready').slice(0, limit);
 	} else {
-		return __private.getTransactionList(self.multisignature.transactions, reverse, limit);
+		return __private.getTransactionList(self.multisignature, reverse, limit);
 	}
 };
 
