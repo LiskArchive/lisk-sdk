@@ -211,7 +211,7 @@ __private.loadSignatures = function (cb) {
  * @implements {library.logic.transaction.objectNormalize}
  * @implements {modules.peers.remove}
  * @implements {library.balancesSequence.add}
- * @implements {modules.transactions.processUnconfirmedTransaction}
+ * @implements {modules.transactions.receiveTransactions}
  * @param {function} cb
  * @return {setImmediateCallback} cb, err
  * @todo missed error propagation when balancesSequence.add
@@ -272,7 +272,7 @@ __private.loadTransactions = function (cb) {
 			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 				library.balancesSequence.add(function (cb) {
 					transaction.bundled = true;
-					modules.transactions.processUnconfirmedTransaction(transaction, false, cb);
+					modules.transactions.receiveTransactions([transaction], false, cb);
 				}, function (err) {
 					if (err) {
 						// TODO: Validate if must include error propagation.
@@ -596,11 +596,9 @@ __private.loadBlocksFromNetwork = function (cb) {
  * - Applies unconfirmed transactions
  * @private
  * @implements {async.series}
- * @implements {modules.transactions.undoUnconfirmedList}
  * @implements {modules.transport.getPeers}
  * @implements {__private.loadBlocksFromNetwork}
  * @implements {modules.system.update}
- * @implements {modules.transactions.applyUnconfirmedList}
  * @param {function} cb
  * @todo check err actions
  */
@@ -612,10 +610,6 @@ __private.sync = function (cb) {
 	__private.syncTrigger(true);
 
 	async.series({
-		undoUnconfirmedList: function (seriesCb) {
-			library.logger.debug('Undoing unconfirmed transactions before sync');
-			return modules.transactions.undoUnconfirmedList(seriesCb);
-		},
 		getPeersBefore: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus before sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
@@ -629,10 +623,6 @@ __private.sync = function (cb) {
 		getPeersAfter: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus after sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
-		},
-		applyUnconfirmedList: function (seriesCb) {
-			library.logger.debug('Applying unconfirmed transactions after sync');
-			return modules.transactions.applyUnconfirmedList(seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;

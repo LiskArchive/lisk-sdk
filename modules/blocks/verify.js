@@ -64,7 +64,8 @@ __private.checkTransaction = function (block, transaction, cb) {
 					// Undo the offending transaction.
 					// DATABASE: write
 					modules.transactions.undoUnconfirmed(transaction, function (err2) {
-						modules.transactions.removeUnconfirmedTransaction(transaction.id);
+						// Purge transaction from transaction pool
+						modules.transactions.purgeTransactionById(transaction.id);
 						return setImmediate(waterCb, err2 || err);
 					});
 				} else {

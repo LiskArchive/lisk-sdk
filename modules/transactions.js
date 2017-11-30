@@ -417,41 +417,10 @@ Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
 /**
  * Removes transaction from unconfirmed, queued and multisignature.
  * @param {string} id
- * @return {function} Calls transactionPool.removeUnconfirmedTransaction
+ * @return {function} Calls transactionPool.purgeTransactionById
  */
-Transactions.prototype.removeUnconfirmedTransaction = function (id) {
-	return __private.transactionPool.removeUnconfirmedTransaction(id);
-};
-
-/**
- * Checks kind of unconfirmed transaction and process it, resets queue
- * if limit reached.
- * @param {transaction} transaction
- * @param {Object} broadcast
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.processUnconfirmedTransaction
- */
-Transactions.prototype.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
-	return __private.transactionPool.processUnconfirmedTransaction(transaction, broadcast, cb);
-};
-
-/**
- * Gets unconfirmed transactions list and applies unconfirmed transactions.
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.applyUnconfirmedList
- */
-Transactions.prototype.applyUnconfirmedList = function (cb) {
-	return __private.transactionPool.applyUnconfirmedList(cb);
-};
-
-/**
- * Applies unconfirmed list to unconfirmed Ids.
- * @param {string[]} ids
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.applyUnconfirmedIds
- */
-Transactions.prototype.applyUnconfirmedIds = function (ids, cb) {
-	return __private.transactionPool.applyUnconfirmedIds(ids, cb);
+Transactions.prototype.purgeTransactionById = function (id) {
+	return __private.transactionPool.purgeTransactionById(id, true);
 };
 
 /**
@@ -675,9 +644,9 @@ Transactions.prototype.shared = {
 		library.db.query(sql.count).then(function (transactionsCount) {
 			return setImmediate(cb, null, {
 				confirmed: transactionsCount[0].count,
-				multisignature: __private.transactionPool.multisignature.transactions.length,
-				unconfirmed: __private.transactionPool.unconfirmed.transactions.length,
-				queued: __private.transactionPool.queued.transactions.length
+				multisignature: __private.transactionPool.multisignature.count,
+				unconfirmed: __private.transactionPool.unconfirmed.count,
+				queued: __private.transactionPool.queued.count
 			});
 		}, function (err) {
 			return setImmediate(cb, 'Unable to count transactions');
@@ -795,7 +764,7 @@ Transactions.prototype.shared = {
 									return setImmediate(cb, e.toString());
 								}
 
-								modules.transactions.receiveTransactions([transaction], true, cb);
+								self.receiveTransactions([transaction], true, cb);
 							});
 						});
 					} else {
@@ -834,7 +803,7 @@ Transactions.prototype.shared = {
 								return setImmediate(cb, e.toString());
 							}
 
-							modules.transactions.receiveTransactions([transaction], true, cb);
+							self.receiveTransactions([transaction], true, cb);
 						});
 					}
 				});

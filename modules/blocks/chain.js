@@ -250,13 +250,13 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 	});
 	// Initialize block progress tracker
 	var tracker = modules.blocks.utils.getBlockProgressLogger(block.transactions.length, block.transactions.length / 100, 'Genesis block loading');
-	async.eachSeries(block.transactions, function (transaction, cb) {
+	async.eachSeries(block.transactions, function (transaction, seriesCb) {
 		// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
 		// FIXME: Poor performance - every transaction cause SQL query to be executed
 		// WARNING: DB_WRITE
 		modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
 			if (err) {
-				return setImmediate(cb, {
+				return setImmediate(seriesCb, {
 					message: err,
 					transaction: transaction,
 					block: block
@@ -264,7 +264,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 			}
 			// Apply transaction to confirmed & unconfirmed balances
 			// WARNING: DB_WRITE
-			__private.applyTransaction(block, transaction, sender, cb);
+			__private.applyGenesisBlockTransaction(block, transaction, sender, seriesCb);
 			// Update block progress tracker
 			tracker.applyNext();
 		});
@@ -283,11 +283,11 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 };
 
 /**
- * Apply transaction to unconfirmed and confirmed
+ * Apply genesis block transaction to unconfirmed and confirmed states
  *
  * @private
  * @async
- * @method applyTransaction
+ * @method applyGenesisBlockTransaction
  * @param  {Object}   block Block object
  * @param  {Object}   transaction Transaction object
  * @param  {Object}   sender Sender account
@@ -295,8 +295,7 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-__private.applyTransaction = function (block, transaction, sender, cb) {
-	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'apply' can be ok
+__private.applyGenesisBlockTransaction = function (block, transaction, sender, cb) {
 	modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, {
@@ -340,9 +339,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
-	// List of unconfirmed transactions ids.
-	var unconfirmedTransactionIds;
-
 	async.series({
 		// Rewind any unconfirmed transactions before applying block.
 		// TODO: It should be possible to remove this call if we can guarantee that only this function is processing transactions atomically. Then speed should be improved further.
@@ -355,7 +351,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 
 					return process.exit(0);
 				} else {
-					unconfirmedTransactionIds = ids;
 					return setImmediate(seriesCb);
 				}
 			});
@@ -375,12 +370,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 						}
 
 						appliedTransactions[transaction.id] = transaction;
-
-						// Remove the transaction from the node queue, if it was present.
-						var index = unconfirmedTransactionIds.indexOf(transaction.id);
-						if (index >= 0) {
-							unconfirmedTransactionIds.splice(index, 1);
-						}
 
 						return setImmediate(eachSeriesCb);
 					});
@@ -433,8 +422,8 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 
 							return process.exit(0);
 						}
-						// Transaction applied, removed from the unconfirmed list.
-						modules.transactions.removeUnconfirmedTransaction(transaction.id);
+						// Transaction applied, purge transaction from pool
+						modules.transactions.purgeTransactionById(transaction.id);
 						return setImmediate(eachSeriesCb);
 					});
 				});
@@ -469,22 +458,14 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 				// DATABASE write. Update delegates accounts
 				modules.rounds.tick(block, seriesCb);
 			}
-		},
-		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
-		// TODO: See undoUnconfirmedList discussion above.
-		applyUnconfirmedIds: function (seriesCb) {
-			// DATABASE write
-			modules.transactions.applyUnconfirmedIds(unconfirmedTransactionIds, function (err) {
-				return setImmediate(seriesCb, err);
-			});
-		},
+		}
 	}, function (err) {
 		// Allow shutdown, database writes are finished.
 		modules.blocks.isActive.set(false);
 
 		// Nullify large objects.
 		// Prevents memory leak during synchronisation.
-		appliedTransactions = unconfirmedTransactionIds = block = null;
+		appliedTransactions = block = null;
 
 		// Finish here if snapshotting.
 		// FIXME: Not the best place to do that

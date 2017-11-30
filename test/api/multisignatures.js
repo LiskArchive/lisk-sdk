@@ -556,7 +556,7 @@ describe('GET /api/multisignatures/pending', function () {
 				node.expect(pending.transaction).to.have.property('signature').that.is.a('string');
 				node.expect(pending.transaction).to.have.property('id').that.is.equal(multiSigTx.txId);
 				node.expect(pending.transaction).to.have.property('senderId').that.is.eql(multisigAccount.address);
-				node.expect(pending.transaction).to.have.property('receivedAt').that.is.a('string');
+				node.expect(pending.transaction).to.have.property('receivedAt').that.is.a('number');
 			}
 
 			node.expect(flag).to.equal(1);

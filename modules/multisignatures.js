@@ -287,7 +287,7 @@ Multisignatures.prototype.shared = {
 				});
 			},
 			getTransactionList: function (seriesCb) {
-				scope.transactions = modules.transactions.getMultisignatureTransactionList(false, false);
+				scope.transactions = modules.transactions.getMultisignatureTransactionList(false);
 				scope.transactions = scope.transactions.filter(function (transaction) {
 					return transaction.senderPublicKey === req.body.publicKey;
 				});
