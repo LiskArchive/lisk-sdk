@@ -1560,7 +1560,8 @@ describe('transactionPool', function () {
 						});
 					}, 800);
 				});
-				it('TEMP - should be ok when checking that account balance is positive', function (done) {
+
+				it.skip('should be ok when checking that account balance is positive', function (done) {
 					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
 						expect(cbBalance.greaterThan('0'));
 						done();
@@ -1597,7 +1598,8 @@ describe('transactionPool', function () {
 						done();
 					});
 				});
-				it('TEMP - should be ok when checking that account balance is positive', function (done) {
+
+				it.skip('should be ok when checking that account balance is positive', function (done) {
 					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
 						expect(cbBalance.greaterThan('0'));
 						done();
@@ -1614,7 +1616,8 @@ describe('transactionPool', function () {
 						});
 					}, 800);
 				});
-				it('TEMP - should be ok when checking that account balance is negative', function (done) {
+
+				it.skip('should be ok when checking that account balance is negative', function (done) {
 					transactionPool.checkBalance({amount: 0, fee: 0}, {address: testAccounts[0].account.address}, function (err, cbBalance) {
 						expect(cbBalance.lessThan('0'));
 						done();
