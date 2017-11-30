@@ -16,6 +16,8 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var getPendingMultisignaturesPromise = require('../../../common/apiHelpers').getPendingMultisignaturesPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
+var normalizer = require('../../../common/utils/normalizer');
+
 describe('GET /api/multisignatures/', function () {
 
 	var scenario = new shared.MultisigScenario();
@@ -24,7 +26,7 @@ describe('GET /api/multisignatures/', function () {
 
 	before(function () {
 		// Crediting accounts
-		var sendTransaction = lisk.transaction.createTransaction(scenario.account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var sendTransaction = lisk.transaction.createTransaction(scenario.account.address, 1000 * normalizer, accountFixtures.genesis.password);
 		return sendTransactionPromise(sendTransaction)
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);

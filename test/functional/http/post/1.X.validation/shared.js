@@ -10,10 +10,12 @@ var accountFixtures = require('../../../../fixtures/accounts');
 var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
 var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
 
+var normalizer = require('../../../../common/utils/normalizer');
+
 function beforeValidationPhase (account) {
 
 	before(function () {
-		var transaction = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
 		return sendTransactionPromise(transaction)
 			.then(function (res) {

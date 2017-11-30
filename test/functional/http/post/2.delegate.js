@@ -16,6 +16,7 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 describe('POST /api/transactions (type 2) register delegate', function () {
 
@@ -36,7 +37,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 	before(function () {
 
 		var transactions = [];
-		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, accountFixtures.genesis.password);
 		var transaction3 = lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, accountFixtures.genesis.password);
 		var transaction4 = lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, accountFixtures.genesis.password);

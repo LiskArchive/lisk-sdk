@@ -11,10 +11,11 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 function beforeUnconfirmedPhase (account) {
 	before(function () {
-		var transaction = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
 		return sendTransactionPromise(transaction)
 			.then(function (res) {
@@ -37,7 +38,7 @@ function beforeUnconfirmedPhase (account) {
 
 function beforeUnconfirmedPhaseWithDapp (account) {
 	before(function () {
-		var transaction = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
 		return sendTransactionPromise(transaction)
 			.then(function (res) {

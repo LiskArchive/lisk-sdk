@@ -16,6 +16,7 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 describe('POST /api/transactions (type 3) votes', function () {
 
@@ -53,11 +54,11 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	before(function () {
 		var transactions = [];
-		var transaction1 = lisk.transaction.createTransaction(delegateAccount.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(delegateAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.vote, accountFixtures.genesis.password);
-		var transaction3 = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction4 = lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * node.normalizer, accountFixtures.genesis.password);
-		var transaction5 = lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction3 = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1000 * normalizer, accountFixtures.genesis.password);
+		var transaction4 = lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * normalizer, accountFixtures.genesis.password);
+		var transaction5 = lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction6 = lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, accountFixtures.genesis.password);
 		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5, transaction6);
 

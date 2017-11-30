@@ -12,6 +12,7 @@ var localShared = require('./shared');
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 describe('POST /api/transactions (unconfirmed type 7 on top of type 1)', function () {
 
@@ -26,7 +27,7 @@ describe('POST /api/transactions (unconfirmed type 7 on top of type 1)', functio
 	describe('outTransfer', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.transactionId, randomUtil.transaction().id, randomUtil.account().address, 10 * node.normalizer, account.password, account.secondPassword);
+			transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.transactionId, randomUtil.transaction().id, randomUtil.account().address, 10 * normalizer, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
@@ -36,7 +37,7 @@ describe('POST /api/transactions (unconfirmed type 7 on top of type 1)', functio
 		});
 
 		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
-			transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.transactionId, randomUtil.transaction().id, randomUtil.account().address, 10 * node.normalizer, account.password);
+			transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.transactionId, randomUtil.transaction().id, randomUtil.account().address, 10 * normalizer, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);

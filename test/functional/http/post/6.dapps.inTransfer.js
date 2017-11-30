@@ -18,6 +18,7 @@ var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirma
 var getAccountsPromise = require('../../../common/apiHelpers').getAccountsPromise;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
@@ -31,7 +32,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
 	// Crediting accounts
 	before(function () {
-		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.dappRegistration, accountFixtures.genesis.password);
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
@@ -224,7 +225,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		});
 
 		it('with correct data should be ok', function () {
-			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * node.normalizer, accountFixtures.genesis.password);
+			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * normalizer, accountFixtures.genesis.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
@@ -246,7 +247,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with enough funds should be ok', function () {
-				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * node.normalizer, account.password);
+				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * normalizer, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					expect(res).to.have.property('status').to.equal(200);

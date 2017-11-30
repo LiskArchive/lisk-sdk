@@ -16,6 +16,7 @@ var sendTransactionPromise = require('../../../common/apiHelpers').sendTransacti
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 describe('POST /api/transactions (type 1) register second secret', function () {
 
@@ -31,7 +32,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 
 	// Crediting accounts
 	before(function () {
-		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.secondSignature, accountFixtures.genesis.password);
 		var transaction3 = lisk.transaction.createTransaction(accountNoSecondPassword.address, constants.fees.secondSignature, accountFixtures.genesis.password);
 

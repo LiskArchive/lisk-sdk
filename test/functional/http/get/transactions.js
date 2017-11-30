@@ -30,6 +30,7 @@ var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
 var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 describe('GET /api/transactions', function () {
 
@@ -37,8 +38,8 @@ describe('GET /api/transactions', function () {
 
 	var account = randomUtil.account();
 	var account2 = randomUtil.account();
-	var minAmount = 20 * node.normalizer; // 20 LSK
-	var maxAmount = 100 * node.normalizer; // 100 LSK
+	var minAmount = 20 * normalizer; // 20 LSK
+	var maxAmount = 100 * normalizer; // 100 LSK
 
 	// Crediting accounts
 	before(function () {

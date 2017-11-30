@@ -16,6 +16,7 @@ var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
 
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
 
 describe('GET /dapps', function () {
 
@@ -31,7 +32,7 @@ describe('GET /dapps', function () {
 	var registeredDappsAmount = 2;
 
 	before(function () {
-		var transaction = lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, accountFixtures.genesis.password);
+		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 		transactionsToWaitFor.push(transaction.id);
 		return sendTransactionPromise(transaction)
 			.then(function (res) {
