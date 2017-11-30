@@ -238,12 +238,9 @@ __private.removeTransactionById = function (list, id) {
  * @implements {__private.removeTransactionById}
  * @implements {__private.addTransaction}
  */
-TransactionPool.prototype.addUnconfirmedTransaction = function (transaction) {
-	if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures)) {
-		__private.removeTransactionById(self.multisignature, transaction.id);
-	} else {
-		__private.removeTransactionById(self.queued, transaction.id);
-	}
+__private.moveToUnconfirmed = function (transaction) {
+	__private.removeTransactionById(self.multisignature, transaction.id);
+	__private.removeTransactionById(self.queued, transaction.id);
 
 	__private.addTransaction(self.unconfirmed, transaction);
 };
@@ -448,7 +445,6 @@ TransactionPool.prototype.expireTransactions = function (cb) {
  * @implements {modules.loader.syncing}
  * @implements {getMultisignatureTransactionList}
  * @implements {getQueuedTransactionList}
- * @implements {addUnconfirmedTransaction}
  * @implements {__private.applyUnconfirmedList}
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback|applyUnconfirmedList} for errors | with transactions
@@ -472,10 +468,6 @@ TransactionPool.prototype.fillPool = function (cb) {
 		spare = Math.abs(spare - multisignatures.length);
 		transactions = self.getQueuedTransactionList(true, constants.maxTxsPerBlock).slice(0, spare);
 		transactions = multisignatures.concat(transactions);
-
-		transactions.forEach(function (transaction)  {
-			self.addUnconfirmedTransaction(transaction);
-		});
 
 		return __private.applyUnconfirmedList(transactions, cb);
 	}
@@ -583,6 +575,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
  * @implements {__private.processVerifyTransaction}
  * @implements {removeUnconfirmedTransaction}
  * @implements {modules.transactions.applyUnconfirmed}
+ * @implements {__private.moveToUnconfirmed}
  * @param {transaction[]} transactions
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error | cb
@@ -606,6 +599,8 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
 					self.removeUnconfirmedTransaction(transaction.id);
 				}
+
+				__private.moveToUnconfirmed(transaction);
 				return setImmediate(eachSeriesCb);
 			});
 		});
