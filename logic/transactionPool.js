@@ -436,30 +436,18 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 };
 
 /**
- * expires transactions.
+ * Expire transactions from following lists: unconfirmed, queued, multisignature
  * @implements {__private.expireTransactions}
- * @implements {getUnconfirmedTransactionList}
- * @implements {getQueuedTransactionList}
- * @implements {getMultisignatureTransactionList}
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | ids[]
  */
 TransactionPool.prototype.expireTransactions = function (cb) {
-	var ids = [];
-
-	async.waterfall([
-		function (seriesCb) {
-			__private.expireTransactions(self.getUnconfirmedTransactionList(true), ids, seriesCb);
-		},
-		function (res, seriesCb) {
-			__private.expireTransactions(self.getQueuedTransactionList(true), ids, seriesCb);
-		},
-		function (res, seriesCb) {
-			__private.expireTransactions(self.getMultisignatureTransactionList(true, false), ids, seriesCb);
-		}
-	], function (err, ids) {
-		return setImmediate(cb, err, ids);
-	});
+	// FIXME: Performing that on inconfirmed transactions require undoUnconfirmed, can we just skip expire from that list?
+	__private.expireTransactions(self.unconfirmed);
+	__private.expireTransactions(self.queued);
+	__private.expireTransactions(self.multisignature);
+	// FIXME: Remove if undoUnconfirmed not needed
+	cb();
 };
 
 /**
@@ -649,38 +637,25 @@ __private.transactionTimeOut = function (transaction) {
 };
 
 /**
- * Removes unconfirmed transactions if expired.
+ * Remove transaction from list if transaction expired.
  * @private
  * @implements {__private.transactionTimeOut}
  * @implements {removeUnconfirmedTransaction}
- * @param {transaction[]} transactions
- * @param {string[]} parentIds
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error | ids[]
+ * @param {Object} list - Reference to one of supported transactions list: self.(unconfirmed|bundled|queued|multisignature)
  */
-__private.expireTransactions = function (transactions, parentIds, cb) {
-	var ids = [];
+__private.expireTransactions = function (list) {
+	_.forEach(list.transactions, function (transaction) {
+		// Get transaction timeout based on transaction type (in seconds)
+		var transactionTimeout = __private.transactionTimeOut(transaction);
 
-	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-		if (!transaction) {
-			return setImmediate(eachSeriesCb);
-		}
+		// Calculate transaction age (in seconds)
+		// - transaction.receivedAt property uses milliseconds
+		var transactionAge = Math.floor((Date.now() - transaction.receivedAt) / 1000);
 
-		var timeNow = Math.floor(Date.now() / 1000);
-		var timeOut = __private.transactionTimeOut(transaction);
-		// transaction.receivedAt is instance of Date
-		var seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
-
-		if (seconds > timeOut) {
-			ids.push(transaction.id);
+		if (transactionAge > transactionTimeout) {
 			self.removeUnconfirmedTransaction(transaction.id);
-			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + transaction.receivedAt.toUTCString());
-			return setImmediate(eachSeriesCb);
-		} else {
-			return setImmediate(eachSeriesCb);
+			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + new Date(transaction.receivedAt).toUTCString());
 		}
-	}, function (err) {
-		return setImmediate(cb, err, ids.concat(parentIds));
 	});
 };
 
