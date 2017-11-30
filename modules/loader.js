@@ -600,7 +600,6 @@ __private.loadBlocksFromNetwork = function (cb) {
  * @implements {modules.transport.getPeers}
  * @implements {__private.loadBlocksFromNetwork}
  * @implements {modules.system.update}
- * @implements {modules.transactions.applyUnconfirmedList}
  * @param {function} cb
  * @todo check err actions
  */
