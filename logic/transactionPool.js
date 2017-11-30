@@ -494,6 +494,23 @@ __private.processUnconfirmedTransaction = function (transaction, broadcast, cb) 
 };
 
 /**
+ * Check if requested list is not out of space, then if not - add transaction to that list
+ * @implements {__private.addTransaction}
+ * @param {Object} list - Reference to one of supported transactions list: self.(unconfirmed|bundled|queued|multisignature)
+ * @param {Object} transaction
+ * @param {function} cb - Callback function
+ * @return {setImmediateCallback} error | cb - Error if requested list is full
+ */
+__private.checkStorageAndAddTransaction = function (list, transaction, cb) {
+	if (list.count >= config.transactions.maxTxsPerQueue) {
+		return setImmediate(cb, 'Transaction pool is full');
+	} else {
+		__private.addTransaction(list, transaction);
+		return setImmediate();
+	}
+};
+
+/**
  * Based on transaction bundled, type and signatures queues transaction into:
  * bundle, multisignature or queue.
  * @implements {countBundled}
