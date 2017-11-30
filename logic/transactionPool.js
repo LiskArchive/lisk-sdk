@@ -627,24 +627,35 @@ __private.transactionTimeOut = function (transaction) {
  * Remove transaction from list if transaction expired.
  * @private
  * @implements {__private.transactionTimeOut}
- * @implements {removeUnconfirmedTransaction}
+ * @implements {__private.removeTransactionById}
  * @param {Object} list - Reference to one of supported transactions list: self.(unconfirmed|bundled|queued|multisignature)
  */
 __private.expireTransactions = function (list) {
 	_.forEach(list.transactions, function (transaction) {
-		// Get transaction timeout based on transaction type (in seconds)
-		var transactionTimeout = __private.transactionTimeOut(transaction);
-
-		// Calculate transaction age (in seconds)
-		// - transaction.receivedAt property uses milliseconds
-		var transactionAge = Math.floor((Date.now() - transaction.receivedAt) / 1000);
-
-		if (transactionAge > transactionTimeout) {
-			self.removeUnconfirmedTransaction(transaction.id);
+		if (__private.isTransactionExpired(transaction)) {
+			__private.removeTransactionById(list, transaction.id);
 			library.logger.info('Expired transaction: ' + transaction.id + ' received at: ' + new Date(transaction.receivedAt).toUTCString());
 		}
 	});
 };
+
+/**
+ * Remove transaction from list if transaction expired.
+ * @private
+ * @implements {__private.transactionTimeOut}
+ * @param {Object} transaction - Transaction to check
+ * @return {boolean} isExpired - True if transaction is expired
+ */
+__private.isTransactionExpired = function (transaction) {
+	// Get transaction timeout based on transaction type (in seconds)
+	var transactionTimeout = __private.transactionTimeOut(transaction);
+
+	// Calculate transaction age (in seconds)
+	// - transaction.receivedAt property uses milliseconds
+	var transactionAge = Math.floor((Date.now() - transaction.receivedAt) / 1000);
+
+	return (transactionAge > transactionTimeout);
+}
 
 // Export
 module.exports = TransactionPool;
