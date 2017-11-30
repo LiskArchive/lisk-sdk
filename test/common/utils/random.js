@@ -3,8 +3,6 @@
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
 
-
-
 var constants = require('../../../helpers/constants');
 
 var accountFixtures = require('../../fixtures/accounts');

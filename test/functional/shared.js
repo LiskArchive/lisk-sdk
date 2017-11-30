@@ -9,11 +9,12 @@ var _ = test._;
 var typesRepresentatives = require('../fixtures/typesRepresentatives');
 var accountFixtures = require('../fixtures/accounts');
 
-var sendTransactionPromise = require('../common/apiHelpers').sendTransactionPromise;
-var getTransactionsPromise = require('../common/apiHelpers').getTransactionsPromise;
-var getUnconfirmedTransactionPromise = require('../common/apiHelpers').getUnconfirmedTransactionPromise;
-var getPendingMultisignaturesPromise = require('../common/apiHelpers').getPendingMultisignaturesPromise;
-var waitForConfirmations = require('../common/apiHelpers').waitForConfirmations;
+var apiHelpers = require('../common/apiHelpers');
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+var getTransactionsPromise = apiHelpers.getTransactionsPromise;
+var getUnconfirmedTransactionPromise = apiHelpers.getUnconfirmedTransactionPromise;
+var getPendingMultisignaturesPromise = apiHelpers.getPendingMultisignaturesPromise;
+var waitForConfirmations = apiHelpers.waitForConfirmations;
 
 var randomUtil = require('../common/utils/random');
 

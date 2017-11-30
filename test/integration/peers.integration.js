@@ -9,11 +9,13 @@ var fs = require('fs');
 var popsicle = require('popsicle');
 var Promise = require('bluebird');
 var scClient = require('socketcluster-client');
-var blockchainReady = require('../common/utils/waitFor').blockchainReady;
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var baseConfig = require('../data/config.json');
+
+var blockchainReady = require('../common/utils/waitFor').blockchainReady;
 var WSClient = require('../common/ws/client');
+
 var Logger = require('../../logger');
 var logger = new Logger({filename: 'integrationTestsLogger.logs', echo: 'log'});
 

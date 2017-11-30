@@ -7,13 +7,10 @@ var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
 
-
-
 var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants.js');
 var bignum = require('../../../helpers/bignum.js');
 
-var DBSandbox = require('../../common/dbSandbox').DBSandbox;
 var application = require('../../common/application.js');
 
 var validAccount = {
@@ -58,7 +55,6 @@ var validAccount = {
 describe('account', function () {
 
 	var account;
-	var dbSandbox;
 
 	before(function (done) {
 		application.init({sandbox: {name: 'lisk_test_logic_accounts'}}, function (err, scope) {

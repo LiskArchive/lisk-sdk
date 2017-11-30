@@ -2,7 +2,6 @@
 
 var async = require('async');
 var Promise = require('bluebird');
-var sinon = require('sinon');
 var chai = require('chai');
 var expect = require('chai').expect;
 var lisk = require('lisk-js');

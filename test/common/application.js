@@ -1,7 +1,6 @@
 'use strict';
 
 // Global imports
-var child_process = require('child_process');
 var Promise = require('bluebird');
 var rewire = require('rewire');
 var sinon = require('sinon');
@@ -19,8 +18,6 @@ var jobsQueue = require('../../helpers/jobsQueue');
 var Sequence = require('../../helpers/sequence');
 
 var dbSandbox;
-var currentAppScope;
-var testDatabaseNames = [];
 var currentAppScope;
 
 function init (options, cb) {

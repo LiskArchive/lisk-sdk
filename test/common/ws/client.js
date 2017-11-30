@@ -3,6 +3,7 @@
 var scClient = require('socketcluster-client');
 var Promise = require('bluebird');
 var randomstring = require('randomstring');
+
 var testConfig = require('../../data/config.json');
 
 /**

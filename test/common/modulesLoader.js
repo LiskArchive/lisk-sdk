@@ -3,16 +3,16 @@
 var express = require('express');
 var path = require('path');
 var randomstring = require('randomstring');
-
 var _ = require('lodash');
-
 var async = require('async');
+
 var dirname = path.join(__dirname, '..', '..');
 var config = require(path.join(dirname, '/test/data/config.json'));
 var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
 var database = require(path.join(dirname, '/helpers', 'database.js'));
 var genesisblock = require(path.join(dirname, '/test/data/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
+
 var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
 var Cache = require('../../modules/cache.js');
