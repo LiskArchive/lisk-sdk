@@ -1,7 +1,7 @@
 'use strict';
 
 var DelegatesSql = {
-  delegateList: 'SELECT getDelegatesList() AS list;',
+  delegateList: 'SELECT get_delegates_list() AS list;',
 
   insertFork: 'INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause") VALUES (${delegatePublicKey}, ${blockTimestamp}, ${blockId}, ${blockHeight}, ${previousBlock}, ${cause});'
 
