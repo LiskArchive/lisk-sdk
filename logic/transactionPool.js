@@ -239,23 +239,19 @@ __private.removeTransactionById = function (list, id) {
 }
 
 /**
- * Removes transaction from multisignature or queued and add it to unconfirmed.
- * @param {transaction} transaction
- * @implements {removeMultisignatureTransaction}
- * @implements {removeQueuedTransaction}
+ * Removes transaction from multisignature or queued list and add it to unconfirmed one.
+ * @param {Object} transaction
+ * @implements {__private.removeTransactionById}
+ * @implements {__private.addTransaction}
  */
 TransactionPool.prototype.addUnconfirmedTransaction = function (transaction) {
 	if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures)) {
-		self.removeMultisignatureTransaction(transaction.id);
+		__private.removeTransactionById(self.multisignature, transaction.id);
 	} else {
-		self.removeQueuedTransaction(transaction.id);
+		__private.removeTransactionById(self.queued, transaction.id);
 	}
 
-	if (self.unconfirmed.index[transaction.id] === undefined) {
-		self.unconfirmed.transactions.push(transaction);
-		var index = self.unconfirmed.transactions.indexOf(transaction);
-		self.unconfirmed.index[transaction.id] = index;
-	}
+	__private.addTransaction(self.unconfirmed, transaction);
 };
 /**
  * Removes id from unconfirmed index and transactions.
