@@ -49,7 +49,6 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 	self.expiryInterval = 30000;
 	self.bundledInterval = library.config.broadcasts.broadcastInterval;
 	self.bundleLimit = library.config.broadcasts.releaseLimit;
-	self.processed = 0;
 
 	// Bundled transaction timer
 	function nextBundle (cb) {
@@ -282,21 +281,6 @@ TransactionPool.prototype.receiveTransactions = function (transactions, broadcas
 };
 
 /**
- * Regenerates indexes for all queues: bundled, queued,
- * multisignature and unconfirmed.
- */
-TransactionPool.prototype.reindexQueues = function () {
-	['bundled', 'queued', 'multisignature', 'unconfirmed'].forEach(function (queue) {
-		self[queue].index = {};
-		self[queue].transactions = self[queue].transactions.filter(Boolean);
-		self[queue].transactions.forEach(function (transaction) {
-			var index = self[queue].transactions.indexOf(transaction);
-			self[queue].index[transaction.id] = index;
-		});
-	});
-};
-
-/**
  * Gets bundled transactions based on bundled limit.
  * Removes each transaction from bundled and process it.
  * @implements {getBundledTransactionList}
@@ -354,12 +338,6 @@ TransactionPool.prototype.processBundled = function (cb) {
 __private.processUnconfirmedTransaction = function (transaction, broadcast, cb) {
 	if (self.transactionInPool(transaction.id)) {
 		return setImmediate(cb, 'Transaction is already processed: ' + transaction.id);
-	} else {
-		self.processed++;
-		if (self.processed > 1000) {
-			self.reindexQueues();
-			self.processed = 1;
-		}
 	}
 
 	if (transaction.bundled) {
