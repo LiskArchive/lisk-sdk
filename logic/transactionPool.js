@@ -65,12 +65,9 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 
 	// Transaction expiry timer
 	function nextExpiry (cb) {
-		self.expireTransactions(function (err) {
-			if (err) {
-				library.logger.log('Transaction expiry timer', err);
-			}
-			return setImmediate(cb);
-		});
+		__private.expireTransactions(self.queued);
+		__private.expireTransactions(self.multisignature);
+		return setImmediate(cb);
 	}
 
 	jobsQueue.register('transactionPoolNextExpiry', nextExpiry, self.expiryInterval);
@@ -412,8 +409,14 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
 					self.removeUnconfirmedTransaction(transaction.id);
 				}
+				// Remove transaction from unconfirmed list
 				__private.removeTransactionById(self.unconfirmed, transaction.id);
-				__private.addTransaction(self.queued, transaction);
+
+				// Check if transaction is expired and if not - add back to queued list
+				if (__private.isTransactionExpired(transaction) === false) {
+					__private.addTransaction(self.queued, transaction);
+				}
+
 				return setImmediate(eachSeriesCb);
 			});
 		} else {
@@ -422,21 +425,6 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 	}, function (err) {
 		return setImmediate(cb, err, ids);
 	});
-};
-
-/**
- * Expire transactions from following lists: unconfirmed, queued, multisignature
- * @implements {__private.expireTransactions}
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error | ids[]
- */
-TransactionPool.prototype.expireTransactions = function (cb) {
-	// FIXME: Performing that on inconfirmed transactions require undoUnconfirmed, can we just skip expire from that list?
-	__private.expireTransactions(self.unconfirmed);
-	__private.expireTransactions(self.queued);
-	__private.expireTransactions(self.multisignature);
-	// FIXME: Remove if undoUnconfirmed not needed
-	cb();
 };
 
 /**
