@@ -7,6 +7,7 @@ var randomPeer = {
 	'dappid': null,
 	'height': 1,
 	'ip': '40.40.40.40',
+	'nonce': randomstring.generate(16),
 	'string': '40.40.40.40:4000',
 	'os': 'unknown',
 	'port': 4000,
