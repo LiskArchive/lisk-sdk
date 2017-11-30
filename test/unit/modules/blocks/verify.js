@@ -14,7 +14,6 @@ var bson = require('../../../../helpers/bson');
 var modulesLoader = require('../../../common/modulesLoader');
 var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 
-
 var previousBlock = {
 	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
 	generatorPublicKey:'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
@@ -222,7 +221,6 @@ describe('blocks/verify', function () {
 	var db;
 
 	before(function (done) {
-<<<<<<< HEAD
 		application.init({
 			sandbox: {
 				name: 'lisk_test_blocks_verify'
@@ -232,9 +230,6 @@ describe('blocks/verify', function () {
 			},
 			waitForGenesisBlock: false
 		}, function (err, scope) {
-=======
-		application.init(function (err, scope) {
->>>>>>> 2ba03380... Create common/application.js
 			scope.modules.blocks.verify.onBind(scope.modules);
 			scope.modules.delegates.onBind(scope.modules);
 			scope.modules.transactions.onBind(scope.modules);

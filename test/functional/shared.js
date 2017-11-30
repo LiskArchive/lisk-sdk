@@ -190,7 +190,7 @@ function MultisigScenario (options) {
 	this.amount = options.amount || 100000000000;
 
 	this.multiSigTransaction = node.lisk.multisignature.createMultisignature(this.account.password, null, this.keysgroup, this.lifetime, this.min);
-	this.creditTransaction = node.lisk.transaction.createTransaction(this.account.address, this.amount, node.gAccount.password);
+	this.creditTransaction = node.lisk.transaction.createTransaction(this.account.address, this.amount, accountFixtures.genesis.password);
 	this.secondSignatureTransaction = node.lisk.signature.createSignature(this.account.password, this.account.secondPassword);
 }
 

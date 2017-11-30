@@ -148,8 +148,8 @@ describe('Rounds-related SQL triggers', function () {
 	}
 
 	before(function (done) {
-		originalBlockRewardsOffset = node.constants.rewards.offset;
-		node.constants.rewards.offset = 150;
+		originalBlockRewardsOffset = constants.rewards.offset;
+		constants.rewards.offset = 150;
 		application.init({
 			sandbox: {
 				name: 'lisk_test_sql_rounds'
@@ -163,7 +163,7 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	after(function (done) {
-		node.constants.rewards.offset = originalBlockRewardsOffset;
+		constants.rewards.offset = originalBlockRewardsOffset;
 		application.cleanup(done);
 	});
 
