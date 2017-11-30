@@ -60,16 +60,6 @@ var http = {
 	}
 };
 
-/**
- * A helper method to get path based on swagger
- *
- * @param {String} path - A path component
- * @returns {String} - Full path to that endpoint
- */
-function swaggerPathFor (path) {
-	return node.swaggerDef.basePath + path;
-}
-
 function paramsHelper (url, params) {
 	if (typeof params != 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
 		// It is an defined array with at least one element

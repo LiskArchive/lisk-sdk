@@ -7,7 +7,7 @@ var _ = require('lodash');
 
 var swaggerHelper = require('../../helpers/swagger');
 
-var apiSpec = node.swaggerDef;
+var apiSpec = swaggerHelper.getSwaggerSpec();
 var refsResolved = false;
 var validator = swaggerHelper.getValidator();
 
