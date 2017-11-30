@@ -93,7 +93,6 @@ describe('peers', function () {
 			});
 		});
 
-
 		describe('when logic.peers.list returns 1000 random connected peers', function () {
 
 			before(function () {
