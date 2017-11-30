@@ -2,7 +2,9 @@
 
 require('../../functional.js');
 
+var test = require('../../../test');
 var node = require('../../../node');
+var _ = test._;
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
@@ -16,7 +18,6 @@ var waitForConfirmations = apiHelpers.waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var createSignatureObject = apiHelpers.createSignatureObject;
-var _ = node._;
 
 var randomUtil = require('../../../common/utils/random');
 

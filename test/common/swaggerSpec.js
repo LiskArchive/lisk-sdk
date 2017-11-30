@@ -3,7 +3,7 @@
 var test = require('../test');
 var node = require('../node');
 
-var _ = require('lodash');
+var _ = test._;
 
 var swaggerHelper = require('../../helpers/swagger');
 
@@ -78,7 +78,7 @@ function SwaggerTestSpec (method, apiPath, responseCode) {
 
 	this.resolveJSONRefs = function () {
 		if (refsResolved) {
-			return node.Promise.resolve();
+			return test.Promise.resolve();
 		}
 
 		return swaggerHelper.getResolvedSwaggerSpec().then(function (results) {
@@ -199,7 +199,7 @@ SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
 	var self = this;
 	var requests = [];
 	parameters.forEach(function (paramSet) { requests.push(self.makeRequest(paramSet, responseCode)); });
-	return node.Promise.all(requests);
+	return test.Promise.all(requests);
 };
 
 /**

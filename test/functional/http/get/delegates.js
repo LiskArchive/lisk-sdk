@@ -12,7 +12,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 
 var modulesLoader = require('../../../common/modulesLoader');
 var waitFor = require('../../../common/utils/waitFor');
-var onNewRoundPromise = node.Promise.promisify(waitFor.newRound);
+var onNewRoundPromise = test.Promise.promisify(waitFor.newRound);
 
 var apiHelpers = require('../../../common/apiHelpers');
 var creditAccountPromise = apiHelpers.creditAccountPromise;
@@ -39,10 +39,10 @@ describe('GET /delegates', function () {
 		var getJsonForKeyPromise;
 
 		before(function (done) {
-			node.config.cacheEnabled = true;
+			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
+				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
 				node.should.not.exist(err);
 				__cache.should.be.an('object');
 				return done(err);
@@ -66,8 +66,8 @@ describe('GET /delegates', function () {
 			var params = [];
 
 			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return test.Promise.all([0, 10, 100].map(function (delay) {
+					return test.Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
@@ -98,8 +98,8 @@ describe('GET /delegates', function () {
 
 			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return test.Promise.all([0, 10, 100].map(function (delay) {
+					return test.Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
@@ -379,7 +379,7 @@ describe('GET /delegates', function () {
 
 			it('using sort with any of sort fields should not place NULLs first', function () {
 				var delegatesSortFields = ['rank', 'username', 'missedBlocks', 'productivity'];
-				return node.Promise.all(delegatesSortFields.map(function (sortField) {
+				return test.Promise.all(delegatesSortFields.map(function (sortField) {
 					return delegatesEndpoint.makeRequest({sort: sortField + ':asc'}, 200).then(function (res) {
 						_(_.map(res.data, sortField)).appearsInLast(null);
 					});

@@ -2,7 +2,9 @@
 
 require('../../functional.js');
 
-var node = require('../../../node.js');
+var test = require('../../../test');
+var node = require('../../../node');
+var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
 var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
@@ -42,7 +44,7 @@ describe('GET /dapps', function () {
 				promises.push(sendTransactionPromise(transaction2));
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
-				return node.Promise.all(promises);
+				return test.Promise.all(promises);
 			}).then(function (results) {
 				results.forEach(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);
@@ -95,7 +97,7 @@ describe('GET /dapps', function () {
 			});
 
 			it('using known ids should be ok', function () {
-				return node.Promise.map(transactionsToWaitFor, function (transaction) {
+				return test.Promise.map(transactionsToWaitFor, function (transaction) {
 					return dappsEndpoint.makeRequest({transactionId: transaction}, 200).then(function (res) {
 						res.body.data[0].transactionId.should.be.eql(transaction);
 					});
@@ -216,7 +218,7 @@ describe('GET /dapps', function () {
 					sum = sum + i;
 				}
 
-				return node.Promise.all(promises)
+				return test.Promise.all(promises)
 					.then(function (results) {
 						results.forEach(function (res) {
 							node.expect(res).to.have.property('status').to.equal(200);
@@ -239,8 +241,8 @@ describe('GET /dapps', function () {
 
 			it('using "name:asc" should return result in descending order', function () {
 				return dappsEndpoint.makeRequest({sort: 'name:asc'}, 200).then(function (res) {
-					var obtainedArray = node._.map(res.body.dapps, 'name');
-					var cloneObtainedArray = node._.clone(obtainedArray);
+					var obtainedArray = _.map(res.body.dapps, 'name');
+					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort();
 
 					node.expect(expectedArray).eql(obtainedArray);
@@ -249,8 +251,8 @@ describe('GET /dapps', function () {
 
 			it('using "name:desc" should return result in descending order', function () {
 				return dappsEndpoint.makeRequest({sort: 'name:desc'}, 200).then(function (res) {
-					var obtainedArray = node._.map(res.body.dapps, 'name');
-					var cloneObtainedArray = node._.clone(obtainedArray);
+					var obtainedArray = _.map(res.body.dapps, 'name');
+					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort().reverse();
 
 					node.expect(expectedArray).eql(obtainedArray);

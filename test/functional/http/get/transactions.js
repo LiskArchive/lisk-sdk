@@ -2,10 +2,11 @@
 
 require('../../functional.js');
 
-var _ = require('lodash');
 var lisk = require('lisk-js');
 
+var test = require('../../../test');
 var node = require('../../../node');
+var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesisBlock.json');
 
@@ -47,7 +48,7 @@ describe('GET /api/transactions', function () {
 		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, accountFixtures.genesis.password);
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
-		return node.Promise.all(promises).then(function (results) {
+		return test.Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -66,10 +67,10 @@ describe('GET /api/transactions', function () {
 		var url = '/api/transactions?';
 
 		before(function (done) {
-			node.config.cacheEnabled = true;
+			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
+				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
 				node.expect(err).to.not.exist;
 				node.expect(__cache).to.be.an('object');
 				return done(err);
@@ -99,8 +100,8 @@ describe('GET /api/transactions', function () {
 				node.expect(res).to.have.property('status').to.equal(200);
 				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return test.Promise.all([0, 10, 100].map(function (delay) {
+					return test.Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
@@ -575,7 +576,7 @@ describe('GET /api/transactions', function () {
 			it('using sort with any of sort fields should not place NULLs first', function () {
 				var params;
 
-				return node.Promise.each(transactionSortFields, function (sortField) {
+				return test.Promise.each(transactionSortFields, function (sortField) {
 					params = [
 						'sort=' + sortField
 					];

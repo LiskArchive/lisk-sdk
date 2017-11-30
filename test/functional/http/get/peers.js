@@ -2,8 +2,9 @@
 
 require('../../functional.js');
 
-var _ = require('lodash');
-var node = require('../../../node.js');
+var test = require('../../../test');
+var _ = test._;
+
 var WSServer = require('../../../common/ws/serverMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
@@ -47,7 +48,7 @@ describe('GET /peers', function () {
 			valid: ['999.999.999a'], invalid: ['9999.999.999ab'], checkResponse: true
 		},
 		broadhash: {
-			valid: [node.config.nethash], invalid: ['invalid'], checkResponse: true
+			valid: [test.config.nethash], invalid: ['invalid'], checkResponse: true
 		},
 		limit: {
 			valid: [1, 100], invalid: [-1, 0]

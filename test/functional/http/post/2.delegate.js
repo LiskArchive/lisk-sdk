@@ -2,6 +2,7 @@
 
 require('../../functional.js');
 
+var test = require('../../../test');
 var node = require('../../../node');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -47,7 +48,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		promises.push(sendTransactionPromise(transaction3));
 		promises.push(sendTransactionPromise(transaction4));
 
-		return node.Promise.all(promises).then(function (results) {
+		return test.Promise.all(promises).then(function (results) {
 			results.forEach(function (res, index) {
 				node.expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(transactions[index].id);

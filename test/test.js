@@ -1,10 +1,13 @@
 'use strict';
 
+require('colors');
+
 // Root object
 var test = {};
 
 test._ = require('lodash');
 test.supertest = require('supertest');
+test.Promise = require('bluebird');
 
 test.config = require('./data/config.json');
 

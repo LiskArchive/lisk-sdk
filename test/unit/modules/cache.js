@@ -4,6 +4,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
 
+var test = require('../../test');
 var node = require('../../node');
 var accountFixtures = require('../../fixtures/accounts');
 
@@ -17,7 +18,7 @@ describe('cache', function () {
 	var cache;
 
 	before(function (done) {
-		node.config.cacheEnabled = true;
+		test.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;

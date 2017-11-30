@@ -1,5 +1,6 @@
 'use strict';
 
+var test = require('../../../test');
 var node = require('../../../../node');
 var shared = require('../../../shared');
 var accountFixtures = require('../../../../fixtures/accounts');
@@ -19,7 +20,7 @@ function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
 
 	before(function () {
-		return node.Promise.all(Object.keys(scenarios).map(function (type) {
+		return test.Promise.all(Object.keys(scenarios).map(function (type) {
 			if (type === 'no_funds') {
 				return;
 			}
@@ -35,7 +36,7 @@ function beforeValidationPhase (scenarios) {
 				return waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
-				return node.Promise.all(Object.keys(scenarios).map(function (type) {
+				return test.Promise.all(Object.keys(scenarios).map(function (type) {
 					var transaction = node.lisk.multisignature.createMultisignature(scenarios[type].account.password, null, scenarios[type].keysgroup, scenarios[type].lifetime, scenarios[type].min);
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);

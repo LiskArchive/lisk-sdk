@@ -8,7 +8,7 @@ var lisk = require('lisk-js');
 var constants = require('../../helpers/constants');
 
 var waitFor = require('./utils/waitFor');
-var waitForBlocks = node.Promise.promisify(waitFor.blocks);
+var waitForBlocks = test.Promise.promisify(waitFor.blocks);
 
 var accountFixtures = require('../fixtures/accounts');
 
@@ -226,10 +226,10 @@ function waitForConfirmations (transactions, limitHeight) {
 	limitHeight = limitHeight || 15;
 
 	function checkConfirmations (transactions) {
-		return node.Promise.all(transactions.map(function (transactionId) {
+		return test.Promise.all(transactions.map(function (transactionId) {
 			return getTransactionByIdPromise(transactionId);
 		})).then(function (res) {
-			return node.Promise.each(res, function (result) {
+			return test.Promise.each(res, function (result) {
 				if (result.body.transactions.length === 0) {
 					throw Error('Transaction not confirmed');
 				}
@@ -282,30 +282,30 @@ function createSignatureObject (transaction, signer) {
 	};
 }
 
-var getTransactionByIdPromise = node.Promise.promisify(getTransactionById);
-var getTransactionsPromise = node.Promise.promisify(getTransactions);
-var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
-var getQueuedTransactionsPromise = node.Promise.promisify(getQueuedTransactions);
-var getUnconfirmedTransactionPromise = node.Promise.promisify(getUnconfirmedTransaction);
-var getUnconfirmedTransactionsPromise = node.Promise.promisify(getUnconfirmedTransactions);
-var getMultisignaturesTransactionPromise = node.Promise.promisify(getMultisignaturesTransaction);
-var getMultisignaturesTransactionsPromise = node.Promise.promisify(getMultisignaturesTransactions);
-var getPendingMultisignaturesPromise = node.Promise.promisify(getPendingMultisignatures);
-var creditAccountPromise = node.Promise.promisify(creditAccount);
-var sendTransactionPromise = node.Promise.promisify(sendTransaction);
-var sendTransactionsPromise = node.Promise.promisify(sendTransactions);
-var getCountPromise = node.Promise.promisify(getCount);
-var registerDelegatePromise = node.Promise.promisify(registerDelegate);
-var getForgingStatusPromise = node.Promise.promisify(getForgingStatus);
-var getDelegatesPromise = node.Promise.promisify(getDelegates);
-var getDelegateVotersPromise = node.Promise.promisify(getDelegateVoters);
-var getVotersPromise = node.Promise.promisify(getVoters);
-var searchDelegatesPromise = node.Promise.promisify(searchDelegates);
-var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
-var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
-var getForgersPromise = node.Promise.promisify(getForgers);
-var getAccountsPromise = node.Promise.promisify(getAccounts);
-var getBlocksPromise = node.Promise.promisify(getBlocks);
+var getTransactionByIdPromise = test.Promise.promisify(getTransactionById);
+var getTransactionsPromise = test.Promise.promisify(getTransactions);
+var getQueuedTransactionPromise = test.Promise.promisify(getQueuedTransaction);
+var getQueuedTransactionsPromise = test.Promise.promisify(getQueuedTransactions);
+var getUnconfirmedTransactionPromise = test.Promise.promisify(getUnconfirmedTransaction);
+var getUnconfirmedTransactionsPromise = test.Promise.promisify(getUnconfirmedTransactions);
+var getMultisignaturesTransactionPromise = test.Promise.promisify(getMultisignaturesTransaction);
+var getMultisignaturesTransactionsPromise = test.Promise.promisify(getMultisignaturesTransactions);
+var getPendingMultisignaturesPromise = test.Promise.promisify(getPendingMultisignatures);
+var creditAccountPromise = test.Promise.promisify(creditAccount);
+var sendTransactionPromise = test.Promise.promisify(sendTransaction);
+var sendTransactionsPromise = test.Promise.promisify(sendTransactions);
+var getCountPromise = test.Promise.promisify(getCount);
+var registerDelegatePromise = test.Promise.promisify(registerDelegate);
+var getForgingStatusPromise = test.Promise.promisify(getForgingStatus);
+var getDelegatesPromise = test.Promise.promisify(getDelegates);
+var getDelegateVotersPromise = test.Promise.promisify(getDelegateVoters);
+var getVotersPromise = test.Promise.promisify(getVoters);
+var searchDelegatesPromise = test.Promise.promisify(searchDelegates);
+var putForgingDelegatePromise = test.Promise.promisify(putForgingDelegate);
+var getForgedByAccountPromise = test.Promise.promisify(getForgedByAccount);
+var getForgersPromise = test.Promise.promisify(getForgers);
+var getAccountsPromise = test.Promise.promisify(getAccounts);
+var getBlocksPromise = test.Promise.promisify(getBlocks);
 
 module.exports = {
 	getTransactionByIdPromise: getTransactionByIdPromise,

@@ -10,7 +10,7 @@ var modulesLoader = require('../../../common/modulesLoader');
 var waitFor = require('../../../common/utils/waitFor');
 
 var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
-var waitForBlocksPromise = node.Promise.promisify(waitFor.blocks);
+var waitForBlocksPromise = test.Promise.promisify(waitFor.blocks);
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -46,10 +46,10 @@ describe('GET /blocks', function () {
 		var getJsonForKeyPromise;
 
 		before(function (done) {
-			node.config.cacheEnabled = true;
+			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
+				getJsonForKeyPromise = test.Promise.promisify(cache.getJsonForKey);
 				node.expect(err).to.not.exist;
 				node.expect(__cache).to.be.an('object');
 				return done(err);
@@ -77,8 +77,8 @@ describe('GET /blocks', function () {
 			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
 				expectHeightCheck(res);
 				initialResponse = res;
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return test.Promise.all([0, 10, 100].map(function (delay) {
+					return test.Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				}));
@@ -111,8 +111,8 @@ describe('GET /blocks', function () {
 			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
 				expectHeightCheck(res);
 				initialResponse = res;
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return test.Promise.all([0, 10, 100].map(function (delay) {
+					return test.Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				}));

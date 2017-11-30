@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('lodash');
-
+var test = require('../test');
 var node = require('../node');
+var _ = test._;
 var typesRepresentatives = require('../fixtures/typesRepresentatives');
 var accountFixtures = require('../fixtures/accounts');
 
@@ -23,7 +23,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('bad transactions should not be confirmed', function () {
-			return node.Promise.map(badTransactions, function (transaction) {
+			return test.Promise.map(badTransactions, function (transaction) {
 				var params = [
 					'id=' + transaction.id
 				];
@@ -35,7 +35,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('good transactions should not be unconfirmed', function () {
-			return node.Promise.map(goodTransactions, function (transaction) {
+			return test.Promise.map(goodTransactions, function (transaction) {
 				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
 					node.expect(res).to.have.property('success').to.be.not.ok;
 					node.expect(res).to.have.property('error').equal('Transaction not found');
@@ -44,7 +44,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 		});
 
 		it('good transactions should be confirmed', function () {
-			return node.Promise.map(goodTransactions, function (transaction) {
+			return test.Promise.map(goodTransactions, function (transaction) {
 				var params = [
 					'id=' + transaction.id
 				];
@@ -57,7 +57,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		if (pendingMultisignatures) {
 			it('pendingMultisignatures should remain in the pending queue', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
+				return test.Promise.map(pendingMultisignatures, function (transaction) {
 					var params = [
 						'publicKey=' + transaction.senderPublicKey
 					];
@@ -71,7 +71,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 			});
 
 			it('pendingMultisignatures should not be confirmed', function () {
-				return node.Promise.map(pendingMultisignatures, function (transaction) {
+				return test.Promise.map(pendingMultisignatures, function (transaction) {
 					var params = [
 						'id=' + transaction.id
 					];

@@ -3,16 +3,17 @@
 require('../../functional.js');
 
 var randomstring = require('randomstring');
-var _ = require('lodash');
 
-var node = require('../../../node.js');
+var test = require('../../../test');
+var node = require('../../../node');
+var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
-var apiCodes = require('../../../../helpers/apiCodes.js');
-var constants = require('../../../../helpers/constants.js');
+var apiCodes = require('../../../../helpers/apiCodes');
+var constants = require('../../../../helpers/constants');
 
 var waitFor = require('../../../common/utils/waitFor');
-var waitForBlocksPromise = node.Promise.promisify(waitFor.blocks);
+var waitForBlocksPromise = test.Promise.promisify(waitFor.blocks);
 
 var randomUtil = require('../../../common/utils/random');
 

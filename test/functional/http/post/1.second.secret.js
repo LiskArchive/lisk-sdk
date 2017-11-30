@@ -2,6 +2,7 @@
 
 require('../../functional.js');
 
+var test = require('../../../test');
 var node = require('../../../node');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -36,7 +37,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		promises.push(sendTransactionPromise(transaction2));
 		promises.push(sendTransactionPromise(transaction3));
 
-		return node.Promise.all(promises)
+		return test.Promise.all(promises)
 			.then(function (results) {
 				results.forEach(function (res) {
 					node.expect(res).to.have.property('status').to.equal(200);

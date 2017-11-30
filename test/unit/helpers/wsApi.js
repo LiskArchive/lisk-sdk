@@ -1,20 +1,24 @@
 'use strict';
 
-var node = require('../../node.js');
 var async = require('async');
 var chai = require('chai');
 var expect = require('chai').expect;
 var express = require('express');
 var randomstring = require('randomstring');
 var sinon = require('sinon');
-var _ = require('lodash');
 
-var config = node.config;
+var test = require('../../test');
+var node = require('../../node');
+var config = test.config;
+var _ = test._;
+var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
+
 var wsApi = require('../../../helpers/wsApi');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
+
 var WSClient = require('../../common/ws/client');
 var System = require('../../../modules/system');
-var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
+
 
 describe('handshake', function () {
 
