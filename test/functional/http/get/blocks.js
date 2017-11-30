@@ -2,7 +2,9 @@
 
 require('../../functional.js');
 
-var node = require('../../../node.js');
+var test = require('../../../test');
+var _ = test._;
+var node = require('../../../node');
 var modulesLoader = require('../../../common/modulesLoader');
 
 var waitFor = require('../../../common/utils/waitFor');
@@ -12,7 +14,7 @@ var waitForBlocksPromise = node.Promise.promisify(waitFor.blocks);
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var _ = node._;
+
 
 describe('GET /blocks', function () {
 

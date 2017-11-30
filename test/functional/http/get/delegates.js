@@ -2,8 +2,9 @@
 
 require('../../functional.js');
 
+var test = require('../../../test');
 var node = require('../../../node');
-var _ = node._;
+var _ = test._;
 
 var constants = require('../../../../helpers/constants');
 var genesisDelegates = require('../../../data/genesisDelegates.json');
