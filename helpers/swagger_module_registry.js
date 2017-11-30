@@ -9,6 +9,7 @@ var __private = {};
  */
 function bind (scope) {
 	__private = {
+		config: scope.config,
 		cache: scope.modules.cache,
 		logger: scope.logger
 	};
@@ -30,8 +31,17 @@ function getLogger () {
 	return __private.logger;
 }
 
+/**
+ * Get system config
+ * @return {Object}
+ */
+function getConfig () {
+	return __private.config;
+}
+
 module.exports = {
 	bind: bind,
 	getCache: getCache,
-	getLogger: getLogger
+	getLogger: getLogger,
+	getConfig: getConfig
 };

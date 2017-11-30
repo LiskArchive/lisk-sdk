@@ -96,9 +96,11 @@
     "lisk-js": "LiskHQ/lisk-js#4cab930",
     "mocha": "=4.0.1",
     "moment": "=2.18.1",
+    "node-mocks-http": "^1.6.6",
     "pm2": "=2.4.6",
     "rewire": "=2.5.2",
     "sinon": "=3.2.1",
+    "sinon-chai": "=2.14.0",
     "supertest": "=3.0.0",
     "webpack": "=2.6.1",
     "webpack-node-externals": "=1.6.0"

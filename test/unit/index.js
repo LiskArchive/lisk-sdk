@@ -3,6 +3,9 @@
 var parallelTests = require('../common/parallelTests').parallelTests;
 
 var pathFiles = [
+	'./api/fittings/lisk_cors.js',
+	'./api/fittings/lisk_request_limit.js',
+
 	'./api/ws/workers/connectionsTable.js',
 	'./api/ws/workers/peersUpdateRules.js',
 	'./api/ws/workers/rules.js',

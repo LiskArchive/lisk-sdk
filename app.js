@@ -187,8 +187,6 @@ d.run(function () {
 		 */
 		network: ['config', function (scope, cb) {
 			var express = require('express');
-			var compression = require('compression');
-			var cors = require('cors');
 			var app = express();
 
 			if (appConfig.coverage) {
@@ -198,11 +196,9 @@ d.run(function () {
 				app.use('/coverage', im.createHandler());
 			}
 
-			require('./helpers/request-limiter')(app, appConfig);
-
-			app.use(compression({ level: 9 }));
-			app.use(cors());
-			app.options('*', cors());
+			if (appConfig.trustProxy) {
+				app.enable('trust proxy');
+			}
 
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
