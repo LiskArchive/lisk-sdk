@@ -1,16 +1,14 @@
 'use strict';
 
-var test = require('../test');
-var node = require('../node');
-
 var lisk = require('lisk-js');
+
+var test = require('../test');
+var accountFixtures = require('../fixtures/accounts');
 
 var constants = require('../../helpers/constants');
 
 var waitFor = require('./utils/waitFor');
 var waitForBlocks = test.Promise.promisify(waitFor.blocks);
-
-var accountFixtures = require('../fixtures/accounts');
 
 var http = {
 	abstractRequest: function (options, done) {

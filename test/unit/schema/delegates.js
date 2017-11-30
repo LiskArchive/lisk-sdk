@@ -2,7 +2,7 @@
 
 var expect = require('chai').expect;
 
-var node = require('../../node');
+
 var accountFixtures = require('../../fixtures/accounts');
 
 var Zschema = require('../../../helpers/z_schema');

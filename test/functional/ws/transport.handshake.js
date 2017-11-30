@@ -8,7 +8,7 @@ var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-var node = require('../../node');
+
 var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');
 var testConfig = require('../../data/config.json');

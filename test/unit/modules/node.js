@@ -2,7 +2,7 @@
 
 var expect = require('chai').expect;
 
-var node = require('../../node');
+
 var genesisDelegates = require('../../data/genesisDelegates.json');
 var accountFixtures = require('../../fixtures/accounts');
 

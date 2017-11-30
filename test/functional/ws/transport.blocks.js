@@ -6,7 +6,7 @@ var expect = require('chai').expect;
 
 var test = require('../../test');
 
-var node = require('../../node');
+
 var ws = require('../../common/ws/communication');
 
 var genesisblock = require('../../data/genesisBlock.json');

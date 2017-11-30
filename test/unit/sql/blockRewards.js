@@ -3,7 +3,7 @@
 var chai = require('chai');
 var expect = require('chai').expect;
 
-var node = require('../../node');
+
 var application = require('../../common/application');
 
 var constants = require('../../../helpers/constants');

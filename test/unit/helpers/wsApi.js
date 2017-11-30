@@ -8,7 +8,7 @@ var randomstring = require('randomstring');
 var sinon = require('sinon');
 
 var test = require('../../test');
-var node = require('../../node');
+
 var config = test.config;
 var _ = test._;
 var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
