@@ -90,6 +90,14 @@ def run_action(action) {
 	}	
 }
 
+def archive_logs() {
+	sh """
+	cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+	mv logs "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID"
+	"""
+	archiveArtifacts artifacts: "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID/*"
+}
+
 def report_coverage(node) {
 	try {
 		sh """
@@ -269,11 +277,13 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					} else {
 						run_action('test-functional-http-get')
 					}
+					archive_logs()
 				}
 			}, // End node-01 tests
 			"Functional HTTP POST tests" : {
 				node('node-02'){
 					run_action('test-functional-http-post')
+					archive_logs()
 				}
 			}, // End Node-02 tests
 			"Functional WS tests" : {
@@ -283,6 +293,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					} else {
 						run_action('test-functional-ws')
 					}
+					archive_logs()
 				}
 			}, // End Node-03 tests
 			"Unit Tests" : {
@@ -292,11 +303,13 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					} else {
 						run_action('test-unit')
 					}
+					archive_logs()
 				}
 			}, // End Node-04 unit tests
 			"Functional Transaction pool" : {
 				node('node-05'){
 					run_action('test-functional-pool')
+					archive_logs()
 				}
 			} // End Node-05 tests
 		) // End Parallel
