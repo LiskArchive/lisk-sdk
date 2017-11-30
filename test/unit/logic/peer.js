@@ -7,7 +7,7 @@ var express = require('express');
 var ip = require('ip');
 var _  = require('lodash');
 var sinon = require('sinon');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+var randomPeer = require('../../common/objectStubs').randomNormalizedPeer;
 var Peer = require('../../../logic/peer.js');
 
 describe('peer', function () {
