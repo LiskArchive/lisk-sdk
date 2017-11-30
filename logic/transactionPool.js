@@ -41,10 +41,10 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 	self = this;
 
 	// Init transactions storage pools
-	self.unconfirmed    = {transactions: [], index: {}};
-	self.bundled        = {transactions: [], index: {}};
-	self.queued         = {transactions: [], index: {}};
-	self.multisignature = {transactions: [], index: {}};
+	self.unconfirmed    = {transactions: {}, count: 0};
+	self.bundled        = {transactions: {}, count: 0};
+	self.queued         = {transactions: {}, count: 0};
+	self.multisignature = {transactions: {}, count: 0};
 
 	self.expiryInterval = 30000;
 	self.bundledInterval = library.config.broadcasts.broadcastInterval;
