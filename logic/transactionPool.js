@@ -245,10 +245,13 @@ __private.moveToUnconfirmed = function (transaction) {
 /**
  * Removes transaction with specified ID from unconfirmed, queued and multisignature lists
  * @param {string} id - Transaction ID
+ * @param {boolean} [unconfirmed] - If true transaction will also be purged from unconfirmed list
  * @implements {__private.removeTransactionById}
  */
-TransactionPool.prototype.purgeTransactionById = function (id) {
-	__private.removeTransactionById(self.unconfirmed, id);
+TransactionPool.prototype.purgeTransactionById = function (id, unconfirmed) {
+	if (unconfirmed) {
+		__private.removeTransactionById(self.unconfirmed, id);
+	}
 	__private.removeTransactionById(self.queued, id);
 	__private.removeTransactionById(self.multisignature, id);
 };
@@ -276,7 +279,6 @@ TransactionPool.prototype.receiveTransactions = function (transactions, broadcas
  * @implements {__private.getTransactionList}
  * @implements {__private.removeTransactionById}
  * @implements {processVerifyTransaction}
- * @implements {removeUnconfirmedTransaction}
  * @implements {queueTransaction}
  * @param {function} cb
  * @return {setImmediateCallback} err | cb
@@ -393,7 +395,6 @@ TransactionPool.prototype.applyUnconfirmedList = function (cb) {
  * Undoes unconfirmed transactions.
  * @implements {getUnconfirmedTransactionList}
  * @implements {modules.transactions.undoUnconfirmed}
- * @implements {removeUnconfirmedTransaction}
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | ids[]
  */
@@ -486,6 +487,7 @@ __private.getTransactionList = function (list, reverse, limit) {
  * @implements {accounts.getAccount}
  * @implements {logic.transaction.process}
  * @implements {logic.transaction.verify}
+ * @implements {purgeTransactionById}
  * @param {transaction} transaction
  * @param {object} broadcast
  * @param {function} cb - Callback function
@@ -548,8 +550,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 	], function (err, sender) {
 		if (err) {
 			// Remove transaction from queued and multisignature
-			__private.removeTransactionById(self.queued, transaction.id);
-			__private.removeTransactionById(self.multisignature, transaction.id);
+			self.purgeTransactionById(transaction.id);
 		} else {
 			library.bus.message('unconfirmedTransaction', transaction, broadcast);
 		}
@@ -564,7 +565,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
  * @private
  * @implements {getUnconfirmedTransaction}
  * @implements {__private.processVerifyTransaction}
- * @implements {removeUnconfirmedTransaction}
+ * @implements {purgeTransactionById}
  * @implements {modules.transactions.applyUnconfirmed}
  * @implements {__private.moveToUnconfirmed}
  * @param {transaction[]} transactions
@@ -589,8 +590,7 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
 
 					// Remove transaction from queued and multisignature
-					__private.removeTransactionById(self.queued, transaction.id);
-					__private.removeTransactionById(self.multisignature, transaction.id);
+					self.purgeTransactionById(transaction.id);
 				}
 
 				__private.moveToUnconfirmed(transaction);

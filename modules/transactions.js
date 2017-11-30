@@ -420,7 +420,7 @@ Transactions.prototype.getMergedTransactionList = function (reverse, limit) {
  * @return {function} Calls transactionPool.purgeTransactionById
  */
 Transactions.prototype.purgeTransactionById = function (id) {
-	return __private.transactionPool.purgeTransactionById(id);
+	return __private.transactionPool.purgeTransactionById(id, true);
 };
 
 /**
