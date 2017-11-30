@@ -560,11 +560,11 @@ TransactionPool.prototype.bind = function (accounts) {
 };
 
 /**
- * Deletes transactions from pool ready until address balance becomes zero or positive.
+ * Deletes transactions from pool ready until account balance becomes zero or positive.
  * @private
  * @implements {self.delete}
- * @param {[transaction]} transactions
- * @param {string} balance
+ * @param {[transaction]} transactions - Array of transactions.
+ * @param {string} balance - Balance of account.
  */
 __private.popFromReadyUntilCredit = function (transactions, balance) {
 	var transaction;
@@ -863,8 +863,8 @@ TransactionPool.prototype.delete = function (id) {
  * @implements {self.delete}
  * @implements {self.checkBalance}
  * @implements {__private.popFromReadyUntilCredit}
- * @param {string} id - Transaction id
- * @param {function} cb
+ * @param {string} id - Transaction id.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} cb
  */
 TransactionPool.prototype.sanitizeTransactions = function (transactions, cb) {
