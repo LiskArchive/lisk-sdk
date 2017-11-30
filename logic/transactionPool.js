@@ -189,23 +189,28 @@ TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, 
  * @param {boolean} reverse
  * @param {number} [limit]
  * @return {transaction[]} unconfirmed + multisignatures + queued
- * @todo limit is only implemented with queued.
  */
 TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
-	var minLimit = (constants.maxTxsPerBlock + 2);
+	// FIXME: That function is called with reverse = true, and that param is ignored
 
-	if (limit <= minLimit || limit > constants.maxSharedTxs) {
-		limit = minLimit;
-	}
-
-	var unconfirmed = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
+	var unconfirmed = [];
+	var multisignatures = [];
+	var queued = [];
+	
+    // Grab unconfirmed transactions first with limit of maxTxsPerBlock
+	unconfirmed = self.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	limit -= unconfirmed.length;
 
-	var multisignatures = modules.transactions.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
-	limit -= multisignatures.length;
+	if (limit > 0) {
+		// Then multisignatures (both ready and not ready) with limit of maxTxsPerBlock
+		multisignatures = self.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
+		limit -= multisignatures.length;
+	}
 
-	var queued = modules.transactions.getQueuedTransactionList(false, limit);
-	limit -= queued.length;
+	if (limit > 0) {
+		// Then queued transactions to limit
+		var queued = self.getQueuedTransactionList(false, limit);
+	}
 
 	return unconfirmed.concat(multisignatures).concat(queued);
 };
