@@ -1548,7 +1548,7 @@ describe('transactionPool', function () {
 
 		describe('calculated balance negative (database balance - incoming block balance - transaction pool balance < 0)', function () {
 
-			describe('one transaction is deleted from pool', function () {
+			describe('one transaction deleted from pool', function () {
 
 				it('should be ok when adding a new block', function (done) {
 					setTimeout(function () {
@@ -1566,7 +1566,8 @@ describe('transactionPool', function () {
 						done();
 					});
 				});
-				it('should be ok when rechecking balance and deletes one transaction from pool', function (done) {
+
+				it('should be ok when rechecking balance and deleting one transaction from pool', function (done) {
 					readyTransactionsBefore = transactionPool.getReady();
 					transactionPool.sanitizeTransactions(receivedTransactions, function () {
 						readyTransactionsAfter = transactionPool.getReady();
@@ -1583,7 +1584,7 @@ describe('transactionPool', function () {
 				});
 			});
 
-			describe('several transactions are deleted from pool', function () {
+			describe('several transactions deleted from pool', function () {
 
 				it('should be ok when transferring funds in multiple transactions', function (done) {
 					var multipleTransfers = [
@@ -1619,7 +1620,8 @@ describe('transactionPool', function () {
 						done();
 					});
 				});
-				it('should be ok when rechecking balance and deletes one transaction from pool', function (done) {
+
+				it('should be ok when rechecking balance and deleting one transaction from pool', function (done) {
 					readyTransactionsBefore = transactionPool.getReady();
 					transactionPool.sanitizeTransactions(receivedTransactions, function () {
 						readyTransactionsAfter = transactionPool.getReady();
