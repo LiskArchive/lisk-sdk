@@ -371,42 +371,28 @@ __private.checkStorageAndAddTransaction = function (list, transaction, cb) {
 };
 
 /**
- * Based on transaction bundled, type and signatures queues transaction into:
- * bundle, multisignature or queue.
- * @implements {countBundled}
- * @implements {addBundledTransaction}
- * @implements {countMultisignature}
- * @implements {addMultisignatureTransaction}
- * @implements {countQueued}
- * @implements {addQueuedTransaction}
+ * Add transaction to one of following lists depends of criteria:
+ * - bundled: when transaction contains bundled property that evaluates to true
+ * - multisignature: when transactions type is MULTI or transaction contains signatures
+ * - queued: all other transactions
  * @param {transaction} transaction
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error | cb
+ * @implements {__private.checkStorageAndAddTransaction}
+ * @return {setImmediateCallback} error | cb - Error if there is no space in list
  */
 TransactionPool.prototype.queueTransaction = function (transaction, cb) {
-	transaction.receivedAt = new Date();
+	var list;
 
 	if (transaction.bundled) {
-		if (self.countBundled() >= config.transactions.maxTxsPerQueue) {
-			return setImmediate(cb, 'Transaction pool is full');
-		} else {
-			self.addBundledTransaction(transaction);
-		}
+		list = self.bundled;
 	} else if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures)) {
-		if (self.countMultisignature() >= config.transactions.maxTxsPerQueue) {
-			return setImmediate(cb, 'Transaction pool is full');
-		} else {
-			self.addMultisignatureTransaction(transaction);
-		}
+		list = self.multisignature;
 	} else {
-		if (self.countQueued() >= config.transactions.maxTxsPerQueue) {
-			return setImmediate(cb, 'Transaction pool is full');
-		} else {
-			self.addQueuedTransaction(transaction);
-		}
+		list = self.queued;
 	}
 
-	return setImmediate(cb);
+	transaction.receivedAt = new Date();
+	return __private.checkStorageAndAddTransaction(list, transaction, cb);
 };
 
 /**
