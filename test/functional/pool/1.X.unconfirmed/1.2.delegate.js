@@ -1,6 +1,6 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;

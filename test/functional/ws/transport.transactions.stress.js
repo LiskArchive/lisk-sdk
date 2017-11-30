@@ -1,12 +1,10 @@
 'use strict';
 
-require('../functional.js');
+var test = require('../functional.js');
 
 var async = require('async');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
-
-var test = require('../../test');
 
 var shared = require('../shared');
 var accountFixtures = require('../../fixtures/accounts');

@@ -1,17 +1,18 @@
 'use strict';
 
-require('../functional.js');
+var test = require('../functional.js');
 
-var _ = require('lodash');
+var _ = test._;
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var randomstring = require('randomstring');
+var scClient = require('socketcluster-client');
+
+var testConfig = require('../../data/config.json');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 
-var randomstring = require('randomstring');
-var scClient = require('socketcluster-client');
-var testConfig = require('../../data/config.json');
 var ws = require('../../common/ws/communication');
 var wsServer = require('../../common/ws/server');
 var WSClient = require('../../common/ws/client');

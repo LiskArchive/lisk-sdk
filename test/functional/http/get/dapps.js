@@ -1,22 +1,19 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-var swaggerEndpoint = require('../../../common/swaggerSpec');
-var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/apiHelpers');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /dapps', function () {
 
@@ -34,18 +31,18 @@ describe('GET /dapps', function () {
 	before(function () {
 		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 		transactionsToWaitFor.push(transaction.id);
-		return sendTransactionPromise(transaction)
+		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			}).then(function () {
 				transactionsToWaitFor = [];
 
 				var transaction1 = lisk.dapp.createDapp(account.password, null, dapp1);
 				var transaction2 = lisk.dapp.createDapp(account.password, null, dapp2);
 				var promises = [];
-				promises.push(sendTransactionPromise(transaction1));
-				promises.push(sendTransactionPromise(transaction2));
+				promises.push(apiHelpers.sendTransactionPromise(transaction1));
+				promises.push(apiHelpers.sendTransactionPromise(transaction2));
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
 				return Promise.all(promises);
@@ -53,7 +50,7 @@ describe('GET /dapps', function () {
 				results.forEach(function (res) {
 					expect(res).to.have.property('status').to.equal(200);
 				});
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			});
 	});
 
@@ -218,7 +215,7 @@ describe('GET /dapps', function () {
 				for (var i = 1; i <= 20; i++) {
 					transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 					transactionsToWaitFor.push(transaction.id);
-					promises.push(sendTransactionPromise(transaction));
+					promises.push(apiHelpers.sendTransactionPromise(transaction));
 					sum = sum + i;
 				}
 
@@ -227,7 +224,7 @@ describe('GET /dapps', function () {
 						results.forEach(function (res) {
 							expect(res).to.have.property('status').to.equal(200);
 						});
-						return waitForConfirmations(transactionsToWaitFor);
+						return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 					});
 			});
 

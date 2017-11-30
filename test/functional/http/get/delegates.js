@@ -1,36 +1,25 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var chai = require('chai');
 var should = chai.should();
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var _ = test._;
-
-var constants = require('../../../../helpers/constants');
 var genesisDelegates = require('../../../data/genesisDelegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
 
-var modulesLoader = require('../../../common/modulesLoader');
-var waitFor = require('../../../common/utils/waitFor');
-var onNewRoundPromise = Promise.promisify(waitFor.newRound);
-
-var apiHelpers = require('../../../common/apiHelpers');
-var creditAccountPromise = apiHelpers.creditAccountPromise;
-var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
-var getForgingStatusPromise = apiHelpers.getForgingStatusPromise;
-var getDelegatesPromise = apiHelpers.getDelegatesPromise;
-var putForgingDelegatePromise = apiHelpers.putForgingDelegatePromise;
-var getForgersPromise = apiHelpers.getForgersPromise;
-var waitForConfirmations = apiHelpers.waitForConfirmations;
-
-var swaggerEndpoint = require('../../../common/swaggerSpec');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+var constants = require('../../../../helpers/constants');
 
 var randomUtil = require('../../../common/utils/random');
+var waitFor = require('../../../common/utils/waitFor');
+var onNewRoundPromise = Promise.promisify(waitFor.newRound);
+var modulesLoader = require('../../../common/modulesLoader');
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/apiHelpers');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', function () {
 	var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
@@ -177,14 +166,14 @@ describe('GET /delegates', function () {
 			var delegateTransaction = lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
 
 			before(function () {
-				return sendTransactionsPromise([creditTransaction]).then(function (res) {
+				return apiHelpers.sendTransactionsPromise([creditTransaction]).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return waitForConfirmations([creditTransaction.id]);
+					return apiHelpers.waitForConfirmations([creditTransaction.id]);
 				}).then(function () {
-					return sendTransactionsPromise([signatureTransaction, delegateTransaction]);
+					return apiHelpers.sendTransactionsPromise([signatureTransaction, delegateTransaction]);
 				}).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return waitForConfirmations([signatureTransaction.id, delegateTransaction.id]);
+					return apiHelpers.waitForConfirmations([signatureTransaction.id, delegateTransaction.id]);
 				});
 			});
 

@@ -1,6 +1,6 @@
 'use strict';
 
-require('../../../functional.js');
+var test = require('../../../functional.js');
 
 var shared = require('../../../shared');
 var localShared = require('./shared');

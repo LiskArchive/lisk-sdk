@@ -1,22 +1,20 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
+var apiHelpers = require('../../../common/apiHelpers');
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 3) votes', function () {
 
@@ -116,7 +114,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				});
 			})
 			.then(function (res) {
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
 				transactionsToWaitFor = [];
@@ -162,7 +160,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				});
 			})
 			.then(function (res) {
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			});
 	});
 

@@ -1,22 +1,19 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var _ = test._;
-var modulesLoader = require('../../../common/modulesLoader');
 
 var waitFor = require('../../../common/utils/waitFor');
-
-var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
 var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
+
 var swaggerEndpoint = require('../../../common/swaggerSpec');
+var modulesLoader = require('../../../common/modulesLoader');
 var apiHelpers = require('../../../common/apiHelpers');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-
 
 describe('GET /blocks', function () {
 

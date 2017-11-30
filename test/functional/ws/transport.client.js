@@ -1,6 +1,6 @@
 'use strict';
 
-require('../functional.js');
+var test = require('../functional.js');
 
 var chai = require('chai');
 var expect = require('chai').expect;

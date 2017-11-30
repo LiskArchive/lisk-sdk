@@ -1,19 +1,18 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
+var apiHelpers = require('../../../common/apiHelpers');
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
@@ -57,7 +56,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 				expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(transactions[index].id);
 			});
-			return waitForConfirmations(transactionsToWaitFor);
+			return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 		});
 	});
 

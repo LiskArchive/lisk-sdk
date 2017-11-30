@@ -1,11 +1,9 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
-
-var test = require('../../../test');
 
 var _ = test._;
 var shared = require('../../shared');
@@ -14,15 +12,11 @@ var accountFixtures = require('../../../fixtures/accounts');
 var apiCodes = require('../../../../helpers/apiCodes');
 var constants = require('../../../../helpers/constants');
 
+var randomUtil = require('../../../common/utils/random');
+var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
-var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
-var waitForConfirmations = apiHelpers.waitForConfirmations;
-var swaggerEndpoint = require('../../../common/swaggerSpec');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var createSignatureObject = apiHelpers.createSignatureObject;
 
-var randomUtil = require('../../../common/utils/random');
 
 describe('POST /api/transactions (type 4) register multisignature', function () {
 
@@ -67,11 +61,11 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			}
 		});
 
-		return sendTransactionsPromise(transactions).then(function (res) {
+		return apiHelpers.sendTransactionsPromise(transactions).then(function (res) {
 			expect(res).to.have.property('status').to.equal(200);
 			transactionsToWaitFor = transactionsToWaitFor.concat(_.map(transactions, 'id'));
 
-			return waitForConfirmations(transactionsToWaitFor);
+			return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 		});
 	});
 
@@ -269,7 +263,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 					var signatures = _.map(scenario.members, function (member) {
-						return createSignatureObject(scenario.multiSigTransaction, member);
+						return apiHelpers.createSignatureObject(scenario.multiSigTransaction, member);
 					});
 
 					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
@@ -290,7 +284,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					expect(res).to.have.property('status').to.equal(200);
 					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-					return waitForConfirmations([scenario.secondSignatureTransaction.id]);
+					return apiHelpers.waitForConfirmations([scenario.secondSignatureTransaction.id]);
 				})
 				.then(function () {
 					return sendTransactionPromise(multiSigSecondPasswordTransaction);
@@ -300,7 +294,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 					var signatures = _.map(scenario.members, function (member) {
-						return createSignatureObject(multiSigSecondPasswordTransaction, member);
+						return apiHelpers.createSignatureObject(multiSigSecondPasswordTransaction, member);
 					});
 
 					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
@@ -332,7 +326,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 					var signatures = _.map(scenario.members, function (member) {
-						return createSignatureObject(scenario.multiSigTransaction, member);
+						return apiHelpers.createSignatureObject(scenario.multiSigTransaction, member);
 					});
 
 					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
@@ -353,7 +347,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
 					var signatures = _.map(scenario.members, function (member) {
-						return createSignatureObject(scenario.multiSigTransaction, member);
+						return apiHelpers.createSignatureObject(scenario.multiSigTransaction, member);
 					});
 
 					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
@@ -369,7 +363,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 			it('twice with the same account should fail', function () {
 				var scenario = scenarios.unsigned;
-				var signature = createSignatureObject(scenario.multiSigTransaction, scenario.members[0]);
+				var signature = apiHelpers.createSignatureObject(scenario.multiSigTransaction, scenario.members[0]);
 
 				return signatureEndpoint.makeRequest({signatures: [signature]}, 200).then(function (res) {
 					res.body.meta.status.should.be.true;
@@ -382,7 +376,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			});
 
 			it('with not requested account should fail', function () {
-				var signature = createSignatureObject(scenarios.unsigned.multiSigTransaction, randomUtil.account());
+				var signature = apiHelpers.createSignatureObject(scenarios.unsigned.multiSigTransaction, randomUtil.account());
 
 				return signatureEndpoint.makeRequest({signatures: [signature]}, apiCodes.PROCESSING_ERROR).then(function (res) {
 					expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Failed to verify signature');

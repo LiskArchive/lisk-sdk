@@ -1,12 +1,11 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesisBlock.json');
@@ -16,21 +15,10 @@ var transactionTypes = require('../../../../helpers/transactionTypes');
 var constants = require('../../../../helpers/constants');
 
 var modulesLoader = require('../../../common/modulesLoader');
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var getTransactionsPromise = require('../../../common/apiHelpers').getTransactionsPromise;
-var getTransactionPromise = require('../../../common/apiHelpers').getTransactionPromise;
-var getQueuedTransactionPromise = require('../../../common/apiHelpers').getQueuedTransactionPromise;
-var getQueuedTransactionsPromise = require('../../../common/apiHelpers').getQueuedTransactionsPromise;
-var getUnconfirmedTransactionPromise = require('../../../common/apiHelpers').getUnconfirmedTransactionPromise;
-var getUnconfirmedTransactionsPromise = require('../../../common/apiHelpers').getUnconfirmedTransactionsPromise;
-var getMultisignaturesTransactionPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionPromise;
-var getMultisignaturesTransactionsPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionsPromise;
-var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
+var apiHelpers = require('../../../common/apiHelpers');
+var getTransactionsPromise = apiHelpers.getTransactionsPromise;
 
 describe('GET /api/transactions', function () {
 
@@ -48,8 +36,8 @@ describe('GET /api/transactions', function () {
 
 		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
 		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, accountFixtures.genesis.password);
-		promises.push(sendTransactionPromise(transaction1));
-		promises.push(sendTransactionPromise(transaction2));
+		promises.push(apiHelpers.sendTransactionPromise(transaction1));
+		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 		return Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
@@ -58,7 +46,7 @@ describe('GET /api/transactions', function () {
 		}).then(function (res) {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
-			return waitForConfirmations(_.map(transactionList, 'id'));
+			return apiHelpers.waitForConfirmations(_.map(transactionList, 'id'));
 		});
 	});
 
@@ -768,7 +756,7 @@ describe('GET /api/transactions', function () {
 	describe('/count', function () {
 
 		it('should be ok', function () {
-			return getCountPromise('transactions').then(function (res) {
+			return apiHelpers.getCountPromise('transactions').then(function (res) {
 				expect(res).to.have.property('success').to.be.ok;
 				expect(res).to.have.property('confirmed').that.is.an('number');
 				expect(res).to.have.property('unconfirmed').that.is.an('number');
@@ -782,7 +770,7 @@ describe('GET /api/transactions', function () {
 	describe('/queued/get?id=', function () {
 
 		it('using unknown id should be ok', function () {
-			return getQueuedTransactionPromise('1234').then(function (res) {
+			return apiHelpers.getQueuedTransactionPromise('1234').then(function (res) {
 				expect(res).to.have.property('success').to.equal(false);
 				expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
@@ -794,11 +782,11 @@ describe('GET /api/transactions', function () {
 			var data = 'extra information';
 			var transaction = lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-				return getQueuedTransactionPromise(transaction.id).then(function (result) {
+				return apiHelpers.getQueuedTransactionPromise(transaction.id).then(function (result) {
 					expect(result).to.have.property('success').to.equal(true);
 					expect(result).to.have.property('transaction').that.is.an('object');
 					expect(result.transaction.id).to.equal(transaction.id);
@@ -810,7 +798,7 @@ describe('GET /api/transactions', function () {
 	describe('/queued', function () {
 
 		it('should be ok', function () {
-			return getQueuedTransactionsPromise().then(function (res) {
+			return apiHelpers.getQueuedTransactionsPromise().then(function (res) {
 				expect(res).to.have.property('success').to.equal(true);
 				expect(res).to.have.property('transactions').that.is.an('array');
 				expect(res).to.have.property('count').that.is.an('number');
@@ -821,7 +809,7 @@ describe('GET /api/transactions', function () {
 	describe('/multisignatures/get?id=', function () {
 
 		it('using unknown id should be ok', function () {
-			return getMultisignaturesTransactionPromise('1234').then(function (res) {
+			return apiHelpers.getMultisignaturesTransactionPromise('1234').then(function (res) {
 				expect(res).to.have.property('success').to.equal(false);
 				expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
@@ -831,7 +819,7 @@ describe('GET /api/transactions', function () {
 	describe('/multisignatures', function () {
 
 		it('should be ok', function () {
-			return getMultisignaturesTransactionsPromise().then(function (res) {
+			return apiHelpers.getMultisignaturesTransactionsPromise().then(function (res) {
 				expect(res).to.have.property('success').to.equal(true);
 				expect(res).to.have.property('transactions').that.is.an('array');
 				expect(res).to.have.property('count').that.is.an('number');
@@ -845,12 +833,12 @@ describe('GET /api/transactions', function () {
 
 		before(function () {
 			unconfirmedTransaction = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
-			return sendTransactionPromise(unconfirmedTransaction);
+			return apiHelpers.sendTransactionPromise(unconfirmedTransaction);
 		});
 
 		it('using valid id should be ok', function () {
 			var transactionId = unconfirmedTransaction.id;
-			return getUnconfirmedTransactionPromise(transactionId).then(function (res) {
+			return apiHelpers.getUnconfirmedTransactionPromise(transactionId).then(function (res) {
 				expect(res).to.have.property('success');
 			});
 		});
@@ -859,7 +847,7 @@ describe('GET /api/transactions', function () {
 	describe('/unconfirmed', function () {
 
 		it('should be ok', function () {
-			return getUnconfirmedTransactionsPromise().then(function (res) {
+			return apiHelpers.getUnconfirmedTransactionsPromise().then(function (res) {
 				expect(res).to.have.property('success').to.equal(true);
 				expect(res).to.have.property('transactions').that.is.an('array');
 				expect(res).to.have.property('count').that.is.an('number');

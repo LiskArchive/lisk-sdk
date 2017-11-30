@@ -1,8 +1,7 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
-var test = require('../../../test');
 var _ = test._;
 
 var WSServer = require('../../../common/ws/serverMaster');

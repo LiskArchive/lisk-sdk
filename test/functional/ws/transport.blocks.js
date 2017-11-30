@@ -1,11 +1,8 @@
 'use strict';
 
-require('../functional.js');
+var test = require('../functional.js');
 
 var expect = require('chai').expect;
-
-var test = require('../../test');
-
 
 var ws = require('../../common/ws/communication');
 

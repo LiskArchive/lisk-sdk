@@ -1,24 +1,21 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-var getAccountsPromise = require('../../../common/apiHelpers').getAccountsPromise;
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
+var apiHelpers = require('../../../common/apiHelpers');
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
@@ -47,7 +44,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
 
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				transaction = lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
@@ -71,7 +68,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 				randomUtil.blockDataDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.blockDataDapp.id);
 
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			});
 	});
 
@@ -322,7 +319,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 					'address=' + account.address
 				];
 
-				return getAccountsPromise(params)
+				return apiHelpers.getAccountsPromise(params)
 					.then(function (res) {
 						expect(res.body).to.have.nested.property('data').to.have.lengthOf(1);
 

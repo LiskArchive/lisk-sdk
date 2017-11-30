@@ -1,17 +1,15 @@
 'use strict';
 
-require('../../../functional.js');
+var test = require('../../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
-
 
 var shared = require('../../../shared');
 var localShared = require('./shared');
 var accountFixtures = require('../../../../fixtures/accounts');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-
+var apiHelpers = require('../../../../common/apiHelpers');
 var randomUtil = require('../../../../common/utils/random');
 
 describe('POST /api/transactions (validate type 0 on top of type 1)', function () {
@@ -29,7 +27,7 @@ describe('POST /api/transactions (validate type 0 on top of type 1)', function (
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password);
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
 				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 				badTransactions.push(transaction);
@@ -39,7 +37,7 @@ describe('POST /api/transactions (validate type 0 on top of type 1)', function (
 		it('using second passphrase not matching registered secondPublicKey should fail', function () {
 			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password, 'invalid password');
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
 				expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
 				badTransactions.push(transaction);
@@ -49,7 +47,7 @@ describe('POST /api/transactions (validate type 0 on top of type 1)', function (
 		it('using correct second passphrase should be ok', function () {
 			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password, account.secondPassword);
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);

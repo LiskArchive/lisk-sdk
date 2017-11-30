@@ -1,14 +1,13 @@
 'use strict';
 
-require('../functional.js');
+var test = require('../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-
 var shared = require('../shared');
-var ws = require('../../common/ws/communication');
 
+var ws = require('../../common/ws/communication');
 var randomUtil = require('../../common/utils/random');
 
 function postTransaction (transaction, done) {

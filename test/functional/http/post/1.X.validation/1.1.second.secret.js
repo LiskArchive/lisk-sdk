@@ -1,16 +1,15 @@
 'use strict';
 
-require('../../../functional.js');
+var test = require('../../../functional.js');
 
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-
 var shared = require('../../../shared');
 var localShared = require('./shared');
+var accountFixtures = require('../../../../fixtures/accounts');
 
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-
+var apiHelpers = require('../../../../common/apiHelpers');
 var randomUtil = require('../../../../common/utils/random');
 
 describe('POST /api/transactions (validate type 1 on top of type 1)', function () {
@@ -28,7 +27,7 @@ describe('POST /api/transactions (validate type 1 on top of type 1)', function (
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 			transaction = lisk.signature.createSignature(account.password, randomUtil.password());
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
 				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 				badTransactions.push(transaction);
@@ -41,8 +40,7 @@ describe('POST /api/transactions (validate type 1 on top of type 1)', function (
 			lisk.crypto.secondSign(transaction, secondKeys);
 			transaction.id = lisk.crypto.getId(transaction);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
 				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
 				badTransactions.push(transaction);

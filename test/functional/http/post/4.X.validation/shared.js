@@ -1,23 +1,19 @@
 'use strict';
 
+var test = require('../../../functional.js');
+
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../../../../test');
-var shared = require('../../../shared');
 var accountFixtures = require('../../../../fixtures/accounts');
 
 var apiCodes = require('../../../../../helpers/apiCodes');
 
-var swaggerEndpoint = require('../../../../common/swaggerSpec');
-var sendTransactionPromise = require('../../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../../common/apiHelpers').waitForConfirmations;
-var createSignatureObject = require('../../../../common/apiHelpers').createSignatureObject;
-
-var signatureEndpoint = new swaggerEndpoint('POST /signatures');
-
+var apiHelpers = require('../../../../common/apiHelpers');
 var randomUtil = require('../../../../common/utils/random');
+var swaggerEndpoint = require('../../../../common/swaggerSpec');
+var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
 function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
@@ -30,13 +26,13 @@ function beforeValidationPhase (scenarios) {
 			var transaction = lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
 			transactionsToWaitFor.push(transaction.id);
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				return Promise.all(Object.keys(scenarios).map(function (type) {
@@ -44,7 +40,7 @@ function beforeValidationPhase (scenarios) {
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);
 
-					return sendTransactionPromise(transaction).then(function (res) {
+					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 						expect(res).to.have.property('status').to.equal(200);
 						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
@@ -54,7 +50,7 @@ function beforeValidationPhase (scenarios) {
 				var signatures = [];
 				Object.keys(scenarios).map(function (type) {
 					scenarios[type].members.map(function (member) {
-						signatures.push(createSignatureObject(scenarios[type].transaction, member));
+						signatures.push(apiHelpers.createSignatureObject(scenarios[type].transaction, member));
 					});
 				});
 				return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
@@ -63,7 +59,7 @@ function beforeValidationPhase (scenarios) {
 				});
 			})
 			.then(function () {
-				return waitForConfirmations(transactionsToWaitFor);
+				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
 			});
 	});
 };
@@ -96,7 +92,7 @@ function sendAndSignMultisigTransaction (type, scenario) {
 			break;
 	};
 
-	return sendTransactionPromise(transaction)
+	return apiHelpers.sendTransactionPromise(transaction)
 		.then(function (res) {
 			expect(res).to.have.property('status').to.equal(200);
 			expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
@@ -105,7 +101,7 @@ function sendAndSignMultisigTransaction (type, scenario) {
 			var signatures = [];
 
 			scenario.members.map(function (member) {
-				signatures.push(createSignatureObject(transaction, member));
+				signatures.push(apiHelpers.createSignatureObject(transaction, member));
 			});
 
 			return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {

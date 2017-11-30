@@ -1,8 +1,6 @@
 'use strict';
 
-require('../../functional.js');
-
-var test = require('../../../test');
+var test = require('../../functional.js');
 
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/apiHelpers');

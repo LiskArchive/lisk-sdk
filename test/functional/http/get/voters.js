@@ -1,28 +1,23 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
-var test = require('../../../test');
 var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
 var apiCodes = require('../../../../helpers/apiCodes');
 var constants = require('../../../../helpers/constants');
 
+var randomUtil = require('../../../common/utils/random');
+var swaggerEndpoint = require('../../../common/swaggerSpec');
 var waitFor = require('../../../common/utils/waitFor');
 var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
-
-var randomUtil = require('../../../common/utils/random');
-
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-var swaggerEndpoint = require('../../../common/swaggerSpec');
-var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
+var apiHelpers = require('../../../common/apiHelpers');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', function () {
 
@@ -226,21 +221,21 @@ describe('GET /api/voters', function () {
 
 				var voteByExtraDelegateVoterTransaction = lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
 
-				return sendTransactionPromise(enrichExtraDelegateVoterTransaction)
+				return apiHelpers.sendTransactionPromise(enrichExtraDelegateVoterTransaction)
 					.then(function () {
-						return waitForConfirmations([enrichExtraDelegateVoterTransaction.id]);
+						return apiHelpers.waitForConfirmations([enrichExtraDelegateVoterTransaction.id]);
 					})
 					.then(function (){
-						return sendTransactionPromise(registerExtraVoterAsADelegateTransaction);
+						return apiHelpers.sendTransactionPromise(registerExtraVoterAsADelegateTransaction);
 					})
 					.then(function () {
-						return waitForConfirmations([registerExtraVoterAsADelegateTransaction.id]);
+						return apiHelpers.waitForConfirmations([registerExtraVoterAsADelegateTransaction.id]);
 					})
 					.then(function () {
-						return sendTransactionPromise(voteByExtraDelegateVoterTransaction);
+						return apiHelpers.sendTransactionPromise(voteByExtraDelegateVoterTransaction);
 					})
 					.then(function () {
-						return waitForConfirmations([voteByExtraDelegateVoterTransaction.id]);
+						return apiHelpers.waitForConfirmations([voteByExtraDelegateVoterTransaction.id]);
 					});
 			});
 

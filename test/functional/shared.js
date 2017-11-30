@@ -1,21 +1,16 @@
 'use strict';
 
+var test = require('./functional.js');
+
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var test = require('../test');
 var _ = test._;
 var typesRepresentatives = require('../fixtures/typesRepresentatives');
 var accountFixtures = require('../fixtures/accounts');
 
 var apiHelpers = require('../common/apiHelpers');
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
-var getTransactionsPromise = apiHelpers.getTransactionsPromise;
-var getUnconfirmedTransactionPromise = apiHelpers.getUnconfirmedTransactionPromise;
-var getPendingMultisignaturesPromise = apiHelpers.getPendingMultisignaturesPromise;
-var waitForConfirmations = apiHelpers.waitForConfirmations;
-
 var randomUtil = require('../common/utils/random');
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
@@ -23,7 +18,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			return waitForConfirmations(_.map(goodTransactions, 'id'));
+			return apiHelpers.waitForConfirmations(_.map(goodTransactions, 'id'));
 		});
 
 		it('bad transactions should not be confirmed', function () {
@@ -31,7 +26,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 				var params = [
 					'id=' + transaction.id
 				];
-				return getTransactionsPromise(params).then(function (res) {
+				return apiHelpers.getTransactionsPromise(params).then(function (res) {
 					expect(res).to.have.property('status').to.equal(200);
 					expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 				});
@@ -40,7 +35,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 
 		it('good transactions should not be unconfirmed', function () {
 			return Promise.map(goodTransactions, function (transaction) {
-				return getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
+				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
 					expect(res).to.have.property('success').to.be.not.ok;
 					expect(res).to.have.property('error').equal('Transaction not found');
 				});
@@ -52,7 +47,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 				var params = [
 					'id=' + transaction.id
 				];
-				return getTransactionsPromise(params).then(function (res) {
+				return apiHelpers.getTransactionsPromise(params).then(function (res) {
 					expect(res).to.have.property('status').to.equal(200);
 					expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
 				});
@@ -66,7 +61,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 						'publicKey=' + transaction.senderPublicKey
 					];
 
-					return getPendingMultisignaturesPromise(params).then(function (res) {
+					return apiHelpers.getPendingMultisignaturesPromise(params).then(function (res) {
 						expect(res).to.have.property('success').to.be.ok;
 						expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
 						expect(res.transactions[0]).to.have.property('transaction').to.have.property('id').to.equal(transaction.id);
@@ -79,7 +74,7 @@ function confirmationPhase (goodTransactions, badTransactions, pendingMultisigna
 					var params = [
 						'id=' + transaction.id
 					];
-					return getTransactionsPromise(params).then(function (res) {
+					return apiHelpers.getTransactionsPromise(params).then(function (res) {
 						expect(res).to.have.property('status').to.equal(200);
 						expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
 					});
@@ -125,7 +120,7 @@ function invalidAssets (option, badTransactions) {
 			it('using ' + test.description + ' should fail', function () {
 				transaction.asset = test.input;
 
-				return sendTransactionPromise(transaction).then(function (res) {
+				return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 					expect(res).to.have.property('status').to.equal(400);
 					expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
@@ -136,7 +131,7 @@ function invalidAssets (option, badTransactions) {
 		it('deleting object should fail', function () {
 			delete transaction.asset;
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
 				expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);
@@ -150,7 +145,7 @@ function invalidAssets (option, badTransactions) {
 			it('using ' + test.description + ' should fail', function () {
 				transaction.asset[option] = test.input;
 
-				return sendTransactionPromise(transaction).then(function (res) {
+				return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 					expect(res).to.have.property('status').to.equal(400);
 					expect(res).to.have.nested.property('body.message').that.is.not.empty;
 					badTransactions.push(transaction);
@@ -161,7 +156,7 @@ function invalidAssets (option, badTransactions) {
 		it('deleting object should fail', function () {
 			delete transaction.asset[option];
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
 				expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				badTransactions.push(transaction);

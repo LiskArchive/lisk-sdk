@@ -1,8 +1,8 @@
 'use strict';
 
-require('../functional.js');
+var test = require('../functional.js');
 
-var _ = require('lodash');
+var _ = test._;
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
@@ -11,10 +11,10 @@ var expect = require('chai').expect;
 var prefixedPeer = require('../../fixtures/peers').peer;
 var testConfig = require('../../data/config.json');
 
+var Rules = require('../../../api/ws/workers/rules');
+
 var wsServer = require('../../common/ws/server');
 var WSClient = require('../../common/ws/client');
-
-var Rules = require('../../../api/ws/workers/rules');
 
 describe('RPC', function () {
 

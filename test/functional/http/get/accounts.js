@@ -1,23 +1,18 @@
 'use strict';
 
-require('../../functional.js');
+var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
 
-var test = require('../../../test');
 var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
 
-var apiHelpers = require('../../../common/apiHelpers');
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-
 var randomUtil = require('../../../common/utils/random');
+var apiHelpers = require('../../../common/apiHelpers');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /accounts', function () {
 
@@ -125,14 +120,14 @@ describe('GET /accounts', function () {
 			var signatureTransaction = lisk.signature.createSignature(secondPublicKeyAccount.password, secondPublicKeyAccount.secondPassword);
 
 			before(function () {
-				return sendTransactionPromise(creditTransaction).then(function (res) {
+				return apiHelpers.sendTransactionPromise(creditTransaction).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return waitForConfirmations([creditTransaction.id]);
+					return apiHelpers.waitForConfirmations([creditTransaction.id]);
 				}).then(function () {
-					return sendTransactionPromise(signatureTransaction);
+					return apiHelpers.sendTransactionPromise(signatureTransaction);
 				}).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return waitForConfirmations([signatureTransaction.id]);
+					return apiHelpers.waitForConfirmations([signatureTransaction.id]);
 				});
 			});
 
