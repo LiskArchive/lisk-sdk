@@ -2,7 +2,7 @@
 
 var async = require('async');
 var Promise = require('bluebird');
-var waitUntilBlockchainReady = require('../../common/globalBefore').waitUntilBlockchainReady;
+var waitUntilBlockchainReady = require('../../common/utils/waitFor').blockchainReady;
 var utils = require('../utils');
 
 module.exports = {
