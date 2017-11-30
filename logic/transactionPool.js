@@ -425,6 +425,8 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
 					self.removeUnconfirmedTransaction(transaction.id);
 				}
+				__private.removeTransactionById(self.unconfirmed, transaction.id);
+				__private.addTransaction(self.queued, transaction);
 				return setImmediate(eachSeriesCb);
 			});
 		} else {
