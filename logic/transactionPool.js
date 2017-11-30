@@ -100,7 +100,7 @@ TransactionPool.prototype.bind = function (accounts, transactions, loader) {
 TransactionPool.prototype.transactionInPool = function (id) {
 	return !!(
 		self.unconfirmed.transactions[id] ||
-		self.bundled.transaction[id] ||
+		self.bundled.transactions[id] ||
 		self.queued.transactions[id] ||
 		self.multisignature.transactions[id]
 	);
@@ -367,7 +367,7 @@ __private.checkStorageAndAddTransaction = function (list, transaction, cb) {
 		return setImmediate(cb, 'Transaction pool is full');
 	} else {
 		__private.addTransaction(list, transaction);
-		return setImmediate();
+		return setImmediate(cb);
 	}
 };
 
@@ -486,7 +486,7 @@ TransactionPool.prototype.fillPool = function (cb) {
 		var multisignaturesLimit = 5;
 		var transactions;
 
-		spare = (constants.maxTxsPerBlock - unconfirmedCount);
+		spare = (constants.maxTxsPerBlock - self.unconfirmed.count);
 		spareMulti = (spare >= multisignaturesLimit) ? multisignaturesLimit : 0;
 		multisignatures = self.getMultisignatureTransactionList(true, true, multisignaturesLimit).slice(0, spareMulti);
 		spare = Math.abs(spare - multisignatures.length);

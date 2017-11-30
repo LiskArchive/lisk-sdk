@@ -465,7 +465,7 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 
 		// Nullify large objects.
 		// Prevents memory leak during synchronisation.
-		appliedTransactions = unconfirmedTransactionIds = block = null;
+		appliedTransactions = block = null;
 
 		// Finish here if snapshotting.
 		// FIXME: Not the best place to do that
