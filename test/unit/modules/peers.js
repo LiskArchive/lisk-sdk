@@ -16,7 +16,7 @@ var constants = require('../../../helpers/constants');
 
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;
 var modulesLoader = require('../../common/modulesLoader');
-var randomInt = require('../../common/helpers').randomInt;
+var randomNumber = require('../../common/utils/random').number;
 
 describe('peers', function () {
 
@@ -118,7 +118,7 @@ describe('peers', function () {
 					var validLimit;
 
 					before(function () {
-						validLimit = randomInt(1, (1000 - 1));
+						validLimit = randomNumber(1, (1000 - 1));
 						validOptions.limit = validLimit;
 					});
 
@@ -267,7 +267,7 @@ describe('peers', function () {
 					validOptions.limit = 1000;
 					randomPeers = _.range(1000).map(function () {
 						var peer = generateRandomActivePeer();
-						peer.state = randomInt(DISCONNECTED_STATE, CONNECTED_STATE);
+						peer.state = randomNumber(DISCONNECTED_STATE, CONNECTED_STATE);
 						return peer;
 					});
 					peersLogicMock.list = sinon.stub().returns(randomPeers);
