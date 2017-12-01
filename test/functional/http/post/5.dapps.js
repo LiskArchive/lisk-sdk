@@ -15,7 +15,8 @@ var constants = require('../../../../helpers/constants');
 
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
-var apiHelpers = require('../../../common/apiHelpers');
+var waitFor = require('../../../common/utils/waitFor');
+var apiHelpers = require('../../../common/helpers/api');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 5) register dapp', function () {
@@ -54,7 +55,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				transaction = lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
@@ -67,7 +68,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			});
 	});
 

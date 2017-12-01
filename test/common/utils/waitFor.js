@@ -2,11 +2,13 @@
 
 var popsicle = require('popsicle');
 var async = require('async');
+var Promise = require('bluebird');
 
 var test = require('../../test');
 var config = require('../../data/config.json');
 
-var slots = require('../../../helpers/slots.js');
+var slots = require('../../../helpers/slots');
+var apiHelpers = require('../helpers/api');
 
 /**
  * @param {function} cb
@@ -80,7 +82,7 @@ function newRound (cb) {
 			var nextRound = slots.calcRound(height);
 			var blocksToWait = nextRound * slots.delegates - height;
 			test.debug('blocks to wait: '.grey, blocksToWait);
-			waitForNewBlock(height, blocksToWait, cb);
+			newBlock(height, blocksToWait, cb);
 		}
 	});
 };
@@ -91,12 +93,14 @@ function blocks (blocksToWait, cb) {
 		if (err) {
 			return cb(err);
 		} else {
-			waitForNewBlock(height, blocksToWait, cb);
+			newBlock(height, blocksToWait, cb);
 		}
 	});
 };
 
-function waitForNewBlock (height, blocksToWait, cb) {
+var blocksPromise = Promise.promisify(blocks);
+
+function newBlock (height, blocksToWait, cb) {
 	if (blocksToWait === 0) {
 		return setImmediate(cb, null, height);
 	}
@@ -142,8 +146,43 @@ function waitForNewBlock (height, blocksToWait, cb) {
 	);
 };
 
+function confirmations (transactions, limitHeight) {
+	limitHeight = limitHeight || 15;
+
+	function checkConfirmations (transactions) {
+		return Promise.all(transactions.map(function (transactionId) {
+			return apiHelpers.getTransactionByIdPromise(transactionId);
+		})).then(function (res) {
+			return Promise.each(res, function (result) {
+				if (result.body.transactions.length === 0) {
+					throw Error('Transaction not confirmed');
+				}
+			});
+		});
+	}
+
+	function waitUntilLimit (limit) {
+		if (limit == 0) {
+			throw new Error('Exceeded limit to wait for confirmations');
+		}
+		limit -= 1;
+
+		return blocksPromise(1)
+			.then(function () {
+				return checkConfirmations(transactions);
+			})
+			.catch(function () {
+				return waitUntilLimit(limit);
+			});
+	}
+
+	// Wait a maximum of limitHeight*25 confirmed transactions
+	return waitUntilLimit(limitHeight);
+}
+
 module.exports = {
 	blockchainReady: blockchainReady,
 	newRound: newRound,
-	blocks: blocks
+	blocks: blocks,
+	confirmations: confirmations
 };

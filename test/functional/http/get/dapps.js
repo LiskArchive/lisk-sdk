@@ -11,8 +11,9 @@ var accountFixtures = require('../../../fixtures/accounts');
 
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /dapps', function () {
@@ -34,7 +35,7 @@ describe('GET /dapps', function () {
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			}).then(function () {
 				transactionsToWaitFor = [];
 
@@ -50,7 +51,7 @@ describe('GET /dapps', function () {
 				results.forEach(function (res) {
 					expect(res).to.have.property('status').to.equal(200);
 				});
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			});
 	});
 
@@ -224,7 +225,7 @@ describe('GET /dapps', function () {
 						results.forEach(function (res) {
 							expect(res).to.have.property('status').to.equal(200);
 						});
-						return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+						return waitFor.confirmations(transactionsToWaitFor);
 					});
 			});
 

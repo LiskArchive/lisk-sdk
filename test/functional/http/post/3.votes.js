@@ -13,7 +13,8 @@ var constants = require('../../../../helpers/constants');
 
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
-var apiHelpers = require('../../../common/apiHelpers');
+var waitFor = require('../../../common/utils/waitFor');
+var apiHelpers = require('../../../common/helpers/api');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 3) votes', function () {
@@ -114,7 +115,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				});
 			})
 			.then(function (res) {
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
 				transactionsToWaitFor = [];
@@ -160,7 +161,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 				});
 			})
 			.then(function (res) {
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			});
 	});
 

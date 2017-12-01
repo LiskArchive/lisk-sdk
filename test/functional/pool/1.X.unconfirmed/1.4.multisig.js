@@ -9,7 +9,7 @@ var shared = require('../../shared');
 var localShared = require('./shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
 
 var randomUtil = require('../../../common/utils/random');
 

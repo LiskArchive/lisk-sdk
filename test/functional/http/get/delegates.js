@@ -18,7 +18,7 @@ var waitFor = require('../../../common/utils/waitFor');
 var onNewRoundPromise = Promise.promisify(waitFor.newRound);
 var modulesLoader = require('../../../common/modulesLoader');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', function () {
@@ -168,12 +168,12 @@ describe('GET /delegates', function () {
 			before(function () {
 				return apiHelpers.sendTransactionsPromise([creditTransaction]).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return apiHelpers.waitForConfirmations([creditTransaction.id]);
+					return waitFor.confirmations([creditTransaction.id]);
 				}).then(function () {
 					return apiHelpers.sendTransactionsPromise([signatureTransaction, delegateTransaction]);
 				}).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return apiHelpers.waitForConfirmations([signatureTransaction.id, delegateTransaction.id]);
+					return waitFor.confirmations([signatureTransaction.id, delegateTransaction.id]);
 				});
 			});
 

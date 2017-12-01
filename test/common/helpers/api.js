@@ -1,15 +1,11 @@
 'use strict';
 
+var test = require('../../test');
+
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
-var test = require('../test');
-var accountFixtures = require('../fixtures/accounts');
-
-var constants = require('../../helpers/constants');
-
-var waitFor = require('./utils/waitFor');
-var waitForBlocks = Promise.promisify(waitFor.blocks);
+var accountFixtures = require('../../fixtures/accounts');
 
 var http = {
 	abstractRequest: function (options, done) {
@@ -221,40 +217,6 @@ function getBlocks (params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function waitForConfirmations (transactions, limitHeight) {
-	limitHeight = limitHeight || 15;
-
-	function checkConfirmations (transactions) {
-		return Promise.all(transactions.map(function (transactionId) {
-			return getTransactionByIdPromise(transactionId);
-		})).then(function (res) {
-			return Promise.each(res, function (result) {
-				if (result.body.transactions.length === 0) {
-					throw Error('Transaction not confirmed');
-				}
-			});
-		});
-	}
-
-	function waitUntilLimit (limit) {
-		if(limit == 0) {
-			throw new Error('Exceeded limit to wait for confirmations');
-		}
-		limit -= 1;
-
-		return waitForBlocks(1)
-			.then(function (){
-				return checkConfirmations(transactions);
-			})
-			.catch(function () {
-				return waitUntilLimit(limit);
-			});
-	}
-
-	// Wait a maximum of limitHeight*25 confirmed transactions
-	return waitUntilLimit(limitHeight);
-}
-
 /**
  * Validate if the validation response contains error for a specific param
  *
@@ -337,7 +299,6 @@ module.exports = {
 	getAccounts: getAccounts,
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
-	waitForConfirmations: waitForConfirmations,
 	expectSwaggerParamError: expectSwaggerParamError,
 	createSignatureObject: createSignatureObject
 };

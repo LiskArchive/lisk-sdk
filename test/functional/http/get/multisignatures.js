@@ -11,8 +11,9 @@ var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var transactionTypes = require('../../../../helpers/transactionTypes.js');
 
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
 
 describe('GET /api/multisignatures/', function () {
 
@@ -27,7 +28,7 @@ describe('GET /api/multisignatures/', function () {
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(sendTransaction.id);
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(function (res) {
 				transaction = lisk.multisignature.createMultisignature(scenario.account.password, null, scenario.keysgroup, 1, 2);

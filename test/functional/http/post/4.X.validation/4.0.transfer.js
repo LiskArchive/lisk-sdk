@@ -10,7 +10,7 @@ var localShared = require('./shared');
 
 var constants = require('../../../../../helpers/constants');
 
-var apiHelpers = require('../../../../common/apiHelpers');
+var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 
 var swaggerEndpoint = require('../../../../common/swaggerSpec');

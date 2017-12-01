@@ -12,7 +12,7 @@ var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var modulesLoader = require('../../../common/modulesLoader');
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /blocks', function () {

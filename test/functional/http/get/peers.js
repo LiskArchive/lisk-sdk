@@ -6,7 +6,7 @@ var _ = test._;
 
 var WSServer = require('../../../common/ws/serverMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 
 describe('GET /peers', function () {
 

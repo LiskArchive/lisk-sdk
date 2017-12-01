@@ -9,10 +9,10 @@ var Promise = require('bluebird');
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-
+var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
 
 function beforeValidationPhase (scenarios) {
 	var transactionsToWaitFor = [];
@@ -26,13 +26,13 @@ function beforeValidationPhase (scenarios) {
 			var transaction = lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
 			transactionsToWaitFor.push(transaction.id);
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
-				return waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				return Promise.all(Object.keys(scenarios).map(function (type) {
@@ -40,7 +40,7 @@ function beforeValidationPhase (scenarios) {
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);
 
-					return sendTransactionPromise(transaction).then(function (res) {
+					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 						expect(res).to.have.property('status').to.equal(200);
 						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
@@ -61,13 +61,13 @@ function beforeValidationPhaseWithDapp (scenarios) {
 			var transaction = lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, accountFixtures.genesis.password);
 			transactionsToWaitFor.push(transaction.id);
 
-			return sendTransactionPromise(transaction).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
-				return waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				return Promise.all(Object.keys(scenarios).map(function (type) {
@@ -76,14 +76,14 @@ function beforeValidationPhaseWithDapp (scenarios) {
 					scenarios[type].dapp.id = transaction.id;
 					transactionsToWaitFor.push(transaction.id);
 
-					return sendTransactionPromise(transaction).then(function (res) {
+					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 						expect(res).to.have.property('status').to.equal(200);
 						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});
 				}));
 			})
 			.then(function () {
-				return waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				return Promise.all(Object.keys(scenarios).map(function (type) {
@@ -91,7 +91,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 					scenarios[type].transaction = transaction;
 					transactionsToWaitFor.push(transaction.id);
 
-					return sendTransactionPromise(transaction).then(function (res) {
+					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 						expect(res).to.have.property('status').to.equal(200);
 						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					});

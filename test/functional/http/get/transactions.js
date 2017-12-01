@@ -17,7 +17,8 @@ var constants = require('../../../../helpers/constants');
 var modulesLoader = require('../../../common/modulesLoader');
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
-var apiHelpers = require('../../../common/apiHelpers');
+var waitFor = require('../../../common/utils/waitFor');
+var apiHelpers = require('../../../common/helpers/api');
 var getTransactionsPromise = apiHelpers.getTransactionsPromise;
 
 describe('GET /api/transactions', function () {
@@ -46,7 +47,7 @@ describe('GET /api/transactions', function () {
 		}).then(function (res) {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
-			return apiHelpers.waitForConfirmations(_.map(transactionList, 'id'));
+			return waitFor.confirmations(_.map(transactionList, 'id'));
 		});
 	});
 

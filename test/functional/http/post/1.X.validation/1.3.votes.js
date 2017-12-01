@@ -9,7 +9,7 @@ var shared = require('../../../shared');
 var localShared = require('./shared');
 var accountFixtures = require('../../../../fixtures/accounts');
 
-var apiHelpers = require('../../../../common/apiHelpers');
+var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 
 describe('POST /api/transactions (validate type 3 on top of type 1)', function () {

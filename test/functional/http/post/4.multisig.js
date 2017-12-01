@@ -13,8 +13,9 @@ var apiCodes = require('../../../../helpers/apiCodes');
 var constants = require('../../../../helpers/constants');
 
 var randomUtil = require('../../../common/utils/random');
+var waitFor = require('../../../common/utils/waitFor');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 
@@ -65,7 +66,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			expect(res).to.have.property('status').to.equal(200);
 			transactionsToWaitFor = transactionsToWaitFor.concat(_.map(transactions, 'id'));
 
-			return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+			return waitFor.confirmations(transactionsToWaitFor);
 		});
 	});
 
@@ -284,7 +285,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 					expect(res).to.have.property('status').to.equal(200);
 					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-					return apiHelpers.waitForConfirmations([scenario.secondSignatureTransaction.id]);
+					return waitFor.confirmations([scenario.secondSignatureTransaction.id]);
 				})
 				.then(function () {
 					return sendTransactionPromise(multiSigSecondPasswordTransaction);

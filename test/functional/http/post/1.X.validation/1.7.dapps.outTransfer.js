@@ -8,8 +8,9 @@ var expect = require('chai').expect;
 var shared = require('../../../shared');
 var localShared = require('./shared');
 
-var apiHelpers = require('../../../../common/apiHelpers');
+var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
+var waitFor = require('../../../../common/utils/waitFor');
 var normalizer = require('../../../../common/utils/normalizer');
 
 describe('POST /api/transactions (validate type 7 on top of type 1)', function () {
@@ -34,7 +35,7 @@ describe('POST /api/transactions (validate type 7 on top of type 1)', function (
 					goodTransactions.push(transaction);
 					randomUtil.blockDataDapp.transactionId = transaction.id;
 
-					return apiHelpers.waitForConfirmations([randomUtil.blockDataDapp.transactionId]);
+					return waitFor.confirmations([randomUtil.blockDataDapp.transactionId]);
 				});
 		});
 	});

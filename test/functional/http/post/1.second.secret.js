@@ -11,8 +11,9 @@ var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
 
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
+var waitFor = require('../../../common/utils/waitFor');
 var normalizer = require('../../../common/utils/normalizer');
 
 describe('POST /api/transactions (type 1) register second secret', function () {
@@ -46,7 +47,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 				});
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id, transaction3.id);
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			});
 	});
 

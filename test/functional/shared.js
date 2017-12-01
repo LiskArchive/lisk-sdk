@@ -10,15 +10,16 @@ var _ = test._;
 var typesRepresentatives = require('../fixtures/typesRepresentatives');
 var accountFixtures = require('../fixtures/accounts');
 
-var apiHelpers = require('../common/apiHelpers');
+var apiHelpers = require('../common/helpers/api');
 var randomUtil = require('../common/utils/random');
+var waitFor = require('../common/utils/waitFor');
 
 function confirmationPhase (goodTransactions, badTransactions, pendingMultisignatures) {
 
 	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			return apiHelpers.waitForConfirmations(_.map(goodTransactions, 'id'));
+			return waitFor.confirmations(_.map(goodTransactions, 'id'));
 		});
 
 		it('bad transactions should not be confirmed', function () {

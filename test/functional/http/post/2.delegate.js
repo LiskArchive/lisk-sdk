@@ -11,11 +11,12 @@ var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
 
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
 
 describe('POST /api/transactions (type 2) register delegate', function () {
 
@@ -56,7 +57,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 				expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(transactions[index].id);
 			});
-			return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+			return waitFor.confirmations(transactionsToWaitFor);
 		});
 	});
 

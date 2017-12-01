@@ -11,8 +11,7 @@ var typesRepresentatives = require('../../../fixtures/typesRepresentatives');
 
 var constants = require('../../../../helpers/constants');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-
+var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 

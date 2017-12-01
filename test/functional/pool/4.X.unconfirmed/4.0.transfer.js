@@ -8,7 +8,7 @@ var expect = require('chai').expect;
 var shared = require('../../shared');
 var localShared = require('./shared');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
 
 var randomUtil = require('../../../common/utils/random');
 

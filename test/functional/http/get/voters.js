@@ -15,8 +15,7 @@ var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var waitFor = require('../../../common/utils/waitFor');
-var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
-var apiHelpers = require('../../../common/apiHelpers');
+var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', function () {
@@ -223,19 +222,19 @@ describe('GET /api/voters', function () {
 
 				return apiHelpers.sendTransactionPromise(enrichExtraDelegateVoterTransaction)
 					.then(function () {
-						return apiHelpers.waitForConfirmations([enrichExtraDelegateVoterTransaction.id]);
+						return waitFor.confirmations([enrichExtraDelegateVoterTransaction.id]);
 					})
 					.then(function (){
 						return apiHelpers.sendTransactionPromise(registerExtraVoterAsADelegateTransaction);
 					})
 					.then(function () {
-						return apiHelpers.waitForConfirmations([registerExtraVoterAsADelegateTransaction.id]);
+						return waitFor.confirmations([registerExtraVoterAsADelegateTransaction.id]);
 					})
 					.then(function () {
 						return apiHelpers.sendTransactionPromise(voteByExtraDelegateVoterTransaction);
 					})
 					.then(function () {
-						return apiHelpers.waitForConfirmations([voteByExtraDelegateVoterTransaction.id]);
+						return waitFor.confirmations([voteByExtraDelegateVoterTransaction.id]);
 					});
 			});
 

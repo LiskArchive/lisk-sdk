@@ -7,7 +7,8 @@ var expect = require('chai').expect;
 
 var accountFixtures = require('../../../../fixtures/accounts');
 
-var apiHelpers = require('../../../../common/apiHelpers');
+var apiHelpers = require('../../../../common/helpers/api');
+var waitFor = require('../../../../common/utils/waitFor');
 var normalizer = require('../../../../common/utils/normalizer');
 
 function beforeValidationPhase (account) {
@@ -20,7 +21,7 @@ function beforeValidationPhase (account) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				return apiHelpers.waitForConfirmations([transaction.id]);
+				return waitFor.confirmations([transaction.id]);
 			})
 			.then(function () {
 				transaction = lisk.signature.createSignature(account.password, account.secondPassword);
@@ -31,7 +32,7 @@ function beforeValidationPhase (account) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-				return apiHelpers.waitForConfirmations([transaction.id]);
+				return waitFor.confirmations([transaction.id]);
 			});
 	});
 };

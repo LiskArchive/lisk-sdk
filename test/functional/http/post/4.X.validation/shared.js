@@ -10,8 +10,9 @@ var accountFixtures = require('../../../../fixtures/accounts');
 
 var apiCodes = require('../../../../../helpers/apiCodes');
 
-var apiHelpers = require('../../../../common/apiHelpers');
+var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
+var waitFor = require('../../../../common/utils/waitFor');
 var swaggerEndpoint = require('../../../../common/swaggerSpec');
 var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
@@ -32,7 +33,7 @@ function beforeValidationPhase (scenarios) {
 			});
 		}))
 			.then(function () {
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(function () {
 				return Promise.all(Object.keys(scenarios).map(function (type) {
@@ -59,7 +60,7 @@ function beforeValidationPhase (scenarios) {
 				});
 			})
 			.then(function () {
-				return apiHelpers.waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			});
 	});
 };

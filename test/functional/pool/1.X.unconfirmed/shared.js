@@ -8,27 +8,26 @@ var expect = require('chai').expect;
 var shared = require('../../shared');
 var accountFixtures = require('../../../fixtures/accounts');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-
+var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
 
 function beforeUnconfirmedPhase (account) {
 	before(function () {
 		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
-		return sendTransactionPromise(transaction)
+		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				return waitForConfirmations([transaction.id]);
+				return waitFor.confirmations([transaction.id]);
 			})
 			.then(function () {
 				transaction = lisk.signature.createSignature(account.password, account.secondPassword);
 
-				return sendTransactionPromise(transaction);
+				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
@@ -41,17 +40,17 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 	before(function () {
 		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
-		return sendTransactionPromise(transaction)
+		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
 				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
 
-				return waitForConfirmations([transaction.id]);
+				return waitFor.confirmations([transaction.id]);
 			})
 			.then(function () {
 				transaction = lisk.dapp.createDapp(account.password, null, randomUtil.guestbookDapp);
 
-				return sendTransactionPromise(transaction);
+				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
@@ -59,12 +58,12 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 
 				randomUtil.guestbookDapp.transactionId = transaction.id;
 
-				return waitForConfirmations([transaction.id]);
+				return waitFor.confirmations([transaction.id]);
 			})
 			.then(function (res) {
 				transaction = lisk.signature.createSignature(account.password, account.secondPassword);
 
-				return sendTransactionPromise(transaction);
+				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);

@@ -13,7 +13,7 @@ var random = {};
 random.number = function (min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min + 1)) + min;
+	return Math.floor(Math.random() * (max - min)) + min;
 };
 
 // Returns the expected fee for the given amount with data property
