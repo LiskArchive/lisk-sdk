@@ -51,7 +51,10 @@ var pathFiles = [
 	'./sql/delegatesList.js',
 	'./sql/rounds.js',
 
-	'./schema/delegates.js'
+	'./schema/delegates.js',
+
+	// Test from System suite
+	'../system/multisignature.js'
 ];
 
 parallelTests(pathFiles, 'test/unit/');
