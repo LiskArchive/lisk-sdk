@@ -1,31 +1,38 @@
 'use strict';
 
-var node = require('../../../node');
-var shared = require('../../shared');
-var localShared = require('./shared');
+var test = require('../../functional.js');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var lisk = require('lisk-js');
+var expect = require('chai').expect;
+
+var phases = require('../../common/phases');
+var Scenarios = require('../../common/scenarios');
+var localCommon = require('./common');
+
+var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
+
+var randomUtil = require('../../../common/utils/random');
 
 describe('POST /api/transactions (unconfirmed type 0 on top of type 4)', function () {
 
 	var scenarios = {
-		'regular': new shared.MultisigScenario()
+		'regular': new Scenarios.Multisig()
 	};
 
 	var transaction;
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	localShared.beforeValidationPhase(scenarios);
+	localCommon.beforeValidationPhase(scenarios);
 
 	describe('sending funds', function () {
 
 		it('regular scenario should be ok', function () {
-			transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1, scenarios.regular.account.password);
+			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.regular.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -33,6 +40,6 @@ describe('POST /api/transactions (unconfirmed type 0 on top of type 4)', functio
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

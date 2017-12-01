@@ -322,9 +322,9 @@ d.run(function () {
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
-			var randomString = require('randomstring');
+			var randomstring = require('randomstring');
 
-			scope.config.nonce = randomString.generate(16);
+			scope.config.nonce = randomstring.generate(16);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));

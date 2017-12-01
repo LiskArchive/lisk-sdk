@@ -1,22 +1,24 @@
 'use strict';
 
-var node = require('../../../node.js');
-var _ = node._;
-var modulesLoader = require('../../../common/modulesLoader');
-var constants = require('../../../../helpers/constants');
-var genesisDelegates = require('../../../genesisDelegates.json');
+var test = require('../../functional.js');
 
-var apiHelpers = require('../../../common/apiHelpers');
-var creditAccountPromise = apiHelpers.creditAccountPromise;
-var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
-var getForgingStatusPromise = apiHelpers.getForgingStatusPromise;
-var getDelegatesPromise = apiHelpers.getDelegatesPromise;
-var putForgingDelegatePromise = apiHelpers.putForgingDelegatePromise;
-var getForgersPromise = apiHelpers.getForgersPromise;
-var waitForConfirmations = apiHelpers.waitForConfirmations;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
-var onNewRoundPromise = node.Promise.promisify(node.onNewRound);
+var lisk = require('lisk-js');
+var chai = require('chai');
+var should = chai.should();
+var Promise = require('bluebird');
+
+var _ = test._;
+var genesisDelegates = require('../../../data/genesisDelegates.json');
+var accountFixtures = require('../../../fixtures/accounts');
+
+var constants = require('../../../../helpers/constants');
+
+var randomUtil = require('../../../common/utils/random');
+var waitFor = require('../../../common/utils/waitFor');
+var onNewRoundPromise = Promise.promisify(waitFor.newRound);
+var modulesLoader = require('../../../common/modulesLoader');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', function () {
@@ -30,11 +32,11 @@ describe('GET /delegates', function () {
 		var getJsonForKeyPromise;
 
 		before(function (done) {
-			node.config.cacheEnabled = true;
+			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
-				node.should.not.exist(err);
+				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
+				should.not.exist(err);
 				__cache.should.be.an('object');
 				return done(err);
 			});
@@ -42,7 +44,7 @@ describe('GET /delegates', function () {
 
 		afterEach(function (done) {
 			cache.flushDb(function (err, status) {
-				node.should.not.exist(err);
+				should.not.exist(err);
 				status.should.equal('OK');
 				done(err);
 			});
@@ -57,8 +59,8 @@ describe('GET /delegates', function () {
 			var params = [];
 
 			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
@@ -77,7 +79,7 @@ describe('GET /delegates', function () {
 			return delegatesEndpoint.makeRequest({sort: 'invalidValue'}, 400).then(function (res) {
 
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.should.not.exist(response);
+					should.not.exist(response);
 				});
 			});
 		});
@@ -89,15 +91,15 @@ describe('GET /delegates', function () {
 
 			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
 					responses.should.deep.include(res.body);
 					return onNewRoundPromise().then(function () {
 						return getJsonForKeyPromise(url).then(function (result) {
-							node.should.not.exist(result);
+							should.not.exist(result);
 						});
 					});
 				});
@@ -157,21 +159,21 @@ describe('GET /delegates', function () {
 
 		describe('secondPublicKey', function () {
 
-			var secondSecretAccount = node.randomAccount();
+			var secondSecretAccount = randomUtil.account();
 
-			var creditTransaction = node.lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, node.gAccount.password);
-			var signatureTransaction = node.lisk.signature.createSignature(secondSecretAccount.password, secondSecretAccount.secondPassword);
-			var delegateTransaction = node.lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
+			var creditTransaction = lisk.transaction.createTransaction(secondSecretAccount.address, constants.fees.secondSignature + constants.fees.delegate, accountFixtures.genesis.password);
+			var signatureTransaction = lisk.signature.createSignature(secondSecretAccount.password, secondSecretAccount.secondPassword);
+			var delegateTransaction = lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
 
 			before(function () {
-				return sendTransactionsPromise([creditTransaction]).then(function (res) {
+				return apiHelpers.sendTransactionsPromise([creditTransaction]).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return waitForConfirmations([creditTransaction.id]);
+					return waitFor.confirmations([creditTransaction.id]);
 				}).then(function () {
-					return sendTransactionsPromise([signatureTransaction, delegateTransaction]);
+					return apiHelpers.sendTransactionsPromise([signatureTransaction, delegateTransaction]);
 				}).then(function (res) {
 					res.statusCode.should.be.eql(200);
-					return waitForConfirmations([signatureTransaction.id, delegateTransaction.id]);
+					return waitFor.confirmations([signatureTransaction.id, delegateTransaction.id]);
 				});
 			});
 
@@ -370,7 +372,7 @@ describe('GET /delegates', function () {
 
 			it('using sort with any of sort fields should not place NULLs first', function () {
 				var delegatesSortFields = ['rank', 'username', 'missedBlocks', 'productivity'];
-				return node.Promise.all(delegatesSortFields.map(function (sortField) {
+				return Promise.all(delegatesSortFields.map(function (sortField) {
 					return delegatesEndpoint.makeRequest({sort: sortField + ':asc'}, 200).then(function (res) {
 						_(_.map(res.data, sortField)).appearsInLast(null);
 					});

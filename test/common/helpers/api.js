@@ -1,22 +1,59 @@
 'use strict';
 
+var test = require('../../test');
+
 var lisk = require('lisk-js');
+var Promise = require('bluebird');
 
-var node = require('../node');
-var http = require('./httpCommunication');
-var constants = require('../../helpers/constants');
+var accountFixtures = require('../../fixtures/accounts');
 
-var waitForBlocks = node.Promise.promisify(node.waitForBlocks);
+var http = {
+	abstractRequest: function (options, done) {
+		var request = test.api[options.verb.toLowerCase()](options.path);
 
-/**
- * A helper method to get path based on swagger
- *
- * @param {String} path - A path component
- * @returns {String} - Full path to that endpoint
- */
-function swaggerPathFor (path) {
-	return node.swaggerDef.basePath + path;
-}
+		request.set('Accept', 'application/json');
+		request.expect(function (response) {
+			if (response.statusCode !== 204 && (!response.headers['content-type'] || response.headers['content-type'].indexOf('json') === -1)) {
+				return new Error('Unexpected content-type!');
+			}
+		});
+
+		if (options.params) {
+			request.send(options.params);
+		}
+
+		var verb = options.verb.toUpperCase();
+		test.debug(['> Path:'.grey, verb, options.path].join(' '));
+		if (verb === 'POST' || verb === 'PUT') {
+			test.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
+		}
+
+		if (done) {
+			request.end(function (err, res) {
+				test.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
+				test.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
+				done(err, res);
+			});
+		} else {
+			return request;
+		}
+	},
+
+	// Get the given path
+	get: function (path, done) {
+		return this.abstractRequest({ verb: 'GET', path: path, params: null }, done);
+	},
+
+	// Post to the given path
+	post: function (path, params, done) {
+		return this.abstractRequest({ verb: 'POST', path: path, params: params }, done);
+	},
+
+	// Put to the given path
+	put: function (path, params, done) {
+		return this.abstractRequest({ verb: 'PUT', path: path, params: params }, done);
+	}
+};
 
 function paramsHelper (url, params) {
 	if (typeof params != 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
@@ -103,7 +140,7 @@ function sendTransactions (transactions, cb) {
 }
 
 function creditAccount (address, amount, cb) {
-	var transaction = lisk.transaction.createTransaction(address, amount, node.gAccount.password);
+	var transaction = lisk.transaction.createTransaction(address, amount, accountFixtures.genesis.password);
 	sendTransaction(transaction, cb);
 }
 
@@ -112,7 +149,7 @@ function getCount (param, cb) {
 }
 
 function registerDelegate (account, cb) {
-	var transaction = node.lisk.delegate.createDelegate(account.password, account.username);
+	var transaction = lisk.delegate.createDelegate(account.password, account.username);
 	sendTransaction(transaction, cb);
 }
 
@@ -180,40 +217,6 @@ function getBlocks (params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function waitForConfirmations (transactions, limitHeight) {
-	limitHeight = limitHeight || 15;
-
-	function checkConfirmations (transactions) {
-		return node.Promise.all(transactions.map(function (transactionId) {
-			return getTransactionByIdPromise(transactionId);
-		})).then(function (res) {
-			return node.Promise.each(res, function (result) {
-				if (result.body.transactions.length === 0) {
-					throw Error('Transaction not confirmed');
-				}
-			});
-		});
-	}
-
-	function waitUntilLimit (limit) {
-		if(limit == 0) {
-			throw new Error('Exceeded limit to wait for confirmations');
-		}
-		limit -= 1;
-
-		return waitForBlocks(1)
-			.then(function (){
-				return checkConfirmations(transactions);
-			})
-			.catch(function () {
-				return waitUntilLimit(limit);
-			});
-	}
-
-	// Wait a maximum of limitHeight*25 confirmed transactions
-	return waitUntilLimit(limitHeight);
-}
-
 /**
  * Validate if the validation response contains error for a specific param
  *
@@ -236,34 +239,34 @@ function createSignatureObject (transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: node.lisk.multisignature.signTransaction(transaction, signer.password)
+		signature: lisk.multisignature.signTransaction(transaction, signer.password)
 	};
 }
 
-var getTransactionByIdPromise = node.Promise.promisify(getTransactionById);
-var getTransactionsPromise = node.Promise.promisify(getTransactions);
-var getQueuedTransactionPromise = node.Promise.promisify(getQueuedTransaction);
-var getQueuedTransactionsPromise = node.Promise.promisify(getQueuedTransactions);
-var getUnconfirmedTransactionPromise = node.Promise.promisify(getUnconfirmedTransaction);
-var getUnconfirmedTransactionsPromise = node.Promise.promisify(getUnconfirmedTransactions);
-var getMultisignaturesTransactionPromise = node.Promise.promisify(getMultisignaturesTransaction);
-var getMultisignaturesTransactionsPromise = node.Promise.promisify(getMultisignaturesTransactions);
-var getPendingMultisignaturesPromise = node.Promise.promisify(getPendingMultisignatures);
-var creditAccountPromise = node.Promise.promisify(creditAccount);
-var sendTransactionPromise = node.Promise.promisify(sendTransaction);
-var sendTransactionsPromise = node.Promise.promisify(sendTransactions);
-var getCountPromise = node.Promise.promisify(getCount);
-var registerDelegatePromise = node.Promise.promisify(registerDelegate);
-var getForgingStatusPromise = node.Promise.promisify(getForgingStatus);
-var getDelegatesPromise = node.Promise.promisify(getDelegates);
-var getDelegateVotersPromise = node.Promise.promisify(getDelegateVoters);
-var getVotersPromise = node.Promise.promisify(getVoters);
-var searchDelegatesPromise = node.Promise.promisify(searchDelegates);
-var putForgingDelegatePromise = node.Promise.promisify(putForgingDelegate);
-var getForgedByAccountPromise = node.Promise.promisify(getForgedByAccount);
-var getForgersPromise = node.Promise.promisify(getForgers);
-var getAccountsPromise = node.Promise.promisify(getAccounts);
-var getBlocksPromise = node.Promise.promisify(getBlocks);
+var getTransactionByIdPromise = Promise.promisify(getTransactionById);
+var getTransactionsPromise = Promise.promisify(getTransactions);
+var getQueuedTransactionPromise = Promise.promisify(getQueuedTransaction);
+var getQueuedTransactionsPromise = Promise.promisify(getQueuedTransactions);
+var getUnconfirmedTransactionPromise = Promise.promisify(getUnconfirmedTransaction);
+var getUnconfirmedTransactionsPromise = Promise.promisify(getUnconfirmedTransactions);
+var getMultisignaturesTransactionPromise = Promise.promisify(getMultisignaturesTransaction);
+var getMultisignaturesTransactionsPromise = Promise.promisify(getMultisignaturesTransactions);
+var getPendingMultisignaturesPromise = Promise.promisify(getPendingMultisignatures);
+var creditAccountPromise = Promise.promisify(creditAccount);
+var sendTransactionPromise = Promise.promisify(sendTransaction);
+var sendTransactionsPromise = Promise.promisify(sendTransactions);
+var getCountPromise = Promise.promisify(getCount);
+var registerDelegatePromise = Promise.promisify(registerDelegate);
+var getForgingStatusPromise = Promise.promisify(getForgingStatus);
+var getDelegatesPromise = Promise.promisify(getDelegates);
+var getDelegateVotersPromise = Promise.promisify(getDelegateVoters);
+var getVotersPromise = Promise.promisify(getVoters);
+var searchDelegatesPromise = Promise.promisify(searchDelegates);
+var putForgingDelegatePromise = Promise.promisify(putForgingDelegate);
+var getForgedByAccountPromise = Promise.promisify(getForgedByAccount);
+var getForgersPromise = Promise.promisify(getForgers);
+var getAccountsPromise = Promise.promisify(getAccounts);
+var getBlocksPromise = Promise.promisify(getBlocks);
 
 module.exports = {
 	getTransactionByIdPromise: getTransactionByIdPromise,
@@ -296,7 +299,6 @@ module.exports = {
 	getAccounts: getAccounts,
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
-	waitForConfirmations: waitForConfirmations,
 	expectSwaggerParamError: expectSwaggerParamError,
 	createSignatureObject: createSignatureObject
 };

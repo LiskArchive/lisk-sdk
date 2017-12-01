@@ -16,8 +16,8 @@ describe('ed', function () {
 		var keys;
 
 		before(function () {
-			var randomString = 'ABCDE';
-			var hash = crypto.createHash('sha256').update(randomString, 'utf8').digest();
+			var randomstring = 'ABCDE';
+			var hash = crypto.createHash('sha256').update(randomstring, 'utf8').digest();
 			keys = ed.makeKeypair(hash);
 		});
 
@@ -42,8 +42,8 @@ describe('ed', function () {
 		};
 
 		before(function () {
-			var randomString = 'ABCDE';
-			var hash = crypto.createHash('sha256').update(randomString, 'utf8').digest();
+			var randomstring = 'ABCDE';
+			var hash = crypto.createHash('sha256').update(randomstring, 'utf8').digest();
 			keys = ed.makeKeypair(hash);
 
 		});
@@ -74,8 +74,8 @@ describe('ed', function () {
 		};
 
 		before(function () {
-			var randomString = 'ABCDE';
-			var hash = crypto.createHash('sha256').update(randomString, 'utf8').digest();
+			var randomstring = 'ABCDE';
+			var hash = crypto.createHash('sha256').update(randomstring, 'utf8').digest();
 			keys = ed.makeKeypair(hash);
 			signature = ed.sign(Buffer.from(JSON.stringify(messageToSign)), keys.privateKey);
 		});

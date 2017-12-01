@@ -1,21 +1,26 @@
 'use strict';
 
 // Utils
-var _       = require('lodash');
-var async   = require('async');
-var chai    = require('chai');
-var expect  = require('chai').expect;
+var _ = require('lodash');
+var async = require('async');
+var chai = require('chai');
+var expect = require('chai').expect;
 var Promise = require('bluebird');
-var rewire  = require('rewire');
-var sinon   = require('sinon');
+var rewire = require('rewire');
+var sinon = require('sinon');
+var lisk = require('lisk-js');
+
+var test = require('../../test');
+var config = require('../../data/config.json');
+var accountFixtures = require('../../fixtures/accounts');
+
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
 
 // Application specific
-var application = require('../../common/application.js');
-var bignum    = require('../../../helpers/bignum.js');
-var config    = require('../../../config.json');
+var bignum    = require('../../../helpers/bignum');
 var constants = require('../../../helpers/constants');
-var node      = require('../../node.js');
-var slots     = require('../../../helpers/slots.js');
+var slots     = require('../../../helpers/slots');
 
 describe('Rounds-related SQL triggers', function () {
 
@@ -113,7 +118,7 @@ describe('Rounds-related SQL triggers', function () {
 		var feesPerDelegate = new bignum(feesTotal.toPrecision(15)).dividedBy(slots.delegates).floor();
 		var feesRemaining   = new bignum(feesTotal.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates));
 
-		node.debug('	Total fees: ' + feesTotal.toString() + ' Fees per delegates: ' + feesPerDelegate.toString() + ' Remaining fees: ' + feesRemaining + 'Total rewards: ' + rewardsTotal);
+		test.debug('	Total fees: ' + feesTotal.toString() + ' Fees per delegates: ' + feesPerDelegate.toString() + ' Remaining fees: ' + feesRemaining + 'Total rewards: ' + rewardsTotal);
 		
 		_.each(blocks, function (block, index) {
 			var pk = block.generatorPublicKey.toString('hex');
@@ -143,8 +148,8 @@ describe('Rounds-related SQL triggers', function () {
 	}
 
 	before(function (done) {
-		originalBlockRewardsOffset = node.constants.rewards.offset;
-		node.constants.rewards.offset = 150;
+		originalBlockRewardsOffset = constants.rewards.offset;
+		constants.rewards.offset = 150;
 		application.init({
 			sandbox: {
 				name: 'lisk_test_sql_rounds'
@@ -158,7 +163,7 @@ describe('Rounds-related SQL triggers', function () {
 	});
 
 	after(function (done) {
-		node.constants.rewards.offset = originalBlockRewardsOffset;
+		constants.rewards.offset = originalBlockRewardsOffset;
 		application.cleanup(done);
 	});
 
@@ -399,7 +404,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		function addTransaction (transaction, cb) {
-			node.debug('	Add transaction ID: ' + transaction.id);
+			test.debug('	Add transaction ID: ' + transaction.id);
 			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 			// See: modules.transport.__private.receiveTransaction
 			transaction = library.logic.transaction.objectNormalize(transaction);
@@ -434,11 +439,11 @@ describe('Rounds-related SQL triggers', function () {
 					var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 					var delegate = getNextForger();
 					var keypair = keypairs[delegate];
-					node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+					test.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 					library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 						if (err) { return seriesCb(err); }
 						last_block = library.modules.blocks.lastBlock.get();
-						node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+						test.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 						return seriesCb(err);
 					});
 				}
@@ -572,10 +577,10 @@ describe('Rounds-related SQL triggers', function () {
 
 		it('should forge block with 1 TRANSFER transaction to random account, update mem_accounts (native) and delegates (trigger block_insert_delete) tables', function () {
 			var transactions = [];
-			var transaction = node.lisk.transaction.createTransaction(
-				node.randomAccount().address,
-				node.randomNumber(100000000, 1000000000),
-				node.gAccount.password
+			var transaction = lisk.transaction.createTransaction(
+				randomUtil.account().address,
+				randomUtil.number(100000000, 1000000000),
+				accountFixtures.genesis.password
 			);
 			transactions.push(transaction);
 
@@ -587,10 +592,10 @@ describe('Rounds-related SQL triggers', function () {
 			var transactions = [];
 
 			for (var i = tx_cnt - 1; i >= 0; i--) {
-				var transaction = node.lisk.transaction.createTransaction(
-					node.randomAccount().address,
-					node.randomNumber(100000000, 1000000000),
-					node.gAccount.password
+				var transaction = lisk.transaction.createTransaction(
+					randomUtil.account().address,
+					randomUtil.number(100000000, 1000000000),
+					accountFixtures.genesis.password
 				);
 				transactions.push(transaction);
 			}
@@ -607,14 +612,14 @@ describe('Rounds-related SQL triggers', function () {
 				++blocks_processed;
 				var transactions = [];
 				for (var t = tx_cnt - 1; t >= 0; t--) {
-					var transaction = node.lisk.transaction.createTransaction(
-						node.randomAccount().address,
-						node.randomNumber(100000000, 1000000000),
-						node.gAccount.password
+					var transaction = lisk.transaction.createTransaction(
+						randomUtil.account().address,
+						randomUtil.number(100000000, 1000000000),
+						accountFixtures.genesis.password
 					);
 					transactions.push(transaction);
 				}
-				node.debug('	Processing block ' + blocks_processed + ' of ' + blocks_cnt + ' with ' + transactions.length + ' transactions');
+				test.debug('	Processing block ' + blocks_processed + ' of ' + blocks_cnt + ' with ' + transactions.length + ' transactions');
 
 				tickAndValidate(transactions).then(untilCb).catch(untilCb);
 			}, function (err) {
@@ -719,8 +724,8 @@ describe('Rounds-related SQL triggers', function () {
 
 			it('should unvote expected forger of last block of round', function () {
 				var transactions = [];
-				var transaction = node.lisk.vote.createVote(
-					node.gAccount.password,
+				var transaction = lisk.vote.createVote(
+					accountFixtures.genesis.password,
 					['-' + last_block_forger]
 				);
 				transactions.push(transaction);
@@ -790,15 +795,15 @@ describe('Rounds-related SQL triggers', function () {
 					.then(function () {
 						// Fund random account
 						var transactions = [];
-						tmp_account = node.randomAccount();
-						var transaction = node.lisk.transaction.createTransaction(tmp_account.address, 5000000000, node.gAccount.password);
+						tmp_account = randomUtil.account();
+						var transaction = lisk.transaction.createTransaction(tmp_account.address, 5000000000, accountFixtures.genesis.password);
 						transactions.push(transaction);
 						return tickAndValidate(transactions);
 					})
 					.then(function () {
 						// Register random delegate
 						var transactions = [];
-						var transaction = node.lisk.delegate.createDelegate(tmp_account.password, 'my_little_delegate');
+						var transaction = lisk.delegate.createDelegate(tmp_account.password, 'my_little_delegate');
 						transactions.push(transaction);
 						return tickAndValidate(transactions);
 					});
@@ -811,8 +816,8 @@ describe('Rounds-related SQL triggers', function () {
 
 			it('after finishing round, should unvote expected forger of last block of round and vote new delegate', function () {
 				var transactions = [];
-				var transaction = node.lisk.vote.createVote(
-					node.gAccount.password,
+				var transaction = lisk.vote.createVote(
+					accountFixtures.genesis.password,
 					['-' + last_block_forger, '+' + tmp_account.publicKey]
 				);
 				transactions.push(transaction);
@@ -906,7 +911,7 @@ describe('Rounds-related SQL triggers', function () {
 
 				async.doUntil(function (untilCb) {
 					++blocks_processed;
-					node.debug('	Processing block ' + blocks_processed + ' of ' + blocks_to_forge);
+					test.debug('	Processing block ' + blocks_processed + ' of ' + blocks_to_forge);
 
 					tickAndValidate([]).then(untilCb).catch(untilCb);
 				}, function (err) {
@@ -926,7 +931,7 @@ describe('Rounds-related SQL triggers', function () {
 				// Forge blocks until end of a round
 				async.doUntil(function (untilCb) {
 					++blocks_processed;
-					node.debug('	Processing block ' + blocks_processed);
+					test.debug('	Processing block ' + blocks_processed);
 
 					tickAndValidate([]).then(function () {
 						last_block = library.modules.blocks.lastBlock.get();

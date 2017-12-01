@@ -1,10 +1,16 @@
 'use strict';
 
-var node = require('../../../node');
-var shared = require('../../shared');
-var localShared = require('./shared');
+var test = require('../../functional.js');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var lisk = require('lisk-js');
+var expect = require('chai').expect;
+
+var phases = require('../../common/phases');
+var localCommon = require('./common');
+
+var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
+
+var randomUtil = require('../../../common/utils/random');
 
 describe('POST /api/transactions (unconfirmed type 1 on top of type 1)', function () {
 
@@ -12,18 +18,18 @@ describe('POST /api/transactions (unconfirmed type 1 on top of type 1)', functio
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	var account = node.randomAccount();
+	var account = randomUtil.account();
 
-	localShared.beforeUnconfirmedPhase(account);
+	localCommon.beforeUnconfirmedPhase(account);
 
 	describe('registering second secret', function () {
 
 		it('duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = node.lisk.signature.createSignature(account.password, 'secondpassword');
+			transaction = lisk.signature.createSignature(account.password, 'secondpassword');
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				// TODO: Enable when transaction pool order is fixed
 				// goodTransactions.push(transaction);
 			});
@@ -32,6 +38,6 @@ describe('POST /api/transactions (unconfirmed type 1 on top of type 1)', functio
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

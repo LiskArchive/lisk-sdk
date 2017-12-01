@@ -2,17 +2,19 @@
 
 var crypto = require('crypto');
 var _  = require('lodash');
-
 var rewire = require('rewire');
 var sinon   = require('sinon');
+var expect = require('chai').expect;
+
+var accountFixtures = require('../../fixtures/accounts');
 
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/modulesLoader');
-var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
-var node = require('../../node.js');
-var expect = node.expect;
-
+var constants = require('../../../helpers/constants');
 var Delegate = rewire('../../../logic/delegate.js');
+
+var modulesLoader = require('../../common/modulesLoader');
+var SchemaDynamicTest = require('../common/schemaDynamicTest.js');
+var randomUtil = require('../../common/utils/random');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -133,7 +135,7 @@ describe('delegate', function () {
 	describe('calculateFee', function () {
 
 		it('should return the correct fee for delegate transaction', function () {
-			expect(delegate.calculateFee(transaction)).to.equal(node.constants.fees.delegate);
+			expect(delegate.calculateFee(transaction)).to.equal(constants.fees.delegate);
 		});
 	});
 
@@ -245,7 +247,7 @@ describe('delegate', function () {
 
 			it('should call callback with error when accounts.getAccount returns error', function (done) {
 				var expectedError = 'Error: could not connect to server: Connection refused';
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(expectedError);
+				accountsMock.getAccount.withArgs({username: accountFixtures.existingDelegate.delegateName}, sinon.match.any).yields(expectedError);
 
 				delegate.verify(transaction, sender, function (err) {
 					expect(err).to.equal(expectedError);
@@ -255,7 +257,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error when username already exists', function (done) {
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, node.eAccount);
+				accountsMock.getAccount.withArgs({username: accountFixtures.existingDelegate.delegateName}, sinon.match.any).yields(null, accountFixtures.existingDelegate);
 
 				delegate.verify(transaction, sender, function (err) {
 					expect(err).to.equal('Username already exists');
@@ -268,7 +270,7 @@ describe('delegate', function () {
 		describe('when transaction is valid', function () {
 
 			it('should call accounts.getAccount with correct parameters', function (done) {
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
+				accountsMock.getAccount.withArgs({username: accountFixtures.existingDelegate.delegateName}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err) {
 					expect(err).to.not.exist;
@@ -278,7 +280,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error = null and valid transaction when username contains symbols which are valid', function (done) {
-				transaction.asset.delegate.username = node.randomUsername() + '!@.';
+				transaction.asset.delegate.username = randomUtil.username() + '!@.';
 				accountsMock.getAccount.withArgs({username: transaction.asset.delegate.username}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err, returnedTransaction) {
@@ -289,7 +291,7 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with error = null and valid transaction', function (done) {
-				accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, sinon.match.any).yields(null, null);
+				accountsMock.getAccount.withArgs({username: accountFixtures.existingDelegate.delegateName}, sinon.match.any).yields(null, null);
 
 				delegate.verify(transaction, sender, function (err, returnedTransaction) {
 					expect(err).to.not.exist;

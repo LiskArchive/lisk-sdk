@@ -7,14 +7,16 @@ var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
 
-var node = require('./../../node.js');
+
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/modulesLoader');
+var constants = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
-var typesRepresentatives = require('../../common/typesRepresentatives');
+var typesRepresentatives = require('../../fixtures/typesRepresentatives');
 
 var InTransfer = rewire('../../../logic/inTransfer.js');
 var sql = require('../../../sql/dapps.js');
+
+var modulesLoader = require('../../common/modulesLoader');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -164,7 +166,7 @@ describe('inTransfer', function () {
 	describe('calculateFee', function () {
 
 		it('should return constants.fees.send', function () {
-			expect(inTransfer.calculateFee(trs)).to.equal(node.constants.fees.send);
+			expect(inTransfer.calculateFee(trs)).to.equal(constants.fees.send);
 		});
 	});
 

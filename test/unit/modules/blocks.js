@@ -6,8 +6,8 @@ var expect = require('chai').expect;
 var express = require('express');
 var sinon = require('sinon');
 
-var application = require('../../common/application.js');
-var node = require('../../node');
+
+var application = require('../../common/application');
 
 describe('blocks', function () {
 	

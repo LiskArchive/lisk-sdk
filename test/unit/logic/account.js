@@ -1,18 +1,17 @@
 'use strict';/*eslint*/
 
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum.js');
-var constants = require('../../../helpers/constants.js');
-var application = require('../../common/application.js');
-
+var chai = require('chai');
+var expect = require('chai').expect;
+var _ = require('lodash');
 var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var _  = require('lodash');
+var ed = require('../../../helpers/ed');
+var constants = require('../../../helpers/constants.js');
+var bignum = require('../../../helpers/bignum.js');
+
+var application = require('../../common/application.js');
 
 var validAccount = {
 	username: 'genesis_100',
@@ -56,7 +55,6 @@ var validAccount = {
 describe('account', function () {
 
 	var account;
-	var dbSandbox;
 
 	before(function (done) {
 		application.init({sandbox: {name: 'lisk_test_logic_accounts'}}, function (err, scope) {

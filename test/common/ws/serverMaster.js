@@ -3,8 +3,8 @@
 var ChildProcess = require('child_process');
 var path = require('path');
 var Promise = require('bluebird');
-var node = require('../node.js');
-var WSClient = require('./wsClient');
+
+var WSClient = require('./client');
 
 /**
  * WSServerMaster
@@ -30,7 +30,7 @@ WSServerMaster.prototype.start = function () {
 	var self = this;
 
 	return new Promise(function (resolve, reject) {
-		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'wsServerProcess.js'), self.port], {
+		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'serverProcess.js'), self.port], {
 			cwd: __dirname,
 			detached: true,
 			stdio: 'inherit',

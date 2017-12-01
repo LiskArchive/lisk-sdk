@@ -1,3 +1,4 @@
+'use strict';
 
 var randomstring = require('randomstring');
 var SocketCluster = require('socketcluster').SocketCluster;
@@ -13,7 +14,7 @@ function WSServer (port) {
 		wsEngine: 'uws',
 		appName: 'LiskTestServer-' + randomstring.generate(8),
 		secretKey: 'liskSecret',
-		workerController: __dirname + '/wsServerWorker.js'
+		workerController: __dirname + '/serverWorker.js'
 	};
 }
 

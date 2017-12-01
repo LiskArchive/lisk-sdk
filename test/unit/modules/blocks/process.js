@@ -3,12 +3,15 @@
 var expect = require('chai').expect;
 var async = require('async');
 
-var application = require('../../../common/application.js');
-var node = require('../../../node');
-var modulesLoader = require('../../../common/modulesLoader');
-var genesisBlock = require('../../../../genesisBlock.json');
+
+var genesisBlock = require('../../../data/genesisBlock.json');
+var application = require('../../../common/application');
 var loadTables = require('./processTablesData.json');
-var clearDatabaseTable = require('../../../common/DBSandbox.js').clearDatabaseTable;
+
+var modulesLoader = require('../../../common/modulesLoader');
+var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
+
+var constants = require('../../../../helpers/constants');
 
 describe('blocks/process', function () {
 
@@ -23,8 +26,8 @@ describe('blocks/process', function () {
 
 	before(function (done) {
 		// Force rewards start at 150-th block
-		originalBlockRewardsOffset = node.constants.rewards.offset;
-		node.constants.rewards.offset = 150;
+		originalBlockRewardsOffset = constants.rewards.offset;
+		constants.rewards.offset = 150;
 		application.init({sandbox: {name: 'lisk_test_blocks_process'}}, function (err, scope) {
 			scope = scope;
 			accounts = scope.modules.accounts;
@@ -38,7 +41,7 @@ describe('blocks/process', function () {
 	});
 
 	after(function (done) {
-		node.constants.rewards.offset = originalBlockRewardsOffset;
+		constants.rewards.offset = originalBlockRewardsOffset;
 		application.cleanup(done);
 	});
 

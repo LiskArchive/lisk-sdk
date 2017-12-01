@@ -4,7 +4,6 @@ var _ = require('lodash');
 var randomstring = require('randomstring');
 
 module.exports = {
-
 	generateMatchedAndUnmatchedBroadhashes: function (unmatchedAmount) {
 		var characterNotPresentInValidBroadhash = '@';
 		var validBroadhash = randomstring.generate({

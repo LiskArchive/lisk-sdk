@@ -1,17 +1,22 @@
 'use strict';
 
-var _ = require('lodash');
 var expect = require('chai').expect;
 var rewire = require('rewire');
 var randomstring = require('randomstring');
 var sinon = require('sinon');
 
+var test = require('../../test');
+var _ = test._;
+
+var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
+var generateRandomActivePeer = require('../../fixtures/peers').generateRandomActivePeer;
+var config = require('../../data/config.json');
+
 var constants = require('../../../helpers/constants');
+
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;
-var generateRandomActivePeer = require('../../common/objectStubs').generateRandomActivePeer;
 var modulesLoader = require('../../common/modulesLoader');
-var randomInt = require('../../common/helpers').randomInt;
-var randomPeer = require('../../common/objectStubs').randomNormalizedPeer;
+var random = require('../../common/utils/random');
 
 describe('peers', function () {
 
@@ -113,7 +118,7 @@ describe('peers', function () {
 					var validLimit;
 
 					before(function () {
-						validLimit = randomInt(1, (1000 - 1));
+						validLimit = random.number(1, 1000);
 						validOptions.limit = validLimit;
 					});
 
@@ -262,7 +267,7 @@ describe('peers', function () {
 					validOptions.limit = 1000;
 					randomPeers = _.range(1000).map(function () {
 						var peer = generateRandomActivePeer();
-						peer.state = randomInt(DISCONNECTED_STATE, CONNECTED_STATE);
+						peer.state = random.number(DISCONNECTED_STATE, CONNECTED_STATE + 1);
 						return peer;
 					});
 					peersLogicMock.list = sinon.stub().returns(randomPeers);
@@ -639,17 +644,17 @@ describe('peers', function () {
 		});
 
 		it('should accept peer with public ip', function () {
-			expect(peers.acceptable([randomPeer])).that.is.an('array').and.to.deep.equal([randomPeer]);
+			expect(peers.acceptable([prefixedPeer])).that.is.an('array').and.to.deep.equal([prefixedPeer]);
 		});
 
 		it('should not accept peer with private ip', function () {
-			var privatePeer = _.clone(randomPeer);
+			var privatePeer = _.clone(prefixedPeer);
 			privatePeer.ip = '127.0.0.1';
 			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
 		});
 
 		it('should not accept peer with host\'s nonce', function () {
-			var peer = _.clone(randomPeer);
+			var peer = _.clone(prefixedPeer);
 			peer.nonce = NONCE;
 			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
 		});
@@ -677,19 +682,16 @@ describe('peers', function () {
 			originalPeersList = PeersRewired.__get__('library.config.peers.list');
 			PeersRewired.__set__('library.config.peers.list', []);
 			peersLogicMock.create = sinon.stub().returnsArg(0);
+			sinon.stub(peers, 'discover');
 		});
 
 		after(function () {
 			PeersRewired.__set__('library.config.peers.list', originalPeersList);
+			peers.discover.restore();
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {
-			sinon.stub(peers, 'discover').callsArgWith(0, null);
-			var config = require('../../config.json');
-			var initialPeers = _.clone(config.peers.list);
-			if (initialPeers.length === 0) {
-				config.peers.list.push(randomPeer);
-			}
+			
 			peers.onBlockchainReady();
 			setTimeout(function () {
 				expect(peers.discover.calledOnce).to.be.ok;

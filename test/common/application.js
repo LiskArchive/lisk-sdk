@@ -1,22 +1,23 @@
 'use strict';
 
 // Global imports
-var child_process = require('child_process');
 var Promise = require('bluebird');
 var rewire = require('rewire');
 var sinon = require('sinon');
+var async = require('async');
+var expect = require('chai').expect;
 
 // Application-specific imports
-var DBSandbox = require('./DBSandbox.js').DBSandbox;
-var node = require('./../node.js');
+var test = require('./../test');
+
+var DBSandbox = require('./DBSandbox').DBSandbox;
+
 var swagger = require('../../config/swagger');
-var database = require('../../helpers/database.js');
-var jobsQueue = require('../../helpers/jobsQueue.js');
-var Sequence = require('../../helpers/sequence.js');
+var database = require('../../helpers/database');
+var jobsQueue = require('../../helpers/jobsQueue');
+var Sequence = require('../../helpers/sequence');
 
 var dbSandbox;
-var currentAppScope;
-var testDatabaseNames = [];
 var currentAppScope;
 
 function init (options, cb) {
@@ -26,7 +27,7 @@ function init (options, cb) {
 	options.scope.waitForGenesisBlock = options.waitForGenesisBlock !== false;
 
 	if (options.sandbox) {
-		dbSandbox = new DBSandbox(options.sandbox.config || node.config.db, options.sandbox.name);
+		dbSandbox = new DBSandbox(options.sandbox.config || test.config.db, options.sandbox.name);
 		dbSandbox.create(function (err, __db) {
 			options.scope.db = __db;
 			__init(options.scope, cb);
@@ -38,7 +39,7 @@ function init (options, cb) {
 
 // Init whole application inside tests
 function __init (initScope, done) {
-	node.debug('initApplication: Application initialization inside test environment started...');
+	test.debug('initApplication: Application initialization inside test environment started...');
 
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
@@ -49,11 +50,11 @@ function __init (initScope, done) {
 	var db = initScope.db;
 	if (!db) {
 		var pgp = require('pg-promise')(options);
-		node.config.db.user = node.config.db.user || process.env.USER;
-		db = pgp(node.config.db);
+		test.config.db.user = test.config.db.user || process.env.USER;
+		db = pgp(test.config.db);
 	}
 	
-	node.debug('initApplication: Target database - ' + node.config.db.database);
+	test.debug('initApplication: Target database - ' + test.config.db.database);
 
 	// Clear tables
 	db.task(function (t) {
@@ -89,27 +90,28 @@ function __init (initScope, done) {
 		};
 
 		// Init limited application layer
-		node.async.auto({
+		async.auto({
 			config: function (cb) {
-				cb(null, node.config);
+				cb(null, test.config);
 			},
 			genesisblock: function (cb) {
-				var genesisblock = require('../genesisBlock.json');
-				cb(null, {block: genesisblock});
+				var genesisblock = require('../data/genesisBlock.json');
+				cb(null, { block: genesisblock });
 			},
+
 			schema: function (cb) {
 				var z_schema = require('../../helpers/z_schema.js');
 				cb(null, new z_schema());
 			},
 			network: function (cb) {
 				// Init with empty function
-				cb(null, {io: {sockets: {emit: function () {}}}, app: require('express')()});
+				cb(null, { io: { sockets: { emit: function () { } } }, app: require('express')() });
 			},
 			webSocket: ['config', 'logger', 'network', function (scope, cb) {
 				// Init with empty functions
 				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-				var dummySocketCluster = {on: function () {}};
+				var dummySocketCluster = { on: function () { } };
 				var dummyWAMPServer = new MasterWAMPServer(dummySocketCluster, {});
 				var wsRPC = require('../../api/ws/rpc/wsRPC.js').wsRPC;
 
@@ -144,12 +146,15 @@ function __init (initScope, done) {
 				});
 				cb(null, sequence);
 			}],
+
 			swagger: ['network', 'modules', 'logger', function (scope, cb) {
 				swagger(scope.network.app, scope.config, scope.logger, scope, cb);
 			}],
+
 			ed: function (cb) {
 				cb(null, require('../../helpers/ed.js'));
 			},
+
 			bus: ['ed', function (scope, cb) {
 				var changeCase = require('change-case');
 
@@ -162,13 +167,13 @@ function __init (initScope, done) {
 
 						// Iterate over modules and execute event functions (on*)
 						modules.forEach(function (module) {
-							if (typeof(module[eventName]) === 'function') {
+							if (typeof (module[eventName]) === 'function') {
 								jobsQueue.jobs = {};
 								module[eventName].apply(module[eventName], args);
 							}
 							if (module.submodules) {
-								node.async.each(module.submodules, function (submodule) {
-									if (submodule && typeof(submodule[eventName]) === 'function') {
+								async.each(module.submodules, function (submodule) {
+									if (submodule && typeof (submodule[eventName]) === 'function') {
 										submodule[eventName].apply(submodule[eventName], args);
 									}
 								});
@@ -196,7 +201,7 @@ function __init (initScope, done) {
 				wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 
 				// Register RPC
-				var transportModuleMock = {internal: {}, shared: {}};
+				var transportModuleMock = { internal: {}, shared: {} };
 				transport(transportModuleMock);
 				cb();
 			}],
@@ -207,7 +212,7 @@ function __init (initScope, done) {
 				var Account = require('../../logic/account.js');
 				var Peers = require('../../logic/peers.js');
 
-				node.async.auto({
+				async.auto({
 					bus: function (cb) {
 						cb(null, scope.bus);
 					},
@@ -258,7 +263,7 @@ function __init (initScope, done) {
 					};
 				});
 
-				node.async.parallel(tasks, function (err, results) {
+				async.parallel(tasks, function (err, results) {
 					cb(err, results);
 				});
 			}],
@@ -280,17 +285,17 @@ function __init (initScope, done) {
 
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {
-				node.debug('initApplication: Fake onBlockchainReady event called');
-				node.debug('initApplication: Loading delegates...');
+				test.debug('initApplication: Fake onBlockchainReady event called');
+				test.debug('initApplication: Loading delegates...');
 
 				var loadDelegates = scope.rewiredModules.delegates.__get__('__private.loadDelegates');
 				loadDelegates(function (err) {
 					var keypairs = scope.rewiredModules.delegates.__get__('__private.keypairs');
 					var delegates_cnt = Object.keys(keypairs).length;
-					node.expect(delegates_cnt).to.equal(node.config.forging.secret.length);
+					expect(delegates_cnt).to.equal(test.config.forging.secret.length);
 
-					node.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
-					node.debug('initApplication: Done');
+					test.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
+					test.debug('initApplication: Done');
 
 					if (initScope.waitForGenesisBlock) {
 						return done(err, scope);
@@ -302,8 +307,8 @@ function __init (initScope, done) {
 };
 
 function cleanup (done) {
-	node.async.eachSeries(currentAppScope.modules, function (module, cb) {
-		if (typeof(module.cleanup) === 'function') {
+	async.eachSeries(currentAppScope.modules, function (module, cb) {
+		if (typeof (module.cleanup) === 'function') {
 			module.cleanup(cb);
 		} else {
 			cb();

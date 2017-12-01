@@ -6,16 +6,19 @@ var _  = require('lodash');
 var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
-var randomString = require('randomstring');
+var randomstring = require('randomstring');
 
-var node = require('./../../node.js');
+
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modulesLoader.js');
 
+var randomUtil = require('../../common/utils/random');
+
 var Dapp = rewire('../../../logic/dapp.js');
 var sql = require('../../../sql/dapps.js');
+var constants = require('../../../helpers/constants');
 
-var typeRepresentatives = require('../../common/typesRepresentatives.js');
+var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
 
 var testData = require('./testData/dapp.js');
 
@@ -94,7 +97,7 @@ describe('dapp', function () {
 		describe('calculateFee', function () {
 
 			it('should return constants.fees.dappRegistration', function () {
-				expect(dapp.calculateFee(transaction)).to.equal(node.constants.fees.dappRegistration);
+				expect(dapp.calculateFee(transaction)).to.equal(constants.fees.dapp);
 			});
 		});
 
@@ -706,7 +709,7 @@ describe('dapp', function () {
 
 					var invalidNames = ['', _.fill(new Array(33), 'a'), _.fill(new Array(34), 'b')];
 					var validNames = _.fill(new Array(5), 'a').map(function () {
-						return node.randomApplicationName();
+						return randomUtil.applicationName();
 					});
 
 					invalidTypes.forEach(function (type) {
@@ -750,7 +753,7 @@ describe('dapp', function () {
 
 					var invalidDescriptions = [_.fill(new Array(161), 'a'), _.fill(new Array(162), 'b')];
 					var validDescriptions = _.fill(new Array(33), 'a').map(function () {
-						return randomString.generate(Math.random() * 160);
+						return randomstring.generate(Math.random() * 160);
 					});
 
 					invalidTypes.forEach(function (type) {
@@ -787,7 +790,7 @@ describe('dapp', function () {
 
 					var invalidTags = [_.fill(new Array(161), 'a'), _.fill(new Array(81), 'b').join(',')];
 
-					var validTags = [_.fill(new Array(_.toInteger(Math.random() * 80)), randomString.generate(1)).join(','), 'adventure, fantasy'];
+					var validTags = [_.fill(new Array(_.toInteger(Math.random() * 80)), randomstring.generate(1)).join(','), 'adventure, fantasy'];
 
 					invalidTypes.forEach(function (type) {
 
@@ -873,7 +876,7 @@ describe('dapp', function () {
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidLinks = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
 					var validLinks = _.fill(new Array(5), '').map(function () {
-						return node.randomApplicationName();
+						return randomUtil.applicationName();
 					});
 
 					invalidTypes.forEach(function (type) {
@@ -912,7 +915,7 @@ describe('dapp', function () {
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidIcons = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
 					var validIcons = _.fill(new Array(5), '').map(function () {
-						return node.randomApplicationName();
+						return randomUtil.applicationNam();
 					});
 
 					invalidTypes.forEach(function (type) {
