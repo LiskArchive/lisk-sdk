@@ -1,17 +1,18 @@
 'use strict';/*eslint*/
 
-var crypto = require('crypto');
 var _  = require('lodash');
-
+var crypto = require('crypto');
+var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
 
+var accounts = require('../../fixtures/accounts');
+var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
 var exceptions = require('../../../helpers/exceptions');
 var modulesLoader = require('../../common/modulesLoader');
-var SchemaDynamicTest = require('../../common/schemaDynamicTest.js');
-var node = require('../../node.js');
-var expect = node.expect;
+var random = require('../../common/utils/random');
+var SchemaDynamicTest = require('../common/schemaDynamicTest.js');
 
 var Delegate = rewire('../../../logic/delegate.js');
 
@@ -27,8 +28,6 @@ var validSender = {
 	key: 'elephant tree paris dragon chair galaxy',
 	nameexist: 1
 };
-
-var senderHash = crypto.createHash('sha256').update(validSender.secret, 'utf8').digest();
 
 var validTransaction = {
 	type: 2,
@@ -141,7 +140,7 @@ describe('delegate', function () {
 	describe('calculateFee', function () {
 
 		it('should return the correct fee for delegate transaction', function () {
-			expect(delegate.calculateFee(transaction)).to.equal(node.constants.fees.delegate);
+			expect(delegate.calculateFee(transaction)).to.equal(constants.fees.delegate);
 		});
 	});
 
@@ -274,7 +273,7 @@ describe('delegate', function () {
 			describe('when delegate was not registered before', function () {
 
 				it('should call callback with valid transaction when username contains symbols which are valid', function (done) {
-					transaction.asset.delegate.username = node.randomUsername() + '!@.';
+					transaction.asset.delegate.username = random.username() + '!@.';
 					delegate.verify(transaction, sender, function () {
 						expect(checkConfirmedStub.calledWith(transaction)).to.be.true;
 						done();
@@ -293,10 +292,10 @@ describe('delegate', function () {
 
 				beforeEach(function () {
 					checkConfirmedStub.restore();
-					accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, ['username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, ['u_username'], sinon.match.any).yields(null, node.eAccount);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinon.match.any).yields(null, accounts.existingDelegate);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, null);
 				});
 
 				it('should not return an error', function (done) {
@@ -311,15 +310,15 @@ describe('delegate', function () {
 
 				beforeEach(function () {
 					checkConfirmedStub.restore();
-					accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, ['username'], sinon.match.any).yields(null, node.eAccount);
-					accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, ['u_username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinon.match.any).yields(null, accounts.existingDelegate);
+					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, null);
 				});
 
 				it('should return an error for valid params', function (done) {
 					delegate.verify(validTransaction, validSender, function (err) {
-						expect(err).to.equal('Username ' + node.eAccount.delegateName + ' already exists');
+						expect(err).to.equal('Username ' + accounts.existingDelegate.delegateName + ' already exists');
 						done();
 					});
 				});
@@ -329,10 +328,10 @@ describe('delegate', function () {
 
 				beforeEach(function () {
 					checkConfirmedStub.restore();
-					accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, ['username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, ['u_username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, node.eAccount);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, accounts.existingDelegate);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, null);
 				});
 
 				it('should return not return an error', function (done) {
@@ -347,10 +346,10 @@ describe('delegate', function () {
 
 				beforeEach(function () {
 					checkConfirmedStub.restore();
-					accountsMock.getAccount.withArgs({username: node.eAccount.delegateName}, ['username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, ['u_username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, null);
-					accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, node.eAccount);
+					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, null);
+					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, isDelegate: 1}, ['username'], sinon.match.any).yields(null, accounts.existingDelegate);
 				});
 
 				it('should return an error = "Account is already a delegate"', function (done) {
@@ -408,19 +407,19 @@ describe('delegate', function () {
 
 		it('should call modules.accounts.getAccount with checking delegate registration params', function () {
 			expect(accountsMock.getAccount.calledWith({
-				publicKey: node.eAccount.publicKey,
+				publicKey: accounts.existingDelegate.publicKey,
 				u_isDelegate: 1
 			})).to.be.true;
 		});
 
 		it('should call modules.accounts.getAccount with checking username params', function () {
-			expect(accountsMock.getAccount.calledWith({u_username: node.eAccount.delegateName})).to.be.true;
+			expect(accountsMock.getAccount.calledWith({u_username: accounts.existingDelegate.delegateName})).to.be.true;
 		});
 
 		describe('when username exists', function () {
 
 			beforeEach(function (done) {
-				accountsMock.getAccount.withArgs({u_username: node.eAccount.delegateName}, ['u_username'], sinon.match.any).yields(null, node.eAccount);
+				accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinon.match.any).yields(null, accounts.existingDelegate);
 				delegate.checkDuplicates(validTransaction, validUsernameField, validIsDelegateField, function (err, res) {
 					error = err;
 					result = res;
@@ -429,14 +428,14 @@ describe('delegate', function () {
 			});
 
 			it('should call callback with the error', function () {
-				node.expect(error).to.equal('Username ' + node.eAccount.delegateName + ' already exists');
+				expect(error).to.equal('Username ' + accounts.existingDelegate.delegateName + ' already exists');
 			});
 		});
 
 		describe('when publicKey already exists as a delegate', function () {
 
 			beforeEach(function (done) {
-				accountsMock.getAccount.withArgs({publicKey: node.eAccount.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, node.eAccount);
+				accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinon.match.any).yields(null, accounts.existingDelegate);
 				delegate.checkDuplicates(validTransaction, validUsernameField, validIsDelegateField, function (err, res) {
 					error = err;
 					result = res;
@@ -445,18 +444,18 @@ describe('delegate', function () {
 			});
 
 			it('should return an error = "Account is already a delegate"', function () {
-				node.expect(error).to.equal('Account is already a delegate');
+				expect(error).to.equal('Account is already a delegate');
 			});
 		});
 
 		describe('when publicKey and username does not match any account', function () {
 
 			it('should not return the error', function () {
-				node.expect(error).to.be.undefined;
+				expect(error).to.be.undefined;
 			});
 
 			it('should not return the result', function () {
-				node.expect(result).to.be.undefined;
+				expect(result).to.be.undefined;
 			});
 		});
 	});
