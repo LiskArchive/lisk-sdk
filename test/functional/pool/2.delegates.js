@@ -8,11 +8,11 @@ var Promise = require('bluebird');
 var constants = require('../../../helpers/constants');
 
 var accounts = require('../../fixtures/accounts');
+var waitFor = require('../../common/utils/waitFor');
 var onNewBlockPromise = Promise.promisify(waitFor.blocks.bind(null, 1));
 var getTransactionByIdPromise = require('../../common/helpers/api').getTransactionByIdPromise;
 var randomUtil = require('../../common/utils/random');
 var sendTransactionPromise = require('../../common/helpers/api').sendTransactionPromise;
-var waitFor = require('../../common/utils/waitFor');
 
 describe('POST /api/transactions (type 2) double delegate registration', function () {
 
