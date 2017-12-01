@@ -164,7 +164,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Username already exists');
+				expect(res).to.have.nested.property('body.message').to.equal('Username ' + account.username + ' already exists');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
