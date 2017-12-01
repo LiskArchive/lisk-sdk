@@ -23,7 +23,7 @@ describe('lisk_cors', function () {
 		next = sinon.spy();
 	});
 
-	it('should be a factory function that names 2 argument', function () {
+	it('should be a factory function that names 2 arguments', function () {
 		fitting.should.be.a('function');
 		fitting.should.have.length(2);
 	});
@@ -49,7 +49,7 @@ describe('lisk_cors', function () {
 		context.response.getHeader('Access-Control-Allow-Methods').should.be.equal('GET,HEAD,PUT,PATCH,POST,DELETE');
 	});
 
-	it('should enable requests for test.com when provided origin = test.com ', function () {
+	it('should enable requests for test.com when provided origin = test.com', function () {
 		cors_fititng = fitting({origin: 'test.com'}, null);
 		context.request.method = 'OPTIONS';
 

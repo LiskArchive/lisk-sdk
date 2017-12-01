@@ -2,7 +2,7 @@
 
 describe('lisk_error_handler', function () {
 
-	it('should be a factory function that names 2 argument');
+	it('should be a factory function that names 2 arguments');
 
 	it('should create a middleware accepting 2 arguments');
 

@@ -23,7 +23,7 @@ describe('lisk_request_limit', function () {
 		next = sinon.spy();
 	});
 
-	it('should be a factory function that names 2 argument', function () {
+	it('should be a factory function that names 2 arguments', function () {
 		fitting.should.be.a('function');
 		fitting.should.have.length(2);
 	});
