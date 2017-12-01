@@ -32,7 +32,7 @@ function getLogger () {
 }
 
 /**
- * Get system config
+ * Get system config.
  * @return {Object}
  */
 function getConfig () {

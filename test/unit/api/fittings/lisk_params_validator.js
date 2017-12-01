@@ -13,5 +13,4 @@ describe('lisk_params_validator', function () {
 	it('should respond for param validation and must have message attribute and errors collection as root attributes');
 
 	it('should response for each param error with "code", "message", "in", "name", "errors"');
-
 });

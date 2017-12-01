@@ -15,11 +15,11 @@ var defaults = {
 module.exports = function create (fittingDef, bagpipes) {
 
 	debug('config: %j', fittingDef);
-	var limits = {},
-		appConfigLimits = {},
-		overrideLimits = {};
+	var limits = {};
+	var appConfigLimits = {};
+	var overrideLimits = {};
 
-	if(config) {
+	if (config) {
 		appConfigLimits = config.api.options.limits;
 	} else {
 		appConfigLimits = {};
@@ -41,6 +41,7 @@ module.exports = function create (fittingDef, bagpipes) {
 		debug('exec');
 		middleware(context.request, context.response, cb);
 	}
+
 	lisk_request_limit.limits = limits;
 	lisk_request_limit.defaults = defaults;
 

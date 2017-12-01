@@ -29,7 +29,6 @@ describe('lisk_cors', function () {
 	});
 
 	it('should create a middleware accepting 2 arguments', function () {
-
 		cors_fititng.should.be.a('function');
 		cors_fititng.should.have.length(2);
 	});
