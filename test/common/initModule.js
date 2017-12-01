@@ -124,7 +124,7 @@ var modulesLoader = new function () {
 				this.getDbConnection(waterCb);
 			}.bind(this),
 			function (db, waterCb) {
-				scope = _.merge(this.scope, {db: db}, scope);
+				scope = _.assign({}, this.scope, {db: db}, scope);
 				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
 					var name = _.keys(logicObj)[0];
 					return this.initLogic(logicObj[name], scope, function (err, initializedLogic) {
@@ -134,7 +134,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope = _.merge(this.scope, {logic: logic}, scope);
+				scope.logic = _.merge(logic, scope.logic);
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {
