@@ -6,7 +6,7 @@ var async = require('async');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../shared');
+var phases = require('../common/phases');
 var accountFixtures = require('../../fixtures/accounts');
 
 var apiCodes = require('../../../helpers/apiCodes');
@@ -61,7 +61,7 @@ describe('postTransactions @slow', function () {
 			});
 		});
 
-		shared.confirmationPhase(transactions);
+		phases.confirmation(transactions);
 	});
 
 	describe('sending 1000 single transfers to random addresses', function () {
@@ -96,6 +96,6 @@ describe('postTransactions @slow', function () {
 			});
 		});
 
-		shared.confirmationPhase(transactions);
+		phases.confirmation(transactions);
 	});
 });

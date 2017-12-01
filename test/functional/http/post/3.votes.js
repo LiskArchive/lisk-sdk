@@ -6,7 +6,8 @@ var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var shared = require('../../shared');
+var common = require('./common');
+var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
@@ -167,7 +168,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets('votes', badTransactions);
+		common.invalidAssets('votes', badTransactions);
 	});
 
 	describe('transactions processing', function () {
@@ -357,7 +358,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 
 	describe('validation', function () {
@@ -486,6 +487,6 @@ describe('POST /api/transactions (type 3) votes', function () {
 
 	describe('confirm validation', function () {
 
-		shared.confirmationPhase(goodTransactionsEnforcement, badTransactionsEnforcement);
+		phases.confirmation(goodTransactionsEnforcement, badTransactionsEnforcement);
 	});
 });

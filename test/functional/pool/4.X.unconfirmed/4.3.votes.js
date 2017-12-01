@@ -5,8 +5,9 @@ var test = require('../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../../shared');
-var localShared = require('./shared');
+var phases = require('../../common/phases');
+var Scenarios = require('../../common/scenarios');
+var localCommon = require('./common');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
@@ -14,14 +15,14 @@ var sendTransactionPromise = require('../../../common/helpers/api').sendTransact
 describe('POST /api/transactions (unconfirmed type 3 on top of type 4)', function () {
 
 	var scenarios = {
-		'regular': new shared.MultisigScenario(),
+		'regular': new Scenarios.Multisig(),
 	};
 
 	var transaction;
 	var badTransactions = [];
 	var goodTransactions = [];
 
-	localShared.beforeValidationPhase(scenarios);
+	localCommon.beforeValidationPhase(scenarios);
 
 	describe('voting delegate', function () {
 
@@ -38,6 +39,6 @@ describe('POST /api/transactions (unconfirmed type 3 on top of type 4)', functio
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

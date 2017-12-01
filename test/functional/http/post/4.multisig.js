@@ -6,7 +6,9 @@ var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
 var _ = test._;
-var shared = require('../../shared');
+var common = require('./common');
+var phases = require('../../common/phases');
+var Scenarios = require('../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var apiCodes = require('../../../../helpers/apiCodes');
@@ -22,26 +24,26 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 describe('POST /api/transactions (type 4) register multisignature', function () {
 
 	var scenarios = {
-		no_funds: new shared.MultisigScenario({
+		no_funds: new Scenarios.Multisig({
 			amount: 0
 		}),
-		minimal_funds: new shared.MultisigScenario({
+		minimal_funds: new Scenarios.Multisig({
 			amount: constants.fees.multisignature * 3
 		}),
-		max_members: new shared.MultisigScenario({
+		max_members: new Scenarios.Multisig({
 			members: constants.multisigConstraints.keysgroup.maxItems + 1,
 			min: 2
 		}),
-		max_members_max_min: new shared.MultisigScenario({
+		max_members_max_min: new Scenarios.Multisig({
 			members: constants.multisigConstraints.keysgroup.maxItems + 1,
 			min: constants.multisigConstraints.min.maximum
 		}),
-		more_than_max_members: new shared.MultisigScenario({
+		more_than_max_members: new Scenarios.Multisig({
 			members: constants.multisigConstraints.keysgroup.maxItems + 2
 		}),
-		unsigned: new shared.MultisigScenario(),
-		regular: new shared.MultisigScenario(),
-		regular_with_second_signature: new shared.MultisigScenario(),
+		unsigned: new Scenarios.Multisig(),
+		regular: new Scenarios.Multisig(),
+		regular_with_second_signature: new Scenarios.Multisig(),
 	};
 
 	var transaction, signature;
@@ -72,7 +74,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets('multisignature', badTransactions);
+		common.invalidAssets('multisignature', badTransactions);
 
 		describe('keysgroup', function () {
 
@@ -388,6 +390,6 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions, pendingMultisignatures);
+		phases.confirmation(goodTransactions, badTransactions, pendingMultisignatures);
 	});
 });

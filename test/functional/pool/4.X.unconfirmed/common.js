@@ -6,7 +6,7 @@ var lisk = require('lisk-js');
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var shared = require('../../shared');
+var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var apiHelpers = require('../../../common/helpers/api');

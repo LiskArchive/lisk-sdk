@@ -5,8 +5,8 @@ var test = require('../../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../../../shared');
-var localShared = require('./shared');
+var phases = require('../../../common/phases');
+var localCommon = require('./common');
 var accountFixtures = require('../../../../fixtures/accounts');
 
 var apiHelpers = require('../../../../common/helpers/api');
@@ -20,7 +20,7 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 
 	var account = randomUtil.account();
 
-	localShared.beforeValidationPhase(account);
+	localCommon.beforeValidationPhase(account);
 
 	describe('registering delegate', function () {
 
@@ -57,6 +57,6 @@ describe('POST /api/transactions (validate type 2 on top of type 1)', function (
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

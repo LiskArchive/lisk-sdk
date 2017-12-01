@@ -5,8 +5,8 @@ var test = require('../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../../shared');
-var localShared = require('./shared');
+var phases = require('../../common/phases');
+var localCommon = require('./common');
 
 var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
 
@@ -21,7 +21,7 @@ describe('POST /api/transactions (unconfirmed type 7 on top of type 1)', functio
 
 	var account = randomUtil.account();
 
-	localShared.beforeUnconfirmedPhaseWithDapp(account);
+	localCommon.beforeUnconfirmedPhaseWithDapp(account);
 
 	describe('outTransfer', function () {
 
@@ -50,6 +50,6 @@ describe('POST /api/transactions (unconfirmed type 7 on top of type 1)', functio
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

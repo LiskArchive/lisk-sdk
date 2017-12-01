@@ -5,7 +5,7 @@ var test = require('../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../shared');
+var phases = require('../common/phases');
 
 var ws = require('../../common/ws/communication');
 var randomUtil = require('../../common/utils/random');
@@ -52,6 +52,6 @@ describe('Posting transaction (type 0)', function () {
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

@@ -5,7 +5,7 @@ var test = require('../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../../shared');
+var Scenarios = require('../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
@@ -17,7 +17,7 @@ var waitFor = require('../../../common/utils/waitFor');
 
 describe('GET /api/multisignatures/', function () {
 
-	var scenario = new shared.MultisigScenario();
+	var scenario = new Scenarios.Multisig();
 	var transaction;
 	var transactionsToWaitFor = [];
 

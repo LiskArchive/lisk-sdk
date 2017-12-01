@@ -5,8 +5,8 @@ var test = require('../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../../shared');
-var localShared = require('./shared');
+var phases = require('../../common/phases');
+var localCommon = require('./common');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
@@ -22,7 +22,7 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 
 	var account = randomUtil.account();
 
-	localShared.beforeUnconfirmedPhase(account);
+	localCommon.beforeUnconfirmedPhase(account);
 
 	describe('creating multisig', function () {
 
@@ -49,6 +49,6 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions, pendingMultisignatures);
+		phases.confirmation(goodTransactions, badTransactions, pendingMultisignatures);
 	});
 });

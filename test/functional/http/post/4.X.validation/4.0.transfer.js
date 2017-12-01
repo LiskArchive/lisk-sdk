@@ -5,8 +5,9 @@ var test = require('../../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../../../shared');
-var localShared = require('./shared');
+var phases = require('../../../common/phases');
+var Scenarios = require('../../../common/scenarios');
+var localCommon = require('./common');
 
 var constants = require('../../../../../helpers/constants');
 
@@ -19,23 +20,23 @@ var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 describe('POST /api/transactions (validate type 0 on top of type 4)', function () {
 
 	var scenarios = {
-		'without_signatures': new shared.MultisigScenario(
+		'without_signatures': new Scenarios.Multisig(
 			{
 				'members': 4
 			}
 		),
-		'minimum_not_reached': new shared.MultisigScenario(
+		'minimum_not_reached': new Scenarios.Multisig(
 			{
 				'members': 4
 			}
 		),
-		'max_members_max_min': new shared.MultisigScenario(
+		'max_members_max_min': new Scenarios.Multisig(
 			{
 				'members': constants.multisigConstraints.keysgroup.maxItems + 1,
 				'min': constants.multisigConstraints.min.maximum
 			}
 		),
-		'regular': new shared.MultisigScenario(),
+		'regular': new Scenarios.Multisig(),
 	};
 	
 	var transaction, signature;
@@ -43,7 +44,7 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 	var goodTransactions = [];
 	var pendingMultisignatures = [];
 
-	localShared.beforeValidationPhase(scenarios);
+	localCommon.beforeValidationPhase(scenarios);
 
 	describe('sending funds', function () {
 
@@ -77,14 +78,14 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 		});
 
 		it('regular scenario should be ok', function () {
-			return localShared.sendAndSignMultisigTransaction('transfer', scenarios.regular)
+			return localCommon.sendAndSignMultisigTransaction('transfer', scenarios.regular)
 				.then(function (transaction) {
 					goodTransactions.push(transaction);
 				});
 		});
 
 		it('max_members_max_min scenario should be ok', function () {
-			return localShared.sendAndSignMultisigTransaction('transfer', scenarios.max_members_max_min)
+			return localCommon.sendAndSignMultisigTransaction('transfer', scenarios.max_members_max_min)
 				.then(function (transaction) {
 					goodTransactions.push(transaction);
 				});
@@ -93,6 +94,6 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions, pendingMultisignatures);
+		phases.confirmation(goodTransactions, badTransactions, pendingMultisignatures);
 	});
 });

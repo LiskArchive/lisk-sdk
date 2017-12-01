@@ -5,7 +5,7 @@ var test = require('../../functional.js');
 var lisk = require('lisk-js');
 var expect = require('chai').expect;
 
-var shared = require('../../shared');
+var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var typesRepresentatives = require('../../../fixtures/typesRepresentatives');
 
@@ -206,7 +206,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions);
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 
 	describe('validation', function () {
