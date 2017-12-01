@@ -4,9 +4,10 @@ var _ = require('lodash');
 var chai = require('chai');
 var expect = require('chai').expect;
 var sinon = require('sinon');
+
 var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
 var PeerUpdateError = require('../../../../../api/ws/rpc/failureCodes').PeerUpdateError;
-var prefixedPeer = require('../../../../fixtures/peers').peer;
+var prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 var connectionsTable = require('../../../../../api/ws/workers/connectionsTable');
 var PeersUpdateRules = require('../../../../../api/ws/workers/peersUpdateRules');
 var Rules = require('../../../../../api/ws/workers/rules');

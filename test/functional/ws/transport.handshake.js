@@ -15,12 +15,12 @@ var failureCodes = require('../../../api/ws/rpc/failureCodes');
 
 var ws = require('../../common/ws/communication');
 var wsServer = require('../../common/ws/server');
-var WSClient = require('../../common/ws/client');
+var wsClient = require('../../common/ws/client');
 
 describe('handshake', function () {
 
 	var wsServerPort = 9999;
-	var frozenHeaders = WSClient.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
+	var frozenHeaders = wsClient.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;

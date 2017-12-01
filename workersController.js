@@ -30,7 +30,7 @@ module.exports.run = function (worker) {
 		},
 
 		slaveWAMPServer: ['logger', function (scope, cb) {
-			new SlaveWAMPServer(worker, 5e3, 20e3, cb);
+			new SlaveWAMPServer(worker, 20e3, cb);
 		}],
 
 		config: ['slaveWAMPServer', function (scope, cb) {

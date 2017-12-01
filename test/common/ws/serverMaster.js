@@ -30,7 +30,7 @@ WSServerMaster.prototype.start = function () {
 	var self = this;
 
 	return new Promise(function (resolve, reject) {
-		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'wsServerProcess.js'), self.port], {
+		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'serverProcess.js'), self.port], {
 			cwd: __dirname,
 			detached: true,
 			stdio: 'inherit',

@@ -8,26 +8,25 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
 var expect = require('chai').expect;
 
-var prefixedPeer = require('../../fixtures/peers').peer;
-var testConfig = require('../../data/config.json');
+var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 
 var Rules = require('../../../api/ws/workers/rules');
 
 var wsServer = require('../../common/ws/server');
-var WSClient = require('../../common/ws/client');
+var wsClient = require('../../common/ws/client');
 
 describe('RPC', function () {
 
 	var clientSocket;
 	var validClientSocketOptions;
 	var wampClient = new WAMPClient();
-	var frozenHeaders = WSClient.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
+	var frozenHeaders = wsClient.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
 
 	before(function (done) {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: testConfig.port,
+			port: test.config.port,
 			query: _.clone(frozenHeaders)
 		};
 		clientSocket = scClient.connect(validClientSocketOptions);
