@@ -2,35 +2,36 @@
 
 var crypto = require('crypto');
 var async = require('async');
-
+var lisk = require('lisk-js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var application = require('../../common/application.js');
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum.js');
-
-var transactionTypes = require('../../../helpers/transactionTypes');
-var slots = require('../../../helpers/slots');
+var accountFixtures = require('../../fixtures/accounts');
 
 var modulesLoader = require('../../common/modulesLoader');
-var Transaction = require('../../../logic/transaction.js');
+var application = require('../../common/application');
 
-var Vote = require('../../../logic/vote.js');
-var Transfer = require('../../../logic/transfer.js');
-var Delegate = require('../../../logic/delegate.js');
-var Signature = require('../../../logic/signature.js');
-var Multisignature = require('../../../logic/multisignature.js');
-var Dapp = require('../../../logic/dapp.js');
-var InTransfer = require('../../../logic/inTransfer.js');
-var OutTransfer = require('../../../logic/outTransfer.js');
+var ed = require('../../../helpers/ed');
+var bignum = require('../../../helpers/bignum');
+var transactionTypes = require('../../../helpers/transactionTypes');
+var slots = require('../../../helpers/slots');
+var constants = require('../../../helpers/constants');
+
+var Transaction = require('../../../logic/transaction');
+var Vote = require('../../../logic/vote');
+var Transfer = require('../../../logic/transfer');
+var Delegate = require('../../../logic/delegate');
+var Signature = require('../../../logic/signature');
+var Multisignature = require('../../../logic/multisignature');
+var Dapp = require('../../../logic/dapp');
+var InTransfer = require('../../../logic/inTransfer');
+var OutTransfer = require('../../../logic/outTransfer');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
-var senderPassword = node.gAccount.password;
+var senderPassword = accountFixtures.genesis.password;
 var senderHash = crypto.createHash('sha256').update(senderPassword, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
@@ -271,7 +272,7 @@ describe('transaction', function () {
 
 		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
 			var transactionBytesFromLogic = transactionLogic.getBytes(validTransaction);
-			var transactionBytesFromLiskJs = node.lisk.crypto.getBytes(validTransaction);
+			var transactionBytesFromLiskJs = lisk.crypto.getBytes(validTransaction);
 
 			expect(transactionBytesFromLogic.equals(transactionBytesFromLiskJs)).to.be.ok;
 		});
@@ -338,7 +339,7 @@ describe('transaction', function () {
 		});
 
 		it('should not return error when transaction is not confirmed', function (done) {
-			var transaction = node.lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret);
+			var transaction = lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret);
 
 			transactionLogic.checkConfirmed(transaction, function (err) {
 				expect(err).to.not.exist;
@@ -438,7 +439,7 @@ describe('transaction', function () {
 	describe('verify', function () {
 
 		function createAndProcess (transactionData, sender, cb) {
-			var transaction = node.lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret, transactionData.secondSecret);
+			var transaction = lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret, transactionData.secondSecret);
 
 			transactionLogic.process(transaction, sender, function (err, transaction) {
 				cb(err, transaction);
@@ -534,7 +535,7 @@ describe('transaction', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(sender);
 			// Different publicKey for multisignature account
-			vs.multisignatures = [node.eAccount.publicKey];
+			vs.multisignatures = [accountFixtures.existingDelegate.publicKey];
 			transaction.requesterPublicKey = validKeypair.publicKey.toString('hex');
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);
@@ -666,7 +667,7 @@ describe('transaction', function () {
 
 		it('should return error when transaction amount is invalid', function (done) {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = node.constants.totalAmount + 10;
+			transactionDataClone.amount = constants.totalAmount + 10;
 
 			createAndProcess(transactionDataClone, sender, function (err, transaction) {
 				transactionLogic.verify(transaction, sender, {}, function (err) {
@@ -678,7 +679,7 @@ describe('transaction', function () {
 
 		it('should return error when account balance is less than transaction amount', function (done) {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = node.constants.totalAmount;
+			transactionDataClone.amount = constants.totalAmount;
 
 			createAndProcess(transactionDataClone, sender, function (err, transaction) {
 				transactionLogic.verify(transaction, sender, {}, function (err) {

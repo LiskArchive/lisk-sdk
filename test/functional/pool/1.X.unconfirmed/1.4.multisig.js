@@ -1,10 +1,17 @@
 'use strict';
 
-var node = require('../../../node');
-var shared = require('../../shared');
-var localShared = require('./shared');
+var test = require('../../functional.js');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
+var lisk = require('lisk-js');
+var expect = require('chai').expect;
+
+var phases = require('../../common/phases');
+var localCommon = require('./common');
+var accountFixtures = require('../../../fixtures/accounts');
+
+var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
+
+var randomUtil = require('../../../common/utils/random');
 
 describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', function () {
 
@@ -13,28 +20,28 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 	var goodTransactions = [];
 	var pendingMultisignatures = [];
 
-	var account = node.randomAccount();
+	var account = randomUtil.account();
 
-	localShared.beforeUnconfirmedPhase(account);
+	localCommon.beforeUnconfirmedPhase(account);
 
 	describe('creating multisig', function () {
 
 		it('using second signature with an account that has a pending second passphrase registration should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + node.eAccount.publicKey], 1, 1);
+			transaction = lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 				badTransactions.push(transaction);
 			});
 		});
 
 		it('using no second signature with an account that has a pending second passphrase registration should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(account.password, null, ['+' + node.eAccount.publicKey], 1, 1);
+			transaction = lisk.multisignature.createMultisignature(account.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 				pendingMultisignatures.push(transaction);
 			});
 		});
@@ -42,6 +49,6 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions, pendingMultisignatures);
+		phases.confirmation(goodTransactions, badTransactions, pendingMultisignatures);
 	});
 });

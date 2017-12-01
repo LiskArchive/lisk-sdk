@@ -1,10 +1,12 @@
 'use strict';
 
-var genesisDelegates = require('../../genesisDelegates.json');
-var modulesLoader = require('./../../common/modulesLoader');
-var node = require('./../../node.js');
 var expect = require('chai').expect;
-var application = require('../../common/application.js');
+
+
+var genesisDelegates = require('../../data/genesisDelegates.json');
+var accountFixtures = require('../../fixtures/accounts');
+
+var application = require('../../common/application');
 
 describe('node', function () {
 
@@ -100,7 +102,7 @@ describe('node', function () {
 			});
 
 			it('should return error with non delegate account', function (done) {
-				node_module.internal.toggleForgingStatus(node.gAccount.publicKey, node.gAccount.password, function (err) {
+				node_module.internal.toggleForgingStatus(accountFixtures.genesis.publicKey, accountFixtures.genesis.password, function (err) {
 					expect(err).equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
 					done();
 				});

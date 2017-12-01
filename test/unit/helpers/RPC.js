@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('../../../config.json');
+var config = require('../../data/config.json');
 
 var chai = require('chai');
 var expect = require('chai').expect;

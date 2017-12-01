@@ -1,14 +1,19 @@
 'use strict';
 
-var node = require('../../../node.js');
-var modulesLoader = require('../../../common/modulesLoader');
+var test = require('../../functional.js');
 
-var getBlocksPromise = require('../../../common/apiHelpers').getBlocksPromise;
-var onNewBlockPromise = node.Promise.promisify(node.onNewBlock);
+var expect = require('chai').expect;
+var Promise = require('bluebird');
+
+var _ = test._;
+
+var waitFor = require('../../../common/utils/waitFor');
+var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
+
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var apiHelpers = require('../../../common/apiHelpers');
+var modulesLoader = require('../../../common/modulesLoader');
+var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var _ = node._;
 
 describe('GET /blocks', function () {
 
@@ -40,20 +45,20 @@ describe('GET /blocks', function () {
 		var getJsonForKeyPromise;
 
 		before(function (done) {
-			node.config.cacheEnabled = true;
+			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
-				node.expect(err).to.not.exist;
-				node.expect(__cache).to.be.an('object');
+				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
+				expect(err).to.not.exist;
+				expect(__cache).to.be.an('object');
 				return done(err);
 			});
 		});
 
 		afterEach(function (done) {
 			cache.flushDb(function (err, status) {
-				node.expect(err).to.not.exist;
-				node.expect(status).to.equal('OK');
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
 				done(err);
 			});
 		});
@@ -71,8 +76,8 @@ describe('GET /blocks', function () {
 			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
 				expectHeightCheck(res);
 				initialResponse = res;
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				}));
@@ -92,7 +97,7 @@ describe('GET /blocks', function () {
 				initialResponse = res;
 				return getJsonForKeyPromise(url + params.join('&'));
 			}).then(function (response) {
-				node.expect(response).to.eql(null);
+				expect(response).to.eql(null);
 			});
 		});
 
@@ -105,19 +110,19 @@ describe('GET /blocks', function () {
 			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
 				expectHeightCheck(res);
 				initialResponse = res;
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				}));
 			}).then(function (responses) {
 				responses.should.deep.include(initialResponse.body);
 			}).then(function () {
-				return onNewBlockPromise();
+				return waitForBlocksPromise(1);
 			}).then(function () {
 				return getJsonForKeyPromise(url + params.join('&'));
 			}).then(function (result) {
-				node.expect(result).to.eql(null);
+				expect(result).to.eql(null);
 			});
 		});
 	});

@@ -1,13 +1,13 @@
 'use strict';
 
 var _ = require('lodash');
-var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
-var node = require('../node');
-var ClientRPCStub = require('../../api/ws/rpc/wsRPC').ClientRPCStub;
-var ConnectionState = require('../../api/ws/rpc/wsRPC').ConnectionState;
-var System = require('../../modules/system');
-var WSClient = require('../common/wsClient');
+var System = require('../../../modules/system');
+var WSClient = require('./client');
+var wsRPC = require('../../../api/ws/rpc/wsRPC');
+
+var ClientRPCStub = wsRPC.ClientRPCStub;
+var ConnectionState = wsRPC.ConnectionState;
 
 var wsCommunication = {
 

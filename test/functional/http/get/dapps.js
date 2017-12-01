@@ -1,10 +1,20 @@
 'use strict';
 
-var node = require('../../../node.js');
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
+var test = require('../../functional.js');
+
+var lisk = require('lisk-js');
+var expect = require('chai').expect;
+var Promise = require('bluebird');
+
+var _ = test._;
+var accountFixtures = require('../../../fixtures/accounts');
+
+var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
+var apiHelpers = require('../../../common/helpers/api');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /dapps', function () {
 
@@ -12,36 +22,36 @@ describe('GET /dapps', function () {
 
 	var transactionsToWaitFor = [];
 
-	var account = node.randomAccount();
-	var dapp1 = node.randomApplication();
+	var account = randomUtil.account();
+	var dapp1 = randomUtil.application();
 	dapp1.category = 1;
-	var dapp2 = node.randomApplication();
+	var dapp2 = randomUtil.application();
 	dapp2.category = 2;
 	var registeredDappsAmount = 2;
 
 	before(function () {
-		var transaction = node.lisk.transaction.createTransaction(account.address, 1000 * node.normalizer, node.gAccount.password);
+		var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 		transactionsToWaitFor.push(transaction.id);
-		return sendTransactionPromise(transaction)
+		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				return waitForConfirmations(transactionsToWaitFor);
+				expect(res).to.have.property('status').to.equal(200);
+				return waitFor.confirmations(transactionsToWaitFor);
 			}).then(function () {
 				transactionsToWaitFor = [];
 
-				var transaction1 = node.lisk.dapp.createDapp(account.password, null, dapp1);
-				var transaction2 = node.lisk.dapp.createDapp(account.password, null, dapp2);
+				var transaction1 = lisk.dapp.createDapp(account.password, null, dapp1);
+				var transaction2 = lisk.dapp.createDapp(account.password, null, dapp2);
 				var promises = [];
-				promises.push(sendTransactionPromise(transaction1));
-				promises.push(sendTransactionPromise(transaction2));
+				promises.push(apiHelpers.sendTransactionPromise(transaction1));
+				promises.push(apiHelpers.sendTransactionPromise(transaction2));
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
-				return node.Promise.all(promises);
+				return Promise.all(promises);
 			}).then(function (results) {
 				results.forEach(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.property('status').to.equal(200);
 				});
-				return waitForConfirmations(transactionsToWaitFor);
+				return waitFor.confirmations(transactionsToWaitFor);
 			});
 	});
 
@@ -89,7 +99,7 @@ describe('GET /dapps', function () {
 			});
 
 			it('using known ids should be ok', function () {
-				return node.Promise.map(transactionsToWaitFor, function (transaction) {
+				return Promise.map(transactionsToWaitFor, function (transaction) {
 					return dappsEndpoint.makeRequest({transactionId: transaction}, 200).then(function (res) {
 						res.body.data[0].transactionId.should.be.eql(transaction);
 					});
@@ -204,18 +214,18 @@ describe('GET /dapps', function () {
 
 				var sum = 0;
 				for (var i = 1; i <= 20; i++) {
-					transaction = node.lisk.dapp.createDapp(account.password, null, node.randomApplication());
+					transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 					transactionsToWaitFor.push(transaction.id);
-					promises.push(sendTransactionPromise(transaction));
+					promises.push(apiHelpers.sendTransactionPromise(transaction));
 					sum = sum + i;
 				}
 
-				return node.Promise.all(promises)
+				return Promise.all(promises)
 					.then(function (results) {
 						results.forEach(function (res) {
-							node.expect(res).to.have.property('status').to.equal(200);
+							expect(res).to.have.property('status').to.equal(200);
 						});
-						return waitForConfirmations(transactionsToWaitFor);
+						return waitFor.confirmations(transactionsToWaitFor);
 					});
 			});
 
@@ -233,21 +243,21 @@ describe('GET /dapps', function () {
 
 			it('using "name:asc" should return result in descending order', function () {
 				return dappsEndpoint.makeRequest({sort: 'name:asc'}, 200).then(function (res) {
-					var obtainedArray = node._.map(res.body.dapps, 'name');
-					var cloneObtainedArray = node._.clone(obtainedArray);
+					var obtainedArray = _.map(res.body.dapps, 'name');
+					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort();
 
-					node.expect(expectedArray).eql(obtainedArray);
+					expect(expectedArray).eql(obtainedArray);
 				});
 			});
 
 			it('using "name:desc" should return result in descending order', function () {
 				return dappsEndpoint.makeRequest({sort: 'name:desc'}, 200).then(function (res) {
-					var obtainedArray = node._.map(res.body.dapps, 'name');
-					var cloneObtainedArray = node._.clone(obtainedArray);
+					var obtainedArray = _.map(res.body.dapps, 'name');
+					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort().reverse();
 
-					node.expect(expectedArray).eql(obtainedArray);
+					expect(expectedArray).eql(obtainedArray);
 				});
 			});
 		});

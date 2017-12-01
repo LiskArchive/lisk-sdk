@@ -3,24 +3,26 @@
 var crypto = require('crypto');
 var async = require('async');
 var _  = require('lodash');
-
+var randomstring = require('randomstring');
 var chai = require('chai');
 var expect = require('chai').expect;
 
-var application = require('../../common/application.js');
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum.js');
-var transactionTypes = require('../../../helpers/transactionTypes');
-var constants = require('../../../helpers/constants.js');
+
+var accountFixtures = require('../../fixtures/accounts');
 
 var modulesLoader = require('../../common/modulesLoader');
-var Transfer = require('../../../logic/transfer.js');
+var application = require('../../common/application');
+
+var transactionTypes = require('../../../helpers/transactionTypes');
+var ed = require('../../../helpers/ed');
+var constants = require('../../../helpers/constants');
+var bignum = require('../../../helpers/bignum');
+var Transfer = require('../../../logic/transfer');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
 
-var senderHash = crypto.createHash('sha256').update(node.gAccount.password, 'utf8').digest();
+var senderHash = crypto.createHash('sha256').update(accountFixtures.genesis.password, 'utf8').digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
 var validSender = {
@@ -135,7 +137,7 @@ describe('transfer', function () {
 		});
 
 		it('should return the correct fee when data field is not set', function () {
-			expect(transfer.calculateFee.call(transactionLogic, validTransaction)).to.equal(node.constants.fees.send);
+			expect(transfer.calculateFee.call(transactionLogic, validTransaction)).to.equal(constants.fees.send);
 		});
 
 		it('should return the correct fee when data field is set', function () {
@@ -144,7 +146,7 @@ describe('transfer', function () {
 				data: '0'
 			};
 
-			expect(transfer.calculateFee.call(transactionLogic, transaction)).to.equal(node.constants.fees.send + node.constants.fees.data);
+			expect(transfer.calculateFee.call(transactionLogic, transaction)).to.equal(constants.fees.send + constants.fees.data);
 		});
 	});
 
@@ -351,7 +353,7 @@ describe('transfer', function () {
 		});
 
 		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength +  ' characters', function () {
-			var invalidString = node.randomString.generate(constants.additionalData.maxLength + 1);
+			var invalidString = randomstring.generate(constants.additionalData.maxLength + 1);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString
@@ -363,7 +365,7 @@ describe('transfer', function () {
 		});
 
 		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength + ' bytes', function () {
-			var invalidString = node.randomString.generate(constants.additionalData.maxLength - 1) + '现';
+			var invalidString = randomstring.generate(constants.additionalData.maxLength - 1) + '现';
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString

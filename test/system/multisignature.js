@@ -1,13 +1,19 @@
-var node = require('../node.js');
+'use strict';
+
 var async = require('async');
-var slots = require('../../helpers/slots.js');
-var sinon = require('sinon');
+var Promise = require('bluebird');
 var chai = require('chai');
 var expect = require('chai').expect;
-var Promise = require('bluebird');
-var _  = require('lodash');
+var lisk = require('lisk-js');
 
-var application = require('./../common/application');
+var test = require('../test');
+var _  = test._;
+var accountFixtures = require('../fixtures/accounts');
+
+var slots = require('../../helpers/slots');
+
+var application = require('../common/application');
+var randomUtil = require('../common/utils/random');
 
 describe('multisignature', function () {
 
@@ -40,7 +46,7 @@ describe('multisignature', function () {
 		var transactionPool = library.rewiredModules.transactions.__get__('__private.transactionPool');
 		var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
 
-		node.async.waterfall([
+		async.waterfall([
 			transactionPool.fillPool,
 			function (cb) {
 				getNextForger(null, function (delegatePublicKey) {
@@ -51,11 +57,11 @@ describe('multisignature', function () {
 				var last_block = library.modules.blocks.lastBlock.get();
 				var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				var keypair = keypairs[delegate];
-				node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+				test.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 					if (err) { return seriesCb(err); }
 					last_block = library.modules.blocks.lastBlock.get();
-					node.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+					test.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 					return seriesCb(err);
 				});
 			}
@@ -79,9 +85,9 @@ describe('multisignature', function () {
 	}
 
 	function addTransactionsAndForge (transactions, cb) {
-		node.async.waterfall([
+		async.waterfall([
 			function addTransactions (waterCb) {
-				node.async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 					addTransaction(transaction, eachSeriesCb);
 				}, waterCb);
 			},
@@ -115,8 +121,8 @@ describe('multisignature', function () {
 		var multisigAccount;
 
 		before('send funds to multisignature account', function (done) {
-			multisigAccount = node.randomAccount();
-			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
+			multisigAccount = randomUtil.account();
+			var sendTransaction = lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, accountFixtures.genesis.password);
 			addTransactionsAndForge([sendTransaction], done);
 		});
 
@@ -134,8 +140,8 @@ describe('multisignature', function () {
 			describe('applyUnconfirm transaction', function () {
 
 				var multisigTransaction;
-				var signer1 = node.randomAccount();
-				var signer2 = node.randomAccount();
+				var signer1 = randomUtil.account();
+				var signer2 = randomUtil.account();
 
 				before('applyUnconfirm multisignature transaction', function (done) {
 					var keysgroup = [
@@ -143,9 +149,9 @@ describe('multisignature', function () {
 						'+' + signer2.publicKey
 					];
 
-					multisigTransaction = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
-					var sign1 = node.lisk.multisignature.signTransaction(multisigTransaction, signer1.password);
-					var sign2 = node.lisk.multisignature.signTransaction(multisigTransaction, signer2.password);
+					multisigTransaction = lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
+					var sign1 = lisk.multisignature.signTransaction(multisigTransaction, signer1.password);
+					var sign2 = lisk.multisignature.signTransaction(multisigTransaction, signer2.password);
 
 					multisigTransaction.signatures = [sign1, sign2];
 					multisigTransaction.ready = true;
@@ -218,17 +224,17 @@ describe('multisignature', function () {
 				describe('with another multisig transaction', function () {
 
 					var multisigTransaction2;
-					var signer3 = node.randomAccount();
-					var signer4 = node.randomAccount();
+					var signer3 = randomUtil.account();
+					var signer4 = randomUtil.account();
 
 					before('process multisignature transaction', function (done) {
 						var keysgroup = [
 							'+' + signer3.publicKey,
 							'+' + signer4.publicKey
 						];
-						multisigTransaction2 = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
-						var sign3 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer3.password);
-						var sign4 = node.lisk.multisignature.signTransaction(multisigTransaction2, signer4.password);
+						multisigTransaction2 = lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
+						var sign3 = lisk.multisignature.signTransaction(multisigTransaction2, signer3.password);
+						var sign4 = lisk.multisignature.signTransaction(multisigTransaction2, signer4.password);
 						multisigTransaction2.signatures = [sign3, sign4];
 						library.logic.transaction.process(multisigTransaction2, multisigSender, done);
 					});
@@ -256,8 +262,8 @@ describe('multisignature', function () {
 		var multisigAccount;
 
 		before('send funds to multisignature account', function (done) {
-			multisigAccount = node.randomAccount();
-			var sendTransaction = node.lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, node.gAccount.password);
+			multisigAccount = randomUtil.account();
+			var sendTransaction = lisk.transaction.createTransaction(multisigAccount.address, 1000000000*100, accountFixtures.genesis.password);
 			addTransactionsAndForge([sendTransaction], done);
 		});
 
@@ -275,8 +281,8 @@ describe('multisignature', function () {
 			describe('after forging block with multisignature transaction', function () {
 
 				var multisigTransaction;
-				var signer1 = node.randomAccount();
-				var signer2 = node.randomAccount();
+				var signer1 = randomUtil.account();
+				var signer2 = randomUtil.account();
 
 				before('forge block with multisignature transaction', function (done) {
 					var keysgroup = [
@@ -284,9 +290,9 @@ describe('multisignature', function () {
 						'+' + signer2.publicKey
 					];
 
-					multisigTransaction = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
-					var sign1 = node.lisk.multisignature.signTransaction(multisigTransaction, signer1.password);
-					var sign2 = node.lisk.multisignature.signTransaction(multisigTransaction, signer2.password);
+					multisigTransaction = lisk.multisignature.createMultisignature(multisigAccount.password, null, keysgroup, 4, 2);
+					var sign1 = lisk.multisignature.signTransaction(multisigTransaction, signer1.password);
+					var sign2 = lisk.multisignature.signTransaction(multisigTransaction, signer2.password);
 
 					multisigTransaction.signatures = [sign1, sign2];
 					multisigTransaction.ready = true;

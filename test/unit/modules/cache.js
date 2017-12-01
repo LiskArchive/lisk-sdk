@@ -1,19 +1,24 @@
 'use strict';
 
-var node = require('./../../node.js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var async = require('async');
-var sinon = require('sinon');
+var lisk = require('lisk-js');
+
+var test = require('../../test');
+var accountFixtures = require('../../fixtures/accounts');
+
 var modulesLoader = require('../../common/modulesLoader');
-var Cache = require('../../../modules/cache.js');
+var randomUtil = require('../../common/utils/random');
+
+var Cache = require('../../../modules/cache');
 
 describe('cache', function () {
 
 	var cache;
 
 	before(function (done) {
-		node.config.cacheEnabled = true;
+		test.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;
@@ -319,7 +324,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, node.gAccount.secondPassword);
+				var transaction = lisk.transaction.createTransaction('1L', 1, accountFixtures.genesis.password, accountFixtures.genesis.secondPassword);
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
@@ -338,7 +343,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
@@ -357,7 +362,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], function (err) {

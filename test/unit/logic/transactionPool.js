@@ -2,17 +2,19 @@
 
 var expect = require('chai').expect;
 var sinon = require('sinon');
+var lisk = require('lisk-js');
 
-var node = require('../../node');
+var accountFixtures = require('../../fixtures/accounts');
 
-var application = require('../../common/application.js');
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
+var modulesLoader = require('../../common/modulesLoader');
+
 var jobsQueue = require('../../../helpers/jobsQueue');
 var TransactionPool = require('../../../logic/transactionPool');
-var modulesLoader = require('../../common/modulesLoader');
 
 describe('txPool', function () {
 
-	var dbSandbox;
 	var txPool;
 	var jobsQueueRegisterStub;
 
@@ -61,8 +63,8 @@ describe('txPool', function () {
 		});
 
 		it('should process transaction if valid and insert transaction into queue', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
+			var account = randomUtil.account();
+			var transaction = lisk.transaction.createTransaction(account.address, 100000000000, accountFixtures.genesis.password);
 
 			txPool.receiveTransactions([transaction], false, function (err) {
 				expect(err).to.not.exist;

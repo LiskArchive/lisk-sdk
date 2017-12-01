@@ -1,7 +1,7 @@
 'use strict';/*eslint*/
 
 var _  = require('lodash');
-var node = require('./../../node.js');
+
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');
@@ -14,6 +14,8 @@ var constants = require('../../../helpers/constants.js');
 var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
 var modulesLoader = require('../../common/modulesLoader');
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
 
 var validAccount = {
 	username: 'genesis_100',
@@ -158,7 +160,7 @@ describe('accounts', function () {
 
 			it('should return empty accounts array when account does not exist', function (done) {
 				accounts.shared.getAccounts({
-					address: node.randomAccount().address
+					address: randomUtil.account().address
 				}, function (err, res){
 					expect(err).to.not.exist;
 					expect(res).be.an('array').which.has.length(0);

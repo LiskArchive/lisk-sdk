@@ -261,11 +261,10 @@ Signature.prototype.dbSave = function (transaction) {
 };
 
 /**
- * Evaluates transaction signatures and sender multisignatures.
- * @param {transaction} transaction - signatures.
+ * Checks if transaction has enough signatures to be confirmed.
+ * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} logic based on transaction signatures and sender multisignatures.
- * @todo validate this logic, check if this function is called.
+ * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  */
 Signature.prototype.ready = function (transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

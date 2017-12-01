@@ -1,23 +1,28 @@
 'use strict';
 
-var randomstring = require('randomstring');
-var node = require('../../../node.js');
-var _ = node._;
-var apiCodes = require('../../../../helpers/apiCodes.js');
-var constants = require('../../../../helpers/constants.js');
+var test = require('../../functional.js');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var getVotersPromise = require('../../../common/apiHelpers').getVotersPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
-var waitForBlocksPromise = node.Promise.promisify(node.waitForBlocks);
+var randomstring = require('randomstring');
+var lisk = require('lisk-js');
+var Promise = require('bluebird');
+
+var _ = test._;
+var accountFixtures = require('../../../fixtures/accounts');
+
+var apiCodes = require('../../../../helpers/apiCodes');
+var constants = require('../../../../helpers/constants');
+
+var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var expectSwaggerParamError = require('../../../common/apiHelpers').expectSwaggerParamError;
+var waitFor = require('../../../common/utils/waitFor');
+var apiHelpers = require('../../../common/helpers/api');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', function () {
 
 	var votersEndpoint = new swaggerEndpoint('GET /voters');
-	var validVotedDelegate = node.eAccount;
-	var validNotVotedDelegate = node.gAccount;
+	var validVotedDelegate = accountFixtures.existingDelegate;
+	var validNotVotedDelegate = accountFixtures.genesis;
 	var validNotExistingAddress = '11111111111111111111L';
 
 	function expectValidVotedDelegateResponse (res) {
@@ -89,9 +94,9 @@ describe('GET /api/voters', function () {
 
 				it('should return the expected result as when db has only 101 delegates', function () {
 					return votersEndpoint.makeRequest({
-						address: node.eAccount.address,
-						publicKey: node.eAccount.publicKey,
-						username: node.eAccount.delegateName
+						address: accountFixtures.existingDelegate.address,
+						publicKey: accountFixtures.existingDelegate.publicKey,
+						username: accountFixtures.existingDelegate.delegateName
 					}, 200).then(function (res) {
 						expectValidVotedDelegateResponse(res);
 					});
@@ -197,39 +202,39 @@ describe('GET /api/voters', function () {
 
 		describe('sort', function () {
 
-			var validExtraDelegateVoter = node.randomAccount();
-			var validExtraVoter = node.randomAccount();
+			var validExtraDelegateVoter = randomUtil.account();
+			var validExtraVoter = randomUtil.account();
 
 			before(function () {
-				var enrichExtraDelegateVoterTransaction = node.lisk.transaction.createTransaction(
+				var enrichExtraDelegateVoterTransaction = lisk.transaction.createTransaction(
 					validExtraDelegateVoter.address,
 					constants.fees.delegate + constants.fees.vote + constants.fees.secondSignature,
-					node.gAccount.password
+					accountFixtures.genesis.password
 				);
 
-				var registerExtraVoterAsADelegateTransaction = node.lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
+				var registerExtraVoterAsADelegateTransaction = lisk.delegate.createDelegate(validExtraDelegateVoter.password, randomstring.generate({
 					length: 10,
 					charset: 'alphabetic',
 					capitalization: 'lowercase'
 				}));
 
-				var voteByExtraDelegateVoterTransaction = node.lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
+				var voteByExtraDelegateVoterTransaction = lisk.vote.createVote(validExtraDelegateVoter.password, ['+' + validVotedDelegate.publicKey]);
 
-				return sendTransactionPromise(enrichExtraDelegateVoterTransaction)
+				return apiHelpers.sendTransactionPromise(enrichExtraDelegateVoterTransaction)
 					.then(function () {
-						return waitForConfirmations([enrichExtraDelegateVoterTransaction.id]);
+						return waitFor.confirmations([enrichExtraDelegateVoterTransaction.id]);
 					})
 					.then(function (){
-						return sendTransactionPromise(registerExtraVoterAsADelegateTransaction);
+						return apiHelpers.sendTransactionPromise(registerExtraVoterAsADelegateTransaction);
 					})
 					.then(function () {
-						return waitForConfirmations([registerExtraVoterAsADelegateTransaction.id]);
+						return waitFor.confirmations([registerExtraVoterAsADelegateTransaction.id]);
 					})
 					.then(function () {
-						return sendTransactionPromise(voteByExtraDelegateVoterTransaction);
+						return apiHelpers.sendTransactionPromise(voteByExtraDelegateVoterTransaction);
 					})
 					.then(function () {
-						return waitForConfirmations([voteByExtraDelegateVoterTransaction.id]);
+						return waitFor.confirmations([voteByExtraDelegateVoterTransaction.id]);
 					});
 			});
 
