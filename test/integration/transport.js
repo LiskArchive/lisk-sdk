@@ -79,6 +79,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.propagation.blocks(params);
 
 						scenarios.propagation.transactions(params);
+
+						scenarios.stress.transfer(params);
 					});
 				});
 			});

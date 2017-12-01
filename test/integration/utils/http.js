@@ -89,6 +89,15 @@ module.exports = {
 		});
 	},
 
+	getTransaction: function (transactionId, port, ip) {
+		return popsicle.get({
+			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000) + '?id=' + transactionId,
+			headers: headers
+		}).then(function (res) {
+			return res.body.blocks;
+		});
+	},
+
 	postTransaction: function (transaction, port, ip) {
 		return popsicle.post({
 			url: endpoints.versions[currentVersion].postTransaction(ip || '127.0.0.1', port || 4000),
