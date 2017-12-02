@@ -48,7 +48,6 @@ module.exports = function (params) {
 							randomUtil.number(100000000, 1000000000),
 							accountFixtures.genesis.password
 						);
-
 						transactions.push(transaction);
 						bundled.push(transaction);
 						count++;
@@ -58,16 +57,13 @@ module.exports = function (params) {
 				}, function () {
 					return (count >= maximum);
 				}, function () {
-					var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-					waitFor.blocks(blocksToWait, function (err, res) {
-						done();
-					});
+					done();
 				});
 			});
 
 			it('should confirm all transactions on all nodes', function () {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-				return waitFor.confirmations(transactions, blocksToWait).then(confirmTransactionsOnAllNodes);
+				return waitFor.confirmations(_.map(transactions, 'id'), blocksToWait).then(confirmTransactionsOnAllNodes);
 			}).timeout(500000);
 		});
 
@@ -86,17 +82,14 @@ module.exports = function (params) {
 					sendTransactionsPromise([transaction]).then(next);
 				}, function () {
 					return (count >= maximum);
-				}, function (err) {
-					var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-					waitFor.blocks(blocksToWait, function (err, res) {
-						done();
-					});
+				}, function () {
+					done();
 				});
 			});
 
 			it('should confirm all transactions on all nodes', function () {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-				return waitFor.confirmations(transactions, blocksToWait).then(confirmTransactionsOnAllNodes);
+				return waitFor.confirmations(_.map(transactions, 'id'), blocksToWait).then(confirmTransactionsOnAllNodes);
 			}).timeout(500000);
 		});
 	});
