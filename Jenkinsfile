@@ -97,11 +97,11 @@ def run_action(action) {
 		npm run ${action}
 		"""
 	} catch (err) {
+		archive_logs()
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
 		error('Stopping build: ' + action + ' failed')
-		archive_logs()
 	}	
 }
 
