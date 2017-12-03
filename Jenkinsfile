@@ -79,9 +79,15 @@ def cleanup_master() {
 def archive_logs() {
 	sh """
 	cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-	mv logs "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID"
+	LOGS_NAME=\$(echo "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID" | sed 's/\\///g')
+	mv logs "\$LOGS_NAME"
+
+	if [ "\$(pwd)" != "${env.WORKSPACE}" ]; then
+		rm -r "${env.WORKSPACE}"/logs* || true
+		cp -r \$LOGS_NAME ${env.WORKSPACE}
+	fi
 	"""
-	archiveArtifacts artifacts: "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID/*"
+	archiveArtifacts artifacts: "logs-*/*"
 }
 
 def run_action(action) {
