@@ -21,7 +21,7 @@ import {
 } from '../utils/helpers';
 import query from '../utils/query';
 
-const description = `Get information from <type> with parameter <input>. Types available: account, address, block, delegate, transaction.
+const description = `Gets information from the blockchain. Types available: account, address, block, delegate, transaction.
 
 	Examples:
 	- get delegate lightcurve

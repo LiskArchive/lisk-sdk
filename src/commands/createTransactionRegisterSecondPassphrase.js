@@ -18,7 +18,7 @@ import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
-const description = `Creates a transaction which will register a second passphrase for an existing account if broadcast to the network.
+const description = `Creates a transaction which will register a second passphrase for the account if broadcast to the network.
 
 	Examples:
 	- create transaction register second passphrase
