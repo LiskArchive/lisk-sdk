@@ -115,7 +115,7 @@ describe('GET /delegates', function () {
 			});
 		});
 
-		it('using no params but with higher limit should return all genesis delegates', function () {
+		it('using no params but with higher limit should return at least 101 genesis delegates', function () {
 			var data = [];
 
 			return delegatesEndpoint.makeRequest({limit: 100}, 200).then(function (res) {
@@ -125,7 +125,7 @@ describe('GET /delegates', function () {
 			}).then(function (res) {
 				data.push.apply(data, res.body.data);
 
-				data.should.have.lengthOf(101);
+				data.should.have.lengthOf.at.least(101);
 			});
 		});
 

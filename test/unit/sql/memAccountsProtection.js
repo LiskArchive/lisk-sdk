@@ -4,7 +4,7 @@ var _ = require('lodash');
 var expect = require('chai').expect;
 var randomstring = require('randomstring');
 
-var sql = require('../../sql/memAccounts.js');
+var sql = require('../common/sql/memAccounts.js');
 var modulesLoader = require('../../common/modulesLoader');
 var db;
 
