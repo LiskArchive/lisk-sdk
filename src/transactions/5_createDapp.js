@@ -45,18 +45,18 @@ const validateOptions = options => {
 /**
  * @method createDapp
  * @param {Object} Object - Object
- * @param {String} Object.secret
- * @param {String} Object.secondSecret
+ * @param {String} Object.passphrase
+ * @param {String} Object.secondPassphrase
  * @param {Object} Object.options
  * @param {Number} Objec.timeOffset
  *
  * @return {Object}
  */
 
-const createDapp = ({ secret, secondSecret, options, timeOffset }) => {
+const createDapp = ({ passphrase, secondPassphrase, options, timeOffset }) => {
 	validateOptions(options);
 
-	const keys = cryptoModule.getKeys(secret);
+	const keys = cryptoModule.getKeys(passphrase);
 
 	const transaction = {
 		type: 5,
@@ -78,7 +78,7 @@ const createDapp = ({ secret, secondSecret, options, timeOffset }) => {
 		},
 	};
 
-	return prepareTransaction(transaction, secret, secondSecret);
+	return prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default createDapp;

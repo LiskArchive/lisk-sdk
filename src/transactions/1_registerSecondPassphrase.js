@@ -22,28 +22,32 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
 
 /**
  * @method newSignature
- * @param secondSecret
+ * @param secondPassphrase
  *
  * @return {Object}
  */
 
-const createAsset = secondSecret => {
-	const { publicKey } = cryptoModule.getKeys(secondSecret);
+const createAsset = secondPassphrase => {
+	const { publicKey } = cryptoModule.getKeys(secondPassphrase);
 	return { signature: { publicKey } };
 };
 
 /**
  * @method registerSecondPassphrase
  * @param {Object} Object - Object
- * @param {String} Object.secret
- * @param {String} Object.secondSecret
+ * @param {String} Object.passphrase
+ * @param {String} Object.secondPassphrase
  * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-const registerSecondPassphrase = ({ secret, secondSecret, timeOffset }) => {
-	const keys = cryptoModule.getKeys(secret);
+const registerSecondPassphrase = ({
+	passphrase,
+	secondPassphrase,
+	timeOffset,
+}) => {
+	const keys = cryptoModule.getKeys(passphrase);
 
 	const transaction = {
 		type: 1,
@@ -52,10 +56,10 @@ const registerSecondPassphrase = ({ secret, secondSecret, timeOffset }) => {
 		recipientId: null,
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),
-		asset: createAsset(secondSecret),
+		asset: createAsset(secondPassphrase),
 	};
 
-	return prepareTransaction(transaction, secret, secondSecret);
+	return prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default registerSecondPassphrase;

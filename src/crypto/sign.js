@@ -20,7 +20,7 @@ import {
 	convertPublicKeyEd2Curve,
 } from './convert';
 import hash from './hash';
-import { getPrivateAndPublicKeyBytesFromSecret } from './keys';
+import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 
 const createHeader = text => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
@@ -32,17 +32,17 @@ const secondSignatureHeader = createHeader('SECOND SIGNATURE');
 const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 
 /**
- * @method signMessageWithSecret
+ * @method signMessageWithPassphrase
  * @param message - utf8
- * @param secret - utf8
+ * @param passphrase - utf8
  *
  * @return {Object} - message, publicKey, signature
  */
 
-export const signMessageWithSecret = (message, secret) => {
+export const signMessageWithPassphrase = (message, passphrase) => {
 	const msgBytes = Buffer.from(message, 'utf8');
-	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromSecret(
-		secret,
+	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromPassphrase(
+		passphrase,
 	);
 	const signature = naclInstance.crypto_sign_detached(msgBytes, privateKey);
 
@@ -88,19 +88,23 @@ export const verifyMessageWithPublicKey = ({
 };
 
 /**
- * @method signMessageWithTwoSecrets
+ * @method signMessageWithTwoPassphrases
  * @param message - utf8
- * @param secret - utf8
- * @param secondSecret - utf8
+ * @param passphrase - utf8
+ * @param secondPassphrase - utf8
  *
  * @return {Object} - message, publicKey, secondPublicKey, signature, secondSignature
  */
 
-export const signMessageWithTwoSecrets = (message, secret, secondSecret) => {
+export const signMessageWithTwoPassphrases = (
+	message,
+	passphrase,
+	secondPassphrase,
+) => {
 	const msgBytes = Buffer.from(message, 'utf8');
-	const keypairBytes = getPrivateAndPublicKeyBytesFromSecret(secret);
-	const secondKeypairBytes = getPrivateAndPublicKeyBytesFromSecret(
-		secondSecret,
+	const keypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+	const secondKeypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(
+		secondPassphrase,
 	);
 
 	const signature = naclInstance.crypto_sign_detached(
@@ -212,16 +216,16 @@ export const printSignedMessage = ({
 /**
  * @method signAndPrintMessage
  * @param message
- * @param secret
- * @param secondSecret
+ * @param passphrase
+ * @param secondPassphrase
  *
  * @return {string}
  */
 
-export const signAndPrintMessage = (message, secret, secondSecret) => {
-	const signedMessage = secondSecret
-		? signMessageWithTwoSecrets(message, secret, secondSecret)
-		: signMessageWithSecret(message, secret);
+export const signAndPrintMessage = (message, passphrase, secondPassphrase) => {
+	const signedMessage = secondPassphrase
+		? signMessageWithTwoPassphrases(message, passphrase, secondPassphrase)
+		: signMessageWithPassphrase(message, passphrase);
 
 	return printSignedMessage(signedMessage);
 };
@@ -229,13 +233,13 @@ export const signAndPrintMessage = (message, secret, secondSecret) => {
 /**
  * @method signData
  * @param data Buffer
- * @param secret string
+ * @param passphrase string
  *
  * @return {string}
  */
 
-export const signData = (data, secret) => {
-	const { privateKey } = getPrivateAndPublicKeyBytesFromSecret(secret);
+export const signData = (data, passphrase) => {
+	const { privateKey } = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const signature = naclInstance.crypto_sign_detached(data, privateKey);
 	return bufferToHex(signature);
 };
@@ -256,21 +260,22 @@ export const verifyData = (data, signature, publicKey) =>
 	);
 
 /**
- * @method encryptMessageWithSecret
+ * @method encryptMessageWithPassphrase
  * @param message
- * @param secret
+ * @param passphrase
  * @param recipientPublicKey
  *
  * @return {object}
  */
 
-export const encryptMessageWithSecret = (
+export const encryptMessageWithPassphrase = (
 	message,
-	secret,
+	passphrase,
 	recipientPublicKey,
 ) => {
-	const senderPrivateKeyBytes = getPrivateAndPublicKeyBytesFromSecret(secret)
-		.privateKey;
+	const {
+		privateKey: senderPrivateKeyBytes,
+	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
@@ -294,23 +299,24 @@ export const encryptMessageWithSecret = (
 };
 
 /**
- * @method decryptMessageWithSecret
+ * @method decryptMessageWithPassphrase
  * @param cipherHex
  * @param nonce
- * @param secret
+ * @param passphrase
  * @param senderPublicKey
  *
  * @return {string}
  */
 
-export const decryptMessageWithSecret = (
+export const decryptMessageWithPassphrase = (
 	cipherHex,
 	nonce,
-	secret,
+	passphrase,
 	senderPublicKey,
 ) => {
-	const recipientPrivateKeyBytes = getPrivateAndPublicKeyBytesFromSecret(secret)
-		.privateKey;
+	const {
+		privateKey: recipientPrivateKeyBytes,
+	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(
 		recipientPrivateKeyBytes,
 	);
@@ -375,7 +381,7 @@ const decryptAES256CBCWithPassword = ({ cipher, iv }, password) => {
 
 /**
  * @method encryptPassphraseWithPassword
- * @param {String} passphrase utf8 - twelve word secret passphrase
+ * @param {String} passphrase utf8 - twelve word passphrase passphrase
  * @param {String} password utf8 - the password used to encrypt the passphrase
  *
  * @return {Object} - { cipher: '...', iv: '...' }

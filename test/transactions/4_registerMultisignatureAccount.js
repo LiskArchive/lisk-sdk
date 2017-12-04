@@ -17,8 +17,8 @@ import registerMultisignatureAccount from '../../src/transactions/4_registerMult
 const time = require('../../src/transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {
-	const secret = 'secret';
-	const secondSecret = 'second secret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'second secret';
 	const keys = {
 		publicKey:
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -27,7 +27,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	};
 	const timeWithOffset = 38350076;
 	const lifetime = 5;
-	const min = 2;
+	const minimum = 2;
 
 	let keysgroup;
 	let getTimeWithOffsetStub;
@@ -40,13 +40,13 @@ describe('#registerMultisignatureAccount transaction', () => {
 		keysgroup = ['+123456789', '-987654321'];
 	});
 
-	describe('with first secret', () => {
+	describe('with first passphrase', () => {
 		beforeEach(() => {
 			registerMultisignatureTransaction = registerMultisignatureAccount({
-				secret,
+				passphrase,
 				keysgroup,
 				lifetime,
-				min,
+				minimum,
 			});
 		});
 
@@ -61,10 +61,10 @@ describe('#registerMultisignatureAccount transaction', () => {
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			registerMultisignatureAccount({
-				secret,
+				passphrase,
 				keysgroup,
 				lifetime,
-				min,
+				minimum,
 				timeOffset: offset,
 			});
 
@@ -148,11 +148,11 @@ describe('#registerMultisignatureAccount transaction', () => {
 						.and.be.type('object');
 				});
 
-				it('should have a min number equal to provided min', () => {
+				it('should have a min number equal to provided minimum', () => {
 					registerMultisignatureTransaction.asset.multisignature.should.have
 						.property('min')
 						.and.be.type('number')
-						.and.be.equal(min);
+						.and.be.equal(minimum);
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
@@ -172,14 +172,14 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 	});
 
-	describe('with first and second secret', () => {
+	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			registerMultisignatureTransaction = registerMultisignatureAccount({
-				secret,
-				secondSecret,
+				passphrase,
+				secondPassphrase,
 				keysgroup,
 				lifetime,
-				min,
+				minimum,
 			});
 		});
 

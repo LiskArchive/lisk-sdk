@@ -19,8 +19,8 @@ const time = require('../../src/transactions/utils/time');
 describe('#transferIntoDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const dappId = '1234213';
-	const secret = 'secret';
-	const secondSecret = 'secondSecret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'secondSecret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = (10 * fixedPoint).toString();
@@ -37,12 +37,12 @@ describe('#transferIntoDapp transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with first secret', () => {
+	describe('with first passphrase', () => {
 		beforeEach(() => {
 			transferIntoDappTransaction = transferIntoDapp({
 				dappId,
 				amount,
-				secret,
+				passphrase,
 			});
 		});
 
@@ -55,7 +55,7 @@ describe('#transferIntoDapp transaction', () => {
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to get the time for the timestamp', () => {
-			transferIntoDapp({ dappId, amount, secret, timeOffset: offset });
+			transferIntoDapp({ dappId, amount, passphrase, timeOffset: offset });
 
 			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
@@ -139,13 +139,13 @@ describe('#transferIntoDapp transaction', () => {
 		});
 	});
 
-	describe('with first and second secret', () => {
+	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			transferIntoDappTransaction = transferIntoDapp({
 				dappId,
 				amount,
-				secret,
-				secondSecret,
+				passphrase,
+				secondPassphrase,
 			});
 		});
 

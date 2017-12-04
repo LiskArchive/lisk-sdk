@@ -18,25 +18,25 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
 /**
  * @method registerMultisignatureAccount
  * @param {Object} Object - Object
- * @param {String} Object.secret
- * @param {String} Object.secondSecret
+ * @param {String} Object.passphrase
+ * @param {String} Object.secondPassphrase
  * @param {Array<String>} Object.keysgroup
  * @param {Number} Object.lifetime
- * @param {Number} Object.min
+ * @param {Number} Object.minimum
  * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
 const registerMultisignatureAccount = ({
-	secret,
-	secondSecret,
+	passphrase,
+	secondPassphrase,
 	keysgroup,
 	lifetime,
-	min,
+	minimum,
 	timeOffset,
 }) => {
-	const keys = cryptoModule.getKeys(secret);
+	const keys = cryptoModule.getKeys(passphrase);
 	const keygroupFees = keysgroup.length + 1;
 
 	const transaction = {
@@ -48,14 +48,14 @@ const registerMultisignatureAccount = ({
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			multisignature: {
-				min,
+				min: minimum,
 				lifetime,
 				keysgroup,
 			},
 		},
 	};
 
-	return prepareTransaction(transaction, secret, secondSecret);
+	return prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default registerMultisignatureAccount;

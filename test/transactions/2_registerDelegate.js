@@ -18,8 +18,8 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
-	const secret = 'secret';
-	const secondSecret = 'second secret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const username = 'test_delegate_1@\\';
@@ -35,9 +35,9 @@ describe('#registerDelegate transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with first secret', () => {
+	describe('with first passphrase', () => {
 		beforeEach(() => {
-			registerDelegateTransaction = registerDelegate({ secret, username });
+			registerDelegateTransaction = registerDelegate({ passphrase, username });
 		});
 
 		it('should create a register delegate transaction', () => {
@@ -50,7 +50,7 @@ describe('#registerDelegate transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			registerDelegate({ secret, username, timeOffset: offset });
+			registerDelegate({ passphrase, username, timeOffset: offset });
 
 			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
@@ -138,12 +138,12 @@ describe('#registerDelegate transaction', () => {
 		});
 	});
 
-	describe('with first and second secret', () => {
+	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({
-				secret,
+				passphrase,
 				username,
-				secondSecret,
+				secondPassphrase,
 			});
 		});
 

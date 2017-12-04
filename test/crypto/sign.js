@@ -13,14 +13,14 @@
  *
  */
 import {
-	signMessageWithSecret,
-	signMessageWithTwoSecrets,
+	signMessageWithPassphrase,
+	signMessageWithTwoPassphrases,
 	verifyMessageWithPublicKey,
 	verifyMessageWithTwoPublicKeys,
 	printSignedMessage,
 	signAndPrintMessage,
-	encryptMessageWithSecret,
-	decryptMessageWithSecret,
+	encryptMessageWithPassphrase,
+	decryptMessageWithPassphrase,
 	signData,
 	verifyData,
 	encryptPassphraseWithPassword,
@@ -39,13 +39,13 @@ const makeInvalid = str => {
 const changeLength = str => `00${str}`;
 
 describe('sign', () => {
-	const defaultSecret =
+	const defaultPassphrase =
 		'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultPublicKey =
 		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
-	const defaultSecondSecret = 'second secret';
+	const defaultSecondPassphrase = 'second secret';
 	const defaultSecondPrivateKey =
 		'9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultSecondPublicKey =
@@ -88,7 +88,7 @@ ${defaultSecondSignature}
 	let defaultDoubleSignedMessage;
 	let defaultEncryptedMessageWithNonce;
 
-	let getPrivateAndPublicKeyBytesFromSecretStub;
+	let getPrivateAndPublicKeyBytesFromPassphraseStub;
 	let hashStub;
 
 	beforeEach(() => {
@@ -126,16 +126,18 @@ ${defaultSecondSignature}
 				),
 			);
 
-		getPrivateAndPublicKeyBytesFromSecretStub = sandbox.stub(
+		getPrivateAndPublicKeyBytesFromPassphraseStub = sandbox.stub(
 			keys,
-			'getPrivateAndPublicKeyBytesFromSecret',
+			'getPrivateAndPublicKeyBytesFromPassphrase',
 		);
-		getPrivateAndPublicKeyBytesFromSecretStub.withArgs(defaultSecret).returns({
-			privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-			publicKey: Buffer.from(defaultPublicKey, 'hex'),
-		});
-		getPrivateAndPublicKeyBytesFromSecretStub
-			.withArgs(defaultSecondSecret)
+		getPrivateAndPublicKeyBytesFromPassphraseStub
+			.withArgs(defaultPassphrase)
+			.returns({
+				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
+			});
+		getPrivateAndPublicKeyBytesFromPassphraseStub
+			.withArgs(defaultSecondPassphrase)
 			.returns({
 				privateKey: Buffer.from(defaultSecondPrivateKey, 'hex'),
 				publicKey: Buffer.from(defaultSecondPublicKey, 'hex'),
@@ -151,11 +153,11 @@ ${defaultSecondSignature}
 			);
 	});
 
-	describe('#signMessageWithSecret', () => {
+	describe('#signMessageWithPassphrase', () => {
 		it('should create a signed message using a secret passphrase', () => {
-			const signedMessage = signMessageWithSecret(
+			const signedMessage = signMessageWithPassphrase(
 				defaultMessage,
-				defaultSecret,
+				defaultPassphrase,
 			);
 			signedMessage.should.be.eql(defaultSignedMessage);
 		});
@@ -197,12 +199,12 @@ ${defaultSecondSignature}
 		});
 	});
 
-	describe('#signMessageWithTwoSecrets', () => {
+	describe('#signMessageWithTwoPassphrases', () => {
 		it('should create a message signed by two secret passphrases', () => {
-			const signature = signMessageWithTwoSecrets(
+			const signature = signMessageWithTwoPassphrases(
 				defaultMessage,
-				defaultSecret,
-				defaultSecondSecret,
+				defaultPassphrase,
+				defaultSecondPassphrase,
 			);
 
 			signature.should.be.eql(defaultDoubleSignedMessage);
@@ -310,7 +312,7 @@ ${defaultSecondSignature}
 		it('should sign the message once and wrap it into a printed Lisk template', () => {
 			const signedAndPrintedMessage = signAndPrintMessage(
 				defaultMessage,
-				defaultSecret,
+				defaultPassphrase,
 			);
 			signedAndPrintedMessage.should.be.equal(defaultPrintedMessage);
 		});
@@ -318,8 +320,8 @@ ${defaultSecondSignature}
 		it('should sign the message twice and wrap it into a printed Lisk template', () => {
 			const signedAndPrintedMessage = signAndPrintMessage(
 				defaultMessage,
-				defaultSecret,
-				defaultSecondSecret,
+				defaultPassphrase,
+				defaultSecondPassphrase,
 			);
 			signedAndPrintedMessage.should.be.equal(
 				defaultSecondSignedPrintedMessage,
@@ -331,7 +333,7 @@ ${defaultSecondSignature}
 		let signature;
 
 		beforeEach(() => {
-			signature = signData(defaultData, defaultSecret);
+			signature = signData(defaultData, defaultPassphrase);
 		});
 
 		it('should sign a transaction', () => {
@@ -359,13 +361,13 @@ ${defaultSecondSignature}
 		});
 	});
 
-	describe('#encryptMessageWithSecret', () => {
+	describe('#encryptMessageWithPassphrase', () => {
 		let encryptedMessage;
 
 		beforeEach(() => {
-			encryptedMessage = encryptMessageWithSecret(
+			encryptedMessage = encryptMessageWithPassphrase(
 				defaultMessage,
-				defaultSecret,
+				defaultPassphrase,
 				defaultPublicKey,
 			);
 		});
@@ -385,12 +387,12 @@ ${defaultSecondSignature}
 		});
 	});
 
-	describe('#decryptMessageWithSecret', () => {
+	describe('#decryptMessageWithPassphrase', () => {
 		it('should be able to decrypt the message correctly using the receiver’s secret passphrase', () => {
-			const decryptedMessage = decryptMessageWithSecret(
+			const decryptedMessage = decryptMessageWithPassphrase(
 				defaultEncryptedMessageWithNonce.encryptedMessage,
 				defaultEncryptedMessageWithNonce.nonce,
-				defaultSecret,
+				defaultPassphrase,
 				defaultPublicKey,
 			);
 
@@ -412,7 +414,10 @@ ${defaultSecondSignature}
 			let cipher;
 
 			beforeEach(() => {
-				cipher = encryptPassphraseWithPassword(defaultSecret, defaultPassword);
+				cipher = encryptPassphraseWithPassword(
+					defaultPassphrase,
+					defaultPassword,
+				);
 			});
 
 			it('should encrypt a passphrase', () => {
@@ -442,21 +447,21 @@ ${defaultSecondSignature}
 					cipherAndNonce,
 					defaultPassword,
 				);
-				decrypted.should.be.eql(defaultSecret);
+				decrypted.should.be.eql(defaultPassphrase);
 			});
 		});
 
 		describe('integration test', () => {
-			it('should encrypt a given secret with a password and decrypt it back to the original passphrase', () => {
+			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase', () => {
 				const encryptedString = encryptPassphraseWithPassword(
-					defaultSecret,
+					defaultPassphrase,
 					defaultPassword,
 				);
 				const decryptedString = decryptPassphraseWithPassword(
 					encryptedString,
 					defaultPassword,
 				);
-				decryptedString.should.be.eql(defaultSecret);
+				decryptedString.should.be.eql(defaultPassphrase);
 			});
 		});
 	});

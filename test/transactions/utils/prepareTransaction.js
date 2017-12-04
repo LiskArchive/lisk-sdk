@@ -2,7 +2,7 @@ import prepareTransaction from '../../../src/transactions/utils/prepareTransacti
 
 describe('transactions utils module', () => {
 	describe('#prepareTransaction', () => {
-		const secret = 'secret';
+		const passphrase = 'secret';
 		const keys = {
 			privateKey:
 				'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -11,7 +11,7 @@ describe('transactions utils module', () => {
 		};
 		const signature =
 			'a00835fe0ad89d8b8a26cc3ffa8238d89bd38999f39d712fe8745707c8e18ea70337a7dfde725fddaa858dd64843170de3e481f54438b8aad734b0e75bbad706';
-		const secondSecret = 'second secret';
+		const secondPassphrase = 'second secret';
 		const secondSignature =
 			'08ce78b2382c396596cc38ea8b9dbc2df62f0d919ddc817070902eeaf1b93ca17ced0766bb4e10f565ae9e55f673691d966dea45e60922fd2685556b441ffb0e';
 		const id = '8330167589806376997';
@@ -31,7 +31,7 @@ describe('transactions utils module', () => {
 
 		describe('without second signature', () => {
 			beforeEach(() => {
-				preparedTransaction = prepareTransaction(inputTransaction, secret);
+				preparedTransaction = prepareTransaction(inputTransaction, passphrase);
 			});
 
 			it('should not mutate the original transaction', () => {
@@ -57,8 +57,8 @@ describe('transactions utils module', () => {
 			beforeEach(() => {
 				preparedTransaction = prepareTransaction(
 					inputTransaction,
-					secret,
-					secondSecret,
+					passphrase,
+					secondPassphrase,
 				);
 			});
 
@@ -66,7 +66,7 @@ describe('transactions utils module', () => {
 				inputTransaction.should.eql(defaultTransaction);
 			});
 
-			it('should add a second signature to a transaction if a second secret is provided', () => {
+			it('should add a second signature to a transaction if a second passphrase is provided', () => {
 				preparedTransaction.should.have
 					.property('signSignature')
 					.and.be.hexString()
@@ -84,8 +84,8 @@ describe('transactions utils module', () => {
 				});
 				preparedTransaction = prepareTransaction(
 					inputTransaction,
-					secret,
-					secondSecret,
+					passphrase,
+					secondPassphrase,
 				);
 				preparedTransaction.should.not.have.property('signSignature');
 			});

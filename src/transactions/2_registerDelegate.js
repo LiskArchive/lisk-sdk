@@ -23,16 +23,21 @@ import { prepareTransaction, getTimeWithOffset } from './utils';
 /**
  * @method registerDelegate
  * @param {Object} Object - Object
- * @param {String} Object.secret
+ * @param {String} Object.passphrase
  * @param {String} Object.username
- * @param {String} Object.secondSecret
+ * @param {String} Object.secondPassphrase
  * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-const registerDelegate = ({ secret, username, secondSecret, timeOffset }) => {
-	const keys = cryptoModule.getKeys(secret);
+const registerDelegate = ({
+	passphrase,
+	username,
+	secondPassphrase,
+	timeOffset,
+}) => {
+	const keys = cryptoModule.getKeys(passphrase);
 
 	const transaction = {
 		type: 2,
@@ -48,7 +53,7 @@ const registerDelegate = ({ secret, username, secondSecret, timeOffset }) => {
 		},
 	};
 
-	return prepareTransaction(transaction, secret, secondSecret);
+	return prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default registerDelegate;

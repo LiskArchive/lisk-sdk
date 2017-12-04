@@ -30,8 +30,8 @@ import {
  * @param {String} Object.recipientId
  * @param {String} Object.recipientPublicKey
  * @param {String} Object.amount
- * @param {String} Object.secret
- * @param {String} Object.secondSecret
+ * @param {String} Object.passphrase
+ * @param {String} Object.secondPassphrase
  * @param {String} Object.data
  * @param {Number} Object.timeOffset
  *
@@ -42,8 +42,8 @@ const transfer = ({
 	recipientId,
 	recipientPublicKey,
 	amount,
-	secret,
-	secondSecret,
+	passphrase,
+	secondPassphrase,
 	data,
 	timeOffset,
 }) => {
@@ -51,7 +51,7 @@ const transfer = ({
 		recipientId,
 		recipientPublicKey,
 	});
-	const keys = cryptoModule.getKeys(secret);
+	const keys = cryptoModule.getKeys(passphrase);
 	const fee = data ? TRANSFER_FEE + DATA_FEE : TRANSFER_FEE;
 	const transaction = {
 		type: 0,
@@ -72,7 +72,7 @@ const transfer = ({
 		transaction.asset.data = data;
 	}
 
-	return prepareTransaction(transaction, secret, secondSecret);
+	return prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default transfer;

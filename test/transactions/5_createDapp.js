@@ -18,8 +18,8 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#createDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
-	const secret = 'secret';
-	const secondSecret = 'second secret';
+	const passphrase = 'secret';
+	const secondPassphrase = 'second secret';
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultOptions = {
@@ -51,9 +51,9 @@ describe('#createDapp transaction', () => {
 		options = Object.assign({}, defaultOptions);
 	});
 
-	describe('with first secret', () => {
+	describe('with first passphrase', () => {
 		beforeEach(() => {
-			createDappTransaction = createDapp({ secret, options });
+			createDappTransaction = createDapp({ passphrase, options });
 		});
 
 		it('should create a create dapp transaction', () => {
@@ -61,56 +61,68 @@ describe('#createDapp transaction', () => {
 		});
 
 		it('should throw an error if no options are provided', () => {
-			createDapp.bind(null, { secret }).should.throw(noOptionsError);
+			createDapp.bind(null, { passphrase }).should.throw(noOptionsError);
 		});
 
 		it('should throw an error if no category is provided', () => {
 			delete options.category;
 			createDapp
-				.bind(null, { secret, options })
+				.bind(null, { passphrase, options })
 				.should.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if provided category is not an integer', () => {
 			options.category = 'not an integer';
 			createDapp
-				.bind(null, { secret, options })
+				.bind(null, { passphrase, options })
 				.should.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if no name is provided', () => {
 			delete options.name;
-			createDapp.bind(null, { secret, options }).should.throw(nameStringError);
+			createDapp
+				.bind(null, { passphrase, options })
+				.should.throw(nameStringError);
 		});
 
 		it('should throw an error if provided name is not a string', () => {
 			options.name = 123;
-			createDapp.bind(null, { secret, options }).should.throw(nameStringError);
+			createDapp
+				.bind(null, { passphrase, options })
+				.should.throw(nameStringError);
 		});
 
 		it('should throw an error if no type is provided', () => {
 			delete options.type;
-			createDapp.bind(null, { secret, options }).should.throw(typeIntegerError);
+			createDapp
+				.bind(null, { passphrase, options })
+				.should.throw(typeIntegerError);
 		});
 
 		it('should throw an error if provided type is not an integer', () => {
 			options.type = 'not an integer';
-			createDapp.bind(null, { secret, options }).should.throw(typeIntegerError);
+			createDapp
+				.bind(null, { passphrase, options })
+				.should.throw(typeIntegerError);
 		});
 
 		it('should throw an error if no link is provided', () => {
 			delete options.link;
-			createDapp.bind(null, { secret, options }).should.throw(linkStringError);
+			createDapp
+				.bind(null, { passphrase, options })
+				.should.throw(linkStringError);
 		});
 
 		it('should throw an error if provided link is not a string', () => {
 			options.link = 123;
-			createDapp.bind(null, { secret, options }).should.throw(linkStringError);
+			createDapp
+				.bind(null, { passphrase, options })
+				.should.throw(linkStringError);
 		});
 
 		it('should not require description, tags, or icon', () => {
 			['description', 'tags', 'icon'].forEach(key => delete options[key]);
-			createDapp.bind(null, { secret, options }).should.not.throw();
+			createDapp.bind(null, { passphrase, options }).should.not.throw();
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -119,7 +131,7 @@ describe('#createDapp transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			createDapp({ secret, options, timeOffset: offset });
+			createDapp({ passphrase, options, timeOffset: offset });
 
 			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
@@ -245,9 +257,13 @@ describe('#createDapp transaction', () => {
 		});
 	});
 
-	describe('with first and second secret', () => {
+	describe('with first and second passphrase', () => {
 		beforeEach(() => {
-			createDappTransaction = createDapp({ secret, secondSecret, options });
+			createDappTransaction = createDapp({
+				passphrase,
+				secondPassphrase,
+				options,
+			});
 		});
 
 		it('should have the second signature property as hex string', () => {
