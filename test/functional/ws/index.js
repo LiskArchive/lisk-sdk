@@ -8,7 +8,6 @@ var pathFiles = [
 	'./transport.client',
 	'./transport.handshake',
 	'./transport.transactions',
-	'./transport.transactions.stress',
 ];
 
 parallelTests(pathFiles, 'test/functional/ws/');
