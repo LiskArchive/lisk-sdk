@@ -15,6 +15,7 @@ var pathFiles = [
 	'./helpers/ed.js',
 	'./helpers/jobs-queue.js',
 	'./helpers/peersManager.js',
+	'./helpers/pg-notify.js',
 	'./helpers/RPC.js',
 	'./helpers/slots.js',
 	'./helpers/wsApi.js',
