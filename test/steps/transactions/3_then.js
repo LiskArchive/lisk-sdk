@@ -18,6 +18,52 @@ import {
 	getNumbers,
 	getTransactionCreatorFunctionNameByType,
 } from '../utils';
+import {
+	prependPlusToPublicKeys,
+	prependMinusToPublicKeys,
+} from '../../../src/utils/helpers';
+
+export function itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier() {
+	const {
+		passphrase, secondPassphrase, votePublicKeys, unvotePublicKeys,
+	} = this.test.ctx;
+	const votes = prependPlusToPublicKeys(votePublicKeys);
+	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
+	const allVotes = [].concat(votes, unvotes).filter(Boolean);
+	return (transactions.createVote).should.be.calledWithExactly(passphrase, allVotes, secondPassphrase);
+}
+
+export function itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus() {
+	const { passphrase, secondPassphrase, unvotePublicKeys } = this.test.ctx;
+	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
+	return (transactions.createVote).should.be.calledWithExactly(passphrase, unvotes, secondPassphrase);
+}
+
+export function itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAPlus() {
+	const { passphrase, secondPassphrase, votePublicKeys } = this.test.ctx;
+	const votes = prependPlusToPublicKeys(votePublicKeys);
+	return (transactions.createVote).should.be.calledWithExactly(passphrase, votes, secondPassphrase);
+}
+
+export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier() {
+	const { passphrase, votePublicKeys, unvotePublicKeys } = this.test.ctx;
+	const votes = prependPlusToPublicKeys(votePublicKeys);
+	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
+	const allVotes = [].concat(votes, unvotes).filter(Boolean);
+	return (transactions.createVote).should.be.calledWithExactly(passphrase, allVotes, null);
+}
+
+export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus() {
+	const { passphrase, unvotePublicKeys } = this.test.ctx;
+	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
+	return (transactions.createVote).should.be.calledWithExactly(passphrase, unvotes, null);
+}
+
+export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithAPlus() {
+	const { passphrase, votePublicKeys } = this.test.ctx;
+	const votes = prependPlusToPublicKeys(votePublicKeys);
+	return (transactions.createVote).should.be.calledWithExactly(passphrase, votes, null);
+}
 
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase() {
 	const {

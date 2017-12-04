@@ -23,6 +23,18 @@ import {
 	hasAncestorWithTitleMatching,
 } from '../utils';
 
+export function theUnvoteCanBeRetrievedFromItsSource() {
+	const { unvotePublicKeys, options: { unvote } } = this.test.ctx;
+	const publicKeysFromFile = unvotePublicKeys.join('\n');
+	inputUtils.getData.withArgs(unvote).resolves(publicKeysFromFile);
+}
+
+export function theVoteCanBeRetrievedFromItsSource() {
+	const { votePublicKeys, options: { vote } } = this.test.ctx;
+	const publicKeysFromFile = votePublicKeys.join('\n');
+	inputUtils.getData.withArgs(vote).resolves(publicKeysFromFile);
+}
+
 export function anErrorOccursRetrievingTheInputsFromTheirSources() {
 	const errorMessage = getFirstQuotedString(this.test.parent.title);
 	getInputsFromSources.rejects(new Error(errorMessage));

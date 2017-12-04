@@ -17,6 +17,22 @@ import { ValidationError } from '../utils/error';
 import commonOptions from '../utils/options';
 import { printResult } from '../utils/print';
 
+export const validatePublicKeys = publicKeys => publicKeys.map((publicKey) => {
+	try {
+		Buffer.from(publicKey, 'hex').toString('hex');
+	} catch (error) {
+		throw new Error(`Error processing public key ${publicKey}: ${error.message}.`);
+	}
+	if (publicKey.length !== 64) {
+		throw new Error(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
+	}
+	return publicKey;
+});
+
+export const prependPlusToPublicKeys = publicKeys => publicKeys.map(publicKey => `+${publicKey}`);
+
+export const prependMinusToPublicKeys = publicKeys => publicKeys.map(publicKey => `-${publicKey}`);
+
 const regExpAddress = /^\d{1,21}[L|l]$/;
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
 

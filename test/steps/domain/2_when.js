@@ -15,11 +15,41 @@
  */
 import {
 	deAlias,
+	prependMinusToPublicKeys,
+	prependPlusToPublicKeys,
 	validateAddress,
 	validateAmount,
 	validateLifetime,
 	validateMinimum,
+	validatePublicKeys,
 } from '../../../src/utils/helpers';
+
+export function prependMinusToPublicKeysIsCalled() {
+	const { publicKeys } = this.test.ctx;
+	const returnValue = prependMinusToPublicKeys(publicKeys);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
+export function prependPlusToPublicKeysIsCalled() {
+	const { publicKeys } = this.test.ctx;
+	const returnValue = prependPlusToPublicKeys(publicKeys);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
+export function validatePublicKeysIsCalled() {
+	const { publicKeys } = this.test.ctx;
+	try {
+		const returnValue = validatePublicKeys(publicKeys);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = validatePublicKeys.bind(null, publicKeys);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
+}
 
 export function validateLifetimeIsCalledOnTheLifetime() {
 	const { lifetime } = this.test.ctx;

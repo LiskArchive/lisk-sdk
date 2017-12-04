@@ -19,6 +19,20 @@ import {
 	getFirstNumber,
 } from '../utils';
 
+export function publicKeysThatShouldBeVotedFor() {
+	this.test.ctx.votePublicKeys = getQuotedStrings(this.test.parent.title);
+}
+
+export function publicKeysThatShouldBeUnvotedFor() {
+	this.test.ctx.unvotePublicKeys = getQuotedStrings(this.test.parent.title);
+}
+
+export function publicKeys() {
+	this.test.ctx.publicKeys = getQuotedStrings(this.test.parent.title);
+}
+
+export const invalidPublicKeys = publicKeys;
+
 export function anAmount() {
 	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
 }
