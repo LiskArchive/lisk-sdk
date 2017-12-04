@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import chalk from 'chalk';
 import config from './config';
 import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
-// eslint-disable-next-line import/prefer-default-export
 export const printResult = (vorpal, options = {}) => (result) => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
 	const prettifyOutput = shouldUsePrettyOutput(config, options);
@@ -29,3 +29,25 @@ export const printResult = (vorpal, options = {}) => (result) => {
 	vorpal.activeCommand.log(output);
 	return result;
 };
+
+// TODO: Include commented placeholders when we support Node 8
+const PLACEHOLDERS = [
+	'%s',
+	'%d',
+	// '%i',
+	// '%f',
+	'%j',
+	// '%o',
+	// '%O',
+];
+
+const wrapLogFunction = (fn, colour) => (...args) => {
+	const colourArg = arg => chalk[colour](arg);
+	const isPlaceholderPresent = placeholder => args[0].includes(placeholder);
+	return (PLACEHOLDERS.some(isPlaceholderPresent)
+		? fn(colourArg(args[0]), ...args.slice(1))
+		: fn(...args.map(colourArg)));
+};
+
+export const logWarning = wrapLogFunction(console.warn, 'yellow');
+export const logError = wrapLogFunction(console.error, 'red');
