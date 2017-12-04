@@ -38,7 +38,7 @@ export function aDeeplyNestedObject() {
 			asset: {
 				publicKey: 'aPublicKeyString',
 				keys: {
-					more: 'publicKeys',
+					more: ['publicKey1', 'publicKey2'],
 				},
 			},
 		},
