@@ -27,8 +27,8 @@ module.exports = function (params) {
 					return getTransaction(transaction.id, configuration.httpPort);
 				});
 			})).then(function (results) {
-				results.forEach(function (res) {
-					expect(res.body).to.have.property('transaction').that.is.an('object');
+				results.forEach(function (transaction) {
+					expect(transaction).to.have.property('id').that.is.an('string');
 				});
 			});
 		}

@@ -94,7 +94,7 @@ module.exports = {
 			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000) + '?id=' + transactionId,
 			headers: headers
 		}).then(function (res) {
-			return res.body.blocks;
+			return JSON.parse(res.body).transactions[0];
 		});
 	},
 
