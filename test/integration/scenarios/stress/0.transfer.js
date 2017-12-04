@@ -24,7 +24,7 @@ module.exports = function (params) {
 		function confirmTransactionsOnAllNodes () {
 			Promise.all(_.flatMap(params.configurations, function (configuration) {
 				return transactions.map(function (transaction) {
-					return getTransaction(transaction.id, configuration.port);
+					return getTransaction(transaction.id, configuration.httpPort);
 				});
 			})).then(function (results) {
 				results.forEach(function (res) {
