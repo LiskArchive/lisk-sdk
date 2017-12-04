@@ -18,7 +18,7 @@ import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
-const description = `Creates a transaction which will register an existing account as a delegate candidate if broadcast to the network.
+const description = `Creates a transaction which will register the account as a delegate candidate if broadcast to the network.
 
 	Examples:
 	- create transaction register delegate username

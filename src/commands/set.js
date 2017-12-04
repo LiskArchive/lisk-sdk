@@ -19,7 +19,7 @@ import { writeJsonSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 import liskAPIInstance from '../utils/api';
 
-const description = `Set configuration <variable> to <value>. Variables available: json, name, testnet. Configuration is persisted in \`${configFilePath}\`.
+const description = `Sets configuration <variable> to <value>. Variables available: json, name, testnet. Configuration is persisted in \`${configFilePath}\`.
 
 	Examples:
 	- set json true

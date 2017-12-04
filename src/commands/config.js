@@ -16,7 +16,7 @@
 import currentConfig from '../utils/config';
 import { createCommand } from '../utils/helpers';
 
-const description = `Show current configuration.
+const description = `Prints the current configuration.
 
 	Example: config
 `;

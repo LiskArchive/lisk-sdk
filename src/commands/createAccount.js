@@ -17,7 +17,7 @@ import cryptoModule from '../utils/cryptoModule';
 import { createCommand } from '../utils/helpers';
 import { createMnemonicPassphrase } from '../utils/mnemonic';
 
-const description = `Create account returns a randomly-generated mnemonic passphrase with its corresponding public key and address.
+const description = `Returns a randomly-generated mnemonic passphrase with its corresponding public key and address.
 
 	Example: create account
 `;

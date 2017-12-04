@@ -18,7 +18,7 @@ import { createCommand } from '../utils/helpers';
 import getInputsFromSources, { getFirstLineFromString } from '../utils/input';
 import commonOptions from '../utils/options';
 
-const description = `Decrypt your secret passphrase using a password. You need the initialisation vector (IV) output at the time of encryption.
+const description = `Decrypts your secret passphrase using a password using the initialisation vector (IV) which was provided at the time of encryption.
 
 	Example: decrypt passphrase f74d6bc3bc68c9798213ee80444149e8 09dfba9040a1f2cc0b622dae18a158558b82f5ee953ece4e1ca43b8e81b15a7a
 `;
