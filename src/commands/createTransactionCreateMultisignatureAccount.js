@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { ValidationError } from '../utils/error';
 import {
 	createCommand,
 	validateLifetime,
@@ -22,10 +23,10 @@ import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
-const description = `Creates a transaction which will register a multisignature account for an existing account if broadcast to the network.
-	The transaction command takes three required parameters, keysgroup as a list of public keys that are part of the multisignature group.
-	Lifetime as a parameter of how many hours the transaction can be signed.
-	Minimum as the amount of signatures needed until the transaction will be processed.
+const description = `Creates a transaction which will register the account as a multisignature account if broadcast to the network, using the following parameters:
+	- The lifetime (the number of hours in which the transaction can be signed after being created).
+	- The minimum number of distinct signatures required for a transaction to be successfully approved from the multisignature account.
+	- A list of one or more public keys that will identify the multisignature group.
 
 	Examples:
 	- create transaction create multisignature account 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa
@@ -54,10 +55,10 @@ export const actionCreator = vorpal => async ({
 		try {
 			Buffer.from(publicKey, 'hex').toString('hex');
 		} catch (error) {
-			throw new Error(`Error processing public key ${publicKey}: ${error.message}.`);
+			throw new ValidationError(`Error processing public key ${publicKey}: ${error.message}.`);
 		}
 		if (publicKey.length !== 64) {
-			throw new Error(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
+			throw new ValidationError(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
 		}
 		return `+${publicKey}`;
 	});

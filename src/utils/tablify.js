@@ -15,6 +15,24 @@
  */
 import Table from 'cli-table2';
 
+const chars = {
+	top: '═',
+	'top-mid': '╤',
+	'top-left': '╔',
+	'top-right': '╗',
+	bottom: '═',
+	'bottom-mid': '╧',
+	'bottom-left': '╚',
+	'bottom-right': '╝',
+	left: '║',
+	'left-mid': '╟',
+	mid: '─',
+	'mid-mid': '┼',
+	right: '║',
+	'right-mid': '╢',
+	middle: '│',
+};
+
 const getNestedValue = data => keyString => keyString.split('.').reduce((obj, key) => obj[key], data);
 
 const addValuesToTable = (table, data) => {
@@ -45,7 +63,14 @@ const tablify = (data) => {
 		? data.reduce(reduceKeys, [])
 		: getKeys(data);
 
-	const table = new Table({ head });
+	const table = new Table({
+		head,
+		chars,
+		style: {
+			head: ['cyan'],
+			border: [],
+		},
+	});
 
 	if (dataIsArray) {
 		data.map(addValuesToTable.bind(null, table));

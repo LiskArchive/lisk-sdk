@@ -18,7 +18,7 @@ import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 
-const description = `Encrypt your secret passphrase under a password.
+const description = `Encrypts your secret passphrase under a password.
 
 	Example: encrypt passphrase
 `;

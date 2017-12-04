@@ -13,22 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import currentConfig from '../utils/config';
-import { createCommand } from '../utils/helpers';
+import chalk from 'chalk';
 
-const description = `Prints the current configuration.
-
-	Example: config
-`;
-
-export const actionCreator = () => async () => currentConfig;
-
-const config = createCommand({
-	command: 'config',
-	alias: 'env',
-	description,
-	actionCreator,
-	errorPrefix: 'Could not get config',
-});
-
-export default config;
+// eslint-disable-next-line import/prefer-default-export
+export class ValidationError extends Error {
+	constructor(message) {
+		super(message);
+		this.message = chalk.red(message);
+		this.name = 'ValidationError';
+	}
+}

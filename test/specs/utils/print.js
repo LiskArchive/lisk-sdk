@@ -20,7 +20,7 @@ import * as then from '../../steps/3_then';
 
 describe('print utils', () => {
 	beforeEach(setUpUtilPrint);
-	describe('#printResult', () => {
+	describe('printResult', () => {
 		Given('a Vorpal instance with an active command that can log', given.aVorpalInstanceWithAnActiveCommandThatCanLog, () => {
 			Given('there is a result to print', given.thereIsAResultToPrint, () => {
 				Given('a config with json set to true', given.aConfigWithJsonSetTo, () => {
@@ -84,6 +84,30 @@ describe('print utils', () => {
 						});
 					});
 				});
+			});
+		});
+	});
+	describe('logWarning', () => {
+		Given('string arguments "Something to be warned about" and "Something else"', given.stringArguments, () => {
+			When('logWarning is called with the arguments', when.logWarningIsCalledWithTheArguments, () => {
+				Then('console.warn should be called with the strings in yellow', then.consoleWarnShouldBeCalledWithTheStringsInYellow);
+			});
+		});
+		Given('string arguments "This has %s substitution", "a string" and "Something else"', given.stringArguments, () => {
+			When('logWarning is called with the arguments', when.logWarningIsCalledWithTheArguments, () => {
+				Then('console.warn should be called with the first string in yellow and the other arguments', then.consoleWarnShouldBeCalledWithTheFirstStringInYellowAndTheOtherArguments);
+			});
+		});
+	});
+	describe('logError', () => {
+		Given('string arguments "Something to be warned about" and "Something else"', given.stringArguments, () => {
+			When('logError is called with the arguments', when.logErrorIsCalledWithTheArguments, () => {
+				Then('console.error should be called with the strings in red', then.consoleErrorShouldBeCalledWithTheStringsInRed);
+			});
+		});
+		Given('string arguments "This has %s substitution", "a string" and "Something else"', given.stringArguments, () => {
+			When('logError is called with the arguments', when.logErrorIsCalledWithTheArguments, () => {
+				Then('console.error should be called with the first string in red and the other arguments', then.consoleErrorShouldBeCalledWithTheFirstStringInRedAndTheOtherArguments);
 			});
 		});
 	});
