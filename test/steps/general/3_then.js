@@ -17,10 +17,28 @@ import {
 	getFirstQuotedString,
 	getFirstNumber,
 } from '../utils';
+import { ValidationError } from '../../../src/utils/error';
+
+export function theErrorShouldBeInstanceOfNodesBuiltInError() {
+	const { testError } = this.test.ctx;
+	return (testError).should.be.instanceOf(Error);
+}
+
+export function theErrorShouldHaveTheName() {
+	const { testError: { name } } = this.test.ctx;
+	const errorName = getFirstQuotedString(this.test.title);
+	return (name).should.be.equal(errorName);
+}
 
 export function itShouldReturnTheResult() {
 	const { returnValue, result } = this.test.ctx;
 	return (returnValue).should.equal(result);
+}
+
+export function itShouldThrowValidationError() {
+	const { testFunction } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return (testFunction).should.throw(new ValidationError(message));
 }
 
 export function itShouldThrowError() {
@@ -62,6 +80,12 @@ export function theProcessShouldExitWithErrorCode() {
 export function itShouldRejectWithTheErrorMessage() {
 	const { returnValue, errorMessage } = this.test.ctx;
 	return (returnValue).should.be.rejectedWith(errorMessage);
+}
+
+export function itShouldRejectWithValidationErrorAndMessage() {
+	const { returnValue } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return (returnValue).should.be.rejectedWith(new ValidationError(message));
 }
 
 export function itShouldRejectWithMessage() {

@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import chalk from 'chalk';
 import 'babel-polyfill';
 import fs from 'fs';
 import path from 'path';
@@ -32,19 +33,19 @@ fs.readdirSync(commandsDir).forEach((command) => {
 	lisky.use(commandModule.default);
 });
 
-const copyright = `Lisky  Copyright (C) 2017  Lisk Foundation
+const copyright = chalk.dim(`Lisky  Copyright (C) 2017  Lisk Foundation
 This program comes with ABSOLUTELY NO WARRANTY; for details type \`show w\`.
 This is free software, and you are welcome to redistribute it under certain conditions; type \`show c\` for details.
-`;
+`);
 
-const logo = `
+const logo = chalk.rgb(36, 117, 185)(`
  _ _     _
 | (_)___| | ___   _
 | | / __| |/ / | | |
 | | \\__ \\   <| |_| |
 |_|_|___/_|\\_\\\\__, |
               |___/
-`;
+`);
 
 const message = `
 Running v${version}.

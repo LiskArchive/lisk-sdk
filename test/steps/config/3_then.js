@@ -18,6 +18,10 @@ import {
 	getFirstQuotedString,
 	getFirstBoolean,
 } from '../utils';
+import {
+	logError,
+	logWarning,
+} from '../../../src/utils/print';
 
 export function aDefaultConfigDirectoryPathShouldBeSet() {
 	(process.env).should.have.property('LISKY_CONFIG_DIR').equal(`${os.homedir()}/.lisky`);
@@ -60,20 +64,20 @@ export function theUsersConfigShouldBeExported() {
 }
 
 export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
-	return (console.warn).should.be.calledWithMatch(/Your configuration will not be persisted\./);
+	return (logWarning).should.be.calledWithMatch(/Your configuration will not be persisted\./);
 }
 
 export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
 	const { filePath } = this.test.ctx;
-	return (console.error).should.be.calledWithExactly(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`);
+	return (logError).should.be.calledWithExactly(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`);
 }
 
 export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
-	return (console.error).should.be.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`);
+	return (logError).should.be.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`);
 }
 
 export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 	const path = getFirstQuotedString(this.test.title);
-	return (console.error).should.be.calledWithExactly(`Config lockfile at ${path} found. Are you running Lisky in another process?`);
+	return (logError).should.be.calledWithExactly(`Config lockfile at ${path} found. Are you running Lisky in another process?`);
 }
