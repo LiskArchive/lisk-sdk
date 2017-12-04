@@ -141,7 +141,7 @@ export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues() {
 	const { returnValue } = this.test.ctx;
-	const values = ['value', 'values', 123, null, 'aPublicKeyString', 'publicKeys'];
+	const values = ['value', 'values', 123, null, 'aPublicKeyString', 'publicKey1\npublicKey2'];
 	return (returnValue[0]).should.eql(values);
 }
 

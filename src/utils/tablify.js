@@ -36,7 +36,8 @@ const chars = {
 const getNestedValue = data => keyString => keyString.split('.').reduce((obj, key) => obj[key], data);
 
 const addValuesToTable = (table, data) => {
-	const valuesToPush = table.options.head.map(getNestedValue(data));
+	const nestedValues = table.options.head.map(getNestedValue(data));
+	const valuesToPush = nestedValues.map(value => (Array.isArray(value) ? value.join('\n') : value));
 	return valuesToPush.length && table.push(valuesToPush);
 };
 
