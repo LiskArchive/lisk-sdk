@@ -86,7 +86,7 @@ def archive_logs() {
 
 	if [ "$(pwd)" != "$WORKSPACE" ]; then
 		rm -r "$WORKSPACE"/logs* || true
-		cp -r $LOGS_NAME "$WORKSPACE"
+		cp -r "$LOGS_NAME" "$WORKSPACE"
 	fi
 	'''
 	archiveArtifacts artifacts: "logs-*/*"
