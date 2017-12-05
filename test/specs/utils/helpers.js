@@ -347,6 +347,196 @@ describe('utils helpers', () => {
 			});
 		});
 	});
+	describe('#prepareOptions', () => {
+		Given('an empty options object', given.anEmptyOptionsObject, () => {
+			When(
+				'prepareOptions is called with the options',
+				when.prepareOptionsIsCalledWithTheOptions,
+				() => {
+					Then(
+						'it should resolve to the options',
+						then.itShouldResolveToTheOptions,
+					);
+				},
+			);
+		});
+		Given(
+			'an options object with json set to true and table set to true',
+			given.anOptionsObjectWithJsonSetToAndTableSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should reject with message "Cannot output both JSON and table."',
+							then.itShouldRejectWithMessage,
+						);
+						Then(
+							'it should delete the json option',
+							then.itShouldDeleteTheJsonOption,
+						);
+						Then(
+							'it should delete the table option',
+							then.itShouldDeleteTheTableOption,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an options object with json set to false and table set to false',
+			given.anOptionsObjectWithJsonSetToAndTableSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should reject with message "Must output either JSON or table."',
+							then.itShouldRejectWithMessage,
+						);
+						Then(
+							'it should delete the json option',
+							then.itShouldDeleteTheJsonOption,
+						);
+						Then(
+							'it should delete the table option',
+							then.itShouldDeleteTheTableOption,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an options object with json set to true',
+			given.anOptionsObjectWithJsonSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should resolve to the options',
+							then.itShouldResolveToTheOptions,
+						);
+						Then(
+							'it should not delete the json option',
+							then.itShouldNotDeleteTheJsonOption,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an options object with json set to false',
+			given.anOptionsObjectWithJsonSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should resolve to the options',
+							then.itShouldResolveToTheOptions,
+						);
+						Then(
+							'it should not delete the json option',
+							then.itShouldNotDeleteTheJsonOption,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an options object with table set to true',
+			given.anOptionsObjectWithTableSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should resolve to the options',
+							then.itShouldResolveToTheOptions,
+						);
+						Then(
+							'it should not delete the table option',
+							then.itShouldNotDeleteTheTableOption,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an options object with table set to false',
+			given.anOptionsObjectWithTableSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should resolve to the options',
+							then.itShouldResolveToTheOptions,
+						);
+						Then(
+							'it should not delete the table option',
+							then.itShouldNotDeleteTheTableOption,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an options object with json set to true and table set to false',
+			given.anOptionsObjectWithJsonSetToAndTableSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should resolve to the options',
+							then.itShouldResolveToTheOptions,
+						);
+						Then(
+							'it should not delete the json option',
+							then.itShouldNotDeleteTheJsonOption,
+						);
+						Then(
+							'it should not delete the table option',
+							then.itShouldNotDeleteTheTableOption,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an options object with json set to false and table set to true',
+			given.anOptionsObjectWithJsonSetToAndTableSetTo,
+			() => {
+				When(
+					'prepareOptions is called with the options',
+					when.prepareOptionsIsCalledWithTheOptions,
+					() => {
+						Then(
+							'it should resolve to the options',
+							then.itShouldResolveToTheOptions,
+						);
+						Then(
+							'it should not delete the json option',
+							then.itShouldNotDeleteTheJsonOption,
+						);
+						Then(
+							'it should not delete the table option',
+							then.itShouldNotDeleteTheTableOption,
+						);
+					},
+				);
+			},
+		);
+	});
 	describe('#shouldUseJsonOutput', () => {
 		When(
 			'shouldUseJsonOutput is called with the config and the options',

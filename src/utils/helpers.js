@@ -105,12 +105,37 @@ export const createErrorHandler = prefix => ({ message }) => ({
 	error: `${prefix}: ${message}`,
 });
 
+const validateOutputFormatOptions = options => {
+	if (options.json && options.table) {
+		throw new Error('Cannot output both JSON and table.');
+	}
+	if (options.json === false && options.table === false) {
+		throw new Error('Must output either JSON or table.');
+	}
+	return true;
+};
+
+export const prepareOptions = async options =>
+	new Promise((resolve, reject) => {
+		try {
+			validateOutputFormatOptions(options);
+			resolve(options);
+		} catch (error) {
+			// eslint-disable-next-line no-param-reassign
+			delete options.json;
+			// eslint-disable-next-line no-param-reassign
+			delete options.table;
+			reject(error);
+		}
+	});
+
 export const wrapActionCreator = (
 	vorpal,
 	actionCreator,
 	errorPrefix,
-) => parameters =>
-	actionCreator(vorpal)(parameters)
+) => async parameters =>
+	prepareOptions(parameters.options)
+		.then(() => actionCreator(vorpal)(parameters))
 		.catch(createErrorHandler(errorPrefix))
 		.then(printResult(vorpal, parameters.options));
 

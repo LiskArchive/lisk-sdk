@@ -118,6 +118,11 @@ export function itShouldReturnString() {
 	return returnValue.should.equal(expectedString);
 }
 
+export function itShouldResolveToTheOptions() {
+	const { options, returnValue } = this.test.ctx;
+	return returnValue.should.be.fulfilledWith(options);
+}
+
 export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
 	return returnValue.should.be.fulfilledWith(data);

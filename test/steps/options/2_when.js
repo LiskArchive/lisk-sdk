@@ -13,14 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './config/2_when';
-export * from './crypto/2_when';
-export * from './domain/2_when';
-export * from './files/2_when';
-export * from './general/2_when';
-export * from './inputs/2_when';
-export * from './mnemonic/2_when';
-export * from './options/2_when';
-export * from './printing/2_when';
-export * from './queries/2_when';
-export * from './vorpal/2_when';
+import { prepareOptions } from '../../../src/utils/helpers';
+
+export function prepareOptionsIsCalledWithTheOptions() {
+	const { options } = this.test.ctx;
+	const testFunction = prepareOptions.bind(null, options);
+
+	const returnValue = testFunction();
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}

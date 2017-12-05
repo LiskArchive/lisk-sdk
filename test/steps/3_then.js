@@ -22,6 +22,7 @@ export * from './files/3_then';
 export * from './general/3_then';
 export * from './inputs/3_then';
 export * from './mnemonic/3_then';
+export * from './options/3_then';
 export * from './printing/3_then';
 export * from './queries/3_then';
 export * from './transactions/3_then';
