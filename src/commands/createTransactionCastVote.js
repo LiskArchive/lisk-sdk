@@ -60,8 +60,8 @@ export const actionCreator = vorpal => async ({ options }) => {
 	const votes = vote ? await processVotesInput(vote) : null;
 	const unvotes = unvote ? await processVotesInput(unvote) : null;
 
-	const validatedVotes = votes ? processVotes(votes) : null;
-	const validatedUnvotes = unvotes ? processVotes(unvotes) : null;
+	const validatedVotes = votes ? validatePublicKeys(processVotes(votes)) : null;
+	const validatedUnvotes = unvotes ? validatePublicKeys(processVotes(unvotes)) : null;
 
 	const upvotes = votes ? prependPlusToPublicKeys(validatedVotes) : [];
 	const downvotes = unvotes ? prependMinusToPublicKeys(validatedUnvotes) : [];

@@ -45,6 +45,16 @@ describe('create transaction cast vote', () => {
 											Then('it should throw "vote and unvote sources must not be the same."', then.itShouldRejectWithMessage);
 										});
 									});
+									Given('an options object with vote set to "215b667a32a5cd51a94c9c2046c11,922fbfdd596fa78269bbcadc67ec"', given.anOptionsObjectWithVoteSetTo, () => {
+										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+											Then('it should throw "Error processing public key 215b667a32a5cd51a94c9c2046c11: Invalid hex string."', then.itShouldRejectWithMessage);
+										});
+									});
+									Given('an options object with unvote set to "215b667a32a5cd51a94c9c2046c11,922fbfdd596fa78269bbcadc67ec"', given.anOptionsObjectWithUnvoteSetTo, () => {
+										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
+											Then('it should throw "Error processing public key 215b667a32a5cd51a94c9c2046c11: Invalid hex string."', then.itShouldRejectWithMessage);
+										});
+									});
 									Given('an options object with vote set to "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', given.anOptionsObjectWithVoteSetTo, () => {
 										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
