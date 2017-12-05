@@ -77,16 +77,18 @@ def cleanup_master() {
 }
 
 def archive_logs() {
-	sh """
-	cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-	LOGS_NAME=\$(echo "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID" | sed 's/\\///g')
-	mv logs "\$LOGS_NAME"
+	sh '''
+	cd "$(echo "$WORKSPACE" | cut -f 1 -d '@')"
+	# need a unique and descriptive name so that the artifacts don't clobber each other
+	# and we can know which log file goes to which node, etc
+	LOGS_NAME=$(echo "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID" | sed 's/\\///g')
+	mv logs "$LOGS_NAME"
 
-	if [ "\$(pwd)" != "${env.WORKSPACE}" ]; then
-		rm -r "${env.WORKSPACE}"/logs* || true
-		cp -r \$LOGS_NAME ${env.WORKSPACE}
+	if [ "$(pwd)" != "$WORKSPACE" ]; then
+		rm -r "$WORKSPACE"/logs* || true
+		cp -r $LOGS_NAME "$WORKSPACE"
 	fi
-	"""
+	'''
 	archiveArtifacts artifacts: "logs-*/*"
 }
 
