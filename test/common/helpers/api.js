@@ -6,6 +6,8 @@ var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
 var accountFixtures = require('../../fixtures/accounts');
+var swaggerSpec = require('../../common/swaggerSpec');
+var _ = test._;
 
 var http = {
 	abstractRequest: function (options, done) {
@@ -131,12 +133,33 @@ function getPendingMultisignatures (params, cb) {
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
-function sendTransaction (transaction, cb) {
-	http.post('/api/transactions', {transactions: [transaction]}, httpResponseCallbackHelper.bind(null, cb));
+function sendTransactionPromise (transaction) {
+	transaction.recipientAddress = transaction.recipientId;
+	transaction.senderAddress = transaction.senderId;
+	transaction.amount = transaction.amount.toString();
+	transaction.fee = transaction.fee.toString();
+
+	delete transaction.recipientId;
+	delete transaction.senderId;
+
+	return new swaggerSpec('POST /transactions 200').makeRequest({transactions: [transaction]});
 }
 
-function sendTransactions (transactions, cb) {
-	http.post('/api/transactions', {transactions: transactions}, httpResponseCallbackHelper.bind(null, cb));
+function sendTransactionsPromise (transactions) {
+
+	transactions = _.map(transactions, function (transaction) {
+		transaction.recipientAddress = transaction.recipientId;
+		transaction.senderAddress = transaction.senderId;
+		transaction.amount = transaction.amount.toString();
+		transaction.fee = transaction.fee.toString();
+
+		delete transaction.recipientId;
+		delete transaction.senderId;
+
+		return transaction;
+	});
+
+	return new swaggerSpec('POST /transactions 200').makeRequest({transactions: transactions});
 }
 
 function sendSignature (signature, transaction, cb) {
@@ -145,7 +168,7 @@ function sendSignature (signature, transaction, cb) {
 
 function creditAccount (address, amount, cb) {
 	var transaction = lisk.transaction.createTransaction(address, amount, accountFixtures.genesis.password);
-	sendTransaction(transaction, cb);
+	sendTransactionPromise(transaction).then(cb);
 }
 
 function getCount (param, cb) {
@@ -154,7 +177,7 @@ function getCount (param, cb) {
 
 function registerDelegate (account, cb) {
 	var transaction = lisk.delegate.createDelegate(account.password, account.username);
-	sendTransaction(transaction, cb);
+	sendTransactionPromise(transaction).then(cb);
 }
 
 function getForgingStatus (params, cb) {
@@ -257,8 +280,6 @@ var getMultisignaturesTransactionPromise = Promise.promisify(getMultisignaturesT
 var getMultisignaturesTransactionsPromise = Promise.promisify(getMultisignaturesTransactions);
 var getPendingMultisignaturesPromise = Promise.promisify(getPendingMultisignatures);
 var creditAccountPromise = Promise.promisify(creditAccount);
-var sendTransactionPromise = Promise.promisify(sendTransaction);
-var sendTransactionsPromise = Promise.promisify(sendTransactions);
 var sendSignaturePromise = Promise.promisify(sendSignature);
 var getCountPromise = Promise.promisify(getCount);
 var registerDelegatePromise = Promise.promisify(registerDelegate);

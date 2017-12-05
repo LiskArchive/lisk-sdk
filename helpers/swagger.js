@@ -8,6 +8,7 @@ var Promise = require('bluebird');
 
 var ZSchema = require('./z_schema');
 var SwayHelpers = require('sway/lib/helpers');
+var _ = require('lodash');
 
 // Used as private member to cache the spec resolution process
 var resolvedSwaggerSpec = null;
@@ -75,7 +76,7 @@ function getSwaggerSpec () {
 /**
  * Generate swagger based param error object to handle custom errors.
  * @param {Array} params - List of param objects.
- * @param {Array} messages - List of error messages.
+ * @param {Array} [messages] - List of error messages.
  * @param {Array} [codes] - List of codes for particular error.
  *
  * @return {object}
@@ -88,15 +89,35 @@ function generateParamsErrorObject (params, messages, codes) {
 
 	error.errors = params.map(function (p, i) {
 		var def = p.parameterObject;
-		return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
+
+		if(def) {
+			return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
+		} else {
+			return {name: p, message: 'Unknown request parameter.', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM')};
+		}
+
 	});
 
 	return error;
+}
+
+/**
+ * Get list of non documented params
+ * @param {object} request
+
+ * @return {boolean}
+ */
+function invalidParams (request) {
+	var swaggerParams = Object.keys(request.swagger.params);
+	var requestParams = Object.keys(request.query);
+
+	return _.difference(requestParams, swaggerParams);
 }
 
 module.exports = {
 	getValidator: getValidator,
 	getResolvedSwaggerSpec: getResolvedSwaggerSpec,
 	getSwaggerSpec: getSwaggerSpec,
-	generateParamsErrorObject: generateParamsErrorObject
+	generateParamsErrorObject: generateParamsErrorObject,
+	invalidParams: invalidParams
 };
