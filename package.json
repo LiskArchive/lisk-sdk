@@ -13,10 +13,11 @@
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"cover":
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local":
-			"NODE_ENV=test nyc --reporter=html --reporter=text mocha",
+			"npm run cover:base -- --reporter=html --reporter=text mocha",
 		"cover:ci":
-			"NODE_ENV=test nyc --reporter=text-lcov mocha | coveralls -v",
+			"npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
 		"format": "prettier --write \"{bin,src,test}{,/**}/*.js\"",
