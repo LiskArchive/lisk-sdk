@@ -2,8 +2,10 @@
 
 var expect = require('chai').expect;
 var async = require('async');
-var sinon  = require('sinon');
+var sinon = require('sinon');
+var rewire = require('rewire');
 
+var slots = require('../../../../helpers/slots');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var BlockLogic = require('../../../../logic/block.js');
 var VoteLogic = require('../../../../logic/vote.js');
@@ -67,8 +69,8 @@ describe('blocks/process', function () {
 				{transactions: require('../../../../modules/transactions')},
 				{rounds: require('../../../../modules/rounds')},
 				{multisignatures: require('../../../../modules/multisignatures')},
-        {signatures: require('../../../../modules/signatures')},
-        {loader: require('../../../../modules/loader')},
+				{signatures: require('../../../../modules/signatures')},
+				{loader: require('../../../../modules/loader')},
 			], [
 				{'block': require('../../../../logic/block')},
 				{'transaction': require('../../../../logic/transaction')},
@@ -893,6 +895,76 @@ describe('blocks/process', function () {
 				};
 
 				blocksProcess.onReceiveBlock(forkOneScenarios[0]);
+			});
+		});
+	});
+
+	describe('__private.verifySlotWindow', function () {
+
+		var verifySlotWindow;
+
+		before(function () {
+			var blockProcess = rewire('../../../../modules/blocks/process');
+			verifySlotWindow = blockProcess.__get__('__private.verifySlotWindow');
+		});
+
+		describe('for current slot number', function () {
+
+			var dummyBlock = {};
+
+			before(function () {
+				dummyBlock.timestamp = slots.getSlotTime(slots.getSlotNumber());
+			});
+
+			it('should call callback with error = null', function () {
+				verifySlotWindow(dummyBlock, function (err) {
+					expect(err).to.not.exist;
+				});
+			});
+		});
+
+		describe('for slot number 5 slots in the past', function () {
+
+			var dummyBlock = {};
+
+			before(function () {
+				dummyBlock.timestamp = slots.getSlotTime(slots.getSlotNumber() - 5);
+			});
+
+			it('should call callback with error = null', function () {
+				verifySlotWindow(dummyBlock, function (err) {
+					expect(err).to.not.exist;
+				});
+			});
+		});
+
+		describe('for slot number in the future', function () {
+
+			var dummyBlock = {};
+
+			before(function () {
+				dummyBlock.timestamp = slots.getSlotTime(slots.getSlotNumber() + 1);
+			});
+
+			it('should call callback with error = Block slot is in the future ', function () {
+				verifySlotWindow(dummyBlock, function (err) {
+					expect(err).to.equal('Block slot is in the future');
+				});
+			});
+		});
+
+		describe('for slot number 6 slots in the past', function () {
+
+			var dummyBlock = {};
+
+			before(function () {
+				dummyBlock.timestamp = slots.getSlotTime(slots.getSlotNumber() - 6);
+			});
+
+			it('should call callback with error = Block slot is too old', function () {
+				verifySlotWindow(dummyBlock, function (err) {
+					expect(err).to.equal('Block slot is too old');
+				});
 			});
 		});
 	});
