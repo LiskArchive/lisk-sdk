@@ -81,6 +81,7 @@ def archive_logs() {
 	cd "$(echo "$WORKSPACE" | cut -f 1 -d '@')"
 	# need a unique and descriptive name so that the artifacts don't clobber each other
 	# and we can know which log file goes to which node, etc
+	# this also removes a / that would otherwise be included
 	LOGS_NAME=$(echo "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID" | sed 's/\\///g')
 	mv logs "$LOGS_NAME"
 
