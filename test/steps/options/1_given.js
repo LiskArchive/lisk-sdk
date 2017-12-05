@@ -18,6 +18,7 @@ import {
 	getFirstQuotedString,
 	getQuotedStrings,
 	getFirstBoolean,
+	getBooleans,
 	hasAncestorWithTitleMatching,
 } from '../utils';
 
@@ -193,6 +194,16 @@ export function anOptionsObjectWithSecondPassphraseSetTo() {
 export function anOptionsObjectWithJsonSetTo() {
 	const json = getFirstBoolean(this.test.parent.title);
 	this.test.ctx.options = { json };
+}
+
+export function anOptionsObjectWithTableSetTo() {
+	const table = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { table };
+}
+
+export function anOptionsObjectWithJsonSetToAndTableSetTo() {
+	const [json, table] = getBooleans(this.test.parent.title);
+	this.test.ctx.options = { json, table };
 }
 
 export function anOptionsObjectWithPrettySetTo() {

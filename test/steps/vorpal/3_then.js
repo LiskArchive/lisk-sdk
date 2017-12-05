@@ -50,11 +50,11 @@ export function theVorpalCommandInstanceShouldHaveTheJsonOption() {
 	);
 }
 
-export function theVorpalCommandInstanceShouldHaveTheNoJsonOption() {
+export function theVorpalCommandInstanceShouldHaveTheTableOption() {
 	const { vorpal, command } = this.test.ctx;
 	const { options } = getCommandInstance(vorpal, command);
 	return options.should.matchAny(
-		option => option.flags === commonOptions.noJson[0],
+		option => option.flags === commonOptions.table[0],
 	);
 }
 

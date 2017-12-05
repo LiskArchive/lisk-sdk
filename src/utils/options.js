@@ -1,5 +1,5 @@
 const jsonDescription =
-	'Sets output to json. You can change the default behaviour in your config.json file.';
+	'Prints output in json format. You can change the default behaviour in your config.json file.';
 
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 
@@ -9,9 +9,6 @@ const messageDescription = `Specifies a source for providing a message to the co
 	- --message file:/path/to/my/message.txt
 	- --message stdin
 `;
-
-const noJsonDescription =
-	'Sets output to text (default). You can change the default behaviour in your config.json file.';
 
 const passphraseDescription = `Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
 
@@ -52,6 +49,9 @@ const passwordDescription = `Specifies a source for your secret password. Lisky 
 const prettyDescription =
 	'Prints json in pretty format rather than condensed. Has no effect if json option is false. You can change the default behaviour in your config.json file.';
 
+const tableDescription =
+	'Prints output in table format (default). You can change the default behaviour in your config.json file.';
+
 const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
 
 	Examples:
@@ -69,7 +69,6 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 const options = {
 	json: ['-j, --json', jsonDescription],
 	message: ['-m, --message <source>', messageDescription],
-	noJson: ['-t, --no-json', noJsonDescription],
 	passphrase: ['-p, --passphrase <source>', passphraseDescription],
 	secondPassphrase: [
 		'-s, --second-passphrase <source>',
@@ -77,6 +76,7 @@ const options = {
 	],
 	password: ['-w, --password <source>', passwordDescription],
 	pretty: ['--pretty', prettyDescription],
+	table: ['-t, --table', tableDescription],
 	unvotes: ['--unvotes <source...>', unvotesDescription],
 	votes: ['--votes <source...>', votesDescription],
 };

@@ -91,8 +91,11 @@ export const deAlias = type => (type === 'address' ? 'account' : type);
 export const processQueryResult = type => result =>
 	result.error ? result : result[deAlias(type)];
 
-export const shouldUseJsonOutput = (config, options) =>
-	(options.json === true || config.json === true) && options.json !== false;
+export const shouldUseJsonOutput = (config = {}, options = {}) => {
+	if (!!options.json === options.json) return options.json;
+	if (!!options.table === options.table) return !options.table;
+	return !!config.json;
+};
 
 export const shouldUsePrettyOutput = (config, options) =>
 	(options.pretty === true || config.pretty === true) &&
@@ -144,8 +147,8 @@ export const createCommand = ({
 
 		[
 			commonOptions.json,
-			commonOptions.noJson,
 			commonOptions.pretty,
+			commonOptions.table,
 			...options,
 		].forEach(option => commandInstance.option(...option));
 	};
