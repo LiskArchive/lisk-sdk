@@ -176,14 +176,15 @@ TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) 
 };
 
 /**
- * Gets multisignature transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
+ * Gets multisignature transactions based on reverse, ready and limit parameters
+ * @param {boolean} [reverse] - If true trasactions order will be reversed
+ * @param {number} [limit] - When supplied list will be cut off
+ * @param {boolean} [ready] - When true get only transactions that are ready
+ * @implements {__private.getTransactionList}
+ * @return {Object[]} transactions - Array of transactions
  * @todo Avoid mix sync/asyn implementations of the same function
- * @todo Change order extra parameter 'ready', move it to the end
  */
-TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, ready, limit) {
+TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, limit, ready) {
 	if (ready) {
 		return __private.getTransactionList(self.multisignature.transactions, reverse).filter(function (transaction) {
 			return transaction.ready;
@@ -195,9 +196,9 @@ TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, 
 
 /**
  * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
- * @implements {modules.transactions.getUnconfirmedTransactionList}
- * @implements {modules.transactions.getMultisignatureTransactionList}
- * @implements {modules.transactions.getQueuedTransactionList}
+ * @implements {getUnconfirmedTransactionList}
+ * @implements {getMultisignatureTransactionList}
+ * @implements {getQueuedTransactionList}
  * @param {boolean} reverse
  * @param {number} [limit]
  * @return {transaction[]} unconfirmed + multisignatures + queued
@@ -210,13 +211,13 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 		limit = minLimit;
 	}
 
-	var unconfirmed = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
+	var unconfirmed = self.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	limit -= unconfirmed.length;
 
-	var multisignatures = modules.transactions.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
+	var multisignatures = self.getMultisignatureTransactionList(false, constants.maxTxsPerBlock);
 	limit -= multisignatures.length;
 
-	var queued = modules.transactions.getQueuedTransactionList(false, limit);
+	var queued = self.getQueuedTransactionList(false, limit);
 	limit -= queued.length;
 
 	return unconfirmed.concat(multisignatures).concat(queued);
@@ -585,7 +586,7 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 			__private.expireTransactions(self.getQueuedTransactionList(true), ids, seriesCb);
 		},
 		function (res, seriesCb) {
-			__private.expireTransactions(self.getMultisignatureTransactionList(true, false), ids, seriesCb);
+			__private.expireTransactions(self.getMultisignatureTransactionList(true), ids, seriesCb);
 		}
 	], function (err, ids) {
 		return setImmediate(cb, err, ids);
@@ -620,7 +621,7 @@ TransactionPool.prototype.fillPool = function (cb) {
 
 		spare = (constants.maxTxsPerBlock - unconfirmedCount);
 		spareMulti = (spare >= multisignaturesLimit) ? multisignaturesLimit : 0;
-		multisignatures = self.getMultisignatureTransactionList(true, true, multisignaturesLimit).slice(0, spareMulti);
+		multisignatures = self.getMultisignatureTransactionList(true, multisignaturesLimit, true).slice(0, spareMulti);
 		spare = Math.abs(spare - multisignatures.length);
 		transactions = self.getQueuedTransactionList(true, constants.maxTxsPerBlock).slice(0, spare);
 		transactions = multisignatures.concat(transactions);
