@@ -642,7 +642,7 @@ Transport.prototype.internal = {
 	},
 
 	getSignatures: function (req, cb) {
-		var transactions = modules.transactions.getMultisignatureTransactionList(true, false, constants.maxSharedTxs);
+		var transactions = modules.transactions.getMultisignatureTransactionList(true, constants.maxSharedTxs);
 		var signatures = [];
 
 		async.eachSeries(transactions, function (trs, __cb) {

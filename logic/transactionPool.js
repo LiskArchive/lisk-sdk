@@ -176,15 +176,15 @@ TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) 
 };
 
 /**
- * Gets multisignature transactions.
- * @param {boolean} reverse - Reverse order of transactions
- * @param {boolean} ready - Get only transactions with ready state
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
+ * Gets multisignature transactions based on reverse, ready and limit parameters
+ * @param {boolean} [reverse] - If true trasactions order will be reversed
+ * @param {number} [limit] - When supplied list will be cut off
+ * @param {boolean} [ready] - When true get only transactions that are ready
+ * @implements {__private.getTransactionList}
+ * @return {Object[]} transactions - Array of transactions
  * @todo Avoid mix sync/asyn implementations of the same function
- * @todo Change order extra parameter 'ready', move it to the end
  */
-TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, ready, limit) {
+TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, limit, ready) {
 	if (ready) {
 		return __private.getTransactionList(self.multisignature.transactions, reverse).filter(function (transaction) {
 			return transaction.ready;
@@ -214,7 +214,7 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 	var unconfirmed = self.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	limit -= unconfirmed.length;
 
-	var multisignatures = self.getMultisignatureTransactionList(false, false, constants.maxTxsPerBlock);
+	var multisignatures = self.getMultisignatureTransactionList(false, constants.maxTxsPerBlock);
 	limit -= multisignatures.length;
 
 	var queued = self.getQueuedTransactionList(false, limit);
@@ -586,7 +586,7 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 			__private.expireTransactions(self.getQueuedTransactionList(true), ids, seriesCb);
 		},
 		function (res, seriesCb) {
-			__private.expireTransactions(self.getMultisignatureTransactionList(true, false), ids, seriesCb);
+			__private.expireTransactions(self.getMultisignatureTransactionList(true), ids, seriesCb);
 		}
 	], function (err, ids) {
 		return setImmediate(cb, err, ids);
@@ -621,7 +621,7 @@ TransactionPool.prototype.fillPool = function (cb) {
 
 		spare = (constants.maxTxsPerBlock - unconfirmedCount);
 		spareMulti = (spare >= multisignaturesLimit) ? multisignaturesLimit : 0;
-		multisignatures = self.getMultisignatureTransactionList(true, true, multisignaturesLimit).slice(0, spareMulti);
+		multisignatures = self.getMultisignatureTransactionList(true, multisignaturesLimit, true).slice(0, spareMulti);
 		spare = Math.abs(spare - multisignatures.length);
 		transactions = self.getQueuedTransactionList(true, constants.maxTxsPerBlock).slice(0, spare);
 		transactions = multisignatures.concat(transactions);
