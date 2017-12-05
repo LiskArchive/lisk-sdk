@@ -85,7 +85,7 @@ def archive_logs() {
 	mv logs "$LOGS_NAME"
 
 	if [ "$(pwd)" != "$WORKSPACE" ]; then
-		rm -r "$WORKSPACE"/logs* || true
+		rm -rf "$WORKSPACE"/logs* || true
 		cp -r "$LOGS_NAME" "$WORKSPACE"
 	fi
 	'''
