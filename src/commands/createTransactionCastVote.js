@@ -24,22 +24,21 @@ import {
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
-const description = `Creates a transaction which will cast votes for delegate candidates using their public keys if broadcast to the network.
+const description = `Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.
 
 	Examples:
-	- create transaction cast vote --vote "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca", "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa" --unvote "e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589", "ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba"
-	- create transaction cast votes --vote "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca", "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa" --unvote "e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589", "ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba"
-	- create transaction 3 --vote "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca", "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa" --unvote "e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589", "ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba"
+	- create transaction cast votes --vote "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca, 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa" --unvote "e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589, ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba"
+	- create transaction 3 --vote "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca, 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa" --unvote "e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589, ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba"
 `;
 
 const processInputs = votes => ({ passphrase, secondPassphrase }) =>
 	transactions.createVote(passphrase, votes, secondPassphrase);
 
-const processVotesInput = async votes => (votes.includes(':')
+const processVotesInput = async votes => (votes.toString().includes(':')
 	? getData(votes)
 	: votes);
 
-const processVotes = votes => votes.replace(/\n/g, ',').split(',').filter(Boolean);
+const processVotes = votes => votes.replace(/\n/g, ',').split(',').filter(Boolean).map(vote => vote.trim());
 
 export const actionCreator = vorpal => async ({ options }) => {
 	const {
@@ -50,11 +49,11 @@ export const actionCreator = vorpal => async ({ options }) => {
 	} = options;
 
 	if (!vote && !unvote) {
-		throw new Error('create transaction `cast vote` needs vote and/or unvote options');
+		throw new Error('At least one of vote and/or unvote options must be provided.');
 	}
 
 	if (vote === unvote) {
-		throw new Error('vote and unvote sources must not be the same.');
+		throw new Error('Vote and unvote sources must not be the same.');
 	}
 
 	const votes = vote ? await processVotesInput(vote) : null;
@@ -66,7 +65,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 	const upvotes = votes ? prependPlusToPublicKeys(validatedVotes) : [];
 	const downvotes = unvotes ? prependMinusToPublicKeys(validatedUnvotes) : [];
 
-	const allVotes = [].concat(upvotes, downvotes).filter(Boolean);
+	const allVotes = [...upvotes, ...downvotes];
 
 	return getInputsFromSources(vorpal, {
 		passphrase: {

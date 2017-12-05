@@ -25,13 +25,13 @@ import {
 
 export function theUnvoteCanBeRetrievedFromItsSource() {
 	const { unvotePublicKeys, options: { unvote } } = this.test.ctx;
-	const publicKeysFromFile = unvotePublicKeys.join('\n');
+	const publicKeysFromFile = unvotePublicKeys.map(votes => votes.trim()).join('\n');
 	inputUtils.getData.withArgs(unvote).resolves(publicKeysFromFile);
 }
 
 export function theVoteCanBeRetrievedFromItsSource() {
 	const { votePublicKeys, options: { vote } } = this.test.ctx;
-	const publicKeysFromFile = votePublicKeys.join('\n');
+	const publicKeysFromFile = votePublicKeys.map(votes => votes.trim()).join('\n');
 	inputUtils.getData.withArgs(vote).resolves(publicKeysFromFile);
 }
 

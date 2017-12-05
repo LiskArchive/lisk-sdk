@@ -19,20 +19,20 @@ import { getFirstQuotedString } from '../utils';
 
 export async function itShouldGetTheDataUsingTheUnvoteSource() {
 	const { options = {} } = this.test.ctx;
-	return (inputUtils.getData).should.be.calledWith(options.unvote);
+	return (inputUtils.getData).should.be.calledWithExactly(options.unvote);
 }
 
 export async function itShouldGetTheDataUsingTheVoteSource() {
 	const { options = {} } = this.test.ctx;
-	return (inputUtils.getData).should.be.calledWith(options.vote);
+	return (inputUtils.getData).should.be.calledWithExactly(options.vote);
 }
 
 export async function itShouldNotGetTheDataUsingTheUnvoteSource() {
-	return (inputUtils.getData.called).should.be.false();
+	return (inputUtils.getData).should.not.be.called();
 }
 
 export async function itShouldNotGetTheDataUsingTheVoteSource() {
-	return (inputUtils.getData.called).should.be.false();
+	return (inputUtils.getData).should.not.be.called();
 }
 
 export async function itShouldResolveWithThePassphrase() {

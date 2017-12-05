@@ -14,20 +14,20 @@
  *
  */
 
-export function itShouldHaveThePublicKeysWithPrependedMinus() {
+export function itShouldReturnThePublicKeyPrependedWithAMinus() {
 	const { publicKeys, returnValue } = this.test.ctx;
 	const publicKeysWithMinus = publicKeys.map((publicKey) => {
 		return `-${publicKey}`;
 	});
-	(returnValue).should.be.eql(publicKeysWithMinus);
+	(returnValue).should.eql(publicKeysWithMinus);
 }
 
-export function itShouldHaveThePublicKeysWithPrependedPlus() {
+export function itShouldReturnThePublicKeyPrependedWithAPlus() {
 	const { publicKeys, returnValue } = this.test.ctx;
 	const publicKeysWithPlus = publicKeys.map((publicKey) => {
 		return `+${publicKey}`;
 	});
-	(returnValue).should.be.eql(publicKeysWithPlus);
+	(returnValue).should.eql(publicKeysWithPlus);
 }
 
 export function itShouldReturnThePublicKeys() {

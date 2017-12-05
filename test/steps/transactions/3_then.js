@@ -29,7 +29,7 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPass
 	} = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	const allVotes = [].concat(votes, unvotes).filter(Boolean);
+	const allVotes = [...votes, ...unvotes].filter(Boolean);
 	return (transactions.createVote).should.be.calledWithExactly(passphrase, allVotes, secondPassphrase);
 }
 
@@ -49,7 +49,7 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 	const { passphrase, votePublicKeys, unvotePublicKeys } = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	const allVotes = [].concat(votes, unvotes).filter(Boolean);
+	const allVotes = [...votes, ...unvotes].filter(Boolean);
 	return (transactions.createVote).should.be.calledWithExactly(passphrase, allVotes, null);
 }
 

@@ -26,6 +26,10 @@ export const validatePublicKeys = publicKeys => publicKeys.map((publicKey) => {
 	if (publicKey.length !== 64) {
 		throw new Error(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
 	}
+
+	if (Buffer.from(publicKey, 'hex').length !== 32) {
+		throw new Error(`Public key ${publicKey} bytes length differs from the expected 32 bytes for a public key.`);
+	}
 	return publicKey;
 });
 
