@@ -112,6 +112,17 @@ const encryptAES256GCMWithPassword = (plainText, password) => {
 	};
 };
 
+const getTagBuffer = tag => {
+	const tagBuffer = hexToBuffer(tag);
+	if (bufferToHex(tagBuffer) !== tag) {
+		throw new Error('Tag must be a hex string.');
+	}
+	if (tagBuffer.length !== 16) {
+		throw new Error('Tag must be 16 bytes.');
+	}
+	return tagBuffer;
+};
+
 /**
  * @method decryptAES256GCMWithPassword
  * @param {Object} Object - Object with cipher, iv and tag as hex strings
@@ -124,13 +135,14 @@ const encryptAES256GCMWithPassword = (plainText, password) => {
  */
 
 const decryptAES256GCMWithPassword = ({ cipher, iv, tag }, password) => {
+	const tagBuffer = getTagBuffer(tag);
 	const passwordHash = hash(password, 'utf8');
 	const decipher = crypto.createDecipheriv(
 		'aes-256-gcm',
 		passwordHash,
 		hexToBuffer(iv),
 	);
-	decipher.setAuthTag(hexToBuffer(tag));
+	decipher.setAuthTag(tagBuffer);
 	const firstBlock = decipher.update(hexToBuffer(cipher));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);
 

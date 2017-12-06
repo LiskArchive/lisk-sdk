@@ -177,18 +177,44 @@ describe('encrypt', () => {
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
-			it('should decrypt a text with a password', () => {
-				const cipherNonceAndTag = {
+			let cipherNonceAndTag;
+
+			beforeEach(() => {
+				cipherNonceAndTag = {
 					cipher:
 						'331a80ab5f9cdd21e16f60c73e9b8f3c3d7f6b44dc79f60985234fde36077080726e577cb5596ab0c885bc321efc4f6cce52f5cae134b48e1b5308232563b6180858323bcb',
 					iv: 'e249a35bb2c2fa529fdbe349496d30ac',
 					tag: 'eb318b7feaa7a7540e599984bd1bb298',
 				};
+			});
+
+			it('should decrypt a text with a password', () => {
 				const decrypted = decryptPassphraseWithPassword(
 					cipherNonceAndTag,
 					defaultPassword,
 				);
 				decrypted.should.be.eql(defaultPassphrase);
+			});
+
+			it('should inform the user if the tag has been shortened', () => {
+				cipherNonceAndTag.tag = cipherNonceAndTag.tag.slice(0, 30);
+				decryptPassphraseWithPassword
+					.bind(null, cipherNonceAndTag, defaultPassword)
+					.should.throw('Tag must be 16 bytes.');
+			});
+
+			it('should inform the user if the tag is not a hex string', () => {
+				cipherNonceAndTag.tag = `${cipherNonceAndTag.tag.slice(0, 30)}gg`;
+				decryptPassphraseWithPassword
+					.bind(null, cipherNonceAndTag, defaultPassword)
+					.should.throw('Tag must be a hex string.');
+			});
+
+			it('should inform the user if the tag has been altered', () => {
+				cipherNonceAndTag.tag = `00${cipherNonceAndTag.tag.slice(2)}`;
+				decryptPassphraseWithPassword
+					.bind(null, cipherNonceAndTag, defaultPassword)
+					.should.throw('Unsupported state or unable to authenticate data');
 			});
 		});
 
