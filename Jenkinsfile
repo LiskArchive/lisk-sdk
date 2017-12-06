@@ -3,8 +3,6 @@ def initBuild() {
 		sh '''
 		pkill -f app.js -9 || true
 		sudo service postgresql restart
-		dropdb lisk_test || true
-		createdb lisk_test
 		'''
 		deleteDir()
 		checkout scm
