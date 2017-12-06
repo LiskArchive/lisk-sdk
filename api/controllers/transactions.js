@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var swaggerHelper = require('../../helpers/swagger');
+var ApiError = require('../../helpers/apiError');
 
 // Private Fields
 var modules;
@@ -96,6 +97,14 @@ TransactionsController.postTransactions = function (context, next) {
 	});
 
 	modules.transactions.shared.postTransactions(transactions, function (err, data) {
+		if (err) {
+			if (err instanceof ApiError) {
+				context.statusCode = err.code;
+				delete err.code;
+			}
+
+			return next(err);
+		}
 		if (err) { return next(err); }
 
 		next(null, {

@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var debug = require('debug')('swagger:lisk:params_validator');
 
 module.exports = function create (fittingDef, bagpipes) {
 
@@ -18,6 +19,8 @@ module.exports = function create (fittingDef, bagpipes) {
 			if (validateResult.errors.length) {
 				error = new Error('Validation errors');
 				error.statusCode = 400;
+
+				validateResult.errors.forEach(function (error) { debug('param error: %j', error); });
 
 				error.errors = _.map(validateResult.errors, function (e) {
 					var errs = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
