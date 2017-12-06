@@ -619,10 +619,6 @@ TransactionPool.prototype.fillPool = function (cb) {
 		transactions = self.getQueuedTransactionList(true, constants.maxTxsPerBlock).slice(0, spare);
 		transactions = multisignatures.concat(transactions);
 
-		transactions.forEach(function (transaction)  {
-			self.addUnconfirmedTransaction(transaction);
-		});
-
 		return __private.applyUnconfirmedList(transactions, cb);
 	}
 };
@@ -760,6 +756,9 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 				if (err) {
 					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
 					self.removeUnconfirmedTransaction(transaction.id);
+				} else {
+					// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
+					self.addUnconfirmedTransaction(transaction);
 				}
 				return setImmediate(eachSeriesCb);
 			});
