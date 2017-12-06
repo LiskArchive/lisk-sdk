@@ -10,6 +10,7 @@ var localCommon = require('./common');
 
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
+var errorCodes = require('../../../../../helpers/apiCodes');
 
 describe('POST /api/transactions (validate type 5 on top of type 1)', function () {
 
@@ -26,9 +27,8 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 			transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 
-			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Missing sender second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -36,9 +36,8 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 		it('using second passphrase not matching registered secondPublicKey should fail', function () {
 			transaction = lisk.dapp.createDapp(account.password, 'wrong second password', randomUtil.application());
 
-			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Failed to verify second signature');
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Failed to verify second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -47,8 +46,7 @@ describe('POST /api/transactions (validate type 5 on top of type 1)', function (
 			transaction = lisk.dapp.createDapp(account.password, account.secondPassword, randomUtil.application());
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});

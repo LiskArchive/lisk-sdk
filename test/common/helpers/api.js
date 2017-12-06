@@ -133,33 +133,40 @@ function getPendingMultisignatures (params, cb) {
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
-function sendTransactionPromise (transaction) {
-	transaction.recipientAddress = transaction.recipientId;
-	transaction.senderAddress = transaction.senderId;
-	transaction.amount = transaction.amount.toString();
-	transaction.fee = transaction.fee.toString();
+function normalizeTransactionObject (transaction) {
+	if (_.isObject(transaction)) {
 
-	delete transaction.recipientId;
-	delete transaction.senderId;
+		transaction.recipientAddress = transaction.recipientId || '';
+		transaction.senderAddress = transaction.senderId || '';
 
-	return new swaggerSpec('POST /transactions 200').makeRequest({transactions: [transaction]});
-}
+		if (_.has(transaction, 'amount')) {
+			transaction.amount = transaction.amount.toString();
+		}
 
-function sendTransactionsPromise (transactions) {
-
-	transactions = _.map(transactions, function (transaction) {
-		transaction.recipientAddress = transaction.recipientId;
-		transaction.senderAddress = transaction.senderId;
-		transaction.amount = transaction.amount.toString();
-		transaction.fee = transaction.fee.toString();
+		if (_.has(transaction, 'fee')) {
+			transaction.fee = transaction.fee.toString();
+		}
 
 		delete transaction.recipientId;
 		delete transaction.senderId;
+	}
+	return transaction;
+}
 
-		return transaction;
-	});
+function sendTransactionPromise (transaction, expectedStatusCode) {
+	expectedStatusCode = expectedStatusCode || 200;
 
-	return new swaggerSpec('POST /transactions 200').makeRequest({transactions: transactions});
+	transaction = normalizeTransactionObject(transaction);
+
+	return new swaggerSpec('POST /transactions').makeRequest({transactions: [transaction]}, expectedStatusCode);
+}
+
+function sendTransactionsPromise (transactions, expectedStatusCode) {
+	expectedStatusCode = expectedStatusCode || 200;
+
+	transactions = _.map(transactions, normalizeTransactionObject);
+
+	return new swaggerSpec('POST /transactions').makeRequest({transactions: transactions}, expectedStatusCode);
 }
 
 function sendSignature (signature, transaction, cb) {
