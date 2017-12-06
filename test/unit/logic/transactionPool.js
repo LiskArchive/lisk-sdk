@@ -48,7 +48,7 @@ describe('transactionPool', function () {
 		TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
 		dummyUndoUnconfirmed = sinon.spy(function (transaction, cb) { return cb(); });
 		TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
-	}
+	};
 
 	before(function () {
 		// Init test subject
@@ -121,14 +121,14 @@ describe('transactionPool', function () {
 						expect(logger.error.called).to.be.false;
 					});
 
-					describe('__private.processVerifyTransaction', function() {
+					describe('__private.processVerifyTransaction', function () {
 
 						it('should not be called', function () {
 							expect(dummyProcessVerifyTransaction.called).to.be.false;
 						});
 					});
 
-					describe('modules.transactions.applyUnconfirmed', function() {
+					describe('modules.transactions.applyUnconfirmed', function () {
 
 						it('should not be called', function () {
 							expect(dummyApplyUnconfirmed.called).to.be.false;
@@ -158,7 +158,7 @@ describe('transactionPool', function () {
 							expect(logger.error.called).to.be.false;
 						});
 
-						describe('__private.processVerifyTransaction', function() {
+						describe('__private.processVerifyTransaction', function () {
 
 							it('should be called once', function () {
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
@@ -169,7 +169,7 @@ describe('transactionPool', function () {
 							});
 						});
 
-						describe('modules.transactions.applyUnconfirmed', function() {
+						describe('modules.transactions.applyUnconfirmed', function () {
 
 							it('should be called once', function () {
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true;
@@ -210,7 +210,7 @@ describe('transactionPool', function () {
 									expect(index).to.be.an('undefined');
 								});
 							});
-						})
+						});
 
 						after(resetStates);
 					});
@@ -239,7 +239,7 @@ describe('transactionPool', function () {
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('__private.processVerifyTransaction', function() {
+						describe('__private.processVerifyTransaction', function () {
 
 							it('should be called onece', function () {
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
@@ -250,7 +250,7 @@ describe('transactionPool', function () {
 							});
 						});
 
-						describe('modules.transactions.applyUnconfirmed', function() {
+						describe('modules.transactions.applyUnconfirmed', function () {
 
 							it('should not be called', function () {
 								expect(dummyApplyUnconfirmed.called).to.be.false;
@@ -312,7 +312,7 @@ describe('transactionPool', function () {
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('__private.processVerifyTransaction', function() {
+						describe('__private.processVerifyTransaction', function () {
 
 							it('should be called onece', function () {
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
@@ -323,7 +323,7 @@ describe('transactionPool', function () {
 							});
 						});
 
-						describe('modules.transactions.applyUnconfirmed', function() {
+						describe('modules.transactions.applyUnconfirmed', function () {
 
 							it('should be called once', function () {
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true;
@@ -407,7 +407,7 @@ describe('transactionPool', function () {
 						expect(lastIds.length).to.equal(0);
 					});
 
-					describe('modules.transactions.undoUnconfirmed', function() {
+					describe('modules.transactions.undoUnconfirmed', function () {
 
 						it('should not be called', function () {
 							expect(dummyUndoUnconfirmed.called).to.be.false;
@@ -449,7 +449,7 @@ describe('transactionPool', function () {
 							expect(lastIds).to.deep.equal(_.map(transactions, function (tx) { return tx.id; }));
 						});
 
-						describe('modules.transactions.undoUnconfirmed', function() {
+						describe('modules.transactions.undoUnconfirmed', function () {
 
 							it('should be called onece', function () {
 								expect(dummyUndoUnconfirmed.calledOnce).to.be.true;
@@ -491,7 +491,7 @@ describe('transactionPool', function () {
 									expect(index).to.be.an('undefined');
 								});
 							});
-						})
+						});
 
 						after(resetStates);
 					});
@@ -532,7 +532,7 @@ describe('transactionPool', function () {
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('modules.transactions.undoUnconfirmed', function() {
+						describe('modules.transactions.undoUnconfirmed', function () {
 
 							it('should be called onece', function () {
 								expect(dummyUndoUnconfirmed.calledOnce).to.be.true;
