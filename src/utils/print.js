@@ -14,20 +14,32 @@
  *
  */
 import chalk from 'chalk';
+import stripAnsi from 'strip-ansi';
 import config from './config';
 import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
+const disableAnsi = (result) => {
+	// eslint-disable-next-line no-param-reassign
+	Object.keys(result).forEach((key) => { result[key] = stripAnsi(result[key]); });
+	return result;
+};
+
 export const printResult = (vorpal, options = {}) => (result) => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
 	const prettifyOutput = shouldUsePrettyOutput(config, options);
+	let resultToPrint = result;
+
+	if (useJsonOutput) {
+		resultToPrint = disableAnsi(result);
+	}
 
 	const output = useJsonOutput
-		? JSON.stringify(result, null, prettifyOutput ? '\t' : null)
-		: tablify(result).toString();
+		? JSON.stringify(resultToPrint, null, prettifyOutput ? '\t' : null)
+		: tablify(resultToPrint).toString();
 
 	vorpal.activeCommand.log(output);
-	return result;
+	return resultToPrint;
 };
 
 // TODO: Include commented placeholders when we support Node 8

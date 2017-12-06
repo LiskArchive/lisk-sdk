@@ -63,6 +63,7 @@
 		"cli-table2": "=0.2.0",
 		"lisk-js": "=0.5.0",
 		"lockfile": "=1.0.3",
+		"strip-ansi": "=4.0.0",
 		"vorpal": "LiskHQ/vorpal#master"
 	}
 }
