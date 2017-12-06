@@ -535,9 +535,14 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 		if (transaction) {
 			ids.push(transaction.id);
 			modules.transactions.undoUnconfirmed(transaction, function (err) {
+				// Remove transaction from unconfirmed, queued and multisignature lists
+				self.removeUnconfirmedTransaction(transaction.id);
+
 				if (err) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
-					self.removeUnconfirmedTransaction(transaction.id);
+				} else {
+					// Transaction successfully undone from unconfirmed states, move it to queued list
+					self.addQueuedTransaction(transaction);
 				}
 				return setImmediate(eachSeriesCb);
 			});
