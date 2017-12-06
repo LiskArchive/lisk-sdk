@@ -13,6 +13,9 @@ var config = require('../../../config.json');
 // Instantiate test subject
 var TransactionPool = rewire('../../../logic/transactionPool.js');
 
+// Create fresh instance of jobsQueue
+var jobsQueue = rewire('../../../helpers/jobsQueue.js');
+
 describe('transactionPool', function () {
 	var transactionPool;
 	var freshListState = {transactions: [], index: {}};
@@ -51,6 +54,9 @@ describe('transactionPool', function () {
 	};
 
 	before(function () {
+		// Use fresh instance of jobsQueue inside transaction pool
+		TransactionPool.__set__('jobsQueue', jobsQueue);
+
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
