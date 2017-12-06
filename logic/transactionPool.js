@@ -583,7 +583,6 @@ TransactionPool.prototype.expireTransactions = function (cb) {
  * @implements {countUnconfirmed}
  * @implements {getMultisignatureTransactionList}
  * @implements {getQueuedTransactionList}
- * @implements {addUnconfirmedTransaction}
  * @implements {applyUnconfirmedList}
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|applyUnconfirmedList}
@@ -723,6 +722,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
  * @implements {getUnconfirmedTransaction}
  * @implements {__private.processVerifyTransaction}
  * @implements {removeUnconfirmedTransaction}
+ * @implements {addUnconfirmedTransaction}
  * @implements {modules.transactions.applyUnconfirmed}
  * @param {array} transactions - Array of transactions to be applied.
  * @param {function} cb - Callback function.
