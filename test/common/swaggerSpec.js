@@ -175,7 +175,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		return req;
 	}).then(function (res) {
 
-		test.debug('> Response:'.grey, JSON.stringify(res.body));
+		test.debug('> Response:'.grey, res.statusCode, JSON.stringify(res.body));
 
 		var expectedResponseCode = responseCode || self.responseCode;
 
