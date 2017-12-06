@@ -21,14 +21,14 @@ export const validatePublicKeys = publicKeys => publicKeys.map((publicKey) => {
 	try {
 		Buffer.from(publicKey, 'hex').toString('hex');
 	} catch (error) {
-		throw new Error(`Error processing public key ${publicKey}: ${error.message}.`);
+		throw new ValidationError(`Error processing public key ${publicKey}: ${error.message}.`);
 	}
 	if (publicKey.length !== 64) {
-		throw new Error(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
+		throw new ValidationError(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
 	}
 
 	if (Buffer.from(publicKey, 'hex').length !== 32) {
-		throw new Error(`Public key ${publicKey} bytes length differs from the expected 32 bytes for a public key.`);
+		throw new ValidationError(`Public key ${publicKey} bytes length differs from the expected 32 bytes for a public key.`);
 	}
 	return publicKey;
 });

@@ -17,9 +17,9 @@ import getInputsFromSources from '../utils/input';
 import { getData } from '../utils/input/utils';
 import {
 	createCommand,
-	validatePublicKeys,
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
+	validatePublicKeys,
 } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
@@ -62,10 +62,10 @@ export const actionCreator = vorpal => async ({ options }) => {
 	const validatedVotes = votes ? validatePublicKeys(processVotes(votes)) : null;
 	const validatedUnvotes = unvotes ? validatePublicKeys(processVotes(unvotes)) : null;
 
-	const upvotes = votes ? prependPlusToPublicKeys(validatedVotes) : [];
-	const downvotes = unvotes ? prependMinusToPublicKeys(validatedUnvotes) : [];
+	const prependedVotes = votes ? prependPlusToPublicKeys(validatedVotes) : [];
+	const prependedUnvotes = unvotes ? prependMinusToPublicKeys(validatedUnvotes) : [];
 
-	const allVotes = [...upvotes, ...downvotes];
+	const allVotes = [...prependedVotes, ...prependedUnvotes];
 
 	return getInputsFromSources(vorpal, {
 		passphrase: {

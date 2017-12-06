@@ -47,17 +47,17 @@ describe('create transaction cast vote', () => {
 									});
 									Given('an options object with vote set to "12345678123456781234567812345678123456781234567812345678123456gg"', given.anOptionsObjectWithVoteSetTo, () => {
 										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
-											Then('it should reject with message "Public key 12345678123456781234567812345678123456781234567812345678123456gg bytes length differs from the expected 32 bytes for a public key."', then.itShouldRejectWithMessage);
+											Then('it should reject with validation error and message "Public key 12345678123456781234567812345678123456781234567812345678123456gg bytes length differs from the expected 32 bytes for a public key."', then.itShouldRejectWithValidationErrorAndMessage);
 										});
 									});
 									Given('an options object with vote set to "215b667a32a5cd51a94c9c2046c11,922fbfdd596fa78269bbcadc67ec"', given.anOptionsObjectWithVoteSetTo, () => {
 										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
-											Then('it should reject with message "Error processing public key 215b667a32a5cd51a94c9c2046c11: Invalid hex string."', then.itShouldRejectWithMessage);
+											Then('it should reject with validation error and message "Error processing public key 215b667a32a5cd51a94c9c2046c11: Invalid hex string."', then.itShouldRejectWithValidationErrorAndMessage);
 										});
 									});
 									Given('an options object with unvote set to "215b667a32a5cd51a94c9c2046c11,922fbfdd596fa78269bbcadc67ec"', given.anOptionsObjectWithUnvoteSetTo, () => {
 										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
-											Then('it should reject with message "Error processing public key 215b667a32a5cd51a94c9c2046c11: Invalid hex string."', then.itShouldRejectWithMessage);
+											Then('it should reject with validation error and message "Error processing public key 215b667a32a5cd51a94c9c2046c11: Invalid hex string."', then.itShouldRejectWithValidationErrorAndMessage);
 										});
 									});
 									Given('an options object with vote set to "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', given.anOptionsObjectWithVoteSetTo, () => {
@@ -94,7 +94,7 @@ describe('create transaction cast vote', () => {
 										});
 									});
 									Given('an options object with unvote set to "file:path/to/unvotes.txt"', given.anOptionsObjectWithUnvoteSetTo, () => {
-										Given('the unvote can be retrieved from its sources', given.theUnvoteCanBeRetrievedFromItsSource, () => {
+										Given('the unvote can be retrieved from its source', given.theUnvoteCanBeRetrievedFromItsSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -117,7 +117,7 @@ describe('create transaction cast vote', () => {
 										});
 									});
 									Given('an options object with vote set to "file:path/to/votes.txt" unvote set to "file:path/to/unvotes.txt"', given.anOptionsObjectWithVoteSetToAndUnvoteSetTo, () => {
-										Given('the votes can be retrieved from their sources', given.theVoteCanBeRetrievedFromItsSource, () => {
+										Given('the vote can be retrieved from its source', given.theVoteCanBeRetrievedFromItsSource, () => {
 											Given('the unvotes can be retrieved from their sources', given.theUnvoteCanBeRetrievedFromItsSource, () => {
 												When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 													Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
@@ -145,7 +145,7 @@ describe('create transaction cast vote', () => {
 										});
 									});
 									Given('an options object with vote set to "file:path/to/votes.txt"', given.anOptionsObjectWithVoteSetTo, () => {
-										Given('the votes can be retrieved from their sources', given.theVoteCanBeRetrievedFromItsSource, () => {
+										Given('the vote can be retrieved from its source', given.theVoteCanBeRetrievedFromItsSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -161,13 +161,13 @@ describe('create transaction cast vote', () => {
 											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
-											Then('it should not get the data using unvote source', then.itShouldNotGetTheDataUsingTheUnvoteSource);
+											Then('it should not get the data using the unvote source', then.itShouldNotGetTheDataUsingTheUnvoteSource);
 											Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with a minus', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus);
 											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
 									Given('an options object with unvote set to "file:path/to/unvotes.txt"', given.anOptionsObjectWithUnvoteSetTo, () => {
-										Given('the unvotes can be retrieved from their sources', given.theUnvoteCanBeRetrievedFromItsSource, () => {
+										Given('the unvote can be retrieved from its source', given.theUnvoteCanBeRetrievedFromItsSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -183,13 +183,13 @@ describe('create transaction cast vote', () => {
 											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
-											Then('it should not get the data using unvote source', then.itShouldNotGetTheDataUsingTheUnvoteSource);
+											Then('it should not get the data using the unvote source', then.itShouldNotGetTheDataUsingTheUnvoteSource);
 											Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with a minus', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
 											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
 									Given('an options object with vote set to "file:path/to/votes.txt" unvote set to "file:path/to/unvotes.txt"', given.anOptionsObjectWithVoteSetToAndUnvoteSetTo, () => {
-										Given('the votes can be retrieved from their sources', given.theVoteCanBeRetrievedFromItsSource, () => {
+										Given('the vote can be retrieved from its source', given.theVoteCanBeRetrievedFromItsSource, () => {
 											Given('the unvotes can be retrieved from their sources', given.theUnvoteCanBeRetrievedFromItsSource, () => {
 												When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 													Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
@@ -206,7 +206,7 @@ describe('create transaction cast vote', () => {
 							});
 							Given('an options object with vote set to "file:path/to/votes.txt" and passphrase set to "prompt"', given.anOptionsObjectWithVoteSetToAndPassphraseSetTo, () => {
 								Given('the passphrase can be retrieved from its source', given.thePassphraseCanBeRetrievedFromItsSource, () => {
-									Given('the votes can be retrieved from their sources', given.theVoteCanBeRetrievedFromItsSource, () => {
+									Given('the vote can be retrieved from its source', given.theVoteCanBeRetrievedFromItsSource, () => {
 										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -220,7 +220,7 @@ describe('create transaction cast vote', () => {
 							});
 							Given('an options object with vote set to "file:path/to/votes.txt" and passphrase set to "file:path/to/my/passphrase.txt" and second passphrase set to "prompt"', given.anOptionsObjectWithVoteSetToPassphraseSetToAndSecondPassphraseSetTo, () => {
 								Given('the passphrase and the second passphrase can be retrieved from their sources', given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources, () => {
-									Given('the votes can be retrieved from their sources', given.theVoteCanBeRetrievedFromItsSource, () => {
+									Given('the vote can be retrieved from its source', given.theVoteCanBeRetrievedFromItsSource, () => {
 										When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);

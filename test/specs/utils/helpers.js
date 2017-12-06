@@ -24,21 +24,21 @@ describe('utils helpers', () => {
 			beforeEach(given.invalidPublicKeys);
 			describe('When validatePublicKeys is called with the public keys', () => {
 				beforeEach(when.validatePublicKeysIsCalledWithThePublicKeys);
-				it('Then it should throw error "Error processing public key +647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6: Invalid hex string."', then.itShouldThrowError);
+				it('Then it should throw validation error "Error processing public key +647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6: Invalid hex string."', then.itShouldThrowValidationError);
 			});
 		});
 		describe('Given invalid public keys "12345678123456781234567812345678123456781234567812345678123456gg"', () => {
 			beforeEach(given.invalidPublicKeys);
 			describe('When validatePublicKeys is called with the public keys', () => {
 				beforeEach(when.validatePublicKeysIsCalledWithThePublicKeys);
-				it('Then it should throw error "Public key 12345678123456781234567812345678123456781234567812345678123456gg bytes length differs from the expected 32 bytes for a public key."', then.itShouldThrowError);
+				it('Then it should throw validation error "Public key 12345678123456781234567812345678123456781234567812345678123456gg bytes length differs from the expected 32 bytes for a public key."', then.itShouldThrowValidationError);
 			});
 		});
 		describe('Given invalid public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9e"', () => {
 			beforeEach(given.invalidPublicKeys);
 			describe('When validatePublicKeysAndPrependPlus is called with the public keys', () => {
 				beforeEach(when.validatePublicKeysIsCalledWithThePublicKeys);
-				it('Then it should throw error "Public key 647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9e length differs from the expected 64 hex characters for a public key."', then.itShouldThrowError);
+				it('Then it should throw validation error "Public key 647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9e length differs from the expected 64 hex characters for a public key."', then.itShouldThrowValidationError);
 			});
 		});
 		describe('Given public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"', () => {
