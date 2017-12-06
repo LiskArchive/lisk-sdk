@@ -78,19 +78,15 @@ def cleanup_master() {
 
 def archive_logs() {
 	sh '''
-	cd "$(echo "$WORKSPACE" | cut -f 1 -d '@')"
 	# need a unique and descriptive name so that the artifacts don't clobber each other
 	# and we can know which log file goes to which node, etc
 	# this also removes a / that would otherwise be included
-	LOGS_NAME=$(echo "logs-$JOB_NAME-$NODE_NAME-$BUILD_ID" | sed 's/\\///g')
-	mv logs "$LOGS_NAME"
-
-	if [ "$(pwd)" != "$WORKSPACE" ]; then
-		rm -rf "$WORKSPACE"/logs* || true
-		cp -r "$LOGS_NAME" "$WORKSPACE"
-	fi
+	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
 	'''
-	archiveArtifacts artifacts: "logs-*/*"
+	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	sh '''
+	rm -rf "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	'''
 }
 
 def run_action(action) {
@@ -105,7 +101,7 @@ def run_action(action) {
 		currentBuild.result = 'FAILURE'
 		report()
 		error('Stopping build: ' + action + ' failed')
-	}	
+	}
 }
 
 def report_coverage(node) {
