@@ -18,6 +18,7 @@ describe('transactionPool', function () {
 	var freshListState = {transactions: [], index: {}};
 	var dummyProcessVerifyTransaction;
 	var dummyApplyUnconfirmed;
+	var dummyUndoUnconfirmed;
 
 	// Init fake logger
 	var logger = {
@@ -45,6 +46,8 @@ describe('transactionPool', function () {
 		TransactionPool.__set__('__private.processVerifyTransaction', dummyProcessVerifyTransaction);
 		dummyApplyUnconfirmed = sinon.spy(function (transaction, sender, cb) { return cb(); });
 		TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
+		dummyUndoUnconfirmed = sinon.spy(function (transaction, cb) { return cb(); });
+		TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
 	}
 
 	before(function () {
@@ -328,6 +331,215 @@ describe('transactionPool', function () {
 
 							it('should be called with transaction as parameter', function () {
 								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(badTransaction);
+							});
+						});
+
+						describe('lists', function () {
+							var index;
+
+							describe('unconfirmed', function () {
+
+								it('index should be undefined', function () {
+									index = transactionPool.unconfirmed.index[badTransaction.id];
+									expect(index).to.be.an('undefined');
+								});
+							});
+
+							describe('queued', function () {
+
+								it('index should be undefined', function () {
+									index = transactionPool.queued.index[badTransaction.id];
+									expect(index).to.be.an('undefined');
+								});
+							});
+
+							describe('multisignature', function () {
+
+								it('index should be undefined', function () {
+									index = transactionPool.multisignature.index[badTransaction.id];
+									expect(index).to.be.an('undefined');
+								});
+							});
+						});
+
+						after(resetStates);
+					});
+				});
+			});
+		});
+
+		describe('undoUnconfirmedList', function () {
+			var undoUnconfirmedList;
+			var lastError;
+			var lastIds;
+
+			before(function () {
+				undoUnconfirmedList = transactionPool.undoUnconfirmedList;
+			});
+
+			describe('when unconfirmed lists', function () {
+
+				describe('is empty', function () {
+					var transactions = [];
+
+					before(function (done) {
+						transactionPool.getUnconfirmedTransactionList = function () {
+							return transactions;
+						};
+
+						undoUnconfirmedList(function (err, ids) {
+							lastError = err;
+							lastIds = ids;
+							done();
+						});
+					});
+
+					it('should not return an error', function () {
+						expect(lastError).to.not.exist;
+					});
+
+					it('should not log an error', function () {
+						expect(logger.error.called).to.be.false;
+					});
+
+					it('should return empty ids array', function () {
+						expect(lastIds).to.be.an('array');
+						expect(lastIds.length).to.equal(0);
+					});
+
+					describe('modules.transactions.undoUnconfirmed', function() {
+
+						it('should not be called', function () {
+							expect(dummyUndoUnconfirmed.called).to.be.false;
+						});
+					});
+
+					after(resetStates);
+				});
+
+				describe('contains 1 transaction', function () {
+
+					describe('that is valid', function () {
+						var validTransaction = {id: 'validTx'};
+						var transactions = [ validTransaction ];
+
+						before(function (done) {
+							transactionPool.addUnconfirmedTransaction(validTransaction);
+							transactionPool.getUnconfirmedTransactionList = function () {
+								return transactions;
+							};
+
+							undoUnconfirmedList(function (err, ids) {
+								lastError = err;
+								lastIds = ids;
+								done();
+							});
+						});
+
+						it('should not return an error', function () {
+							expect(lastError).to.not.exist;
+						});
+
+						it('should not log an error', function () {
+							expect(logger.error.called).to.be.false;
+						});
+
+						it('should return valid ids array', function () {
+							expect(lastIds).to.be.an('array');
+							expect(lastIds).to.deep.equal(_.map(transactions, function (tx) { return tx.id; }));
+						});
+
+						describe('modules.transactions.undoUnconfirmed', function() {
+
+							it('should be called onece', function () {
+								expect(dummyUndoUnconfirmed.calledOnce).to.be.true;
+							});
+
+							it('should be called with transaction as parameter', function () {
+								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(validTransaction);
+							});
+						});
+
+						describe('lists', function () {
+							var index;
+
+							describe('unconfirmed', function () {
+
+								it('index should be undefined', function () {
+									index = transactionPool.unconfirmed.index[validTransaction.id];
+									expect(index).to.be.an('undefined');
+								});
+
+							});
+
+							describe('queued', function () {
+
+								it('index should be set', function () {
+									index = transactionPool.queued.index[validTransaction.id];
+									expect(index).to.be.an('number');
+								});
+
+								it('transaction at index should match', function () {
+									expect(transactionPool.queued.transactions[index]).to.deep.equal(validTransaction);
+								});
+							});
+
+							describe('multisignature', function () {
+
+								it('index should be undefined', function () {
+									index = transactionPool.multisignature.index[validTransaction.id];
+									expect(index).to.be.an('undefined');
+								});
+							});
+						})
+
+						after(resetStates);
+					});
+
+					describe('that results with error on modules.transactions.undoUnconfirme', function () {
+						var badTransaction = {id: 'badTx'};
+						var transactions = [ badTransaction ];
+						var error = 'undo error';
+
+						before(function (done) {
+							dummyUndoUnconfirmed = sinon.spy(function (transaction, cb) { return cb(error); });
+							TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
+
+							transactionPool.addUnconfirmedTransaction(badTransaction);
+							transactionPool.getUnconfirmedTransactionList = function () {
+								return transactions;
+							};
+
+							undoUnconfirmedList(function (err, ids) {
+								lastError = err;
+								lastIds = ids;
+								done();
+							});
+						});
+
+						it('should not return an error', function () {
+							expect(lastError).to.not.exist;
+						});
+
+						it('should return valid ids array', function () {
+							expect(lastIds).to.be.an('array');
+							expect(lastIds).to.deep.equal(_.map(transactions, function (tx) { return tx.id; }));
+						});
+
+						it('should log an proper error', function () {
+							expect(logger.error.calledOnce).to.be.true;
+							expect(logger.error.args[0][0]).to.equal('Failed to undo unconfirmed transaction: ' + badTransaction.id);
+							expect(logger.error.args[0][1]).to.equal(error);
+						});
+
+						describe('modules.transactions.undoUnconfirmed', function() {
+
+							it('should be called onece', function () {
+								expect(dummyUndoUnconfirmed.calledOnce).to.be.true;
+							});
+
+							it('should be called with transaction as parameter', function () {
+								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(badTransaction);
 							});
 						});
 
