@@ -521,16 +521,6 @@ TransactionPool.prototype.applyUnconfirmedList = function (cb) {
 };
 
 /**
- * Applies a list of transaction ids as unconfirmed transactions.
- * @param {string[]} ids
- * @param {function} cb - Callback function.
- * @return {applyUnconfirmedList}
- */
-TransactionPool.prototype.applyUnconfirmedIds = function (ids, cb) {
-	return __private.applyUnconfirmedList(ids, cb);
-};
-
-/**
  * Undoes the unconfirmed queue, reverting the unconfirmed state of each transaction.
  * @implements {getUnconfirmedTransactionList}
  * @implements {modules.transactions.undoUnconfirmed}
