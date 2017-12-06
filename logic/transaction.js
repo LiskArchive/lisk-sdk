@@ -1024,7 +1024,7 @@ Transaction.prototype.objectNormalize = function (transaction) {
 	}
 
 	for (var i in transaction) {
-		if (transaction[i] === null || typeof transaction[i] === 'undefined') {
+		if (transaction[i] === null || typeof transaction[i] === 'undefined' || (_.isString(transaction[i]) && _.isEmpty(transaction[i]))) {
 			delete transaction[i];
 		}
 	}
