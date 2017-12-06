@@ -184,7 +184,7 @@ describe('create transaction cast vote', () => {
 											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
 											Then('it should not get the data using the unvote source', then.itShouldNotGetTheDataUsingTheUnvoteSource);
-											Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with a minus', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
+											Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with the correct modifier', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
 											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
@@ -196,7 +196,7 @@ describe('create transaction cast vote', () => {
 													Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 													Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
 													Then('it should get the data using the unvote source', then.itShouldGetTheDataUsingTheUnvoteSource);
-													Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with a minus', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
+													Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with the correct modifier', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
 													Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 												});
 											});
