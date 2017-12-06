@@ -265,9 +265,7 @@ __private.list = function (filter, cb) {
  */
 __private.createBasePaths = function (cb) {
 	var basePaths = [
-		__private.dappsPath,                             // -> /dapps
-		path.join(__private.appPath, 'public', 'dapps'), // -> /public/dapps
-		path.join(library.public, 'images', 'dapps'),    // -> /public/images/dapps
+		__private.dappsPath                     // -> /dapps
 	];
 
 	async.eachSeries(basePaths, function (path, eachSeriesCb) {
