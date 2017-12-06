@@ -673,6 +673,10 @@ paths:
           description: Malformed query or parameters
           schema:
             $ref: '#/definitions/ParamErrorResponse'
+        409:
+          description: Some error related to processing of request
+          schema:
+            $ref: '#/definitions/ProcessingError'
         429:
           description: Too many requests, exceeded rate limit.
           schema:
@@ -1745,7 +1749,6 @@ definitions:
     type: object
     description: Singular error detail for a parameter
     required:
-      - code
       - message
     properties:
       code:
