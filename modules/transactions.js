@@ -437,15 +437,6 @@ Transactions.prototype.processUnconfirmedTransaction = function (transaction, br
 };
 
 /**
- * Gets unconfirmed transactions list and applies unconfirmed transactions.
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.applyUnconfirmedList
- */
-Transactions.prototype.applyUnconfirmedList = function (cb) {
-	return __private.transactionPool.applyUnconfirmedList(cb);
-};
-
-/**
  * Undoes unconfirmed list from queue.
  * @param {function} cb - Callback function.
  * @return {function} Calls transactionPool.undoUnconfirmedList

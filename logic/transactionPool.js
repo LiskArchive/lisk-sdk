@@ -511,16 +511,6 @@ TransactionPool.prototype.queueTransaction = function (transaction, cb) {
 };
 
 /**
- * Applies the unconfirmed queue as unconfirmed transactions.
- * @implements {getUnconfirmedTransactionList}
- * @param {function} cb - Callback function.
- * @return {applyUnconfirmedList}
- */
-TransactionPool.prototype.applyUnconfirmedList = function (cb) {
-	return __private.applyUnconfirmedList(self.getUnconfirmedTransactionList(true), cb);
-};
-
-/**
  * Undoes the unconfirmed queue, reverting the unconfirmed state of each transaction.
  * @implements {getUnconfirmedTransactionList}
  * @implements {modules.transactions.undoUnconfirmed}
