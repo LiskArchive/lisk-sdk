@@ -16,6 +16,7 @@ var randomUtil = require('../../../../common/utils/random');
 
 var swaggerEndpoint = require('../../../../common/swaggerSpec');
 var signatureEndpoint = new swaggerEndpoint('POST /signatures');
+var errorCodes = require('../../../../../helpers/apiCodes');
 
 describe('POST /api/transactions (validate type 0 on top of type 4)', function () {
 
@@ -52,8 +53,7 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.without_signatures.account.password);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				pendingMultisignatures.push(transaction);
 			});
 		});
@@ -62,8 +62,7 @@ describe('POST /api/transactions (validate type 0 on top of type 4)', function (
 			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.minimum_not_reached.account.password);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				scenarios.minimum_not_reached.transaction = transaction;
 				pendingMultisignatures.push(transaction);
 			})

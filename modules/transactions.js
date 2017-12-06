@@ -643,8 +643,12 @@ Transactions.prototype.shared = {
 			var error = null;
 			var response = null;
 
+			if (err) {
+				error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+			}
+
 			if (res.success == false) {
-				error = new ApiError(res.message, apiCodes.BAD_REQUEST);
+				error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
 			}
 
 			if (res.success == true) {

@@ -18,6 +18,7 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/waitFor');
+var errorCodes = require('../../../../helpers/apiCodes');
 
 describe('POST /api/transactions (type 2) register delegate', function () {
 
@@ -55,7 +56,6 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 		return Promise.all(promises).then(function (results) {
 			results.forEach(function (res, index) {
-				expect(res).to.have.property('status').to.equal(200);
 				transactionsToWaitFor.push(transactions[index].id);
 			});
 			return waitFor.confirmations(transactionsToWaitFor);
@@ -72,9 +72,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		it('with no funds should fail', function () {
 			transaction = lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
@@ -83,8 +82,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 			transaction = lisk.delegate.createDelegate(accountMinimalFunds.password, accountMinimalFunds.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -92,9 +90,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		it('using blank username should fail', function () {
 			transaction = lisk.delegate.createDelegate(account.password, '');
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Username is undefined');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Username is undefined');
 				badTransactions.push(transaction);
 			});
 		});
@@ -103,9 +100,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 			var username = '~!@#$ %^&*()_+.,?/';
 			transaction = lisk.delegate.createDelegate(account.password, username);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate delegate schema: Object didn\'t pass validation for format username: ' + username);
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Invalid transaction body - Failed to validate delegate schema: Object didn\'t pass validation for format username: ' + username);
 				badTransactions.push(transaction);
 			});
 		});
@@ -114,9 +110,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 			var delegateName = randomUtil.delegateName() + 'x';
 			transaction = lisk.delegate.createDelegate(account.password, delegateName);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Username is too long. Maximum is 20 characters');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Username is too long. Maximum is 20 characters');
 				badTransactions.push(transaction);
 			});
 		});
@@ -124,9 +119,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		it('using uppercase username should fail', function () {
 			transaction = lisk.delegate.createDelegate(accountUpperCase.password, accountUpperCase.username.toUpperCase());
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Username must be lowercase');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Username must be lowercase');
 				badTransactions.push(transaction);
 			});
 		});
@@ -135,8 +129,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 			transaction = lisk.delegate.createDelegate(account.password, account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -152,9 +145,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		it('setting same delegate twice should fail', function () {
 			transaction = lisk.delegate.createDelegate(account.password, account.username);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Account is already a delegate');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Account is already a delegate');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -162,9 +154,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		it('using existing username should fail', function () {
 			transaction = lisk.delegate.createDelegate(accountFormerDelegate.password, account.username);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Username ' + account.username + ' already exists');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Username ' + account.username + ' already exists');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
@@ -172,9 +163,8 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		it('updating registered delegate should fail', function () {
 			transaction = lisk.delegate.createDelegate(account.password, 'newusername');
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Account is already a delegate');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Account is already a delegate');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
