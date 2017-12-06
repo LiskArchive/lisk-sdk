@@ -52,8 +52,6 @@ def cleanup() {
 		currentBuild.result = 'FAILURE'
 		report()
 		error('Stopping build: cleanup failed')
-	} finally {
-		archive_logs()
 	}
 }
 
@@ -85,9 +83,12 @@ def archive_logs() {
 	# this also removes a / that would otherwise be included
 	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
 	'''
-	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
 	sh '''
-	rm -rf "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	cd "$(echo "$WORKSPACE" | cut -f 1 -d '@')"
+	if [ "$(pwd)" != "$WORKSPACE" ]; then
+		rm -rf "$WORKSPACE"/logs*
+	fi
 	'''
 }
 
@@ -285,11 +286,13 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					} else {
 						run_action('test-functional-http-get')
 					}
+					archive_logs()
 				}
 			}, // End node-01 tests
 			"Functional HTTP POST tests" : {
 				node('node-02'){
 					run_action('test-functional-http-post')
+					archive_logs()
 				}
 			}, // End Node-02 tests
 			"Functional WS tests" : {
@@ -299,6 +302,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					} else {
 						run_action('test-functional-ws')
 					}
+					archive_logs()
 				}
 			}, // End Node-03 tests
 			"Unit Tests" : {
@@ -308,11 +312,13 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					} else {
 						run_action('test-unit')
 					}
+					archive_logs()
 				}
 			}, // End Node-04 unit tests
 			"Functional Transaction pool" : {
 				node('node-05'){
 					run_action('test-functional-pool')
+					archive_logs()
 				}
 			} // End Node-05 tests
 		) // End Parallel
