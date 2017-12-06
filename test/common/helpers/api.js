@@ -135,6 +135,7 @@ function getPendingMultisignatures (params, cb) {
 
 function normalizeTransactionObject (transaction) {
 	if (_.isObject(transaction)) {
+		transaction = _.cloneDeep(transaction);
 
 		transaction.recipientAddress = transaction.recipientId || '';
 		transaction.senderAddress = transaction.senderId || '';
