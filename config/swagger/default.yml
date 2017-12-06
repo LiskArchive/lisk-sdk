@@ -11,12 +11,19 @@ swagger:
   # (see https://github.com/apigee-127/bagpipes)
   bagpipes:
 
+    _request_limit:
+      name: lisk_request_limit
+
     _cors: 
-      name: swagger_cors
+      name: lisk_cors
       origin: '*'
+      methods:
+        - GET
+        - PUT
+        - POST
 
     _compression: 
-      name: swagger_compression
+      name: lisk_compression
       level: 9      
 
     _router:
@@ -65,6 +72,7 @@ swagger:
     # pipe for all swagger-node controllers
     swagger_controllers:
       - onError: _json_error_handler
+      - _request_limit
       - _cors
       - _compression
       - _swagger_params_parser
