@@ -725,9 +725,6 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
  */
 __private.applyUnconfirmedList = function (transactions, cb) {
 	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-		if (typeof transaction === 'string') {
-			transaction = self.getUnconfirmedTransaction(transaction);
-		}
 		if (!transaction) {
 			return setImmediate(eachSeriesCb);
 		}
