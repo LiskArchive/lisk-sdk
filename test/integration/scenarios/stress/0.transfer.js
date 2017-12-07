@@ -16,7 +16,7 @@ var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function (params) {
 
-	describe('postTransactions @slow', function () {
+	describe('postTransactions', function () {
 
 		var transactions = [];
 		var maximum = 1000;
@@ -61,7 +61,7 @@ module.exports = function (params) {
 			it('should confirm all transactions on all nodes', function () {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 				return waitFor.confirmations(_.map(transactions, 'id'), blocksToWait).then(confirmTransactionsOnAllNodes);
-			}).timeout(500000);
+			});
 		});
 
 		describe('sending 1000 single transfers to random addresses', function () {
@@ -82,7 +82,7 @@ module.exports = function (params) {
 			it('should confirm all transactions on all nodes', function () {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
 				return waitFor.confirmations(_.map(transactions, 'id'), blocksToWait).then(confirmTransactionsOnAllNodes);
-			}).timeout(500000);
+			});
 		});
 	});
 };
