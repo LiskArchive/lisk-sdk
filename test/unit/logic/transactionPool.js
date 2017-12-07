@@ -17,6 +17,7 @@ var TransactionPool = rewire('../../../logic/transactionPool.js');
 var jobsQueue = rewire('../../../helpers/jobsQueue.js');
 
 describe('transactionPool', function () {
+
 	var transactionPool;
 	var freshListState = {transactions: [], index: {}};
 	var dummyProcessVerifyTransaction;
@@ -63,14 +64,14 @@ describe('transactionPool', function () {
 			config.broadcasts.releaseLimit,
 			sinon.spy(), // transaction
 			sinon.spy(), // bus
-			logger  // logger
+			logger // logger
 		);
 
 		// Bind fake modules
 		transactionPool.bind(
 			sinon.spy(), // accounts
 			sinon.spy(), // transactions
-			sinon.spy()  // loader
+			sinon.spy() // loader
 		);
 	});
 
@@ -101,6 +102,7 @@ describe('transactionPool', function () {
 	describe('__private', function () {
 
 		describe('applyUnconfirmedList', function () {
+
 			var applyUnconfirmed;
 			var lastError;
 
@@ -147,6 +149,7 @@ describe('transactionPool', function () {
 				describe('that contains 1 transaction', function () {
 
 					describe('that is valid', function () {
+
 						var validTransaction = {id: 'validTx'};
 
 						before(function (done) {
@@ -187,6 +190,7 @@ describe('transactionPool', function () {
 						});
 
 						describe('lists', function () {
+
 							var index;
 
 							describe('unconfirmed', function () {
@@ -222,6 +226,7 @@ describe('transactionPool', function () {
 					});
 
 					describe('that results with error on processVerifyTransaction', function () {
+
 						var badTransaction = {id: 'badTx'};
 						var error = 'verify error';
 
@@ -264,6 +269,7 @@ describe('transactionPool', function () {
 						});
 
 						describe('lists', function () {
+
 							var index;
 
 							describe('unconfirmed', function () {
@@ -295,6 +301,7 @@ describe('transactionPool', function () {
 					});
 
 					describe('that results with error on applyUnconfirmed', function () {
+
 						var badTransaction = {id: 'badTx'};
 						var error = 'apply error';
 
@@ -341,6 +348,7 @@ describe('transactionPool', function () {
 						});
 
 						describe('lists', function () {
+
 							var index;
 
 							describe('unconfirmed', function () {
@@ -375,6 +383,7 @@ describe('transactionPool', function () {
 		});
 
 		describe('undoUnconfirmedList', function () {
+
 			var undoUnconfirmedList;
 			var lastError;
 			var lastIds;
@@ -386,6 +395,7 @@ describe('transactionPool', function () {
 			describe('when unconfirmed lists', function () {
 
 				describe('is empty', function () {
+
 					var transactions = [];
 
 					before(function (done) {
@@ -426,6 +436,7 @@ describe('transactionPool', function () {
 				describe('contains 1 transaction', function () {
 
 					describe('that is valid', function () {
+
 						var validTransaction = {id: 'validTx'};
 						var transactions = [ validTransaction ];
 
@@ -467,6 +478,7 @@ describe('transactionPool', function () {
 						});
 
 						describe('lists', function () {
+
 							var index;
 
 							describe('unconfirmed', function () {
@@ -475,7 +487,6 @@ describe('transactionPool', function () {
 									index = transactionPool.unconfirmed.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
-
 							});
 
 							describe('queued', function () {
@@ -503,6 +514,7 @@ describe('transactionPool', function () {
 					});
 
 					describe('that results with error on modules.transactions.undoUnconfirme', function () {
+
 						var badTransaction = {id: 'badTx'};
 						var transactions = [ badTransaction ];
 						var error = 'undo error';
@@ -550,6 +562,7 @@ describe('transactionPool', function () {
 						});
 
 						describe('lists', function () {
+
 							var index;
 
 							describe('unconfirmed', function () {
