@@ -429,20 +429,6 @@ __private.receiveBlock = function (block, cb) {
 	modules.blocks.verify.processBlock(block, true, true, cb);
 };
 
-__private.verifySlotWindow = function (block, cb) {
-	// Reject block if it's slot is older than 10
-	if (slots.getSlotNumber() - slots.getSlotNumber(block.timestamp) > 5) {
-		return setImmediate(cb, 'Block slot is too old');
-	}
-
-	// Reject block if it's slot is in the future
-	if (slots.getSlotNumber(block.timestamp) - slots.getSlotNumber() > 0) {
-		return setImmediate(cb, 'Block slot is in the future');
-	}
-
-	return setImmediate(cb);
-};
-
 /**
  * Validate Block Slot - Validates if block generator is valid delegate.
  *
@@ -501,9 +487,6 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 					return setImmediate(seriesCb, err);
 				}
 				return setImmediate(seriesCb);
-			},
-			function (seriesCb) {
-				__private.verifySlotWindow(tmp_block, seriesCb);
 			},
 			// Check valid slot
 			function (seriesCb) {
@@ -567,9 +550,6 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 					return setImmediate(seriesCb, err);
 				}
 				return setImmediate(seriesCb);
-			},
-			function (seriesCb) {
-				__private.verifySlotWindow(tmp_block, seriesCb);
 			},
 			// Check valid slot
 			function (seriesCb) {

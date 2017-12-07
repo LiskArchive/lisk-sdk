@@ -326,6 +326,33 @@ __private.verifyBlockSlot = function (block, lastBlock, result) {
 	return result;
 };
 
+
+/**
+ * Verify block slot window according to application time
+ *
+ * @private
+ * @method verifySlotWindow
+ * @param  {Object}  block Target block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifySlotWindow = function (block, result) {
+	var currentApplicationSlot = slots.getSlotNumber();
+	var blockSlot = slots.getSlotNumber(block.timestamp);
+	// Reject block if it's slot is older than 5
+	if (currentApplicationSlot - blockSlot > 5) {
+		result.errors.push('Block slot is too old');
+	}
+
+	// Reject block if it's slot is in the future
+	if (currentApplicationSlot < blockSlot) {
+		result.errors.push('Block slot is in the future');
+	}
+
+	return result;
+};
+
 /**
  * Verify block before fork detection and return all possible errors related to block
  *
@@ -342,6 +369,7 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
+	result = __private.verifySlotWindow(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
 	result = __private.verifyId(block, result);

@@ -2,7 +2,11 @@
 
 var expect = require('chai').expect;
 var async = require('async');
+var sinon = require('sinon');
+var _ = require('lodash');
+var rewire = require('rewire');
 
+var slots = require('../../../../helpers/slots');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var BlockLogic = require('../../../../logic/block.js');
 var exceptions = require('../../../../helpers/exceptions.js');
@@ -611,5 +615,103 @@ describe('blocks/verify', function () {
 		describe('calling verifyForkOne()', testVerifyForkOne.bind(null, 'verifyBlock'));
 
 		describe('calling verifyBlockSlot()', testVerifyBlockSlot.bind(null, 'verifyBlock'));
+	});
+
+	describe('using rewire', function () {
+
+		var blockVerify;
+
+		before(function () {
+			blockVerify = rewire('../../../../modules/blocks/verify.js');
+		});
+
+		describe('__private.verifySlotWindow', function () {
+
+			var verifySlotWindow;
+
+			before(function () {
+				verifySlotWindow = blockVerify.__get__('__private.verifySlotWindow');
+			});
+
+			describe('for current slot number', function () {
+
+				var dummyBlock;
+				var result;
+
+				before(function () {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(slots.getSlotNumber())
+					};
+
+					result = {
+						errors: []
+					};
+				});
+
+				it('should return empty result.errors array', function () {
+					expect(verifySlotWindow(dummyBlock, result).errors).to.have.length(0);
+				});
+			});
+
+			describe('for slot number 5 slots in the past', function () {
+
+				var dummyBlock;
+				var result;
+
+				before(function () {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(slots.getSlotNumber() - 5)
+					};
+
+					result = {
+						errors: []
+					};
+				});
+
+				it('should return empty result.errors array', function () {
+					expect(verifySlotWindow(dummyBlock, result).errors).to.have.length(0);
+				});
+			});
+
+			describe('for slot number in the future', function () {
+
+				var dummyBlock;
+				var result;
+
+				before(function () {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(slots.getSlotNumber() + 1)
+					};
+
+					result = {
+						errors: []
+					};
+				});
+
+				it('should call callback with error = Block slot is in the future ', function () {
+					expect(verifySlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is in the future']);
+				});
+			});
+
+			describe('for slot number 6 slots in the past', function () {
+
+				var dummyBlock;
+				var result;
+
+				before(function () {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(slots.getSlotNumber() - 6)
+					};
+
+					result = {
+						errors: []
+					};
+				});
+
+				it('should call callback with error = Block slot is too old', function () {
+					expect(verifySlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is too old']);
+				});
+			});
+		});
 	});
 });
