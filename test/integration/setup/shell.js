@@ -50,7 +50,7 @@ module.exports = {
 			} else {
 				console.info('PM2 process killed gracefully');
 			}
-			return cb(err);
+			return cb();
 		});
 	}
 };
