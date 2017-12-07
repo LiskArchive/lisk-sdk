@@ -43,3 +43,8 @@ export function theResultShouldBeReturned() {
 	const { returnValue, result } = this.test.ctx;
 	return (returnValue).should.equal(result);
 }
+
+export function theResultStrippedOfANSICodesShouldBeReturned() {
+	const { returnValue, resultWithoutANSICodes } = this.test.ctx;
+	return (returnValue).should.eql(resultWithoutANSICodes);
+}

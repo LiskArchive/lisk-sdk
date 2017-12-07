@@ -19,20 +19,17 @@ import config from './config';
 import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
-const disableAnsi = (result) => {
-	// eslint-disable-next-line no-param-reassign
-	Object.keys(result).forEach((key) => { result[key] = stripAnsi(result[key]); });
-	return result;
-};
+const removeAnsi = result => Object.entries(result)
+	.reduce(
+		(strippedResult, [key, value]) =>
+			Object.assign({}, strippedResult, { [key]: stripAnsi(value) })
+		, {},
+	);
 
 export const printResult = (vorpal, options = {}) => (result) => {
 	const useJsonOutput = shouldUseJsonOutput(config, options);
 	const prettifyOutput = shouldUsePrettyOutput(config, options);
-	let resultToPrint = result;
-
-	if (useJsonOutput) {
-		resultToPrint = disableAnsi(result);
-	}
+	const resultToPrint = useJsonOutput ? removeAnsi(result) : result;
 
 	const output = useJsonOutput
 		? JSON.stringify(resultToPrint, null, prettifyOutput ? '\t' : null)

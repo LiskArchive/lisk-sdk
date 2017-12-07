@@ -73,9 +73,21 @@ export function prettyJSONOutputShouldBeLogged() {
 	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
 }
 
+export function prettyJSONOutputShouldBeLoggedWithoutANSICodes() {
+	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
+	const prettyJsonOutput = JSON.stringify(resultWithoutANSICodes, null, '\t');
+	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
+}
+
 export function jSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(result);
+	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
+}
+
+export function jSONOutputShouldBeLoggedWithoutANSICodes() {
+	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
+	const jsonOutput = JSON.stringify(resultWithoutANSICodes);
 	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
 }
 

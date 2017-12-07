@@ -19,7 +19,8 @@ import {
 } from '../../../src/utils/helpers';
 
 export function thereIsAResultToPrint() {
-	this.test.ctx.result = { lisk: 'JS' };
+	this.test.ctx.result = { lisk: 'Some prefix: \u001B[4mJS\u001B[0m' };
+	this.test.ctx.resultWithoutANSICodes = { lisk: 'Some prefix: JS' };
 }
 
 export function jsonShouldBePrinted() {
