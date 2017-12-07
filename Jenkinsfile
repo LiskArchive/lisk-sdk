@@ -81,12 +81,6 @@ def archive_logs() {
 	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
 	'''
 	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
-	sh '''
-	cd "$(echo "$WORKSPACE" | cut -f 1 -d '@')"
-	if [ "$(pwd)" != "$WORKSPACE" ]; then
-		rm -rf "$WORKSPACE/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
-	fi
-	'''
 }
 
 def run_action(action) {
