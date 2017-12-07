@@ -392,7 +392,7 @@ describe('onReceiveBlock()', function () {
 					var sixSlotsOldBlock;
 
 					beforeEach(function () {
-						sixSlotsOldBlock = forgedBlocks[forgedBlocks.length - 6];
+						sixSlotsOldBlock = forgedBlocks[forgedBlocks.length - 7];
 						sixSlotsOldBlock.height = mutatedHeight;
 						library.modules.blocks.process.onReceiveBlock(sixSlotsOldBlock);
 					});

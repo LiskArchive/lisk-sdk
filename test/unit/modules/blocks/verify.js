@@ -714,6 +714,29 @@ describe('blocks/verify', function () {
 			});
 		});
 
+		describe('onBlockchainReady', function () {
+
+			var onBlockchainReady;
+
+			before(function () {
+				var db = modulesLoader.db;
+				blockVerify.__set__('library', {
+					db: db
+				});
+				onBlockchainReady = blockVerify.prototype.onBlockchainReady;
+			});
+
+			it('should set the __private.lastFiveBlockIds variable', function () {
+				return onBlockchainReady().then(function () {
+					var lastFiveBlockIds = blockVerify.__get__('__private.lastFiveBlockIds');
+					expect(lastFiveBlockIds).to.be.an('array').and.to.have.length.below(6);
+					_.each(lastFiveBlockIds, function (value) {
+						expect(value).to.be.a('string');
+					});
+				});
+			});
+		});
+
 		describe('onNewBlock', function () {
 
 			describe('with lastFiveBlockIds', function () {
@@ -798,6 +821,7 @@ describe('blocks/verify', function () {
 		});
 
 		describe('__private.verifyAgainstLastFiveBlockIds', function () {
+
 			var verifyAgainstLastFiveBlockIds;
 			var result = {
 				verified: true,

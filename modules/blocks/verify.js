@@ -1,6 +1,7 @@
 'use strict';
 
 var async = require('async');
+var _ = require('lodash');
 var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
@@ -393,6 +394,12 @@ Verify.prototype.verifyReceipt = function (block) {
 	result.errors.reverse();
 
 	return result;
+};
+
+Verify.prototype.onBlockchainReady = function () {
+	return library.db.query(sql.loadLastFiveBlockIds).then(function (blockIds) {
+		__private.lastFiveBlockIds = _.map(blockIds, 'id');
+	});
 };
 
 Verify.prototype.onNewBlock = function (block) {
