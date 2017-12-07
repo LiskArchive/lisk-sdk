@@ -76,15 +76,15 @@ function DApps (cb, scope) {
 	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
 		transactionTypes.DAPP,
 		new DApp(
-			scope.db, 
-			scope.logger, 
-			scope.schema, 
+			scope.db,
+			scope.logger,
+			scope.schema,
 			scope.network
 		)
 	);
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.IN_TRANSFER, 
+		transactionTypes.IN_TRANSFER,
 		new InTransfer(
 			scope.db,
 			scope.schema
@@ -92,7 +92,7 @@ function DApps (cb, scope) {
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER] = library.logic.transaction.attachAssetType(
-		transactionTypes.OUT_TRANSFER, 
+		transactionTypes.OUT_TRANSFER,
 		new OutTransfer(
 			scope.db,
 			scope.schema,
@@ -541,7 +541,7 @@ __private.installDApp = function (dapp, cb) {
 };
 
 /**
- * Creates a public link (symbolic link) between public path and 
+ * Creates a public link (symbolic link) between public path and
  * public dapps with transaction id.
  * @private
  * @param {dapp} dapp
