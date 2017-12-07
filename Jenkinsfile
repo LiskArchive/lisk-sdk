@@ -78,16 +78,13 @@ def cleanup_master() {
 
 def archive_logs() {
 	sh '''
-	# need a unique and descriptive name so that the artifacts don't clobber each other
-	# and we can know which log file goes to which node, etc
-	# this also removes a / that would otherwise be included
 	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
 	'''
 	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
 	sh '''
 	cd "$(echo "$WORKSPACE" | cut -f 1 -d '@')"
 	if [ "$(pwd)" != "$WORKSPACE" ]; then
-		rm -rf "$WORKSPACE"/logs*
+		rm -rf "$WORKSPACE/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
 	fi
 	'''
 }
