@@ -92,8 +92,7 @@ __private.checkTransaction = function (block, transaction, cb) {
  * Set height according to the given last block
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method setHeight
  * @param  {Object}  block Target block
  * @param  {Object}  lastBlock Last block
  * @return {Object}  block Target block
@@ -108,8 +107,7 @@ __private.setHeight = function (block, lastBlock) {
  * Verify block signature
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifySignature
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -136,8 +134,7 @@ __private.verifySignature = function (block, result) {
  * Verify previous block
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyPreviousBlock
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -175,8 +172,7 @@ __private.verifyAgainstLastFiveBlockIds = function (block, result) {
  * Verify block version
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyVersion
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -195,8 +191,7 @@ __private.verifyVersion = function (block, result) {
  * Verify block reward
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyReward
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -217,8 +212,7 @@ __private.verifyReward = function (block, result) {
  * Verify block id
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyId
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -241,8 +235,7 @@ __private.verifyId = function (block, result) {
  * Verify block payload (transactions)
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyPayload
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
