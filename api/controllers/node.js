@@ -3,6 +3,8 @@
 var _ = require('lodash');
 var checkIpInList = require('../../helpers/checkIpInList.js');
 var apiCodes = require('../../helpers/apiCodes');
+var swaggerHelper = require('../../helpers/swagger');
+var ApiError = require('../../helpers/apiError');
 
 // Private Fields
 var modules;
@@ -62,7 +64,13 @@ NodeController.getStatus = function (context, next) {
 			data.networkHeight = data.networkHeight || 0;
 			data.consensus = data.consensus || 0;
 
-			next(null, data);
+			modules.transactions.shared.getTransactionsCount(function (err, count) {
+				if (err) { return next(err); }
+
+				data.transactions = count;
+
+				next(null, data);
+			});
 		} catch (error) {
 			next(error);
 		}
@@ -100,6 +108,70 @@ NodeController.updateForgingStatus = function (context, next) {
 		}
 
 		next(null, [data]);
+	});
+};
+
+NodeController.getPooledTransactions = function (context, next) {
+
+	var invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
+	var params = context.request.swagger.params;
+
+	var state = context.request.swagger.params.state.value;
+
+	var stateMap = {
+		unprocessed: 'getUnProcessedTransactions',
+		unconfirmed: 'getUnconfirmedTransactions',
+		unsigned: 'getMultisignatureTransactions'
+	};
+
+	var filters = {
+		id: params.id.value,
+		recipientId: params.recipientAddress.value,
+		recipientPublicKey: params.recipientPublicKey.value,
+		senderId: params.senderAddress.value,
+		senderPublicKey: params.senderPublicKey.value,
+		type: params.type.value,
+		sort: params.sort.value,
+		limit: params.limit.value,
+		offset: params.offset.value
+	};
+
+	// Remove filters with null values
+	filters = _.pickBy(filters, function (v) {
+		return !(v === undefined || v === null);
+	});
+
+	modules.transactions.shared[stateMap[state]].call(this, _.clone(filters), function (err, data) {
+		if (err) { return next(err); }
+
+		var transactions = _.map(_.cloneDeep(data.transactions), function (transaction) {
+			transaction.senderAddress = transaction.senderId || '';
+			transaction.recipientAddress = transaction.recipientId || '';
+			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+			transaction.multisignatures = transaction.signatures;
+
+			transaction.amount = transaction.amount.toString();
+			transaction.fee = transaction.fee.toString();
+
+			delete transaction.senderId;
+			delete transaction.recipientId;
+			delete transaction.signatures;
+			return transaction;
+		});
+
+		next(null, {
+			data: transactions,
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit,
+				count: parseInt(data.count)
+			}
+		});
 	});
 };
 

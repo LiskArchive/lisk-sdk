@@ -99,8 +99,20 @@ function SwaggerTestSpec (method, apiPath, responseCode) {
 
 	this.describe = this.method.toUpperCase() + ' ' + apiSpec.basePath + this.path;
 	this.it = 'should respond with status code ' + this.responseCode;
+	this.defaultParams = {};
 
+	return this;
 }
+
+/**
+ * Parameters to set default on each request
+ *
+ * @param {Object} parameters - JSON parameters
+ */
+SwaggerTestSpec.prototype.addParameters = function (parameters) {
+	_.assignIn(this.defaultParams, parameters);
+	return this;
+};
 
 /**
  * Perform the actual HTTP call with the spec of current instance
@@ -116,6 +128,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 	var formData = false;
 	var self = this;
 	var callPath = self.getPath();
+	parameters = _.assignIn({}, self.defaultParams, parameters);
 
 	return this.resolveJSONRefs().then(function () {
 		_.each(_.keys(parameters), function (param){

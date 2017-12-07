@@ -280,33 +280,44 @@ __private.getPooledTransaction = function (method, req, cb) {
  * Filters by senderPublicKey or address if they are present.
  * @private
  * @param {Object} method
- * @param {Object} req
+ * @param {Object} filters
+ * @param {string} filters.id
+ * @param {string} filters.recipientId
+ * @param {string} filters.recipientPublicKey
+ * @param {string} filters.senderId
+ * @param {string} filters.senderPublicKey
+ * @param {int}    filters.type
+ * @param {string} filters.sort - amount, fee, type, timestamp
+ * @param {int}    filters.limit
+ * @param {int}    filters.offset
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | data: {transactions, count}
  */
-__private.getPooledTransactions = function (method, req, cb) {
-	library.schema.validate(req.body, schema.getPooledTransactions, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
+__private.getPooledTransactions = function (method, filters, cb) {
 
-		var transactions = self[method](true);
-		var i, toSend = [];
+	var transactions = self[method](true);
+	var toSend = [];
 
-		if (req.body.senderPublicKey || req.body.address) {
-			for (i = 0; i < transactions.length; i++) {
-				if (transactions[i].senderPublicKey === req.body.senderPublicKey || transactions[i].recipientId === req.body.address) {
-					toSend.push(transactions[i]);
-				}
-			}
-		} else {
-			for (i = 0; i < transactions.length; i++) {
-				toSend.push(transactions[i]);
-			}
-		}
+	if (filters.recipientPublicKey) {
+		filters.recipientId = modules.accounts.generateAddressByPublicKey(filters.recipientPublicKey);
+		delete filters.recipientPublicKey;
+	}
 
-		return setImmediate(cb, null, {transactions: toSend, count: transactions.length});
-	});
+	// Filter Transactions
+	if (filters.id || filters.recipientId || filters.recipientPublicKey || filters.senderId || filters.senderPublicKey || filters.type) {
+		toSend = _.filter(transactions, _.omit(filters, ['limit', 'offset', 'sort']) );
+	} else {
+		toSend = _.cloneDeep(transactions);
+	}
+
+	// Sort the results
+	var sortAttribute = sortBy(filters.sort, {quoteField: false});
+	toSend = _.orderBy(toSend, [sortAttribute.sortField], [sortAttribute.sortMethod.toLowerCase()]);
+
+	// Paginate Filtered Transactions
+	toSend = toSend.slice(filters.offset, (filters.offset + filters.limit));
+
+	return setImmediate(cb, null, {transactions: toSend, count: transactions.length});
 };
 
 // Public methods
@@ -600,7 +611,7 @@ Transactions.prototype.shared = {
 		});
 	},
 
-	getTransactionsCount: function (req, cb) {
+	getTransactionsCount: function (cb) {
 		library.db.query(sql.count).then(function (transactionsCount) {
 			return setImmediate(cb, null, {
 				confirmed: transactionsCount[0].count,
@@ -618,8 +629,8 @@ Transactions.prototype.shared = {
 		return __private.getPooledTransaction('getQueuedTransaction', req, cb);
 	},
 
-	getQueuedTransactions: function (req, cb) {
-		return __private.getPooledTransactions('getQueuedTransactionList', req, cb);
+	getUnProcessedTransactions: function (filters, cb) {
+		return __private.getPooledTransactions('getQueuedTransactionList', filters, cb);
 	},
 
 	getMultisignatureTransaction: function (req, cb) {

@@ -339,6 +339,69 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /node/transactions/{state}:
+    x-swagger-router-controller: node
+    get:
+      tags:
+        - Transactions
+      summary: requests unprocessed transactions data
+      operationId: getPooledTransactions
+      description:
+        This API call returns unprocessed transactions matching filter criteria.
+        If you posted batch of transactions, they will appear in unprocessed list with a bit delay, depending on server load.
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: state
+          description: The state of transactions to query
+          required: true
+          type: string
+          enum:
+            - unprocessed
+            - unconfirmed
+            - unsigned
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientAddress'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderAddress'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /delegates:
     x-swagger-router-controller: delegates
     get:
@@ -1271,6 +1334,14 @@ definitions:
         minimum: 0
       asset:
         type: object
+      receivedAt:
+        type: string
+        format: 'date-time'
+      relays:
+        type: integer
+      signSignature:
+        type: string
+        format: signature
 
   Signature:
     type: object
@@ -1625,6 +1696,7 @@ definitions:
       - loaded
       - networkHeight
       - syncing
+      - transactions
     properties:
       broadhash:
         type: string
@@ -1649,6 +1721,30 @@ definitions:
       syncing:
         type: boolean
         example: false
+      transactions:
+        type: object
+        required:
+          - unconfirmed
+          - unsigned
+          - unprocessed
+          - confirmed
+          - total
+        properties:
+          unconfirmed:
+            type: integer
+            example: 5
+          unsigned:
+            type: integer
+            example: 2
+          unprocessed:
+            type: integer
+            example: 3
+          confirmed:
+            type: integer
+            example: 5
+          total:
+            type: integer
+            example: 15
 
   ProcessingError:
     type: object
