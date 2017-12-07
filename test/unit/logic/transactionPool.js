@@ -197,7 +197,7 @@ describe('transactionPool', function () {
 
 								it('index should be set', function () {
 									index = transactionPool.unconfirmed.index[validTransaction.id];
-									expect(index).to.be.an('number');
+									expect(index).to.be.a('number');
 								});
 
 								it('transaction at index should match', function () {
@@ -493,7 +493,7 @@ describe('transactionPool', function () {
 
 								it('index should be set', function () {
 									index = transactionPool.queued.index[validTransaction.id];
-									expect(index).to.be.an('number');
+									expect(index).to.be.a('number');
 								});
 
 								it('transaction at index should match', function () {
