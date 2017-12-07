@@ -27,10 +27,6 @@ describe('onReceiveBlock()', function () {
 	var blocks;
 
 	before(function (done) {
-		// Force rewards start at 150-th block
-		originalBlockRewardsOffset = node.constants.rewards.offset;
-		node.constants.rewards.offset = 150;
-
 		application.init({sandbox: {name: 'lisk_test_blocks_process'}}, function (scope) {
 			library = scope;
 			db = scope.db;
@@ -46,10 +42,7 @@ describe('onReceiveBlock()', function () {
 	beforeEach(function (done) {
 		async.every([
 			'blocks where height > 1;',
-			'trs where "blockId" != \'6524861224470851795\';',
-			'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\');',
 			'forks_stat;',
-			'votes where "transactionId" = \'17502993173215211070\';'
 		], function (table, cb) {
 			clearDatabaseTable(db, modulesLoader.logger, table, cb);
 		}, function () {
@@ -270,26 +263,26 @@ describe('onReceiveBlock()', function () {
 
 		describe('forkOne', function () {
 			var forgedBlocks = [];
+			var lastBlock;
+			var block;
 
 			beforeEach('forge 300 blocks', function (done) {
 				forgeMultipleBlocks(300, function (err, blocks) {
 					expect(err).to.not.exist;
 					forgedBlocks = blocks;
+					lastBlock = forgedBlocks[forgedBlocks.length - 2];
+					block = forgedBlocks[forgedBlocks.length - 1];
 					done();
 				});
 			});
 
 			describe('when received block timestamp is greater than previous block', function () {
 
-				var lastBlock;
-				var block;
 				var blockWithGreaterTimestamp;
 				var slot;
 				var keypair;
 
 				beforeEach(function () {
-					lastBlock = forgedBlocks[forgedBlocks.length - 2];
-					block = forgedBlocks[forgedBlocks.length - 1];
 					slot = slots.getSlotNumber(block.timestamp) + 1;
 					return getValidKeypairForSlot(slot).then(function (kp) {
 						keypair = kp;
@@ -317,16 +310,11 @@ describe('onReceiveBlock()', function () {
 
 			describe('when received block timestamp is lower than previous block', function () {
 
-				var lastBlock;
-				var block;
 				var blockWithLowerTimestamp;
 				var slot;
 				var keypair;
 
 				beforeEach(function () {
-					block = forgedBlocks[forgedBlocks.length - 1];
-					lastBlock = forgedBlocks[forgedBlocks.length - 2];
-
 					slot = slots.getSlotNumber(block.timestamp);
 					return getValidKeypairForSlot(slot).then(function (kp) {
 						keypair = kp;
@@ -352,37 +340,68 @@ describe('onReceiveBlock()', function () {
 
 			describe('with block height mutated', function () {
 
-				describe('when received block is from previous round', function () {
+				var mutatedHeight;
+
+				beforeEach(function () {
+					mutatedHeight = block.height + 1;
+				});
+
+				describe('when received block is from previous round (101 blocks back)', function () {
 
 					var blockFromPreviousRound;
 
 					beforeEach(function () {
 						blockFromPreviousRound = forgedBlocks[forgedBlocks.length - constants.activeDelegates];
-						blockFromPreviousRound.height = library.modules.blocks.lastBlock.get().height + 1;
+						blockFromPreviousRound.height = mutatedHeight;
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
 					});
 
 					it('should reject the received block', function (done) {
 						library.sequence.add(function (cb) {
 							return handle(getBlocks().then(function (blocks) {
+								var blockIds = _.map(blocks, 'id');
+								expect(blockIds).to.include.members([block.id, lastBlock.id]);
 								return verifyForkStat(blockFromPreviousRound.id, 1);
 							}), done, cb);
 						});
 					});
 				});
 
-				describe('when received block is from the same round but in the more than 5 slots in the past', function () {
+				describe('when received block is from the same round and 3 slots in the past', function () {
+					var threeSlotsOldBlock;
+
+					beforeEach(function () {
+						threeSlotsOldBlock = forgedBlocks[forgedBlocks.length - 2];
+						threeSlotsOldBlock.height = mutatedHeight;
+						library.modules.blocks.process.onReceiveBlock(threeSlotsOldBlock);
+					});
+
+					it('should reject the received block', function (done) {
+						library.sequence.add(function (cb) {
+							return handle(getBlocks().then(function (blocks) {
+								var blockIds = _.map(blocks, 'id');
+								expect(blockIds).to.include.members([block.id, lastBlock.id]);
+								return verifyForkStat(threeSlotsOldBlock.id, 1);
+							}), done, cb);
+						});
+					});
+				});
+
+				describe('when received block is from the same round but more than 5 slots in the past', function () {
+
 					var sixSlotsOldBlock;
 
 					beforeEach(function () {
 						sixSlotsOldBlock = forgedBlocks[forgedBlocks.length - 6];
-						sixSlotsOldBlock.height = forgedBlocks[forgedBlocks.length - 1].height + 1;
+						sixSlotsOldBlock.height = mutatedHeight;
 						library.modules.blocks.process.onReceiveBlock(sixSlotsOldBlock);
 					});
 
 					it('should reject the received block', function (done) {
 						library.sequence.add(function (cb) {
 							return handle(getBlocks().then(function (blocks) {
+								var blockIds = _.map(blocks, 'id');
+								expect(blockIds).to.include.members([block.id, lastBlock.id]);
 								return verifyForkStat(sixSlotsOldBlock.id, 1);
 							}), done, cb);
 						});
@@ -398,7 +417,7 @@ describe('onReceiveBlock()', function () {
 						return getValidKeypairForSlot(slot).then(function (keypair) {
 							var dummyBlock = {
 								id: '0',
-								height: forgedBlocks[forgedBlocks.length - 1].height
+								height: mutatedHeight - 1
 							};
 							blockFromFutureSlot = createBlock([], slots.getSlotTime(slot), keypair, dummyBlock);
 							library.modules.blocks.process.onReceiveBlock(blockFromFutureSlot);
@@ -408,6 +427,8 @@ describe('onReceiveBlock()', function () {
 					it('should reject the received block', function (done) {
 						library.sequence.add(function (cb) {
 							return handle(getBlocks().then(function (blocks) {
+								var blockIds = _.map(blocks, 'id');
+								expect(blockIds).to.include.members([block.id, lastBlock.id]);
 								return verifyForkStat(blockFromFutureSlot.id, 1);
 							}), done, cb);
 						});
@@ -418,7 +439,7 @@ describe('onReceiveBlock()', function () {
 
 		describe('forkFive', function () {
 
-			describe('with  5 blocks forged', function () {
+			describe('with 5 blocks forged', function () {
 
 				var lastBlock;
 				var block;
@@ -462,7 +483,7 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					describe('when generator key is different', function () {
+					describe('and when delegate slot is invalid', function () {
 
 						beforeEach(function () {
 							keypair = getKeypair(_.find(genesisDelegates, function (value) {
@@ -529,31 +550,6 @@ describe('onReceiveBlock()', function () {
 									expect(blockIds).to.include.members([blockWithLowerTimestamp.id, lastBlock.id ]);
 									expect(blockIds).to.not.include(block.id);
 									return verifyForkStat(blockWithLowerTimestamp.id, 5);
-								}), done, cb);
-							});
-						});
-					});
-
-					describe('when generator key is different', function () {
-
-						var differentKeypair;
-
-						beforeEach(function () {
-							differentKeypair = getKeypair(_.find(genesisDelegates, function (value) {
-								return value.publicKey != block.generatorPublicKey;
-							}).publicKey);
-						});
-
-						it('should reject the block', function (done) {
-							var blockWithDifferentKey = createBlock([], timestamp, differentKeypair, lastBlock);
-							library.modules.blocks.process.onReceiveBlock(blockWithDifferentKey);
-							library.sequence.add(function (cb) {
-								handle(getBlocks().then(function (blocks) {
-									var blockIds = _.map(blocks, 'id');
-									expect(blockIds).to.have.length(6);
-									expect(blockIds).to.include.members([block.id, lastBlock.id ]);
-									expect(blockIds).to.not.include(blockWithDifferentKey.id);
-									return verifyForkStat(blockWithDifferentKey.id, 5);
 								}), done, cb);
 							});
 						});
