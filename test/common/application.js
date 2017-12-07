@@ -276,6 +276,12 @@ function __init (initScope, done) {
 		}, function (err, scope) {
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
+			test.debug('initApplication: Rewired modules available');
+
+			// Overwrite syncing function to prevent interfere with tests
+			scope.modules.loader.syncing = function () {
+				return false;
+			};
 
 			// If bus is overridden, then we just return the scope, without waiting for genesisBlock
 			if (!initScope.waitForGenesisBlock || initScope.bus) {
