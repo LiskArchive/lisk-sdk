@@ -13,21 +13,12 @@ def buildDependency() {
   try {
     sh '''#!/bin/bash
 
-    # Build submodules
-    git submodule init
-    git submodule update
-
     # Install Deps
     npm install
 
     # Install Nodejs
     tar -zxf ~/lisk-node-Linux-x86_64.tar.gz
 
-    # Build Lisk-UI
-    cd public/
-    npm install
-    bower install
-    grunt release
     '''
   } catch (err) {
     currentBuild.result = 'FAILURE'
@@ -39,7 +30,6 @@ def startLisk() {
   try {
     sh '''#!/bin/bash
     cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-    cd test/lisk-js/; npm install; cd ../..
     cp test/config.json test/genesisBlock.json .
     export NODE_ENV=test
     JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
