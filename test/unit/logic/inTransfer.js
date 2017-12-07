@@ -7,14 +7,16 @@ var expect = require('chai').expect;
 var rewire = require('rewire');
 var sinon   = require('sinon');
 
-var node = require('./../../node.js');
+
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/modulesLoader');
+var constants = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
-var typesRepresentatives = require('../../common/typesRepresentatives');
+var typesRepresentatives = require('../../fixtures/typesRepresentatives');
 
 var InTransfer = rewire('../../../logic/inTransfer.js');
 var sql = require('../../../sql/dapps.js');
+
+var modulesLoader = require('../../common/modulesLoader');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -86,7 +88,7 @@ describe('inTransfer', function () {
 	var sharedStub;
 	var accountsStub;
 
-	var transaction;
+	var trs;
 	var rawTrs; 
 	var sender;
 	var dummyBlock;
@@ -108,7 +110,7 @@ describe('inTransfer', function () {
 	});
 
 	beforeEach(function () {
-		transaction = _.cloneDeep(validTransaction);
+		trs = _.cloneDeep(validTransaction);
 		rawTrs = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
 		dummyBlock = {
@@ -164,72 +166,72 @@ describe('inTransfer', function () {
 	describe('calculateFee', function () {
 
 		it('should return constants.fees.send', function () {
-			expect(inTransfer.calculateFee(transaction)).to.equal(node.constants.fees.send);
+			expect(inTransfer.calculateFee(trs)).to.equal(constants.fees.send);
 		});
 	});
 
 	describe('verify', function () {
 
-		describe('when transaction.recipientId exists', function () {
+		describe('when trs.recipientId exists', function () {
 
 			it('should call callback with error = "Invalid recipient"', function (done) {
-				transaction.recipientId = '4835566122337813671L';
-				inTransfer.verify(transaction, sender, function (err) {
+				trs.recipientId = '4835566122337813671L';
+				inTransfer.verify(trs, sender, function (err) {
 					expect(err).to.equal('Invalid recipient');
 					done();
 				});
 			});
 		});
 
-		describe('when transaction.amount does not exist', function () {
+		describe('when trs.amount does not exist', function () {
 
 			it('should call callback with error = "Invalid transaction amount"', function (done) {
-				transaction.amount = undefined;
-				inTransfer.verify(transaction, sender, function (err) {
+				trs.amount = undefined;
+				inTransfer.verify(trs, sender, function (err) {
 					expect(err).to.equal('Invalid transaction amount');
 					done();
 				});
 			});
 		});
 
-		describe('when transaction.amount = 0', function () {
+		describe('when trs.amount = 0', function () {
 
 			it('should call callback with error = "Invalid transaction amount"', function (done) {
-				transaction.amount = 0;
-				inTransfer.verify(transaction, sender, function (err) {
+				trs.amount = 0;
+				inTransfer.verify(trs, sender, function (err) {
 					expect(err).to.equal('Invalid transaction amount');
 					done();
 				});
 			});
 		});
 
-		describe('when transaction.asset does not exist', function () {
+		describe('when trs.asset does not exist', function () {
 
 			it('should call callback with error = "Invalid transaction asset"', function (done) {
-				transaction.asset = undefined;
-				inTransfer.verify(transaction, sender, function (err) {
+				trs.asset = undefined;
+				inTransfer.verify(trs, sender, function (err) {
 					expect(err).to.equal('Invalid transaction asset');
 					done();
 				});
 			});
 		});
 
-		describe('when transaction.asset.inTransfer does not exist', function () {
+		describe('when trs.asset.inTransfer does not exist', function () {
 
 			it('should call callback with error = "Invalid transaction asset"', function (done) {
-				transaction.asset.inTransfer = undefined;
-				inTransfer.verify(transaction, sender, function (err) {
+				trs.asset.inTransfer = undefined;
+				inTransfer.verify(trs, sender, function (err) {
 					expect(err).to.equal('Invalid transaction asset');
 					done();
 				});
 			});
 		});
 
-		describe('when transaction.asset.inTransfer = 0', function () {
+		describe('when trs.asset.inTransfer = 0', function () {
 
 			it('should call callback with error = "Invalid transaction asset"', function (done) {
-				transaction.asset.inTransfer = 0;
-				inTransfer.verify(transaction, sender, function (err) {
+				trs.asset.inTransfer = 0;
+				inTransfer.verify(trs, sender, function (err) {
 					expect(err).to.equal('Invalid transaction asset');
 					done();
 				});
@@ -237,22 +239,22 @@ describe('inTransfer', function () {
 		});
 
 		it('should call library.db.one', function (done) {
-			inTransfer.verify(transaction, sender, function () {
+			inTransfer.verify(trs, sender, function () {
 				expect(dbStub.one.calledOnce).to.be.true;
 				done();
 			});
 		});
 
 		it('should call library.db.one with sql.countByTransactionId', function (done) {
-			inTransfer.verify(transaction, sender, function () {
+			inTransfer.verify(trs, sender, function () {
 				expect(dbStub.one.calledWith(sql.countByTransactionId)).to.be.true;
 				done();
 			});
 		});
 
-		it('should call library.db.one with {id: transaction.asset.inTransfer.dappId}', function (done) {
-			inTransfer.verify(transaction, sender, function () {
-				expect(dbStub.one.args[0][1]).to.eql({id: transaction.asset.inTransfer.dappId});
+		it('should call library.db.one with {id: trs.asset.inTransfer.dappId}', function (done) {
+			inTransfer.verify(trs, sender, function () {
+				expect(dbStub.one.args[0][1]).to.eql({id: trs.asset.inTransfer.dappId});
 				done();
 			});
 		});
@@ -264,7 +266,7 @@ describe('inTransfer', function () {
 			});
 
 			it('should call callback with error', function (done) {
-				inTransfer.verify(transaction, sender, function (err) {
+				inTransfer.verify(trs, sender, function (err) {
 					expect(err).not.to.be.empty;
 					done();
 				});
@@ -280,8 +282,8 @@ describe('inTransfer', function () {
 				});
 
 				it('should call callback with error', function (done) {
-					inTransfer.verify(transaction, sender, function (err) {
-						expect(err).to.equal('Application not found: ' + transaction.asset.inTransfer.dappId);
+					inTransfer.verify(trs, sender, function (err) {
+						expect(err).to.equal('Application not found: ' + trs.asset.inTransfer.dappId);
 						done();
 					});
 				});
@@ -294,14 +296,14 @@ describe('inTransfer', function () {
 				});
 
 				it('should call callback with error = undefined', function (done) {
-					inTransfer.verify(transaction, sender, function (err) {
+					inTransfer.verify(trs, sender, function (err) {
 						expect(err).to.be.undefined;
 						done();
 					});
 				});
 
 				it('should call callback with result = undefined', function (done) {
-					inTransfer.verify(transaction, sender, function (err, res) {
+					inTransfer.verify(trs, sender, function (err, res) {
 						expect(res).to.be.undefined;
 						done();
 					});
@@ -313,15 +315,15 @@ describe('inTransfer', function () {
 	describe('process', function () {
 
 		it('should call callback with error = null', function (done) {
-			inTransfer.process(transaction, sender, function (err) {
+			inTransfer.process(trs, sender, function (err) {
 				expect(err).to.be.null;
 				done();
 			});
 		});
 
 		it('should call callback with result = transaction', function (done) {
-			inTransfer.process(transaction, sender, function (err, result) {
-				expect(result).to.eql(transaction);
+			inTransfer.process(trs, sender, function (err, result) {
+				expect(result).to.eql(trs);
 				done();
 			});
 		});
@@ -329,29 +331,29 @@ describe('inTransfer', function () {
 
 	describe('getBytes', function () {
 
-		describe('when transaction.asset.inTransfer.dappId = undefined', function () {
+		describe('when trs.asset.inTransfer.dappId = undefined', function () {
 
 			beforeEach(function () {
-				transaction.asset.inTransfer.dappId = undefined;
+				trs.asset.inTransfer.dappId = undefined;
 			});
 
 			it('should throw', function () {
-				expect(inTransfer.getBytes.bind(null, transaction)).to.throw;
+				expect(inTransfer.getBytes.bind(null, trs)).to.throw;
 			});
 		});
 
-		describe('when transaction.asset.inTransfer.dappId is a valid dapp id', function () {
+		describe('when trs.asset.inTransfer.dappId is a valid dapp id', function () {
 
 			it('should not throw', function () {
-				expect(inTransfer.getBytes.bind(null, transaction)).not.to.throw;
+				expect(inTransfer.getBytes.bind(null, trs)).not.to.throw;
 			});
 
 			it('should get bytes of valid transaction', function () {
-				expect(inTransfer.getBytes(transaction).toString('utf8')).to.equal(validTransaction.asset.inTransfer.dappId);
+				expect(inTransfer.getBytes(trs).toString('utf8')).to.equal(validTransaction.asset.inTransfer.dappId);
 			});
 
 			it('should return result as a Buffer type', function () {
-				expect(inTransfer.getBytes(transaction)).to.be.instanceOf(Buffer);
+				expect(inTransfer.getBytes(trs)).to.be.instanceOf(Buffer);
 			});
 		});
 	});
@@ -359,15 +361,15 @@ describe('inTransfer', function () {
 	describe('apply', function () {
 
 		beforeEach(function (done) {
-			inTransfer.apply(transaction, dummyBlock, sender, done);
+			inTransfer.apply(trs, dummyBlock, sender, done);
 		});
 
 		it('should call shared.getGenesis', function () {
 			expect(sharedStub.getGenesis.calledOnce).to.be.true;
 		});
 
-		it('should call shared.getGenesis with {dappid: transaction.asset.inTransfer.dappId}', function () {
-			expect(sharedStub.getGenesis.calledWith({dappid: transaction.asset.inTransfer.dappId})).to.be.true;
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', function () {
+			expect(sharedStub.getGenesis.calledWith({dappid: trs.asset.inTransfer.dappId})).to.be.true;
 		});
 
 		describe('when shared.getGenesis fails', function () {
@@ -377,7 +379,7 @@ describe('inTransfer', function () {
 			});
 
 			it('should call callback with error', function () {
-				inTransfer.apply(transaction, dummyBlock, sender, function (err) {
+				inTransfer.apply(trs, dummyBlock, sender, function (err) {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -397,12 +399,12 @@ describe('inTransfer', function () {
 				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: validGetGensisResult.authorId}))).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with balance = transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: transaction.amount}))).to.be.true;
+			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: trs.amount}))).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: transaction.amount}))).to.be.true;
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: trs.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
@@ -420,7 +422,7 @@ describe('inTransfer', function () {
 				});
 				
 				it('should call callback with error', function () {
-					inTransfer.apply(transaction, dummyBlock, sender, function (err) {
+					inTransfer.apply(trs, dummyBlock, sender, function (err) {
 						expect(err).not.to.be.empty;
 					});
 				});
@@ -429,13 +431,13 @@ describe('inTransfer', function () {
 			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
 
 				it('should call callback with error = undefined', function () {
-					inTransfer.apply(transaction, dummyBlock, sender, function (err) {
+					inTransfer.apply(trs, dummyBlock, sender, function (err) {
 						expect(err).to.be.undefined;
 					});
 				});
 
 				it('should call callback with result = undefined', function () {
-					inTransfer.apply(transaction, dummyBlock, sender, function (err, res) {
+					inTransfer.apply(trs, dummyBlock, sender, function (err, res) {
 						expect(res).to.be.undefined;
 					});
 				});
@@ -446,15 +448,15 @@ describe('inTransfer', function () {
 	describe('undo', function () {
 
 		beforeEach(function (done) {
-			inTransfer.undo(transaction, dummyBlock, sender, done);
+			inTransfer.undo(trs, dummyBlock, sender, done);
 		});
 
 		it('should call shared.getGenesis', function () {
 			expect(sharedStub.getGenesis.calledOnce).to.be.true;
 		});
 
-		it('should call shared.getGenesis with {dappid: transaction.asset.inTransfer.dappId}', function () {
-			expect(sharedStub.getGenesis.calledWith({dappid: transaction.asset.inTransfer.dappId})).to.be.true;
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', function () {
+			expect(sharedStub.getGenesis.calledWith({dappid: trs.asset.inTransfer.dappId})).to.be.true;
 		});
 
 		describe('when shared.getGenesis fails', function () {
@@ -464,7 +466,7 @@ describe('inTransfer', function () {
 			});
 
 			it('should call callback with error', function () {
-				inTransfer.undo(transaction, dummyBlock, sender, function (err) {
+				inTransfer.undo(trs, dummyBlock, sender, function (err) {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -484,12 +486,12 @@ describe('inTransfer', function () {
 				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: validGetGensisResult.authorId}))).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with balance = -transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: -transaction.amount}))).to.be.true;
+			it('should call modules.accounts.mergeAccountAndGet with balance = -trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: -trs.amount}))).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = -transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: -transaction.amount}))).to.be.true;
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: -trs.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
@@ -507,7 +509,7 @@ describe('inTransfer', function () {
 				});
 
 				it('should call callback with error', function () {
-					inTransfer.undo(transaction, dummyBlock, sender, function (err) {
+					inTransfer.undo(trs, dummyBlock, sender, function (err) {
 						expect(err).not.to.be.empty;
 					});
 				});
@@ -516,13 +518,13 @@ describe('inTransfer', function () {
 			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
 
 				it('should call callback with error = undefined', function () {
-					inTransfer.undo(transaction, dummyBlock, sender, function (err) {
+					inTransfer.undo(trs, dummyBlock, sender, function (err) {
 						expect(err).to.be.undefined;
 					});
 				});
 
 				it('should call callback with result = undefined', function () {
-					inTransfer.undo(transaction, dummyBlock, sender, function (err, res) {
+					inTransfer.undo(trs, dummyBlock, sender, function (err, res) {
 						expect(res).to.be.undefined;
 					});
 				});
@@ -533,14 +535,14 @@ describe('inTransfer', function () {
 	describe('applyUnconfirmed', function () {
 
 		it('should call callback with error = undefined', function (done) {
-			inTransfer.applyUnconfirmed(transaction, sender, function (err) {
+			inTransfer.applyUnconfirmed(trs, sender, function (err) {
 				expect(err).to.be.undefined;
 				done();
 			});
 		});
 
 		it('should call callback with result = undefined', function (done) {
-			inTransfer.applyUnconfirmed(transaction, sender, function (err, result) {
+			inTransfer.applyUnconfirmed(trs, sender, function (err, result) {
 				expect(result).to.be.undefined;
 				done();
 			});
@@ -550,14 +552,14 @@ describe('inTransfer', function () {
 	describe('undoUnconfirmed', function () {
 
 		it('should call callback with error = undefined', function (done) {
-			inTransfer.undoUnconfirmed(transaction, sender, function (err) {
+			inTransfer.undoUnconfirmed(trs, sender, function (err) {
 				expect(err).to.be.undefined;
 				done();
 			});
 		});
 
 		it('should call callback with result = undefined', function (done) {
-			inTransfer.undoUnconfirmed(transaction, sender, function (err, result) {
+			inTransfer.undoUnconfirmed(trs, sender, function (err, result) {
 				expect(result).to.be.undefined;
 				done();
 			});
@@ -579,17 +581,17 @@ describe('inTransfer', function () {
 		});
 
 		it('should call library.schema.validate', function () {
-			inTransfer.objectNormalize(transaction);
+			inTransfer.objectNormalize(trs);
 			expect(schemaSpy.calledOnce).to.be.true;
 		});
 
-		it('should call library.schema.validate with transaction.asset.inTransfer', function () {
-			inTransfer.objectNormalize(transaction);
-			expect(schemaSpy.calledWith(transaction.asset.inTransfer)).to.be.true;
+		it('should call library.schema.validate with trs.asset.inTransfer', function () {
+			inTransfer.objectNormalize(trs);
+			expect(schemaSpy.calledWith(trs.asset.inTransfer)).to.be.true;
 		});
 
 		it('should call library.schema.validate InTransfer.prototype.schema', function () {
-			inTransfer.objectNormalize(transaction);
+			inTransfer.objectNormalize(trs);
 			expect(schemaSpy.args[0][1]).to.eql(InTransfer.prototype.schema);
 		});
 
@@ -606,8 +608,8 @@ describe('inTransfer', function () {
 
 			typesRepresentatives.nonStrings.forEach(function (nonString) {
 				it('should throw for transaction.asset.inTransfer.dappId = ' + nonString.description, function () {
-					transaction.asset.inTransfer.dappId = nonString.input;
-					expect(inTransfer.objectNormalize.bind(null, transaction)).to.throw();
+					trs.asset.inTransfer.dappId = nonString.input;
+					expect(inTransfer.objectNormalize.bind(null, trs)).to.throw();
 				});
 			});
 		});
@@ -615,7 +617,7 @@ describe('inTransfer', function () {
 		describe('when when transaction.asset.inTransfer is valid', function () {
 
 			it('should return transaction', function () {
-				expect(inTransfer.objectNormalize(transaction)).to.eql(transaction);
+				expect(inTransfer.objectNormalize(trs)).to.eql(trs);
 			});
 		});
 	});
@@ -650,40 +652,40 @@ describe('inTransfer', function () {
 		var dbSaveResult;
 
 		beforeEach(function () {
-			dbSaveResult = inTransfer.dbSave(transaction);
+			dbSaveResult = inTransfer.dbSave(trs);
 		});
 
 		it('should return result containing table = "intransfer"', function () {
 			expect(dbSaveResult).to.have.property('table').equal('intransfer');
 		});
 
-		it('should return result containing fields = ["dapp_id", "transaction_id"]', function () {
-			expect(dbSaveResult).to.have.property('fields').eql(['dapp_id', 'transaction_id']);
+		it('should return result containing fields = ["dappId", "transactionId"]', function () {
+			expect(dbSaveResult).to.have.property('fields').eql(['dappId', 'transactionId']);
 		});
 
 		it('should return result containing values', function () {
 			expect(dbSaveResult).to.have.property('values');
 		});
-		
-		it('should return result containing values.dapp_id = transaction.asset.inTransfer.dappId', function () {
-			expect(dbSaveResult).to.have.nested.property('values.dapp_id').equal(transaction.asset.inTransfer.dappId);
+
+		it('should return result containing values.dappId = trs.asset.inTransfer.dappId', function () {
+			expect(dbSaveResult).to.have.nested.property('values.dappId').equal(trs.asset.inTransfer.dappId);
 		});
 
-		it('should return result containing values.transaction_id = transaction.id', function () {
-			expect(dbSaveResult).to.have.nested.property('values.transaction_id').equal(transaction.id);
+		it('should return result containing values.transactionId = trs.id', function () {
+			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(trs.id);
 		});
 	});
 
 	describe('afterSave', function () {
 
 		it('should call callback with error = undefined', function () {
-			inTransfer.afterSave(transaction, function (err) {
+			inTransfer.afterSave(trs, function (err) {
 				expect(err).to.be.undefined;
 			});
 		});
 
 		it('should call callback with result = undefined', function () {
-			inTransfer.afterSave(transaction, function (err, res) {
+			inTransfer.afterSave(trs, function (err, res) {
 				expect(res).to.be.undefined;
 			});
 		});
@@ -691,26 +693,26 @@ describe('inTransfer', function () {
 
 	describe('ready', function () {
 
-		it('should return true for single signature transaction', function () {
-			expect(inTransfer.ready(transaction, sender)).to.equal(true);
+		it('should return true for single signature trs', function () {
+			expect(inTransfer.ready(trs, sender)).to.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', function () {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-			expect(inTransfer.ready(transaction, sender)).to.equal(false);
+			expect(inTransfer.ready(trs, sender)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', function () {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 			sender.multimin = 1;
 
-			delete transaction.signature;
+			delete trs.signature;
 			// Not really correct signature, but we are not testing that over here
-			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
+			trs.signature = crypto.randomBytes(64).toString('hex');
+			trs.signatures = [crypto.randomBytes(64).toString('hex')];
 
-			expect(inTransfer.ready(transaction, sender)).to.equal(true);
+			expect(inTransfer.ready(trs, sender)).to.equal(true);
 		});
 	});
 });

@@ -6,7 +6,7 @@ var expect = require('chai').expect;
 
 var modulesLoader = require('../../common/modulesLoader');
 var slots         = require('../../../helpers/slots.js');
-var sql           = require('../../sql/delegatesList.js');
+var sql           = require('../common/sql/delegatesList.js');
 
 function generateDelegatesList (round, delegates) {
 	var i, x, n, old, len;

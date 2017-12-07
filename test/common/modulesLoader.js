@@ -2,17 +2,17 @@
 
 var express = require('express');
 var path = require('path');
-var randomString = require('randomstring');
-
+var randomstring = require('randomstring');
 var _ = require('lodash');
-
 var async = require('async');
+
 var dirname = path.join(__dirname, '..', '..');
-var config = require(path.join(dirname, '/config.json'));
+var config = require(path.join(dirname, '/test/data/config.json'));
 var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
 var database = require(path.join(dirname, '/helpers', 'database.js'));
-var genesisblock = require(path.join(dirname, '/genesisBlock.json'));
+var genesisblock = require(path.join(dirname, '/test/data/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
+
 var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
 var Cache = require('../../modules/cache.js');
@@ -25,7 +25,7 @@ var modulesLoader = new function () {
 
 	this.db = null;
 	this.logger = new Logger({ echo: null, errorLevel: config.fileLogLevel, filename: config.logFileName });
-	config.nonce = randomString.generate(16);
+	config.nonce = randomstring.generate(16);
 	this.scope = {
 		config: config,
 		genesisblock: { block: genesisblock },
@@ -50,7 +50,7 @@ var modulesLoader = new function () {
 				this.argsMessages = [];
 			}
 		},
-		nonce: randomString.generate(16),
+		nonce: randomstring.generate(16),
 		dbSequence: new Sequence({
 			onWarning: function (current, limit) {
 				this.logger.warn('DB queue', current);
@@ -133,7 +133,7 @@ var modulesLoader = new function () {
 	 * @param {function} cb
 	 */
 	this.initModules = function (modules, logic, scope, cb) {
-		scope = _.assign({}, this.scope, scope);
+		scope = _.merge({}, this.scope, scope);
 		async.waterfall([
 			function (waterCb) {
 				async.reduce(logic, {}, function (memo, logicObj, mapCb) {
@@ -145,7 +145,7 @@ var modulesLoader = new function () {
 				}.bind(this), waterCb);
 			}.bind(this),
 			function (logic, waterCb) {
-				scope = _.assign({}, this.scope, scope, {logic: logic});
+				scope = _.merge({}, this.scope, scope, {logic: logic});
 				async.reduce(modules, {}, function (memo, moduleObj, mapCb) {
 					var name = _.keys(moduleObj)[0];
 					return this.initModule(moduleObj[name], scope, function (err, module) {

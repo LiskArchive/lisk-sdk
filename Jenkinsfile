@@ -33,7 +33,7 @@ def buildDependency() {
 def startLisk() {
 	try {
 		sh '''
-		cp test/config.json test/genesisBlock.json .
+		cp test/data/config.json test/data/genesisBlock.json .
 		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
 		'''
 	} catch (err) {
@@ -182,6 +182,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					initBuild()
 				}
 			},
+			"Build Node-05" : {
+				node('node-05'){
+					initBuild()
+				}
+			},
 			"Initialize Master Workspace" : {
 				node('master-01'){
 					cleanup_master()
@@ -211,6 +216,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				node('node-04'){
 					buildDependency()
 				}
+			},
+			"Build Dependencies Node-05" : {
+				node('node-05'){
+					buildDependency()
+				}
 			}
 		)
 	}
@@ -234,6 +244,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Start Lisk Node-04" : {
 				node('node-04'){
+					startLisk()
+				}
+			},
+			"Start Lisk Node-05" : {
+				node('node-05'){
 					startLisk()
 				}
 			}
@@ -276,9 +291,14 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						run_action('test-unit-extensive')
 					} else {
 						run_action('test-unit')
-					}					
+					}
 				}
-			}// End Node-04 unit tests
+			}, // End Node-04 unit tests
+			"Functional Transaction pool" : {
+				node('node-05'){
+					run_action('test-functional-pool')
+				}
+			} // End Node-05 tests
 		) // End Parallel
 	}
 
@@ -302,6 +322,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			"Gather Coverage Node-04" : {
 				node('node-04'){
 					report_coverage('04')
+				}
+			},
+			"Gather Coverage Node-05" : {
+				node('node-05'){
+					report_coverage('05')
 				}
 			}
 		)
@@ -350,6 +375,11 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			},
 			"Cleanup Node-04" : {
 				node('node-04'){
+					cleanup()
+				}
+			},
+			"Cleanup Node-05" : {
+				node('node-05'){
 					cleanup()
 				}
 			},

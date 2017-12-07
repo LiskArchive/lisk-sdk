@@ -1,52 +1,49 @@
 'use strict';
 
-var node = require('../../../node');
-var shared = require('../../shared');
+var test = require('../../functional.js');
+
+var lisk = require('lisk-js');
+var expect = require('chai').expect;
+
+var _ = test._;
+var common = require('./common');
+var phases = require('../../common/phases');
+var Scenarios = require('../../common/scenarios');
+var accountFixtures = require('../../../fixtures/accounts');
+
 var apiCodes = require('../../../../helpers/apiCodes');
 var constants = require('../../../../helpers/constants');
 
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var sendSignaturePromise = require('../../../common/apiHelpers').sendSignaturePromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
+var randomUtil = require('../../../common/utils/random');
+var waitFor = require('../../../common/utils/waitFor');
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/helpers/api');
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+
 
 describe('POST /api/transactions (type 4) register multisignature', function () {
 
 	var scenarios = {
-		'no_funds': new shared.MultisigScenario(
-			{
-				'amount' : 0
-			}
-		),
-		'minimal_funds': new shared.MultisigScenario(
-			{
-				'amount': constants.fees.multisignature * 3
-			}
-		),
-		'minimum_not_reached': new shared.MultisigScenario(
-			{
-				'members' : 4,
-				'min' : 2
-			}
-		),
-		'max_signatures': new shared.MultisigScenario(
-			{
-				'members' : constants.multisigConstraints.keysgroup.maxItems + 1,
-				'min' : 2
-			}
-		),
-		'max_signatures_max_min': new shared.MultisigScenario(
-			{
-				'members': constants.multisigConstraints.keysgroup.maxItems + 1,
-				'min': constants.multisigConstraints.min.maximum
-			}
-		),
-		'more_than_max_signatures': new shared.MultisigScenario(
-			{
-				'members': constants.multisigConstraints.keysgroup.maxItems + 2
-			}
-		),
-		'regular': new shared.MultisigScenario(),
-		'regular_with_second_signature': new shared.MultisigScenario(),
+		no_funds: new Scenarios.Multisig({
+			amount: 0
+		}),
+		minimal_funds: new Scenarios.Multisig({
+			amount: constants.fees.multisignature * 3
+		}),
+		max_members: new Scenarios.Multisig({
+			members: constants.multisigConstraints.keysgroup.maxItems + 1,
+			min: 2
+		}),
+		max_members_max_min: new Scenarios.Multisig({
+			members: constants.multisigConstraints.keysgroup.maxItems + 1,
+			min: constants.multisigConstraints.min.maximum
+		}),
+		more_than_max_members: new Scenarios.Multisig({
+			members: constants.multisigConstraints.keysgroup.maxItems + 2
+		}),
+		unsigned: new Scenarios.Multisig(),
+		regular: new Scenarios.Multisig(),
+		regular_with_second_signature: new Scenarios.Multisig(),
 	};
 
 	var transaction, signature;
@@ -56,127 +53,127 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 	var badTransactionsEnforcement = [];
 	var goodTransactionsEnforcement = [];
 	var pendingMultisignatures = [];
+	var signatureEndpoint = new swaggerEndpoint('POST /signatures');
 
 	before(function () {
-		//Crediting accounts
-		return node.Promise.all(Object.keys(scenarios).map(function (type) {
-			if (type === 'no_funds') {
-				return;
+		var transactions = [];
+
+		Object.keys(scenarios).map(function (type) {
+			if (type !== 'no_funds') {
+				transactions.push(scenarios[type].creditTransaction);
 			}
+		});
 
-			var transaction = node.lisk.transaction.createTransaction(scenarios[type].account.address, scenarios[type].amount, node.gAccount.password);
+		return apiHelpers.sendTransactionsPromise(transactions).then(function (res) {
+			expect(res).to.have.property('status').to.equal(200);
+			transactionsToWaitFor = transactionsToWaitFor.concat(_.map(transactions, 'id'));
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				transactionsToWaitFor.push(transaction.id);
-			});
-		})).then(function () {
-			return waitForConfirmations(transactionsToWaitFor);
+			return waitFor.confirmations(transactionsToWaitFor);
 		});
 	});
 
 	describe('schema validations', function () {
 
-		shared.invalidAssets('multisignature', badTransactions);
+		common.invalidAssets('multisignature', badTransactions);
 
 		describe('keysgroup', function () {
 
 			it('using empty array should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, [], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, [], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Array is too short (0), minimum ' + constants.multisigConstraints.keysgroup.minItems);
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Array is too short (0), minimum ' + constants.multisigConstraints.keysgroup.minItems);
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using empty member should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+' + node.eAccount.publicKey, '+' + scenarios.no_funds.account.publicKey, '+' + scenarios.minimal_funds.account.publicKey, null], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+' + accountFixtures.existingDelegate.publicKey, '+' + scenarios.no_funds.account.publicKey, '+' + scenarios.minimal_funds.account.publicKey, null], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid member in keysgroup');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid member in keysgroup');
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('including sender should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+' + node.eAccount.publicKey, '+' + scenarios.regular.account.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+' + accountFixtures.existingDelegate.publicKey, '+' + scenarios.regular.account.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid multisignature keysgroup. Can not contain sender');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid multisignature keysgroup. Can not contain sender');
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using same member twice should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+' + node.eAccount.publicKey, '+' + node.eAccount.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+' + accountFixtures.existingDelegate.publicKey, '+' + accountFixtures.existingDelegate.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Encountered duplicate public key in multisignature keysgroup');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Encountered duplicate public key in multisignature keysgroup');
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using invalid publicKey should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+L' + node.eAccount.publicKey.slice(0, -1), '+' + scenarios.no_funds.account.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+L' + accountFixtures.existingDelegate.publicKey.slice(0, -1), '+' + scenarios.no_funds.account.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid public key in multisignature keysgroup');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid public key in multisignature keysgroup');
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using no math operator (just publicKey) should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, [node.eAccount.publicKey, scenarios.no_funds.account.publicKey, scenarios.minimal_funds.account.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, [accountFixtures.existingDelegate.publicKey, scenarios.no_funds.account.publicKey, scenarios.minimal_funds.account.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid math operator in multisignature keysgroup');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid math operator in multisignature keysgroup');
 					badTransactions.push(transaction);
 				});
 			});
 
-			it('just math operator should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+', '+'], 1, 2);
+			it('using just math operator should fail', function () {
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['+', '+'], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid public key in multisignature keysgroup');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid public key in multisignature keysgroup');
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using invalid math operator should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['-' + node.eAccount.publicKey, '+' + scenarios.no_funds.account.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['-' + accountFixtures.existingDelegate.publicKey, '+' + scenarios.no_funds.account.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid math operator in multisignature keysgroup');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid math operator in multisignature keysgroup');
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using duplicated correct operator should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['++' + node.eAccount.publicKey, '+' + scenarios.no_funds.account.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, ['++' + accountFixtures.existingDelegate.publicKey, '+' + scenarios.no_funds.account.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid public key in multisignature keysgroup');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid public key in multisignature keysgroup');
 					badTransactions.push(transaction);
 				});
 			});
 
-			it('using more_than_max_signatures scenario(' + (constants.multisigConstraints.keysgroup.maxItems + 2) + ',2) should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.more_than_max_signatures.account.password, null, scenarios.more_than_max_signatures.keysgroup, 1, 2);
+			it('using more_than_max_members scenario(' + (constants.multisigConstraints.keysgroup.maxItems + 2) + ',2) should fail', function () {
+				transaction = lisk.multisignature.createMultisignature(scenarios.more_than_max_members.account.password, null, scenarios.more_than_max_members.keysgroup, 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Array is too long (' + (constants.multisigConstraints.keysgroup.maxItems + 1) + '), maximum ' + constants.multisigConstraints.keysgroup.maxItems);
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Array is too long (' + (constants.multisigConstraints.keysgroup.maxItems + 1) + '), maximum ' + constants.multisigConstraints.keysgroup.maxItems);
 					badTransactions.push(transaction);
 				});
 			});
@@ -185,31 +182,31 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 		describe('min', function () {
 
 			it('using bigger than keysgroup size plus 1 should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, [node.eAccount.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, [accountFixtures.existingDelegate.publicKey], 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid multisignature min. Must be less than or equal to keysgroup size');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid multisignature min. Must be less than or equal to keysgroup size');
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using min greater than maximum(' + constants.multisigConstraints.min.maximum + ') should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.max_signatures_max_min.account.password, null, scenarios.max_signatures_max_min.keysgroup, 1, constants.multisigConstraints.min.maximum + 1);
+				transaction = lisk.multisignature.createMultisignature(scenarios.max_members_max_min.account.password, null, scenarios.max_members_max_min.keysgroup, 1, constants.multisigConstraints.min.maximum + 1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.min.maximum + 1) + ' is greater than maximum ' + constants.multisigConstraints.min.maximum);
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.min.maximum + 1) + ' is greater than maximum ' + constants.multisigConstraints.min.maximum);
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using min less than minimum(' + constants.multisigConstraints.min.minimum + ') should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.max_signatures.account.password, null, scenarios.max_signatures.keysgroup, 1, constants.multisigConstraints.min.minimum - 1);
+				transaction = lisk.multisignature.createMultisignature(scenarios.max_members.account.password, null, scenarios.max_members.keysgroup, 1, constants.multisigConstraints.min.minimum - 1);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.min.minimum - 1) + ' is less than minimum ' + constants.multisigConstraints.min.minimum);
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.min.minimum - 1) + ' is less than minimum ' + constants.multisigConstraints.min.minimum);
 					badTransactions.push(transaction);
 				});
 			});
@@ -218,21 +215,21 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 		describe('lifetime', function () {
 
 			it('using greater than maximum(' + constants.multisigConstraints.lifetime.maximum + ') should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, constants.multisigConstraints.lifetime.maximum + 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, constants.multisigConstraints.lifetime.maximum + 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.lifetime.maximum + 1) + ' is greater than maximum ' + constants.multisigConstraints.lifetime.maximum);
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.lifetime.maximum + 1) + ' is greater than maximum ' + constants.multisigConstraints.lifetime.maximum);
 					badTransactions.push(transaction);
 				});
 			});
 
 			it('using less than minimum(' + constants.multisigConstraints.lifetime.minimum + ') should fail', function () {
-				transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, constants.multisigConstraints.lifetime.minimum - 1, 2);
+				transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, constants.multisigConstraints.lifetime.minimum - 1, 2);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.lifetime.minimum - 1) + ' is less than minimum ' + constants.multisigConstraints.lifetime.minimum);
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate multisignature schema: Value ' + (constants.multisigConstraints.lifetime.minimum - 1) + ' is less than minimum ' + constants.multisigConstraints.lifetime.minimum);
 					badTransactions.push(transaction);
 				});
 			});
@@ -241,175 +238,151 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 	describe('transactions processing', function () {
 
-		it('when sender not on blockchain should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.no_funds.account.password, null, scenarios.no_funds.keysgroup, 1, 2);
+		it('with no_funds scenario should fail', function () {
+			var scenario = scenarios.no_funds;
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
-				badTransactions.push(transaction);
-			});
-		});
-
-		// TODO: Test this after an account is made empty
-		it.skip('when sender has no funds should fail', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.no_funds.account.password, null, scenarios.no_funds.keysgroup, 1, 2);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + scenarios.no_funds.account.address + ' balance: 0');
-				badTransactions.push(transaction);
+			return sendTransactionPromise(scenario.multiSigTransaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Account does not have enough LSK: ' + scenarios.no_funds.account.address + ' balance: 0');
+				badTransactions.push(scenario.multiSigTransaction);
 			});
 		});
 
 		it('with minimal_funds scenario should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.minimal_funds.account.password, null, scenarios.minimal_funds.keysgroup, 1, 2);
+			var scenario = scenarios.minimal_funds;
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.minimal_funds.transaction = transaction;
+			return sendTransactionPromise(scenario.multiSigTransaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		});
 
-		it('using valid params regular scenario (3,2) should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, 1, 2);
+		it('using valid params regular scenario should be ok', function () {
+			var scenario = scenarios.regular;
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.regular.transaction = transaction;
+			return sendTransactionPromise(scenario.multiSigTransaction)
+				.then(function (res) {
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+
+					var signatures = _.map(scenario.members, function (member) {
+						return apiHelpers.createSignatureObject(scenario.multiSigTransaction, member);
+					});
+
+					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
+						res.body.meta.status.should.be.true;
+						res.body.data.message.should.be.equal('Signature Accepted');
+
+						goodTransactions.push(scenario.multiSigTransaction);
+					});
+				});
+		});
+
+		it('using valid params regular_with_second_signature scenario should be ok', function () {
+			var scenario = scenarios.regular_with_second_signature;
+			var multiSigSecondPasswordTransaction = lisk.multisignature.createMultisignature(scenario.account.password, scenario.account.secondPassword, scenario.keysgroup, 1, 2);
+
+			return sendTransactionPromise(scenario.secondSignatureTransaction)
+				.then(function (res) {
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+
+					return waitFor.confirmations([scenario.secondSignatureTransaction.id]);
+				})
+				.then(function () {
+					return sendTransactionPromise(multiSigSecondPasswordTransaction);
+				})
+				.then(function (res) {
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+
+					var signatures = _.map(scenario.members, function (member) {
+						return apiHelpers.createSignatureObject(multiSigSecondPasswordTransaction, member);
+					});
+
+					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
+						res.body.meta.status.should.be.true;
+						res.body.data.message.should.be.equal('Signature Accepted');
+
+						goodTransactions.push(multiSigSecondPasswordTransaction);
+					});
+				});
+		});
+
+		it('using valid params unsigned scenario should be ok and remain in pending queue', function () {
+			var scenario = scenarios.unsigned;
+
+			return sendTransactionPromise(scenario.multiSigTransaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+
+				pendingMultisignatures.push(scenario.multiSigTransaction);
 			});
 		});
 
-		it('using valid params regular_with_second_signature scenario (3,2) should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.regular_with_second_signature.account.password, null, scenarios.regular_with_second_signature.keysgroup, 1, 2);
+		it('using valid params max_members scenario should be ok', function () {
+			var scenario = scenarios.max_members;
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.regular_with_second_signature.transaction = transaction;
-			});
+			return sendTransactionPromise(scenario.multiSigTransaction)
+				.then(function (res) {
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+
+					var signatures = _.map(scenario.members, function (member) {
+						return apiHelpers.createSignatureObject(scenario.multiSigTransaction, member);
+					});
+
+					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
+						res.body.meta.status.should.be.true;
+						res.body.data.message.should.be.equal('Signature Accepted');
+
+						goodTransactions.push(scenario.multiSigTransaction);
+					});
+				});
 		});
 
-		it('using valid params minimum_not_reached scenario (4,2) should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.minimum_not_reached.account.password, null, scenarios.minimum_not_reached.keysgroup, 1, 2);
+		it('using valid params max_members_max_min scenario should be ok', function () {
+			var scenario = scenarios.max_members_max_min;
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.minimum_not_reached.transaction = transaction;
-			});
-		});
+			return sendTransactionPromise(scenario.multiSigTransaction)
+				.then(function (res) {
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-		it('using valid params max_signatures scenario (16,2) should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.max_signatures.account.password, null, scenarios.max_signatures.keysgroup, 1, 2);
+					var signatures = _.map(scenario.members, function (member) {
+						return apiHelpers.createSignatureObject(scenario.multiSigTransaction, member);
+					});
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.max_signatures.transaction = transaction;
-			});
-		});
+					return signatureEndpoint.makeRequest({signatures: signatures}, 200).then(function (res) {
+						res.body.meta.status.should.be.true;
+						res.body.data.message.should.be.equal('Signature Accepted');
 
-		it('using valid params max_signatures_max_min scenario (16,16) should be ok', function () {
-			transaction = node.lisk.multisignature.createMultisignature(scenarios.max_signatures_max_min.account.password, null, scenarios.max_signatures_max_min.keysgroup, 1, 2);
-
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-				scenarios.max_signatures_max_min.transaction = transaction;
-			});
+						goodTransactions.push(scenario.multiSigTransaction);
+					});
+				});
 		});
 
 		describe('signing transactions', function () {
 
-			it('with not all the signatures minimum_not_reached scenario (4,2) should be ok but never confirmed', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0].password);
-
-				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
-					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-					node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-					pendingMultisignatures.push(scenarios.minimum_not_reached.transaction);
-				});
-			});
-
 			it('twice with the same account should fail', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, scenarios.minimum_not_reached.members[0].password);
+				var scenario = scenarios.unsigned;
+				var signature = apiHelpers.createSignatureObject(scenario.multiSigTransaction, scenario.members[0]);
 
-				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
-					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.INTERNAL_SERVER_ERROR);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Permission to sign transaction denied');
+				return signatureEndpoint.makeRequest({signatures: [signature]}, 200).then(function (res) {
+					res.body.meta.status.should.be.true;
+					res.body.data.message.should.be.equal('Signature Accepted');
+
+					return signatureEndpoint.makeRequest({signatures: [signature]}, apiCodes.PROCESSING_ERROR);
+				}).then(function (res) {
+					expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Permission to sign transaction denied');
 				});
 			});
 
 			it('with not requested account should fail', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.minimum_not_reached.transaction, node.randomAccount().password);
+				var signature = apiHelpers.createSignatureObject(scenarios.unsigned.multiSigTransaction, randomUtil.account());
 
-				return sendSignaturePromise(signature, scenarios.minimum_not_reached.transaction).then(function (res) {
-					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.INTERNAL_SERVER_ERROR);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Failed to verify signature');
-				});
-			});
-
-			it('with all the signatures regular scenario (3,2) should be ok and confirmed', function () {
-				return node.Promise.all(node.Promise.map(scenarios.regular.members, function (member) {
-					signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, member.password);
-
-					return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-					});
-				})).then(function () {
-					goodTransactions.push(scenarios.regular.transaction);
-				});
-			});
-
-			it('with all the signatures regular_with_second_signature scenario (3,2) should be ok and confirmed', function () {
-				return node.Promise.all(node.Promise.map(scenarios.regular_with_second_signature.members, function (member) {
-					signature = node.lisk.multisignature.signTransaction(scenarios.regular_with_second_signature.transaction, member.password);
-
-					return sendSignaturePromise(signature, scenarios.regular_with_second_signature.transaction).then(function (res) {
-						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-					});
-				})).then(function () {
-					goodTransactions.push(scenarios.regular_with_second_signature.transaction);
-				});
-			});
-
-			it('with all the signatures already in place regular scenario (3,2) should fail', function () {
-				signature = node.lisk.multisignature.signTransaction(scenarios.regular.transaction, scenarios.regular.members[0].password);
-
-				return sendSignaturePromise(signature, scenarios.regular.transaction).then(function (res) {
-					node.expect(res).to.have.property('statusCode').to.equal(apiCodes.INTERNAL_SERVER_ERROR);
-					node.expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Permission to sign transaction denied');
-				});
-			});
-
-			it('with all the signatures max_signatures scenario (16,2) should be ok and confirmed', function () {
-				return node.Promise.all(node.Promise.map(scenarios.max_signatures.members, function (member) {
-					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures.transaction, member.password);
-
-					return sendSignaturePromise(signature, scenarios.max_signatures.transaction).then(function (res) {
-						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-					});
-				})).then(function () {
-					goodTransactions.push(scenarios.max_signatures.transaction);
-				});
-			});
-
-			it('with all the signatures max_signatures_max_min scenario (16,16) should be ok and confirmed', function () {
-				return node.Promise.all(node.Promise.map(scenarios.max_signatures_max_min.members, function (member) {
-					signature = node.lisk.multisignature.signTransaction(scenarios.max_signatures_max_min.transaction, member.password);
-
-					return sendSignaturePromise(signature, scenarios.max_signatures_max_min.transaction).then(function (res) {
-						node.expect(res).to.have.property('statusCode').to.equal(apiCodes.OK);
-						node.expect(res).to.have.nested.property('body.status').to.equal('Signature Accepted');
-					});
-				})).then(function () {
-					goodTransactions.push(scenarios.max_signatures_max_min.transaction);
+				return signatureEndpoint.makeRequest({signatures: [signature]}, apiCodes.PROCESSING_ERROR).then(function (res) {
+					expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Failed to verify signature');
 				});
 			});
 		});
@@ -417,6 +390,6 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 	describe('confirmation', function () {
 
-		shared.confirmationPhase(goodTransactions, badTransactions, pendingMultisignatures);
+		phases.confirmation(goodTransactions, badTransactions, pendingMultisignatures);
 	});
 });

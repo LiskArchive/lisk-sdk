@@ -305,29 +305,28 @@ __private.dbSave = function (cb) {
 	});
 };
 
-Peers.prototype.getConsensus = function (matched, active) {
-
+/**
+* Calculates consensus for as a ratio active to matched peers.
+* @param {Array<Peer>} active - Active peers (with connected state).
+* @param {Array<Peer>} matched - Peers with same as system broadhash.
+* @returns {number|undefined} - Consensus or undefined if config.forging.force = true.
+*/
+Peers.prototype.getConsensus = function (active, matched) {
 	if (library.config.forging.force) {
 		return undefined;
 	}
-
-	active = active || __private.getByFilter({state: Peer.STATE.CONNECTED, normalized: false});
-	matched = matched || __private.getMatched({broadhash: modules.system.getBroadhash()}, active);
-
-	active = active.slice(0, constants.maxPeers);
-	matched = matched.slice(0, constants.maxPeers);
-
-	var consensus = Math.round(matched.length / active.length * 100 * 1e2) / 100;
-
-	if (isNaN(consensus)) {
-		return 0;
-	}
-
-	return consensus;
+	active = active || library.logic.peers.list(true);
+	var broadhash = modules.system.getBroadhash();
+	matched = matched || active.filter(function (peer) {
+		return peer.broadhash === broadhash;
+	});
+	var activeCount = Math.min(active.length, constants.maxPeers);
+	var matchedCount = Math.min(matched.length, activeCount);
+	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+	return isNaN(consensus) ? 0 : consensus;
 };
 
 // Public methods
-
 /**
  * Updates peer in peers list.
  * @param {peer} peer
@@ -444,45 +443,52 @@ Peers.prototype.acceptable = function (peers) {
 
 /**
  * Gets peers list and calculated consensus.
- * @param {Object} options - Constains limit, broadhash.
+ * @param {Object} options
+ * @param {number} options.limit[=constants.maxPeers] - Maximum number of peers to get.
+ * @param {string} options.broadhash[=null] - Broadhash to match peers by.
+ * @param {string} options.normalized[=undefined] - Return peers in normalized (json) form.
+ * @param {Array} options.allowedStates[=[2]] - Allowed peer states.
+ * @param {number} options.attempt[=undefined] - If 0: Return peers with equal options.broadhash
+ *                                               If 1: Return peers with different options.broadhash
+ *                                               If not specified: return peers regardless of options.broadhash
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | peers, consensus
  */
 Peers.prototype.list = function (options, cb) {
-	options.limit = options.limit || constants.maxPeers;
-	options.broadhash = options.broadhash || modules.system.getBroadhash();
-	options.allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
-	options.attempts = ['matched broadhash', 'unmatched broadhash'];
-	options.attempt = 0;
-	options.matched = 0;
+	var limit = options.limit || constants.maxPeers;
+	var broadhash = options.broadhash || modules.system.getBroadhash();
+	var allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
+	var attempts = (options.attempt === 0 || options.attempt === 1) ? [options.attempt] : [1, 0];
+	var attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
 
-	function randomList (options, peers, cb) {
+	function randomList (peers, cb) {
 		// Get full peers list (random)
 		__private.getByFilter({normalized: options.normalized}, function (err, peersList) {
 			var accepted, found, matched, picked;
 
 			found = peersList.length;
+			var attempt = attempts.pop();
 			// Apply filters
 			peersList = peersList.filter(function (peer) {
-				if (options.broadhash) {
+				if (broadhash) {
 					// Skip banned and disconnected peers by default
-					return options.allowedStates.indexOf(peer.state) !== -1 && (
+					return allowedStates.indexOf(peer.state) !== -1 && (
 						// Matched broadhash when attempt 0
-						options.attempt === 0 ? (peer.broadhash === options.broadhash) :
+						attempt === 0 ? (peer.broadhash === broadhash) :
 						// Unmatched broadhash when attempt 1
-						options.attempt === 1 ? (peer.broadhash !== options.broadhash) : false
+						attempt === 1 ? (peer.broadhash !== broadhash) : false
 					);
 				} else {
 					// Skip banned and disconnected peers by default
-					return options.allowedStates.indexOf(peer.state) !== -1;
+					return allowedStates.indexOf(peer.state) !== -1;
 				}
 			});
 			matched = peersList.length;
 			// Apply limit
-			peersList = peersList.slice(0, options.limit);
+			peersList = peersList.slice(0, limit);
 			picked = peersList.length;
 			accepted = peers.concat(peersList);
-			library.logger.debug('Listing peers', {attempt: options.attempts[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
+			library.logger.debug('Listing peers', {attempt: attemptsDescriptions[options.attempt], found: found, matched: matched, picked: picked, accepted: accepted.length});
 			return setImmediate(cb, null, accepted);
 		});
 	}
@@ -490,15 +496,13 @@ Peers.prototype.list = function (options, cb) {
 	async.waterfall([
 		function (waterCb) {
 			// Matched broadhash
-			return randomList (options, [], waterCb);
+			return randomList([], waterCb);
 		},
 		function (peers, waterCb) {
-			options.matched = peers.length;
-			options.limit -= peers.length;
-			++options.attempt;
-			if (options.limit > 0) {
+			limit -= peers.length;
+			if (attempts.length && limit > 0) {
 				// Unmatched broadhash
-				return randomList(options, peers, waterCb);
+				return randomList(peers, waterCb);
 			} else {
 				return setImmediate(waterCb, null, peers);
 			}

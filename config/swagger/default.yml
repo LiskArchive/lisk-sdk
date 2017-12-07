@@ -11,12 +11,19 @@ swagger:
   # (see https://github.com/apigee-127/bagpipes)
   bagpipes:
 
+    _request_limit:
+      name: lisk_request_limit
+
     _cors: 
-      name: swagger_cors
+      name: lisk_cors
       origin: '*'
+      methods:
+        - GET
+        - PUT
+        - POST
 
     _compression: 
-      name: swagger_compression
+      name: lisk_compression
       level: 9      
 
     _router:
@@ -44,6 +51,16 @@ swagger:
       name: lisk_error_handler
       handle500Errors: true
 
+    _pre_response_cache:
+      name: lisk_cache
+      swagger_cache_key: x-lisk-cache-enabled
+      mode: pre_response
+
+    _post_response_cache:
+      name: lisk_cache
+      swagger_cache_key: x-lisk-cache-enabled
+      mode: post_response
+
     # For more details https://github.com/theganyo/swagger-node-runner/releases/tag/v0.6.10
     _swagger_security:
       name: swagger_security
@@ -55,12 +72,15 @@ swagger:
     # pipe for all swagger-node controllers
     swagger_controllers:
       - onError: _json_error_handler
+      - _request_limit
       - _cors
       - _compression
       - _swagger_params_parser
       - _swagger_security
       - _swagger_validate
       - express_compatibility
+      - _pre_response_cache
       - _router
       - _response_formatter
+      - _post_response_cache
 

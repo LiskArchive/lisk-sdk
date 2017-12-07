@@ -3,6 +3,9 @@
 var parallelTests = require('../common/parallelTests').parallelTests;
 
 var pathFiles = [
+	'./api/fittings/lisk_cors.js',
+	'./api/fittings/lisk_request_limit.js',
+
 	'./api/ws/workers/connectionsTable.js',
 	'./api/ws/workers/peersUpdateRules.js',
 	'./api/ws/workers/rules.js',
@@ -12,7 +15,7 @@ var pathFiles = [
 	'./helpers/ed.js',
 	'./helpers/jobs-queue.js',
 	'./helpers/peersManager.js',
-	'./helpers/request-limiter.js',
+	'./helpers/pg-notify.js',
 	'./helpers/RPC.js',
 	'./helpers/slots.js',
 	'./helpers/wsApi.js',
@@ -52,7 +55,10 @@ var pathFiles = [
 	'./sql/delegatesList.js',
 	'./sql/rounds.js',
 
-	'./schema/delegates.js'
+	'./schema/delegates.js',
+
+	// Test from System suite
+	'../system/multisignature.js'
 ];
 
 parallelTests(pathFiles, 'test/unit/');

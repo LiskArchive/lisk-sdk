@@ -1,23 +1,26 @@
 'use strict';
 
-var _ = require('lodash');
+var test = require('../functional.js');
+
+var _ = test._;
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var randomstring = require('randomstring');
+var scClient = require('socketcluster-client');
+
+var testConfig = require('../../data/config.json');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-var node = require('../../node');
-var randomString = require('randomstring');
-var scClient = require('socketcluster-client');
-var testConfig = require('../../config.json');
-var ws = require('../../common/wsCommunication');
-var wsServer = require('../../common/wsServer');
-var WSClient = require('../../common/wsClient');
+
+var ws = require('../../common/ws/communication');
+var wsServer = require('../../common/ws/server');
+var wsClient = require('../../common/ws/client');
 
 describe('handshake', function () {
 
 	var wsServerPort = 9999;
-	var frozenHeaders = WSClient.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
+	var frozenHeaders = wsClient.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;
@@ -170,7 +173,7 @@ describe('handshake', function () {
 			 * from: not present nonce, not present connectionId, present on master
 			 * to: present nonce, present connectionId, present on master
 			 */
-			validClientSocketOptions.query.nonce = randomString.generate(16);
+			validClientSocketOptions.query.nonce = randomstring.generate(16);
 			connect();
 		});
 
@@ -179,7 +182,7 @@ describe('handshake', function () {
 			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
-					validClientSocketOptions.query.nonce = randomString.generate(16);
+					validClientSocketOptions.query.nonce = randomstring.generate(16);
 				});
 
 				it('should succeed when connectionId is present', function (done) {
@@ -232,7 +235,7 @@ describe('handshake', function () {
 			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
-					validClientSocketOptions.query.nonce = randomString.generate(16);
+					validClientSocketOptions.query.nonce = randomstring.generate(16);
 				});
 
 				it('should succeed when connectionId is present', function (done) {
