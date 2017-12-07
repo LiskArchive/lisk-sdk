@@ -11,52 +11,182 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 ## Prerequisites - In order
 
+This sections provides details on what you need install on your system in order to run Lisk.
+
+###System Install
+
 - Tool chain components -- Used for compiling dependencies
 
-  `sudo apt-get install -y python build-essential curl automake autoconf libtool`
+    - Linux:
+    
+        ```
+        sudo apt-get update
+        sudo apt-get install -y python build-essential curl automake autoconf libtool`
+        ```
+        
+    - Mac:
+    
+        Make sure that you have both XCode and Brew installed on your machine.
+        
+        Update homebrew:
+        
+        ```
+        brew update
+        brew doctor
+        ```
+        
+        Install Lunchy for easier starting and stoping of services:
+        
+        ```
+        gem install lunchy
+        ```
 
 - Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
-  `sudo apt-get install -y git`
+    - Linux:
 
-- Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for code execution.
+        ```
+        sudo apt-get install -y git
+        ```
+        
+    - Mac:
+    
+        ```
+        brew install git
+        ```
 
-  System wide via package manager:
+###Node.js (<https://nodejs.org/>) 
 
-  ```
-  curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-  sudo apt-get install -y nodejs
-  ```
+- Node.js serves as the underlying engine for code execution.
 
-  Locally using [nvm](https://github.com/creationix/nvm):
+    Install System wide via package manager:
 
-  ```
-  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-  nvm install v6.10.1
-  ```
+    Linux:
 
-- Install PostgreSQL (version 9.6.2):
+    ```
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    ```
 
-  ```
-  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-  sudo -u postgres createuser --createdb $USER
-  createdb lisk_test
-  createdb lisk_main
-  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
-  ```
-
-- Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
-
-  `npm install -g bower`
-
-- Grunt.js (<http://gruntjs.com/>) -- Grunt is used to compile the frontend code and serves other functions.
-
-  `npm install -g grunt-cli`
-
+    Mac:
+    
+    ```
+    brew install node
+    ```
+    
+- (Optional) Install n -- Used for Node.js version management
+    
+    ```
+    npm install -g n
+    n 8.9.2
+    ```
+        
+- ####Special note about NPM 5
+    
+    Due to an issue with NPM 5.4.x and higher, node-sodium cannot be built. Therefore it is recommended to fixate the local NPM version at v5.3.x
+    
+    All Systems - This may require sudo depending on your environment:
+    
+    ```
+    npm install -g npm@5.3.0
+    ```
+    
 - PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk (Optional)
 
-  `npm install -g pm2`
+  ```
+  npm install -g pm2
+  ```
+
+###PostgreSQL (version 9.6.6):
+
+   - Linux:
+
+        ```
+        curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+        sudo -u postgres createuser --createdb $USER
+        createdb lisk_test
+        createdb lisk_main
+        sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+        sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+        ```
+      
+   - Mac:
+    
+        When installing a different version, replace 9.6.6 with your version in the following commands:
+        
+        ```
+        brew install postgresql
+        initdb /usr/local/var/postgres -E utf8
+        mkdir -p ~/Library/LaunchAgents
+        cp /usr/local/Cellar/postgresql/9.6.6/homebrew.mxcl.postgresql.plist ~/Library/LaunchAgents/
+        lunchy start postgres
+        createdb lisk_test
+        createdb lisk_main
+        ```
+
+###Installing Redis
+
+   - Linux:
+        
+        ```
+        wget http://download.redis.io/redis-stable.tar.gz
+        tar xvzf redis-stable.tar.gz
+        cd redis-stable
+        make
+        sudo make install
+        ```
+        
+        start redis-server:
+        ```
+        redis-server redis.conf --daemonize yes
+        ```
+        
+        stop redis-server: 
+        ```
+        redis-cli 
+        shutdown
+        ```
+        
+        If you run into any problems during the redis-setup, please check out the official redis docs: https://redis.io/topics/quickstart
+        
+   - Mac:
+    
+        ```
+        brew install redis
+        
+        ```
+        start redis-server:
+        ```
+        lunchy start redis
+        ```
+        
+        stop redis-server: 
+        ```
+        lunchy stop redis
+        ```
+        
+**NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
+
+####Change The Lisk Configuration
+
+Update the redis port configuration in both `config.json` and `test/data/config.json`. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
+
+####Change The Redis Launch configuration
+
+Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+
+1. Stop Redis on your computer.
+2. Open the `redis.conf` file and change this: `port 6379` to `port 6380`
+3. Restart Redis.
+
+Now confirm that redis is running on port 6380.
+
+```
+redis-cli -p 6380
+ping
+```
+
+and you should get the result of 'PONG'
 
 ## Installation Steps
 
@@ -65,32 +195,8 @@ Clone the Lisk repository using Git and initialize the modules.
 ```
 git clone https://github.com/LiskHQ/lisk.git
 cd lisk
+git checkout 0.9.11
 npm install
-```
-
-Install Lisk Node, a specialized version of Node.js used to execute dapps within a virtual machine:
-
-```
-wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
-tar -zxvf lisk-node-Linux-x86_64.tar.gz
-```
-
-Lisk Node has to be in `[LISK_DIR]/nodejs/node`.
-
-Load git submodules ([lisk-ui](https://github.com/LiskHQ/lisk-ui) and [lisk-js](https://github.com/LiskHQ/lisk-js)):
-
-```
-git submodule init
-git submodule update
-```
-
-Build the user-interface:
-
-```
-cd public
-npm install
-bower install
-grunt release
 ```
 
 ## Managing Lisk
