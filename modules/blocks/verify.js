@@ -11,6 +11,7 @@ var exceptions = require('../../helpers/exceptions.js');
 var modules, library, self, __private = {};
 
 __private.blockReward = new BlockReward();
+__private.lastFiveBlockIds = [];
 
 function Verify (logger, block, transaction, db) {
 	library = {
@@ -147,6 +148,25 @@ __private.verifyPreviousBlock = function (block, result) {
 	if (!block.previousBlock && block.height !== 1) {
 		result.errors.push('Invalid previous block');
 	}
+
+	return result;
+};
+
+/**
+ * Verify block is not one of the last five saved blocks
+ *
+ * @private
+ * @method verifyAgainstLastFiveBlocks
+ * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyAgainstLastFiveBlockIds = function (block, result) {
+	if (__private.lastFiveBlockIds.indexOf(block.id) !== -1) {
+		result.errors.push('Block already exists in chain');
+	};
 
 	return result;
 };
@@ -369,6 +389,7 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
+	result = __private.verifyAgainstLastFiveBlockIds(block, result);
 	result = __private.verifySlotWindow(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
@@ -381,6 +402,12 @@ Verify.prototype.verifyReceipt = function (block) {
 	return result;
 };
 
+Verify.prototype.onNewBlock = function (block) {
+	__private.lastFiveBlockIds.push(block.id);
+	if (__private.lastFiveBlockIds.length > 5) {
+		__private.lastFiveBlockIds.shift();
+	}
+};
 /**
  * Verify block before processing and return all possible errors related to block
  *

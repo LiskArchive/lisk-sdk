@@ -713,5 +713,136 @@ describe('blocks/verify', function () {
 				});
 			});
 		});
+
+		describe('onNewBlock', function () {
+
+			describe('with lastFiveBlockIds', function () {
+
+				var lastFiveBlockIds;
+
+				before(function () {
+					lastFiveBlockIds = blockVerify.__get__('__private.lastFiveBlockIds');
+				});
+
+				describe('when onNewBlock function is called once', function () {
+
+					var dummyBlock;
+
+					before(function () {
+						dummyBlock = {
+							id: '123123123'
+						};
+
+						blockVerify.prototype.onNewBlock(dummyBlock);
+					});
+
+					it('should include block in lastFiveBlockIds queue', function () {
+						expect(lastFiveBlockIds).to.include.members([dummyBlock.id]);
+					});
+				});
+
+				describe('when onNewBlock function is called 5 times', function () {
+
+					var blockIds = [];
+
+					before(function () {
+						_.map(_.range(0, 5), function () {
+							var randomId = Math.floor(Math.random() * 100000000000).toString();
+							blockIds.push(randomId);
+							var dummyBlock = {
+								id: randomId
+							};
+
+							blockVerify.prototype.onNewBlock(dummyBlock);
+						});
+					});
+
+					it('should include blockId in lastFiveBlockIds queue', function () {
+						expect(lastFiveBlockIds).to.include.members(blockIds);
+					});
+				});
+
+				describe('when onNewBlock function is called 10 times', function () {
+
+					var recentFiveBlockIds;
+					var olderThanFiveBlockIds;
+
+					before(function () {
+						var blockIds = [];
+						_.map(_.range(0, 10), function () {
+							var randomId = Math.floor(Math.random() * 100000000000).toString();
+							blockIds.push(randomId);
+							var dummyBlock = {
+								id: randomId
+							};
+
+							blockVerify.prototype.onNewBlock(dummyBlock);
+						});
+
+						recentFiveBlockIds = blockIds.filter(function (value, index) {
+							return blockIds.length - 1 - index < 5;
+						});
+
+						olderThanFiveBlockIds = blockIds.filter(function (value, index) {
+							return blockIds.length - 1 - index >= 5;
+						});
+
+					});
+
+					it('should maintain last 5 blockIds in lastFiveBlockIds queue', function () {
+						expect(lastFiveBlockIds).to.include.members(recentFiveBlockIds);
+						expect(lastFiveBlockIds).to.not.include.members(olderThanFiveBlockIds);
+					});
+				});
+			});
+		});
+
+		describe('__private.verifyAgainstLastFiveBlockIds', function () {
+			var verifyAgainstLastFiveBlockIds;
+			var result = {
+				verified: true,
+				errors: []
+			};
+
+			before(function () {
+				verifyAgainstLastFiveBlockIds = blockVerify.__get__('__private.verifyAgainstLastFiveBlockIds');
+			});
+
+			afterEach(function () {
+				result = {
+					verified: true,
+					errors: []
+				};
+			});
+
+			describe('when __private.lastFiveBlockIds', function () {
+
+				var lastFiveBlockIds;
+
+				before(function () {
+					lastFiveBlockIds = blockVerify.__get__('__private.lastFiveBlockIds');
+				});
+
+				describe('contains block Id', function () {
+
+					var dummyBlockId = '123123123123';
+
+					before(function () {
+						lastFiveBlockIds.push(dummyBlockId);
+					});
+
+					it('should return result with error = Block already exists in chain', function () {
+						expect(verifyAgainstLastFiveBlockIds({id: dummyBlockId}, result).errors).to.include.members(['Block already exists in chain']);
+					});
+				});
+
+				describe('does not contains block Id', function () {
+
+					it('should return result with error = Block already exists in chain', function () {
+						expect(verifyAgainstLastFiveBlockIds({id: '1231231234'}, result).errors).to.have.length(0);
+					});
+				});
+			});
+		});
 	});
 });
