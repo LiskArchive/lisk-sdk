@@ -41,18 +41,19 @@ __private.routes = {};
  * - DApp
  * - InTransfer
  * - OutTransfer
- * Calls logic.transaction.attachAssetType().
  *
- * Listens `exit` signal.
- * Checks 'public/dapp' folder and created it if doesn't exists.
+ * Calls logic.transaction.attachAssetType().
+ * Listens for an `exit` signal.
+ *
+ * Looks for the 'public/dapps' folder and creates the required base paths if it doesn't exist.
  * @memberof module:dapps
  * @class
  * @classdesc Main dapps methods.
  * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
- * @todo apply node pattern for callbacks: callback always at the end.
- * @todo add 'use strict';
+ * @return {setImmediateCallback} error | null, self
+ * @todo Apply node pattern for callbacks: callback always at the end.
+ * @todo Add 'use strict';
  */
 // Constructor
 function DApps (cb, scope) {
@@ -99,8 +100,9 @@ function DApps (cb, scope) {
 			scope.logger
 		)
 	);
+
 	/**
-	 * Receives an 'exit' signal and calls stopDApp for each launched app.
+	 * Receives an 'exit' signal and calls stopDApp for each launched application.
 	 * @listens exit
 	 */
 	process.on('exit', function () {
@@ -142,12 +144,12 @@ function DApps (cb, scope) {
 
 // Private methods
 /**
- * Gets record from `dapps` table based on id
+ * Gets an application based on id.
  * @private
  * @implements {library.db.query}
- * @param {string} id
- * @param {function} cb
- * @return {setImmediateCallback} error description | row data
+ * @param {string} id - Application id.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error | null, application
  */
 __private.get = function (id, cb) {
 	library.db.query(sql.get, {id: id}).then(function (rows) {
@@ -163,12 +165,12 @@ __private.get = function (id, cb) {
 };
 
 /**
- * Gets records from `dapps` table based on id list
+ * Gets applications based on a list of ids.
  * @private
  * @implements {library.db.query}
- * @param {string[]} ids
- * @param {function} cb
- * @return {setImmediateCallback} error description | rows data
+ * @param {string[]} ids - Array of application ids.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error | null, applications
  */
 __private.getByIds = function (ids, cb) {
 	library.db.query(sql.getByIds, [ids]).then(function (rows) {
@@ -180,13 +182,12 @@ __private.getByIds = function (ids, cb) {
 };
 
 /**
- * Gets records from `dapps` table based on filter
+ * Gets applications based on a given filter object.
  * @private
  * @implements {library.db.query}
- * @param {Object} filter - Could contains type, name, category, link, limit,
- * offset, orderBy
- * @param {function} cb
- * @return {setImmediateCallback} error description | rows data
+ * @param {Object} filter - May contain type, name, category, link, limit, offset, orderBy.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error | null, applications
  */
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
@@ -255,13 +256,15 @@ __private.list = function (filter, cb) {
 };
 
 /**
- * Creates base paths with mkdir if they don't exists for:
+ * Creates the following base paths if they don't exist:
  * - /dapps
+ * - /public
  * - /public/dapps
+ * - /public/images
  * - /public/images/dapps
  * @private
  * @param {function} cb
- * @return {setImmediateCallback} if error
+ * @return {setImmediateCallback} cb, error
  */
 __private.createBasePaths = function (cb) {
 	var basePaths = [
@@ -286,14 +289,11 @@ __private.createBasePaths = function (cb) {
 };
 
 /**
- * Creates base paths with mkdir if they don't exists for:
- * - /dapps
- * - /public/dapps
- * - /public/images/dapps
+ * Installs an application's dependencies (node_modules).
  * @private
- * @param {dapp} dapp
- * @param {function} cb
- * @return {setImmediateCallback} if error
+ * @param {Object} dapp - Application object.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.installDependencies = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
@@ -322,10 +322,10 @@ __private.installDependencies = function (dapp, cb) {
 };
 
 /**
- * Gets ids from installed dapps, based in folder content
+ * Gets the ids of all installed applications, based on matched folders.
  * @private
- * @param {function} cb
- * @return {setImmediateCallback} error | ids
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.getInstalledIds = function (cb) {
 	fs.readdir(__private.dappsPath, function (err, ids) {
@@ -344,14 +344,14 @@ __private.getInstalledIds = function (cb) {
 };
 
 /**
- * Removes application folder and drops application tables.
+ * Removes an application's install path and drops it's db tables.
  * @private
  * @implements {modules.sql.dropTables}
- * @param {dapp} dapp
- * @param {function} cb
- * @return {setImmediateCallback} error message | cb
- * @todo Fix this logic,triggers remove with err always.
- * @todo Implement dropTables
+ * @param {Object} dapp - Dapp object.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
+ * @todo Fix this logic, triggers remove with err always.
+ * @todo Implement dropTables.
  */
 __private.removeDApp = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
@@ -393,14 +393,14 @@ __private.removeDApp = function (dapp, cb) {
 };
 
 /**
- * Creates a temp dir, downloads the dapp as stream and decompress it.
+ * Creates a temp dir, downloads the dapp as a stream and decompresses it.
  * @private
  * @implements {popsicle}
  * @implements {DecompressZip}
- * @param {dapp} dapp
- * @param {string} dappPath
- * @param {function} cb
- * @return {setImmediateCallback} error message | cb
+ * @param {Object} dapp - Application object.
+ * @param {string} dappPath - Application path.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.downloadLink = function (dapp, dappPath, cb) {
 	var tmpDir = 'tmp';
@@ -495,15 +495,15 @@ __private.downloadLink = function (dapp, dappPath, cb) {
 };
 
 /**
- * Implements a series process:
- * - checks if the dapp is already installed
- * - makes an application directory
- * - performs install by calling downloadLink function
+ * Installs an application:
+ * - Checks if the application is already installed
+ * - Makes the application directory
+ * - Downloads the application link
  * @private
  * @implements {__private.downloadLink}
- * @param {dapp} dapp
- * @param {function} cb
- * @return {setImmediateCallback} error message | cb
+ * @param {Object} dapp - Application object.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.installDApp = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
@@ -541,12 +541,11 @@ __private.installDApp = function (dapp, cb) {
 };
 
 /**
- * Creates a public link (symbolic link) between public path and
- * public dapps with transaction id.
+ * Creates a symbolic link to the public folder residing within the application's install path.
  * @private
- * @param {dapp} dapp
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @param {dapp} dapp - Application object.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.createSymlink = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
@@ -569,12 +568,12 @@ __private.createSymlink = function (dapp, cb) {
 };
 
 /**
- * Gets module in parameter and calls `sandboxApi` with message args and dappid.
+ * Sends a message to an application sandbox.
  * @private
- * @implements {sandboxApi} based on module
- * @param {Object} message
- * @param {function} callback
- * @return {setImmediateCallback} error messages
+ * @implements {sandboxApi}
+ * @param {Object} message - Containing the arguments and application id to send.
+ * @param {function} callback - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.apiHandler = function (message, callback) {
 	try {
@@ -596,13 +595,13 @@ __private.apiHandler = function (message, callback) {
 };
 
 /**
- * Gets `routes.json` file and creates the router
+ * Creates the application routes derived from it's `routes.json` file.
  * @private
  * @implements {Router}
  * @implements {library.network.app.use}
- * @param {dapp} dapp
- * @param {function} cb
- * @return {setImmediateCallback} error messages | cb
+ * @param {Object} dapp - Application object.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.createRoutes = function (dapp, cb) {
 	var dappPath = path.join(__private.dappsPath, dapp.transactionId);
@@ -653,14 +652,14 @@ __private.createRoutes = function (dapp, cb) {
 };
 
 /**
- * Launchs daap steps:
- * - validate schema parameter
- * - check if application is already launched
- * - get the application
- * - get installed applications
- * - create public link
- * - create sandbox
- * - create application routes
+ * Launches an application:
+ * - Validates the request body against a schema
+ * - Checks if the application is already launched
+ * - Gets the application from the db
+ * - Checks if the application is installed
+ * - Creates a public symbolic link for the application
+ * - Creates a sandbox for the application
+ * - Creates the application routes
  * @private
  * @implements {library.schema.validate}
  * @implements {__private.get}
@@ -669,9 +668,9 @@ __private.createRoutes = function (dapp, cb) {
  * @implements {__private.createSandbox}
  * @implements {__private.createRoutes}
  * @implements {__private.stopDApp}
- * @param {Object} body
- * @param {function} cb
- * @return {setImmediateCallback} cb, err
+ * @param {Object} body - Request body.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 __private.launchDApp = function (body, cb) {
 	async.waterfall([
@@ -769,18 +768,16 @@ __private.launchDApp = function (body, cb) {
 };
 
 /**
- * Opens dapp `config.json` file and for each peer calls update.
- * Once all peers are updated, opens `blockchain.json` file, calls
- * createTables and creates sandbox.
- * Listens sanbox events 'exit' and 'error' to stop dapp.
+ * Creates a sandbox for an application.
+ * Stops the application on sandbox 'exit' and 'error' events.
  * @private
  * @implements {modules.peers.update}
  * @implements {modules.sql.createTables}
  * @implements {Sandbox}
  * @implements {__private.stopDApp}
- * @param {dapp} dapp
- * @param {Object} params
- * @param {function} cb
+ * @param {Object} dapp - Application object.
+ * @param {Object} params - Parameters given to the application sandbox.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} cb, error
  */
 __private.createSandbox = function (dapp, params, cb) {
@@ -860,14 +857,14 @@ __private.createSandbox = function (dapp, params, cb) {
 };
 
 /**
- * Stops dapp:
- * - check public/dapps id is installed
- * - delete sandbox after exit() from sanbox
- * - delete routes
+ * Stops an application:
+ * - Checks if the application is installed
+ * - Deletes the application's sandbox after exiting
+ * - Deletes the application's routes after exiting
  * @private
  * @implements {sandboxes.exit}
- * @param {dapp} dapp
- * @param {function} cb
+ * @param {Object} dapp - Application object.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} cb, error
  */
 __private.stopDApp = function (dapp, cb) {
@@ -905,7 +902,7 @@ __private.stopDApp = function (dapp, cb) {
  * Calls helpers.sandbox.callMethod().
  * @implements module:helpers#callMethod
  * @param {function} call - Method to call.
- * @param {*} args - List of arguments.
+ * @param {*} args - Arguments list.
  * @param {function} cb - Callback function.
  */
 DApps.prototype.sandboxApi = function (call, args, cb) {
@@ -913,25 +910,25 @@ DApps.prototype.sandboxApi = function (call, args, cb) {
 };
 
 /**
- * Calls request with 'post' method and '/message' path.
+ * Posts a message to an application sandbox.
  * @implements {request}
- * @param {string} dappid
- * @param {Object} body
- * @param {function} cb
+ * @param {string} dappid - Application id.
+ * @param {Object} body - Request body.
+ * @param {function} cb - Callback function.
  */
 DApps.prototype.message = function (dappid, body, cb) {
 	self.request(dappid, 'post', '/message', body, cb);
 };
 
 /**
- * Calls sendMessage for sandboxes dapp.
+ * Makes an abstract request to an application sandbox.
  * @implements {request}
- * @param {string} dappid
- * @param {string} method
- * @param {string} path
- * @param {Object} query
- * @param {function} cb
- * @return {setImmediateCallback} for errors
+ * @param {string} dappid - Application id.
+ * @param {string} method - Request method.
+ * @param {string} path - Request path.
+ * @param {Object} query - Query parameters.
+ * @param {function} cb - Callback function.
+ * @return {setImmediateCallback} cb, error
  */
 DApps.prototype.request = function (dappid, method, path, query, cb) {
 	if (!__private.sandboxes[dappid]) {
@@ -949,8 +946,7 @@ DApps.prototype.request = function (dappid, method, path, query, cb) {
 
 // Events
 /**
- * Bounds used scope modules to private modules variable and sets params
- * to private Dapp, InTransfer and OutTransfer instances.
+ * Bounds used scope modules to private modules variable and assigns params to private Dapp, InTransfer and OutTransfer instances.
  * @implements module:transactions#Transfer~bind
  * @param {modules} scope - Loaded modules.
  */
@@ -976,7 +972,7 @@ DApps.prototype.onBind = function (scope) {
 };
 
 /**
- * Waits a second and for each library.config.dapp.autoexec calls launchDApp.
+ * Waits for one second, then attempts to launch each application defined in library.config.dapp.autoexec.
  * @implements {__private.launchDApp}
  */
 DApps.prototype.onBlockchainReady = function () {
@@ -1002,9 +998,9 @@ DApps.prototype.onBlockchainReady = function () {
 };
 
 /**
- * For each sandbox sends a post message with rollback and block information.
+ * Posts a message to each application sandbox upon deleting a block on the parent network.
  * @implements {request}
- * @param {block} block
+ * @param {Object} block - Block object.
  */
 DApps.prototype.onDeleteBlocksBefore = function (block) {
 	Object.keys(__private.sandboxes).forEach(function (dappId) {
@@ -1020,10 +1016,10 @@ DApps.prototype.onDeleteBlocksBefore = function (block) {
 };
 
 /**
- * For each sandbox sends a post message with point and block information.
+ * Posts a message to each application sandbox for each new block forged on the parent network.
  * @implements {request}
- * @param {block} block
- * @param {Object} broadcast
+ * @param {Object} block - Block object.
+ * @param {Object} broadcast - Broadcast flag.
  */
 DApps.prototype.onNewBlock = function (block, broadcast) {
 	Object.keys(__private.sandboxes).forEach(function (dappId) {
@@ -1051,9 +1047,7 @@ DApps.prototype.isLoaded = function () {
 /**
  * Internal & Shared
  * - DApps.prototype.internal
- * - shared.
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
+ * - Shared API
  */
 DApps.prototype.internal = {
 	put: function (dapp, cb) {
@@ -1572,7 +1566,6 @@ DApps.prototype.internal = {
 			});
 		});
 	},
-
 
 	sendWithdrawal: function (req, cb) {
 		library.schema.validate(req.body, schema.sendWithdrawal, function (err) {
