@@ -22,7 +22,7 @@ module.exports = function (params) {
 		var maximum = 1000;
 
 		function confirmTransactionsOnAllNodes () {
-			Promise.all(_.flatMap(params.configurations, function (configuration) {
+			return Promise.all(_.flatMap(params.configurations, function (configuration) {
 				return transactions.map(function (transaction) {
 					return getTransaction(transaction.id, configuration.httpPort);
 				});
@@ -58,9 +58,11 @@ module.exports = function (params) {
 				});
 			});
 
-			it('should confirm all transactions on all nodes', function () {
+			it('should confirm all transactions on all nodes', function (done) {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-				return waitFor.confirmations(_.map(transactions, 'id'), blocksToWait).then(confirmTransactionsOnAllNodes);
+				waitFor.blocks(blocksToWait, function () {
+					confirmTransactionsOnAllNodes().then(done);
+				});
 			});
 		});
 
@@ -79,9 +81,11 @@ module.exports = function (params) {
 				}));
 			});
 
-			it('should confirm all transactions on all nodes', function () {
+			it('should confirm all transactions on all nodes', function (done) {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-				return waitFor.confirmations(_.map(transactions, 'id'), blocksToWait).then(confirmTransactionsOnAllNodes);
+				waitFor.blocks(blocksToWait, function () {
+					confirmTransactionsOnAllNodes().then(done);
+				});
 			});
 		});
 	});
