@@ -11,7 +11,6 @@ var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/waitFor');
 
-var apiCodes = require('../../../../helpers/apiCodes');
 var sendTransactionsPromise = require('../../../common/helpers/api').sendTransactionsPromise;
 var getTransaction = require('../../utils/http').getTransaction;
 
@@ -20,6 +19,7 @@ module.exports = function (params) {
 	describe('postTransactions @slow', function () {
 
 		var transactions = [];
+		var maximum = 1000;
 
 		function confirmTransactionsOnAllNodes () {
 			Promise.all(_.flatMap(params.configurations, function (configuration) {
@@ -35,13 +35,11 @@ module.exports = function (params) {
 
 		describe('sending 1000 bundled transfers to random addresses', function () {
 
-			var maximum = 1000;
 			var count = 1;
 
 			before(function (done) {
 				async.doUntil(function (next) {
 					var bundled = [];
-
 					for (var i = 0; i < params.configurations[0].broadcasts.releaseLimit; i++) {
 						var transaction = lisk.transaction.createTransaction(
 							randomUtil.account().address,
@@ -53,7 +51,6 @@ module.exports = function (params) {
 						count++;
 					}
 					sendTransactionsPromise(bundled).then(next);
-
 				}, function () {
 					return (count >= maximum);
 				}, function () {
@@ -69,22 +66,17 @@ module.exports = function (params) {
 
 		describe('sending 1000 single transfers to random addresses', function () {
 
-			var maximum = 1000;
-			var count = 1;
-
-			before(function (done) {
-				async.doUntil(function (next) {
+			before(function () {
+				transactions = [];
+				return Promise.all(_.range(maximum).map(function () {
 					var transaction = lisk.transaction.createTransaction(
 						randomUtil.account().address,
 						randomUtil.number(100000000, 1000000000),
 						accountFixtures.genesis.password
 					);
-					sendTransactionsPromise([transaction]).then(next);
-				}, function () {
-					return (count >= maximum);
-				}, function () {
-					done();
-				});
+					transactions.push(transaction);
+					return sendTransactionsPromise([transaction]);
+				}));
 			});
 
 			it('should confirm all transactions on all nodes', function () {
