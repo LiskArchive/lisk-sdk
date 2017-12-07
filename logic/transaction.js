@@ -423,6 +423,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 		return setImmediate(cb, 'Invalid sender address');
 	}
 
+	// Determine multisignatures from sender or transaction asset
 	var multisignatures = sender.multisignatures || [];
 	if (multisignatures.length === 0) {
 		if (transaction.asset && transaction.asset.multisignature && transaction.asset.multisignature.keysgroup) {

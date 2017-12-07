@@ -46,7 +46,7 @@ node('node-06'){
 					sudo service postgresql restart
 					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
 					npm install
-					cp test/config.json test/genesisBlock.json .
+					cp test/data/config.json test/data/genesisBlock.json .
 				'''
 			} catch (err) {
 				statusFail()

@@ -3,15 +3,16 @@
 var expect = require('chai').expect;
 var async = require('async');
 var sinon = require('sinon');
-
-var node = require('../../../node');
-var modulesLoader = require('../../../common/modulesLoader');
-var exceptions = require('../../../../helpers/exceptions.js');
-var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
-var DBSandbox = require('../../../common/globalBefore').DBSandbox;
-
 var crypto = require('crypto');
-var bson = require('../../../../helpers/bson.js');
+
+
+var application = require('../../../common/application');
+
+var exceptions = require('../../../../helpers/exceptions');
+var bson = require('../../../../helpers/bson');
+
+var modulesLoader = require('../../../common/modulesLoader');
+var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 
 var previousBlock = {
 	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
@@ -217,25 +218,18 @@ describe('blocks/verify', function () {
 	var blocks;
 	var blockLogic;
 	var delegates;
-
 	var db;
-	var dbSandbox;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_blocks_verify');
-		dbSandbox.create(function (err, __db) {
-			modulesLoader.db = __db;
-			db = __db;
-			done(err);
-		});
-	});
-
-	after(function () {
-		dbSandbox.destroy(modulesLoader.logger);
-	});
-
-	before(function (done) {
-		node.initApplication(function (err, scope) {
+		application.init({
+			sandbox: {
+				name: 'lisk_test_blocks_verify'
+			},
+			scope: {
+				bus: modulesLoader.scope.bus
+			},
+			waitForGenesisBlock: false
+		}, function (err, scope) {
 			scope.modules.blocks.verify.onBind(scope.modules);
 			scope.modules.delegates.onBind(scope.modules);
 			scope.modules.transactions.onBind(scope.modules);
@@ -248,11 +242,13 @@ describe('blocks/verify', function () {
 			blocks = scope.modules.blocks;
 			delegates = scope.modules.delegates;
 			db = scope.db;
-			// Bus gets overwritten - waiting for accounts has to be done manually
-			setTimeout(function () {
-				done();
-			}, 5000);
-		}, {db: db, bus: modulesLoader.scope.bus});
+			// Bus gets overwritten - waiting for mem_accounts has to be done manually
+			setTimeout(done, 5000);
+		});
+	});
+
+	after(function (done) {
+		application.cleanup(done);
 	});
 
 	function testValid (functionName) {
@@ -637,7 +633,7 @@ describe('blocks/verify', function () {
 				'forks_stat',
 				'votes where "transaction_id" = \'17502993173215211070\''
 			], function (table, seriesCb) {
-				clearDatabaseTable(modulesLoader.db, modulesLoader.logger, table, seriesCb);
+				clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
 			}, function (err, result) {
 				if (err) {
 					return done(err);

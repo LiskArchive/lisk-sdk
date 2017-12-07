@@ -2,27 +2,28 @@
 
 var crypto = require('crypto');
 var async = require('async');
-
+var lisk = require('lisk-js');
 var chai = require('chai');
 var expect = require('chai').expect;
 var _  = require('lodash');
 
-var node = require('./../../node.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
+var accountFixtures = require('../../fixtures/accounts');
+
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
+var modulesLoader = require('../../common/modulesLoader');
 
 var ed = require('../../../helpers/ed');
-var diff = require('../../../helpers/diff.js');
+var diff = require('../../../helpers/diff');
 var transactionTypes = require('../../../helpers/transactionTypes');
-var constants = require('../../../helpers/constants.js');
-
-var modulesLoader = require('../../common/modulesLoader');
-var TransactionLogic = require('../../../logic/transaction.js');
-var Vote = require('../../../logic/vote.js');
-var Transfer = require('../../../logic/transfer.js');
-var Delegate = require('../../../logic/delegate.js');
-var AccountLogic = require('../../../logic/account.js');
-var AccountModule = require('../../../modules/accounts.js');
-var DelegateModule = require('../../../modules/delegates.js');
+var constants = require('../../../helpers/constants');
+var TransactionLogic = require('../../../logic/transaction');
+var Vote = require('../../../logic/vote');
+var Transfer = require('../../../logic/transfer');
+var Delegate = require('../../../logic/delegate');
+var AccountLogic = require('../../../logic/account');
+var AccountModule = require('../../../modules/accounts');
+var DelegateModule = require('../../../modules/delegates');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
@@ -75,7 +76,6 @@ var validTransaction = {
 
 describe('vote', function () {
 
-	var dbSandbox;
 	var voteBindings;
 	var vote;
 	var accountsModule;
@@ -125,30 +125,26 @@ describe('vote', function () {
 	}
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_vote');
-		dbSandbox.create(function (err, __db) {
-			node.initApplication(function (err, scope) {
-				accountsModule = scope.modules.accounts;
-				delegatesModule = scope.modules.delegates;
-				vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
-				voteBindings = {
-					delegate: delegatesModule,
-					account: accountsModule
-				};
-				vote.bind(delegatesModule);
-				delegatesModule.onBind({
-					accounts: accountsModule
-				});
-				transactionLogic = scope.logic.transaction;
-				transactionLogic.attachAssetType(transactionTypes.VOTE, vote);
-				done();
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_logic_vote'}}, function (err, scope) {
+			accountsModule = scope.modules.accounts;
+			delegatesModule = scope.modules.delegates;
+			vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
+			voteBindings = {
+				delegate: delegatesModule,
+				account: accountsModule
+			};
+			vote.bind(delegatesModule);
+			delegatesModule.onBind({
+				accounts: accountsModule
+			});
+			transactionLogic = scope.logic.transaction;
+			transactionLogic.attachAssetType(transactionTypes.VOTE, vote);
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	before(function (done) {
@@ -209,14 +205,14 @@ describe('vote', function () {
 
 	describe('calculateFee', function () {
 		it('should return the correct fee', function () {
-			expect(vote.calculateFee()).to.equal(node.constants.fees.vote);
+			expect(vote.calculateFee()).to.equal(constants.fees.vote);
 		});
 	});
 
 	describe('verify', function () {
 		it('should return error when receipientId and sender id are different', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.recipientId = node.gAccount.address;
+			transaction.recipientId = accountFixtures.genesis.address;
 			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid recipient');
 				done();
@@ -265,9 +261,9 @@ describe('vote', function () {
 		// TODO: Need to apply block to create the account
 		it.skip('should return error when removing vote for delegate sender has not voted', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['-' + node.eAccount.publicKey];
+			transaction.asset.votes = ['-' + accountFixtures.existingDelegate.publicKey];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Failed to remove vote, delegate "' + node.eAccount.delegateName + '" was not voted for');
+				expect(err).to.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
 				done();
 			});
 		});
@@ -378,7 +374,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.genesis.publicKey];
 			vote.checkConfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
@@ -387,7 +383,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.existingDelegate.publicKey];
 			vote.checkConfirmedDelegates(transaction, done);
 		});
 
@@ -431,7 +427,7 @@ describe('vote', function () {
 
 		it('should return err when account is not a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.gAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.genesis.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
 				expect(err).to.equal('Delegate not found');
 				done();
@@ -440,7 +436,7 @@ describe('vote', function () {
 
 		it('should be okay when adding vote to a delegate', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = ['+' + node.eAccount.publicKey];
+			transaction.asset.votes = ['+' + accountFixtures.existingDelegate.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, done);
 		});
 
@@ -570,7 +566,7 @@ describe('vote', function () {
 		it('should return error when votes array is longer than maximum acceptable', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
-				return '+' + node.lisk.crypto.getKeys(node.randomPassword()).publicKey;
+				return '+' + lisk.crypto.getKeys(randomUtil.password()).publicKey;
 			});
 			expect(function () {
 				vote.objectNormalize.call(transactionLogic, transaction);

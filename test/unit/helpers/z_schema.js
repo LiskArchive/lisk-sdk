@@ -1,9 +1,12 @@
-var node = require('../../node.js');
+'use strict';
+
+var randomstring = require('randomstring');
+var expect = require('chai').expect;
+
 var Z_schema = require('../../../helpers/z_schema.js');
 var constants = require('../../../helpers/constants.js');
 
 var validator = new Z_schema();
-var expect = node.expect;
 
 describe('schema - custom formats', function () {
 
@@ -14,8 +17,8 @@ describe('schema - custom formats', function () {
 
 		it('should return false if string is longer than maxLength (either chars or bytes)', function () {
 			var invalidData = [];
-			invalidData.push(node.randomString.generate(constants.additionalData.maxLength - 1) + '现');
-			invalidData.push(node.randomString.generate(constants.additionalData.maxLength + 1));
+			invalidData.push(randomstring.generate(constants.additionalData.maxLength - 1) + '现');
+			invalidData.push(randomstring.generate(constants.additionalData.maxLength + 1));
 
 			invalidData.forEach(function (item) {
 				expect(validator.validate(item, schema)).to.equal(false);
@@ -24,8 +27,8 @@ describe('schema - custom formats', function () {
 
 		it('should return true if string is between minLength and maxLength', function () {
 			var validData = [];
-			validData.push(node.randomString.generate(constants.additionalData.minLength));
-			validData.push(node.randomString.generate(constants.additionalData.maxLength));
+			validData.push(randomstring.generate(constants.additionalData.minLength));
+			validData.push(randomstring.generate(constants.additionalData.maxLength));
 
 			validData.forEach(function (item) {
 				expect(validator.validate(item, schema)).to.equal(true);

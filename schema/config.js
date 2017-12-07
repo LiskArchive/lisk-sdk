@@ -169,29 +169,11 @@ module.exports = {
 					},
 					options: {
 						properties: {
-							limits: {
-								type: 'object',
-								properties: {
-									max: {
-										type: 'integer'
-									},
-									delayMs: {
-										type: 'integer'
-									},
-									delayAfter: {
-										type: 'integer'
-									},
-									windowMs: {
-										type: 'integer'
-									}
-								},
-								required: ['max', 'delayMs', 'delayAfter', 'windowMs']
-							},
 							timeout: {
 								type: 'integer'
 							}
 						},
-						required: ['limits', 'timeout']
+						required: ['timeout']
 					}
 				},
 				required: ['enabled', 'list', 'access', 'options']

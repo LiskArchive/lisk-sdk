@@ -98,12 +98,8 @@ var config = {
 		voters: './modules/voters'
 	},
 	api: {
-		blocks: { http: './api/http/blocks.js' },
-		delegates: { http: './api/http/delegates.js' },
 		multisignatures: { http: './api/http/multisignatures.js' },
-		signatures: { http: './api/http/signatures.js' },
 		transactions: { http: './api/http/transactions.js' },
-		voters: { http: './api/http/voters.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
@@ -192,8 +188,6 @@ d.run(function () {
 		 */
 		network: ['config', function (scope, cb) {
 			var express = require('express');
-			var compression = require('compression');
-			var cors = require('cors');
 			var app = express();
 
 			if (appConfig.coverage) {
@@ -203,11 +197,9 @@ d.run(function () {
 				app.use('/coverage', im.createHandler());
 			}
 
-			require('./helpers/request-limiter')(app, appConfig);
-
-			app.use(compression({ level: 9 }));
-			app.use(cors());
-			app.options('*', cors());
+			if (appConfig.trustProxy) {
+				app.enable('trust proxy');
+			}
 
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
@@ -327,9 +319,9 @@ d.run(function () {
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
-			var randomString = require('randomstring');
+			var randomstring = require('randomstring');
 
-			scope.config.nonce = randomString.generate(16);
+			scope.config.nonce = randomstring.generate(16);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));

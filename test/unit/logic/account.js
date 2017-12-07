@@ -1,18 +1,17 @@
 'use strict';/*eslint*/
 
-var node = require('./../../node.js');
-var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
-var constants = require('../../../helpers/constants.js');
-
+var chai = require('chai');
+var expect = require('chai').expect;
+var _ = require('lodash');
 var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var _  = require('lodash');
+var ed = require('../../../helpers/ed');
+var constants = require('../../../helpers/constants.js');
+var bignum = require('../../../helpers/bignum.js');
+
+var application = require('../../common/application.js');
 
 var validAccount = {
 	username: 'genesis_100',
@@ -43,21 +42,16 @@ var validAccount = {
 describe('account', function () {
 
 	var account;
-	var dbSandbox;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_accounts');
-		dbSandbox.create(function (err, __db) {
-			node.initApplication(function (err, scope) {
-				account = scope.logic.account;
-				done();
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_logic_accounts'}}, function (err, scope) {
+			account = scope.logic.account;
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	describe('Account', function () {

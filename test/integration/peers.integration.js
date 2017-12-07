@@ -9,11 +9,13 @@ var fs = require('fs');
 var popsicle = require('popsicle');
 var Promise = require('bluebird');
 var scClient = require('socketcluster-client');
-var waitUntilBlockchainReady = require('../common/globalBefore').waitUntilBlockchainReady;
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
-var baseConfig = require('../../test/config.json');
-var WSClient = require('../common/wsClient');
+var baseConfig = require('../data/config.json');
+
+var blockchainReady = require('../common/utils/waitFor').blockchainReady;
+var WSClient = require('../common/ws/client');
+
 var Logger = require('../../logger');
 var logger = new Logger({filename: 'integrationTestsLogger.logs', echo: 'log'});
 
@@ -214,13 +216,13 @@ function enableForgingOnDelegates (done) {
 	testNodeConfigs.forEach(function (testNodeConfig) {
 		testNodeConfig.secrets.forEach(function (keys) {
 			var enableForgingPromise = popsicle.put({
-				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/delegates/forging',
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/node/status/forging',
 				headers: {
 					'Accept': 'application/json',
-					'Content-Type': 'application/x-www-form-urlencoded'
+					'Content-Type': 'application/json'
 				},
 				body: {
-					key: 'elephant tree paris dragon chair galaxy',
+					decryptionKey: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey
 				}
 			});
@@ -236,7 +238,7 @@ function enableForgingOnDelegates (done) {
 
 function waitForAllNodesToBeReady (done) {
 	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
-		waitUntilBlockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
+		blockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
 	}, done);
 }
 
@@ -429,7 +431,7 @@ describe('integration', function () {
 					});
 				})).then(function (results) {
 					nodesBlocks = results.map(function (res) {
-						return JSON.parse(res.body).blocks;
+						return JSON.parse(res.body).data;
 					});
 					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
 				});

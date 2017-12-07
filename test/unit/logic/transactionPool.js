@@ -2,49 +2,32 @@
 
 var expect = require('chai').expect;
 var sinon = require('sinon');
+var lisk = require('lisk-js');
 
-var node = require('../../node');
+var accountFixtures = require('../../fixtures/accounts');
 
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
+var modulesLoader = require('../../common/modulesLoader');
+
 var jobsQueue = require('../../../helpers/jobsQueue');
 var TransactionPool = require('../../../logic/transactionPool');
-var modulesLoader = require('../../common/modulesLoader');
 
 describe('txPool', function () {
 
-	var dbSandbox;
 	var txPool;
 	var jobsQueueRegisterStub;
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(node.config.db, 'lisk_test_logic_transactionPool');
-		dbSandbox.create(function (err, __db) {
-			if (err) {
-				return done(err);
-			}
-			// Wait for genesisBlock transaction being applied
-			node.initApplication(function (err, scope) {
-				// Init transaction logic
-				txPool = new TransactionPool(
-					modulesLoader.scope.config.broadcasts.broadcastInterval,
-					modulesLoader.scope.config.broadcasts.releaseLimit,
-					scope.logic.transaction,
-					modulesLoader.scope.bus,
-					modulesLoader.scope.logger
-				);
-				txPool.bind(
-					scope.modules.accounts,
-					null,
-					scope.modules.loader
-				);
-				done();
-			}, {db: __db});
+		application.init({sandbox: {name: 'lisk_test_logic_transactionPool'}}, function (err, scope) {
+			// Init transaction logic
+			txPool = scope.rewiredModules.transactions.__get__('__private.transactionPool');
+			done();
 		});
 	});
 
 	after(function (done) {
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	beforeEach(function () {
@@ -80,8 +63,8 @@ describe('txPool', function () {
 		});
 
 		it('should process transaction if valid and insert transaction into queue', function (done) {
-			var account = node.randomAccount();
-			var transaction = node.lisk.transaction.createTransaction(account.address, 100000000000, node.gAccount.password);
+			var account = randomUtil.account();
+			var transaction = lisk.transaction.createTransaction(account.address, 100000000000, accountFixtures.genesis.password);
 
 			txPool.receiveTransactions([transaction], false, function (err) {
 				expect(err).to.not.exist;

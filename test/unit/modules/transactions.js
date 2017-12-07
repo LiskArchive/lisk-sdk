@@ -1,6 +1,6 @@
 'use strict';
 
-var node = require('../../node');
+
 
 var chai = require('chai');
 var expect = require('chai').expect;

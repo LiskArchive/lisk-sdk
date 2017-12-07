@@ -7,8 +7,8 @@ var sinon  = require('sinon');
 var rewire = require('rewire');
 
 // Load config file - global (not one from test directory)
-var config = require('../../../config.json');
-var sql    = require('../../sql/pgNotify.js');
+var config = require('../../data/config.json');
+var sql    = require('../common/sql/pgNotify.js');
 var slots  = require('../../../helpers/slots.js');
 
 // Init tests subject

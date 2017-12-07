@@ -1,54 +1,53 @@
 'use strict';
 
-var _ = require('lodash');
-var node = require('../../../node');
-var lisk = node.lisk;
+var test = require('../../functional.js');
+
+var lisk = require('lisk-js');
+var expect = require('chai').expect;
+var Promise = require('bluebird');
+
+var _ = test._;
+var accountFixtures = require('../../../fixtures/accounts');
+var genesisblock = require('../../../data/genesisBlock.json');
+
 var transactionSortFields = require('../../../../sql/transactions').sortFields;
-var modulesLoader = require('../../../common/modulesLoader');
 var transactionTypes = require('../../../../helpers/transactionTypes');
-var genesisblock = require('../../../genesisBlock.json');
 var constants = require('../../../../helpers/constants');
 
-var creditAccountPromise = require('../../../common/apiHelpers').creditAccountPromise;
-var sendTransactionPromise = require('../../../common/apiHelpers').sendTransactionPromise;
-var getTransactionsPromise = require('../../../common/apiHelpers').getTransactionsPromise;
-var getTransactionPromise = require('../../../common/apiHelpers').getTransactionPromise;
-var getQueuedTransactionPromise = require('../../../common/apiHelpers').getQueuedTransactionPromise;
-var getQueuedTransactionsPromise = require('../../../common/apiHelpers').getQueuedTransactionsPromise;
-var getUnconfirmedTransactionPromise = require('../../../common/apiHelpers').getUnconfirmedTransactionPromise;
-var getUnconfirmedTransactionsPromise = require('../../../common/apiHelpers').getUnconfirmedTransactionsPromise;
-var getMultisignaturesTransactionPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionPromise;
-var getMultisignaturesTransactionsPromise = require('../../../common/apiHelpers').getMultisignaturesTransactionsPromise;
-var getCountPromise = require('../../../common/apiHelpers').getCountPromise;
-var waitForConfirmations = require('../../../common/apiHelpers').waitForConfirmations;
+var modulesLoader = require('../../../common/modulesLoader');
+var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
+var apiHelpers = require('../../../common/helpers/api');
+var getTransactionsPromise = apiHelpers.getTransactionsPromise;
 
 describe('GET /api/transactions', function () {
 
 	var transactionList = [];
 
-	var account = node.randomAccount();
-	var account2 = node.randomAccount();
-	var minAmount = 20 * node.normalizer; // 20 LSK
-	var maxAmount = 100 * node.normalizer; // 100 LSK
+	var account = randomUtil.account();
+	var account2 = randomUtil.account();
+	var minAmount = 20 * normalizer; // 20 LSK
+	var maxAmount = 100 * normalizer; // 100 LSK
 
 	// Crediting accounts
 	before(function () {
 
 		var promises = [];
 
-		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, node.gAccount.password);
-		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, node.gAccount.password);
-		promises.push(sendTransactionPromise(transaction1));
-		promises.push(sendTransactionPromise(transaction2));
-		return node.Promise.all(promises).then(function (results) {
+		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
+		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, accountFixtures.genesis.password);
+		promises.push(apiHelpers.sendTransactionPromise(transaction1));
+		promises.push(apiHelpers.sendTransactionPromise(transaction2));
+		return Promise.all(promises).then(function (results) {
 			results.forEach(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 			});
 		}).then(function (res) {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
-			return waitForConfirmations(_.map(transactionList, 'id'));
+			return waitFor.confirmations(_.map(transactionList, 'id'));
 		});
 	});
 
@@ -59,20 +58,20 @@ describe('GET /api/transactions', function () {
 		var url = '/api/transactions?';
 
 		before(function (done) {
-			node.config.cacheEnabled = true;
+			test.config.cacheEnabled = true;
 			modulesLoader.initCache(function (err, __cache) {
 				cache = __cache;
-				getJsonForKeyPromise = node.Promise.promisify(cache.getJsonForKey);
-				node.expect(err).to.not.exist;
-				node.expect(__cache).to.be.an('object');
+				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
+				expect(err).to.not.exist;
+				expect(__cache).to.be.an('object');
 				return done(err);
 			});
 		});
 
 		afterEach(function (done) {
 			cache.flushDb(function (err, status) {
-				node.expect(err).to.not.exist;
-				node.expect(status).to.equal('OK');
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
 				done(err);
 			});
 		});
@@ -84,34 +83,34 @@ describe('GET /api/transactions', function () {
 		it('cache transactions by the url and parameters when response is a success', function () {
 			var params = [
 				'blockId=' + '1',
-				'senderId=' + node.gAccount.address,
+				'senderId=' + accountFixtures.genesis.address,
 				'recipientId=' + account.address,
 			];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return node.Promise.all([0, 10, 100].map(function (delay) {
-					return node.Promise.delay(delay).then(function () {
+				return Promise.all([0, 10, 100].map(function (delay) {
+					return Promise.delay(delay).then(function () {
 						return getJsonForKeyPromise(url + params.join('&'));
 					});
 				})).then(function (responses) {
-					node.expect(responses).to.deep.include(res.body);
+					expect(responses).to.deep.include(res.body);
 				});
 			});
 		});
 
 		it('should not cache if response is not a success', function () {
 			var params = [
-				'whatever:senderId=' + node.gAccount.address
+				'whatever:senderId=' + accountFixtures.genesis.address
 			];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(400);
-				node.expect(res).to.have.nested.property('body.message');
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message');
 				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					node.expect(response).to.eql(null);
+					expect(response).to.eql(null);
 				});
 			});
 		});
@@ -128,18 +127,18 @@ describe('GET /api/transactions', function () {
 
 				var params = [
 					'blockId=' + '1',
-					'senderId=' + node.gAccount.address + ',' + account.address,
+					'senderId=' + accountFixtures.genesis.address + ',' + account.address,
 					'recipientId=' + account.address + ',' + account2.address,
-					'senderPublicKey=' + node.gAccount.publicKey,
-					'recipientPublicKey=' + node.gAccount.publicKey + ',' + account.publicKey,
+					'senderPublicKey=' + accountFixtures.genesis.publicKey,
+					'recipientPublicKey=' + accountFixtures.genesis.publicKey + ',' + account.publicKey,
 					'limit=' + limit,
 					'offset=' + offset,
 					'sort=' + sort
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -150,7 +149,7 @@ describe('GET /api/transactions', function () {
 
 				var params = [
 					'blockId=' + '1',
-					'and:senderId=' + node.gAccount.address,
+					'and:senderId=' + accountFixtures.genesis.address,
 					'whatever=' + account.address,
 					'limit=' + limit,
 					'offset=' + offset,
@@ -158,30 +157,30 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
 			it('using invalid condition should fail', function () {
 				var params = [
-					'whatever:senderId=' + node.gAccount.address
+					'whatever:senderId=' + accountFixtures.genesis.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
 			it('using invalid field name (x:z) should fail', function () {
 				var params = [
-					'and:senderId=' + node.gAccount.address
+					'and:senderId=' + accountFixtures.genesis.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -191,8 +190,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -207,8 +206,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -223,8 +222,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -234,8 +233,8 @@ describe('GET /api/transactions', function () {
 			var params = [];
 
 			return getTransactionsPromise(params).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').not.empty;
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.transactions').that.is.an('array').not.empty;
 			});
 		});
 
@@ -248,9 +247,9 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').which.has.length(1);
-					node.expect(res.body.transactions[0].id).to.equal(transactionInCheck.id);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array').which.has.length(1);
+					expect(res.body.transactions[0].id).to.equal(transactionInCheck.id);
 				});
 			});
 
@@ -260,8 +259,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -276,16 +275,16 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-					node.expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionTypes.VOTE);
-					node.expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionInCheck.type);
-					node.expect(res).to.have.nested.property('body.transactions[0].id').to.equal(transactionInCheck.id);
-					node.expect(res).to.have.nested.property('body.transactions[0].amount').to.equal(transactionInCheck.amount);
-					node.expect(res).to.have.nested.property('body.transactions[0].fee').to.equal(transactionInCheck.fee);
-					node.expect(res).to.have.nested.property('body.transactions[0].recipientId').to.equal(transactionInCheck.recipientId);
-					node.expect(res).to.have.nested.property('body.transactions[0].senderId').to.equal(transactionInCheck.senderId);
-					node.expect(res).to.have.nested.property('body.transactions[0].asset').to.eql(transactionInCheck.asset);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionTypes.VOTE);
+					expect(res).to.have.nested.property('body.transactions[0].type').to.equal(transactionInCheck.type);
+					expect(res).to.have.nested.property('body.transactions[0].id').to.equal(transactionInCheck.id);
+					expect(res).to.have.nested.property('body.transactions[0].amount').to.equal(transactionInCheck.amount);
+					expect(res).to.have.nested.property('body.transactions[0].fee').to.equal(transactionInCheck.fee);
+					expect(res).to.have.nested.property('body.transactions[0].recipientId').to.equal(transactionInCheck.recipientId);
+					expect(res).to.have.nested.property('body.transactions[0].senderId').to.equal(transactionInCheck.senderId);
+					expect(res).to.have.nested.property('body.transactions[0].asset').to.eql(transactionInCheck.asset);
 				});
 			});
 		});
@@ -299,23 +298,23 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
 			it('using type should be ok', function () {
-				var type = node.transactionTypes.SEND;
+				var type = transactionTypes.SEND;
 				var params = [
 					'type=' + type
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i]) {
-							node.expect(res.body.transactions[i].type).to.equal(type);
+							expect(res.body.transactions[i].type).to.equal(type);
 						}
 					}
 				});
@@ -330,22 +329,22 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
 			it('using one senderId should return transactions', function () {
 				var params = [
-					'senderId=' + node.gAccount.address,
+					'senderId=' + accountFixtures.genesis.address,
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].senderId).to.equal(node.gAccount.address);
+							expect(res.body.transactions[i].senderId).to.equal(accountFixtures.genesis.address);
 						}
 					}
 				});
@@ -353,16 +352,16 @@ describe('GET /api/transactions', function () {
 
 			it('using multiple senderId should return transactions', function () {
 				var params = [
-					'senderId=' + node.gAccount.address,
-					'senderId=' + node.eAccount.address
+					'senderId=' + accountFixtures.genesis.address,
+					'senderId=' + accountFixtures.existingDelegate.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([node.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].senderId);
+							expect([accountFixtures.genesis.address, accountFixtures.existingDelegate.address]).to.include(res.body.transactions[i].senderId);
 						}
 					}
 				});
@@ -377,22 +376,22 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
 			it('using one recipientId should return transactions', function () {
 				var params = [
-					'recipientId=' + node.gAccount.address,
+					'recipientId=' + accountFixtures.genesis.address,
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].recipientId).to.equal(node.gAccount.address);
+							expect(res.body.transactions[i].recipientId).to.equal(accountFixtures.genesis.address);
 						}
 					}
 				});
@@ -400,16 +399,16 @@ describe('GET /api/transactions', function () {
 
 			it('using multiple recipientId should return transactions', function () {
 				var params = [
-					'recipientId=' + node.gAccount.address,
-					'recipientId=' + node.eAccount.address
+					'recipientId=' + accountFixtures.genesis.address,
+					'recipientId=' + accountFixtures.existingDelegate.address
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect([node.gAccount.address, node.eAccount.address]).to.include(res.body.transactions[i].recipientId);
+							expect([accountFixtures.genesis.address, accountFixtures.existingDelegate.address]).to.include(res.body.transactions[i].recipientId);
 						}
 					}
 				});
@@ -424,8 +423,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -435,8 +434,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				});
 			});
 		});
@@ -449,8 +448,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -460,8 +459,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 				});
 			});
 		});
@@ -475,8 +474,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -487,8 +486,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
@@ -499,8 +498,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array').to.have.length(10);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array').to.have.length(10);
 				});
 			});
 		});
@@ -516,9 +515,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('amount').sort().reverse().value()).to.eql(_(res.body.transactions).map('amount').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('amount').sort().reverse().value()).to.eql(_(res.body.transactions).map('amount').value());
 					});
 				});
 
@@ -529,9 +528,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('amount').sort().value()).to.eql(_(res.body.transactions).map('amount').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('amount').sort().value()).to.eql(_(res.body.transactions).map('amount').value());
 					});
 				});
 			});
@@ -545,9 +544,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('timestamp').sort().reverse().value()).to.eql(_(res.body.transactions).map('timestamp').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('timestamp').sort().reverse().value()).to.eql(_(res.body.transactions).map('timestamp').value());
 					});
 				});
 
@@ -558,9 +557,9 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-						node.expect(_(res.body.transactions).map('timestamp').sort().value()).to.eql(_(res.body.transactions).map('timestamp').value());
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(_(res.body.transactions).map('timestamp').sort().value()).to.eql(_(res.body.transactions).map('timestamp').value());
 					});
 				});
 			});
@@ -568,14 +567,14 @@ describe('GET /api/transactions', function () {
 			it('using sort with any of sort fields should not place NULLs first', function () {
 				var params;
 
-				return node.Promise.each(transactionSortFields, function (sortField) {
+				return Promise.each(transactionSortFields, function (sortField) {
 					params = [
 						'sort=' + sortField
 					];
 
 					return getTransactionsPromise(params).then(function (res) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 
 						var dividedIndices = res.body.transactions.reduce(function (memo, peer, index) {
 							memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
@@ -587,7 +586,7 @@ describe('GET /api/transactions', function () {
 							dividedIndices.notNullIndices.sort(ascOrder);
 							dividedIndices.nullIndices.sort(ascOrder);
 
-							node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+							expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
 								.to.be.at.most(dividedIndices.nullIndices[0]);
 						}
 					});
@@ -604,15 +603,15 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(400);
-					node.expect(res).to.have.nested.property('body.message');
+					expect(res).to.have.property('status').to.equal(400);
+					expect(res).to.have.nested.property('body.message');
 				});
 			});
 
 			it('using offset=1 should be ok', function () {
 				return getTransactionsPromise([]).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 
 					var offset = 1;
 					var params = [
@@ -620,11 +619,11 @@ describe('GET /api/transactions', function () {
 					];
 
 					return getTransactionsPromise(params).then(function (result) {
-						node.expect(res).to.have.property('status').to.equal(200);
-						node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+						expect(res).to.have.property('status').to.equal(200);
+						expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 
 						result.body.transactions.forEach(function (transaction){
-							node.expect(res.body.transactions[0].id).not.equal(transaction.id);
+							expect(res.body.transactions[0].id).not.equal(transaction.id);
 						});
 					});
 				});
@@ -639,10 +638,10 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
-						node.expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
+						expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
 					}
 				});
 			});
@@ -656,10 +655,10 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
-						node.expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
+						expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
 					}
 				});
 			});
@@ -677,13 +676,13 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
-							node.expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
-							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+							expect(res.body.transactions[i].amount).to.be.at.most(maxAmount);
+							expect(res.body.transactions[i].amount).to.be.at.least(minAmount);
+							expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
 						}
 					}
 				});
@@ -698,7 +697,7 @@ describe('GET /api/transactions', function () {
 				var sort = 'amount:asc';
 
 				var params = [
-					'senderId=' + node.gAccount.address,
+					'senderId=' + accountFixtures.genesis.address,
 					'recipientId=' + account.address,
 					'recipientId=' + account2.address,
 					'limit=' + limit,
@@ -707,12 +706,12 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-					node.expect(res).to.have.nested.property('body.transactions').that.have.length.within(transactionList.length, limit);
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.nested.property('body.transactions').that.have.length.within(transactionList.length, limit);
 					for (var i = 0; i < res.body.transactions.length; i++) {
 						if (res.body.transactions[i + 1]) {
-							node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
+							expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
 						}
 					}
 				});
@@ -725,7 +724,7 @@ describe('GET /api/transactions', function () {
 
 				var params = [
 					'blockId=' + '1',
-					'senderId=' + node.gAccount.address,
+					'senderId=' + accountFixtures.genesis.address,
 					'recipientId=' + account.address,
 					'fromHeight=' + 1,
 					'toHeight=' + 666,
@@ -737,8 +736,8 @@ describe('GET /api/transactions', function () {
 				];
 
 				return getTransactionsPromise(params).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions');
 				});
 			});
 		});
@@ -747,9 +746,9 @@ describe('GET /api/transactions', function () {
 
 			it('should return count of the transactions with response', function () {
 				return getTransactionsPromise({}).then(function (res) {
-					node.expect(res).to.have.property('status').to.equal(200);
-					node.expect(res).to.have.nested.property('body.transactions').that.is.an('array');
-					node.expect(res).to.have.nested.property('body.count').that.is.a('string');
+					expect(res).to.have.property('status').to.equal(200);
+					expect(res).to.have.nested.property('body.transactions').that.is.an('array');
+					expect(res).to.have.nested.property('body.count').that.is.a('string');
 				});
 			});
 		});
@@ -758,13 +757,13 @@ describe('GET /api/transactions', function () {
 	describe('/count', function () {
 
 		it('should be ok', function () {
-			return getCountPromise('transactions').then(function (res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('confirmed').that.is.an('number');
-				node.expect(res).to.have.property('unconfirmed').that.is.an('number');
-				node.expect(res).to.have.property('unprocessed').that.is.an('number');
-				node.expect(res).to.have.property('unsigned').that.is.an('number');
-				node.expect(res).to.have.property('total').that.is.an('number');
+			return apiHelpers.getCountPromise('transactions').then(function (res) {
+				expect(res).to.have.property('success').to.be.ok;
+				expect(res).to.have.property('confirmed').that.is.an('number');
+				expect(res).to.have.property('unconfirmed').that.is.an('number');
+				expect(res).to.have.property('unprocessed').that.is.an('number');
+				expect(res).to.have.property('unsigned').that.is.an('number');
+				expect(res).to.have.property('total').that.is.an('number');
 			});
 		});
 	});
@@ -772,27 +771,26 @@ describe('GET /api/transactions', function () {
 	describe('/queued/get?id=', function () {
 
 		it('using unknown id should be ok', function () {
-			return getQueuedTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(true);
-				node.expect(res).to.have.property('transactions').to.be.an('array');
-				node.expect(res.transactions.indexOf('1234')).to.equal(-1);
+			return apiHelpers.getQueuedTransactionPromise('1234').then(function (res) {
+				expect(res).to.have.property('success').to.equal(false);
+				expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
 
 		it('using valid transaction with data field should be ok', function () {
 			var amountToSend = 123456789;
-			var expectedFee = node.expectedFeeForTransactionWithData(amountToSend);
+			var expectedFee = randomUtil.expectedFeeForTransactionWithData(amountToSend);
 			var data = 'extra information';
-			var transaction = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
+			var transaction = lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				node.expect(res).to.have.property('status').to.equal(200);
-				node.expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(200);
+				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 
-				return getQueuedTransactionPromise(transaction.id).then(function (result) {
-					node.expect(result).to.have.property('success').to.equal(true);
-					node.expect(result).to.have.property('transactions').to.be.an('array');
-					node.expect(result.transactions[0].id).to.equal(transaction.id);
+				return apiHelpers.getQueuedTransactionPromise(transaction.id).then(function (result) {
+					expect(result).to.have.property('success').to.equal(true);
+					expect(result).to.have.property('transaction').that.is.an('object');
+					expect(result.transaction.id).to.equal(transaction.id);
 				});
 			});
 		});
@@ -801,10 +799,10 @@ describe('GET /api/transactions', function () {
 	describe('/queued', function () {
 
 		it('should be ok', function () {
-			return getQueuedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(true);
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res).to.have.property('count').that.is.an('number');
+			return apiHelpers.getQueuedTransactionsPromise().then(function (res) {
+				expect(res).to.have.property('success').to.equal(true);
+				expect(res).to.have.property('transactions').that.is.an('array');
+				expect(res).to.have.property('count').that.is.an('number');
 			});
 		});
 	});
@@ -812,9 +810,9 @@ describe('GET /api/transactions', function () {
 	describe('/multisignatures/get?id=', function () {
 
 		it('using unknown id should be ok', function () {
-			return getMultisignaturesTransactionPromise('1234').then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(false);
-				node.expect(res).to.have.property('error').that.is.equal('Transaction not found');
+			return apiHelpers.getMultisignaturesTransactionPromise('1234').then(function (res) {
+				expect(res).to.have.property('success').to.equal(false);
+				expect(res).to.have.property('error').that.is.equal('Transaction not found');
 			});
 		});
 	});
@@ -822,10 +820,10 @@ describe('GET /api/transactions', function () {
 	describe('/multisignatures', function () {
 
 		it('should be ok', function () {
-			return getMultisignaturesTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(true);
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res).to.have.property('count').that.is.an('number');
+			return apiHelpers.getMultisignaturesTransactionsPromise().then(function (res) {
+				expect(res).to.have.property('success').to.equal(true);
+				expect(res).to.have.property('transactions').that.is.an('array');
+				expect(res).to.have.property('count').that.is.an('number');
 			});
 		});
 	});
@@ -835,14 +833,14 @@ describe('GET /api/transactions', function () {
 		var unconfirmedTransaction;
 
 		before(function () {
-			unconfirmedTransaction = lisk.transaction.createTransaction(account.address, maxAmount, node.gAccount.password);
-			return sendTransactionPromise(unconfirmedTransaction);
+			unconfirmedTransaction = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
+			return apiHelpers.sendTransactionPromise(unconfirmedTransaction);
 		});
 
 		it('using valid id should be ok', function () {
 			var transactionId = unconfirmedTransaction.id;
-			return getUnconfirmedTransactionPromise(transactionId).then(function (res) {
-				node.expect(res).to.have.property('success');
+			return apiHelpers.getUnconfirmedTransactionPromise(transactionId).then(function (res) {
+				expect(res).to.have.property('success');
 			});
 		});
 	});
@@ -850,10 +848,10 @@ describe('GET /api/transactions', function () {
 	describe('/unconfirmed', function () {
 
 		it('should be ok', function () {
-			return getUnconfirmedTransactionsPromise().then(function (res) {
-				node.expect(res).to.have.property('success').to.equal(true);
-				node.expect(res).to.have.property('transactions').that.is.an('array');
-				node.expect(res).to.have.property('count').that.is.an('number');
+			return apiHelpers.getUnconfirmedTransactionsPromise().then(function (res) {
+				expect(res).to.have.property('success').to.equal(true);
+				expect(res).to.have.property('transactions').that.is.an('array');
+				expect(res).to.have.property('count').that.is.an('number');
 			});
 		});
 	});

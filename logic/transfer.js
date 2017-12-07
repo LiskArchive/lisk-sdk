@@ -240,11 +240,10 @@ Transfer.prototype.dbSave = function (transaction) {
 };
 
 /**
- * Checks sender multisignatures and transaction signatures.
+ * Checks if transaction has enough signatures to be confirmed.
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than
- * sender multimin or there are not sender multisignatures.
+ * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  */
 Transfer.prototype.ready = function (transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
