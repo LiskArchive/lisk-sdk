@@ -58,9 +58,9 @@ node('node-06'){
 				sh '''#!/bin/bash
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
                     if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
-                        npm run test-integration-extensive > >(tee integrationTests.logs) 2> >(tee integrationTests.logs >&2)
+                        npm run test-integration-extensive |& tee integrationTests.logs
                     else
-                        npm run test-integration > >(tee integrationTests.logs) 2> >(tee integrationTests.logs >&2)
+                        npm run test-integration |& tee integrationTests.logs
                     fi
 				'''
 			} catch (err) {
