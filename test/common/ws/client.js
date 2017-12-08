@@ -24,7 +24,7 @@ function WSClient (headers, handlers) {
 	this.socketOptions = {
 		protocol: 'http',
 		hostname: '127.0.0.1',
-		port: testConfig.port,
+		port: testConfig.wsPort,
 		query: headers,
 		autoConnect: false,
 		connectTimeout: 1000,
@@ -84,8 +84,8 @@ WSClient.prototype.stop = function () {
  * @param {string} [nonce]
  * @return {Object}
  */
-WSClient.generatePeerHeaders = function (ip, port, nonce) {
-	port = port || (Math.floor(Math.random() * 65535) + 1);
+WSClient.generatePeerHeaders = function (ip, wsPort, nonce) {
+	wsPort = wsPort || (Math.floor(Math.random() * 65535) + 1);
 	ip = ip || '127.0.0.1';
 	nonce = nonce || randomstring.generate(16);
 	var httpPort = (Math.floor(Math.random() * 65535) + 1);
@@ -99,7 +99,7 @@ WSClient.generatePeerHeaders = function (ip, port, nonce) {
 		nethash: testConfig.nethash,
 		os: os,
 		ip: ip,
-		port: port,
+		wsPort: wsPort,
 		httpPort: httpPort,
 		version: version,
 		nonce: nonce,

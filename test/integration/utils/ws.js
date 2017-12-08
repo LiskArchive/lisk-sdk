@@ -12,13 +12,13 @@ module.exports = {
 		var monitorWSClient = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: null,
+			wsPort: null,
 			autoReconnect: true,
 			query: WSClient.generatePeerHeaders()
 		};
 		var connectedTo = 0;
 		configurations.forEach(function (configuration) {
-			monitorWSClient.port = configuration.port;
+			monitorWSClient.wsPort = configuration.wsPort;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			socket.on('connect', function () {
@@ -30,7 +30,7 @@ module.exports = {
 			});
 			socket.on('error', function (err) {});
 			socket.on('connectAbort', function () {
-				cb('Unable to establish WS connection with ' + configuration.ip + ':' + configuration.port);
+				cb('Unable to establish WS connection with ' + configuration.ip + ':' + configuration.wsPort);
 			});
 		});
 	}

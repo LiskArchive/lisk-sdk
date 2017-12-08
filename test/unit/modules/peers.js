@@ -389,7 +389,7 @@ describe('peers', function () {
 				originalFrozenPeersList = _.assign({}, modulesLoader.scope.config.peers.list);
 				modulesLoader.scope.config.peers.list = [{
 					ip: validPeer.ip,
-					port: validPeer.port
+					wsPort: validPeer.wsPort
 				}];
 				loggerDebugSpy = sinon.spy(modulesLoader.scope.logger, 'debug');
 			});
@@ -408,7 +408,7 @@ describe('peers', function () {
 			});
 
 			it('should call logger.debug with message = [ip:port]', function () {
-				expect(loggerDebugSpy.args[0][1]).eql(validPeer.ip + ':' + validPeer.port);
+				expect(loggerDebugSpy.args[0][1]).eql(validPeer.ip + ':' + validPeer.wsPort);
 			});
 		});
 
@@ -423,7 +423,7 @@ describe('peers', function () {
 			});
 
 			it('should call logic.peers.remove with object containing expected port', function () {
-				expect(peersLogicMock.remove.calledWith(sinon.match({port: validPeer.port}))).to.be.true;
+				expect(peersLogicMock.remove.calledWith(sinon.match({wsPort: validPeer.wsPort}))).to.be.true;
 			});
 
 			it('should return library.logic.peers.remove result', function () {
@@ -663,7 +663,7 @@ describe('peers', function () {
 			process.env['NODE_ENV'] = 'TEST';
 			var meAsPeer = {
 				ip: '40.00.40.40',
-				port: 4001,
+				wsPort: 4001,
 				nonce: NONCE
 			};
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;

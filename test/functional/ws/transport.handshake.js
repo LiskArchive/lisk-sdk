@@ -73,7 +73,7 @@ describe('handshake', function () {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: testConfig.port,
+			port: testConfig.wsPort,
 			query: _.clone(frozenHeaders)
 		};
 		connectAbortStub = sinon.spy();
@@ -111,7 +111,7 @@ describe('handshake', function () {
 			});
 
 			it('without port', function (done) {
-				delete validClientSocketOptions.query.port;
+				delete validClientSocketOptions.query.wsPort;
 				connect();
 				expectDisconnect(this, function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
@@ -157,14 +157,14 @@ describe('handshake', function () {
 		var originalPort;
 
 		before(function () {
-			originalPort = wsServer.options.port;
-			wsServer.options.port = wsServerPort;
+			originalPort = wsServer.options.wsPort;
+			wsServer.options.wsPort = wsServerPort;
 			wsServer.start();
 		});
 
 		after(function () {
 			wsServer.stop();
-			wsServer.options.port = originalPort;
+			wsServer.options.wsPort = originalPort;
 		});
 
 		beforeEach(function () {

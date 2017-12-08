@@ -8,7 +8,7 @@ var randomNormalizedPeer = {
 	'height': 1,
 	'ip': '40.40.40.40',
 	'os': 'unknown',
-	'port': 5000,
+	'wsPort': 5000,
 	'httpPort': 4000,
 	'state': 2,
 	'version': '0.0.0',
@@ -25,7 +25,8 @@ function generateRandomActivePeer () {
 		'height': randomDigits(4),
 		'ip': randomDigits(3) + '.' + randomDigits(3) + '.' + randomDigits(3) + '.' + randomDigits(3),
 		'os': randomstring.generate(10),
-		'port': randomstring.generate({charset: 'numeric', length: 4}),
+		'wsPort': '5' + randomstring.generate({charset: 'numeric', length: 3}),
+		'httpPort': '4' + randomstring.generate({charset: 'numeric', length: 3}),		
 		'state': 2,
 		'nonce': randomstring.generate(16),
 		'version': randomDigits(1) + '.' + randomDigits(1) + '.' + randomDigits(1)

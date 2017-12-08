@@ -18,7 +18,7 @@ function WSServerMaster () {
 	this.version = '0.0.' + (Math.floor(Math.random() * 10) + 1);
 	this.client = null;
 	this.httpPort = Math.floor(Math.random() * 65535) + 1;
-	this.port = Math.floor(Math.random() * 65535) + 1;
+	this.wsPort = Math.floor(Math.random() * 65535) + 1;
 }
 
 /**
@@ -30,7 +30,7 @@ WSServerMaster.prototype.start = function () {
 	var self = this;
 
 	return new Promise(function (resolve, reject) {
-		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'serverProcess.js'), self.port], {
+		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'serverProcess.js'), self.wsPort], {
 			cwd: __dirname,
 			detached: true,
 			stdio: 'inherit',
@@ -45,7 +45,7 @@ WSServerMaster.prototype.start = function () {
 		setTimeout(function () {
 			var headers = WSClient.generatePeerHeaders();
 			headers.ip = '127.0.0.1';
-			headers.port = self.port;
+			headers.port = self.wsPort;
 			headers.httpPort = self.httpPort;
 			headers.version = self.version;
 

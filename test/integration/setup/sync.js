@@ -36,7 +36,7 @@ module.exports = {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
 						peersList.push({
 							ip: configuration.ip,
-							port: configuration.port
+							wsPort: configuration.wsPort
 						});
 					}
 				});
@@ -48,7 +48,7 @@ module.exports = {
 				}
 				peersList = [{
 					ip: configurations[0].ip,
-					port: configurations[0].port
+					wsPort: configurations[0].wsPort
 				}];
 				break;
 
@@ -60,7 +60,7 @@ module.exports = {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
 							ip: configuration.ip,
-							port: configuration.port
+							wsPort: configuration.wsPort
 						});
 					}
 				});

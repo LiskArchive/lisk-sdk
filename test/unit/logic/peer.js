@@ -21,9 +21,9 @@ describe('peer', function () {
 	describe('constructor', function () {
 
 		it('should create Peer with all properties implemented', function () {
-			var __peer = new Peer({ip: '127.0.0.1', port: 4000});
+			var __peer = new Peer({ip: '127.0.0.1', wsPort: 4000});
 			expect(__peer).to.have.property('ip').equal('127.0.0.1');
-			expect(__peer).to.have.property('port').equal(4000);
+			expect(__peer).to.have.property('wsPort').equal(4000);
 			expect(__peer).to.have.property('state').equal(1);
 			expect(__peer).to.have.property('string').equal('127.0.0.1:4000');
 		});
@@ -34,15 +34,15 @@ describe('peer', function () {
 		it('should accept valid peer', function () {
 			var peer = new Peer({});
 			var __peer = peer.accept(prefixedPeer);
-			['height', 'ip', 'port', 'state'].forEach(function (property) {
+			['height', 'ip', 'wsPort', 'state'].forEach(function (property) {
 				expect(__peer[property]).equals(prefixedPeer[property]);
 			});
-			expect(__peer.string).equals(prefixedPeer.ip + ':' + prefixedPeer.port);
+			expect(__peer.string).equals(prefixedPeer.ip + ':' + prefixedPeer.wsPort);
 		});
 
 		it('should accept empty peer and set default values', function () {
 			var __peer = peer.accept({});
-			expect(__peer.port).to.equal(0);
+			expect(__peer.wsPort).to.equal(0);
 			expect(__peer.ip).to.be.undefined;
 			expect(__peer.state).to.equal(1);
 			expect(__peer.height).to.be.undefined;
@@ -101,9 +101,9 @@ describe('peer', function () {
 		});
 
 		it('should parse height and port', function () {
-			var appliedHeaders = peer.applyHeaders({port: '4000', height: '1'});
+			var appliedHeaders = peer.applyHeaders({wsPort: '4000', height: '1'});
 
-			expect(appliedHeaders.port).to.equal(4000);
+			expect(appliedHeaders.wsPort).to.equal(4000);
 			expect(appliedHeaders.height).to.equal(1);
 		});
 	});
@@ -164,9 +164,9 @@ describe('peer', function () {
 			var peerBeforeUpdate = _.clone(peer);
 			var updateImmutableData = {
 				ip: prefixedPeer.ip,
-				port: prefixedPeer.port,
-				httpPort: prefixedPeer.port,
-				string: prefixedPeer.ip + ':' + prefixedPeer.port
+				wsPort: prefixedPeer.wsPort,
+				httpPort: prefixedPeer.httpPort,
+				string: prefixedPeer.ip + ':' + prefixedPeer.wsPort
 			};
 
 			expect(_.isEqual(_.keys(updateImmutableData), peer.immutable)).to.be.ok;

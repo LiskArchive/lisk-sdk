@@ -17,10 +17,10 @@ module.exports = function (params) {
 					expect(result).to.have.property('success').to.be.true;
 					expect(result).to.have.property('peers').to.be.a('array');
 					var peerPorts = result.peers.map(function (peer) {
-						return peer.port;
+						return peer.wsPort;
 					});
 					var allPorts = params.configurations.map(function (configuration) {
-						return configuration.port;
+						return configuration.wsPort;
 					});
 					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
 				});
