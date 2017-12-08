@@ -194,7 +194,7 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			it('should save block in blockchain', function (done) {
+			it('should add block to blockchain', function (done) {
 				library.modules.blocks.process.onReceiveBlock(block);
 				library.sequence.add(function (cb) {
 					return handlePromise(getBlocks().then(function (blocks) {
@@ -224,7 +224,7 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					it('should not add block in blockchain', function (done) {
+					it('should not add block to blockchain', function (done) {
 						library.modules.blocks.process.onReceiveBlock(block);
 						library.sequence.add(function (cb) {
 							return handlePromise(getBlocks().then(function (blocks) {
@@ -251,7 +251,7 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					it('should not add block in blockchain', function (done) {
+					it('should not add block to blockchain', function (done) {
 						library.modules.blocks.process.onReceiveBlock(block);
 						library.sequence.add(function (cb) {
 							return handlePromise(getBlocks().then(function (blocks) {
@@ -300,7 +300,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				it('should reject the block with greater timestamp', function (done) {
+				it('should reject block with greater timestamp', function (done) {
 					library.sequence.add(function (cb) {
 						return handlePromise(getBlocks().then(function (blocks) {
 							var blockIds = _.map(blocks, 'id');
@@ -332,7 +332,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				it('should delete two blocks', function (done) {
+				it('should delete last two blocks', function (done) {
 					library.sequence.add(function (cb) {
 						return handlePromise(getBlocks().then(function (blocks) {
 							var blockIds = _.map(blocks, 'id');
@@ -343,7 +343,7 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('with block height mutated', function () {
+			describe('when block height is mutated', function () {
 
 				var mutatedHeight;
 
@@ -361,7 +361,7 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						library.sequence.add(function (cb) {
 							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
@@ -382,7 +382,7 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(inSlotsWindowBlock);
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						library.sequence.add(function (cb) {
 							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
@@ -393,7 +393,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when received block is from the same round but more than ' + constants.blockSlotWindow + ' slots in the past', function () {
+				describe('when received block is from the same round and greater than ' + constants.blockSlotWindow + ' slots in the past', function () {
 
 					var outOfSlotWindowBlock;
 
@@ -403,7 +403,7 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(outOfSlotWindowBlock);
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						library.sequence.add(function (cb) {
 							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
@@ -414,7 +414,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when receivedBlock is from the future slot', function () {
+				describe('when received block is from a future slot', function () {
 
 					var blockFromFutureSlot;
 
@@ -430,7 +430,7 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						library.sequence.add(function (cb) {
 							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
@@ -467,7 +467,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when timestamp is greater than saved block', function () {
+				describe('when timestamp is greater than last block', function () {
 
 					var timestamp;
 
@@ -475,7 +475,7 @@ describe('onReceiveBlock()', function () {
 						timestamp = block.timestamp + 1;
 					});
 
-					it('should reject the block', function (done) {
+					it('should reject received block', function (done) {
 						var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, lastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 						library.sequence.add(function (cb) {
@@ -489,7 +489,7 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					describe('and when delegate slot is invalid', function () {
+					describe('when delegate slot is invalid', function () {
 
 						beforeEach(function () {
 							keypair = getKeypair(_.find(genesisDelegates, function (value) {
@@ -497,7 +497,7 @@ describe('onReceiveBlock()', function () {
 							}).publicKey);
 						});
 
-						it('should reject the block', function (done) {
+						it('should reject received block', function (done) {
 							var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, lastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 							library.sequence.add(function (cb) {
@@ -512,7 +512,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when timestamp is lower than saved block', function () {
+				describe('when timestamp is lower than last block', function () {
 
 					var timestamp;
 
@@ -520,7 +520,7 @@ describe('onReceiveBlock()', function () {
 						timestamp = block.timestamp - 1;
 					});
 
-					describe('and when block slot is invalid', function () {
+					describe('when block slot is invalid', function () {
 
 						beforeEach(function () {
 							slot = slots.getSlotNumber(block.timestamp) + 1;
@@ -529,7 +529,7 @@ describe('onReceiveBlock()', function () {
 							});
 						});
 
-						it('should reject block when blockslot is not valid', function (done) {
+						it('should reject received block', function (done) {
 							var blockWithInvalidSlot = createBlock([], timestamp, keypair, lastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithInvalidSlot);
 							library.sequence.add(function (cb) {
@@ -546,7 +546,7 @@ describe('onReceiveBlock()', function () {
 
 					describe('when blockslot and generator publicKey is valid', function () {
 
-						it('should replace existing block in chain with current block', function (done) {
+						it('should replace last block with received block', function (done) {
 							var blockWithLowerTimestamp = createBlock([], timestamp, keypair, lastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithLowerTimestamp);
 							library.sequence.add(function (cb) {
@@ -563,7 +563,7 @@ describe('onReceiveBlock()', function () {
 
 					describe('when generator publicKey and timestamp is different', function () {
 
-						describe('when timestamp is inside the slot window', function () {
+						describe('when timestamp is inside slot window', function () {
 
 							beforeEach(function () {
 								// slot and generatorKey is the equal to the delegate who forged the second last block
@@ -574,7 +574,7 @@ describe('onReceiveBlock()', function () {
 								}).secret);
 							});
 
-							it('should delete the block', function (done) {
+							it('should delete last block', function (done) {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, lastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
 								library.sequence.add(function (cb) {
@@ -589,7 +589,7 @@ describe('onReceiveBlock()', function () {
 							});
 						});
 
-						describe('when timestamp is outside the slot window', function () {
+						describe('when timestamp is outside slot window', function () {
 
 							var timestamp;
 
@@ -602,7 +602,7 @@ describe('onReceiveBlock()', function () {
 								});
 							});
 
-							it('should reject block when blockslot outside the window', function (done) {
+							it('should reject received block', function (done) {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, lastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
 								library.sequence.add(function (cb) {
@@ -619,7 +619,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when block in chain skipped a slot', function () {
+				describe('when last block skipped a slot', function () {
 
 					var nextSlotBlock;
 					var nextSlotKeypair;
@@ -720,7 +720,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				it('should reject the incoming block', function (done) {
+				it('should reject received block', function (done) {
 					library.modules.blocks.process.onReceiveBlock(block);
 					library.sequence.add(function (cb) {
 						return handlePromise(getBlocks().then(function (blocks) {
@@ -732,7 +732,7 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('when block does not match current chain', function (done) {
+			describe('when block does not match blockchain', function (done) {
 
 				var differentChainBlock;
 
@@ -746,7 +746,7 @@ describe('onReceiveBlock()', function () {
 					differentChainBlock = createBlock([], slots.getSlotTime(10), keypair, dummyLastBlock);
 				});
 
-				it('should reject the incoming block', function (done) {
+				it('should reject received block', function (done) {
 					library.modules.blocks.process.onReceiveBlock(differentChainBlock);
 					library.sequence.add(function (cb) {
 

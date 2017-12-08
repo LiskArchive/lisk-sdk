@@ -847,7 +847,7 @@ describe('blocks/verify', function () {
 					lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
 				});
 
-				describe('contains block Id', function () {
+				describe('contains block id', function () {
 
 					var dummyBlockId = '123123123123';
 
@@ -860,9 +860,9 @@ describe('blocks/verify', function () {
 					});
 				});
 
-				describe('does not contains block Id', function () {
+				describe('does not contain block id', function () {
 
-					it('should return result with error = Block already exists in chain', function () {
+					it('should return result with no errors', function () {
 						expect(verifyAgainstLastNBlockIds({id: '1231231234'}, result).errors).to.have.length(0);
 					});
 				});
