@@ -80,33 +80,16 @@ module.exports = {
 		});
 	},
 
-	getTransactions: function (port, ip) {
-		return popsicle.get({
-			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000),
-			headers: headers
-		}).then(function (res) {
-			return res.body.blocks;
-		});
-	},
-
 	getTransaction: function (transactionId, port, ip) {
 		return popsicle.get({
 			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000) + '?id=' + transactionId,
 			headers: headers
 		}).then(function (res) {
-			return JSON.parse(res.body).transactions[0];
-		});
-	},
-
-	postTransaction: function (transaction, port, ip) {
-		return popsicle.post({
-			url: endpoints.versions[currentVersion].postTransaction(ip || '127.0.0.1', port || 4000),
-			headers: headers,
-			data: {
-				transaction: transaction
+			if(currentVersion === '1.0.0') {
+				return JSON.parse(res.body).data[0];
+			} else {
+				return JSON.parse(res.body).transactions[0];
 			}
-		}).then(function (res) {
-			return res.body.blocks;
 		});
 	},
 
