@@ -110,8 +110,8 @@ describe('onReceiveBlock()', function () {
 				});
 			},
 			function (delegatePublicKey, seriesCb) {
-				// Cannot use getSlotNumber since if i use it, I will not be able to create valid blocks without delay of 10 seconds b/w them.
-
+				// Cannot use getSlotNumber, as if we use it we will not be able to
+				// create valid blocks without a delay of 10 seconds between them
 				var delegate = _.find(genesisDelegates, function (delegate) {
 					return delegate.publicKey === delegatePublicKey;
 				});
