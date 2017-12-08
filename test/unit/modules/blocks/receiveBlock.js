@@ -266,8 +266,8 @@ describe('onReceiveBlock()', function () {
 					getBlocks(function (err, blockIds) {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(10);
-						expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 						expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
+						expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 						return verifyForkStat(blockWithGreaterTimestamp.id, 1).then(done);
 					});
 				});
@@ -322,6 +322,7 @@ describe('onReceiveBlock()', function () {
 					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
+							expect(blockIds).to.not.include(blockFromPreviousRound.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 							return verifyForkStat(blockFromPreviousRound.id, 1).then(done);
 						});
@@ -341,6 +342,7 @@ describe('onReceiveBlock()', function () {
 					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
+							// expect(blockIds).to.not.include(inSlotsWindowBlock.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 							return verifyForkStat(inSlotsWindowBlock.id, 1).then(done);
 						});
@@ -360,6 +362,7 @@ describe('onReceiveBlock()', function () {
 					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
+							// expect(blockIds).to.not.include(outOfSlotWindowBlock.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 							return verifyForkStat(outOfSlotWindowBlock.id, 1).then(done);
 						});
@@ -385,6 +388,7 @@ describe('onReceiveBlock()', function () {
 					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
+							expect(blockIds).to.not.include(blockFromFutureSlot.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 							return verifyForkStat(blockFromFutureSlot.id, 1).then(done);
 						});
@@ -431,8 +435,8 @@ describe('onReceiveBlock()', function () {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(6);
-							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 							expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
+							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 							return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(done);
 						});
 					});
@@ -450,8 +454,8 @@ describe('onReceiveBlock()', function () {
 							library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 							getBlocks(function (err, blockIds) {
 								expect(err).to.not.exist;
-								expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 								expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
+								expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
 								return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(done);
 							});
 						});
@@ -481,8 +485,8 @@ describe('onReceiveBlock()', function () {
 							getBlocks(function (err, blockIds) {
 								expect(err).to.not.exist;
 								expect(blockIds).to.have.length(6);
-								expect(blockIds).to.include.members([secondLastBlock.id, lastBlock.id]);
 								expect(blockIds).to.not.include(blockWithInvalidSlot.id);
+								expect(blockIds).to.include.members([secondLastBlock.id, lastBlock.id]);
 								return verifyForkStat(blockWithInvalidSlot.id, 5).then(done);
 							});
 						});
@@ -496,8 +500,8 @@ describe('onReceiveBlock()', function () {
 							getBlocks(function (err, blockIds) {
 								expect(err).to.not.exist;
 								expect(blockIds).to.have.length(6);
-								expect(blockIds).to.include.members([blockWithLowerTimestamp.id, secondLastBlock.id]);
 								expect(blockIds).to.not.include(lastBlock.id);
+								expect(blockIds).to.include.members([blockWithLowerTimestamp.id, secondLastBlock.id]);
 								return verifyForkStat(blockWithLowerTimestamp.id, 5).then(done);
 							});
 						});
@@ -548,8 +552,8 @@ describe('onReceiveBlock()', function () {
 								getBlocks(function (err, blockIds) {
 									expect(err).to.not.exist;
 									expect(blockIds).to.have.length(6);
-									expect(blockIds).to.include.members([secondLastBlock.id, lastBlock.id]);
 									expect(blockIds).to.not.include(blockWithDifferentKeyAndTimestamp.id);
+									expect(blockIds).to.include.members([secondLastBlock.id, lastBlock.id]);
 									return verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5).then(done);
 								});
 							});
@@ -590,8 +594,8 @@ describe('onReceiveBlock()', function () {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(7);
-							expect(blockIds).to.include.members([blockWithUnskippedSlot.id, lastBlock.id, secondLastBlock.id]);
 							expect(blockIds).to.not.include(nextSlotBlock.id);
+							expect(blockIds).to.include.members([blockWithUnskippedSlot.id, lastBlock.id, secondLastBlock.id]);
 							return verifyForkStat(blockWithUnskippedSlot.id, 5).then(done);
 						});
 					});
@@ -630,8 +634,8 @@ describe('onReceiveBlock()', function () {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(10);
-							expect(blockIds).to.include.members([secondLastBlock.id, blockFromPreviousRound.id]);
 							expect(blockIds).to.not.include(lastBlock.id);
+							expect(blockIds).to.include.members([secondLastBlock.id, blockFromPreviousRound.id]);
 							return verifyForkStat(blockFromPreviousRound.id, 5).then(done);
 						});
 					});
@@ -684,8 +688,8 @@ describe('onReceiveBlock()', function () {
 					getBlocks(function (err, blockIds) {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(1);
-						expect(blockIds).to.include.members([genesisBlock.id]);
 						expect(blockIds).to.not.include(differentChainBlock.id);
+						expect(blockIds).to.include.members([genesisBlock.id]);
 						done();
 					});
 				});
