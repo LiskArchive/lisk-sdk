@@ -181,7 +181,7 @@ Signature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
  */
 Signature.prototype.schema = {
 	id: 'Signature',
-	object: true,
+	type: 'object',
 	properties: {
 		publicKey: {
 			type: 'string',
