@@ -15,7 +15,6 @@ var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTa
 var genesisDelegates = require('../../../genesisDelegates.json').delegates;
 var application = require('../../../common/application.js');
 
-
 var encryptedSecrets = config.forging.secret;
 
 describe('onReceiveBlock()', function () {
@@ -41,8 +40,8 @@ describe('onReceiveBlock()', function () {
 
 	beforeEach(function (done) {
 		async.every([
-			'blocks where height > 1;',
-			'forks_stat;',
+			'blocks WHERE "height" > 1',
+			'forks_stat',
 		], function (table, cb) {
 			clearDatabaseTable(db, modulesLoader.logger, table, cb);
 		}, function () {
@@ -51,7 +50,7 @@ describe('onReceiveBlock()', function () {
 		});
 	});
 
-	// Helper function to handle promises for sequences in test, 
+	// Helper function to handle promises for sequences in test,
 	function handle (promise, done, cb) {
 		return promise.then(function (result) {
 			cb();
@@ -76,9 +75,9 @@ describe('onReceiveBlock()', function () {
 	}
 
 	function forgeMultipleBlocks (numberOfBlocksToForge, cb) {
-
 		var forgedBlocks = [];
 		var initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
+
 		async.mapSeries(_.range(0, numberOfBlocksToForge), function (offset, seriesCb) {
 			forge(initialSlot + offset, function (err, forgedBlock) {
 				forgedBlocks.push(forgedBlock);
@@ -104,7 +103,7 @@ describe('onReceiveBlock()', function () {
 
 		var transactionPool = library.rewiredModules.transactions.__get__('__private.transactionPool');
 
-		node.async.waterfall([ 
+		node.async.waterfall([
 			transactionPool.fillPool,
 			function (cb) {
 				getNextForger(null, function (delegatePublicKey) {
@@ -144,11 +143,13 @@ describe('onReceiveBlock()', function () {
 	function getValidKeypairForSlot (slot) {
 		var generateDelegateListPromisified = Promise.promisify(library.modules.delegates.generateDelegateList);
 		var lastBlock = library.modules.blocks.lastBlock.get();
+
 		return generateDelegateListPromisified(lastBlock.height, null).then(function (list) {
 			var delegatePublicKey = list[slot % slots.delegates];
 			var delegateDetails = _.find(encryptedSecrets, function (secrets) {
 				return secrets.publicKey === delegatePublicKey;
 			});
+
 			return getKeypair(_.find(genesisDelegates, function (delegate) {
 				return delegate.publicKey === delegatePublicKey;
 			}).secret);
@@ -157,6 +158,7 @@ describe('onReceiveBlock()', function () {
 
 	function getBlocks (limit) {
 		limit = limit ? limit : 10;
+
 		var query = {
 			body: {
 				limit: limit
@@ -164,6 +166,7 @@ describe('onReceiveBlock()', function () {
 		};
 
 		var getBlocksPromisified = Promise.promisify(library.modules.blocks.submodules.api.getBlocks);
+
 		return getBlocksPromisified(query).then(function (res) {
 			return res.blocks;
 		});
@@ -174,7 +177,7 @@ describe('onReceiveBlock()', function () {
 	}
 
 	function verifyForkStat (blockId, cause) {
-		return db.one('SELECT * FROM forks_stat where "blockId" = ${blockId} AND "cause" = ${cause};', {blockId: blockId, cause: cause});
+		return db.one('SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}', {blockId: blockId, cause: cause});
 	}
 
 	describe('onReceiveBlock (empty transactions)', function () {
@@ -209,6 +212,7 @@ describe('onReceiveBlock()', function () {
 			describe('validate block slot', function () {
 
 				describe('when generator is not a delegate', function () {
+
 					var lastBlock;
 					var block;
 
@@ -234,6 +238,7 @@ describe('onReceiveBlock()', function () {
 				});
 
 				describe('when block generator has incorrect slot', function () {
+
 					var lastBlock;
 					var block;
 
@@ -262,6 +267,7 @@ describe('onReceiveBlock()', function () {
 		});
 
 		describe('forkOne', function () {
+
 			var forgedBlocks = [];
 			var lastBlock;
 			var block;
@@ -368,6 +374,7 @@ describe('onReceiveBlock()', function () {
 				});
 
 				describe('when received block is from the same round and ' + (constants.blockSlotWindow - 1) + ' slots in the past', function () {
+
 					var inSlotsWindowBlock;
 
 					beforeEach(function () {
@@ -586,6 +593,7 @@ describe('onReceiveBlock()', function () {
 						describe('when timestamp is outside the slot window', function () {
 
 							var timestamp;
+
 							beforeEach(function () {
 								// slot and generatorKey is of the delegate who was 6 slots behind current slot
 								slot = slots.getSlotNumber() - (constants.blockSlotWindow + 1);

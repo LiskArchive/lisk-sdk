@@ -810,7 +810,6 @@ describe('blocks/verify', function () {
 						olderThanNBlockIds = blockIds.filter(function (value, index) {
 							return blockIds.length - 1 - index >= constants.blockSlotWindow;
 						});
-
 					});
 
 					it('should maintain last ' + constants.blockSlotWindow + ' blockIds in lastNBlockIds queue', function () {
