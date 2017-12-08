@@ -262,7 +262,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				it('should reject the block with greater timestamp', function (done) {
+				it('should reject received block', function (done) {
 					getBlocks(function (err, blockIds) {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(10);
@@ -292,7 +292,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				it('should delete two blocks', function (done) {
+				it('should reject received block and delete last two blocks', function (done) {
 					getBlocks(function (err, blockIds) {
 						expect(err).to.not.exist;
 						expect(blockIds).to.not.include.members([lastBlock.id, secondLastBlock.id, blockWithLowerTimestamp.id]);
@@ -319,7 +319,7 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -328,7 +328,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when received block is from the same round and ' + (constants.blockSlotWindow - 1) + ' slots in the past', function () {
+				describe('when received block is from same round and ' + (constants.blockSlotWindow - 1) + ' slots in the past', function () {
 
 					var inSlotsWindowBlock;
 
@@ -338,7 +338,7 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(inSlotsWindowBlock);
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -347,7 +347,7 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when received block is from the same round and greater than ' + constants.blockSlotWindow + ' slots in the past', function () {
+				describe('when received block is from same round and greater than ' + constants.blockSlotWindow + ' slots in the past', function () {
 
 					var outOfSlotWindowBlock;
 
@@ -357,7 +357,7 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(outOfSlotWindowBlock);
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -382,7 +382,7 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					it('should reject the received block', function (done) {
+					it('should reject received block', function (done) {
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -425,7 +425,7 @@ describe('onReceiveBlock()', function () {
 						timestamp = lastBlock.timestamp + 1;
 					});
 
-					it('should reject the block', function (done) {
+					it('should reject received block', function (done) {
 						var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 						getBlocks(function (err, blockIds) {
@@ -445,7 +445,7 @@ describe('onReceiveBlock()', function () {
 							}).publicKey);
 						});
 
-						it('should reject the block', function (done) {
+						it('should reject received block', function (done) {
 							var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 							getBlocks(function (err, blockIds) {
@@ -475,7 +475,7 @@ describe('onReceiveBlock()', function () {
 							});
 						});
 
-						it('should reject block when blockslot is not valid', function (done) {
+						it('should reject received block when blockslot is invalid', function (done) {
 							var blockWithInvalidSlot = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithInvalidSlot);
 							getBlocks(function (err, blockIds) {
@@ -490,7 +490,7 @@ describe('onReceiveBlock()', function () {
 
 					describe('when blockslot and generator publicKey is valid', function () {
 
-						it('should replace existing block in chain with current block', function (done) {
+						it('should replace last block with received block', function (done) {
 							var blockWithLowerTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithLowerTimestamp);
 							getBlocks(function (err, blockIds) {
@@ -516,7 +516,7 @@ describe('onReceiveBlock()', function () {
 								}).secret);
 							});
 
-							it('should delete the block', function (done) {
+							it('should reject received block and delete last block', function (done) {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
 								getBlocks(function (err, blockIds) {
@@ -542,7 +542,7 @@ describe('onReceiveBlock()', function () {
 								});
 							});
 
-							it('should reject block when blockslot outside the window', function (done) {
+							it('should reject received block when blockslot outside window', function (done) {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
 								getBlocks(function (err, blockIds) {
@@ -584,7 +584,7 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					it('should delete last block and save received block (with lower slot)', function (done) {
+					it('should delete skipped block and save received block (with lower slot)', function (done) {
 						var blockWithUnskippedSlot = createBlock([], slots.getSlotTime(slot + 1), keypair, lastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithUnskippedSlot);
 						getBlocks(function (err, blockIds) {
@@ -625,7 +625,7 @@ describe('onReceiveBlock()', function () {
 						blockFromPreviousRound = createBlock([], slots.getSlotTime(slot), keypair, secondLastBlock);
 					});
 
-					it('should verify received block against last round delegate list and save', function (done) {
+					it('should delete last block and save received block (from previous round)', function (done) {
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
 						getBlocks(function (err, blockIds) {
 							expect(err).to.not.exist;
