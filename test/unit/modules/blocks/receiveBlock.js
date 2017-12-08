@@ -132,7 +132,7 @@ describe('onReceiveBlock()', function () {
 				sequenceCb();
 				cb(null, _.map(rows, 'id'));
 			}).catch(function (err) {
-				node.debug(err);
+				node.debug(err.stack);
 				cb(err);
 			});
 		});
