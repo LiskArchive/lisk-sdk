@@ -29,7 +29,7 @@ describe('onReceiveBlock()', function () {
 	afterEach(function (done) {
 		db.task(function (t) {
 			return t.batch([
-				db.none('DELETE FROM blocks where height > 1;'),
+				db.none('DELETE FROM blocks WHERE "height" > 1;'),
 				db.none('DELETE FROM forks_stat;')
 			]);
 		}).then(function () {
@@ -128,7 +128,7 @@ describe('onReceiveBlock()', function () {
 
 	function getBlocks (cb) {
 		library.sequence.add(function (sequenceCb) {
-			db.query('SELECT id FROM blocks ORDER BY height DESC LIMIT 10;').then(function (rows) {
+			db.query('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;').then(function (rows) {
 				sequenceCb();
 				cb(null, _.map(rows, 'id'));
 			}).catch(function (err) {
@@ -139,7 +139,7 @@ describe('onReceiveBlock()', function () {
 	}
 
 	function verifyForkStat (blockId, cause) {
-		return db.one('SELECT * FROM forks_stat where "blockId" = ${blockId} AND "cause" = ${cause};', {blockId: blockId, cause: cause}).then(function (res) {
+		return db.one('SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}', {blockId: blockId, cause: cause}).then(function (res) {
 			expect(res.blockId).to.equal(blockId);
 		});
 	}
