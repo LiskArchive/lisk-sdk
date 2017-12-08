@@ -541,6 +541,56 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /votes:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: requests vote data for a given account
+      operationId: getVotes
+      description:
+        This API call returns all votes by a given account
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Votes list
+          schema:
+            $ref: '#/definitions/VotesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /signatures:
     x-swagger-router-controller: signatures
     post:
@@ -1101,6 +1151,33 @@ definitions:
       links:
         type: object
 
+  VotesResponse:
+    description: Votes endpoint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/DelegateWithVotes'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
   Forger:
     type: object
     required:
@@ -1611,6 +1688,63 @@ definitions:
           $ref: '#/definitions/Voter'
 
   Voter:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+
+  DelegateWithVotes:
+    type: object
+    required:
+      - username
+      - address
+      - votesUsed
+      - votesAvailable
+      - balance
+      - votes
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      balance:
+        type: string
+        example: 1081560729258
+      username:
+        type: string
+        example: isabella
+        format: username
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      votesUsed:
+        type: integer
+        example: 2
+      votesAvailable:
+        type: integer
+        example: 40
+      votes:
+        type: array
+        items:
+          $ref: '#/definitions/Vote'
+
+  Vote:
     type: object
     required:
       - address
