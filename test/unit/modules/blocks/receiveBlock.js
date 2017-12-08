@@ -53,9 +53,9 @@ describe('onReceiveBlock()', function () {
 
 	function forgeMultipleBlocks (numberOfBlocksToForge, cb) {
 		var forgedBlocks = [];
-		// Setting the initialSlot based on the numberOfBlocksToForge. Because
-		// a) we don't want to forge blocks with timestamp too far in the past.
-		// b) we don't want to forge blocks with the future timestamp
+		// Setting the initialSlot based on the numberOfBlocksToForge. Because:
+		// a) We don't want to forge blocks with timestamp too far in the past
+		// b) We don't want to forge blocks with timestamp in the future
 		// This allows us to play with onReceiveBlock function and different fork scenarios
 		var initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
 
@@ -254,9 +254,9 @@ describe('onReceiveBlock()', function () {
 							id: '0',
 							height: lastBlock.height
 						};
-						// Using forge() function, a new block is always created with timestamp = currentSlotTime + 5. 
-						// So, if I want to create a block in the current slot, but with greater timestamp, 
-						// I can add any of the value from 6 to 9 to the currentSlotTimestamp
+						// Using forge() function, a new block is always created with timestamp = currentSlotTime + 5
+						// So, if we want to create a block in the current slot, but with greater timestamp,
+						// we can add any value from 6 to 9 to the currentSlotTimestamp
 						blockWithGreaterTimestamp = createBlock([], slots.getSlotTime(slot) + 7, keypair, dummyBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 					});
@@ -508,7 +508,7 @@ describe('onReceiveBlock()', function () {
 						describe('when timestamp is inside slot window', function () {
 
 							beforeEach(function () {
-								// slot and generatorPublicKey is the equal to the delegate who forged the second last block
+								// Slot and generatorPublicKey belongs to delegate who forged second last block
 								slot = slots.getSlotNumber(secondLastBlock.timestamp);
 								timestamp = slots.getSlotTime(slot);
 								keypair = getKeypair(_.find(genesisDelegates, function (delegate) {
@@ -534,7 +534,7 @@ describe('onReceiveBlock()', function () {
 							var timestamp;
 
 							beforeEach(function () {
-								// slot and generatorPublicKey is of the delegate who was 6 slots behind current slot
+								// Slot and generatorPublicKey belongs to delegate who is 6 slots behind current slot
 								slot = slots.getSlotNumber() - (constants.blockSlotWindow + 1);
 								timestamp = slots.getSlotTime(slot);
 								return getValidKeypairForSlot(slot).then(function (kp) {
