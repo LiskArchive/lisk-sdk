@@ -6,6 +6,7 @@ var sinon = require('sinon');
 var _ = require('lodash');
 var rewire = require('rewire');
 
+var constants = require('../../../../helpers/constants.js');
 var slots = require('../../../../helpers/slots');
 var modulesLoader = require('../../../common/initModule').modulesLoader;
 var BlockLogic = require('../../../../logic/block.js');
@@ -625,12 +626,12 @@ describe('blocks/verify', function () {
 			blockVerify = rewire('../../../../modules/blocks/verify.js');
 		});
 
-		describe('__private.verifySlotWindow', function () {
+		describe('__private.verifyBlockSlotWindow', function () {
 
-			var verifySlotWindow;
+			var verifyBlockSlotWindow;
 
 			before(function () {
-				verifySlotWindow = blockVerify.__get__('__private.verifySlotWindow');
+				verifyBlockSlotWindow = blockVerify.__get__('__private.verifyBlockSlotWindow');
 			});
 
 			describe('for current slot number', function () {
@@ -649,18 +650,18 @@ describe('blocks/verify', function () {
 				});
 
 				it('should return empty result.errors array', function () {
-					expect(verifySlotWindow(dummyBlock, result).errors).to.have.length(0);
+					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.have.length(0);
 				});
 			});
 
-			describe('for slot number 5 slots in the past', function () {
+			describe('for slot number ' + constants.blockSlotWindow + ' slots in the past', function () {
 
 				var dummyBlock;
 				var result;
 
 				before(function () {
 					dummyBlock = {
-						timestamp: slots.getSlotTime(slots.getSlotNumber() - 5)
+						timestamp: slots.getSlotTime(slots.getSlotNumber() - constants.blockSlotWindow)
 					};
 
 					result = {
@@ -669,7 +670,7 @@ describe('blocks/verify', function () {
 				});
 
 				it('should return empty result.errors array', function () {
-					expect(verifySlotWindow(dummyBlock, result).errors).to.have.length(0);
+					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.have.length(0);
 				});
 			});
 
@@ -689,18 +690,18 @@ describe('blocks/verify', function () {
 				});
 
 				it('should call callback with error = Block slot is in the future ', function () {
-					expect(verifySlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is in the future']);
+					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is in the future']);
 				});
 			});
 
-			describe('for slot number 6 slots in the past', function () {
+			describe('for slot number ' + (constants.blockSlotWindow + 1) + ' slots in the past', function () {
 
 				var dummyBlock;
 				var result;
 
 				before(function () {
 					dummyBlock = {
-						timestamp: slots.getSlotTime(slots.getSlotNumber() - 6)
+						timestamp: slots.getSlotTime(slots.getSlotNumber() - (constants.blockSlotWindow + 1))
 					};
 
 					result = {
@@ -709,7 +710,7 @@ describe('blocks/verify', function () {
 				});
 
 				it('should call callback with error = Block slot is too old', function () {
-					expect(verifySlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is too old']);
+					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is too old']);
 				});
 			});
 		});
@@ -726,11 +727,11 @@ describe('blocks/verify', function () {
 				onBlockchainReady = blockVerify.prototype.onBlockchainReady;
 			});
 
-			it('should set the __private.lastFiveBlockIds variable', function () {
+			it('should set the __private.lastNBlockIds variable', function () {
 				return onBlockchainReady().then(function () {
-					var lastFiveBlockIds = blockVerify.__get__('__private.lastFiveBlockIds');
-					expect(lastFiveBlockIds).to.be.an('array').and.to.have.length.below(6);
-					_.each(lastFiveBlockIds, function (value) {
+					var lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
+					expect(lastNBlockIds).to.be.an('array').and.to.have.length.below(constants.blockSlotWindow + 1);
+					_.each(lastNBlockIds, function (value) {
 						expect(value).to.be.a('string');
 					});
 				});
@@ -739,12 +740,12 @@ describe('blocks/verify', function () {
 
 		describe('onNewBlock', function () {
 
-			describe('with lastFiveBlockIds', function () {
+			describe('with lastNBlockIds', function () {
 
-				var lastFiveBlockIds;
+				var lastNBlockIds;
 
 				before(function () {
-					lastFiveBlockIds = blockVerify.__get__('__private.lastFiveBlockIds');
+					lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
 				});
 
 				describe('when onNewBlock function is called once', function () {
@@ -759,17 +760,17 @@ describe('blocks/verify', function () {
 						blockVerify.prototype.onNewBlock(dummyBlock);
 					});
 
-					it('should include block in lastFiveBlockIds queue', function () {
-						expect(lastFiveBlockIds).to.include.members([dummyBlock.id]);
+					it('should include block in lastNBlockIds queue', function () {
+						expect(lastNBlockIds).to.include.members([dummyBlock.id]);
 					});
 				});
 
-				describe('when onNewBlock function is called 5 times', function () {
+				describe('when onNewBlock function is called ' + constants.blockSlotWindow + 'times', function () {
 
 					var blockIds = [];
 
 					before(function () {
-						_.map(_.range(0, 5), function () {
+						_.map(_.range(0, constants.blockSlotWindow), function () {
 							var randomId = Math.floor(Math.random() * 100000000000).toString();
 							blockIds.push(randomId);
 							var dummyBlock = {
@@ -780,19 +781,19 @@ describe('blocks/verify', function () {
 						});
 					});
 
-					it('should include blockId in lastFiveBlockIds queue', function () {
-						expect(lastFiveBlockIds).to.include.members(blockIds);
+					it('should include blockId in lastNBlockIds queue', function () {
+						expect(lastNBlockIds).to.include.members(blockIds);
 					});
 				});
 
-				describe('when onNewBlock function is called 10 times', function () {
+				describe('when onNewBlock function is called ' + (constants.blockSlotWindow * 2) + ' times', function () {
 
-					var recentFiveBlockIds;
-					var olderThanFiveBlockIds;
+					var recentNBlockIds;
+					var olderThanNBlockIds;
 
 					before(function () {
 						var blockIds = [];
-						_.map(_.range(0, 10), function () {
+						_.map(_.range(0, constants.blockSlotWindow * 2), function () {
 							var randomId = Math.floor(Math.random() * 100000000000).toString();
 							blockIds.push(randomId);
 							var dummyBlock = {
@@ -802,34 +803,34 @@ describe('blocks/verify', function () {
 							blockVerify.prototype.onNewBlock(dummyBlock);
 						});
 
-						recentFiveBlockIds = blockIds.filter(function (value, index) {
-							return blockIds.length - 1 - index < 5;
+						recentNBlockIds = blockIds.filter(function (value, index) {
+							return blockIds.length - 1 - index < constants.blockSlotWindow;
 						});
 
-						olderThanFiveBlockIds = blockIds.filter(function (value, index) {
-							return blockIds.length - 1 - index >= 5;
+						olderThanNBlockIds = blockIds.filter(function (value, index) {
+							return blockIds.length - 1 - index >= constants.blockSlotWindow;
 						});
 
 					});
 
-					it('should maintain last 5 blockIds in lastFiveBlockIds queue', function () {
-						expect(lastFiveBlockIds).to.include.members(recentFiveBlockIds);
-						expect(lastFiveBlockIds).to.not.include.members(olderThanFiveBlockIds);
+					it('should maintain last ' + constants.blockSlotWindow + ' blockIds in lastNBlockIds queue', function () {
+						expect(lastNBlockIds).to.include.members(recentNBlockIds);
+						expect(lastNBlockIds).to.not.include.members(olderThanNBlockIds);
 					});
 				});
 			});
 		});
 
-		describe('__private.verifyAgainstLastFiveBlockIds', function () {
+		describe('__private.verifyAgainstLastNBlockIds', function () {
 
-			var verifyAgainstLastFiveBlockIds;
+			var verifyAgainstLastNBlockIds;
 			var result = {
 				verified: true,
 				errors: []
 			};
 
 			before(function () {
-				verifyAgainstLastFiveBlockIds = blockVerify.__get__('__private.verifyAgainstLastFiveBlockIds');
+				verifyAgainstLastNBlockIds = blockVerify.__get__('__private.verifyAgainstLastNBlockIds');
 			});
 
 			afterEach(function () {
@@ -839,12 +840,12 @@ describe('blocks/verify', function () {
 				};
 			});
 
-			describe('when __private.lastFiveBlockIds', function () {
+			describe('when __private.lastNBlockIds', function () {
 
-				var lastFiveBlockIds;
+				var lastNBlockIds;
 
 				before(function () {
-					lastFiveBlockIds = blockVerify.__get__('__private.lastFiveBlockIds');
+					lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
 				});
 
 				describe('contains block Id', function () {
@@ -852,18 +853,18 @@ describe('blocks/verify', function () {
 					var dummyBlockId = '123123123123';
 
 					before(function () {
-						lastFiveBlockIds.push(dummyBlockId);
+						lastNBlockIds.push(dummyBlockId);
 					});
 
 					it('should return result with error = Block already exists in chain', function () {
-						expect(verifyAgainstLastFiveBlockIds({id: dummyBlockId}, result).errors).to.include.members(['Block already exists in chain']);
+						expect(verifyAgainstLastNBlockIds({id: dummyBlockId}, result).errors).to.include.members(['Block already exists in chain']);
 					});
 				});
 
 				describe('does not contains block Id', function () {
 
 					it('should return result with error = Block already exists in chain', function () {
-						expect(verifyAgainstLastFiveBlockIds({id: '1231231234'}, result).errors).to.have.length(0);
+						expect(verifyAgainstLastNBlockIds({id: '1231231234'}, result).errors).to.have.length(0);
 					});
 				});
 			});

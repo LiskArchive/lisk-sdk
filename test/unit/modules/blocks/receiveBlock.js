@@ -367,13 +367,13 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when received block is from the same round and 3 slots in the past', function () {
-					var threeSlotsOldBlock;
+				describe('when received block is from the same round and ' + (constants.blockSlotWindow - 1) + ' slots in the past', function () {
+					var inSlotsWindowBlock;
 
 					beforeEach(function () {
-						threeSlotsOldBlock = forgedBlocks[forgedBlocks.length - 2];
-						threeSlotsOldBlock.height = mutatedHeight;
-						library.modules.blocks.process.onReceiveBlock(threeSlotsOldBlock);
+						inSlotsWindowBlock = forgedBlocks[forgedBlocks.length - (constants.blockSlotWindow - 1)];
+						inSlotsWindowBlock.height = mutatedHeight;
+						library.modules.blocks.process.onReceiveBlock(inSlotsWindowBlock);
 					});
 
 					it('should reject the received block', function (done) {
@@ -381,20 +381,20 @@ describe('onReceiveBlock()', function () {
 							return handle(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.include.members([block.id, lastBlock.id]);
-								return verifyForkStat(threeSlotsOldBlock.id, 1);
+								return verifyForkStat(inSlotsWindowBlock.id, 1);
 							}), done, cb);
 						});
 					});
 				});
 
-				describe('when received block is from the same round but more than 5 slots in the past', function () {
+				describe('when received block is from the same round but more than ' + constants.blockSlotWindow + ' slots in the past', function () {
 
-					var sixSlotsOldBlock;
+					var outOfSlotWindowBlock;
 
 					beforeEach(function () {
-						sixSlotsOldBlock = forgedBlocks[forgedBlocks.length - 7];
-						sixSlotsOldBlock.height = mutatedHeight;
-						library.modules.blocks.process.onReceiveBlock(sixSlotsOldBlock);
+						outOfSlotWindowBlock = forgedBlocks[forgedBlocks.length - (constants.blockSlotWindow + 2)];
+						outOfSlotWindowBlock.height = mutatedHeight;
+						library.modules.blocks.process.onReceiveBlock(outOfSlotWindowBlock);
 					});
 
 					it('should reject the received block', function (done) {
@@ -402,7 +402,7 @@ describe('onReceiveBlock()', function () {
 							return handle(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.include.members([block.id, lastBlock.id]);
-								return verifyForkStat(sixSlotsOldBlock.id, 1);
+								return verifyForkStat(outOfSlotWindowBlock.id, 1);
 							}), done, cb);
 						});
 					});
@@ -588,7 +588,7 @@ describe('onReceiveBlock()', function () {
 							var timestamp;
 							beforeEach(function () {
 								// slot and generatorKey is of the delegate who was 6 slots behind current slot
-								slot = slots.getSlotNumber() - 6;
+								slot = slots.getSlotNumber() - (constants.blockSlotWindow + 1);
 								timestamp = slots.getSlotTime(slot);
 								return getValidKeypairForSlot(slot).then(function (kp) {
 									keypair = kp;

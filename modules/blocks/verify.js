@@ -12,7 +12,7 @@ var exceptions = require('../../helpers/exceptions.js');
 var modules, library, self, __private = {};
 
 __private.blockReward = new BlockReward();
-__private.lastFiveBlockIds = [];
+__private.lastNBlockIds = [];
 
 function Verify (logger, block, transaction, db) {
 	library = {
@@ -151,18 +151,18 @@ __private.verifyPreviousBlock = function (block, result) {
 };
 
 /**
- * Verify block is not one of the last five saved blocks
+ * Verify block is not one of the last {constants.blockSlotWindow} saved blocks
  *
  * @private
- * @method verifyAgainstLastFiveBlocks
+ * @method verifyAgainstLastNBlockIds
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
  */
-__private.verifyAgainstLastFiveBlockIds = function (block, result) {
-	if (__private.lastFiveBlockIds.indexOf(block.id) !== -1) {
+__private.verifyAgainstLastNBlockIds = function (block, result) {
+	if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
 		result.errors.push('Block already exists in chain');
 	};
 
@@ -345,17 +345,18 @@ __private.verifyBlockSlot = function (block, lastBlock, result) {
  * Verify block slot window according to application time
  *
  * @private
- * @method verifySlotWindow
+ * @method verifyBlockSlotWindow
  * @param  {Object}  block Target block
  * @return {Object}  result Verification results
  * @return {boolean} result.verified Indicator that verification passed
  * @return {Array}   result.errors Array of validation errors
  */
-__private.verifySlotWindow = function (block, result) {
+__private.verifyBlockSlotWindow = function (block, result) {
 	var currentApplicationSlot = slots.getSlotNumber();
 	var blockSlot = slots.getSlotNumber(block.timestamp);
-	// Reject block if it's slot is older than 5
-	if (currentApplicationSlot - blockSlot > 5) {
+
+	// Reject block if it's slot is older than constants.blockSlotWindow
+	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
 		result.errors.push('Block slot is too old');
 	}
 
@@ -383,8 +384,8 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
-	result = __private.verifyAgainstLastFiveBlockIds(block, result);
-	result = __private.verifySlotWindow(block, result);
+	result = __private.verifyAgainstLastNBlockIds(block, result);
+	result = __private.verifyBlockSlotWindow(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
 	result = __private.verifyId(block, result);
@@ -397,15 +398,15 @@ Verify.prototype.verifyReceipt = function (block) {
 };
 
 Verify.prototype.onBlockchainReady = function () {
-	return library.db.query(sql.loadLastFiveBlockIds).then(function (blockIds) {
-		__private.lastFiveBlockIds = _.map(blockIds, 'id');
+	return library.db.query(sql.loadLastNBlockIds, {limit: constants.blockSlotWindow}).then(function (blockIds) {
+		__private.lastNBlockIds = _.map(blockIds, 'id');
 	});
 };
 
 Verify.prototype.onNewBlock = function (block) {
-	__private.lastFiveBlockIds.push(block.id);
-	if (__private.lastFiveBlockIds.length > 5) {
-		__private.lastFiveBlockIds.shift();
+	__private.lastNBlockIds.push(block.id);
+	if (__private.lastNBlockIds.length > constants.blockSlotWindow) {
+		__private.lastNBlockIds.shift();
 	}
 };
 /**
