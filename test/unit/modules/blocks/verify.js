@@ -618,7 +618,7 @@ describe('blocks/verify', function () {
 		describe('calling verifyBlockSlot()', testVerifyBlockSlot.bind(null, 'verifyBlock'));
 	});
 
-	describe('using rewire', function () {
+	describe('__private', function () {
 
 		var blockVerify;
 
@@ -626,7 +626,7 @@ describe('blocks/verify', function () {
 			blockVerify = rewire('../../../../modules/blocks/verify.js');
 		});
 
-		describe('__private.verifyBlockSlotWindow', function () {
+		describe('verifyBlockSlotWindow', function () {
 
 			var verifyBlockSlotWindow;
 
@@ -820,7 +820,7 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('__private.verifyAgainstLastNBlockIds', function () {
+		describe('verifyAgainstLastNBlockIds', function () {
 
 			var verifyAgainstLastNBlockIds;
 			var result = {
