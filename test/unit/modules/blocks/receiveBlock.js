@@ -50,8 +50,7 @@ describe('onReceiveBlock()', function () {
 		});
 	});
 
-	// Helper function to handle promises for sequences in test,
-	function handle (promise, done, cb) {
+	function handlePromise (promise, done, cb) {
 		return promise.then(function (result) {
 			cb();
 			done();
@@ -198,7 +197,7 @@ describe('onReceiveBlock()', function () {
 			it('should save block in blockchain', function (done) {
 				library.modules.blocks.process.onReceiveBlock(block);
 				library.sequence.add(function (cb) {
-					return handle(getBlocks().then(function (blocks) {
+					return handlePromise(getBlocks().then(function (blocks) {
 						var blockIds = _.map(blocks, 'id');
 						expect(blockIds).to.have.length(2);
 						expect(blockIds).to.include.members([block.id, lastBlock.id ]);
@@ -228,7 +227,7 @@ describe('onReceiveBlock()', function () {
 					it('should not add block in blockchain', function (done) {
 						library.modules.blocks.process.onReceiveBlock(block);
 						library.sequence.add(function (cb) {
-							return handle(getBlocks().then(function (blocks) {
+							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.have.length(1);
 								expect(blockIds).to.include.members([lastBlock.id ]);
@@ -255,7 +254,7 @@ describe('onReceiveBlock()', function () {
 					it('should not add block in blockchain', function (done) {
 						library.modules.blocks.process.onReceiveBlock(block);
 						library.sequence.add(function (cb) {
-							return handle(getBlocks().then(function (blocks) {
+							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.have.length(1);
 								expect(blockIds).to.include.members([lastBlock.id ]);
@@ -303,7 +302,7 @@ describe('onReceiveBlock()', function () {
 
 				it('should reject the block with greater timestamp', function (done) {
 					library.sequence.add(function (cb) {
-						return handle(getBlocks().then(function (blocks) {
+						return handlePromise(getBlocks().then(function (blocks) {
 							var blockIds = _.map(blocks, 'id');
 							expect(blockIds).to.have.length(10);
 							expect(blockIds).to.include.members([block.id, lastBlock.id]);
@@ -335,7 +334,7 @@ describe('onReceiveBlock()', function () {
 
 				it('should delete two blocks', function (done) {
 					library.sequence.add(function (cb) {
-						return handle(getBlocks().then(function (blocks) {
+						return handlePromise(getBlocks().then(function (blocks) {
 							var blockIds = _.map(blocks, 'id');
 							expect(blockIds).to.not.include.members([block.id, lastBlock.id, blockWithLowerTimestamp.id]);
 							return verifyForkStat(blockWithLowerTimestamp.id, 1);
@@ -364,7 +363,7 @@ describe('onReceiveBlock()', function () {
 
 					it('should reject the received block', function (done) {
 						library.sequence.add(function (cb) {
-							return handle(getBlocks().then(function (blocks) {
+							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.include.members([block.id, lastBlock.id]);
 								return verifyForkStat(blockFromPreviousRound.id, 1);
@@ -385,7 +384,7 @@ describe('onReceiveBlock()', function () {
 
 					it('should reject the received block', function (done) {
 						library.sequence.add(function (cb) {
-							return handle(getBlocks().then(function (blocks) {
+							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.include.members([block.id, lastBlock.id]);
 								return verifyForkStat(inSlotsWindowBlock.id, 1);
@@ -406,7 +405,7 @@ describe('onReceiveBlock()', function () {
 
 					it('should reject the received block', function (done) {
 						library.sequence.add(function (cb) {
-							return handle(getBlocks().then(function (blocks) {
+							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.include.members([block.id, lastBlock.id]);
 								return verifyForkStat(outOfSlotWindowBlock.id, 1);
@@ -433,7 +432,7 @@ describe('onReceiveBlock()', function () {
 
 					it('should reject the received block', function (done) {
 						library.sequence.add(function (cb) {
-							return handle(getBlocks().then(function (blocks) {
+							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.include.members([block.id, lastBlock.id]);
 								return verifyForkStat(blockFromFutureSlot.id, 1);
@@ -480,7 +479,7 @@ describe('onReceiveBlock()', function () {
 						var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, lastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 						library.sequence.add(function (cb) {
-							return handle(getBlocks().then(function (blocks) {
+							return handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.have.length(6);
 								expect(blockIds).to.include.members([block.id, lastBlock.id ]);
@@ -502,7 +501,7 @@ describe('onReceiveBlock()', function () {
 							var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, lastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 							library.sequence.add(function (cb) {
-								handle(getBlocks().then(function (blocks) {
+								handlePromise(getBlocks().then(function (blocks) {
 									var blockIds = _.map(blocks, 'id');
 									expect(blockIds).to.include.members([block.id, lastBlock.id]);
 									expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
@@ -534,7 +533,7 @@ describe('onReceiveBlock()', function () {
 							var blockWithInvalidSlot = createBlock([], timestamp, keypair, lastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithInvalidSlot);
 							library.sequence.add(function (cb) {
-								handle(getBlocks().then(function (blocks) {
+								handlePromise(getBlocks().then(function (blocks) {
 									var blockIds = _.map(blocks, 'id');
 									expect(blockIds).to.have.length(6);
 									expect(blockIds).to.include.members([lastBlock.id, block.id ]);
@@ -551,7 +550,7 @@ describe('onReceiveBlock()', function () {
 							var blockWithLowerTimestamp = createBlock([], timestamp, keypair, lastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithLowerTimestamp);
 							library.sequence.add(function (cb) {
-								handle(getBlocks().then(function (blocks) {
+								handlePromise(getBlocks().then(function (blocks) {
 									var blockIds = _.map(blocks, 'id');
 									expect(blockIds).to.have.length(6);
 									expect(blockIds).to.include.members([blockWithLowerTimestamp.id, lastBlock.id ]);
@@ -579,7 +578,7 @@ describe('onReceiveBlock()', function () {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, lastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
 								library.sequence.add(function (cb) {
-									handle(getBlocks().then(function (blocks) {
+									handlePromise(getBlocks().then(function (blocks) {
 										var blockIds = _.map(blocks, 'id');
 										expect(blockIds).to.have.length(5);
 										expect(blockIds).to.include.members([lastBlock.id]);
@@ -607,7 +606,7 @@ describe('onReceiveBlock()', function () {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, lastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
 								library.sequence.add(function (cb) {
-									handle(getBlocks().then(function (blocks) {
+									handlePromise(getBlocks().then(function (blocks) {
 										var blockIds = _.map(blocks, 'id');
 										expect(blockIds).to.have.length(6);
 										expect(blockIds).to.include.members([lastBlock.id, block.id]);
@@ -651,7 +650,7 @@ describe('onReceiveBlock()', function () {
 						var blockWithUnskippedSlot = createBlock([], slots.getSlotTime(slot + 1), keypair, block);
 						library.modules.blocks.process.onReceiveBlock(blockWithUnskippedSlot);
 						library.sequence.add(function (cb) {
-							handle(getBlocks().then(function (blocks) {
+							handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.have.length(7);
 								expect(blockIds).to.include.members([blockWithUnskippedSlot.id, block.id, lastBlock.id]);
@@ -693,7 +692,7 @@ describe('onReceiveBlock()', function () {
 					it('should verify received block against last round delegate list and save', function (done) {
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
 						library.sequence.add(function (cb) {
-							handle(getBlocks().then(function (blocks) {
+							handlePromise(getBlocks().then(function (blocks) {
 								var blockIds = _.map(blocks, 'id');
 								expect(blockIds).to.have.length(10);
 								expect(blockIds).to.include.members([lastBlock.id, blockFromPreviousRound.id]);
@@ -724,7 +723,7 @@ describe('onReceiveBlock()', function () {
 				it('should reject the incoming block', function (done) {
 					library.modules.blocks.process.onReceiveBlock(block);
 					library.sequence.add(function (cb) {
-						return handle(getBlocks().then(function (blocks) {
+						return handlePromise(getBlocks().then(function (blocks) {
 							var blockIds = _.map(blocks, 'id');
 							expect(blockIds).to.have.length(2);
 							expect(blockIds).to.include.members([block.id, lastBlock.id]);
@@ -751,7 +750,7 @@ describe('onReceiveBlock()', function () {
 					library.modules.blocks.process.onReceiveBlock(differentChainBlock);
 					library.sequence.add(function (cb) {
 
-						return handle(getBlocks().then(function (blocks) {
+						return handlePromise(getBlocks().then(function (blocks) {
 							var blockIds = _.map(blocks, 'id');
 							expect(blockIds).to.have.length(1);
 							expect(blockIds).to.include.members([genesisBlock.id]);
