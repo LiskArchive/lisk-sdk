@@ -629,23 +629,25 @@ describe('blocks/verify', function () {
 		describe('verifyBlockSlotWindow', function () {
 
 			var verifyBlockSlotWindow;
+			var result;
 
 			before(function () {
 				verifyBlockSlotWindow = blockVerify.__get__('__private.verifyBlockSlotWindow');
 			});
 
+			beforeEach(function () {
+				result = {
+					errors: []
+				};
+			});
+
 			describe('for current slot number', function () {
 
 				var dummyBlock;
-				var result;
 
 				before(function () {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber())
-					};
-
-					result = {
-						errors: []
 					};
 				});
 
@@ -657,15 +659,10 @@ describe('blocks/verify', function () {
 			describe('for slot number ' + constants.blockSlotWindow + ' slots in the past', function () {
 
 				var dummyBlock;
-				var result;
 
 				before(function () {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber() - constants.blockSlotWindow)
-					};
-
-					result = {
-						errors: []
 					};
 				});
 
@@ -677,15 +674,10 @@ describe('blocks/verify', function () {
 			describe('for slot number in the future', function () {
 
 				var dummyBlock;
-				var result;
 
 				before(function () {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber() + 1)
-					};
-
-					result = {
-						errors: []
 					};
 				});
 
@@ -697,15 +689,10 @@ describe('blocks/verify', function () {
 			describe('for slot number ' + (constants.blockSlotWindow + 1) + ' slots in the past', function () {
 
 				var dummyBlock;
-				var result;
 
 				before(function () {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber() - (constants.blockSlotWindow + 1))
-					};
-
-					result = {
-						errors: []
 					};
 				});
 

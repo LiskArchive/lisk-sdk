@@ -21,7 +21,6 @@ describe('onReceiveBlock()', function () {
 
 	var blocksProcess;
 	var library;
-	var originalBlockRewardsOffset;
 	var db;
 	var blocks;
 
@@ -33,32 +32,19 @@ describe('onReceiveBlock()', function () {
 		});
 	});
 
-	after(function (done) {
-		node.constants.rewards.offset = originalBlockRewardsOffset;
-		application.cleanup(done);
-	});
+	after(application.cleanup);
 
-	beforeEach(function (done) {
-		async.every([
-			'blocks WHERE "height" > 1',
-			'forks_stat',
-		], function (table, cb) {
-			clearDatabaseTable(db, modulesLoader.logger, table, cb);
-		}, function () {
+	afterEach(function (done) {
+		db.task(function (t) {
+			return t.batch([
+				db.none('DELETE FROM blocks where height > 1;'),
+				db.none('DELETE FROM forks_stat;')
+			]);
+		}).then(function () {
 			library.modules.blocks.lastBlock.set(genesisBlock);
 			done();
 		});
 	});
-
-	function handlePromise (promise, done, cb) {
-		return promise.then(function (result) {
-			cb();
-			done();
-		}).catch(function (err) {
-			cb(err);
-			done(err);
-		});
-	}
 
 	function createBlock (transactions, timestamp, keypair, previousBlock) {
 		var block = library.logic.block.create({
@@ -75,6 +61,10 @@ describe('onReceiveBlock()', function () {
 
 	function forgeMultipleBlocks (numberOfBlocksToForge, cb) {
 		var forgedBlocks = [];
+		// Setting the initialSlot based on the numberOfBlocksToForge. Because
+		// a) we don't want to forge blocks with timestamp too far in the past.
+		// b) we don't want to forge blocks with the future timestamp
+		// This allows us to play with onReceiveBlock function and different fork scenarios
 		var initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
 
 		async.mapSeries(_.range(0, numberOfBlocksToForge), function (offset, seriesCb) {
@@ -110,16 +100,9 @@ describe('onReceiveBlock()', function () {
 				});
 			},
 			function (delegatePublicKey, seriesCb) {
-				// Cannot use getSlotNumber, as if we use it we will not be able to
-				// create valid blocks without a delay of 10 seconds between them
 				var delegate = _.find(genesisDelegates, function (delegate) {
 					return delegate.publicKey === delegatePublicKey;
 				});
-
-				if (!delegate) {
-					debugger;
-				}
-
 				var keypair = getKeypair(delegate.secret);
 
 				node.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegatePublicKey + ' Next block timestamp: ' + slots.getSlotTime(slot));
@@ -155,19 +138,15 @@ describe('onReceiveBlock()', function () {
 		});
 	}
 
-	function getBlocks (limit) {
-		limit = limit ? limit : 10;
-
-		var query = {
-			body: {
-				limit: limit
-			}
-		};
-
-		var getBlocksPromisified = Promise.promisify(library.modules.blocks.submodules.api.getBlocks);
-
-		return getBlocksPromisified(query).then(function (res) {
-			return res.blocks;
+	function getBlocks (cb) {
+		library.sequence.add(function (sequenceCb) {
+			db.query('SELECT id FROM blocks ORDER BY height DESC LIMIT 10;').then(function (rows) {
+				sequenceCb();
+				cb(null, _.map(rows, 'id'));
+			}).catch(function (err) {
+				node.debug(err);
+				cb(err);
+			});
 		});
 	}
 
@@ -176,7 +155,9 @@ describe('onReceiveBlock()', function () {
 	}
 
 	function verifyForkStat (blockId, cause) {
-		return db.one('SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}', {blockId: blockId, cause: cause});
+		return db.one('SELECT * FROM forks_stat where "blockId" = ${blockId} AND "cause" = ${cause};', {blockId: blockId, cause: cause}).then(function (res) {
+			expect(res.blockId).to.equal(blockId);
+		});
 	}
 
 	describe('onReceiveBlock (empty transactions)', function () {
@@ -186,7 +167,7 @@ describe('onReceiveBlock()', function () {
 			var lastBlock;
 			var block;
 
-			beforeEach(function () {
+			before(function () {
 				lastBlock = library.modules.blocks.lastBlock.get();
 				var slot = slots.getSlotNumber();
 				return getValidKeypairForSlot(slot).then(function (keypair) {
@@ -196,12 +177,11 @@ describe('onReceiveBlock()', function () {
 
 			it('should add block to blockchain', function (done) {
 				library.modules.blocks.process.onReceiveBlock(block);
-				library.sequence.add(function (cb) {
-					return handlePromise(getBlocks().then(function (blocks) {
-						var blockIds = _.map(blocks, 'id');
-						expect(blockIds).to.have.length(2);
-						expect(blockIds).to.include.members([block.id, lastBlock.id ]);
-					}), done, cb);
+				getBlocks(function (err, blockIds) {
+					expect(err).to.not.exist;
+					expect(blockIds).to.have.length(2);
+					expect(blockIds).to.include.members([block.id, lastBlock.id]);
+					done();
 				});
 			});
 		});
@@ -218,20 +198,17 @@ describe('onReceiveBlock()', function () {
 					beforeEach(function () {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						var slot = slots.getSlotNumber();
-						return getValidKeypairForSlot(slot).then(function () {
-							var nonDelegateKeypair = getKeypair(node.gAccount.password);
-							block = createBlock([], slots.getSlotTime(slot), nonDelegateKeypair, lastBlock);
-						});
+						var nonDelegateKeypair = getKeypair(node.gAccount.password);
+						block = createBlock([], slots.getSlotTime(slot), nonDelegateKeypair, lastBlock);
 					});
 
 					it('should not add block to blockchain', function (done) {
 						library.modules.blocks.process.onReceiveBlock(block);
-						library.sequence.add(function (cb) {
-							return handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.have.length(1);
-								expect(blockIds).to.include.members([lastBlock.id ]);
-							}), done, cb);
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.have.length(1);
+							expect(blockIds).to.include.members([lastBlock.id]);
+							done();
 						});
 					});
 				});
@@ -245,20 +222,18 @@ describe('onReceiveBlock()', function () {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						// Using last block's slot
 						var slot = slots.getSlotNumber() - 1;
-						return getValidKeypairForSlot(slot).then(function () {
-							var nonDelegateKeypair = getKeypair(node.gAccount.password);
-							block = createBlock([], slots.getSlotTime(slot), nonDelegateKeypair, lastBlock);
+						return getValidKeypairForSlot(slot - 1).then(function (keypair) {
+							block = createBlock([], slots.getTime(slot), keypair, lastBlock);
 						});
 					});
 
 					it('should not add block to blockchain', function (done) {
 						library.modules.blocks.process.onReceiveBlock(block);
-						library.sequence.add(function (cb) {
-							return handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.have.length(1);
-								expect(blockIds).to.include.members([lastBlock.id ]);
-							}), done, cb);
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.have.length(1);
+							expect(blockIds).to.include.members([lastBlock.id]);
+							done();
 						});
 					});
 				});
@@ -268,15 +243,15 @@ describe('onReceiveBlock()', function () {
 		describe('forkOne', function () {
 
 			var forgedBlocks = [];
+			var secondLastBlock;
 			var lastBlock;
-			var block;
 
 			beforeEach('forge 300 blocks', function (done) {
 				forgeMultipleBlocks(300, function (err, blocks) {
 					expect(err).to.not.exist;
 					forgedBlocks = blocks;
-					lastBlock = forgedBlocks[forgedBlocks.length - 2];
-					block = forgedBlocks[forgedBlocks.length - 1];
+					secondLastBlock = forgedBlocks[forgedBlocks.length - 2];
+					lastBlock = forgedBlocks[forgedBlocks.length - 1];
 					done();
 				});
 			});
@@ -288,27 +263,28 @@ describe('onReceiveBlock()', function () {
 				var keypair;
 
 				beforeEach(function () {
-					slot = slots.getSlotNumber(block.timestamp) + 1;
+					slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
 					return getValidKeypairForSlot(slot).then(function (kp) {
 						keypair = kp;
 						var dummyBlock = {
 							id: '0',
-							height: block.height
+							height: lastBlock.height
 						};
+						// Using forge() function, a new block is always created with timestamp = currentSlotTime + 5. 
+						// So, if I want to create a block in the current slot, but with greater timestamp, 
+						// I can add any of the value from 6 to 9 to the currentSlotTimestamp
 						blockWithGreaterTimestamp = createBlock([], slots.getSlotTime(slot) + 7, keypair, dummyBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
 					});
 				});
 
-				it('should reject block with greater timestamp', function (done) {
-					library.sequence.add(function (cb) {
-						return handlePromise(getBlocks().then(function (blocks) {
-							var blockIds = _.map(blocks, 'id');
-							expect(blockIds).to.have.length(10);
-							expect(blockIds).to.include.members([block.id, lastBlock.id]);
-							expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
-							return verifyForkStat(blockWithGreaterTimestamp.id, 1);
-						}), done, cb);
+				it('should reject the block with greater timestamp', function (done) {
+					getBlocks(function (err, blockIds) {
+						expect(err).to.not.exist;
+						expect(blockIds).to.have.length(10);
+						expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
+						expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
+						return verifyForkStat(blockWithGreaterTimestamp.id, 1).then(done);
 					});
 				});
 			});
@@ -320,25 +296,23 @@ describe('onReceiveBlock()', function () {
 				var keypair;
 
 				beforeEach(function () {
-					slot = slots.getSlotNumber(block.timestamp);
+					slot = slots.getSlotNumber(lastBlock.timestamp);
 					return getValidKeypairForSlot(slot).then(function (kp) {
 						keypair = kp;
 						var dummyBlock = {
 							id: '0',
-							height: block.height
+							height: lastBlock.height
 						};
 						blockWithLowerTimestamp = createBlock([], slots.getSlotTime(slot), keypair, dummyBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithLowerTimestamp);
 					});
 				});
 
-				it('should delete last two blocks', function (done) {
-					library.sequence.add(function (cb) {
-						return handlePromise(getBlocks().then(function (blocks) {
-							var blockIds = _.map(blocks, 'id');
-							expect(blockIds).to.not.include.members([block.id, lastBlock.id, blockWithLowerTimestamp.id]);
-							return verifyForkStat(blockWithLowerTimestamp.id, 1);
-						}), done, cb);
+				it('should delete two blocks', function (done) {
+					getBlocks(function (err, blockIds) {
+						expect(err).to.not.exist;
+						expect(blockIds).to.not.include.members([lastBlock.id, secondLastBlock.id, blockWithLowerTimestamp.id]);
+						return verifyForkStat(blockWithLowerTimestamp.id, 1).then(done);
 					});
 				});
 			});
@@ -348,7 +322,7 @@ describe('onReceiveBlock()', function () {
 				var mutatedHeight;
 
 				beforeEach(function () {
-					mutatedHeight = block.height + 1;
+					mutatedHeight = lastBlock.height + 1;
 				});
 
 				describe('when received block is from previous round (101 blocks back)', function () {
@@ -361,13 +335,11 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
 					});
 
-					it('should reject received block', function (done) {
-						library.sequence.add(function (cb) {
-							return handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.include.members([block.id, lastBlock.id]);
-								return verifyForkStat(blockFromPreviousRound.id, 1);
-							}), done, cb);
+					it('should reject the received block', function (done) {
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
+							return verifyForkStat(blockFromPreviousRound.id, 1).then(done);
 						});
 					});
 				});
@@ -382,13 +354,11 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(inSlotsWindowBlock);
 					});
 
-					it('should reject received block', function (done) {
-						library.sequence.add(function (cb) {
-							return handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.include.members([block.id, lastBlock.id]);
-								return verifyForkStat(inSlotsWindowBlock.id, 1);
-							}), done, cb);
+					it('should reject the received block', function (done) {
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
+							return verifyForkStat(inSlotsWindowBlock.id, 1).then(done);
 						});
 					});
 				});
@@ -403,13 +373,11 @@ describe('onReceiveBlock()', function () {
 						library.modules.blocks.process.onReceiveBlock(outOfSlotWindowBlock);
 					});
 
-					it('should reject received block', function (done) {
-						library.sequence.add(function (cb) {
-							return handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.include.members([block.id, lastBlock.id]);
-								return verifyForkStat(outOfSlotWindowBlock.id, 1);
-							}), done, cb);
+					it('should reject the received block', function (done) {
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
+							return verifyForkStat(outOfSlotWindowBlock.id, 1).then(done);
 						});
 					});
 				});
@@ -430,13 +398,11 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					it('should reject received block', function (done) {
-						library.sequence.add(function (cb) {
-							return handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.include.members([block.id, lastBlock.id]);
-								return verifyForkStat(blockFromFutureSlot.id, 1);
-							}), done, cb);
+					it('should reject the received block', function (done) {
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
+							return verifyForkStat(blockFromFutureSlot.id, 1).then(done);
 						});
 					});
 				});
@@ -447,8 +413,8 @@ describe('onReceiveBlock()', function () {
 
 			describe('with 5 blocks forged', function () {
 
+				var secondLastBlock;
 				var lastBlock;
-				var block;
 				var slot;
 				var keypair;
 
@@ -456,10 +422,10 @@ describe('onReceiveBlock()', function () {
 					forgeMultipleBlocks(5, function (err, forgedBlocks) {
 						expect(err).to.not.exist;
 
-						lastBlock = forgedBlocks[forgedBlocks.length - 2];
-						block = forgedBlocks[forgedBlocks.length - 1];
+						secondLastBlock = forgedBlocks[forgedBlocks.length - 2];
+						lastBlock = forgedBlocks[forgedBlocks.length - 1];
 
-						slot = slots.getSlotNumber(block.timestamp);
+						slot = slots.getSlotNumber(lastBlock.timestamp);
 						return getValidKeypairForSlot(slot).then(function (kp) {
 							keypair = kp;
 							done();
@@ -472,20 +438,18 @@ describe('onReceiveBlock()', function () {
 					var timestamp;
 
 					beforeEach(function () {
-						timestamp = block.timestamp + 1;
+						timestamp = lastBlock.timestamp + 1;
 					});
 
-					it('should reject received block', function (done) {
-						var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, lastBlock);
+					it('should reject the block', function (done) {
+						var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
-						library.sequence.add(function (cb) {
-							return handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.have.length(6);
-								expect(blockIds).to.include.members([block.id, lastBlock.id ]);
-								expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
-								return verifyForkStat(blockWithGreaterTimestamp.id, 5);
-							}), done, cb);
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.have.length(6);
+							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
+							expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
+							return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(done);
 						});
 					});
 
@@ -493,20 +457,18 @@ describe('onReceiveBlock()', function () {
 
 						beforeEach(function () {
 							keypair = getKeypair(_.find(genesisDelegates, function (value) {
-								return value.publicKey != block.generatorPublicKey;
+								return value.publicKey != lastBlock.generatorPublicKey;
 							}).publicKey);
 						});
 
-						it('should reject received block', function (done) {
-							var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, lastBlock);
+						it('should reject the block', function (done) {
+							var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
-							library.sequence.add(function (cb) {
-								handlePromise(getBlocks().then(function (blocks) {
-									var blockIds = _.map(blocks, 'id');
-									expect(blockIds).to.include.members([block.id, lastBlock.id]);
-									expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
-									return verifyForkStat(blockWithGreaterTimestamp.id, 5);
-								}), done, cb);
+							getBlocks(function (err, blockIds) {
+								expect(err).to.not.exist;
+								expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
+								expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
+								return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(done);
 							});
 						});
 					});
@@ -517,46 +479,42 @@ describe('onReceiveBlock()', function () {
 					var timestamp;
 
 					beforeEach(function () {
-						timestamp = block.timestamp - 1;
+						timestamp = lastBlock.timestamp - 1;
 					});
 
 					describe('when block slot is invalid', function () {
 
 						beforeEach(function () {
-							slot = slots.getSlotNumber(block.timestamp) + 1;
+							slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
 							return getValidKeypairForSlot(slot).then(function (kp) {
 								keypair = kp;
 							});
 						});
 
-						it('should reject received block', function (done) {
-							var blockWithInvalidSlot = createBlock([], timestamp, keypair, lastBlock);
+						it('should reject block when blockslot is not valid', function (done) {
+							var blockWithInvalidSlot = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithInvalidSlot);
-							library.sequence.add(function (cb) {
-								handlePromise(getBlocks().then(function (blocks) {
-									var blockIds = _.map(blocks, 'id');
-									expect(blockIds).to.have.length(6);
-									expect(blockIds).to.include.members([lastBlock.id, block.id ]);
-									expect(blockIds).to.not.include(blockWithInvalidSlot.id);
-									return verifyForkStat(blockWithInvalidSlot.id, 5);
-								}), done, cb);
+							getBlocks(function (err, blockIds) {
+								expect(err).to.not.exist;
+								expect(blockIds).to.have.length(6);
+								expect(blockIds).to.include.members([secondLastBlock.id, lastBlock.id]);
+								expect(blockIds).to.not.include(blockWithInvalidSlot.id);
+								return verifyForkStat(blockWithInvalidSlot.id, 5).then(done);
 							});
 						});
 					});
 
 					describe('when blockslot and generator publicKey is valid', function () {
 
-						it('should replace last block with received block', function (done) {
-							var blockWithLowerTimestamp = createBlock([], timestamp, keypair, lastBlock);
+						it('should replace existing block in chain with current block', function (done) {
+							var blockWithLowerTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithLowerTimestamp);
-							library.sequence.add(function (cb) {
-								handlePromise(getBlocks().then(function (blocks) {
-									var blockIds = _.map(blocks, 'id');
-									expect(blockIds).to.have.length(6);
-									expect(blockIds).to.include.members([blockWithLowerTimestamp.id, lastBlock.id ]);
-									expect(blockIds).to.not.include(block.id);
-									return verifyForkStat(blockWithLowerTimestamp.id, 5);
-								}), done, cb);
+							getBlocks(function (err, blockIds) {
+								expect(err).to.not.exist;
+								expect(blockIds).to.have.length(6);
+								expect(blockIds).to.include.members([blockWithLowerTimestamp.id, secondLastBlock.id]);
+								expect(blockIds).to.not.include(lastBlock.id);
+								return verifyForkStat(blockWithLowerTimestamp.id, 5).then(done);
 							});
 						});
 					});
@@ -566,25 +524,23 @@ describe('onReceiveBlock()', function () {
 						describe('when timestamp is inside slot window', function () {
 
 							beforeEach(function () {
-								// slot and generatorKey is the equal to the delegate who forged the second last block
-								slot = slots.getSlotNumber(lastBlock.timestamp);
+								// slot and generatorPublicKey is the equal to the delegate who forged the second last block
+								slot = slots.getSlotNumber(secondLastBlock.timestamp);
 								timestamp = slots.getSlotTime(slot);
 								keypair = getKeypair(_.find(genesisDelegates, function (delegate) {
-									return delegate.publicKey === lastBlock.generatorPublicKey;
+									return delegate.publicKey === secondLastBlock.generatorPublicKey;
 								}).secret);
 							});
 
-							it('should delete last block', function (done) {
-								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, lastBlock);
+							it('should delete the block', function (done) {
+								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
-								library.sequence.add(function (cb) {
-									handlePromise(getBlocks().then(function (blocks) {
-										var blockIds = _.map(blocks, 'id');
-										expect(blockIds).to.have.length(5);
-										expect(blockIds).to.include.members([lastBlock.id]);
-										expect(blockIds).to.not.include.members([blockWithDifferentKeyAndTimestamp.id, block.id]);
-										return verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5);
-									}), done, cb);
+								getBlocks(function (err, blockIds) {
+									expect(err).to.not.exist;
+									expect(blockIds).to.have.length(5);
+									expect(blockIds).to.include.members([secondLastBlock.id]);
+									expect(blockIds).to.not.include.members([blockWithDifferentKeyAndTimestamp.id, lastBlock.id]);
+									return verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5).then(done);
 								});
 							});
 						});
@@ -594,7 +550,7 @@ describe('onReceiveBlock()', function () {
 							var timestamp;
 
 							beforeEach(function () {
-								// slot and generatorKey is of the delegate who was 6 slots behind current slot
+								// slot and generatorPublicKey is of the delegate who was 6 slots behind current slot
 								slot = slots.getSlotNumber() - (constants.blockSlotWindow + 1);
 								timestamp = slots.getSlotTime(slot);
 								return getValidKeypairForSlot(slot).then(function (kp) {
@@ -602,17 +558,15 @@ describe('onReceiveBlock()', function () {
 								});
 							});
 
-							it('should reject received block', function (done) {
-								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, lastBlock);
+							it('should reject block when blockslot outside the window', function (done) {
+								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
-								library.sequence.add(function (cb) {
-									handlePromise(getBlocks().then(function (blocks) {
-										var blockIds = _.map(blocks, 'id');
-										expect(blockIds).to.have.length(6);
-										expect(blockIds).to.include.members([lastBlock.id, block.id]);
-										expect(blockIds).to.not.include(blockWithDifferentKeyAndTimestamp.id);
-										return verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5);
-									}), done, cb);
+								getBlocks(function (err, blockIds) {
+									expect(err).to.not.exist;
+									expect(blockIds).to.have.length(6);
+									expect(blockIds).to.include.members([secondLastBlock.id, lastBlock.id]);
+									expect(blockIds).to.not.include(blockWithDifferentKeyAndTimestamp.id);
+									return verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5).then(done);
 								});
 							});
 						});
@@ -628,7 +582,7 @@ describe('onReceiveBlock()', function () {
 						Promise.all([getValidKeypairForSlot(slot + 1), getValidKeypairForSlot(slot + 2)]).then(function (keypairs) {
 							keypair = keypairs[0];
 							nextSlotKeypair = keypairs[1];
-							nextSlotBlock = createBlock([], slots.getSlotTime(slot + 2), nextSlotKeypair, block);
+							nextSlotBlock = createBlock([], slots.getSlotTime(slot + 2), nextSlotKeypair, lastBlock);
 
 							function sendSkippedSlotBlock () {
 								library.modules.blocks.process.onReceiveBlock(nextSlotBlock);
@@ -637,7 +591,7 @@ describe('onReceiveBlock()', function () {
 
 							(function waitUntilSkippedSlotBlockIsValid () {
 								if (slots.getSlotNumber() < slot + 2) {
-									console.log('waiting for the slot: ' + (slot + 2) + ', current slot: ' + slots.getSlotNumber());
+									node.debug('waiting for the slot: ' + (slot + 2) + ', current slot: ' + slots.getSlotNumber());
 									setTimeout(waitUntilSkippedSlotBlockIsValid, 1000);
 								} else {
 									sendSkippedSlotBlock();
@@ -647,16 +601,14 @@ describe('onReceiveBlock()', function () {
 					});
 
 					it('should delete last block and save received block (with lower slot)', function (done) {
-						var blockWithUnskippedSlot = createBlock([], slots.getSlotTime(slot + 1), keypair, block);
+						var blockWithUnskippedSlot = createBlock([], slots.getSlotTime(slot + 1), keypair, lastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithUnskippedSlot);
-						library.sequence.add(function (cb) {
-							handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.have.length(7);
-								expect(blockIds).to.include.members([blockWithUnskippedSlot.id, block.id, lastBlock.id]);
-								expect(blockIds).to.not.include(nextSlotBlock.id);
-								return verifyForkStat(blockWithUnskippedSlot.id, 5);
-							}), done, cb);
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.have.length(7);
+							expect(blockIds).to.include.members([blockWithUnskippedSlot.id, lastBlock.id, secondLastBlock.id]);
+							expect(blockIds).to.not.include(nextSlotBlock.id);
+							return verifyForkStat(blockWithUnskippedSlot.id, 5).then(done);
 						});
 					});
 				});
@@ -664,18 +616,18 @@ describe('onReceiveBlock()', function () {
 
 			describe('with 100 blocks forged', function () {
 
+				var secondLastBlock;
 				var lastBlock;
-				var block;
 				var keypair;
 				var slot;
 
 				beforeEach(function (done) {
 					forgeMultipleBlocks(100, function (err, forgedBlocks) {
-						lastBlock = forgedBlocks[forgedBlocks.length - 2];
-						block = forgedBlocks[forgedBlocks.length - 1];
-						slot = slots.getSlotNumber(block.timestamp);
+						secondLastBlock = forgedBlocks[forgedBlocks.length - 2];
+						lastBlock = forgedBlocks[forgedBlocks.length - 1];
+						slot = slots.getSlotNumber(lastBlock.timestamp);
 						keypair = getKeypair(_.find(genesisDelegates, function (delegate) {
-							return block.generatorPublicKey == delegate.publicKey;
+							return lastBlock.generatorPublicKey == delegate.publicKey;
 						}).secret);
 						done();
 					});
@@ -686,19 +638,17 @@ describe('onReceiveBlock()', function () {
 					var blockFromPreviousRound;
 
 					beforeEach(function () {
-						blockFromPreviousRound = createBlock([], slots.getSlotTime(slot), keypair, lastBlock);
+						blockFromPreviousRound = createBlock([], slots.getSlotTime(slot), keypair, secondLastBlock);
 					});
 
 					it('should verify received block against last round delegate list and save', function (done) {
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
-						library.sequence.add(function (cb) {
-							handlePromise(getBlocks().then(function (blocks) {
-								var blockIds = _.map(blocks, 'id');
-								expect(blockIds).to.have.length(10);
-								expect(blockIds).to.include.members([lastBlock.id, blockFromPreviousRound.id]);
-								expect(blockIds).to.not.include(block.id);
-								return verifyForkStat(blockFromPreviousRound.id, 5);
-							}), done, cb);
+						getBlocks(function (err, blockIds) {
+							expect(err).to.not.exist;
+							expect(blockIds).to.have.length(10);
+							expect(blockIds).to.include.members([secondLastBlock.id, blockFromPreviousRound.id]);
+							expect(blockIds).to.not.include(lastBlock.id);
+							return verifyForkStat(blockFromPreviousRound.id, 5).then(done);
 						});
 					});
 				});
@@ -722,12 +672,11 @@ describe('onReceiveBlock()', function () {
 
 				it('should reject received block', function (done) {
 					library.modules.blocks.process.onReceiveBlock(block);
-					library.sequence.add(function (cb) {
-						return handlePromise(getBlocks().then(function (blocks) {
-							var blockIds = _.map(blocks, 'id');
-							expect(blockIds).to.have.length(2);
-							expect(blockIds).to.include.members([block.id, lastBlock.id]);
-						}), done, cb);
+					getBlocks(function (err, blockIds) {
+						expect(err).to.not.exist;
+						expect(blockIds).to.have.length(2);
+						expect(blockIds).to.include.members([block.id, lastBlock.id]);
+						done();
 					});
 				});
 			});
@@ -748,14 +697,12 @@ describe('onReceiveBlock()', function () {
 
 				it('should reject received block', function (done) {
 					library.modules.blocks.process.onReceiveBlock(differentChainBlock);
-					library.sequence.add(function (cb) {
-
-						return handlePromise(getBlocks().then(function (blocks) {
-							var blockIds = _.map(blocks, 'id');
-							expect(blockIds).to.have.length(1);
-							expect(blockIds).to.include.members([genesisBlock.id]);
-							expect(blockIds).to.not.include(differentChainBlock.id);
-						}), done, cb);
+					getBlocks(function (err, blockIds) {
+						expect(err).to.not.exist;
+						expect(blockIds).to.have.length(1);
+						expect(blockIds).to.include.members([genesisBlock.id]);
+						expect(blockIds).to.not.include(differentChainBlock.id);
+						done();
 					});
 				});
 			});
