@@ -103,6 +103,8 @@ var BlocksSql = {
 
   loadLastBlock: 'SELECT * FROM full_blocks_list WHERE "b_height" = (SELECT MAX("height") FROM blocks) ORDER BY "b_height", "t_rowId"',
 
+  loadLastNBlockIds: 'SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT ${limit}',
+
   getBlockId: 'SELECT "id" FROM blocks WHERE "id" = ${id}',
 
   deleteAfterBlock: 'DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = ${id});'
