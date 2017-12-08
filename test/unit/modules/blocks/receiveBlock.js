@@ -1,6 +1,5 @@
 var expect = require('chai').expect;
 var async = require('async');
-var sinon = require('sinon');
 var crypto = require('crypto');
 var _ = require('lodash');
 var Promise = require('bluebird');
@@ -8,21 +7,14 @@ var Promise = require('bluebird');
 var node = require('../../../node');
 var slots = require('../../../../helpers/slots');
 var constants = require('../../../../helpers/constants');
-var config = require('../../../config.json');
-var modulesLoader = require('../../../common/initModule.js').modulesLoader;
 var genesisBlock = require('../../../../genesisBlock.json');
-var clearDatabaseTable = require('../../../common/globalBefore').clearDatabaseTable;
 var genesisDelegates = require('../../../genesisDelegates.json').delegates;
 var application = require('../../../common/application.js');
 
-var encryptedSecrets = config.forging.secret;
-
 describe('onReceiveBlock()', function () {
 
-	var blocksProcess;
 	var library;
 	var db;
-	var blocks;
 
 	before(function (done) {
 		application.init({sandbox: {name: 'lisk_test_blocks_process'}}, function (scope) {
@@ -128,10 +120,6 @@ describe('onReceiveBlock()', function () {
 
 		return generateDelegateListPromisified(lastBlock.height, null).then(function (list) {
 			var delegatePublicKey = list[slot % slots.delegates];
-			var delegateDetails = _.find(encryptedSecrets, function (secrets) {
-				return secrets.publicKey === delegatePublicKey;
-			});
-
 			return getKeypair(_.find(genesisDelegates, function (delegate) {
 				return delegate.publicKey === delegatePublicKey;
 			}).secret);
@@ -148,10 +136,6 @@ describe('onReceiveBlock()', function () {
 				cb(err);
 			});
 		});
-	}
-
-	function receiveBlock (block) {
-		library.modules.blocks.process.onReceiveBlock(block);
 	}
 
 	function verifyForkStat (blockId, cause) {
@@ -681,7 +665,7 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('when block does not match blockchain', function (done) {
+			describe('when block does not match blockchain', function () {
 
 				var differentChainBlock;
 
