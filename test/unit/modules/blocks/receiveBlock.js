@@ -575,7 +575,7 @@ describe('onReceiveBlock()', function () {
 
 							(function waitUntilSkippedSlotBlockIsValid () {
 								if (slots.getSlotNumber() < slot + 2) {
-									node.debug('waiting for the slot: ' + (slot + 2) + ', current slot: ' + slots.getSlotNumber());
+									node.debug('Waiting for slot: ' + (slot + 2) + ', current slot: ' + slots.getSlotNumber());
 									setTimeout(waitUntilSkippedSlotBlockIsValid, 1000);
 								} else {
 									sendSkippedSlotBlock();
