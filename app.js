@@ -231,7 +231,7 @@ d.run(function () {
 		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: scope.config.wsWorkers,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				wsEngine: 'uws',
 				appName: 'lisk',
 				workerController: workersController.path,
@@ -263,7 +263,7 @@ d.run(function () {
 				version: scope.config.version,
 				minVersion: scope.config.minVersion,
 				nethash: scope.config.nethash,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				nonce: scope.config.nonce
 			};
 
@@ -552,7 +552,7 @@ d.run(function () {
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {
-						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
+						scope.network.https.listen(scope.config.ssl.options.wsPort, scope.config.ssl.options.address, function (err) {
 							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
 
 							cb(err, scope.network);

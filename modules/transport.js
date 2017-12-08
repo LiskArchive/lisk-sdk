@@ -103,7 +103,7 @@ __private.removePeer = function (options, extraMessage) {
 		return false;
 	}
 
-	library.logger.debug([options.code, 'Removing peer', options.peer.ip + ':' + options.peer.port, extraMessage].join(' '));
+	library.logger.debug([options.code, 'Removing peer', options.peer.ip + ':' + options.peer.wsPort, extraMessage].join(' '));
 	return modules.peers.remove(options.peer);
 };
 
