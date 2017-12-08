@@ -400,6 +400,9 @@ Verify.prototype.verifyReceipt = function (block) {
 Verify.prototype.onBlockchainReady = function () {
 	return library.db.query(sql.loadLastNBlockIds, {limit: constants.blockSlotWindow}).then(function (blockIds) {
 		__private.lastNBlockIds = _.map(blockIds, 'id');
+	}).catch(function (err) {
+		library.logger.error('Unable to load last ' + constants.blockSlotWindow + ' block ids');
+		library.logger.error(err);
 	});
 };
 
