@@ -124,7 +124,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Accounts" : {
+      "Functional API - Accounts" : {
         node('node-01') {
           sh '''
           export TEST=test/api/accounts.js TEST_TYPE='FUNC'
@@ -133,7 +133,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Blocks" : {
+      "Functional API - Blocks" : {
         node('node-01') {
           sh '''
           export TEST=test/api/blocks.js TEST_TYPE='FUNC'
@@ -142,7 +142,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Delegates" : {
+      "Functional API - Delegates" : {
         node('node-01') {
           sh '''
           export TEST=test/api/delegates.js TEST_TYPE='FUNC'
@@ -151,7 +151,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Dapps" : {
+      "Functional API - Dapps" : {
         node('node-01') {
           sh '''
           export TEST=test/api/dapps.js TEST_TYPE='FUNC'
@@ -160,7 +160,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Loader" : {
+      "Functional API - Loader" : {
         node('node-01') {
           sh '''
           export TEST=test/api/loader.js TEST_TYPE='FUNC'
@@ -169,7 +169,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Multisignatures" : {
+      "Functional API - Multisignatures" : {
         node('node-01') {
           sh '''
           export TEST=test/api/multisignatures.js TEST_TYPE='FUNC'
@@ -178,16 +178,25 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Multisignatures - 2" : {
+      "Functional API - Multisignatures - Transactions" : {
         node('node-01') {
           sh '''
-          export TEST=test/api/multisignature.with.other.transactions.js TEST_TYPE='FUNC'
+          export TEST=test/api/multisignatures.transactions.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Signatures" : {
+      "Functional API - Peers" : {
+        node('node-01') {
+          sh '''
+          export TEST=test/api/peers.js TEST_TYPE='FUNC'
+          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+          npm run jenkins
+          '''
+        }
+      },
+      "Functional API - Signatures" : {
         node('node-01') {
           sh '''
           export TEST=test/api/signatures.js TEST_TYPE='FUNC'
@@ -196,7 +205,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
-      "Functional Transactions" : {
+      "Functional API - Transactions" : {
         node('node-01') {
           sh '''
           export TEST=test/api/transactions.js TEST_TYPE='FUNC'
@@ -207,100 +216,82 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       }, // End node-01 tests
 
       // Begin node-02 tests
-      "Functional Peer - Peer" : {
+      "Functional Transport - Peer" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.js TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Dapp" : {
+      "Functional Transport - Peer - Dapp" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.dapp.js TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.dapp.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Blocks" : {
+      "Functional Transport - Peer - Blocks" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.blocks.js TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.blocks.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Signatures" : {
+      "Functional Transport - Peer - Signatures" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.signatures.js TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.signatures.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Transactions Collision" : {
+      "Functional Transport - Peer - Transactions Collision" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.transactions.collision.js TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.transactions.collision.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Transactions Delegates" : {
+      "Functional Transport - Peer - Transactions Delegates" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.transactions.delegates.js TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.transactions.delegates.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Transactions Main" : {
+      "Functional Transport - Peer - Transactions Main" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.transactions.main.js  TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.transactions.main.js  TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Transaction Signatures" : {
+      "Functional Transport - Peer - Transactions Signatures" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peer.transactions.signatures.js  TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.transactions.signatures.js  TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Peer - Peers" : {
+      "Functional Transport - Peer - Votes" : {
         node('node-02') {
           sh '''
-          export TEST=test/api/peers.js TEST_TYPE='FUNC'
-          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-          npm run jenkins
-          '''
-        }
-      },
-      "Functional - Multisignature 3" : {
-        node('node-03') {
-          sh '''
-          export TEST=test/functional/multisignature.js TEST_TYPE='FUNC'
-          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-          npm run jenkins
-          '''
-        }
-      },
-      "Functional Peer - Votes" : {
-        node('node-02') {
-          sh '''
-          export TEST=test/api/peer.transactions.votes.js TEST_TYPE='FUNC'
+          export TEST=test/transport/peer.transactions.votes.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
@@ -311,7 +302,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Unit - Helpers" : {
         node('node-03') {
           sh '''
-          export TEST=test/unit/helpers TEST_TYPE='UNIT'
+          export TEST=test/unit/helpers/*.js TEST_TYPE='UNIT'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
@@ -320,7 +311,16 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Unit - Modules" : {
         node('node-03') {
           sh '''
-          export TEST=test/unit/modules TEST_TYPE='UNIT'
+          export TEST=test/unit/modules/*.js TEST_TYPE='UNIT'
+          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+          npm run jenkins
+          '''
+        }
+      },
+      "Unit - Modules - Blocks" : {
+        node('node-03') {
+          sh '''
+          export TEST=test/unit/modules/blocks/*.js TEST_TYPE='UNIT'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
@@ -329,7 +329,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Unit - SQL" : {
         node('node-03') {
           sh '''
-          export TEST=test/unit/sql TEST_TYPE='UNIT'
+          export TEST=test/unit/sql/*.js TEST_TYPE='UNIT'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
@@ -338,16 +338,25 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
       "Unit - Logic" : {
         node('node-03') {
           sh '''
-          export TEST=test/unit/logic TEST_TYPE='UNIT'
+          export TEST=test/unit/logic/*.js TEST_TYPE='UNIT'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
         }
       },
-      "Functional Stress - Transactions" : {
+      "Functional System - Multisignature" : {
         node('node-03') {
           sh '''
-          export TEST=test/api/peer.transactions.stress.js TEST_TYPE='FUNC'
+          export TEST=test/system/multisignature.js TEST_TYPE='FUNC'
+          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+          npm run jenkins
+          '''
+        }
+      },
+      "Functional Transport - Stress - Transactions" : {
+        node('node-03') {
+          sh '''
+          export TEST=test/transport/peer.transactions.stress.js TEST_TYPE='FUNC'
           cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
           npm run jenkins
           '''
