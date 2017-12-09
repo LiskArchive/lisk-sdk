@@ -349,7 +349,7 @@ describe('BlockRewardsSQL', function () {
 		});
 	});
 
-	describe('checking completely SQL functions calcSupply(int) and calcBlockReward(int)', function () {
+	describe('checking completely SQL functions calcSupply(int) and calcBlockReward(int) @slow', function () {
 
 		describe('check if calcBlockReward_test can fail', function () {
 
