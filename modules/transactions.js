@@ -563,31 +563,29 @@ Transactions.prototype.onBind = function (scope) {
 
 // Shared API
 /**
- * Public methods, accessible via API
+ * Public methods, accessible via API.
  */
 Transactions.prototype.shared = {
-
 	/**
 	 * Search transactions based on the query parameter passed.
-	 *
-	 * @param {Object} 	filters - Filters applied to results
-	 * @param {string} 	filters.id
-	 * @param {string} 	filters.blockId
-	 * @param {string} 	filters.recipientId
-	 * @param {string} 	filters.recipientPublicKey
-	 * @param {string} 	filters.senderId
-	 * @param {string} 	filters.senderPublicKey
-	 * @param {int}		filters.transactionType
-	 * @param {int}    	filters.fromHeight
-	 * @param {int}    	filters.toHeight
-	 * @param {string} 	filters.minAmount
-	 * @param {string} 	filters.maxAmount
-	 * @param {int} 	filters.fromTimestamp
-	 * @param {int} 	filters.toTimestamp
-	 * @param {string} 	filters.sort
-	 * @param {int} 	filters.limit
-	 * @param {int} 	filters.offset
-	 * @param {function} cb - Callback function
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.id - Transaction id.
+	 * @param {string} filters.blockId - Block id.
+	 * @param {string} filters.recipientId - Recipient id.
+	 * @param {string} filters.recipientPublicKey - Recipient public key.
+	 * @param {string} filters.senderId - Sender id.
+	 * @param {string} filters.senderPublicKey - Sender public key.
+	 * @param {int} filters.transactionType - Transaction type.
+	 * @param {int} filters.fromHeight - From block height.
+	 * @param {int} filters.toHeight - To block height.
+	 * @param {string} filters.minAmount - Minimum amount.
+	 * @param {string} filters.maxAmount - Maximum amount.
+	 * @param {int} filters.fromTimestamp - From transaction timestamp.
+	 * @param {int} filters.toTimestamp - To transaction timestamp.
+	 * @param {string} filters.sort - Field to sort results by.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getTransactions: function (filters, cb) {
