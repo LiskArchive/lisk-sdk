@@ -230,7 +230,7 @@ OutTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 
 OutTransfer.prototype.schema = {
 	id: 'OutTransfer',
-	object: true,
+	type: 'object',
 	properties: {
 		dappId: {
 			type: 'string',

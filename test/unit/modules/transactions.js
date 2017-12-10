@@ -153,11 +153,7 @@ describe('transactions', function () {
 		describe('getTransaction', function () {
 
 			function getTransactionsById (id, done) {
-				transactionsModule.shared.getTransactions({
-					body: {
-						id: id
-					}
-				}, done);
+				transactionsModule.shared.getTransactions({ id: id }, done);
 			}
 
 			var transactionsByType = {
@@ -328,14 +324,6 @@ describe('transactions', function () {
 					transactionId: '1907088915785679339'
 				}
 			};
-
-			it('should return error for invalid schema type', function (done) {
-				transactionsModule.shared.getTransactions({}, function (err) {
-					expect(err).to.have.property('message').that.is.equal('Expected type object but found type undefined');
-					expect(err).to.have.property('code').that.is.equal(400);
-					done();
-				});
-			});
 
 			it('should get transaction for send transaction id', function (done) {
 				var transactionId = transactionsByType[transactionTypes.SEND].transactionId;
