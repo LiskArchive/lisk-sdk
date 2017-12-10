@@ -199,7 +199,6 @@ describe('GET /api/transactions', function () {
 					expectSwaggerParamError(res, 'sort');
 				});
 			});
-
 		});
 
 		it('using no params should be ok', function () {
@@ -417,7 +416,7 @@ describe('GET /api/transactions', function () {
 
 		describe('maxAmount', function () {
 
-			it('using minAmount with maxAmount sorted by amount and limited should be ok', function () {
+			it('should get transactions with amount less than maxAmount', function () {
 				return transactionsEndpoint.makeRequest({maxAmount: maxAmount}, 200).then(function (res) {
 					res.body.data.map(function (transaction) {
 						parseInt(transaction.amount).should.be.at.most(maxAmount);

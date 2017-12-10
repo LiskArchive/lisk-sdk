@@ -19,7 +19,6 @@ function TransactionsController (scope) {
 }
 
 TransactionsController.getTransactions = function (context, next) {
-
 	var invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {

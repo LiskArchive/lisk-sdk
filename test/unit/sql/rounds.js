@@ -154,7 +154,7 @@ describe('Rounds-related SQL triggers', function () {
 			sandbox: {
 				name: 'lisk_test_sql_rounds'
 			},
-			waitForGenesisBlock: false
+			waitForGenesisBlock: true
 		}, function (err, scope) {
 			// Force rewards start at 150-th block
 			library = scope;
@@ -196,12 +196,6 @@ describe('Rounds-related SQL triggers', function () {
 			}, []);
 		});
 
-		it('should not populate mem_accounts', function () {
-			return getMemAccounts().then(function (accounts) {
-				expect(Object.keys(accounts).length).to.equal(0);
-			});
-		});
-
 		it('should load genesis block with transactions into database (native)', function (done) {
 			library.db.query('SELECT * FROM full_blocks_list WHERE b_height = 1').then(function (rows) {
 				genesisBlock = library.modules.blocks.utils.readDbRows(rows)[0];
@@ -235,10 +229,7 @@ describe('Rounds-related SQL triggers', function () {
 		});
 
 		it('should apply genesis block transactions to mem_accounts (native)', function () {
-			// Wait 20 seconds for proper initialisation
-			return Promise.delay(20000).then(function () {
-				return getMemAccounts();
-			}).then(function (accounts) {
+			return getMemAccounts().then(function (accounts) {
 				// Number of returned accounts should be equal to number of unique accounts in genesis block
 				expect(Object.keys(accounts).length).to.equal(genesisAccounts.length);
 
@@ -553,13 +544,6 @@ describe('Rounds-related SQL triggers', function () {
 			});
 			return delegates_state;
 		}
-
-		before(function () {
-			return Promise.delay(1000).then(function () {
-				// Set delegates module as loaded to allow manual forging
-				library.rewiredModules.delegates.__set__('__private.loaded', true);
-			});
-		});
 
 		it('should load all secrets of 101 delegates and set modules.delegates.__private.keypairs (native)', function (done) {
 			var loadDelegates = library.rewiredModules.delegates.__get__('__private.loadDelegates');

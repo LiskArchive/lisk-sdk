@@ -17,6 +17,12 @@ module.exports = {
 		});
 	},
 
+	clearLogs: function (cb) {
+		child_process.exec('rm -rf test/integration/logs/*', function (err) {
+			return cb(err);
+		});
+	},
+
 	runMochaTests: function (testsPaths, cb) {
 		var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), '--exit'].concat(testsPaths), {
 			cwd: __dirname + '/../../..'
@@ -44,7 +50,7 @@ module.exports = {
 			} else {
 				console.info('PM2 process killed gracefully');
 			}
-			return cb(err);
+			return cb();
 		});
 	}
 };

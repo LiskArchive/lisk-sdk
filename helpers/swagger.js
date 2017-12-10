@@ -14,7 +14,7 @@ var _ = require('lodash');
 var resolvedSwaggerSpec = null;
 
 /**
- * Uses Default Swagger Validator and extend with custom formats.
+ * Uses default swagger validator and extend with custom formats.
  * @name swagger
  * @memberof module:helpers
  * @requires module:helpers:z_schema
@@ -44,7 +44,7 @@ function getValidator () {
  */
 function getResolvedSwaggerSpec () {
 
-	if(resolvedSwaggerSpec) {
+	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
 	} else {
 		var content = getSwaggerSpec();
@@ -77,12 +77,11 @@ function getSwaggerSpec () {
  * Generate swagger based param error object to handle custom errors.
  * @param {Array} params - List of param objects.
  * @param {Array} [messages] - List of error messages.
- * @param {Array} [codes] - List of codes for particular error.
- *
+ * @param {Array} [codes] - List of error codes.
  * @return {object}
  */
 function generateParamsErrorObject (params, messages, codes) {
-	if (!codes){ codes = []; }
+	if (!codes) { codes = []; }
 
 	var error = new Error('Validation errors');
 	error.statusCode = 400;
@@ -90,21 +89,19 @@ function generateParamsErrorObject (params, messages, codes) {
 	error.errors = params.map(function (p, i) {
 		var def = p.parameterObject;
 
-		if(def) {
+		if (def) {
 			return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
 		} else {
-			return {name: p, message: 'Unknown request parameter.', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM')};
+			return {name: p, message: 'Unknown request parameter', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM')};
 		}
-
 	});
 
 	return error;
 }
 
 /**
- * Get list of non documented params
- * @param {object} request
-
+ * Get list of undocumented params.
+ * @param {object} request - Request object.
  * @return {boolean}
  */
 function invalidParams (request) {

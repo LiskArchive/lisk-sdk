@@ -4,6 +4,7 @@ var modules = require('../../helpers/swagger_module_registry');
 var debug = require('debug')('swagger:lisk:cache');
 
 module.exports = function create (fittingDef, bagpipes) {
+
 	var cache = modules.getCache();
 	var logger = modules.getLogger();
 	var mode = fittingDef.mode;
@@ -12,22 +13,23 @@ module.exports = function create (fittingDef, bagpipes) {
 	debug('create', mode);
 
 	return function lisk_cache (context, next) {
+
 		debug('exec', mode);
 
 		// If not a swagger operation don't serve from pipeline
 		if (!context.request.swagger.operation) {
-			return new Error('Not a swagger operation, will not process cache for response.');
+			return new Error('Invalid swagger operation, unable to process cache for response');
 		}
 
 		// Check if cache is enabled for the endpoint in swagger.yml
 		if (!!context.request.swagger.operation[cacheSpecKey] === false) {
-			debug('cache not enabled for endpoint: ' + context.request.swagger.operation.pathToDefinition.join('.'));
+			debug('Cache not enabled for endpoint: ' + context.request.swagger.operation.pathToDefinition.join('.'));
 			return next(null, context.input);
 		}
 
 		// If cache server not ready move forward without any processing
 		if (!cache.isReady()) {
-			debug('cache module not ready');
+			debug('Cache module not ready');
 			return next(null, context.input);
 		}
 
