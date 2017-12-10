@@ -28,7 +28,7 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 		});
 
 		// TODO: After migration /transactions/unconfirmed make sure this phase works
-		it('good transactions should not be unconfirmed', function () {
+		it.skip('good transactions should not be unconfirmed', function () {
 			return Promise.map(goodTransactions, function (transaction) {
 				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
 					res.body.data.should.be.empty;
