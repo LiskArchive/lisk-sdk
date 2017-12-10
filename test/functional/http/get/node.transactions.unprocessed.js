@@ -16,7 +16,7 @@ describe('GET /api/node', function () {
 
 	describe('/transactions', function () {
 
-		describe('/unprocessed', function () {
+		describe.skip('/unprocessed @unstable', function () {
 
 			var UnProcessedEndpoint = new swaggerEndpoint('GET /node/transactions/{state}').addParameters({state: 'unprocessed'});
 
