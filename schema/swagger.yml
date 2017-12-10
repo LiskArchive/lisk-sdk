@@ -590,11 +590,11 @@ paths:
     get:
       tags:
         - Transactions
-      summary: requests transactions data
+      summary: Requests transactions data
       operationId: getTransactions
       x-lisk-cache-enabled: true
       description:
-        This API call returns transactions matching filter criteria
+        This API call returns transactions matching filter criteria.
       produces:
         - application/json
       parameters:
@@ -614,7 +614,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: fields to sort on to query
+          description: Fields to sort on to query
           required: false
           type: string
           enum:
@@ -647,10 +647,10 @@ paths:
     post:
       tags:
         - Transactions
-      summary: submits signed transactions for processing
+      summary: Submits signed transactions for processing
       operationId: postTransactions
       description:
-        submits signed transactions from lisk-js to be processed into a block
+        Submits signed transactions for processing by the transaction pool
       consumes:
         - application/json
       produces:
@@ -666,7 +666,7 @@ paths:
               $ref: '#/definitions/Transaction'
       responses:
         200:
-          description: Transaction is accepted by the node for processing
+          description: Transaction accepted by the node for processing
           schema:
             $ref: '#/definitions/GeneralStatusResponse'
         400:
@@ -713,7 +713,7 @@ parameters:
   version:
     name: version
     in: query
-    description: Lisk version run by node
+    description: Lisk version of the node
     type: string
     format: version
     minLength: 5
@@ -774,7 +774,7 @@ parameters:
   secondPublicKey:
     name: secondPublicKey
     in: query
-    description: Public key to query
+    description: Second public key to query
     type: string
     format: publicKey
   username:
@@ -788,7 +788,7 @@ parameters:
   blockId:
     name: blockId
     in: query
-    description: BlockId to query
+    description: Block id to query
     type: string
     format: id
     minLength: 1
@@ -796,7 +796,7 @@ parameters:
   transactionId:
     name: id
     in: query
-    description:  Id for a transaction
+    description: Transaction id to query
     type: string
     format: id
     minLength: 1
@@ -804,7 +804,7 @@ parameters:
   recipientAddress:
     name: recipientAddress
     in: query
-    description: recipientId to query
+    description: Recipient address to query
     type: string
     format: address
     minLength: 1
@@ -819,7 +819,7 @@ parameters:
   senderAddress:
     name: senderAddress
     in: query
-    description: recipientId to query
+    description: Sender address to query
     type: string
     format: address
     minLength: 1
@@ -841,25 +841,25 @@ parameters:
   minAmount:
     name: minAmount
     in: query
-    description: Minimum amount to query
+    description: Minimum transaction amount
     type: integer
     minimum: 0
   maxAmount:
     name: maxAmount
     in: query
-    description: Maximum amount to query
+    description: Maximum transaction amount
     type: integer
     minimum: 0
   fromTimestamp:
     name: fromTimestamp
     in: query
-    description: Starting lisk timestamp of records to query
+    description: Starting Lisk timestamp of records to query
     type: integer
     minimum: 0
   toTimestamp:
     name: toTimestamp
     in: query
-    description: End lisk timestamp of recores to query
+    description: Ending Lisk timestamp of records to query
     type: integer
     minimum: 1
 
