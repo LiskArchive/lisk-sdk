@@ -39,7 +39,7 @@ else
 fi
 
 # Detect suite(s) to run
-if [[ !($2 =~ file|unit|system|transport|api|all) ]]; then
+if [[ ! ($2 =~ file|unit|system|transport|api|all) ]]; then
 	echo "Invalid argument, <test-suite> can be one of file|unit|system|transport|api|all"
 	exit 1
 fi
@@ -83,12 +83,12 @@ teardown_suite() {
 
 run_suite() {
 	# Find *.js files and sort them
-	files=$(find $1 -name '*.js' | sort)
+	files=$(find "$1" -name '*.js' | sort)
 
 	# Iterate over each file and run it
 	for file in $files; do
 		if [[ -f "$file" ]]; then
-			$mocha_cmd $file
+			"$mocha_cmd $file"
 		fi
 	done
 }
