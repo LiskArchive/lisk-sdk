@@ -36,7 +36,6 @@ describe('GET /api/transactions', function () {
 
 	// Crediting accounts
 	before(function () {
-
 		var promises = [];
 
 		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
@@ -632,7 +631,6 @@ describe('GET /api/transactions', function () {
 		describe('combination of query parameters', function () {
 
 			it('using valid parameters should be ok', function () {
-
 				return transactionsEndpoint.makeRequest({
 					senderAddress: accountFixtures.genesis.address,
 					recipientAddress: account.address,
@@ -655,6 +653,7 @@ describe('GET /api/transactions', function () {
 		describe('meta', function () {
 
 			describe('count', function () {
+
 				it('should return count of the transactions with response', function () {
 					return transactionsEndpoint.makeRequest({}, 200).then(function (res) {
 						res.body.meta.count.should.be.a('number');

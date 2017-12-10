@@ -29,7 +29,7 @@ describe('GET /api/node', function () {
 				var data = 'extra information';
 
 				// Create numOfTransactions transactions
-				for(var i=0; i < numOfTransactions; i++) {
+				for (var i = 0; i < numOfTransactions; i++) {
 					transactionList.push(lisk.transaction.createTransaction(account.address, Math.random() * 1000, accountFixtures.genesis.password, null, data));
 				}
 
@@ -91,7 +91,6 @@ describe('GET /api/node', function () {
 						expectSwaggerParamError(res, 'sort');
 					});
 				});
-
 			});
 
 			it('using no params should be ok', function () {
@@ -155,7 +154,6 @@ describe('GET /api/node', function () {
 				});
 
 				it('using valid senderAddress should be ok', function () {
-
 					return UnProcessedEndpoint.makeRequest({senderAddress: accountFixtures.genesis.address}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
@@ -181,7 +179,6 @@ describe('GET /api/node', function () {
 				});
 
 				it('using valid senderPublicKey should be ok', function () {
-
 					return UnProcessedEndpoint.makeRequest({senderPublicKey: accountFixtures.genesis.publicKey}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
@@ -233,7 +230,6 @@ describe('GET /api/node', function () {
 				});
 
 				it('using valid recipientPublicKey should be ok', function () {
-
 					return UnProcessedEndpoint.makeRequest({recipientPublicKey: account.publicKey}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
@@ -388,7 +384,6 @@ describe('GET /api/node', function () {
 					});
 				});
 			});
-			
 		});
 	});
 });

@@ -63,9 +63,8 @@ describe('GET /api/node', function () {
 
 					return waitFor.confirmations([transaction.id]);
 				}).then(function () {
-
 					// Create numOfTransactions transactions
-					for(var i=0; i < numOfTransactions; i++) {
+					for (var i = 0; i < numOfTransactions; i++) {
 						transactionList.push(lisk.transaction.createTransaction(recipientAccount.address, Math.random() * 5 * normalizer, senderAccount.password, senderAccount.secondPassword));
 					}
 
@@ -127,7 +126,6 @@ describe('GET /api/node', function () {
 						expectSwaggerParamError(res, 'sort');
 					});
 				});
-
 			});
 
 			it('using no params should be ok', function () {
@@ -217,7 +215,6 @@ describe('GET /api/node', function () {
 				});
 
 				it('using valid senderPublicKey should be ok', function () {
-
 					return UnsignedEndpoint.makeRequest({senderPublicKey: senderAccount.publicKey}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
@@ -243,7 +240,6 @@ describe('GET /api/node', function () {
 				});
 
 				it('using valid recipientAddress should be ok', function () {
-
 					return UnsignedEndpoint.makeRequest({recipientAddress: recipientAccount.address}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
@@ -269,7 +265,6 @@ describe('GET /api/node', function () {
 				});
 
 				it('using valid recipientPublicKey should be ok', function () {
-
 					return UnsignedEndpoint.makeRequest({recipientPublicKey: recipientAccount.publicKey}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
@@ -424,7 +419,6 @@ describe('GET /api/node', function () {
 					});
 				});
 			});
-			
 		});
 	});
 });

@@ -294,7 +294,6 @@ __private.getPooledTransaction = function (method, req, cb) {
  * @returns {setImmediateCallback} error | data: {transactions, count}
  */
 __private.getPooledTransactions = function (method, filters, cb) {
-
 	var transactions = self[method](true);
 	var toSend = [];
 

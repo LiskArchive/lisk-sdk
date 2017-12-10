@@ -112,7 +112,6 @@ NodeController.updateForgingStatus = function (context, next) {
 };
 
 NodeController.getPooledTransactions = function (context, next) {
-
 	var invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
