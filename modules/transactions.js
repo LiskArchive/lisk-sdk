@@ -610,7 +610,7 @@ Transactions.prototype.shared = {
 				total: transactionsCount[0].count + Object.keys(__private.transactionPool.unconfirmed.index).length + Object.keys(__private.transactionPool.queued.index).length + Object.keys(__private.transactionPool.multisignature.index).length
 			});
 		}, function (err) {
-			return setImmediate(cb, 'Unable to count transactions');
+			return setImmediate(cb, 'Failed to count transactions');
 		});
 	},
 

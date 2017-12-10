@@ -65,7 +65,7 @@ module.exports = {
 			headers: headers
 		}).then(function (res) {
 			if (res.status !== apiCodes.OK) {
-				throw new Error('Unable to get blocks from peer: ' + res.body);
+				throw new Error('Failed to get blocks from peer: ' + res.body);
 			}
 			return JSON.parse(res.body).data;
 		});
@@ -103,11 +103,11 @@ module.exports = {
 			}
 		}).then(function (res) {
 			if (res.status !== apiCodes.OK) {
-				throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey);
+				throw new Error('Failed to enable forging for delegate with publicKey: ' + keys.publicKey);
 			}
 			return JSON.parse(res.body).data[0];
 		}).catch(function (err) {
-			throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey + JSON.stringify(err));
+			throw new Error('Failed to enable forging for delegate with publicKey: ' + keys.publicKey + JSON.stringify(err));
 		});
 	}
 };

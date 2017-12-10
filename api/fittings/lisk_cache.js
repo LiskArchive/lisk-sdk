@@ -18,7 +18,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		// If not a swagger operation don't serve from pipeline
 		if (!context.request.swagger.operation) {
-			return new Error('Not a swagger operation, will not process cache for response.');
+			return new Error('Invalid swagger operation, unable to process cache for response');
 		}
 
 		// Check if cache is enabled for the endpoint in swagger.yml

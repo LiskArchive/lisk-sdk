@@ -31,7 +31,7 @@ module.exports = function create (fittingDef, bagpipes) {
 				});
 			}
 		} else {
-			error = new Error('Not a swagger operation, will not validate response');
+			error = new Error('Invalid swagger operation, unable to validate response');
 		}
 
 		cb(error);
