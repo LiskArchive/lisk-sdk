@@ -279,17 +279,17 @@ __private.getPooledTransaction = function (method, req, cb) {
  * Gets transactions by calling parameter method.
  * Filters by senderPublicKey or address if they are present.
  * @private
- * @param {Object} method
- * @param {Object} filters
- * @param {string} filters.id
- * @param {string} filters.recipientId
- * @param {string} filters.recipientPublicKey
- * @param {string} filters.senderId
- * @param {string} filters.senderPublicKey
- * @param {int}    filters.type
- * @param {string} filters.sort - amount, fee, type, timestamp
- * @param {int}    filters.limit
- * @param {int}    filters.offset
+ * @param {Object} method - Transaction pool method.
+ * @param {Object} filters - Filters applied to results.
+ * @param {string} filters.id - Transaction id.
+ * @param {string} filters.recipientId - Recipient id.
+ * @param {string} filters.recipientPublicKey - Recipient public key.
+ * @param {string} filters.senderId - Sender id.
+ * @param {string} filters.senderPublicKey - Sender public key.
+ * @param {int} filters.type - Transaction type.
+ * @param {string} filters.sort - Field to sort results by (amount, fee, type, timestamp).
+ * @param {int} filters.limit - Limit applied to results.
+ * @param {int} filters.offset - Offset value for results.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error | data: {transactions, count}
  */
