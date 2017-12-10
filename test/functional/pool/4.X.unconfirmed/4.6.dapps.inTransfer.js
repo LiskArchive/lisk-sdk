@@ -29,7 +29,6 @@ describe('POST /api/transactions (unconfirmed type 6 on top of type 4)', functio
 			transaction = lisk.transfer.createInTransfer(scenarios.regular.dapp.id, 1, scenarios.regular.account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});

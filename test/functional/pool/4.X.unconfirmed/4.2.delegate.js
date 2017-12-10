@@ -29,7 +29,6 @@ describe('POST /api/transactions (unconfirmed type 2 on top of type 4)', functio
 			transaction = lisk.delegate.createDelegate(scenarios.regular.account.password, scenarios.regular.account.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});

@@ -85,7 +85,7 @@ module.exports = {
 			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000) + '?id=' + transactionId,
 			headers: headers
 		}).then(function (res) {
-			if(currentVersion === '1.0.0') {
+			if (currentVersion === '1.0.0') {
 				return JSON.parse(res.body).data[0];
 			} else {
 				return JSON.parse(res.body).transactions[0];

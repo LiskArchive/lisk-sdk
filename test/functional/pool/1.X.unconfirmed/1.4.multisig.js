@@ -40,7 +40,6 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 			transaction = lisk.multisignature.createMultisignature(account.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				pendingMultisignatures.push(transaction);
 			});

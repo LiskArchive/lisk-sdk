@@ -19,7 +19,6 @@ function beforeUnconfirmedPhase (account) {
 
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
@@ -30,7 +29,6 @@ function beforeUnconfirmedPhase (account) {
 				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 			});
 	});
@@ -42,7 +40,6 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
@@ -53,7 +50,6 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				randomUtil.guestbookDapp.transactionId = transaction.id;

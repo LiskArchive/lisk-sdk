@@ -28,7 +28,6 @@ describe('POST /api/transactions (unconfirmed type 1 on top of type 1)', functio
 			transaction = lisk.signature.createSignature(account.password, 'secondpassword');
 
 			return sendTransactionPromise(transaction).then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				// TODO: Enable when transaction pool order is fixed
 				// goodTransactions.push(transaction);

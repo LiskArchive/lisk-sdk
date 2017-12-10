@@ -199,7 +199,6 @@ describe('GET /api/transactions', function () {
 					expectSwaggerParamError(res, 'sort');
 				});
 			});
-
 		});
 
 		it('using no params should be ok', function () {
@@ -656,6 +655,7 @@ describe('GET /api/transactions', function () {
 		describe('meta', function () {
 
 			describe('count', function () {
+
 				it('should return count of the transactions with response', function () {
 					return transactionsEndpoint.makeRequest({}, 200).then(function (res) {
 						res.body.meta.count.should.be.a('number');

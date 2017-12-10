@@ -27,7 +27,6 @@ function beforeValidationPhase (scenarios) {
 			transactionsToWaitFor.push(transaction.id);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 			});
 		}))
@@ -41,7 +40,6 @@ function beforeValidationPhase (scenarios) {
 					transactionsToWaitFor.push(transaction.id);
 
 					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-
 						res.body.data.message.should.be.equal('Transaction(s) accepted');
 					});
 				}));
@@ -62,7 +60,6 @@ function beforeValidationPhaseWithDapp (scenarios) {
 			transactionsToWaitFor.push(transaction.id);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 			});
 		}))
@@ -77,7 +74,6 @@ function beforeValidationPhaseWithDapp (scenarios) {
 					transactionsToWaitFor.push(transaction.id);
 
 					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-
 						res.body.data.message.should.be.equal('Transaction(s) accepted');
 					});
 				}));
@@ -92,7 +88,6 @@ function beforeValidationPhaseWithDapp (scenarios) {
 					transactionsToWaitFor.push(transaction.id);
 
 					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-
 						res.body.data.message.should.be.equal('Transaction(s) accepted');
 					});
 				}));

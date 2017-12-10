@@ -4,6 +4,7 @@ var modules = require('../../helpers/swagger_module_registry');
 var debug = require('debug')('swagger:lisk:cache');
 
 module.exports = function create (fittingDef, bagpipes) {
+
 	var cache = modules.getCache();
 	var logger = modules.getLogger();
 	var mode = fittingDef.mode;
@@ -12,6 +13,7 @@ module.exports = function create (fittingDef, bagpipes) {
 	debug('create', mode);
 
 	return function lisk_cache (context, next) {
+
 		debug('exec', mode);
 
 		// If not a swagger operation don't serve from pipeline

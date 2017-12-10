@@ -44,7 +44,7 @@ function getValidator () {
  */
 function getResolvedSwaggerSpec () {
 
-	if(resolvedSwaggerSpec) {
+	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
 	} else {
 		var content = getSwaggerSpec();
@@ -82,7 +82,7 @@ function getSwaggerSpec () {
  * @return {object}
  */
 function generateParamsErrorObject (params, messages, codes) {
-	if (!codes){ codes = []; }
+	if (!codes) { codes = []; }
 
 	var error = new Error('Validation errors');
 	error.statusCode = 400;
@@ -90,12 +90,11 @@ function generateParamsErrorObject (params, messages, codes) {
 	error.errors = params.map(function (p, i) {
 		var def = p.parameterObject;
 
-		if(def) {
+		if (def) {
 			return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
 		} else {
-			return {name: p, message: 'Unknown request parameter.', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM')};
+			return {name: p, message: 'Unknown request parameter', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM')};
 		}
-
 	});
 
 	return error;

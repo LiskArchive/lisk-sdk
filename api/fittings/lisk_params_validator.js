@@ -9,13 +9,15 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		var error = null;
 
-		// todo: add support for validating accept header against produces declarations
-		// see: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
-		//var accept = req.headers['accept'];
-		//var produces = _.union(operation.api.definition.produces, operation.definition.produces);
+		// TODO: Add support for validating accept header against produces declarations
+		// See: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+		//
+		// var accept = req.headers['accept'];
+		// var produces = _.union(operation.api.definition.produces, operation.definition.produces);
 
 		if (context.request.swagger.operation) {
 			var validateResult = context.request.swagger.operation.validateRequest(context.request);
+
 			if (validateResult.errors.length) {
 				error = new Error('Validation errors');
 				error.statusCode = 400;

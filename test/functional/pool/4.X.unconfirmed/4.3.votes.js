@@ -30,7 +30,6 @@ describe('POST /api/transactions (unconfirmed type 3 on top of type 4)', functio
 			transaction = lisk.vote.createVote(scenarios.regular.account.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
