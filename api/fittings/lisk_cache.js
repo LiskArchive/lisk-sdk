@@ -23,13 +23,13 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		// Check if cache is enabled for the endpoint in swagger.yml
 		if (!!context.request.swagger.operation[cacheSpecKey] === false) {
-			debug('cache not enabled for endpoint: ' + context.request.swagger.operation.pathToDefinition.join('.'));
+			debug('Cache not enabled for endpoint: ' + context.request.swagger.operation.pathToDefinition.join('.'));
 			return next(null, context.input);
 		}
 
 		// If cache server not ready move forward without any processing
 		if (!cache.isReady()) {
-			debug('cache module not ready');
+			debug('Cache module not ready');
 			return next(null, context.input);
 		}
 
