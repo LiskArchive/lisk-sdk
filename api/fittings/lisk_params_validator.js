@@ -25,9 +25,9 @@ module.exports = function create (fittingDef, bagpipes) {
 				validateResult.errors.forEach(function (error) { debug('param error: %j', error); });
 
 				error.errors = _.map(validateResult.errors, function (e) {
-					var errs = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
-					errs.errors = _.map(e.errors, function (e){ return _.pick(e, ['code', 'message'] ); });
-					return errs;
+					var errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
+					errors.errors = _.map(e.errors, function (e) { return _.pick(e, ['code', 'message'] ); });
+					return errors;
 				});
 			}
 		} else {
