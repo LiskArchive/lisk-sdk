@@ -14,7 +14,8 @@ var pathFiles = [
 	'./node.transactions.unsigned',
 	'./peers',
 	'./transactions',
-	'./voters'
+	'./voters',
+	'./votes'
 ];
 
 parallelTests(pathFiles, 'test/functional/http/get/');
