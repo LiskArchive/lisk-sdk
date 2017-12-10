@@ -13,6 +13,7 @@ var onNewBlockPromise = Promise.promisify(waitFor.blocks.bind(null, 1));
 var getTransactionByIdPromise = require('../../common/helpers/api').getTransactionByIdPromise;
 var randomUtil = require('../../common/utils/random');
 var sendTransactionPromise = require('../../common/helpers/api').sendTransactionPromise;
+var erroCodes = require('../../../helpers/apiCodes');
 
 describe('POST /api/transactions (type 2) double delegate registration', function () {
 
@@ -26,7 +27,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 				return res.status;
 			}),
 			transactionsIds: _.flatMap(results, function (res) {
-				return _.map(res.body.transactions, 'id');
+				return _.map(res.body.data, 'id');
 			})
 		};
 		return strippedResults;
@@ -41,8 +42,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 
 		var transaction = lisk.transaction.createTransaction(account.address, 4 * constants.fees.delegate, accounts.genesis.password);
 		return sendTransactionPromise(transaction).then(function (res) {
-			expect(res).to.have.property('status').to.be.equal(200);
-			expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+			res.body.data.message.should.be.equal('Transaction(s) accepted');
 			return waitFor.confirmations([transaction.id]);
 		});
 	}
@@ -52,10 +52,8 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 			sendTransactionPromise(transaction1),
 			secondSendSchedule(transaction2)
 		]).then(function (results) {
-			expect(results).to.have.nested.property('0.status').to.equal(200);
-			expect(results).to.have.nested.property('0.body.status').to.equal('Transaction(s) accepted');
-			expect(results).to.have.nested.property('1.status').to.equal(200);
-			expect(results).to.have.nested.property('1.body.status').to.equal('Transaction(s) accepted');
+			results[0].body.data.message.should.be.equal('Transaction(s) accepted');
+			results[1].body.data.message.should.be.equal('Transaction(s) accepted');
 			return onNewBlockPromise().then(function () {
 				return Promise.all([
 					getTransactionByIdPromise(transaction1.id),
@@ -82,7 +80,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 						secondTransaction = lisk.delegate.createDelegate(validParams.secret, validParams.username);
 						return Promise.all([
 							sendTransactionPromise(firstTransaction),
-							sendTransactionPromise(secondTransaction)
+							sendTransactionPromise(secondTransaction, erroCodes.PROCESSING_ERROR)
 						]).then(function (results) {
 							firstResponse = results[0];
 							secondResponse = results[1];
@@ -91,12 +89,10 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 				});
 
 				it('first transaction should be ok', function () {
-					expect(firstResponse).to.have.property('status').to.equal(200);
-					expect(firstResponse).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+					firstResponse.body.data.message.should.be.equal('Transaction(s) accepted');
 				});
 
 				it('second transaction should fail', function () {
-					expect(secondResponse).to.have.property('status').to.equal(400);
 					expect(secondResponse).to.have.nested.property('body.message').equal('Transaction is already processed: ' + firstTransaction.id);
 				});
 			});
@@ -164,8 +160,8 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 
 			var transaction = lisk.transaction.createTransaction(secondAccount.address, 4 * constants.fees.delegate, accounts.genesis.password);
 			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				return waitFor.confirmations([transaction.id]);
 			});
 		};

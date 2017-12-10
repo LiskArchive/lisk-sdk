@@ -339,6 +339,69 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /node/transactions/{state}:
+    x-swagger-router-controller: node
+    get:
+      tags:
+        - Transactions
+      summary: Requests unprocessed transactions data
+      operationId: getPooledTransactions
+      description:
+        This API call returns unprocessed transactions matching filter criteria.
+        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load.
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: state
+          description: State of transactions to query
+          required: true
+          type: string
+          enum:
+            - unprocessed
+            - unconfirmed
+            - unsigned
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientAddress'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderAddress'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /delegates:
     x-swagger-router-controller: delegates
     get:
@@ -635,6 +698,103 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /transactions:
+    x-swagger-router-controller: transactions
+    get:
+      tags:
+        - Transactions
+      summary: Requests transactions data
+      operationId: getTransactions
+      x-lisk-cache-enabled: true
+      description:
+        This API call returns transactions matching filter criteria.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientAddress'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderAddress'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/minAmount'
+        - $ref: '#/parameters/maxAmount'
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
+        - $ref: '#/parameters/blockId'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+    post:
+      tags:
+        - Transactions
+      summary: Submits signed transactions for processing
+      operationId: postTransactions
+      description:
+        Submits signed transactions for processing by the transaction pool
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: transactions
+          description: Transaction object to submit to the network
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Transaction'
+      responses:
+        200:
+          description: Transaction accepted by the node for processing
+          schema:
+            $ref: '#/definitions/GeneralStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        409:
+          description: Some error related to processing of request
+          schema:
+            $ref: '#/definitions/ProcessingError'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+
 parameters:
   ip:
     name: ip
@@ -666,7 +826,7 @@ parameters:
   version:
     name: version
     in: query
-    description: Lisk version run by node
+    description: Lisk version of the node
     type: string
     format: version
     minLength: 5
@@ -727,7 +887,7 @@ parameters:
   secondPublicKey:
     name: secondPublicKey
     in: query
-    description: Public key to query
+    description: Second public key to query
     type: string
     format: publicKey
   username:
@@ -741,11 +901,80 @@ parameters:
   blockId:
     name: blockId
     in: query
-    description: BlockId to query
+    description: Block id to query
     type: string
     format: id
     minLength: 1
     maxLength: 20
+  transactionId:
+    name: id
+    in: query
+    description: Transaction id to query
+    type: string
+    format: id
+    minLength: 1
+    maxLength: 20
+  recipientAddress:
+    name: recipientAddress
+    in: query
+    description: Recipient address to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
+  recipientPublicKey:
+    name: recipientPublicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+    minLength: 1
+  senderAddress:
+    name: senderAddress
+    in: query
+    description: Sender address to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
+  senderPublicKey:
+    name: senderPublicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+    minLength: 1
+  transactionType:
+    name: type
+    in: query
+    description: Transaction type
+    type: integer
+    minimum: 0
+    maximum: 7
+  minAmount:
+    name: minAmount
+    in: query
+    description: Minimum transaction amount
+    type: integer
+    minimum: 0
+  maxAmount:
+    name: maxAmount
+    in: query
+    description: Maximum transaction amount
+    type: integer
+    minimum: 0
+  fromTimestamp:
+    name: fromTimestamp
+    in: query
+    description: Starting Lisk timestamp of records to query
+    type: integer
+    minimum: 0
+  toTimestamp:
+    name: toTimestamp
+    in: query
+    description: Ending Lisk timestamp of records to query
+    type: integer
+    minimum: 1
 
 definitions:
   NodeStatusResponse:
@@ -1013,6 +1242,156 @@ definitions:
            example: true
       links:
         type: object
+
+  TransactionsResponse:
+    description: Transactions response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+          - count
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+          count:
+            description: Number of transactions in the response
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  GeneralStatusResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        type: object
+        required:
+          - message
+        properties:
+          message:
+            type: string
+            minLength: 1
+      meta:
+       type: object
+       required:
+         - status
+       properties:
+         status:
+           description: Acceptance status for transactions
+           type: boolean
+           example: true
+      links:
+        type: object
+
+  Transaction:
+    type: object
+    required:
+      - id
+      - type
+      - amount
+      - fee
+      - senderPublicKey
+      - recipientAddress
+      - timestamp
+      - asset
+      - signature
+    properties:
+      id:
+        type: string
+        format: id
+        example: "222675625422353767"
+        minLength: 1
+        maxLength: 20
+      amount:
+        type: string
+        example: '150000000'
+      fee:
+        type: string
+        example: '1000000'
+      type:
+        type: integer
+        minimum: 0
+        maximum: 7
+      height:
+        type: integer
+        minimum: 1
+      blockId:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      timestamp:
+        type: integer
+        example: 28227090
+      senderAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      senderPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      senderSecondPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      recipientAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      recipientPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      signature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      secondSignature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      multisignatures:
+        type: array
+        items:
+          type: string
+          format: signature
+          example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
+      confirmations:
+        type: integer
+        minimum: 0
+      asset:
+        type: object
+      receivedAt:
+        type: string
+        format: 'date-time'
+      relays:
+        type: integer
+      signSignature:
+        type: string
+        format: signature
 
   Signature:
     type: object
@@ -1394,6 +1773,7 @@ definitions:
       - loaded
       - networkHeight
       - syncing
+      - transactions
     properties:
       broadhash:
         type: string
@@ -1418,6 +1798,30 @@ definitions:
       syncing:
         type: boolean
         example: false
+      transactions:
+        type: object
+        required:
+          - unconfirmed
+          - unsigned
+          - unprocessed
+          - confirmed
+          - total
+        properties:
+          unconfirmed:
+            type: integer
+            example: 5
+          unsigned:
+            type: integer
+            example: 2
+          unprocessed:
+            type: integer
+            example: 3
+          confirmed:
+            type: integer
+            example: 5
+          total:
+            type: integer
+            example: 15
 
   ProcessingError:
     type: object
@@ -1518,7 +1922,6 @@ definitions:
     type: object
     description: Singular error detail for a parameter
     required:
-      - code
       - message
     properties:
       code:

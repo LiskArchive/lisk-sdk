@@ -98,7 +98,6 @@ var config = {
 	},
 	api: {
 		multisignatures: { http: './api/http/multisignatures.js' },
-		transactions: { http: './api/http/transactions.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };

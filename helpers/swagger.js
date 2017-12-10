@@ -8,12 +8,13 @@ var Promise = require('bluebird');
 
 var ZSchema = require('./z_schema');
 var SwayHelpers = require('sway/lib/helpers');
+var _ = require('lodash');
 
 // Used as private member to cache the spec resolution process
 var resolvedSwaggerSpec = null;
 
 /**
- * Uses Default Swagger Validator and extend with custom formats.
+ * Uses default swagger validator and extend with custom formats.
  * @name swagger
  * @memberof module:helpers
  * @requires module:helpers:z_schema
@@ -43,7 +44,7 @@ function getValidator () {
  */
 function getResolvedSwaggerSpec () {
 
-	if(resolvedSwaggerSpec) {
+	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
 	} else {
 		var content = getSwaggerSpec();
@@ -75,28 +76,45 @@ function getSwaggerSpec () {
 /**
  * Generate swagger based param error object to handle custom errors.
  * @param {Array} params - List of param objects.
- * @param {Array} messages - List of error messages.
- * @param {Array} [codes] - List of codes for particular error.
- *
+ * @param {Array} [messages] - List of error messages.
+ * @param {Array} [codes] - List of error codes.
  * @return {object}
  */
 function generateParamsErrorObject (params, messages, codes) {
-	if (!codes){ codes = []; }
+	if (!codes) { codes = []; }
 
 	var error = new Error('Validation errors');
 	error.statusCode = 400;
 
 	error.errors = params.map(function (p, i) {
 		var def = p.parameterObject;
-		return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
+
+		if (def) {
+			return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
+		} else {
+			return {name: p, message: 'Unknown request parameter', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM')};
+		}
 	});
 
 	return error;
+}
+
+/**
+ * Get list of undocumented params.
+ * @param {object} request - Request object.
+ * @return {boolean}
+ */
+function invalidParams (request) {
+	var swaggerParams = Object.keys(request.swagger.params);
+	var requestParams = Object.keys(request.query);
+
+	return _.difference(requestParams, swaggerParams);
 }
 
 module.exports = {
 	getValidator: getValidator,
 	getResolvedSwaggerSpec: getResolvedSwaggerSpec,
 	getSwaggerSpec: getSwaggerSpec,
-	generateParamsErrorObject: generateParamsErrorObject
+	generateParamsErrorObject: generateParamsErrorObject,
+	invalidParams: invalidParams
 };

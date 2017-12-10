@@ -16,7 +16,7 @@ var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function (params) {
 
-	describe('postTransactions', function () {
+	describe('postTransactions @slow', function () {
 
 		var transactions = [];
 		var maximum = 1000;

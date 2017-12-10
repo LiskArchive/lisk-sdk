@@ -103,7 +103,12 @@ module.exports = function (grunt) {
 			},
 
 			testIntegration: {
-				command: './node_modules/.bin/_mocha --bail test/integration/index.js ',
+				command: './node_modules/.bin/_mocha --bail test/integration/index.js --grep @slow --invert',
+				maxBuffer: maxBufferSize
+			},
+
+			testIntegrationExtensive: {
+				command: './node_modules/.bin/_mocha --bail test/integration/index.js',
 				maxBuffer: maxBufferSize
 			},
 
@@ -176,6 +181,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('test-functional-http-post', ['eslint', 'exec:testFunctionalHttpPost']);
 	grunt.registerTask('test-functional-pool', ['eslint', 'exec:testFunctionalPool']);
 	grunt.registerTask('test-integration', ['eslint', 'exec:testIntegration']);
+	grunt.registerTask('test-integration-extensive', ['eslint', 'exec:testIntegrationExtensive']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
