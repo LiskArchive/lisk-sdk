@@ -118,7 +118,7 @@ Voters.prototype.isLoaded = function () {
 // Public methods
 Voters.prototype.shared = {
 	/**
-	 * API function for getting the delegate including his voters.
+	 * Gets a delegate and their voters.
 	 * @param {Object} filters - Filters applied to results.
 	 * @param {string} filters.username - Username associated to account.
 	 * @param {string} filters.address - Account address.
@@ -148,7 +148,7 @@ Voters.prototype.shared = {
 	},
 
 	/**
-	 * API function for getting the delegate including his votes.
+	 * Gets a delegate and their votes.
 	 * @param {Object} filters - Filters applied to results.
 	 * @param {string} filters.username - Username associated to account.
 	 * @param {string} filters.address - Account address.
