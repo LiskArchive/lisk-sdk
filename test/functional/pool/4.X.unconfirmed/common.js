@@ -27,8 +27,7 @@ function beforeValidationPhase (scenarios) {
 			transactionsToWaitFor.push(transaction.id);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
@@ -41,8 +40,7 @@ function beforeValidationPhase (scenarios) {
 					transactionsToWaitFor.push(transaction.id);
 
 					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-						expect(res).to.have.property('status').to.equal(200);
-						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						res.body.data.message.should.be.equal('Transaction(s) accepted');
 					});
 				}));
 			});
@@ -62,8 +60,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 			transactionsToWaitFor.push(transaction.id);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
@@ -77,8 +74,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 					transactionsToWaitFor.push(transaction.id);
 
 					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-						expect(res).to.have.property('status').to.equal(200);
-						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						res.body.data.message.should.be.equal('Transaction(s) accepted');
 					});
 				}));
 			})
@@ -92,8 +88,7 @@ function beforeValidationPhaseWithDapp (scenarios) {
 					transactionsToWaitFor.push(transaction.id);
 
 					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-						expect(res).to.have.property('status').to.equal(200);
-						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						res.body.data.message.should.be.equal('Transaction(s) accepted');
 					});
 				}));
 			});

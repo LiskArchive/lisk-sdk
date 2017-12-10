@@ -19,7 +19,7 @@ function beforeValidationPhase (account) {
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				expect(res).to.have.nested.property('body.data.message').that.is.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
 			})
@@ -30,7 +30,7 @@ function beforeValidationPhase (account) {
 			})
 			.then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.nested.property('body.data.message').to.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
 			});
