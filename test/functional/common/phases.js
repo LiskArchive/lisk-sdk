@@ -31,8 +31,7 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 		it.skip('good transactions should not be unconfirmed', function () {
 			return Promise.map(goodTransactions, function (transaction) {
 				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
-					expect(res).to.have.property('success').to.be.not.ok;
-					expect(res).to.have.property('error').equal('Transaction not found');
+					res.body.data.should.be.empty;
 				});
 			});
 		});

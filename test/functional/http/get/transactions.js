@@ -36,7 +36,6 @@ describe('GET /api/transactions', function () {
 
 	// Crediting accounts
 	before(function () {
-
 		var promises = [];
 
 		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
@@ -632,7 +631,6 @@ describe('GET /api/transactions', function () {
 		describe('combination of query parameters', function () {
 
 			it('using valid parameters should be ok', function () {
-
 				return transactionsEndpoint.makeRequest({
 					senderAddress: accountFixtures.genesis.address,
 					recipientAddress: account.address,
@@ -661,109 +659,6 @@ describe('GET /api/transactions', function () {
 						res.body.meta.count.should.be.a('number');
 					});
 				});
-			});
-		});
-	});
-
-	// TODO: After enabling new paths in swagger, fix these tests.
-	describe.skip('/count', function () {
-
-		it('should be ok', function () {
-			return apiHelpers.getCountPromise('transactions').then(function (res) {
-				expect(res).to.have.property('success').to.be.ok;
-				expect(res).to.have.property('confirmed').that.is.an('number');
-				expect(res).to.have.property('unconfirmed').that.is.an('number');
-				expect(res).to.have.property('unprocessed').that.is.an('number');
-				expect(res).to.have.property('unsigned').that.is.an('number');
-				expect(res).to.have.property('total').that.is.an('number');
-			});
-		});
-	});
-
-	describe.skip('/queued/get?id=', function () {
-
-		it('using unknown id should be ok', function () {
-			return apiHelpers.getQueuedTransactionPromise('1234').then(function (res) {
-				expect(res).to.have.property('success').to.equal(false);
-				expect(res).to.have.property('error').that.is.equal('Transaction not found');
-			});
-		});
-
-		it('using valid transaction with data field should be ok', function () {
-			var amountToSend = 123456789;
-			var expectedFee = randomUtil.expectedFeeForTransactionWithData(amountToSend);
-			var data = 'extra information';
-			var transaction = lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
-
-			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
-
-				return apiHelpers.getQueuedTransactionPromise(transaction.id).then(function (result) {
-					expect(result).to.have.property('success').to.equal(true);
-					expect(result).to.have.property('transaction').that.is.an('object');
-					expect(result.transaction.id).to.equal(transaction.id);
-				});
-			});
-		});
-	});
-
-	describe.skip('/queued', function () {
-
-		it('should be ok', function () {
-			return apiHelpers.getQueuedTransactionsPromise().then(function (res) {
-				expect(res).to.have.property('success').to.equal(true);
-				expect(res).to.have.property('transactions').that.is.an('array');
-				expect(res).to.have.property('count').that.is.an('number');
-			});
-		});
-	});
-
-	describe.skip('/multisignatures/get?id=', function () {
-
-		it('using unknown id should be ok', function () {
-			return apiHelpers.getMultisignaturesTransactionPromise('1234').then(function (res) {
-				expect(res).to.have.property('success').to.equal(false);
-				expect(res).to.have.property('error').that.is.equal('Transaction not found');
-			});
-		});
-	});
-
-	describe.skip('/multisignatures', function () {
-
-		it('should be ok', function () {
-			return apiHelpers.getMultisignaturesTransactionsPromise().then(function (res) {
-				expect(res).to.have.property('success').to.equal(true);
-				expect(res).to.have.property('transactions').that.is.an('array');
-				expect(res).to.have.property('count').that.is.an('number');
-			});
-		});
-	});
-
-	describe.skip('/unconfirmed/get?id=', function () {
-
-		var unconfirmedTransaction;
-
-		before(function () {
-			unconfirmedTransaction = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
-			return apiHelpers.sendTransactionPromise(unconfirmedTransaction);
-		});
-
-		it('using valid id should be ok', function () {
-			var transactionId = unconfirmedTransaction.id;
-			return apiHelpers.getUnconfirmedTransactionPromise(transactionId).then(function (res) {
-				expect(res).to.have.property('success');
-			});
-		});
-	});
-
-	describe.skip('/unconfirmed', function () {
-
-		it('should be ok', function () {
-			return apiHelpers.getUnconfirmedTransactionsPromise().then(function (res) {
-				expect(res).to.have.property('success').to.equal(true);
-				expect(res).to.have.property('transactions').that.is.an('array');
-				expect(res).to.have.property('count').that.is.an('number');
 			});
 		});
 	});
