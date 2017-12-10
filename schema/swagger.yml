@@ -344,17 +344,17 @@ paths:
     get:
       tags:
         - Transactions
-      summary: requests unprocessed transactions data
+      summary: Requests unprocessed transactions data
       operationId: getPooledTransactions
       description:
         This API call returns unprocessed transactions matching filter criteria.
-        If you posted batch of transactions, they will appear in unprocessed list with a bit delay, depending on server load.
+        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load.
       produces:
         - application/json
       parameters:
         - in: path
           name: state
-          description: The state of transactions to query
+          description: State of transactions to query
           required: true
           type: string
           enum:
@@ -371,7 +371,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: fields to sort on to query
+          description: Fields to sort on to query
           required: false
           type: string
           enum:
