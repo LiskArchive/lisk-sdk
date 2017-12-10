@@ -98,9 +98,9 @@ VotersController.getVotes = function (context, next) {
 		var error = generateParamsErrorObject(
 			[params.address, params.publicKey, params.secondPublicKey, params.username],
 			['address is required if publicKey, secondPublicKey and username not provided.',
-				'publicKey is required if address, secondPublicKey and username not provided.',
-				'secondPublicKey is required if address, publicKey and username not provided.',
-				'username is required if publicKey, secondPublicKey and address not provided.']
+			 'publicKey is required if address, secondPublicKey and username not provided.',
+			 'secondPublicKey is required if address, publicKey and username not provided.',
+			 'username is required if publicKey, secondPublicKey and address not provided.']
 		);
 
 		return next(error);
