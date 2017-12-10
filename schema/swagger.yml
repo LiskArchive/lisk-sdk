@@ -84,7 +84,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -97,7 +97,7 @@ paths:
     get:
       tags:
       - Dapps
-      summary: Requests a list of registered dapps
+      summary: Requests dapps data
       operationId: getDapps
       description:
         By passing in the appropriate options, you can search for
@@ -139,7 +139,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -188,7 +188,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -213,7 +213,7 @@ paths:
           schema:
             $ref: '#/definitions/NodeConstantsResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -237,7 +237,7 @@ paths:
           schema:
             $ref: '#/definitions/NodeStatusResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -255,7 +255,7 @@ paths:
       summary: Requests forging status of a delegate
       operationId: getForgingStatus
       description:
-        By querying by publicKey, a delegates forging status on a node can be determined
+        By querying by publicKey, the forging status of a delegate can be determined on a node
       produces:
         - application/json
       parameters:
@@ -274,7 +274,7 @@ paths:
           schema:
             $ref: '#/definitions/AccessDeniedError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -331,7 +331,7 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -347,8 +347,8 @@ paths:
       summary: Requests unprocessed transactions data
       operationId: getPooledTransactions
       description:
-        This API call returns unprocessed transactions matching filter criteria.
-        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load.
+        This API call returns unprocessed transactions matching filter criteria
+        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load
       produces:
         - application/json
       parameters:
@@ -394,7 +394,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -407,7 +407,7 @@ paths:
     get:
       tags:
       - Delegates
-      summary: Requests a list of delegates
+      summary: Requests delegates data
       operationId: getDelegates
       x-lisk-cache-enabled: true
       description:
@@ -458,7 +458,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -471,7 +471,7 @@ paths:
     get:
       tags:
         - Delegates
-      summary: Requests a list of next forgers
+      summary: Requests next forgers data
       operationId: getForgers
       description:
         By passing in the appropriate options, you can get a list of the next forgers
@@ -490,7 +490,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -546,7 +546,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -559,10 +559,10 @@ paths:
     get:
       tags:
         - Votes
-      summary: Requests voters of a delegate.
+      summary: Requests voters data for a delegate
       operationId: getVoters
       description:
-        This API call returns all voters of a delegate. Must provide at least one of the filter parameters.
+        This API call returns all votes received by a delegate. At least one of the filter parameters must be provided
       produces:
         - application/json
       parameters:
@@ -596,7 +596,7 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -609,10 +609,10 @@ paths:
     get:
       tags:
         - Votes
-      summary: requests vote data for a given account
+      summary: Requests votes data for an account
       operationId: getVotes
       description:
-        This API call returns all votes by a given account
+        This API call returns all votes placed by an account
       produces:
         - application/json
       parameters:
@@ -646,7 +646,7 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -690,7 +690,7 @@ paths:
           schema:
             $ref: '#/definitions/ProcessingError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -707,7 +707,7 @@ paths:
       operationId: getTransactions
       x-lisk-cache-enabled: true
       description:
-        This API call returns transactions matching filter criteria.
+        This API call returns transactions matching filter criteria
       produces:
         - application/json
       parameters:
@@ -750,7 +750,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -791,7 +791,7 @@ paths:
           schema:
             $ref: '#/definitions/ProcessingError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
 
@@ -1868,7 +1868,7 @@ definitions:
     properties:
       error:
         type: string
-        example: Request limit exceeded. Please try again later.
+        example: Request limit exceeded. Please try again later
 
   ParamErrorResponse:
     type: object
