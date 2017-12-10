@@ -22,13 +22,13 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 					'id=' + transaction.id
 				];
 				return apiHelpers.getTransactionsPromise(params).then(function (res) {
-					expect(res).to.have.property('status').to.equal(200);
-					expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
+					res.body.data.should.have.length(0);
 				});
 			});
 		});
 
-		it('good transactions should not be unconfirmed', function () {
+		// TODO: After migration /transactions/unconfirmed make sure this phase works
+		it.skip('good transactions should not be unconfirmed', function () {
 			return Promise.map(goodTransactions, function (transaction) {
 				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
 					expect(res).to.have.property('success').to.be.not.ok;
@@ -43,8 +43,7 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 					'id=' + transaction.id
 				];
 				return apiHelpers.getTransactionsPromise(params).then(function (res) {
-					expect(res).to.have.property('status').to.equal(200);
-					expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(1);
+					res.body.data.should.have.length(1);
 				});
 			});
 		});
@@ -70,8 +69,7 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 						'id=' + transaction.id
 					];
 					return apiHelpers.getTransactionsPromise(params).then(function (res) {
-						expect(res).to.have.property('status').to.equal(200);
-						expect(res).to.have.nested.property('body.transactions').to.be.an('array').to.have.lengthOf(0);
+						res.body.data.should.have.length(0);
 					});
 				});
 			});

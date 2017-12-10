@@ -11,6 +11,7 @@ var accountFixtures = require('../../../../fixtures/accounts');
 
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
+var errorCodes = require('../../../../../helpers/apiCodes');
 
 describe('POST /api/transactions (validate type 1 on top of type 1)', function () {
 
@@ -27,9 +28,8 @@ describe('POST /api/transactions (validate type 1 on top of type 1)', function (
 		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 			transaction = lisk.signature.createSignature(account.password, randomUtil.password());
 
-			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Missing sender second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -40,9 +40,8 @@ describe('POST /api/transactions (validate type 1 on top of type 1)', function (
 			lisk.crypto.secondSign(transaction, secondKeys);
 			transaction.id = lisk.crypto.getId(transaction);
 
-			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Missing sender second signature');
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Missing sender second signature');
 				badTransactions.push(transaction);
 			});
 		});

@@ -65,7 +65,7 @@ module.exports = {
 			headers: headers
 		}).then(function (res) {
 			if (res.status !== apiCodes.OK) {
-				throw new Error('Unable to get blocks from peer: ' + res.body);
+				throw new Error('Failed to get blocks from peer: ' + res.body);
 			}
 			return JSON.parse(res.body).data;
 		});
@@ -80,33 +80,16 @@ module.exports = {
 		});
 	},
 
-	getTransactions: function (port, ip) {
-		return popsicle.get({
-			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000),
-			headers: headers
-		}).then(function (res) {
-			return res.body.blocks;
-		});
-	},
-
 	getTransaction: function (transactionId, port, ip) {
 		return popsicle.get({
 			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000) + '?id=' + transactionId,
 			headers: headers
 		}).then(function (res) {
-			return JSON.parse(res.body).transactions[0];
-		});
-	},
-
-	postTransaction: function (transaction, port, ip) {
-		return popsicle.post({
-			url: endpoints.versions[currentVersion].postTransaction(ip || '127.0.0.1', port || 4000),
-			headers: headers,
-			data: {
-				transaction: transaction
+			if (currentVersion === '1.0.0') {
+				return JSON.parse(res.body).data[0];
+			} else {
+				return JSON.parse(res.body).transactions[0];
 			}
-		}).then(function (res) {
-			return res.body.blocks;
 		});
 	},
 
@@ -120,11 +103,11 @@ module.exports = {
 			}
 		}).then(function (res) {
 			if (res.status !== apiCodes.OK) {
-				throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey);
+				throw new Error('Failed to enable forging for delegate with publicKey: ' + keys.publicKey);
 			}
 			return JSON.parse(res.body).data[0];
 		}).catch(function (err) {
-			throw new Error('Unable to enable forging for delegate with publicKey: ' + keys.publicKey + JSON.stringify(err));
+			throw new Error('Failed to enable forging for delegate with publicKey: ' + keys.publicKey + JSON.stringify(err));
 		});
 	}
 };

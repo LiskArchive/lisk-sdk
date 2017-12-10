@@ -563,55 +563,38 @@ Transactions.prototype.onBind = function (scope) {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
+ * Public methods, accessible via API.
  */
 Transactions.prototype.shared = {
-	getTransactions: function (req, cb) {
-		async.waterfall([
-			function (waterCb) {
-				// Query parameters which can have 1 or multiple values are parsed as strings when the have 1 value. We need to convert string into an array of length 1
-				_.each(req.body, function (value, key) {
-					// Dealing with parameters which must be array to array if they are string 
-					if (_.includes(['senderId', 'recipientId', 'senderPublicKey', 'recipientPublicKey'], key) && typeof value === 'string') {
-						req.body[key] = [value];
-					}
-				});
-
-				library.schema.validate(req.body, schema.getTransactions, function (err) {
-					if (err) {
-						return setImmediate(waterCb, err[0].message);
-					} else {
-						return setImmediate(waterCb, null);
-					}
-				});
-			},
-			function (waterCb) {
-				__private.list(req.body, function (err, data) {
-					if (err) {
-						return setImmediate(waterCb, 'Failed to get transactions: ' + err);
-					} else {
-						return setImmediate(waterCb, null, {transactions: data.transactions, count: data.count});
-					}
-				});
+	/**
+	 * Search transactions based on the query parameter passed.
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.id - Transaction id.
+	 * @param {string} filters.blockId - Block id.
+	 * @param {string} filters.recipientId - Recipient id.
+	 * @param {string} filters.recipientPublicKey - Recipient public key.
+	 * @param {string} filters.senderId - Sender id.
+	 * @param {string} filters.senderPublicKey - Sender public key.
+	 * @param {int} filters.transactionType - Transaction type.
+	 * @param {int} filters.fromHeight - From block height.
+	 * @param {int} filters.toHeight - To block height.
+	 * @param {string} filters.minAmount - Minimum amount.
+	 * @param {string} filters.maxAmount - Maximum amount.
+	 * @param {int} filters.fromTimestamp - From transaction timestamp.
+	 * @param {int} filters.toTimestamp - To transaction timestamp.
+	 * @param {string} filters.sort - Field to sort results by.
+	 * @param {int} filters.limit - Limit applied to results.
+	 * @param {int} filters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
+	 * @returns {setImmediateCallbackObject}
+	 */
+	getTransactions: function (filters, cb) {
+		__private.list(filters, function (err, data) {
+			if (err) {
+				return setImmediate(cb, 'Failed to get transactions: ' + err);
+			} else {
+				return setImmediate(cb, null, {transactions: data.transactions, count: data.count});
 			}
-		], function (err, res) {
-			function mapOldResponseStructureToNew (err, res, cb) {
-				var error = null;
-				var response = null;
-
-				if (err) {
-					error = new ApiError(err, apiCodes.BAD_REQUEST);
-				}
-
-				if (res) {
-					response = res;
-				}
-
-				return setImmediate(cb, error, response);
-			}
-
-			return mapOldResponseStructureToNew(err, res, cb);
 		});
 	},
 
@@ -625,7 +608,7 @@ Transactions.prototype.shared = {
 				total: transactionsCount[0].count + Object.keys(__private.transactionPool.unconfirmed.index).length + Object.keys(__private.transactionPool.queued.index).length + Object.keys(__private.transactionPool.multisignature.index).length
 			});
 		}, function (err) {
-			return setImmediate(cb, 'Unable to count transactions');
+			return setImmediate(cb, 'Failed to count transactions');
 		});
 	},
 
@@ -653,26 +636,24 @@ Transactions.prototype.shared = {
 		return __private.getPooledTransactions('getUnconfirmedTransactionList', req, cb);
 	},
 
-	postTransactions: function (req, cb) {
-		return modules.transport.shared.postTransactions(req.body, function (err, res) {
-			function mapOldResponseStructureToNew (res, cb) {
-				var error = null;
-				var response = null;
+	postTransactions: function (transactions, cb) {
+		return modules.transport.shared.postTransactions({transactions: transactions}, function (err, res) {
+			var error = null;
+			var response = null;
 
-				if (res.success == false) {
-					error = new ApiError(res.message, apiCodes.BAD_REQUEST);
-				}
-
-				if (res.success == true) {
-					response = {
-						status: 'Transaction(s) accepted'
-					};
-				}
-
-				return setImmediate(cb, error, response);
+			if (err) {
+				error = new ApiError(err, apiCodes.PROCESSING_ERROR);
 			}
 
-			mapOldResponseStructureToNew(res, cb);
+			if (res.success == false) {
+				error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
+			}
+
+			if (res.success == true) {
+				response = 'Transaction(s) accepted';
+			}
+
+			setImmediate(cb, error, response);
 		});
 	}
 };
