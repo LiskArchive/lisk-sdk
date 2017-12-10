@@ -31,7 +31,7 @@ describe('GET /api/node', function () {
 			var transaction = null;
 
 			before(function () {
-				// Credit account with some money
+				// Credit account with some funds
 				transaction = lisk.transaction.createTransaction(senderAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {

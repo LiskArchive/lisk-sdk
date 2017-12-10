@@ -302,7 +302,7 @@ __private.getPooledTransactions = function (method, filters, cb) {
 		delete filters.recipientPublicKey;
 	}
 
-	// Filter Transactions
+	// Filter transactions
 	if (filters.id || filters.recipientId || filters.recipientPublicKey || filters.senderId || filters.senderPublicKey || filters.type) {
 		toSend = _.filter(transactions, _.omit(filters, ['limit', 'offset', 'sort']) );
 	} else {
@@ -313,7 +313,7 @@ __private.getPooledTransactions = function (method, filters, cb) {
 	var sortAttribute = sortBy(filters.sort, {quoteField: false});
 	toSend = _.orderBy(toSend, [sortAttribute.sortField], [sortAttribute.sortMethod.toLowerCase()]);
 
-	// Paginate Filtered Transactions
+	// Paginate filtered transactions
 	toSend = toSend.slice(filters.offset, (filters.offset + filters.limit));
 
 	return setImmediate(cb, null, {transactions: toSend, count: transactions.length});
