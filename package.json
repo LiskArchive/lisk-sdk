@@ -12,6 +12,7 @@
     "test-unit": "./node_modules/.bin/grunt test-unit --verbose",
     "test-unit-extensive": "./node_modules/.bin/grunt test-unit-extensive --verbose",
     "test-integration": "grunt test-integration",
+    "test-integration-extensive": "grunt test-integration-extensive",
     "test-functional": "./node_modules/.bin/grunt test-functional --verbose",
     "test-functional-ws": "grunt test-functional-ws",
     "test-functional-ws-extensive": "grunt test-functional-ws-extensive",
