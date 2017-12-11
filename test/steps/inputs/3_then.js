@@ -17,21 +17,21 @@ import getInputsFromSources from '../../../src/utils/input';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { getFirstQuotedString } from '../utils';
 
-export async function itShouldGetTheDataUsingTheUnvoteSource() {
+export async function itShouldGetTheDataUsingTheUnvotesSource() {
 	const { options = {} } = this.test.ctx;
 	return (inputUtils.getData).should.be.calledWithExactly(options.unvote);
 }
 
-export async function itShouldGetTheDataUsingTheVoteSource() {
+export async function itShouldGetTheDataUsingTheVotesSource() {
 	const { options = {} } = this.test.ctx;
 	return (inputUtils.getData).should.be.calledWithExactly(options.vote);
 }
 
-export async function itShouldNotGetTheDataUsingTheUnvoteSource() {
+export async function itShouldNotGetTheDataUsingTheUnvotesSource() {
 	return (inputUtils.getData).should.not.be.called();
 }
 
-export async function itShouldNotGetTheDataUsingTheVoteSource() {
+export async function itShouldNotGetTheDataUsingTheVotesSource() {
 	return (inputUtils.getData).should.not.be.called();
 }
 

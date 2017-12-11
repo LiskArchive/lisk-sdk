@@ -27,8 +27,8 @@ import transactions from '../utils/transactions';
 const description = `Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.
 
 	Examples:
-	- create transaction cast votes --vote 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvote e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba
-	- create transaction 3 --vote 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvote e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba
+	- create transaction cast votes --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba
+	- create transaction 3 --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba
 `;
 
 const processInputs = votes => ({ passphrase, secondPassphrase }) =>
@@ -54,11 +54,11 @@ export const actionCreator = vorpal => async ({ options }) => {
 	} = options;
 
 	if (!vote && !unvote) {
-		throw new Error('At least one of vote and/or unvote options must be provided.');
+		throw new Error('At least one of votes and/or unvotes options must be provided.');
 	}
 
 	if (vote === unvote) {
-		throw new Error('Vote and unvote sources must not be the same.');
+		throw new Error('Votes and unvotes sources must not be the same.');
 	}
 
 	const votes = vote ? await processVotesInput(vote.toString()) : null;
@@ -86,8 +86,8 @@ export const actionCreator = vorpal => async ({ options }) => {
 };
 
 const createTransactionCastVotes = createCommand({
-	command: 'create transaction cast vote',
-	alias: ['create transaction 3', 'create transaction cast votes'],
+	command: 'create transaction cast votes',
+	alias: ['create transaction 3', 'create transaction cast vote'],
 	description,
 	actionCreator,
 	options: [
@@ -96,7 +96,7 @@ const createTransactionCastVotes = createCommand({
 		commonOptions.vote,
 		commonOptions.unvote,
 	],
-	errorPrefix: 'Could not create "cast vote" transaction',
+	errorPrefix: 'Could not create "cast votes" transaction',
 });
 
 export default createTransactionCastVotes;

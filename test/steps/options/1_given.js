@@ -26,37 +26,37 @@ export function anArrayOfOptions() {
 	this.test.ctx.options = options;
 }
 
-export function anOptionsObjectWithUnvoteSetToPassphraseSetToAndSecondPassphraseSetTo() {
+export function anOptionsObjectWithUnvotesSetToPassphraseSetToAndSecondPassphraseSetTo() {
 	const [unvote, passphrase, secondPassphrase] = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = { unvote, passphrase, 'second-passphrase': secondPassphrase };
 }
 
-export function anOptionsObjectWithVoteSetToPassphraseSetToAndSecondPassphraseSetTo() {
+export function anOptionsObjectWithVotesSetToPassphraseSetToAndSecondPassphraseSetTo() {
 	const [vote, passphrase, secondPassphrase] = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = { vote, passphrase, 'second-passphrase': secondPassphrase };
 }
 
-export function anOptionsObjectWithUnvoteSetToAndPassphraseSetTo() {
+export function anOptionsObjectWithUnvotesSetToAndPassphraseSetTo() {
 	const [unvote, passphrase] = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = { unvote, passphrase };
 }
 
-export function anOptionsObjectWithVoteSetToAndPassphraseSetTo() {
+export function anOptionsObjectWithVotesSetToAndPassphraseSetTo() {
 	const [vote, passphrase] = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = { vote, passphrase };
 }
 
-export function anOptionsObjectWithVoteSetToAndUnvoteSetTo() {
+export function anOptionsObjectWithVotesSetToAndUnvotesSetTo() {
 	const [vote, unvote] = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = { vote, unvote };
 }
 
-export function anOptionsObjectWithUnvoteSetTo() {
+export function anOptionsObjectWithUnvotesSetTo() {
 	const unvote = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.options = { unvote };
 }
 
-export function anOptionsObjectWithVoteSetTo() {
+export function anOptionsObjectWithVotesSetTo() {
 	const vote = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.options = { vote };
 }

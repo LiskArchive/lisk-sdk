@@ -53,13 +53,13 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 	return (transactions.createVote).should.be.calledWithExactly(passphrase, allVotes, null);
 }
 
-export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus() {
+export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, unvotePublicKeys } = this.test.ctx;
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
 	return (transactions.createVote).should.be.calledWithExactly(passphrase, unvotes, null);
 }
 
-export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithAPlus() {
+export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAPlus() {
 	const { passphrase, votePublicKeys } = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
 	return (transactions.createVote).should.be.calledWithExactly(passphrase, votes, null);
