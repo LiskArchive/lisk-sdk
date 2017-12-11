@@ -69,7 +69,18 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 
-		it('with no funds should fail', function () {
+		it('when account does not exists should fail', function () {
+			transaction = lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
+
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+
+		it.skip('with no funds should fail', function () {
+			// FIXME: create an account with 1 LSK and try to send signature
 			transaction = lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
