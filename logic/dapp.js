@@ -260,44 +260,6 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Checks if dapp name and link exists, if not adds them to private
- * unconfirmed variables.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb|errors
- */
-DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	// TODO: Move to verify function
-	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
-		return setImmediate(cb, 'Application name already exists');
-	}
-
-	if (transaction.asset.dapp.link && __private.unconfirmedLinks[transaction.asset.dapp.link]) {
-		return setImmediate(cb, 'Application link already exists');
-	}
-
-	__private.unconfirmedNames[transaction.asset.dapp.name] = true;
-	__private.unconfirmedLinks[transaction.asset.dapp.link] = true;
-
-	return setImmediate(cb);
-};
-
-/**
- * Deletes dapp name and link from private unconfirmed variables.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-DApp.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	delete __private.unconfirmedNames[transaction.asset.dapp.name];
-	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
-
-	return setImmediate(cb);
-};
-
-/**
  * @typedef {Object} dapp
  * @property {dappCategory} category - Number between 0 and 8
  * @property {string} name - Between 1 and 32 chars
