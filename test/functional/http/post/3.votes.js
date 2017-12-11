@@ -223,7 +223,19 @@ describe('POST /api/transactions (type 3) votes', function () {
 			});
 		});
 
-		it('upvoting with no funds should fail', function () {
+		it('upvoting when account does not exists should fail', function () {
+			accountNoFunds = randomUtil.account();
+			transaction = lisk.vote.createVote(accountNoFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+
+		it.skip('upvoting with no funds should fail', function () {
+			// FIXME: create an account with 1 LSK and try to vote
 			accountNoFunds = randomUtil.account();
 			transaction = lisk.vote.createVote(accountNoFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
