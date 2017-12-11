@@ -151,7 +151,7 @@ npm test -- test/lib/transactions.js
 - Pavel Nekrasov <landgraf.paul@gmail.com>
 - Sebastian Stupurac <stupurac.sebastian@gmail.com>
 - Oliver Beddows <oliver@lightcurve.io>
-- Isabella Dell <isabella@lightcurve.io>
+- Isabella Dell <dell.isabella@gmail.com>
 - Marius Serek <mariusz@serek.net>
 - Maciej Baj <maciej@lightcurve.io>
 
