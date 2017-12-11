@@ -17,9 +17,9 @@ var Logger = require('./logger');
 var config = require('./config.json');
 
 /**
- *  Instantiate the SocketCluster SCWorker instance with custom logic
- *  inside the run function. The run function is invoked when the worker process
- *  is ready to accept requests/connections.
+ * Instantiate the SocketCluster SCWorker instance with custom logic
+ * inside the run function. The run function is invoked when the worker process
+ * is ready to accept requests/connections.
  */
 SCWorker.create({
 	run: function () {
@@ -27,7 +27,6 @@ SCWorker.create({
 		var scServer = this.getSCServer();
 
 		async.auto({
-
 			logger: function (cb) {
 				cb(null, new Logger({echo: config.consoleLogLevel, errorLevel: config.fileLogLevel, filename: config.logFileName}));
 			},
