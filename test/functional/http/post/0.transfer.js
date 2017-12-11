@@ -62,7 +62,18 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			});
 		});
 
-		it('when sender has no funds should fail', function () {
+		it('when account does not exists should fail', function () {
+			transaction = lisk.transaction.createTransaction('1L', 1, account.password);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').that.to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+
+		it.skip('when sender has no funds should fail', function () {
+			// FIXME: create an account with 1 LSK and try to send money
 			transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -114,7 +125,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		it('sending transaction with same id twice should fail', function () {
 			return sendTransactionPromise(goodTransaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Transaction is already processed: ' + goodTransaction.id);
+				expect(res).to.have.nested.property('body.message').to.equal('Transaction is already in pool: ' + goodTransaction.id);
 			});
 		});
 
@@ -123,7 +134,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 			return sendTransactionPromise(cloneGoodTransaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
+				expect(res).to.have.nested.property('body.message').to.equal('Transaction is already in pool: ' + cloneGoodTransaction.id);
 			});
 		});
 
@@ -132,7 +143,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 			return sendTransactionPromise(cloneGoodTransaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
+				expect(res).to.have.nested.property('body.message').to.equal('Transaction is already in pool: ' + cloneGoodTransaction.id);
 			});
 		});
 
@@ -145,7 +156,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					expect(res).to.have.property('status').to.equal(200);
 					expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
 					// TODO: Enable when transaction pool order is fixed
-					// goodTransactions.push(transaction);
+					goodTransactions.push(transaction);
 				});
 			});
 			
@@ -156,7 +167,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					expect(res).to.have.property('status').to.equal(400);
 					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction timestamp. Timestamp is in the future');
 					// TODO: Enable when transaction pool order is fixed
-					// badTransactions.push(transaction);
+					badTransactions.push(transaction);
 				});
 			});
 		});
