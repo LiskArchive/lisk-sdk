@@ -6,14 +6,14 @@ var chai = require('chai');
 var expect = require('chai').expect;
 var lisk = require('lisk-js');
 
-var test = require('../test');
+var test = require('../../test');
 var _  = test._;
-var accountFixtures = require('../fixtures/accounts');
+var accountFixtures = require('../../fixtures/accounts');
 
-var slots = require('../../helpers/slots');
+var slots = require('../../../helpers/slots');
 
-var application = require('../common/application');
-var randomUtil = require('../common/utils/random');
+var application = require('../../common/application');
+var randomUtil = require('../../common/utils/random');
 
 describe('multisignature', function () {
 
