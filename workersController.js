@@ -17,11 +17,12 @@ var Logger = require('./logger');
 var config = require('./config.json');
 
 /**
- * Function is invoked by SocketCluster
- * @param {Worker} worker
+ *  Instantiate the SocketCluster SCWorker instance with custom logic
+ *  inside the run function. The run function is invoked when the worker process
+ *  is ready to accept requests/connections.
  */
-class Worker extends SCWorker {
-	run() {
+SCWorker.create({
+	run: function () {
 		var self = this;
 		var scServer = this.getSCServer();
 
@@ -110,6 +111,4 @@ class Worker extends SCWorker {
 			}
 		});
 	}
-}
-
-new Worker();
+});
