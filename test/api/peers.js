@@ -477,7 +477,7 @@ describe('GET /api/peers', function () {
 	});
 });
 
-describe('GET /api/peers/get', function () {
+describe('GET /api/peers/get @unstable', function () {
 
 	var validParams, frozenPeerPort = 9999;
 
