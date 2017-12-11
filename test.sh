@@ -88,7 +88,7 @@ run_suite() {
 	# Iterate over each file and run it
 	for file in $files; do
 		if [[ -f "$file" ]]; then
-			"$mocha_cmd $file"
+			$mocha_cmd "$file"
 		fi
 	done
 }
