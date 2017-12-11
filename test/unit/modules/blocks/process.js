@@ -40,7 +40,7 @@ function restoreSpiesState () {
 	error.restore();
 }
 
-describe('blocks/process', function () {
+describe.skip('blocks/process', function () {
 
 	var blocksProcess;
 	var blockLogic;

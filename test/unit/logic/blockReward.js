@@ -357,7 +357,7 @@ describe('BlockReward', function () {
 			expect(blockReward.calcSupply(13451520 * 100000)).to.equal(134528054848100000000);
 		});
 
-		describe('completely', function () {
+		describe('completely @slow', function () {
 
 			describe('before reward offset', function () {
 

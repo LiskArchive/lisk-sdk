@@ -102,6 +102,7 @@ module.exports = function (grunt) {
 				'modules',
 				'logic',
 				'schema',
+				// 'sql',
 				'tasks',
 				'test'
 			]
@@ -119,7 +120,6 @@ module.exports = function (grunt) {
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('jenkins', ['exec:coverageSingle']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
-	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
