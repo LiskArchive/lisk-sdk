@@ -178,7 +178,7 @@ export function setUpCommandCreateTransactionTransfer() {
 	setUpInputStubs();
 }
 
-export function setUpCommandCreateTransactionCastVote() {
+export function setUpCommandcreateTransactionCastVotes() {
 	setUpInputStubs();
 	setUpInputUtilsStubs();
 	setUpTransactionsStubs();

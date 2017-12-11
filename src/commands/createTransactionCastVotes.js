@@ -27,18 +27,23 @@ import transactions from '../utils/transactions';
 const description = `Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.
 
 	Examples:
-	- create transaction cast votes --vote "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca, 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa" --unvote "e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589, ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba"
-	- create transaction 3 --vote "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca, 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa" --unvote "e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589, ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba"
+	- create transaction cast votes --vote 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvote e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba
+	- create transaction 3 --vote 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvote e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba
 `;
 
 const processInputs = votes => ({ passphrase, secondPassphrase }) =>
 	transactions.createVote(passphrase, votes, secondPassphrase);
 
-const processVotesInput = async votes => (votes.toString().includes(':')
+const processVotesInput = async votes => (votes.includes(':')
 	? getData(votes)
 	: votes);
 
-const processVotes = votes => votes.replace(/\n/g, ',').split(',').filter(Boolean).map(vote => vote.trim());
+const processVotes = votes =>
+	votes
+		.replace(/\n/g, ',')
+		.split(',')
+		.filter(Boolean)
+		.map(vote => vote.trim());
 
 export const actionCreator = vorpal => async ({ options }) => {
 	const {
@@ -56,8 +61,8 @@ export const actionCreator = vorpal => async ({ options }) => {
 		throw new Error('Vote and unvote sources must not be the same.');
 	}
 
-	const votes = vote ? await processVotesInput(vote) : null;
-	const unvotes = unvote ? await processVotesInput(unvote) : null;
+	const votes = vote ? await processVotesInput(vote.toString()) : null;
+	const unvotes = unvote ? await processVotesInput(unvote.toString()) : null;
 
 	const validatedVotes = votes ? validatePublicKeys(processVotes(votes)) : null;
 	const validatedUnvotes = unvotes ? validatePublicKeys(processVotes(unvotes)) : null;
@@ -80,7 +85,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 		.then(processInputs(allVotes));
 };
 
-const createTransactionCastVote = createCommand({
+const createTransactionCastVotes = createCommand({
 	command: 'create transaction cast vote',
 	alias: ['create transaction 3', 'create transaction cast votes'],
 	description,
@@ -94,4 +99,4 @@ const createTransactionCastVote = createCommand({
 	errorPrefix: 'Could not create "cast vote" transaction',
 });
 
-export default createTransactionCastVote;
+export default createTransactionCastVotes;

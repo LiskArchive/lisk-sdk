@@ -19,7 +19,7 @@ export function itShouldReturnThePublicKeyPrependedWithAMinus() {
 	const publicKeysWithMinus = publicKeys.map((publicKey) => {
 		return `-${publicKey}`;
 	});
-	(returnValue).should.eql(publicKeysWithMinus);
+	return (returnValue).should.eql(publicKeysWithMinus);
 }
 
 export function itShouldReturnThePublicKeyPrependedWithAPlus() {
@@ -27,7 +27,7 @@ export function itShouldReturnThePublicKeyPrependedWithAPlus() {
 	const publicKeysWithPlus = publicKeys.map((publicKey) => {
 		return `+${publicKey}`;
 	});
-	(returnValue).should.eql(publicKeysWithPlus);
+	return (returnValue).should.eql(publicKeysWithPlus);
 }
 
 export function itShouldReturnThePublicKeys() {

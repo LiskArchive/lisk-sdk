@@ -52,14 +52,14 @@ const prettyDescription = 'Prints json in pretty format rather than condensed. H
 const voteDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
 
 	Examples:
-	- --vote "publickey1,publickey2"
+	- --vote publickey1,publickey2
 	- --vote file:/path/to/my/votes.txt (every public key should be on a new line)
 `;
 
-const unvoteDescription = `Specifies the public keys for the delegate candidates you want to remove your vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
+const unvoteDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
 
 	Examples:
-	- --unvote "publickey1,publickey2"
+	- --unvote publickey1,publickey2
 	- --unvote file:/path/to/my/unvotes.txt (every public key should be on a new line)
 `;
 

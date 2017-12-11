@@ -19,7 +19,7 @@ import { printResult } from '../utils/print';
 
 export const validatePublicKeys = publicKeys => publicKeys.map((publicKey) => {
 	try {
-		Buffer.from(publicKey, 'hex').toString('hex');
+		Buffer.from(publicKey, 'hex');
 	} catch (error) {
 		throw new ValidationError(`Error processing public key ${publicKey}: ${error.message}.`);
 	}

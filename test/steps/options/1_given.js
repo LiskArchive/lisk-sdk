@@ -26,9 +26,19 @@ export function anArrayOfOptions() {
 	this.test.ctx.options = options;
 }
 
+export function anOptionsObjectWithUnvoteSetToPassphraseSetToAndSecondPassphraseSetTo() {
+	const [unvote, passphrase, secondPassphrase] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.options = { unvote, passphrase, 'second-passphrase': secondPassphrase };
+}
+
 export function anOptionsObjectWithVoteSetToPassphraseSetToAndSecondPassphraseSetTo() {
 	const [vote, passphrase, secondPassphrase] = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = { vote, passphrase, 'second-passphrase': secondPassphrase };
+}
+
+export function anOptionsObjectWithUnvoteSetToAndPassphraseSetTo() {
+	const [unvote, passphrase] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.options = { unvote, passphrase };
 }
 
 export function anOptionsObjectWithVoteSetToAndPassphraseSetTo() {

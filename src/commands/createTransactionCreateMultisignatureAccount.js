@@ -52,7 +52,8 @@ export const actionCreator = vorpal => async ({
 		'second-passphrase': secondPassphraseSource,
 	} = options;
 
-	const publicKeys = prependPlusToPublicKeys(validatePublicKeys(keysgroup));
+	const publicKeys = validatePublicKeys(keysgroup);
+	const publicKeysWithPlus = prependPlusToPublicKeys(publicKeys);
 
 	validateLifetime(lifetime);
 	validateMinimum(minimum);
@@ -73,7 +74,7 @@ export const actionCreator = vorpal => async ({
 		.then(processInputs(
 			transactionLifetime,
 			transactionMinimumConfirmations,
-			publicKeys,
+			publicKeysWithPlus,
 		));
 };
 
