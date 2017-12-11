@@ -26,7 +26,7 @@ describe('create transaction register second passphrase command', () => {
 				Given('a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', given.aSecondPassphrase, () => {
 					Given('a Lisk object that can create transactions', given.aLiskObjectThatCanCreateTransactions, () => {
 						Given('an empty options object', given.anEmptyOptionsObject, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
@@ -42,7 +42,7 @@ describe('create transaction register second passphrase command', () => {
 							});
 						});
 						Given('an options object with second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithSecondPassphraseSetTo, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
@@ -58,7 +58,7 @@ describe('create transaction register second passphrase command', () => {
 							});
 						});
 						Given('an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});

@@ -44,7 +44,7 @@ describe('create transaction transfer command', () => {
 								});
 							});
 							Given('an address "13356260975429434553L"', given.anAddress, () => {
-								Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 									When('the action is called with the amount, the address and the options', when.theActionIsCalledWithTheAmountTheAddressAndTheOptions, () => {
 										Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 									});
@@ -59,7 +59,7 @@ describe('create transaction transfer command', () => {
 									});
 								});
 								Given('an options object with passphrase set to "passphraseSource"', given.anOptionsObjectWithPassphraseSetTo, () => {
-									Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+									Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 										When('the action is called with the amount, the address and the options', when.theActionIsCalledWithTheAmountTheAddressAndTheOptions, () => {
 											Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 										});
@@ -76,7 +76,7 @@ describe('create transaction transfer command', () => {
 								});
 								Given('a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', given.aSecondPassphrase, () => {
 									Given('an options object with second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithSecondPassphraseSetTo, () => {
-										Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+										Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 											When('the action is called with the amount, the address and the options', when.theActionIsCalledWithTheAmountTheAddressAndTheOptions, () => {
 												Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 											});
@@ -92,7 +92,7 @@ describe('create transaction transfer command', () => {
 										});
 									});
 									Given('an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo, () => {
-										Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+										Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 											When('the action is called with the amount, the address and the options', when.theActionIsCalledWithTheAmountTheAddressAndTheOptions, () => {
 												Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 											});

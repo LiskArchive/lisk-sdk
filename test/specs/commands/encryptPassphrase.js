@@ -26,7 +26,7 @@ describe('encrypt passphrase command', () => {
 				Given('a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice" with public key "7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588"', given.aPassphraseWithPublicKey, () => {
 					Given('a password "testing123"', given.aPassword, () => {
 						Given('an empty options object', given.anEmptyOptionsObject, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
@@ -42,7 +42,7 @@ describe('encrypt passphrase command', () => {
 							});
 						});
 						Given('an options object with output-public-key set to boolean true', given.anOptionsObjectWithOutputPublicKeySetToBoolean, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
@@ -58,7 +58,7 @@ describe('encrypt passphrase command', () => {
 							});
 						});
 						Given('an options object with passphrase set to "passphraseSource" and password set to "passwordSource"', given.anOptionsObjectWithPassphraseSetToAndPasswordSetTo, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});

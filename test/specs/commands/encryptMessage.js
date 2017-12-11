@@ -30,7 +30,7 @@ describe('encrypt message command', () => {
 								When('the action is called with the recipient and the options', when.theActionIsCalledWithTheRecipientAndTheOptions, () => {
 									Then('it should reject with message "No message was provided."', then.itShouldRejectWithMessage);
 								});
-								Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 									When('the action is called with the recipient, the message and the options', when.theActionIsCalledWithTheRecipientTheMessageAndTheOptions, () => {
 										Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 									});
@@ -46,7 +46,7 @@ describe('encrypt message command', () => {
 								});
 							});
 							Given('an options object with passphrase set to "passphraseSource"', given.anOptionsObjectWithPassphraseSetToAndMessageSetTo, () => {
-								Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 									When('the action is called with the recipient, the message and the options', when.theActionIsCalledWithTheRecipientTheMessageAndTheOptions, () => {
 										Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 									});
@@ -62,7 +62,7 @@ describe('encrypt message command', () => {
 								});
 							});
 							Given('an options object with message set to "messageSource"', given.anOptionsObjectWithMessageSetTo, () => {
-								Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 									When('the action is called with the recipient and the options', when.theActionIsCalledWithTheRecipientAndTheOptions, () => {
 										Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 									});
@@ -78,7 +78,7 @@ describe('encrypt message command', () => {
 								});
 							});
 							Given('an options object with passphrase set to "passphraseSource" and message set to "messageSource"', given.anOptionsObjectWithPassphraseSetToAndMessageSetTo, () => {
-								Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+								Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 									When('the action is called with the recipient and the options', when.theActionIsCalledWithTheRecipientAndTheOptions, () => {
 										Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 									});
