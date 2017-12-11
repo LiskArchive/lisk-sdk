@@ -293,26 +293,15 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
  * @return {Object}   cb.err Error if occurred
  */
 __private.applyTransaction = function (block, transaction, sender, cb) {
-	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'apply' can be ok
-	modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
+	modules.transactions.apply(transaction, block, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, {
-				message: err,
+				message: 'Failed to apply transaction: ' + transaction.id,
 				transaction: transaction,
 				block: block
 			});
 		}
-
-		modules.transactions.apply(transaction, block, sender, function (err) {
-			if (err) {
-				return setImmediate(cb, {
-					message: 'Failed to apply transaction: ' + transaction.id,
-					transaction: transaction,
-					block: block
-				});
-			}
-			return setImmediate(cb);
-		});
+		return setImmediate(cb);
 	});
 };
 

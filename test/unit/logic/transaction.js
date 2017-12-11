@@ -892,57 +892,6 @@ describe('transaction', function () {
 		});
 	});
 
-	describe('applyUnconfirmed', function () {
-
-		function undoUnconfirmedTransaction (transaction, sender, done) {
-			transactionLogic.undoUnconfirmed(transaction, sender, done);
-		}
-
-		it('should throw an error with no param', function () {
-			expect(function () { transactionLogic.applyUnconfirmed(); }).to.throw();
-		});
-
-		it('should be okay with valid params', function (done) {
-			var transaction = validTransaction;
-			transactionLogic.applyUnconfirmed(transaction, sender, done);
-		});
-
-		it('should return error on if balance is low', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = '9850458911801908';
-
-			transactionLogic.applyUnconfirmed(transaction, sender, function (err) {
-				expect(err).to.include('Account does not have enough ');
-				done();
-			});
-		});
-
-		it('should okay for valid params', function (done) {
-			transactionLogic.applyUnconfirmed(validTransaction, sender, function (err) {
-				expect(err).to.not.exist;
-				undoUnconfirmedTransaction(validTransaction, sender, done);
-			});
-		});
-	});
-
-	describe('undoUnconfirmed', function () {
-
-		function applyUnconfirmedTransaction (transaction, sender, done) {
-			transactionLogic.applyUnconfirmed(transaction, sender, done);
-		}
-
-		it('should throw an error with no param', function () {
-			expect(transactionLogic.undoUnconfirmed).to.throw();
-		});
-
-		it('should be okay with valid params', function (done) {
-			transactionLogic.undoUnconfirmed(validTransaction, sender, function (err) {
-				expect(err).to.not.exist;
-				applyUnconfirmedTransaction(validTransaction, sender, done);
-			});
-		});
-	});
-
 	describe('dbSave', function () {
 
 		it('should throw an error with no param', function () {
