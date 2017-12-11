@@ -41,8 +41,8 @@ describe('print utils', () => {
 								When('the result is printed', when.theResultIsPrinted, () => {
 									Then('shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
 									Then('shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
-									Then('the result should be returned', then.theResultShouldBeReturned);
-									Then('JSON output should be logged', then.jSONOutputShouldBeLogged);
+									Then('the result stripped of ANSI codes should be returned', then.theResultStrippedOfANSICodesShouldBeReturned);
+									Then('JSON output should be logged without ANSI codes', then.jSONOutputShouldBeLoggedWithoutANSICodes);
 								});
 							});
 							Given('the options object has key "pretty" set to boolean true', given.theOptionsObjectHasKeySetToBoolean, () => {
@@ -50,8 +50,8 @@ describe('print utils', () => {
 									When('the result is printed', when.theResultIsPrinted, () => {
 										Then('shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
 										Then('shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
-										Then('the result should be returned', then.theResultShouldBeReturned);
-										Then('pretty JSON output should be logged', then.prettyJSONOutputShouldBeLogged);
+										Then('the result stripped of ANSI codes should be returned', then.theResultStrippedOfANSICodesShouldBeReturned);
+										Then('pretty JSON output should be logged without ANSI codes', then.prettyJSONOutputShouldBeLoggedWithoutANSICodes);
 									});
 								});
 							});
@@ -65,8 +65,8 @@ describe('print utils', () => {
 								When('the result is printed', when.theResultIsPrinted, () => {
 									Then('shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
 									Then('shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
-									Then('the result should be returned', then.theResultShouldBeReturned);
-									Then('pretty JSON output should be logged', then.prettyJSONOutputShouldBeLogged);
+									Then('the result stripped of ANSI codes should be returned', then.theResultStrippedOfANSICodesShouldBeReturned);
+									Then('pretty JSON output should be logged without ANSI codes', then.prettyJSONOutputShouldBeLoggedWithoutANSICodes);
 								});
 							});
 						});
@@ -77,8 +77,8 @@ describe('print utils', () => {
 								When('the result is printed', when.theResultIsPrinted, () => {
 									Then('shouldUseJsonOutput should be called with the config and the options', then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions);
 									Then('shouldUsePrettyOutput should be called with the config and the options', then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions);
-									Then('the result should be returned', then.theResultShouldBeReturned);
-									Then('JSON output should be logged', then.jSONOutputShouldBeLogged);
+									Then('the result stripped of ANSI codes should be returned', then.theResultStrippedOfANSICodesShouldBeReturned);
+									Then('JSON output should be logged without ANSI codes', then.jSONOutputShouldBeLoggedWithoutANSICodes);
 								});
 							});
 						});
