@@ -63,6 +63,7 @@ __private.checkTransaction = function (block, transaction, cb) {
 					modules.delegates.fork(block, 2);
 					// TODO: Do we need extra validation here as replacement for undo functions already cleared?
 					modules.transactions.removeUnconfirmedTransaction(transaction.id);
+					return setImmediate(waterCb, err);
 				} else {
 					return setImmediate(waterCb);
 				}
