@@ -45,7 +45,12 @@
     },
     "peers": {
         "enabled": true,
-        "list": [],
+        "list": [
+            {
+                "ip": "188.166.48.16",
+                "port": "4000"
+            }
+        ],
         "access": {
             "blackList": []
         },
