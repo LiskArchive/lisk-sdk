@@ -16,6 +16,7 @@ var swagger = require('../../config/swagger');
 var database = require('../../helpers/database');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Sequence = require('../../helpers/sequence');
+var config = require('../../config.json');
 
 var dbSandbox;
 var currentAppScope;
@@ -59,9 +60,8 @@ function __init (initScope, done) {
 	// Clear tables
 	db.task(function (t) {
 		return t.batch([
-			t.none('DELETE FROM blocks WHERE height > 1'),
 			t.none('DELETE FROM blocks'),
-			t.none('DELETE FROM mem_accounts')
+			t.none('DELETE FROM accounts')
 		]);
 	}).then(function () {
 		var logger = initScope.logger || {
@@ -207,6 +207,7 @@ function __init (initScope, done) {
 			}],
 			logic: ['db', 'bus', 'schema', 'network', 'genesisblock', function (scope, cb) {
 				var Transaction = require('../../logic/transaction.js');
+				var TransactionPool = require('../../logic/transactions/pool.js');
 				var Block = require('../../logic/block.js');
 				var Multisignature = require('../../logic/multisignature.js');
 				var Account = require('../../logic/account.js');
@@ -238,6 +239,9 @@ function __init (initScope, done) {
 					}],
 					transaction: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', function (scope, cb) {
 						new Transaction(scope.db, scope.ed, scope.schema, scope.genesisblock, scope.account, scope.logger, cb);
+					}],
+					transactionPool: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'logger', 'transaction', function (scope, cb) {
+						new TransactionPool(scope.bus, scope.ed, scope.transaction, scope.account, scope.logger, config.transactions.pool, cb);
 					}],
 					block: ['db', 'bus', 'ed', 'schema', 'genesisblock', 'account', 'transaction', function (scope, cb) {
 						new Block(scope.ed, scope.schema, scope.transaction, cb);
