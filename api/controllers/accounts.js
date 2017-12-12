@@ -1,6 +1,8 @@
 'use strict';
 
 var _ = require('lodash');
+var ApiError = require('../../helpers/apiError');
+var swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
 var modules;
@@ -54,6 +56,78 @@ AccountsController.getAccounts = function (context, next) {
 			delete account.unconfirmedSignature;
 			return account;
 		});
+
+		next(null, {
+			data: data,
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit
+			}
+		});
+	});
+};
+
+AccountsController.getMultisignatureGroups = function (context, next) {
+	var params = context.request.swagger.params;
+
+	var filters = {
+		address: params.address.value
+	};
+
+	// Remove filters with null values
+	filters = _.pickBy(filters, function (v) {
+		return !(v === undefined || v === null);
+	});
+
+	if(!filters.address) {
+		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
+	}
+
+	modules.multisignatures.shared.getGroups(_.clone(filters), function (err, data) {
+		if (err) {
+			if (err instanceof ApiError) {
+				context.statusCode = err.code;
+				delete err.code;
+			}
+
+			return next(err);
+		}
+
+		next(null, {
+			data: data,
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit
+			}
+		});
+	});
+};
+
+AccountsController.getMultisignatureMemberships = function (context, next) {
+	var params = context.request.swagger.params;
+
+	var filters = {
+		address: params.address.value
+	};
+
+	// Remove filters with null values
+	filters = _.pickBy(filters, function (v) {
+		return !(v === undefined || v === null);
+	});
+
+	if(!filters.address) {
+		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
+	}
+
+	modules.multisignatures.shared.getMemberships(_.clone(filters), function (err, data) {
+		if (err) {
+			if (err instanceof ApiError) {
+				context.statusCode = err.code;
+				delete err.code;
+			}
+
+			return next(err);
+		}
 
 		next(null, {
 			data: data,

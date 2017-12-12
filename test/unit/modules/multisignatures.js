@@ -214,6 +214,16 @@ describe('multisignatures', function () {
 		});
 	});
 
+	describe('getGroup', function () {
+		it('should accept address as parameter');
+
+		it('should fail if wrong address is provided');
+
+		it('should fail if valid address but not a multisig account address provided');
+
+		it('should return a group if provided with a valid multisig account');
+	});
+
 	describe('isLoaded', function () {
 
 		it('should return true if modules exists');
@@ -238,13 +248,9 @@ describe('multisignatures', function () {
 
 	describe('shared', function () {
 
-		describe('getAccounts', function () {
+		describe('getGroups', function () {
 
-			it('should call library.schema.validate');
-
-			it('should call library.schema.validate with req.body');
-
-			it('should call library.schema.validate with schema.getAccounts');
+			it('should accept fitlers.address parameter');
 
 			describe('when schema validation fails', function () {
 
@@ -313,13 +319,9 @@ describe('multisignatures', function () {
 			});
 		});
 
-		describe('pending', function () {
+		describe('getMemberships', function () {
 
-			it('should call library.schema.validate');
-
-			it('should call library.schema.validate with req.body');
-
-			it('should call library.schema.validate with schema.pending');
+			it('should accept fitlers.address parameter');
 
 			describe('when schema validation fails', function () {
 
@@ -328,111 +330,59 @@ describe('multisignatures', function () {
 
 			describe('when schema validation succeeds', function () {
 
-				it('should call modules.transactions.getMultisignatureTransactionList');
+				it('should call library.db.one');
 
-				it('should call modules.transactions.getMultisignatureTransactionList with false twice');
+				it('should call library.db.one with sql.getAccountIds');
 
-				describe('when there are no multisig transactions matching passed publicKey', function () {
+				it('should call library.db.one with { publicKey: req.body.publicKey }');
 
-					it('should call a callback with error = null');
+				describe('when library.db.one fails', function () {
 
-					it('should call a callback with result containing transactions = []');
+					it('should call the logger.error with error stack');
+
+					it('should call a callback with "Multisignature#getAccountIds error"');
 				});
 
-				describe('when multisig transactions matching passed publicKey exists', function () {
+				describe('when library.db.one succeeds', function () {
 
-					it('should call library.logic.transaction.verifySignature with every signature');
+					it('should call modules.accounts.getAccounts');
 
-					describe('when library.logic.transaction.verifySignature throws exception', function () {
+					it('should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}');
 
-						it('should call the logger.error with error stack');
+					it('should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]');
 
-						it('should call a callback with transactions containing "signed" = false');
+					describe('when modules.accounts.getAccounts fails', function () {
+
+						it('should call a callback with error');
 					});
 
-					describe('when library.logic.transaction.verifySignature does not throw exception', function () {
+					describe('when modules.accounts.getAccounts succeeds', function () {
 
-						it('should call a callback with transactions containing "signed" = true');
-					});
+						describe('for every account', function () {
 
-					it('should call modules.accounts.getAccount');
+							describe('for every account.multisignature', function () {
 
-					it('should call modules.accounts.getAccounts with {publicKey: transaction.senderPublicKey}');
+								it('should call modules.accounts.generateAddressByPublicKey');
 
-					describe('when modules.accounts.getAccount fails', function () {
-
-						it('should call callback with error');
-					});
-
-					describe('when modules.accounts.getAccount succeeds', function () {
-
-						describe('and finds no account', function () {
-
-							it('should call a callback with error');
-						});
-
-						describe('and finds account', function () {
-
-							describe('when u_multimin is defined', function () {
-
-								describe('when multimin is undefined', function () {
-
-									it('should call a callback with transaction containing min = u_multimin');
-								});
-
-								describe('when multimin is defined', function () {
-
-									it('should call a callback with transaction containing min = u_multimin');
-								});
+								it('should call modules.accounts.generateAddressByPublicKey with multisignature');
 							});
 
-							describe('when u_multimin is undefined', function () {
+							it('should call modules.accounts.getAccounts');
 
-								describe('when multimin is undefined', function () {
+							it('should call modules.accounts.getAccounts with {address: { $in: addresses }');
 
-									it('should call a callback with transaction containing min = undefined');
-								});
+							it('should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]');
 
-								describe('when multimin is defined', function () {
+							describe('when modules.accounts.getAccounts fails', function () {
 
-									it('should call a callback with transaction containing min = multimin');
-								});
+								it('should call a callback with error');
 							});
 
-							describe('when u_multilifetime is defined', function () {
+							describe('when modules.accounts.getAccounts succeeds', function () {
 
-								describe('when multilifetime is undefined', function () {
+								it('should call a callback with error = null');
 
-									it('should call a callback with transaction containing lifetime = u_multilifetime');
-								});
-
-								describe('when multilifetime is defined', function () {
-
-									it('should call a callback with transaction containing lifetime = u_multilifetime');
-								});
-							});
-
-							describe('when u_multilifetime is undefined', function () {
-
-								describe('when multilifetime is undefined', function () {
-
-									it('should call a callback with transaction containing lifetime = undefined');
-								});
-
-								describe('when multilifetime is defined', function () {
-
-									it('should call a callback with transaction containing lifetime = multilifetime');
-								});
-							});
-
-							describe('when multimin is undefined', function () {
-
-								it('should call a callback with transaction containing max = 0');
-							});
-
-							describe('when multimin is defined', function () {
-
-								it('should call a callback with transaction containing max = u_multisignatures.length');
+								it('should call a callback with result containing accounts');
 							});
 						});
 					});

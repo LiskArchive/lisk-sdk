@@ -7,7 +7,7 @@ var pathFiles = [
 	'./blocks',
 	'./dapps',
 	'./delegates',
-	'./multisignatures',
+	'./accounts.multisignatures.js',
 	'./node',
 	'./node.transactions.unconfirmed',
 	'./node.transactions.unprocessed',
