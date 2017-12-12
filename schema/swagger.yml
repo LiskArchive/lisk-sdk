@@ -95,11 +95,11 @@ paths:
     get:
       tags:
       - Accounts
-      summary: requests multisig account data
+      summary: Requests multisignature groups data
       operationId: getMultisignatureGroups
       description:
-        By passing in the appropriate options, you can search for
-        specified account in the system and get attributes for multisig accounts
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature groups
       produces:
         - application/json
       parameters:
@@ -121,7 +121,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         404:
-          description: Not found the multisignature account
+          description: Multisignature account not found
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
@@ -138,11 +138,11 @@ paths:
     get:
       tags:
       - Accounts
-      summary: requests multisig account data
+      summary: Requests multisignature memberships data
       operationId: getMultisignatureMemberships
       description:
-        By passing in the appropriate options, you can search for
-        specified account in the system and get attributes for multisig accounts
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature memberships
       produces:
         - application/json
       parameters:
@@ -1157,7 +1157,7 @@ definitions:
       - links
     properties:
       data:
-        description: List of multisig groups
+        description: List of multisignature groups
         type: array
         items:
           $ref: '#/definitions/MultisignatureGroup'
