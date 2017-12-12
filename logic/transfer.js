@@ -95,30 +95,6 @@ Transfer.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Applies transaction to confirmed state.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-Transfer.prototype.apply = function (transaction, block, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * Undoes confirmed state of transaction.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-Transfer.prototype.undo = function (transaction, block, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
  * @typedef {Object} transfer
  * @property {string} data
  */
