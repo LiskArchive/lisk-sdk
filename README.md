@@ -232,44 +232,34 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 ## Tests
 
-Before running any tests, please ensure Lisk is configured to run on the same testnet that is used by the test-suite.
-
-Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test** directory:
+Run the test suite:
 
 ```
-cp test/config.json test/genesisBlock.json .
+npm run test <test-extent> <test-suite> [test-filename]
 ```
 
-**NOTE:** If the node was started with a different genesis block previous, trauncate the database before running tests.
+**test-extent:** `untagged | unstable | slow | extensive`
 
-```
-dropdb lisk_test
-createdb lisk_test
-```
+**test-suite:** `file | unit | system | transport | api | all`
+
+#### Examples:
+
+`npm run test file test/unit/blocks.js` - to run a single test-file, specify the path
+
+`npm run test untagged transport` - all untagged (not slow or unstable) transport tests
+
+`npm run test unstable transport` - all unstable transport tests
+
+`npm run test slow unit` - all slow unit tests
+
+`npm run test extensive unit` - all untagged, slow and unstable unit tests
+
+`npm run test untagged all` - all untagged tests
 
 **NOTE:** The master passphrase for this genesis block is as follows:
 
 ```
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
-```
-
-Launch Lisk (runs on port 4000):
-
-```
-node app.js
-```
-
-Run the test suite:
-
-```
-npm test
-```
-
-Run individual tests:
-
-```
-npm test -- test/lib/accounts.js
-npm test -- test/lib/transactions.js
 ```
 
 ## Contributors
