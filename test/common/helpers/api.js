@@ -103,34 +103,34 @@ function getTransactions (params, cb) {
 }
 
 function getUnconfirmedTransaction (transaction, cb) {
-	http.get('/api/node/transactions/unconfirmed?id=' + transaction, httpCallbackHelper.bind(null, cb));
+	http.get('/api/node/transactions/unconfirmed?id=' + transaction, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getUnconfirmedTransactions (cb) {
-	http.get('/api/node/transactions/unconfirmed', httpCallbackHelper.bind(null, cb));
+	http.get('/api/node/transactions/unconfirmed', httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getQueuedTransaction (transaction, cb) {
-	http.get('/api/node/transactions/unprocessed?id=' + transaction, httpCallbackHelper.bind(null, cb));
+	http.get('/api/node/transactions/unprocessed?id=' + transaction, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getQueuedTransactions (cb) {
-	http.get('/api/node/transactions/unprocessed', httpCallbackHelper.bind(null, cb));
+	http.get('/api/node/transactions/unprocessed', httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getMultisignaturesTransaction (transaction, cb) {
-	http.get('/api/node/transactions/unsigned?id=' + transaction, httpCallbackHelper.bind(null, cb));
+	http.get('/api/node/transactions/unsigned?id=' + transaction, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getMultisignaturesTransactions (cb) {
-	http.get('/api/node/transactions/unsigned', httpCallbackHelper.bind(null, cb));
+	http.get('/api/node/transactions/unsigned', httpResponseCallbackHelper.bind(null, cb));
 }
 
 function getPendingMultisignatures (params, cb) {
-	var url = '/api/multisignatures/pending';
+	var url = '/api/node/transactions/unsigned';
 	url = paramsHelper(url, params);
 
-	http.get(url, httpCallbackHelper.bind(null, cb));
+	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function normalizeTransactionObject (transaction) {
