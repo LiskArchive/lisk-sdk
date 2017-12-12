@@ -119,27 +119,6 @@ Transfer.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-Transfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	return setImmediate(cb);
-};
-
-
-/**
  * @typedef {Object} transfer
  * @property {string} data
  */

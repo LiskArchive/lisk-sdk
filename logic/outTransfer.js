@@ -167,30 +167,6 @@ OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
 	return setImmediate(cb);
 };
 
-/**
- * Sets unconfirmed OutTransfers to true.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true;
-	return setImmediate(cb);
-};
-
-/**
- * Sets unconfirmed OutTransfers to false.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-OutTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
-	return setImmediate(cb);
-};
-
 OutTransfer.prototype.schema = {
 	id: 'OutTransfer',
 	object: true,

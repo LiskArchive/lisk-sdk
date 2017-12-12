@@ -298,20 +298,6 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('applyUnconfirmed', function () {
-
-		it('should be okay with valid params', function (done) {
-			transfer.applyUnconfirmed.call(transactionLogic, validTransaction, validSender, done);
-		});
-	});
-
-	describe('undoUnconfirmed', function () {
-
-		it('should be okay with valid params', function (done) {
-			transfer.undoUnconfirmed.call(transactionLogic, validTransaction, validSender, done);
-		});
-	});
-
 	describe('objectNormalize', function () {
 
 		it('should remove blockId from transaction', function () {

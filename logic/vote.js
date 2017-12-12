@@ -220,30 +220,6 @@ Vote.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Applies transaction to unconfirmed state.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function
- * @todo delete unnecessary var parent = this
- */
-Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * Undoes unconfirmed state of transaction.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
- */
-Vote.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	if (transaction.asset.votes === null) { return setImmediate(cb); }
-	
-	return setImmediate(cb);
-};
-
-/**
  * @typedef {Object} votes
  * @property {String[]} votes - Unique items, max constant activeDelegates.
  * @property {string} transactionId

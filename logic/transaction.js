@@ -69,7 +69,6 @@ Transaction.prototype.attachAssetType = function (typeId, instance) {
 		typeof instance.calculateFee === 'function' && typeof instance.verify === 'function' &&
 		typeof instance.objectNormalize === 'function' && typeof instance.dbRead === 'function' &&
 		typeof instance.apply === 'function' && typeof instance.undo === 'function' &&
-		typeof instance.applyUnconfirmed === 'function' && typeof instance.undoUnconfirmed === 'function' &&
 		typeof instance.ready === 'function' && typeof instance.process === 'function'
 	) {
 		__private.types[typeId] = instance;
@@ -704,70 +703,6 @@ Transaction.prototype.undo = function (transaction, block, sender, cb) {
 	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height)});
 	
 	__private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
-		} else {
-			return setImmediate(cb);
-		}
-	}.bind(this));
-};
-
-/**
- * Checks unconfirmed sender balance. Merges account into sender address with
- * unconfirmed balance negative amount.
- * Calls `applyUnconfirmed` based on transaction type (privateTypes). If error merge
- * account with amount.
- * @see privateTypes
- * @implements {bignum}
- * @implements {checkBalance}
- * @implements {account.merge}
- * @param {transaction} transaction
- * @param {account} sender
- * @param {account} requester
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
- */
-Transaction.prototype.applyUnconfirmed = function (transaction, sender, requester, cb) {
-	if (typeof requester === 'function') {
-		cb = requester;
-	}
-
-	// Check unconfirmed sender balance
-	var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
-	var senderBalance = this.checkBalance(amount, 'u_balance', transaction, sender);
-
-	if (senderBalance.exceeded) {
-		return setImmediate(cb, senderBalance.error);
-	}
-
-	amount = amount.toNumber();
-	
-	__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
-		} else {
-			return setImmediate(cb);
-		}
-	}.bind(this));
-};
-
-/**
- * Merges account into sender address with unconfirmed balance transaction amount.
- * Calls `undoUnconfirmed` based on transaction type (privateTypes). If error merge
- * account with megative amount.
- * @see privateTypes
- * @implements {bignum}
- * @implements {account.merge}
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
- */
-Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	var amount = new bignum(transaction.amount.toString());
-	    amount = amount.plus(transaction.fee.toString()).toNumber();
-
-	__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {

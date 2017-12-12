@@ -148,35 +148,6 @@ Signature.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Activates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter.
- * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} Error if second signature is already enabled.
- */
-Signature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	if (sender.secondPublicKey) {
-		return setImmediate(cb, 'Second signature already enabled');
-	}
-
-	return setImmediate(cb);
-};
-
-/**
- * Deactivates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter.
- * @param {account} sender
- * @param {function} cb - Callback function.
- */
-Signature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	
-	return setImmediate(cb);
-};
-/**
  * @typedef signature
  * @property {publicKey} publicKey
  */

@@ -425,37 +425,6 @@ Transactions.prototype.processPeerTransactions = function (transactions, broadca
 	return library.logic.transactionPool.addFromPeer(transactions, broadcast, cb);
 };
 
-// TODO: Remove this function
-/**
- * Gets unconfirmed transactions list and applies unconfirmed transactions.
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.applyUnconfirmedList
- */
-Transactions.prototype.applyUnconfirmedList = function (cb) {
-	return __private.transactionPool.applyUnconfirmedList(cb);
-};
-
-// TODO: Remove this function
-/**
- * Applies unconfirmed list to unconfirmed Ids.
- * @param {string[]} ids - Transaction IDs.
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.applyUnconfirmedIds
- */
-Transactions.prototype.applyUnconfirmedIds = function (ids, cb) {
-	cb();
-};
-
-// TODO: Remove this function
-/**
- * Undoes unconfirmed list from queue.
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.undoUnconfirmedList
- */
-Transactions.prototype.undoUnconfirmedList = function (cb) {
-	cb();
-};
-
 /**
  * Applies confirmed transaction.
  * @implements {logic.transaction.apply}
@@ -480,61 +449,6 @@ Transactions.prototype.apply = function (transaction, block, sender, cb) {
 Transactions.prototype.undo = function (transaction, block, sender, cb) {
 	library.logger.debug('Undoing confirmed transaction', transaction.id);
 	library.logic.transaction.undo(transaction, block, sender, cb);
-};
-
-/**
- * Gets requester if requesterPublicKey and calls applyUnconfirmed.
- * @implements {modules.accounts.getAccount}
- * @implements {logic.transaction.applyUnconfirmed}
- * @param {object} transaction - Transaction object.
- * @param {object} sender - Sender account.
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
- */
-Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	library.logger.debug('Applying unconfirmed transaction', transaction.id);
-
-	// TODO: Remove applyUnconfirmed entirely
-	return setImmediate(cb);
-
-	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
-		return setImmediate(cb, 'Invalid block id');
-	} else {
-		if (transaction.requesterPublicKey) {
-			modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!requester) {
-					return setImmediate(cb, 'Requester not found');
-				}
-
-				library.logic.transaction.applyUnconfirmed(transaction, sender, requester, cb);
-			});
-		} else {
-			library.logic.transaction.applyUnconfirmed(transaction, sender, cb);
-		}
-	}
-};
-
-/**
- * Validates account and undoes unconfirmed transaction.
- * @implements {modules.accounts.getAccount}
- * @implements {logic.transaction.undoUnconfirmed}
- * @param {object} transaction - Transaction object.
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
- */
-Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
-	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
-
-	modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		library.logic.transaction.undoUnconfirmed(transaction, sender, cb);
-	});
 };
 
 // TODO: Remove this function

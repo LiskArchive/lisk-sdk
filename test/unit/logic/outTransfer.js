@@ -614,56 +614,6 @@ describe('outTransfer', function () {
 		});
 	});
 
-	describe('applyUnconfirmed', function () {
-
-		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true', function (done) {
-			var unconfirmedOutTransfers = OutTransfer.__get__('__private.unconfirmedOutTansfers');
-			outTransfer.applyUnconfirmed(transaction, sender, function () {
-				expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(true);
-				done();
-			});
-		});
-
-		it('should call callback with error = undefined', function (done) {
-			outTransfer.applyUnconfirmed(transaction, sender, function (err) {
-				expect(err).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should call callback with result = undefined', function (done) {
-			outTransfer.applyUnconfirmed(transaction, sender, function (err, result) {
-				expect(result).to.be.undefined;
-				done();
-			});
-		});
-	});
-
-	describe('undoUnconfirmed', function () {
-
-		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false', function (done) {
-			var unconfirmedOutTransfers = OutTransfer.__get__('__private.unconfirmedOutTansfers');
-			outTransfer.undoUnconfirmed(transaction, sender, function () {
-				expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(false);
-				done();
-			});
-		});
-
-		it('should call callback with error = undefined', function (done) {
-			outTransfer.undoUnconfirmed(transaction, sender, function (err) {
-				expect(err).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should call callback with result = undefined', function (done) {
-			outTransfer.undoUnconfirmed(transaction, sender, function (err, result) {
-				expect(result).to.be.undefined;
-				done();
-			});
-		});
-	});
-
 	describe('objectNormalize', function () {
 
 		var library;

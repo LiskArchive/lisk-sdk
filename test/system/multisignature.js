@@ -155,7 +155,6 @@ describe('multisignature', function () {
 
 					multisigTransaction.signatures = [sign1, sign2];
 					multisigTransaction.ready = true;
-					library.logic.transaction.applyUnconfirmed(multisigTransaction, multisigSender, done);
 				});
 
 				describe('sender db rows', function () {

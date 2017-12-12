@@ -532,40 +532,6 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe('applyUnconfirmed', function () {
-
-		it('should call callback with error = undefined', function (done) {
-			inTransfer.applyUnconfirmed(trs, sender, function (err) {
-				expect(err).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should call callback with result = undefined', function (done) {
-			inTransfer.applyUnconfirmed(trs, sender, function (err, result) {
-				expect(result).to.be.undefined;
-				done();
-			});
-		});
-	});
-
-	describe('undoUnconfirmed', function () {
-
-		it('should call callback with error = undefined', function (done) {
-			inTransfer.undoUnconfirmed(trs, sender, function (err) {
-				expect(err).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should call callback with result = undefined', function (done) {
-			inTransfer.undoUnconfirmed(trs, sender, function (err, result) {
-				expect(result).to.be.undefined;
-				done();
-			});
-		});
-	});
-
 	describe('objectNormalize', function () {
 
 		var library;

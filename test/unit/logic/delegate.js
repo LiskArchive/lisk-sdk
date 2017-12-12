@@ -702,65 +702,6 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('applyUnconfirmed', function () {
-
-		var checkUnconfirmedStub;
-
-		describe('when username was not registered before', function () {
-
-			var validUnconfirmedAccount;
-
-			beforeEach(function () {
-				checkUnconfirmedStub = sinon.stub(delegate, 'checkUnconfirmed').callsArg(1);
-				accountsMock.getSender = sinon.stub().callsArg(1);
-				validUnconfirmedAccount = {
-					publicKey: validSender.publicKey,
-					address: validSender.address,
-					u_isDelegate: 1,
-					isDelegate: 0,
-					username: null,
-					u_username: validTransaction.asset.delegate.username
-				};
-			});
-
-			afterEach(function () {
-				checkUnconfirmedStub.restore();
-			});
-
-			it('should call accounts.getSender module with correct parameter', function (done) {
-				delegate.applyUnconfirmed(validTransaction, validSender, function () {
-					expect(accountsMock.getSender.calledWith(validUnconfirmedAccount)).to.be.true;
-					done();
-				});
-			});
-		});
-
-		describe('when username is already unconfirmed', function () {
-
-			beforeEach(function () {
-				checkUnconfirmedStub = sinon.stub(delegate, 'checkUnconfirmed').callsArgWith(1, 'Username already exists');
-			});
-
-			afterEach(function () {
-				checkUnconfirmedStub.restore();
-			});
-
-			it('should not call accounts.getSender', function (done) {
-				delegate.applyUnconfirmed(validTransaction, validSender, function () {
-					expect(accountsMock.getSender.notCalled).to.be.true;
-					done();
-				});
-			});
-
-			it('should return an error', function (done) {
-				delegate.applyUnconfirmed(validTransaction, validSender, function (err) {
-					expect(err).to.be.equal('Username already exists');
-					done();
-				});
-			});
-		});
-	});
-
 	describe('undo', function () {
 
 		it('should call accounts.getSender module with correct parameters', function (done) {
@@ -789,22 +730,6 @@ describe('delegate', function () {
 					vote: 0,
 					username: null,
 					u_username: transaction.asset.delegate.username
-				}));
-				done();
-			});
-		});
-	});
-
-	describe('undoUnconfirmed', function () {
-
-		it('should call accounts.getSender module with correct parameters', function (done) {
-			delegate.undoUnconfirmed(transaction, sender, function () {
-				expect(accountsMock.getSender.calledWith({
-					address: sender.address,
-					u_isDelegate: 0,
-					isDelegate: 0,
-					username: null,
-					u_username: null
 				}));
 				done();
 			});
