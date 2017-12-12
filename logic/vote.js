@@ -194,32 +194,6 @@ Vote.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Applies transaction to confirmed state.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @todo delete unnecessary var parent = this
- */
-Vote.prototype.apply = function (transaction, block, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * Undoes confirmed state of transaction.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
- */
-Vote.prototype.undo = function (transaction, block, sender, cb) {
-	if (transaction.asset.votes === null) { return setImmediate(cb); }
-	
-	return setImmediate(cb);
-};
-
-/**
  * @typedef {Object} votes
  * @property {String[]} votes - Unique items, max constant activeDelegates.
  * @property {string} transactionId
