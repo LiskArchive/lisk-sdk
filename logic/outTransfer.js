@@ -139,34 +139,6 @@ OutTransfer.prototype.getBytes = function (transaction) {
 	return buf;
 };
 
-/**
- * Sets unconfirmed out transfers to false.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-OutTransfer.prototype.apply = function (transaction, block, sender, cb) {
-	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
-
-	return setImmediate(cb);
-};
-
-/**
- * Sets unconfirmed out transfers to true.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
-	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true;
-	
-	return setImmediate(cb);
-};
-
 OutTransfer.prototype.schema = {
 	id: 'OutTransfer',
 	object: true,
