@@ -130,6 +130,32 @@ describe('encrypt', () => {
 
 			decryptedMessage.should.be.equal(defaultMessage);
 		});
+
+		it('should inform the user if the nonce is the wrong length', () => {
+			decryptMessageWithPassphrase
+				.bind(
+					null,
+					defaultEncryptedMessageWithNonce.encryptedMessage,
+					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
+					defaultPassphrase,
+					defaultPublicKey,
+				)
+				.should.throw('Expected 24-byte nonce but got length 1.');
+		});
+
+		it('should inform the user if something goes wrong during decryption', () => {
+			decryptMessageWithPassphrase
+				.bind(
+					null,
+					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
+					defaultEncryptedMessageWithNonce.nonce,
+					defaultSecondPassphrase,
+					defaultPublicKey,
+				)
+				.should.throw(
+					'Something went wrong during decryption. Is this the full encrypted message?',
+				);
+		});
 	});
 
 	describe('encrypt and decrypt passphrase with password', () => {
