@@ -69,7 +69,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 	describe('transactions processing', function () {
 
-		it('when account does not exists should fail', function () {
+		it('when account does not exist should fail', function () {
 			transaction = lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -80,7 +80,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 		});
 
 		it.skip('with no funds should fail', function () {
-			// FIXME: create an account with 1 LSK and try to create delegate
+			// FIXME: Create an account with 1 LSK and try to create delegate
 			transaction = lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
