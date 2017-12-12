@@ -21,6 +21,7 @@ describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
 	const testPort = '7000';
 	const livePort = '8000';
+	const sslPort = '443';
 	const mainnetHash =
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 	const testnetHash =
@@ -32,7 +33,7 @@ describe('Lisk API module', () => {
 		os: 'lisk-js-api',
 		version: '1.0.0',
 		minVersion: '>=0.5.0',
-		port: livePort,
+		port: sslPort,
 	};
 	const testnetNethash = Object.assign({}, defaultNethash, {
 		nethash: testnetHash,
@@ -121,18 +122,18 @@ describe('Lisk API module', () => {
 
 	describe('on initialize', () => {
 		describe('SSL', () => {
-			it('should set SSL to false on initialization when no SSL options is passed', () => {
-				LSK.should.have.property('ssl').be.false();
-			});
-
-			it('should set SSL to true on initialization when passed as an option', () => {
-				LSK = new LiskAPI({ ssl: true });
+			it('should set SSL to true on initialization when no SSL options is passed', () => {
 				LSK.should.have.property('ssl').be.true();
 			});
 
 			it('should set SSL to false on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: false });
 				LSK.should.have.property('ssl').be.false();
+			});
+
+			it('should set SSL to true on initialization when passed as an option', () => {
+				LSK = new LiskAPI({ ssl: true });
+				LSK.should.have.property('ssl').be.true();
 			});
 		});
 
@@ -198,7 +199,7 @@ describe('Lisk API module', () => {
 					os: 'lisk-js-api',
 					version: '0.0.0a',
 					minVersion: '>=0.5.0',
-					port: livePort,
+					port: sslPort,
 				};
 				LSK = new LiskAPI({ nethash: ownNethash });
 				LSK.should.have.property('nethash').be.eql(expectedDevNethash);
