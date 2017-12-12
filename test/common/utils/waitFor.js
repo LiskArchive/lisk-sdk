@@ -154,7 +154,7 @@ function confirmations (transactions, limitHeight) {
 			return apiHelpers.getTransactionByIdPromise(transactionId);
 		})).then(function (res) {
 			return Promise.each(res, function (result) {
-				if (result.body.transactions.length === 0) {
+				if (result.body.data.length === 0) {
 					throw Error('Transaction not confirmed');
 				}
 			});

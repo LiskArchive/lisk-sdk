@@ -33,6 +33,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 
 		describe('when every peer forges with separate subset of genesis delegates and forging.force = false', function () {
 
+			var testFailedError;
+
 			before(function () {
 				var secretsMaxLength = Math.ceil(devConfig.forging.secret.length / configurations.length);
 				var secrets = _.clone(devConfig.forging.secret);
@@ -49,8 +51,17 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					setup.setupNetwork(configurations, done);
 				});
 
+				afterEach(function () {
+					if (this.currentTest.state === 'failed') {
+						console.warn('Test failed: ' + this.currentTest.title);
+						testFailedError = this.currentTest.err;
+					}
+				});
+
 				after(function (done) {
-					setup.exit(done);
+					setup.exit(function () {
+						done(testFailedError);
+					});
 				});
 
 				describe('when WS connections to all nodes all established', function () {
@@ -79,6 +90,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.propagation.blocks(params);
 
 						scenarios.propagation.transactions(params);
+
+						scenarios.stress.transfer(params);
 					});
 				});
 			});

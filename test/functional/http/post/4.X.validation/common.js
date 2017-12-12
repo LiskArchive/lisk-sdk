@@ -29,7 +29,7 @@ function beforeValidationPhase (scenarios) {
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				expect(res).to.have.nested.property('body.data.message').to.equal('Transaction(s) accepted');
 			});
 		}))
 			.then(function () {
@@ -43,7 +43,7 @@ function beforeValidationPhase (scenarios) {
 
 					return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 						expect(res).to.have.property('status').to.equal(200);
-						expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+						expect(res).to.have.nested.property('body.data.message').to.equal('Transaction(s) accepted');
 					});
 				}));
 			})
@@ -96,7 +96,7 @@ function sendAndSignMultisigTransaction (type, scenario) {
 	return apiHelpers.sendTransactionPromise(transaction)
 		.then(function (res) {
 			expect(res).to.have.property('status').to.equal(200);
-			expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+			expect(res).to.have.nested.property('body.data.message').to.equal('Transaction(s) accepted');
 		})
 		.then(function () {
 			var signatures = [];

@@ -19,8 +19,7 @@ function beforeUnconfirmedPhase (account) {
 
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
 			})
@@ -30,8 +29,7 @@ function beforeUnconfirmedPhase (account) {
 				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 			});
 	});
 };
@@ -42,8 +40,7 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
 			})
@@ -53,8 +50,7 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				randomUtil.guestbookDapp.transactionId = transaction.id;
 
@@ -66,8 +62,8 @@ function beforeUnconfirmedPhaseWithDapp (account) {
 				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').to.equal('Transaction(s) accepted');
+
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 			});
 	});
 };

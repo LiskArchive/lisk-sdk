@@ -76,6 +76,7 @@ var constants = {
 	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
 	maxVotesPerTransaction: 33,
+	maxVotesPerAccount: 101,
 	minBroadhashConsensus: 51,
 	multisigConstraints: {
 		min: {

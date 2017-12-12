@@ -9,9 +9,13 @@ var pathFiles = [
 	'./delegates',
 	'./multisignatures',
 	'./node',
+	'./node.transactions.unconfirmed',
+	'./node.transactions.unprocessed',
+	'./node.transactions.unsigned',
 	'./peers',
 	'./transactions',
-	'./voters'
+	'./voters',
+	'./votes'
 ];
 
 parallelTests(pathFiles, 'test/functional/http/get/');
