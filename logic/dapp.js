@@ -234,32 +234,6 @@ DApp.prototype.getBytes = function (transaction) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-DApp.prototype.apply = function (transaction, block, sender, cb) {
-	// Deletes dapp name and link from unconfirmed state
-	delete __private.unconfirmedNames[transaction.asset.dapp.name];
-	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
-
-	return setImmediate(cb);
-};
-
-/**
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-DApp.prototype.undo = function (transaction, block, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
  * @typedef {Object} dapp
  * @property {dappCategory} category - Number between 0 and 8
  * @property {string} name - Between 1 and 32 chars

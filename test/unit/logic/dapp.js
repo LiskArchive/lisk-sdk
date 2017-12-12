@@ -455,50 +455,6 @@ describe('dapp', function () {
 			});
 		});
 
-		describe('apply', function () {
-
-			var dummyBlock = {
-				id: '9314232245035524467',
-				height: 1
-			};
-
-			var unconfirmedNames;
-			var unconfirmedLinks;
-
-			beforeEach(function () {
-				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
-				unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
-			});
-
-			it('should update private unconfirmed name variable', function (done) {
-				dapp.apply(transaction, dummyBlock, sender, function (err, cb) {
-					expect(unconfirmedNames[transaction.asset.dapp.name]).to.not.exist;
-					done();
-				});
-			});
-
-			it('should update private unconfirmed links variable', function (done) {
-				dapp.apply(transaction, dummyBlock, sender, function (err, cb) {
-					expect(unconfirmedLinks[transaction.asset.dapp.link]).to.not.exist;
-					done();
-				});
-			});
-		});
-
-		describe('undo', function () {
-
-			describe('with vaid parameters', function () {
-				var dummyBlock = {
-					id: '9314232245035524467',
-					height: 1
-				};
-
-				it('should call the callback function', function (done) {
-					dapp.undo(transaction, dummyBlock, sender, done);
-				});
-			});
-		});
-
 		describe('objectNormalize', function () {
 
 			describe('using undefined properties in the dapp asset', function () {
