@@ -97,7 +97,7 @@ describe('dapp', function () {
 		describe('calculateFee', function () {
 
 			it('should return constants.fees.dappRegistration', function () {
-				expect(dapp.calculateFee(transaction)).to.equal(constants.fees.dapp);
+				expect(dapp.calculateFee(transaction)).to.equal(constants.fees.dappRegistration);
 			});
 		});
 
@@ -915,7 +915,7 @@ describe('dapp', function () {
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidIcons = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
 					var validIcons = _.fill(new Array(5), '').map(function () {
-						return randomUtil.applicationNam();
+						return randomUtil.applicationName();
 					});
 
 					invalidTypes.forEach(function (type) {
