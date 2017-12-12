@@ -102,6 +102,17 @@ export const wrapActionCreator = (vorpal, actionCreator, errorPrefix) => paramet
 		.catch(createErrorHandler(errorPrefix))
 		.then(printResult(vorpal, parameters.options));
 
+const OPTION_TYPES = {
+	string: [
+		'message',
+		'passphrase',
+		'password',
+		'second-passphrase',
+		'unvotes',
+		'votes',
+	],
+};
+
 export const createCommand = ({
 	command,
 	autocomplete,
@@ -116,6 +127,7 @@ export const createCommand = ({
 		.command(command)
 		.autocomplete(autocomplete)
 		.description(description)
+		.types(OPTION_TYPES)
 		.action(action);
 
 	if (alias) commandInstance.alias(alias);
