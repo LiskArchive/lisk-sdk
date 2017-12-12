@@ -14,7 +14,6 @@ var transactionSortFields = require('../../../../sql/transactions').sortFields;
 var transactionTypes = require('../../../../helpers/transactionTypes');
 var constants = require('../../../../helpers/constants');
 
-var modulesLoader = require('../../../common/modulesLoader');
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/waitFor');
@@ -46,72 +45,6 @@ describe('GET /api/transactions', function () {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
 			return waitFor.confirmations(_.map(transactionList, 'id'));
-		});
-	});
-
-	describe('from cache', function () {
-
-		var cache;
-		var getJsonForKeyPromise;
-		var url = transactionsEndpoint.getPath();
-
-		before(function (done) {
-			test.config.cacheEnabled = true;
-			modulesLoader.initCache(function (err, __cache) {
-				cache = __cache;
-				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
-				expect(err).to.not.exist;
-				expect(__cache).to.be.an('object');
-				return done(err);
-			});
-		});
-
-		afterEach(function (done) {
-			cache.flushDb(function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
-				done(err);
-			});
-		});
-
-		after(function (done) {
-			cache.quit(done);
-		});
-
-		it('cache transactions by the url and parameters when response is a success', function () {
-			var params = [
-				'blockId=' + '1',
-				'senderAddress=' + accountFixtures.genesis.address,
-				'recipientAddress=' + account.address,
-			];
-
-			return transactionsEndpoint.makeRequest({
-				blockId: '1',
-				senderAddress: accountFixtures.genesis.address,
-				recipientAddress: account.address
-			}, 200).then(function (res) {
-				return Promise.all([0, 10, 100].map(function (delay) {
-					return Promise.delay(delay).then(function () {
-						return getJsonForKeyPromise(url + '?' + params.join('&'));
-					});
-				})).then(function (responses) {
-					expect(responses).to.deep.include(res.body);
-				});
-			});
-		});
-
-		it('should not cache if response is not a success', function () {
-			var params = [
-				'whatever:senderId=' + accountFixtures.genesis.address
-			];
-
-			return transactionsEndpoint.makeRequest({unknownParam: 'invalid'}, 400).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message');
-				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					expect(response).to.eql(null);
-				});
-			});
 		});
 	});
 
