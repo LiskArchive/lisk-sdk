@@ -311,14 +311,6 @@ describe('blocks/chain', function () {
 
 						describe('when modules.accounts.getAccount succeeds', function () {
 
-							it('should call modules.transactions.undo');
-
-							it('should call modules.transactions.undo with transaction');
-
-							it('should call modules.transactions.undo with oldLastBlock');
-
-							it('should call modules.transactions.undo with sender');
-
 							it('should call self.deleteBlock');
 
 							it('should call self.deleteBlock with oldLastBlock.id');

@@ -425,32 +425,6 @@ Transactions.prototype.processPeerTransactions = function (transactions, broadca
 	return library.logic.transactionPool.addFromPeer(transactions, broadcast, cb);
 };
 
-/**
- * Applies confirmed transaction.
- * @implements {logic.transaction.apply}
- * @param {transaction} transaction - Transaction being applied.
- * @param {object} block - Block that transaction is being applied within.
- * @param {object} sender - Sender account.
- * @param {function} cb - Callback function.
- */
-Transactions.prototype.apply = function (transaction, block, sender, cb) {
-	library.logger.debug('Applying confirmed transaction', transaction.id);
-	library.logic.transaction.apply(transaction, block, sender, cb);
-};
-
-/**
- * Undoes confirmed transaction.
- * @implements {logic.transaction.undo}
- * @param {transaction} transaction - Transaction being undone.
- * @param {object} block - Block that transaction is being undone within.
- * @param {object} sender - Sender account.
- * @param {function} cb - Callback function.
- */
-Transactions.prototype.undo = function (transaction, block, sender, cb) {
-	library.logger.debug('Undoing confirmed transaction', transaction.id);
-	library.logic.transaction.undo(transaction, block, sender, cb);
-};
-
 // TODO: Remove this function
 /**
  * Receives transactions.

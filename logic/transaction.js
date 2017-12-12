@@ -68,7 +68,6 @@ Transaction.prototype.attachAssetType = function (typeId, instance) {
 	if (instance && typeof instance.getBytes === 'function' &&
 		typeof instance.calculateFee === 'function' && typeof instance.verify === 'function' &&
 		typeof instance.objectNormalize === 'function' && typeof instance.dbRead === 'function' &&
-		typeof instance.apply === 'function' && typeof instance.undo === 'function' &&
 		typeof instance.ready === 'function' && typeof instance.process === 'function'
 	) {
 		__private.types[typeId] = instance;
@@ -642,73 +641,6 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
 	}
 
 	return res;
-};
-
-/**
- * Merges account into sender address, Calls `apply` based on transaction type (privateTypes).
- * @see privateTypes
- * @implements {checkBalance}
- * @implements {account.merge}
- * @implements {slots.calcRound}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
- */
-Transaction.prototype.apply = function (transaction, block, sender, cb) {
-	if (!this.ready(transaction, sender)) {
-		return setImmediate(cb, 'Transaction is not ready');
-	}
-
-	// Check confirmed sender balance
-	// TODO: Check if this is done by the transaction pool in all the scenarios
-	var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
-	// TODO: Check if this is done by pool in all the scenarios
-	var senderBalance = this.checkBalance(amount, 'balance', transaction, sender);
-
-	if (senderBalance.exceeded) {
-		return setImmediate(cb, senderBalance.error);
-	}
-
-	amount = amount.toNumber();
-
-	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: slots.calcRound(block.height)});
-
-	/**
-	 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
-	 * DApp, InTransfer or OutTransfer.
-	 */
-	__private.types[transaction.type].apply.call(this, transaction, block, sender, function (err) {
-		return setImmediate(cb, err);
-	}.bind(this));
-};
-
-/**
- * Merges account into sender address, Calls `undo` based on transaction type (privateTypes).
- * @see privateTypes
- * @implements {bignum}
- * @implements {account.merge}
- * @implements {slots.calcRound}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
- */
-Transaction.prototype.undo = function (transaction, block, sender, cb) {
-	var amount = new bignum(transaction.amount.toString());
-	amount = amount.plus(transaction.fee.toString()).toNumber();
-
-	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height)});
-	
-	__private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
-		} else {
-			return setImmediate(cb);
-		}
-	}.bind(this));
 };
 
 Transaction.prototype.dbTable = 'transactions';
