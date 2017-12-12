@@ -243,40 +243,6 @@ Multisignature.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Stores sender address into private unconfirmedSignatures.
- * Merges into sender address transaction asset to unconfirmed fields.
- * @param {transaction} transaction - Uses multisignature from asset.
- * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
- */
-Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	if (__private.unconfirmedSignatures[sender.address]) {
-		return setImmediate(cb, 'Signature on this account is pending confirmation');
-	}
-
-	__private.unconfirmedSignatures[sender.address] = true;
-
-	return setImmediate(cb);
-};
-
-/**
- * Turns off unconfirmedSignatures for sender address.
- * Inverts multisignature signs and merges into sender address
- * to unconfirmed fields.
- *
- * @param {transaction} transaction - Uses multisignature from asset.
- * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
- */
-Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	__private.unconfirmedSignatures[sender.address] = false;
-	
-	return setImmediate(cb);
-};
-
-/**
  * @typedef {Object} multisignature
  * @property {number} min - From 1 to 15
  * @property {Array} keysgroup - Between 1 and 16 keys
