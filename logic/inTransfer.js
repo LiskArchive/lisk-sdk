@@ -150,26 +150,6 @@ InTransfer.prototype.undo = function (transaction, block, sender, cb) {
 	});
 };
 
-/**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-InTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-InTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	return setImmediate(cb);
-};
-
 InTransfer.prototype.schema = {
 	id: 'InTransfer',
 	object: true,
