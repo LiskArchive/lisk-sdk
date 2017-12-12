@@ -488,7 +488,18 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			});
 		});
 
-		it('with no funds should fail', function () {
+		it('when account does not exist should fail', function () {
+			transaction = lisk.dapp.createDapp(accountNoFunds.password, null, randomUtil.application());
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+
+		it.skip('with no funds should fail', function () {
+			// FIXME: Create an account with 1 LSK and try to create a dapp
 			transaction = lisk.dapp.createDapp(accountNoFunds.password, null, randomUtil.application());
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -497,7 +508,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				badTransactions.push(transaction);
 			});
 		});
-		
+
 		it('with minimal funds should be ok', function () {
 			transaction = lisk.dapp.createDapp(accountMinimalFunds.password, null, randomUtil.application());
 

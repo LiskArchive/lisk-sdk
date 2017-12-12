@@ -69,7 +69,18 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 	describe('transactions processing', function () {
 
-		it('with no funds should fail', function () {
+		it('when account does not exist should fail', function () {
+			transaction = lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
+
+			return sendTransactionPromise(transaction).then(function (res) {
+				expect(res).to.have.property('status').to.equal(400);
+				expect(res).to.have.nested.property('body.message').to.equal('Account does not exist');
+				badTransactions.push(transaction);
+			});
+		});
+
+		it.skip('with no funds should fail', function () {
+			// FIXME: Create an account with 1 LSK and try to create delegate
 			transaction = lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -164,7 +175,7 @@ describe('POST /api/transactions (type 2) register delegate', function () {
 
 			return sendTransactionPromise(transaction).then(function (res) {
 				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Username ' + account.username + ' already exists');
+				expect(res).to.have.nested.property('body.message').to.equal('Username already exists');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});

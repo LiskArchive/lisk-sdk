@@ -19,7 +19,7 @@ var DappsSql = {
 		].filter(Boolean).join(' ');
 	},
 
-	getGenesis: 'SELECT b."height" AS "height", b."id" AS "id", t."senderId" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = ${id}'
+	getGenesis: 'SELECT b."height" AS "height", b."block_id" AS "id", t."sender_address" AS "authorId" FROM transactions t INNER JOIN blocks b ON t."block_id" = b."block_id" WHERE t."transaction_id" = ${id}'
 };
 
 module.exports = DappsSql;

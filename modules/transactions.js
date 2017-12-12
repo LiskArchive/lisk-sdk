@@ -325,6 +325,17 @@ Transactions.prototype.getMultisignatureTransaction = function (id) {
 };
 
 /**
+ * Gets a transaction by id from the pool, and checks if it's ready.
+ * @implements {transactionPool.get}
+ * @param {string} id - Transaction id
+ * @return {transaction|undefined} Transaction object or undefined.
+ */
+Transactions.prototype.getUnconfirmedTransaction = function (id) {
+	var transaction = library.logic.transactionPool.get(id);
+	return transaction.status === 'ready' ? transaction.transaction : undefined;
+};
+
+/**
  * Gets unconfirmed transactions, with a limit option.
  * @implements {transactionPool.getReady}
  * @param {number} limit - Limit applied to results.
@@ -654,6 +665,10 @@ Transactions.prototype.shared = {
 
 	getMultisignatureTransactions: function (req, cb) {
 		return __private.getPooledTransactions('getMultisignatureTransactionList', req, cb);
+	},
+
+	getUnconfirmedTransaction: function (req, cb) {
+		return __private.getPooledTransaction('getUnconfirmedTransaction', req, cb);
 	},
 
 	getUnconfirmedTransactions: function (req, cb) {
