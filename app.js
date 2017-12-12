@@ -97,7 +97,6 @@ var config = {
 		voters: './modules/voters'
 	},
 	api: {
-		multisignatures: { http: './api/http/multisignatures.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
