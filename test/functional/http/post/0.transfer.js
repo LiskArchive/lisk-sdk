@@ -62,7 +62,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 			});
 		});
 
-		it('when account does not exists should fail', function () {
+		it('when account does not exist should fail', function () {
 			transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 
 		it.skip('when sender has no funds should fail', function () {
-			// FIXME: create an account with 1 LSK and try to send money
+			// FIXME: Create an account with 1 LSK and try to send funds
 			transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {

@@ -69,7 +69,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			});
 		});
 
-		it('when account does not exists should fail', function () {
+		it('when account does not exist should fail', function () {
 			transaction = lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
@@ -80,7 +80,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 
 		it.skip('with no funds should fail', function () {
-			// FIXME: create an account with 1 LSK and try to send signature
+			// FIXME: Create an account with 1 LSK and try to send signature
 			transaction = lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
