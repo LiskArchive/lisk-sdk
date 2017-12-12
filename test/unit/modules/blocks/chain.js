@@ -226,16 +226,6 @@ describe('blocks/chain', function () {
 
 			describe('when modules.accounts.getSender succeeds', function () {
 
-				it('should call __private.applyTransaction');
-
-				it('should call __private.applyTransaction with block');
-
-				it('should call __private.applyTransaction with transaction');
-
-				it('should call __private.applyTransaction with sender');
-
-				it('should call __private.applyTransaction with callback');
-
 				it('should call tracker.applyNext');
 			});
 
