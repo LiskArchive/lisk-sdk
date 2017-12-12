@@ -13,7 +13,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 This sections provides details on what you need install on your system in order to run Lisk.
 
-###System Install
+### System Install
 
 - Tool chain components -- Used for compiling dependencies
 
@@ -21,7 +21,7 @@ This sections provides details on what you need install on your system in order 
     
         ```
         sudo apt-get update
-        sudo apt-get install -y python build-essential curl automake autoconf libtool`
+        sudo apt-get install -y python build-essential curl automake autoconf libtool
         ```
         
     - Mac:
@@ -55,24 +55,24 @@ This sections provides details on what you need install on your system in order 
         brew install git
         ```
 
-###Node.js (<https://nodejs.org/>) 
+### Node.js (<https://nodejs.org/>) 
 
 - Node.js serves as the underlying engine for code execution.
 
     Install System wide via package manager:
 
-    Linux:
+    - Linux:
 
-    ```
-    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-    ```
+        ```
+        curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        ```
 
-    Mac:
+    - Mac:
     
-    ```
-    brew install node
-    ```
+        ```
+        brew install node
+        ```
     
 - (Optional) Install n -- Used for Node.js version management
     
@@ -81,7 +81,7 @@ This sections provides details on what you need install on your system in order 
     n 8.9.2
     ```
         
-- ####Special note about NPM 5
+- #### Special note about NPM 5
     
     Due to an issue with NPM 5.4.x and higher, node-sodium cannot be built. Therefore it is recommended to fixate the local NPM version at v5.3.x
     
@@ -97,7 +97,7 @@ This sections provides details on what you need install on your system in order 
   npm install -g pm2
   ```
 
-###PostgreSQL (version 9.6.6):
+### PostgreSQL (version 9.6.6):
 
    - Linux:
 
@@ -124,7 +124,7 @@ This sections provides details on what you need install on your system in order 
         createdb lisk_main
         ```
 
-###Installing Redis
+### Installing Redis
 
    - Linux:
         
@@ -166,11 +166,11 @@ This sections provides details on what you need install on your system in order 
         
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
-####Change The Lisk Configuration
+#### Change The Lisk Configuration
 
-Update the redis port configuration in both `config.json` and `test/data/config.json`. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
+Update the redis port configuration in both `config.json` and `test/config.json`. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
 
-####Change The Redis Launch configuration
+#### Change The Redis Launch configuration
 
 Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
