@@ -79,7 +79,6 @@ describe('cache endpoints', function () {
 
 	describe('GET /blocks', function () {
 
-
 		var blocksEndpoint = new swaggerEndpoint('GET /blocks');
 		var initialResponse;
 
