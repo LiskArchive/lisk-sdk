@@ -551,7 +551,7 @@ d.run(function () {
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {
-						scope.network.https.listen(scope.config.ssl.options.wsPort, scope.config.ssl.options.address, function (err) {
+						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
 							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
 
 							cb(err, scope.network);
