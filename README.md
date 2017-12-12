@@ -153,7 +153,6 @@ This sections provides details on what you need install on your system in order 
     
         ```
         brew install redis
-        
         ```
         start redis-server:
         ```
@@ -203,21 +202,29 @@ npm install
 
 To test that Lisk is built and configured correctly, run the following command:
 
-`node app.js`
+```
+node app.js
+```
 
 In a browser navigate to: <http://localhost:8000> (for the mainnet) or <http://localhost:7000> (for the testnet). If Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
 
 Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
 
-`pm2 start --name lisk app.js`
+```
+pm2 start --name lisk app.js
+```
 
 After the process is started, its runtime status and log location can be retrieved by issuing the following command:
 
-`pm2 show lisk`
+```
+pm2 show lisk
+```
 
 To stop Lisk after it has been started with `pm2`, issue the following command:
 
-`pm2 stop lisk`
+```
+pm2 stop lisk
+```
 
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
@@ -267,15 +274,9 @@ npm test -- test/lib/accounts.js
 npm test -- test/lib/transactions.js
 ```
 
-## Authors
+## Contributors
 
-- Boris Povod <boris@crypti.me>
-- Pavel Nekrasov <landgraf.paul@gmail.com>
-- Sebastian Stupurac <stupurac.sebastian@gmail.com>
-- Oliver Beddows <oliver@lightcurve.io>
-- Isabella Dell <isabella@lightcurve.io>
-- Marius Serek <mariusz@serek.net>
-- Maciej Baj <maciej@lightcurve.io>
+https://github.com/LiskHQ/lisk/graphs/contributors
 
 ## License
 
