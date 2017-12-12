@@ -64,7 +64,7 @@ function Multisignatures (cb, scope) {
  * @param {Object} transaction - Contains transaction and signature.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} err messages| cb
- * @todo test function!.
+ * @todo Add test coverage.
  */
 Multisignatures.prototype.processSignature = function (transaction, cb) {
 	if (!transaction) {
@@ -260,15 +260,15 @@ Multisignatures.prototype.isLoaded = function () {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
+ * @todo Implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
 Multisignatures.prototype.shared = {
 	/**
 	 * Search accounts based on the query parameter passed.
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.address - Account address
-	 * @param {function} cb - Callback function
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.address - Account address.
+	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getGroups: function (filters, cb) {
@@ -283,9 +283,9 @@ Multisignatures.prototype.shared = {
 
 	/**
 	 * Search accounts based on the query parameter passed.
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.address - Account address
-	 * @param {function} cb - Callback function
+	 * @param {Object} filters - Filters applied to results.
+	 * @param {string} filters.address - Account address.
+	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getMemberships: function (filters, cb) {

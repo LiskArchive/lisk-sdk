@@ -215,6 +215,7 @@ describe('multisignatures', function () {
 	});
 
 	describe('getGroup', function () {
+
 		it('should accept address as parameter');
 
 		it('should fail if wrong address is provided');

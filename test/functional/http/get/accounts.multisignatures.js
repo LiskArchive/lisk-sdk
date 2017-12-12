@@ -51,6 +51,7 @@ describe('GET /api/accounts', function () {
 	});
 
 	describe('/{address}/multisignature_groups', function () {
+
 		var multisigGroupsEndpoint = new swaggerEndpoint('GET /accounts/{address}/multisignature_groups');
 
 		describe('address', function () {
@@ -98,12 +99,12 @@ describe('GET /api/accounts', function () {
 	});
 
 	describe('/{address}/multisignature_memberships', function () {
+
 		var multisigMembersEndpoint = new swaggerEndpoint('GET /accounts/{address}/multisignature_memberships');
 
 		describe('address', function () {
 
 			it('using master group account address should respond with empty multisignature memberships', function () {
-
 				return multisigMembersEndpoint.makeRequest({address: account.address}, 200).then(function (res) {
 					res.body.data.should.have.length(0);
 				});

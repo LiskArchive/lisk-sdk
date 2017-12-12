@@ -79,7 +79,7 @@ AccountsController.getMultisignatureGroups = function (context, next) {
 		return !(v === undefined || v === null);
 	});
 
-	if(!filters.address) {
+	if (!filters.address) {
 		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
 	}
 
@@ -115,7 +115,7 @@ AccountsController.getMultisignatureMemberships = function (context, next) {
 		return !(v === undefined || v === null);
 	});
 
-	if(!filters.address) {
+	if (!filters.address) {
 		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
 	}
 
