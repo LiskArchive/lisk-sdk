@@ -261,9 +261,6 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 					block: block
 				});
 			}
-			// Apply transaction to confirmed & unconfirmed balances
-			// WARNING: DB_WRITE
-			__private.applyTransaction(block, transaction, sender, cb);
 			// Update block progress tracker
 			tracker.applyNext();
 		});
@@ -276,32 +273,6 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 			modules.blocks.lastBlock.set(block);
 			return cb();
 		}
-	});
-};
-
-/**
- * Apply transaction to unconfirmed and confirmed
- *
- * @private
- * @async
- * @method applyTransaction
- * @param  {Object}   block Block object
- * @param  {Object}   transaction Transaction object
- * @param  {Object}   sender Sender account
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- */
-__private.applyTransaction = function (block, transaction, sender, cb) {
-	modules.transactions.apply(transaction, block, sender, function (err) {
-		if (err) {
-			return setImmediate(cb, {
-				message: 'Failed to apply transaction: ' + transaction.id,
-				transaction: transaction,
-				block: block
-			});
-		}
-		return setImmediate(cb);
 	});
 };
 
@@ -338,18 +309,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 
 						return process.exit(0);
 					}
-					// DATABASE: write
-					modules.transactions.apply(transaction, block, sender, function (err) {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
-							library.logger.error(err);
-							library.logger.error('Transaction', transaction);
-
-							return process.exit(0);
-						}
-						return setImmediate(eachSeriesCb);
-					});
+					return setImmediate(eachSeriesCb);
 				});
 			}, function (err) {
 				return setImmediate(seriesCb, err);
@@ -444,9 +404,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 							if (err) {
 								return setImmediate(cb, err);
 							}
-							// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
-							// WARNING: DB_WRITE
-							modules.transactions.undo(transaction, oldLastBlock, sender, cb);
+							cb();
 						});
 					}, function (cb) {
 						// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)

@@ -295,60 +295,6 @@ describe('signature', function () {
 			});
 		});
 
-		describe('apply', function () {
-
-			beforeEach(function (done) {
-				signature.apply(validTransaction, dummyBlock, sender, done);
-			});
-
-			it('should call modules.accounts.getSender', function () {
-				expect(accountsMock.getSender.calledOnce).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with address = sender.address', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({address: sender.address}))).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with secondSignature = 1', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({secondSignature: 1}))).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with u_secondSignature = 0', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({u_secondSignature: 0}))).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with secondPublicKey = validTransaction.asset.signature.publicKey', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({secondPublicKey: validTransaction.asset.signature.publicKey}))).to.be.true;
-			});
-		});
-
-		describe('undo', function () {
-
-			beforeEach(function (done) {
-				signature.undo(validTransaction, dummyBlock, sender, done);
-			});
-
-			it('should call modules.accounts.getSender', function () {
-				expect(accountsMock.getSender.calledOnce).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with address = sender.address', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({address: sender.address}))).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with secondSignature = 0', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({secondSignature: 0}))).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with u_secondSignature = 1', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({u_secondSignature: 1}))).to.be.true;
-			});
-
-			it('should call modules.accounts.getSender with secondPublicKey = null', function () {
-				expect(accountsMock.getSender.calledWith(sinon.match({secondPublicKey: null}))).to.be.true;
-			});
-		});
-
 		describe('objectNormalize', function () {
 
 			describe('schema.validate should validate against signature schema', function () {

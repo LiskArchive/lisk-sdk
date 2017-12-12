@@ -112,44 +112,6 @@ InTransfer.prototype.getBytes = function (transaction) {
 	return buf;
 };
 
-/**
- * Calls getGenesis with dappid to obtain authorId.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-InTransfer.prototype.apply = function (transaction, block, sender, cb) {
-	shared.getGenesis({dappid: transaction.asset.inTransfer.dappId}, function (err, res) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		
-		// TODO: Implement proper check for this if needed
-		return setImmediate(cb);
-	});
-};
-
-/**
- * Calls getGenesis with dappid to obtain authorId.
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-InTransfer.prototype.undo = function (transaction, block, sender, cb) {
-	shared.getGenesis({dappid: transaction.asset.inTransfer.dappId}, function (err, res) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-	
-		// TODO: Implement proper check for this if needed
-		return setImmediate(cb);
-	});
-};
-
 InTransfer.prototype.schema = {
 	id: 'InTransfer',
 	object: true,

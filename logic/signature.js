@@ -113,41 +113,6 @@ Signature.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Sets account second signature from transaction asset.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction - Uses publicKey from asset signature.
- * @param {block} block - Unnecessary parameter.
- * @param {account} sender - Uses the address
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} for errors
- */
-Signature.prototype.apply = function (transaction, block, sender, cb) {
-	modules.accounts.getSender({
-		address: sender.address,
-		secondSignature: 1,
-		u_secondSignature: 0,
-		secondPublicKey: transaction.asset.signature.publicKey
-	}, cb);
-};
-
-/**
- * Sets account second signature to null.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter.
- * @param {account} sender
- * @param {function} cb - Callback function.
- */
-Signature.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.getSender({
-		address: sender.address,
-		secondSignature: 0,
-		u_secondSignature: 1,
-		secondPublicKey: null
-	}, cb);
-};
-
-/**
  * @typedef signature
  * @property {publicKey} publicKey
  */

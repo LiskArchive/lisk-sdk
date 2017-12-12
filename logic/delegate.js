@@ -147,32 +147,6 @@ Delegate.prototype.getBytes = function (transaction) {
 	return buf;
 };
 
-/**
- * Checks transaction delegate and calls modules.accounts.getSender() with username.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function.
- * @todo Delete unused block parameter.
- */
-Delegate.prototype.apply = function (transaction, block, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * Checks transaction delegate and no nameexist and calls modules.accounts.getSender() with u_username.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function.
- * @todo Delete unused block parameter.
- */
-Delegate.prototype.undo = function (transaction, block, sender, cb) {
-	return setImmediate(cb);
-};
-
 Delegate.prototype.schema = {
 	id: 'Delegate',
 	type: 'object',

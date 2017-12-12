@@ -236,6 +236,7 @@ DApps.prototype.shared = {
 };
 
 // Shared API
+// FIXME: Undo and apply called this function from in transfer, recheck logic
 shared.getGenesis = function (req, cb) {
 	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
 		if (rows.length === 0) {

@@ -210,39 +210,6 @@ Multisignature.prototype.getBytes = function (transaction, skip) {
 };
 
 /**
- * Merges transaction data into mem_accounts table.
- * Checks public keys from multisignature and creates accounts.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction - Uses multisignature from asset.
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} for errors
- */
-Multisignature.prototype.apply = function (transaction, block, sender, cb) {
-	__private.unconfirmedSignatures[sender.address] = false;
-	
-	return setImmediate(cb);
-};
-
-/**
- * Inverts multisignature signs and merges into sender address.
- * Stores sender address into private unconfirmedSignatures.
- * @param {transaction} transaction - Uses multisignature from asset.
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
- */
-Multisignature.prototype.undo = function (transaction, block, sender, cb) {
-	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
-
-	__private.unconfirmedSignatures[sender.address] = true;
-	
-	return setImmediate(cb);
-};
-
-/**
  * @typedef {Object} multisignature
  * @property {number} min - From 1 to 15
  * @property {Array} keysgroup - Between 1 and 16 keys

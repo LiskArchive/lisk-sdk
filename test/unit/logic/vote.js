@@ -94,13 +94,7 @@ describe('vote', function () {
 	function addVotes (votes, done) {
 		var transaction = _.clone(validTransaction);
 		transaction.asset.votes = votes;
-		async.parallel([
-			function (cb) {
-				vote.apply.call(transactionLogic, transaction, dummyBlock, validSender, cb);
-			}, function (cb) {
-				cb();
-			}
-		], done);
+		done();
 	}
 
 	function checkAccountVotes (senderPublicKey, state, votes, action, done) {
@@ -178,7 +172,7 @@ describe('vote', function () {
 			blockId: '8505659485551877884',
 		};
 
-		transactionLogic.apply(sendTransaction, dummyBlock, sender, done);
+		done();
 	});
 
 	before(function (done) {
@@ -466,46 +460,6 @@ describe('vote', function () {
 	describe('process', function () {
 		it('should be okay', function (done) {
 			vote.process(validTransaction, validSender, done);
-		});
-	});
-	
-	// TODO: Should just call back
-	describe.skip('apply', function () {
-
-		it('should remove votes for delegates', function (done) {
-			var transaction = _.clone(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err){
-				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'apply', done);
-			});
-		});
-
-		it('should add vote for delegate', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err){
-				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'apply', done);
-			});
-		});
-	});
-	
-	// TODO: Should just call back
-	describe.skip('undo', function () {
-
-		it('should undo remove votes for delegates', function (done) {
-			var transaction = _.clone(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.undo.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err){
-				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'undo', done);
-			});
-		});
-
-		it('should undo add vote for delegate', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.undo.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
-				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'undo', done);
-			});
 		});
 	});
 

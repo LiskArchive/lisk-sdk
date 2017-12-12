@@ -235,10 +235,8 @@ describe('transactionPool', function () {
 						if (err) { return seriesCb(err); }
 						if (!transaction.senderId) {
 							transaction.senderId = library.modules.accounts.generateAddressByPublicKey(transaction.senderPublicKey);
-						}				
-						library.modules.transactions.apply(transaction, block, sender, function (err) {
-							return setImmediate(eachSeriesCb, err);
-						});
+						}
+						return setImmediate(eachSeriesCb);
 					});
 				}, function (err) {
 					return setImmediate(seriesCb, err, block);
