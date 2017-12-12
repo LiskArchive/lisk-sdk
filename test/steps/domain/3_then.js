@@ -13,6 +13,28 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+export function itShouldReturnThePublicKeyPrependedWithAMinus() {
+	const { publicKeys, returnValue } = this.test.ctx;
+	const publicKeysWithMinus = publicKeys.map((publicKey) => {
+		return `-${publicKey}`;
+	});
+	return (returnValue).should.eql(publicKeysWithMinus);
+}
+
+export function itShouldReturnThePublicKeyPrependedWithAPlus() {
+	const { publicKeys, returnValue } = this.test.ctx;
+	const publicKeysWithPlus = publicKeys.map((publicKey) => {
+		return `+${publicKey}`;
+	});
+	return (returnValue).should.eql(publicKeysWithPlus);
+}
+
+export function itShouldReturnThePublicKeys() {
+	const { returnValue, publicKeys } = this.test.ctx;
+	return (returnValue).should.eql(publicKeys);
+}
+
 export function itShouldReturnTheBlock() {
 	const { returnValue, block } = this.test.ctx;
 	return (returnValue).should.equal(block);

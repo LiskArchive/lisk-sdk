@@ -13,11 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { ValidationError } from '../utils/error';
 import {
 	createCommand,
+	prependPlusToPublicKeys,
 	validateLifetime,
 	validateMinimum,
+	validatePublicKeys,
 } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
@@ -51,17 +52,8 @@ export const actionCreator = vorpal => async ({
 		'second-passphrase': secondPassphraseSource,
 	} = options;
 
-	const publicKeysWithPlus = keysgroup.map((publicKey) => {
-		try {
-			Buffer.from(publicKey, 'hex').toString('hex');
-		} catch (error) {
-			throw new ValidationError(`Error processing public key ${publicKey}: ${error.message}.`);
-		}
-		if (publicKey.length !== 64) {
-			throw new ValidationError(`Public key ${publicKey} length differs from the expected 64 hex characters for a public key.`);
-		}
-		return `+${publicKey}`;
-	});
+	const publicKeys = validatePublicKeys(keysgroup);
+	const publicKeysWithPlus = prependPlusToPublicKeys(publicKeys);
 
 	validateLifetime(lifetime);
 	validateMinimum(minimum);

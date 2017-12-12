@@ -72,7 +72,7 @@ describe('create transaction create multisignature account command', () => {
 							});
 							Given('a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"', given.aKeysgroupWithKeys, () => {
 								Given('an empty options object', given.anEmptyOptionsObject, () => {
-									Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+									Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 										When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
 											Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 										});
@@ -88,7 +88,7 @@ describe('create transaction create multisignature account command', () => {
 									});
 								});
 								Given('an options object with passphrase set to "passphraseSource"', given.anOptionsObjectWithPassphraseSetTo, () => {
-									Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+									Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 										When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
 											Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 										});
@@ -105,7 +105,7 @@ describe('create transaction create multisignature account command', () => {
 								});
 								Given('a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', given.aSecondPassphrase, () => {
 									Given('an options object with second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithSecondPassphraseSetTo, () => {
-										Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+										Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 											When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
 												Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 											});
@@ -121,7 +121,7 @@ describe('create transaction create multisignature account command', () => {
 										});
 									});
 									Given('an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"', given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo, () => {
-										Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+										Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 											When('the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options', when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions, () => {
 												Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 											});

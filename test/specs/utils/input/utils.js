@@ -178,7 +178,7 @@ describe('input utils utils', () => {
 				});
 				Given('data is provided via an unknown source', given.dataIsProvidedViaAnUnknownSource, () => {
 					When('getData is called with the source', when.getDataIsCalledWithTheSource, () => {
-						Then('it should reject with message "Unknown data source type. Must be one of `file`, or `stdin`."', then.itShouldRejectWithMessage);
+						Then('it should reject with message "Unknown data source type."', then.itShouldRejectWithMessage);
 					});
 				});
 				Given('a data file path "/path/to/the/data.txt"', given.aDataFilePath, () => {

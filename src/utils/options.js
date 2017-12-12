@@ -49,6 +49,20 @@ const passwordDescription = `Specifies a source for your secret password. Lisky 
 
 const prettyDescription = 'Prints json in pretty format rather than condensed. Has no effect if json option is false. You can change the default behaviour in your config.json file.';
 
+const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
+
+	Examples:
+	- --votes publickey1,publickey2
+	- --votes file:/path/to/my/votes.txt (every public key should be on a new line)
+`;
+
+const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
+
+	Examples:
+	- --unvotes publickey1,publickey2
+	- --unvotes file:/path/to/my/unvotes.txt (every public key should be on a new line)
+`;
+
 const options = {
 	json: ['-j, --json', jsonDescription],
 	message: ['-m, --message <source>', messageDescription],
@@ -57,6 +71,8 @@ const options = {
 	secondPassphrase: ['-s, --second-passphrase <source>', secondPassphraseDescription],
 	password: ['-w, --password <source>', passwordDescription],
 	pretty: ['--pretty', prettyDescription],
+	unvotes: ['--unvotes <source...>', unvotesDescription],
+	votes: ['--votes <source...>', votesDescription],
 };
 
 export default options;

@@ -15,6 +15,7 @@
  */
 import * as createAccount from '../../src/commands/createAccount';
 import * as createTransactionRegisterDelegate from '../../src/commands/createTransactionRegisterDelegate';
+import * as createTransactionCastVotes from '../../src/commands/createTransactionCastVotes';
 import * as createTransactionCreateMultisignatureAccount from '../../src/commands/createTransactionCreateMultisignatureAccount';
 import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
 import * as createTransactionTransfer from '../../src/commands/createTransactionTransfer';
@@ -79,6 +80,7 @@ export const getActionCreator = actionName => ({
 	'encrypt message': encryptMessage.actionCreator,
 	'encrypt passphrase': encryptPassphrase.actionCreator,
 	'create transaction register delegate': createTransactionRegisterDelegate.actionCreator,
+	'create transaction cast votes': createTransactionCastVotes.actionCreator,
 	'create transaction create multisignature account': createTransactionCreateMultisignatureAccount.actionCreator,
 	'create transaction register second passphrase': createTransactionRegisterSecondPassphrase.actionCreator,
 	'create transaction transfer': createTransactionTransfer.actionCreator,

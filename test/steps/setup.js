@@ -178,6 +178,13 @@ export function setUpCommandCreateTransactionTransfer() {
 	setUpInputStubs();
 }
 
+export function setUpCommandcreateTransactionCastVotes() {
+	setUpInputStubs();
+	setUpInputUtilsStubs();
+	setUpTransactionsStubs();
+	setUpFsStubs();
+}
+
 export function setUpCommandCreateTransactionCreateMultisignatureAccount() {
 	setUpTransactionsStubs();
 	setUpInputStubs();

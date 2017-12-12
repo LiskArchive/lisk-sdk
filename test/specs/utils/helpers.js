@@ -19,6 +19,42 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('utils helpers', () => {
+	describe('#validatePublicKeys', () => {
+		Given('invalid public keys "+647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6"', given.invalidPublicKeys, () => {
+			When('validatePublicKeys is called with the public keys', when.validatePublicKeysIsCalledWithThePublicKeys, () => {
+				Then('it should throw validation error "Error processing public key +647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6: Invalid hex string."', then.itShouldThrowValidationError);
+			});
+		});
+		Given('invalid public keys "12345678123456781234567812345678123456781234567812345678123456gg"', given.invalidPublicKeys, () => {
+			When('validatePublicKeys is called with the public keys', when.validatePublicKeysIsCalledWithThePublicKeys, () => {
+				Then('it should throw validation error "Public key 12345678123456781234567812345678123456781234567812345678123456gg bytes length differs from the expected 32 bytes for a public key."', then.itShouldThrowValidationError);
+			});
+		});
+		Given('invalid public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9e"', given.invalidPublicKeys, () => {
+			When('validatePublicKeysAndPrependPlus is called with the public keys', when.validatePublicKeysIsCalledWithThePublicKeys, () => {
+				Then('it should throw validation error "Public key 647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9e length differs from the expected 64 hex characters for a public key."', then.itShouldThrowValidationError);
+			});
+		});
+		Given('public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"', given.publicKeys, () => {
+			When('validatePublicKeysAndPrependPlus is called with the public keys', when.validatePublicKeysIsCalledWithThePublicKeys, () => {
+				Then('it should return the public keys', then.itShouldReturnThePublicKeys);
+			});
+		});
+	});
+	describe('#prependPlusToPublicKeys', () => {
+		Given('public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"', given.publicKeys, () => {
+			When('prependPlusToPublicKeys is called with the public keys', when.prependPlusToPublicKeysIsCalledWithThePublicKeys, () => {
+				Then('it should return the public keys prepended with a plus', then.itShouldReturnThePublicKeyPrependedWithAPlus);
+			});
+		});
+	});
+	describe('#prependMinusToPublicKeys', () => {
+		Given('public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"', given.publicKeys, () => {
+			When('prependMinusToPublicKeys is called with the public keys', when.prependMinusToPublicKeysIsCalledWithThePublicKeys, () => {
+				Then('it should return the public keys prepended with a minus', then.itShouldReturnThePublicKeyPrependedWithAMinus);
+			});
+		});
+	});
 	describe('#validateLifetime', () => {
 		Given('a string lifetime of "1234567890" hours', given.aStringLifetimeOfHours, () => {
 			When('validateLifetime is called on the lifetime', when.validateLifetimeIsCalledOnTheLifetime, () => {

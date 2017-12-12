@@ -24,7 +24,7 @@ const getPassphraseEnvVariableNotSetError = displayName => `Environmental variab
 const getFileDoesNotExistError = path => `File at ${path} does not exist.`;
 const getFileUnreadableError = path => `File at ${path} could not be read.`;
 const ERROR_DATA_MISSING = 'No data was provided.';
-const ERROR_DATA_SOURCE_TYPE_UNKNOWN = 'Unknown data source type. Must be one of `file`, or `stdin`.';
+const ERROR_DATA_SOURCE = 'Unknown data source type.';
 
 export const splitSource = (source) => {
 	const delimiter = ':';
@@ -196,7 +196,7 @@ export const getData = async (source) => {
 	const { sourceType, sourceIdentifier: path } = splitSource(source);
 
 	if (sourceType !== 'file') {
-		throw new Error(ERROR_DATA_SOURCE_TYPE_UNKNOWN);
+		throw new Error(ERROR_DATA_SOURCE);
 	}
 
 	return getDataFromFile(path)

@@ -29,7 +29,7 @@ describe('decrypt passphrase command', () => {
 							When('the action is called with the IV and the options', when.theActionIsCalledWithTheIVAndTheOptions, () => {
 								Then('it should reject with message "No encrypted passphrase was provided."', then.itShouldRejectWithMessage);
 							});
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the IV, the encrypted passphrase and the options', when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
@@ -45,7 +45,7 @@ describe('decrypt passphrase command', () => {
 							});
 						});
 						Given('an options object with password set to "passwordSource"', given.anOptionsObjectWithPasswordSetTo, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the IV, the encrypted passphrase and the options', when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
@@ -61,7 +61,7 @@ describe('decrypt passphrase command', () => {
 							});
 						});
 						Given('an options object with passphrase set to "passphraseSource"', given.anOptionsObjectWithPassphraseSetTo, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the IV, the encrypted passphrase and the options', when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
@@ -77,7 +77,7 @@ describe('decrypt passphrase command', () => {
 							});
 						});
 						Given('an options object with passphrase set to "passphraseSource" and password set to "passwordSource"', given.anOptionsObjectWithPassphraseSetToAndPasswordSetTo, () => {
-							Given('an error "Unknown data source type. Must be one of `file`, or `stdin`." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
+							Given('an error "Unknown data source type." occurs retrieving the inputs from their sources', given.anErrorOccursRetrievingTheInputsFromTheirSources, () => {
 								When('the action is called with the IV, the encrypted passphrase and the options', when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions, () => {
 									Then('it should reject with the error message', then.itShouldRejectWithTheErrorMessage);
 								});
