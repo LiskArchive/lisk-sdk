@@ -3,17 +3,20 @@
 var randomstring = require('randomstring');
 var SocketCluster = require('socketcluster');
 
-function WSServer (port) {
+function WSServer (headers) {
+	this.headers = headers;
+
 	this.validNonce = randomstring.generate(16);
 	this.testSocketCluster = null;
 	this.testWampServer =  null;
 
 	this.options = {
 		workers: 1,
-		port: port,
+		port: this.headers.port,
 		wsEngine: 'uws',
 		appName: 'LiskTestServer-' + randomstring.generate(8),
 		secretKey: 'liskSecret',
+		headers: headers,
 		workerController: __dirname + '/serverWorker.js'
 	};
 }
@@ -29,6 +32,10 @@ WSServer.prototype.start = function () {
 	self.testSocketCluster.on('fail', function () {
 		self.stop();
 	});
+
+	self.testSocketCluster.on('error', function () {
+		self.stop();
+	});
 };
 
 WSServer.prototype.stop = function () {
@@ -39,7 +46,7 @@ WSServer.prototype.stop = function () {
 	this.testSocketCluster = null;
 };
 
-var server = new WSServer(parseInt(process.argv[2]));
+var server = new WSServer(JSON.parse(process.argv[2]));
 server.start();
 
 process.on('close', function () {

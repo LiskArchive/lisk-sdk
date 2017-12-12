@@ -16,7 +16,7 @@ var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
 var wsApi = require('../../../helpers/wsApi');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 
-var WSClient = require('../../common/ws/client');
+var WSServerMaster = require('../../common/ws/serverMaster');
 var System = require('../../../modules/system');
 
 
@@ -48,9 +48,7 @@ describe('handshake', function () {
 	describe('compatibility', function () {
 
 		beforeEach(function () {
-			validHeaders = WSClient.generatePeerHeaders();
-			validHeaders.version = minVersion;
-			validHeaders.nonce = validPeerNonce;
+			validHeaders = WSServerMaster.generatePeerHeaders({version: minVersion, nonce: validPeerNonce});
 		});
 
 		it('should return an error when nonce is identical to server', function (done) {
@@ -83,9 +81,7 @@ describe('handshake', function () {
 
 	after(function () {
 
-		validHeaders = WSClient.generatePeerHeaders();
-		validHeaders.version =  minVersion;
-		validHeaders.nonce = '0123456789ABCDEF';
+		validHeaders = WSServerMaster.generatePeerHeaders({version: minVersion, nonce: '0123456789ABCDEF'});
 
 		describe('schema tests', function () {
 

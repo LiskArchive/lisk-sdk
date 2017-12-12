@@ -13,14 +13,14 @@ var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Rules = require('../../../api/ws/workers/rules');
 
 var wsServer = require('../../common/ws/server');
-var wsClient = require('../../common/ws/client');
+var WSServerMaster = require('../../common/ws/serverMaster');
 
 describe('RPC', function () {
 
 	var clientSocket;
 	var validClientSocketOptions;
 	var wampClient = new WAMPClient();
-	var frozenHeaders = wsClient.generatePeerHeaders('127.0.0.1', wsServer.wsPort, wsServer.validNonce);
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({port: wsServer.options.port, nonce: wsServer.validNonce});
 
 	before(function (done) {
 		validClientSocketOptions = {
