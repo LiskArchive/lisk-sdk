@@ -16,7 +16,7 @@
     },
     "options": {
         "testnet": false,
-        "ssl": false,
+        "ssl": true,
         "randomNode": true,
         "node": null,
         "port": null,

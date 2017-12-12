@@ -25,7 +25,7 @@
  *     var lisk = require('lisk-js');
  *
  *     var options = {
- *         ssl: false,
+ *         ssl: true,
  *         node: '',
  *         randomNode: true,
  *         testnet: true,
