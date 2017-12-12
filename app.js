@@ -28,12 +28,12 @@ var extend = require('extend');
 var fs = require('fs');
 var https = require('https');
 var path = require('path');
-var SocketCluster = require('socketcluster').SocketCluster;
+var SocketCluster = require('socketcluster');
 var util = require('util');
 
 var genesisblock = require('./genesisBlock.json');
 var Logger = require('./logger.js');
-var workersController = require('./workersController');
+var workersControllerPath = path.join(__dirname, 'workersController');
 var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
 
 var AppConfig = require('./helpers/config.js');
@@ -97,7 +97,6 @@ var config = {
 		voters: './modules/voters'
 	},
 	api: {
-		multisignatures: { http: './api/http/multisignatures.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
@@ -233,7 +232,7 @@ d.run(function () {
 				port: scope.config.port,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				workerController: workersController.path,
+				workerController: workersControllerPath,
 				perMessageDeflate: false,
 				secretKey: 'liskSecretKey',
 				pingInterval: 5000,

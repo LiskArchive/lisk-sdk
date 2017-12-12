@@ -1,19 +1,21 @@
 'use strict';
 
-var _ = require('lodash');
 var expect = require('chai').expect;
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
+var test = require('../../test');
+var _ = test._;
+var accountFixtures = require('../../fixtures/accounts');
+
+var erroCodes = require('../../../helpers/apiCodes');
 var constants = require('../../../helpers/constants');
 
-var accounts = require('../../fixtures/accounts');
 var waitFor = require('../../common/utils/waitFor');
-var onNewBlockPromise = Promise.promisify(waitFor.blocks.bind(null, 1));
-var getTransactionByIdPromise = require('../../common/helpers/api').getTransactionByIdPromise;
+var apiHelpers = require('../../common/helpers/api');
 var randomUtil = require('../../common/utils/random');
-var sendTransactionPromise = require('../../common/helpers/api').sendTransactionPromise;
-var erroCodes = require('../../../helpers/apiCodes');
+
+var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 
 describe('POST /api/transactions (type 2) double delegate registration', function () {
 
@@ -40,8 +42,8 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 			username: account.username
 		};
 
-		var transaction = lisk.transaction.createTransaction(account.address, 4 * constants.fees.delegate, accounts.genesis.password);
-		return sendTransactionPromise(transaction).then(function (res) {
+		var transaction = lisk.transaction.createTransaction(account.address, 4 * constants.fees.delegate, accountFixtures.genesis.password);
+		return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 			res.body.data.message.should.be.equal('Transaction(s) accepted');
 			return waitFor.confirmations([transaction.id]);
 		});
@@ -49,15 +51,15 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 
 	function sendTwoAndConfirm (transaction1, transaction2, secondSendSchedule) {
 		return Promise.all([
-			sendTransactionPromise(transaction1),
+			apiHelpers.sendTransactionPromise(transaction1),
 			secondSendSchedule(transaction2)
 		]).then(function (results) {
 			results[0].body.data.message.should.be.equal('Transaction(s) accepted');
 			results[1].body.data.message.should.be.equal('Transaction(s) accepted');
-			return onNewBlockPromise().then(function () {
+			return waitForBlocksPromise(1).then(function () {
 				return Promise.all([
-					getTransactionByIdPromise(transaction1.id),
-					getTransactionByIdPromise(transaction2.id)
+					apiHelpers.getTransactionByIdPromise(transaction1.id),
+					apiHelpers.getTransactionByIdPromise(transaction2.id)
 				]).then(stripTransactionsResults);
 			});
 		});
@@ -79,8 +81,8 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 						firstTransaction = lisk.delegate.createDelegate(validParams.secret, validParams.username);
 						secondTransaction = lisk.delegate.createDelegate(validParams.secret, validParams.username);
 						return Promise.all([
-							sendTransactionPromise(firstTransaction),
-							sendTransactionPromise(secondTransaction, erroCodes.PROCESSING_ERROR)
+							apiHelpers.sendTransactionPromise(firstTransaction),
+							apiHelpers.sendTransactionPromise(secondTransaction, erroCodes.PROCESSING_ERROR)
 						]).then(function (results) {
 							firstResponse = results[0];
 							secondResponse = results[1];
@@ -107,7 +109,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 						.then(function () {
 							transactionWithoutDelay = lisk.delegate.createDelegate(validParams.secret, validParams.username);
 							transactionWithDelay = lisk.delegate.createDelegate(validParams.secret, validParams.username, null, -1000);
-							return sendTwoAndConfirm(transactionWithDelay, transactionWithoutDelay, sendTransactionPromise);
+							return sendTwoAndConfirm(transactionWithDelay, transactionWithoutDelay, apiHelpers.sendTransactionPromise);
 						});
 				});
 
@@ -119,7 +121,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 			});
 		});
 
-		describe('with different usernames', function () {
+		describe('using different usernames', function () {
 
 			var differentUsernameParams;
 			var transaction1;
@@ -134,7 +136,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 						};
 						transaction1 = lisk.delegate.createDelegate(differentUsernameParams.secret, differentUsernameParams.username);
 						transaction2 = lisk.delegate.createDelegate(validParams.secret, validParams.username);
-						return sendTwoAndConfirm(transaction1, transaction2, sendTransactionPromise);
+						return sendTwoAndConfirm(transaction1, transaction2, apiHelpers.sendTransactionPromise);
 					});
 			});
 
@@ -158,8 +160,8 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 				username: secondAccount.username
 			};
 
-			var transaction = lisk.transaction.createTransaction(secondAccount.address, 4 * constants.fees.delegate, accounts.genesis.password);
-			return sendTransactionPromise(transaction).then(function (res) {
+			var transaction = lisk.transaction.createTransaction(secondAccount.address, 4 * constants.fees.delegate, accountFixtures.genesis.password);
+			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				return waitFor.confirmations([transaction.id]);
@@ -179,7 +181,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 				secondAccountValidParams.username = validParams.username;
 				transaction1 = lisk.delegate.createDelegate(validParams.secret, validParams.username);
 				transaction2 = lisk.delegate.createDelegate(secondAccountValidParams.secret, secondAccountValidParams.username);
-				return sendTwoAndConfirm(transaction1, transaction2, sendTransactionPromise);
+				return sendTwoAndConfirm(transaction1, transaction2, apiHelpers.sendTransactionPromise);
 			});
 
 			it('should confirm only one transaction', function () {
@@ -201,7 +203,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 			before(function () {
 				transaction1 = lisk.delegate.createDelegate(validParams.secret, validParams.username);
 				transaction2 = lisk.delegate.createDelegate(secondAccountValidParams.secret, secondAccountValidParams.username);
-				return sendTwoAndConfirm(transaction1, transaction2, sendTransactionPromise);
+				return sendTwoAndConfirm(transaction1, transaction2, apiHelpers.sendTransactionPromise);
 			});
 
 			it('should successfully confirm both transactions', function () {

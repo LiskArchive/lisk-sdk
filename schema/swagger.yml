@@ -25,8 +25,6 @@ tags:
   description: Dapps related API calls
 - name: Delegates
   description: Delegates related API calls
-- name: Delegates (Private)
-  description: Private API calls only available to localhost/whitelist
 - name: Node
   description: Node related API calls
 - name: Peers
@@ -79,6 +77,88 @@ paths:
           description: List of accounts
           schema:
             $ref: '#/definitions/AccountsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /accounts/{address}/multisignature_groups:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests multisignature groups data
+      operationId: getMultisignatureGroups
+      description:
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature groups
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          in: path
+          description: Address of account
+          type: string
+          format: address
+          required: true
+          minLength: 2
+          maxLength: 22
+      responses:
+        200:
+          description: List of multisignature accounts
+          schema:
+            $ref: '#/definitions/MultisignatureGroupsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Multisignature account not found
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /accounts/{address}/multisignature_memberships:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests multisignature memberships data
+      operationId: getMultisignatureMemberships
+      description:
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature memberships
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          in: path
+          description: Address of account
+          type: string
+          format: address
+          required: true
+          minLength: 2
+          maxLength: 22
+      responses:
+        200:
+          description: List of multisignature accounts
+          schema:
+            $ref: '#/definitions/MultisignatureGroupsResponse'
         400:
           description: Malformed query or parameters
           schema:
@@ -344,6 +424,7 @@ paths:
     get:
       tags:
         - Transactions
+        - Queue
       summary: Requests unprocessed transactions data
       operationId: getPooledTransactions
       description:
@@ -1065,6 +1146,23 @@ definitions:
             description: Limit applied to results
             type: integer
             example: 100
+      links:
+        type: object
+
+  MultisignatureGroupsResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of multisignature groups
+        type: array
+        items:
+          $ref: '#/definitions/MultisignatureGroup'
+      meta:
+        type: object
       links:
         type: object
 
@@ -1983,6 +2081,46 @@ definitions:
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
       delegate:
         $ref: '#/definitions/Delegate'
+
+  MultisignatureGroup:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+      - unconfirmedBalance
+      - min
+      - lifetime
+      - members
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+      unconfirmedBalance:
+        type: string
+        example: 0
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      min:
+        type: integer
+        example: 3
+      lifetime:
+        type: integer
+        example: 72
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/Account'
 
   Delegate:
     type: object

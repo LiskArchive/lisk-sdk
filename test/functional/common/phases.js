@@ -27,8 +27,7 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 			});
 		});
 
-		// TODO: After migration /transactions/unconfirmed make sure this phase works
-		it.skip('good transactions should not be unconfirmed', function () {
+		it('good transactions should not be unconfirmed', function () {
 			return Promise.map(goodTransactions, function (transaction) {
 				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
 					res.body.data.should.be.empty;
@@ -51,13 +50,12 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 			it('pendingMultisignatures should remain in the pending queue', function () {
 				return Promise.map(pendingMultisignatures, function (transaction) {
 					var params = [
-						'publicKey=' + transaction.senderPublicKey
+						'id=' + transaction.id
 					];
 
 					return apiHelpers.getPendingMultisignaturesPromise(params).then(function (res) {
-						expect(res).to.have.property('success').to.be.ok;
-						expect(res).to.have.property('transactions').to.be.an('array').to.have.lengthOf(1);
-						expect(res.transactions[0]).to.have.property('transaction').to.have.property('id').to.equal(transaction.id);
+						res.body.data.should.have.length(1);
+						res.body.data[0].id.should.be.equal(transaction.id);
 					});
 				});
 			});
