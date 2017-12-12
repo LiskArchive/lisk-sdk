@@ -284,7 +284,7 @@ describe('helpers/pg-notify', function () {
 		});
 	});
 
-	// TOFIX #1068
+	// FIXME #1068
 	describe.skip('onNotification', function () {
 
 		var delegates_list_db;

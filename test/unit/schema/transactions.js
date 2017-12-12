@@ -30,7 +30,7 @@ describe('transactions', function () {
 		it('tests for schema');
 	});
 
-	// TOFIX #1127
+	// FIXME #1127
 	describe.skip('getTransactions', function () {
 		// TODO: Add tests for other schemas properties
 		var testBody;
