@@ -220,7 +220,7 @@ describe('multisignatures', function () {
 
 		it('should fail if wrong address is provided');
 
-		it('should fail if valid address but not a multisig account address provided');
+		it('should fail if valid address but not a multisig account');
 
 		it('should return a group if provided with a valid multisig account');
 	});
@@ -255,7 +255,7 @@ describe('multisignatures', function () {
 
 			describe('when schema validation fails', function () {
 
-				it('should call a callback with schema error');
+				it('should call callback with schema error');
 			});
 
 			describe('when schema validation succeeds', function () {
@@ -270,7 +270,7 @@ describe('multisignatures', function () {
 
 					it('should call the logger.error with error stack');
 
-					it('should call a callback with "Multisignature#getAccountIds error"');
+					it('should call callback with "Multisignature#getAccountIds error"');
 				});
 
 				describe('when library.db.one succeeds', function () {
@@ -283,7 +283,7 @@ describe('multisignatures', function () {
 
 					describe('when modules.accounts.getAccounts fails', function () {
 
-						it('should call a callback with error');
+						it('should call callback with error');
 					});
 
 					describe('when modules.accounts.getAccounts succeeds', function () {
@@ -305,14 +305,14 @@ describe('multisignatures', function () {
 
 							describe('when modules.accounts.getAccounts fails', function () {
 
-								it('should call a callback with error');
+								it('should call callback with error');
 							});
 
 							describe('when modules.accounts.getAccounts succeeds', function () {
 
-								it('should call a callback with error = null');
+								it('should call callback with error = null');
 
-								it('should call a callback with result containing accounts');
+								it('should call callback with result containing accounts');
 							});
 						});
 					});
@@ -326,7 +326,7 @@ describe('multisignatures', function () {
 
 			describe('when schema validation fails', function () {
 
-				it('should call a callback with schema error');
+				it('should call callback with schema error');
 			});
 
 			describe('when schema validation succeeds', function () {
@@ -341,7 +341,7 @@ describe('multisignatures', function () {
 
 					it('should call the logger.error with error stack');
 
-					it('should call a callback with "Multisignature#getAccountIds error"');
+					it('should call callback with "Multisignature#getAccountIds error"');
 				});
 
 				describe('when library.db.one succeeds', function () {
@@ -354,7 +354,7 @@ describe('multisignatures', function () {
 
 					describe('when modules.accounts.getAccounts fails', function () {
 
-						it('should call a callback with error');
+						it('should call callback with error');
 					});
 
 					describe('when modules.accounts.getAccounts succeeds', function () {
@@ -376,14 +376,14 @@ describe('multisignatures', function () {
 
 							describe('when modules.accounts.getAccounts fails', function () {
 
-								it('should call a callback with error');
+								it('should call callback with error');
 							});
 
 							describe('when modules.accounts.getAccounts succeeds', function () {
 
-								it('should call a callback with error = null');
+								it('should call callback with error = null');
 
-								it('should call a callback with result containing accounts');
+								it('should call callback with result containing accounts');
 							});
 						});
 					});

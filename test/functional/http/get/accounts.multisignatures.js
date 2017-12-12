@@ -56,7 +56,7 @@ describe('GET /api/accounts', function () {
 
 		describe('address', function () {
 
-			it('using known address should respond with the multisignature_group', function () {
+			it('using known address should respond with its multisignature_group', function () {
 				return multisigGroupsEndpoint.makeRequest({address: account.address}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
 					var group = res.body.data[0];
@@ -67,7 +67,7 @@ describe('GET /api/accounts', function () {
 				});
 			});
 
-			it('using known lowercase address should respond with the multisignature_group', function () {
+			it('using known lowercase address should respond with its multisignature_group', function () {
 				return multisigGroupsEndpoint.makeRequest({address: account.address.toLowerCase()}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
 					var group = res.body.data[0];
@@ -110,8 +110,7 @@ describe('GET /api/accounts', function () {
 				});
 			});
 
-			it('using known memeber address should respond with the multisignature memberships', function () {
-
+			it('using known member address should respond with its multisignature memberships', function () {
 				return multisigMembersEndpoint.makeRequest({address: scenario.members[0].address}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
 					var group = res.body.data[0];
@@ -122,8 +121,7 @@ describe('GET /api/accounts', function () {
 				});
 			});
 
-			it('using known other memeber address should respond with the multisignature memberships', function () {
-
+			it('using known other member address should respond with its multisignature memberships', function () {
 				return multisigMembersEndpoint.makeRequest({address: scenario.members[1].address}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
 					var group = res.body.data[0];
@@ -134,7 +132,7 @@ describe('GET /api/accounts', function () {
 				});
 			});
 
-			it('using known lowercase address should respond with the multisignature_group', function () {
+			it('using known lowercase address should respond with its multisignature_group', function () {
 				return multisigMembersEndpoint.makeRequest({address: scenario.members[0].address}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
 					var group = res.body.data[0];
