@@ -98,7 +98,7 @@ describe('vote', function () {
 			function (cb) {
 				vote.apply.call(transactionLogic, transaction, dummyBlock, validSender, cb);
 			}, function (cb) {
-				vote.applyUnconfirmed.call(transactionLogic, transaction, validSender, cb);
+				cb();
 			}
 		], done);
 	}
@@ -505,46 +505,6 @@ describe('vote', function () {
 			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
 			vote.undo.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
 				checkAccountVotes(transaction.senderPublicKey, 'confirmed', transaction.asset.votes, 'undo', done);
-			});
-		});
-	});
-	
-	// TODO: Should just call back
-	describe.skip('applyUnconfirmed', function () {
-
-		it('should remove votes for delegates', function (done) {
-			var transaction = _.clone(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.applyUnconfirmed.call(transactionLogic, validTransaction, validSender, function (err) {
-				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'apply', done);
-			});
-		});
-
-		it('should add vote for delegate', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.applyUnconfirmed.call(transactionLogic, transaction, validSender, function (err) {
-				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'apply', done);
-			});
-		});
-	});
-	
-	// TODO: Should just call back
-	describe.skip('undoUnconfirmed', function () {
-
-		it('should undo remove votes for delegates', function (done) {
-			var transaction = _.clone(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '-' + v; });
-			vote.undoUnconfirmed.call(transactionLogic, validTransaction, validSender, function (err) {
-				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'undo', done);
-			});
-		});
-
-		it('should undo add vote for delegate', function (done) {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = votedDelegates.map(function (v) { return '+' + v; });
-			vote.undoUnconfirmed.call(transactionLogic, transaction, validSender, function (err) {
-				checkAccountVotes(transaction.senderPublicKey, 'unconfirmed', transaction.asset.votes, 'undo', done);
 			});
 		});
 	});
