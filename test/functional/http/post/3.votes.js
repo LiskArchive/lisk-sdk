@@ -223,7 +223,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 			});
 		});
 
-		it('upvoting when account does not exists should fail', function () {
+		it('upvoting when account does not exist should fail', function () {
 			accountNoFunds = randomUtil.account();
 			transaction = lisk.vote.createVote(accountNoFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
@@ -235,7 +235,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 
 		it.skip('upvoting with no funds should fail', function () {
-			// FIXME: create an account with 1 LSK and try to vote
+			// FIXME: Create an account with 1 LSK and try to vote
 			accountNoFunds = randomUtil.account();
 			transaction = lisk.vote.createVote(accountNoFunds.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 
