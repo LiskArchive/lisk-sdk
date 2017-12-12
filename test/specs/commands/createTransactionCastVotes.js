@@ -26,7 +26,7 @@ describe('create transaction cast votes', () => {
 				Given('a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', given.aSecondPassphrase, () => {
 					Given('a Lisk object that can create transactions', given.aLiskObjectThatCanCreateTransactions, () => {
 						Given('the passphrase can be retrieved from its source', given.thePassphraseCanBeRetrievedFromItsSource, () => {
-							Given('a public key that should be voted for "1234567812345678123456781234567812345678123456781234567812345678"', given.publicKeysThatShouldBeVotedFor, () => {
+							Given('a public key that should be voted for "1234567812345678123456781234567812345678123456781234567812345678"', given.aPublicKeyThatShouldBeVotedFor, () => {
 								Given('an options object with votes set to "1234567812345678123456781234567812345678123456781234567812345678"', given.anOptionsObjectWithVotesSetTo, () => {
 									When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 										Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
