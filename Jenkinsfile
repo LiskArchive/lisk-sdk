@@ -306,9 +306,9 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					archive_logs()
 				}
 			}, // End Node-04 unit tests
-			"Functional Transaction pool" : {
+			"Functional System" : {
 				node('node-05'){
-					run_action('test-functional-pool')
+					run_action('test-functional-system')
 					archive_logs()
 				}
 			} // End Node-05 tests
