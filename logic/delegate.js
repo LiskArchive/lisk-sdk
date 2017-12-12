@@ -173,29 +173,6 @@ Delegate.prototype.undo = function (transaction, block, sender, cb) {
 	return setImmediate(cb);
 };
 
-/**
- * Checks transaction delegate and calls modules.accounts.getSender() with u_username.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function.
- */
-Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * Checks transaction delegate and calls modules.accounts.getSender() with
- * username and u_username both null.
- * @implements module:accounts#Accounts~getSender
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function.
- */
-Delegate.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	return setImmediate(cb);
-};
-
 Delegate.prototype.schema = {
 	id: 'Delegate',
 	type: 'object',
