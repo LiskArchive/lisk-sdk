@@ -19,12 +19,12 @@ import { getFirstQuotedString } from '../utils';
 
 export async function itShouldGetTheDataUsingTheUnvotesSource() {
 	const { options = {} } = this.test.ctx;
-	return (inputUtils.getData).should.be.calledWithExactly(options.unvote);
+	return (inputUtils.getData).should.be.calledWithExactly(options.unvotes);
 }
 
 export async function itShouldGetTheDataUsingTheVotesSource() {
 	const { options = {} } = this.test.ctx;
-	return (inputUtils.getData).should.be.calledWithExactly(options.vote);
+	return (inputUtils.getData).should.be.calledWithExactly(options.votes);
 }
 
 export async function itShouldNotGetTheDataUsingTheUnvotesSource() {

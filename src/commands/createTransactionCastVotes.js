@@ -49,26 +49,38 @@ export const actionCreator = vorpal => async ({ options }) => {
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
-		vote,
-		unvote,
+		votes,
+		unvotes,
 	} = options;
 
-	if (!vote && !unvote) {
+	if (!votes && !unvotes) {
 		throw new Error('At least one of votes and/or unvotes options must be provided.');
 	}
 
-	if (vote === unvote) {
+	if (votes === unvotes) {
 		throw new Error('Votes and unvotes sources must not be the same.');
 	}
 
-	const votes = vote ? await processVotesInput(vote.toString()) : null;
-	const unvotes = unvote ? await processVotesInput(unvote.toString()) : null;
+	const processedVotesInput = votes
+		? await processVotesInput(votes.toString())
+		: null;
+	const processedUnvotesInput = unvotes
+		? await processVotesInput(unvotes.toString())
+		: null;
 
-	const validatedVotes = votes ? validatePublicKeys(processVotes(votes)) : null;
-	const validatedUnvotes = unvotes ? validatePublicKeys(processVotes(unvotes)) : null;
+	const validatedVotes = processedVotesInput
+		? validatePublicKeys(processVotes(processedVotesInput))
+		: null;
+	const validatedUnvotes = processedUnvotesInput
+		? validatePublicKeys(processVotes(processedUnvotesInput))
+		: null;
 
-	const prependedVotes = votes ? prependPlusToPublicKeys(validatedVotes) : [];
-	const prependedUnvotes = unvotes ? prependMinusToPublicKeys(validatedUnvotes) : [];
+	const prependedVotes = processedVotesInput
+		? prependPlusToPublicKeys(validatedVotes)
+		: [];
+	const prependedUnvotes = processedUnvotesInput
+		? prependMinusToPublicKeys(validatedUnvotes)
+		: [];
 
 	const allVotes = [...prependedVotes, ...prependedUnvotes];
 
@@ -93,8 +105,8 @@ const createTransactionCastVotes = createCommand({
 	options: [
 		commonOptions.passphrase,
 		commonOptions.secondPassphrase,
-		commonOptions.vote,
-		commonOptions.unvote,
+		commonOptions.votes,
+		commonOptions.unvotes,
 	],
 	errorPrefix: 'Could not create "cast votes" transaction',
 });

@@ -26,7 +26,7 @@ describe('create transaction cast votes', () => {
 				Given('a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"', given.aSecondPassphrase, () => {
 					Given('a Lisk object that can create transactions', given.aLiskObjectThatCanCreateTransactions, () => {
 						Given('the passphrase can be retrieved from its source', given.thePassphraseCanBeRetrievedFromItsSource, () => {
-							Given('public keys that should be voted for "1234567812345678123456781234567812345678123456781234567812345678"', given.publicKeysThatShouldBeVotedFor, () => {
+							Given('a public key that should be voted for "1234567812345678123456781234567812345678123456781234567812345678"', given.publicKeysThatShouldBeVotedFor, () => {
 								Given('an options object with votes set to "1234567812345678123456781234567812345678123456781234567812345678"', given.anOptionsObjectWithVotesSetTo, () => {
 									When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 										Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
@@ -115,7 +115,6 @@ describe('create transaction cast votes', () => {
 											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
-											Then('it should not get the data using the votes source', then.itShouldNotGetTheDataUsingTheVotesSource);
 											Then('it should not get the data using the unvotes source', then.itShouldNotGetTheDataUsingTheUnvotesSource);
 											Then('it should create a cast votes transaction with the passphrase and the public keys prepended with a minus', then.itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus);
 											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
@@ -132,7 +131,7 @@ describe('create transaction cast votes', () => {
 										});
 									});
 									Given('an options object with votes set to "file:path/to/votes.txt"', given.anOptionsObjectWithVotesSetTo, () => {
-										Given('the votes can be retreived from its source', given.theVotesCanBeRetrievedFromItsSource, () => {
+										Given('the votes can be retrieved from their source', given.theVotesCanBeRetrievedFromTheirSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -148,14 +147,13 @@ describe('create transaction cast votes', () => {
 											Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 											Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
-											Then('it should not get the data using the votes source', then.itShouldNotGetTheDataUsingTheVotesSource);
 											Then('it should not get the data using the unvotes source', then.itShouldNotGetTheDataUsingTheUnvotesSource);
 											Then('it should create a cast votes transaction with the passphrase and the public keys prepended with a minus', then.itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus);
 											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
 									Given('an options object with unvotes set to "file:path/to/unvotes.txt"', given.anOptionsObjectWithUnvotesSetTo, () => {
-										Given('the unvotes can be retrieved from its source', given.theUnvotesCanBeRetrievedFromItsSource, () => {
+										Given('the unvotes can be retrieved from their source', given.theUnvotesCanBeRetrievedFromTheirSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -173,20 +171,20 @@ describe('create transaction cast votes', () => {
 											Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
 											Then('it should not get the data using the votes source', then.itShouldNotGetTheDataUsingTheVotesSource);
 											Then('it should not get the data using the unvotes source', then.itShouldNotGetTheDataUsingTheUnvotesSource);
-											Then('it should create a cast vote transaction with the passphrase and the public keys prepended with the correct modifier', then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
+											Then('it should create a cast votes transaction with the passphrase and the public keys prepended with the correct modifier', then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
 											Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 										});
 									});
 									Given('an options object with votes set to "file:path/to/votes.txt" and unvotes set to "file:path/to/unvotes.txt"', given.anOptionsObjectWithVotesSetToAndUnvotesSetTo, () => {
-										Given('the vote can be retrieved from its source', given.theVotesCanBeRetrievedFromItsSource, () => {
-											Given('the unvotes can be retrieved from its source', given.theUnvotesCanBeRetrievedFromItsSource, () => {
+										Given('the votes can be retrieved from their source', given.theVotesCanBeRetrievedFromTheirSource, () => {
+											Given('the unvotes can be retrieved from their source', given.theUnvotesCanBeRetrievedFromTheirSource, () => {
 												When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 													Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 													Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 													Then('it should not get the inputs from sources using the second passphrase source', then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource);
 													Then('it should get the data using the votes source', then.itShouldGetTheDataUsingTheVotesSource);
 													Then('it should get the data using the unvotes source', then.itShouldGetTheDataUsingTheUnvotesSource);
-													Then('it should create a cast vote transaction with the passphrase and the public keys prepended with the correct modifier', then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
+													Then('it should create a cast votes transaction with the passphrase and the public keys prepended with the correct modifier', then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier);
 													Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 												});
 											});
@@ -195,7 +193,7 @@ describe('create transaction cast votes', () => {
 								});
 								Given('an options object with votes set to "file:path/to/votes.txt" and passphrase set to "prompt"', given.anOptionsObjectWithVotesSetToAndPassphraseSetTo, () => {
 									Given('the passphrase can be retrieved from its source', given.thePassphraseCanBeRetrievedFromItsSource, () => {
-										Given('the vote can be retrieved from its source', given.theVotesCanBeRetrievedFromItsSource, () => {
+										Given('the votes can be retrieved from their source', given.theVotesCanBeRetrievedFromTheirSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -209,13 +207,13 @@ describe('create transaction cast votes', () => {
 								});
 								Given('an options object with votes set to "file:path/to/votes.txt" and passphrase set to "file:path/to/my/passphrase.txt" and second passphrase set to "prompt"', given.anOptionsObjectWithVotesSetToPassphraseSetToAndSecondPassphraseSetTo, () => {
 									Given('the passphrase and the second passphrase can be retrieved from their sources', given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources, () => {
-										Given('the vote can be retrieved from its source', given.theVotesCanBeRetrievedFromItsSource, () => {
+										Given('the votes can be retrieved from their source', given.theVotesCanBeRetrievedFromTheirSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 												Then('it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 												Then('it should get the data using the votes source', then.itShouldGetTheDataUsingTheVotesSource);
-												Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with a plus', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAPlus);
+												Then('it should create a cast votes transaction with the passphrase, the second passphrase and the public keys prepended with a plus', then.itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAPlus);
 												Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 											});
 										});
@@ -223,7 +221,7 @@ describe('create transaction cast votes', () => {
 								});
 								Given('an options object with unvotes set to "file:path/to/unvotes.txt" and passphrase set to "prompt"', given.anOptionsObjectWithUnvotesSetToAndPassphraseSetTo, () => {
 									Given('the passphrase can be retrieved from its source', given.thePassphraseCanBeRetrievedFromItsSource, () => {
-										Given('the unvotes can be retrieved from its source', given.theUnvotesCanBeRetrievedFromItsSource, () => {
+										Given('the unvotes can be retrieved from their source', given.theUnvotesCanBeRetrievedFromTheirSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
@@ -237,13 +235,13 @@ describe('create transaction cast votes', () => {
 								});
 								Given('an options object with unvotes set to "file:path/to/unvotes.txt" and passphrase set to "file:path/to/my/passphrase.txt" and second passphrase set to "prompt"', given.anOptionsObjectWithUnvotesSetToPassphraseSetToAndSecondPassphraseSetTo, () => {
 									Given('the passphrase and the second passphrase can be retrieved from their sources', given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources, () => {
-										Given('the unvotes can be retrieved from its source', given.theUnvotesCanBeRetrievedFromItsSource, () => {
+										Given('the unvotes can be retrieved from their source', given.theUnvotesCanBeRetrievedFromTheirSource, () => {
 											When('the action is called with the options', when.theActionIsCalledWithTheOptions, () => {
 												Then('it should get the inputs from sources using the Vorpal instance', then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance);
 												Then('it should get the inputs from sources using the passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt);
 												Then('it should get the inputs from sources using the second passphrase source with a repeating prompt', then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt);
 												Then('it should get the data using the unvotes source', then.itShouldGetTheDataUsingTheUnvotesSource);
-												Then('it should create a cast vote transaction with the passphrase, the second passphrase and the public keys prepended with a minus', then.itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus);
+												Then('it should create a cast votes transaction with the passphrase, the second passphrase and the public keys prepended with a minus', then.itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus);
 												Then('it should resolve to the created transaction', then.itShouldResolveToTheCreatedTransaction);
 											});
 										});
