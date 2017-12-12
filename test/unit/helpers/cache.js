@@ -98,8 +98,8 @@ describe('cache', function () {
 					expect(result.cacheEnabled).to.eq(true);
 				});
 
-				it('should call callback with result containing client = null', function () {
-					expect(result.client).to.be.null;
+				it('should call callback with result containing client object', function () {
+					expect(result.client).to.equal(redisCreateClientResult);
 				});
 			});
 
