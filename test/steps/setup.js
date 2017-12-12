@@ -29,6 +29,7 @@ import queryInstance from '../../src/utils/query';
 import transactions from '../../src/utils/transactions';
 
 const NON_INTERACTIVE_MODE = 'NON_INTERACTIVE_MODE';
+const EXEC_FILE_CHILD = 'EXEC_FILE_CHILD';
 const LISKY_CONFIG_DIR = 'LISKY_CONFIG_DIR';
 const TEST_PASSPHRASE = 'TEST_PASSPHRASE';
 const CONFIG_PATH = '../../src/utils/config';
@@ -160,12 +161,17 @@ function setUpPrintStubs() {
 }
 
 const setUpEnvVariable = variable => function setUpEnv() {
-	this.test.ctx.initialEnvVariableValue = process.env[variable];
+	this.test.ctx.initialEnv = this.test.ctx.initialEnv || {};
+	this.test.ctx.initialEnv[variable] = process.env[variable];
 };
 
 const restoreEnvVariable = variable => function restoreEnv() {
-	const { initialEnvVariableValue } = this.test.ctx;
-	if (typeof initialEnvVariableValue !== 'undefined') process.env[variable] = initialEnvVariableValue;
+	const { initialEnv } = this.test.ctx;
+	if (typeof initialEnv[variable] !== 'undefined') {
+		process.env[variable] = initialEnv[variable];
+	} else {
+		delete process.env[variable];
+	}
 };
 
 export function setUpCommandCreateAccount() {
@@ -239,6 +245,7 @@ export function tearDownCommandSet() {
 }
 
 export function setUpUtilConfig() {
+	setUpEnvVariable(EXEC_FILE_CHILD).call(this);
 	setUpEnvVariable(LISKY_CONFIG_DIR).call(this);
 	setUpFsStubs();
 	setUpFsUtilsStubs();
@@ -250,6 +257,7 @@ export function setUpUtilConfig() {
 }
 
 export function tearDownUtilConfig() {
+	restoreEnvVariable(EXEC_FILE_CHILD).call(this);
 	restoreEnvVariable(LISKY_CONFIG_DIR).call(this);
 }
 

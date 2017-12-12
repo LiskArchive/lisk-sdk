@@ -22,6 +22,7 @@ const DIST_PATH = `${__dirname}/../dist`;
 
 const generateScript = commandWithOptions => `
 	process.env.NON_INTERACTIVE_MODE = true;
+	process.env.EXEC_FILE_CHILD = true;
 	var lisky = require('${DIST_PATH}').default;
 
 	function handleSuccess() { process.exit(0) }

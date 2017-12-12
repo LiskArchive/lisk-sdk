@@ -18,6 +18,10 @@ import {
 	getFirstQuotedString,
 } from '../utils';
 
+export function theCommandIsBeingRunAsAChildOfTheExecFileCommand() {
+	process.env.EXEC_FILE_CHILD = true;
+}
+
 export function theSecondChildProcessExitsWithAnErrorThatCannotBeTrimmed() {
 	const error = new Error('myError');
 	this.test.ctx.secondChildError = error;
