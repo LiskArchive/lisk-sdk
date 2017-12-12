@@ -68,9 +68,34 @@ describe('config util', () => {
 						});
 						Given('there is a config lockfile', given.thereIsAConfigLockfile, () => {
 							When('the config is loaded', when.theConfigIsLoaded, () => {
-								it(`Then the user should be informed that a config lockfile was found at path "${process.env.LISKY_CONFIG_DIR}/config.lock"`, then.theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath);
+								Then(`the user should be informed that a config lockfile was found at path "${process.env.LISKY_CONFIG_DIR}/config.lock"`, then.theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath);
 								Then('the process should exit with error code "3"', then.theProcessShouldExitWithErrorCode);
 								Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
+							});
+							Given('the command is being run as a child of the exec file command', given.theCommandIsBeingRunAsAChildOfTheExecFileCommand, () => {
+								Given('the config file can be read', given.theFileCanBeRead, () => {
+									Given('the config file is not valid JSON', given.theFileIsNotValidJSON, () => {
+										When('the config is loaded', when.theConfigIsLoaded, () => {
+											Then('the user should be informed that the config file is not valid JSON', then.theUserShouldBeInformedThatTheConfigFileIsNotValidJSON);
+											Then('the process should exit with error code "2"', then.theProcessShouldExitWithErrorCode);
+											Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
+										});
+									});
+									Given('the config file is valid JSON', given.theFileIsValidJSON, () => {
+										Given('the config file cannot be written', given.theFileCannotBeWritten, () => {
+											When('the config is loaded', when.theConfigIsLoaded, () => {
+												Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
+												Then('the user’s config should be exported', then.theUsersConfigShouldBeExported);
+											});
+										});
+										Given('the config file can be written', given.theFileCanBeWritten, () => {
+											When('the config is loaded', when.theConfigIsLoaded, () => {
+												Then('the config file should not be written', then.theConfigFileShouldNotBeWritten);
+												Then('the user’s config should be exported', then.theUsersConfigShouldBeExported);
+											});
+										});
+									});
+								});
 							});
 						});
 						Given('there is no config lockfile', given.thereIsNoConfigLockfile, () => {

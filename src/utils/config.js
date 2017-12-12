@@ -93,7 +93,10 @@ const getConfig = () => {
 		return defaultConfig;
 	}
 
-	checkLockfile(lockfilePath);
+	if (!process.env.EXEC_FILE_CHILD) {
+		checkLockfile(lockfilePath);
+	}
+
 	checkReadAccess(configFilePath);
 
 	return attemptToReadJsonFile(configFilePath);
