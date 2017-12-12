@@ -1,7 +1,7 @@
 'use strict';
 
 var randomstring = require('randomstring');
-var SocketCluster = require('socketcluster').SocketCluster;
+var SocketCluster = require('socketcluster');
 
 function WSServer (port) {
 	this.validNonce = randomstring.generate(16);

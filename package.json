@@ -65,15 +65,15 @@
     "rimraf": "=2.6.1",
     "semver": "=5.3.0",
     "socket.io": "=2.0.3",
-    "socketcluster": "=5.14.2",
-    "socketcluster-client": "=5.3.0",
+    "socketcluster": "=9.1.10",
+    "socketcluster-client": "=9.0.2",
     "sodium": "LiskHQ/node-sodium#895ac4482a56a34eba81205e43e0c859490fb99d",
     "strftime": "=0.10.0",
     "swagger-node-runner": "=0.7.3",
     "valid-url": "=1.0.9",
     "validator": "=7.0.0",
     "validator.js": "=2.0.3",
-    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#8be0a9b",
+    "wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#8522bd69bed1b0698eced1bc49afb7a190b5f09e",
     "z-schema": "=3.18.2"
   },
   "devDependencies": {
