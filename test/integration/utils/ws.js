@@ -18,7 +18,7 @@ module.exports = {
 		};
 		var connectedTo = 0;
 		configurations.forEach(function (configuration) {
-			monitorWSClient.wsPort = configuration.wsPort;
+			monitorWSClient.port = configuration.wsPort;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			socket.on('connect', function () {
