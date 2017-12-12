@@ -264,7 +264,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	}
 
 	stage ('Parallel Tests') {
-		timestamp {
+		timestamps {
 			parallel(
 				"ESLint" : {
 					node('node-01'){
