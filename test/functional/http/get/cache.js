@@ -12,7 +12,7 @@ var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 var onNewRoundPromise = Promise.promisify(waitFor.newRound);
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('cache endpoints', function () {
+describe('cached endpoints', function () {
 
 	var cache;
 	var getJsonForKeyPromise;
