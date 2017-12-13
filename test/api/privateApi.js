@@ -547,6 +547,7 @@ describe('privateApi module', () => {
 		let restorebanActiveNodeSpy;
 		let hasAvailableNodesStub;
 		let restorehasAvailableNodesStub;
+		let clock;
 
 		beforeEach(() => {
 			options = {
@@ -575,56 +576,80 @@ describe('privateApi module', () => {
 					'hasAvailableNodes',
 					hasAvailableNodesStub,
 				);
+				clock = sinon.useFakeTimers();
 			});
 
 			afterEach(() => {
 				restorehasAvailableNodesStub();
+				clock.restore();
 			});
 
 			it('should ban the node with options randomNode true', () => {
 				LSK.randomNode = true;
-				return handleSendRequestFailures
-					.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then(() => {
-						banActiveNodeSpy.should.be.calledOn(LSK);
-					});
+				const request = handleSendRequestFailures.call(
+					LSK,
+					defaultMethod,
+					defaultEndpoint,
+					options,
+					error,
+				);
+				clock.tick(1000);
+				return request.then(() => banActiveNodeSpy.should.be.calledOn(LSK));
 			});
 
 			it('should not ban the node with options randomNode false', () => {
 				LSK.randomNode = false;
-				return handleSendRequestFailures
-					.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then(() => {
-						banActiveNodeSpy.should.not.be.calledOn(LSK);
-					});
+				const request = handleSendRequestFailures.call(
+					LSK,
+					defaultMethod,
+					defaultEndpoint,
+					options,
+					error,
+				);
+				clock.tick(1000);
+				return request.then(() => banActiveNodeSpy.should.not.be.calledOn(LSK));
 			});
 
 			it('should set a new node', () => {
-				return handleSendRequestFailures
-					.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then(() => {
-						setNodeSpy.should.be.calledOnce();
-					});
+				const request = handleSendRequestFailures.call(
+					LSK,
+					defaultMethod,
+					defaultEndpoint,
+					options,
+					error,
+				);
+				clock.tick(1000);
+				return request.then(() => setNodeSpy.should.be.calledOnce());
 			});
 
 			it('should send the request again with the same arguments', () => {
-				return handleSendRequestFailures
-					.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then(() => {
-						sendRequestStub.should.be.calledWithExactly(
-							defaultMethod,
-							defaultEndpoint,
-							options,
-						);
-					});
+				const request = handleSendRequestFailures.call(
+					LSK,
+					defaultMethod,
+					defaultEndpoint,
+					options,
+					error,
+				);
+				clock.tick(1000);
+				return request.then(() => {
+					sendRequestStub.should.be.calledWithExactly(
+						defaultMethod,
+						defaultEndpoint,
+						options,
+					);
+				});
 			});
 
 			it('should resolve to the result of the request', () => {
-				return handleSendRequestFailures
-					.call(LSK, defaultMethod, defaultEndpoint, options, error)
-					.then(result => {
-						result.should.be.eql(sendRequestResult);
-					});
+				const request = handleSendRequestFailures.call(
+					LSK,
+					defaultMethod,
+					defaultEndpoint,
+					options,
+					error,
+				);
+				clock.tick(1000);
+				return request.then(result => result.should.be.eql(sendRequestResult));
 			});
 		});
 
