@@ -10,6 +10,7 @@
     "coverageReport": "./node_modules/.bin/grunt coverageReport --verbose",
     "test": "./node_modules/.bin/grunt",
     "grunt": "./node_modules/.bin/grunt release",
+    "mocha": "./node_modules/.bin/mocha",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "create-bundles": "webpack",
     "server-docs": "npm run jsdoc && http-server docs/jsdoc/",

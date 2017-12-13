@@ -196,7 +196,7 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 Before running any tests, please ensure Lisk is configured to run on the same testnet that is used by the test-suite.
 
-Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test** directory
+Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test/data/** directory
 
 ```
 cp test/data/config.json test/data/genesisBlock.json .
@@ -223,17 +223,25 @@ Launch Lisk (runs on port 4000):
 node app.js
 ```
 
-Run the test suite:
+Run test suites:
+
+Our tests are subdivided in three suites: unit, functional and integration. 
+Therefore we offer the next possibilities:
+- run each test suite separately
+- filter tests by existing tags
+- execute concurrently all the files from the chosen suite
+
+The way to choose and execute them is as follows:
 
 ```
-npm test
+npm test -- mocha:<tag>:<suite>:<section>
 ```
 
 Run individual tests:
 
 ```
-npm test -- test/lib/accounts.js
-npm test -- test/lib/transactions.js
+npm run mocha -- test/functional/http/get/accounts.js
+npm run mocha -- test/unit/modules/loader.js
 ```
 
 ## Authors
