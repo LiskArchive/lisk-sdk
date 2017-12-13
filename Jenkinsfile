@@ -85,10 +85,17 @@ def archive_logs() {
 
 def run_action(action) {
 	try {
-		sh """
-		cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-		npm run ${action}
-		"""
+		if (action == 'eslint') {
+			sh """
+			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+			npm run ${action}
+			"""
+		} else {
+			sh """
+			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+			npm test -- ${action}
+			"""
+		}
 	} catch (err) {
 		archive_logs()
 		echo "Error: ${err}"
@@ -274,25 +281,29 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				"Functional HTTP GET tests" : {
 					node('node-01'){
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('test-functional-http-get-extensive')
+							run_action('mocha:extensive:functional:get')
 						} else {
-							run_action('test-functional-http-get')
+							run_action('mocha:untagged:functional:get')
 						}
 						archive_logs()
 					}
 				}, // End node-01 tests
 				"Functional HTTP POST tests" : {
 					node('node-02'){
-						run_action('test-functional-http-post')
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							run_action('mocha:extensive:functional:post')
+						} else {
+							run_action('mocha:untagged:functional:post')
+						}
 						archive_logs()
 					}
 				}, // End Node-02 tests
 				"Functional WS tests" : {
 					node('node-03'){
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('test-functional-ws-extensive')
+							run_action('mocha:extensive:functional:ws')
 						} else {
-							run_action('test-functional-ws')
+							run_action('mocha:untagged:functional:ws')
 						}
 						archive_logs()
 					}
@@ -300,16 +311,20 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				"Unit Tests" : {
 					node('node-04'){
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('test-unit-extensive')
+							run_action('mocha:extensive:unit')
 						} else {
-							run_action('test-unit')
+							run_action('mocha:untagged:unit')
 						}
 						archive_logs()
 					}
 				}, // End Node-04 unit tests
 				"Functional System" : {
 					node('node-05'){
-						run_action('test-functional-system')
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							run_action('mocha:extensive:functional:system')
+						} else {
+							run_action('mocha:untagged:functional:system')
+						}
 						archive_logs()
 					}
 				} // End Node-05 tests
