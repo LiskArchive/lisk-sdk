@@ -19,14 +19,14 @@ export const validatePublicKey = publicKey => {
 	if (bufferToHex(publicKeyBuffer) !== publicKey) {
 		throw new Error('Public key must be a valid hex string.');
 	}
-	if (publicKey.length !== 64 || publicKeyBuffer.length !== 32) {
+	if (publicKeyBuffer.length !== 32) {
 		throw new Error(
-			`Public key ${publicKey} length differs from the expected 64 hex characters (32 bytes) for a public key.`,
+			`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
 		);
 	}
 
-	return publicKey;
+	return true;
 };
 
 export const validatePublicKeys = publicKeys =>
-	publicKeys.map(publicKey => validatePublicKey(publicKey));
+	publicKeys.every(publicKey => validatePublicKey(publicKey));
