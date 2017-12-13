@@ -28,11 +28,12 @@ This sections provides details on what you need install on your system in order 
     
         Make sure that you have both XCode and Brew installed on your machine.
         
-        Update homebrew:
+        Update homebrew and install dependencies:
         
         ```
         brew update
         brew doctor
+        brew install curl automake autoconf libtool
         ```
         
         Install Lunchy for easier starting and stoping of services:
@@ -153,6 +154,7 @@ This sections provides details on what you need install on your system in order 
     
         ```
         brew install redis
+        cp /usr/local/Cellar/redis/homebrew.mxcl.redis.plist ~/Library/LaunchAgents/
         ```
         start redis-server:
         ```
@@ -231,6 +233,14 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 ```
 
 ## Tests
+
+For functional testing we need to apply less strict behaviour regarding local nodes. Typically, any connection from a local node will be rejected, but for testing purposes that rule can be ignored.
+
+To disable localhost checking we have to tell the main process that we are working on the test environment by setting the `NODE_ENV` variable.
+
+```
+NODE_ENV="test" node app.js
+```
 
 Run the test suite:
 
