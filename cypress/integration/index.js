@@ -22,7 +22,12 @@ const throwFailuresInWindow = win => {
 
 	if (failures.length) {
 		const failuresHTML = Array.from(failures).map(el => el.outerHTML);
-		const errorString = failuresHTML.map(decodeURIComponent).join('\n');
+		let errorString;
+		try {
+			errorString = failuresHTML.map(decodeURIComponent).join('\n');
+		} catch (error) {
+			errorString = failuresHTML.join('\n');
+		}
 		throw new Error(errorString);
 	}
 };
