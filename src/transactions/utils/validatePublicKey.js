@@ -29,4 +29,4 @@ export const validatePublicKey = publicKey => {
 };
 
 export const validatePublicKeys = publicKeys =>
-	publicKeys.every(publicKey => validatePublicKey(publicKey));
+	publicKeys.every(validatePublicKey);

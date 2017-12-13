@@ -63,6 +63,24 @@ describe('public key validation', () => {
 			});
 		});
 
+		describe('Given a valid public key', () => {
+			const publicKey =
+				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca';
+			it('should return true', () => {
+				return validatePublicKey(publicKey).should.be.true();
+			});
+		});
+
+		describe('Given a valid public key with only numeric characters', () => {
+			const publicKey =
+				'1234567812345678123456781234567812345678123456781234567812345678';
+			it('should return true', () => {
+				return validatePublicKey(publicKey).should.be.true();
+			});
+		});
+	});
+
+	describe('#validatePublicKeys', () => {
 		describe('Given an array of public keys with one invalid public key', () => {
 			const publicKeys = [
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
@@ -77,32 +95,14 @@ describe('public key validation', () => {
 			});
 		});
 
-		describe('Given a valid public key', () => {
-			const publicKey =
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca';
-			it('should return the public key', () => {
-				validatePublicKey(publicKey).should.be.true();
-			});
-		});
-
-		describe('Given a valid public key', () => {
-			const publicKey =
-				'1234567812345678123456781234567812345678123456781234567812345678';
-			it('should return the public key', () => {
-				validatePublicKey(publicKey).should.be.true();
-			});
-		});
-	});
-
-	describe('#validatePublicKeys', () => {
-		describe('Given an array of public keys', () => {
+		describe('Given an array of valid public keys', () => {
 			const publicKeys = [
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
 				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 				'1234567812345678123456781234567812345678123456781234567812345678',
 			];
-			it('should return the public keys', () => {
-				validatePublicKeys(publicKeys).should.be.true();
+			it('should return true', () => {
+				return validatePublicKeys(publicKeys).should.be.true();
 			});
 		});
 	});
