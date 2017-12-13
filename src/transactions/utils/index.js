@@ -26,3 +26,4 @@ export {
 	verifyTransaction,
 } from './signAndVerify';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
+export { validatePublicKey, validatePublicKeys } from './validatePublicKey';
