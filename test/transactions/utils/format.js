@@ -16,9 +16,9 @@
 import {
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
-} from '../../../src/transactions/utils/helper';
+} from '../../../src/transactions/utils/format';
 
-describe('helper', () => {
+describe('format', () => {
 	describe('#prependPlusToPublicKeys', () => {
 		describe('Given an array of public keys', () => {
 			it('should append plus to each public key', () => {
@@ -32,7 +32,9 @@ describe('helper', () => {
 					'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				];
-				prependPlusToPublicKeys(publicKeys).should.be.eql(expectedOutput);
+				return prependPlusToPublicKeys(publicKeys).should.be.eql(
+					expectedOutput,
+				);
 			});
 		});
 	});
@@ -50,7 +52,9 @@ describe('helper', () => {
 					'-922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					'-5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				];
-				prependMinusToPublicKeys(publicKeys).should.be.eql(expectedOutput);
+				return prependMinusToPublicKeys(publicKeys).should.be.eql(
+					expectedOutput,
+				);
 			});
 		});
 	});
