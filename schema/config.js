@@ -5,7 +5,7 @@ module.exports = {
 		id: 'appCon',
 		type: 'object',
 		properties: {
-			port: {
+			wsPort: {
 				type: 'integer',
 				minimum: 1,
 				maximum: 65535
@@ -289,6 +289,6 @@ module.exports = {
 				format: 'hex'
 			}
 		},
-		required: ['port', 'httpPort',  'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
+		required: ['wsPort', 'httpPort',  'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
 	}
 };

@@ -263,7 +263,7 @@ describe('handshake', function () {
 					});
 				});
 
-				var requiredProperties = ['port', 'version', 'nonce', 'nethash', 'height'];
+				var requiredProperties = ['wsPort', 'version', 'nonce', 'nethash', 'height'];
 				requiredProperties.forEach(function (property) {
 					it('should call callback with error for required property: ' + property, function (done) {
 						headers[property] = undefined;

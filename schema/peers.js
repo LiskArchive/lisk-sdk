@@ -20,7 +20,7 @@ module.exports = {
 					type: 'string',
 					format: 'ip'
 				},
-				port: {
+				wsPort: {
 					type: 'integer',
 					minimum: 1,
 					maximum: 65535
@@ -51,7 +51,7 @@ module.exports = {
 					minimum: 1
 				}
 			},
-			required: ['ip', 'port']
+			required: ['ip', 'wsPort']
 		}
 	},
 	getPeers: {
@@ -62,7 +62,7 @@ module.exports = {
 				type: 'string',
 				format: 'ip'
 			},
-			port: {
+			wsPort: {
 				type: 'integer',
 				minimum: 1,
 				maximum: 65535

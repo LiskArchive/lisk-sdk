@@ -229,7 +229,7 @@ d.run(function () {
 		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: scope.config.wsWorkers,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				wsEngine: 'uws',
 				appName: 'lisk',
 				workerController: workersControllerPath,
@@ -261,7 +261,7 @@ d.run(function () {
 				version: scope.config.version,
 				minVersion: scope.config.minVersion,
 				nethash: scope.config.nethash,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				nonce: scope.config.nonce
 			};
 

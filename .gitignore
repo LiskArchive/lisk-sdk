@@ -21,3 +21,4 @@ test/integration/pm2.integration.json
 test/integration/logs/
 test/integration/configs/
 !test/integration/configs/config.non-forge.json
+.vscode/

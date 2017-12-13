@@ -25,7 +25,7 @@ var wsCommunication = {
 		if (includePeer && typeof data === 'object') {
 			data.peer =  _.assign({
 				ip: '127.0.0.1',
-				port: 9999
+				wsPort: 9999
 			}, this.defaultSocketPeerHeaders);
 		}
 		return this.caller(procedure)(data, done);

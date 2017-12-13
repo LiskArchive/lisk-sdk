@@ -17,7 +17,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 		configurations = _.range(10).map(function (index) {
 			var devConfigCopy = _.cloneDeep(devConfig);
 			devConfigCopy.ip = '127.0.0.1';
-			devConfigCopy.port = 5000 + index;
+			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
 			return devConfigCopy;
 		});

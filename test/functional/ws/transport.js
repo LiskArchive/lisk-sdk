@@ -20,13 +20,13 @@ describe('RPC', function () {
 	var clientSocket;
 	var validClientSocketOptions;
 	var wampClient = new WAMPClient();
-	var frozenHeaders = wsClient.generatePeerHeaders('127.0.0.1', wsServer.port, wsServer.validNonce);
+	var frozenHeaders = wsClient.generatePeerHeaders('127.0.0.1', wsServer.wsPort, wsServer.validNonce);
 
 	before(function (done) {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: test.config.port,
+			port: test.config.wsPort,
 			query: _.clone(frozenHeaders)
 		};
 		clientSocket = scClient.connect(validClientSocketOptions);
