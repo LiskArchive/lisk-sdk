@@ -29,6 +29,16 @@ describe('validate public key', () => {
 			});
 		});
 
+		describe('Given an invalid public key', () => {
+			const invalidHexPublicKey =
+				'12345678123456781234567812345678123456781234567812345678123456gg';
+			it('should throw an error', () => {
+				validatePublicKey
+					.bind(null, invalidHexPublicKey)
+					.should.throw('Public key must be a valid hex string.');
+			});
+		});
+
 		describe('Given a too long public key', () => {
 			const tooLongPublicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12';

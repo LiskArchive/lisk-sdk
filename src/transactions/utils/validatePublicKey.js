@@ -17,7 +17,7 @@ import { bufferToHex, hexToBuffer } from '../../crypto/convert';
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = hexToBuffer(publicKey);
 	if (bufferToHex(publicKeyBuffer) !== publicKey) {
-		throw new Error('Public key must be a hex string.');
+		throw new Error('Public key must be a valid hex string.');
 	}
 	if (publicKey.length !== 64 || publicKeyBuffer.length !== 32) {
 		throw new Error(
