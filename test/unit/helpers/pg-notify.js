@@ -285,7 +285,7 @@ describe('helpers/pg-notify', function () {
 	});
 
 	// FIXME #1068
-	describe.skip('onNotification', function () {
+	describe('onNotification @unstable', function () {
 
 		var delegates_list_db;
 		var round;

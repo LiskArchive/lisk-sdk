@@ -95,7 +95,7 @@ describe('GET /peers', function () {
 		});
 	});
 
-	describe.skip('pass data from a real peer @unstable', function () {
+	describe('pass data from a real peer @unstable', function () {
 
 		it('using a valid httpPort should return the result', function () {
 			return peersEndpoint.makeRequest({httpPort: validHeaders.httpPort}, 200)
