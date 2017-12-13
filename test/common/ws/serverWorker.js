@@ -13,6 +13,10 @@ SCWorker.create({
 
 		var slaveWAMPServer = new SlaveWAMPServer(worker, 20e3);
 
+		slaveWAMPServer.reassignRPCSlaveEndpoints({
+			updateMyself: sinon.stub().callsArgWith(1, null)
+		});
+
 		scServer.on('connection', function (socket) {
 			slaveWAMPServer.upgradeToWAMP(socket);
 			socket.emit('accepted');

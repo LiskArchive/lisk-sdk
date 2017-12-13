@@ -49,7 +49,6 @@ WSServer.prototype.start = function () {
 		blocks:  sinon.stub().callsArgWith(1, null, {blocks: []}),
 		getSignatures:  sinon.stub().callsArgWith(1, null, {signatures: []}),
 		getTransactions:  sinon.stub().callsArgWith(1, null, {transactions: []}),
-		updateMyself:  sinon.stub().callsArgWith(1, null),
 		postTransactions: sinon.stub().callsArgWith(1, null),
 		postSignatures: sinon.stub().callsArgWith(1, null),
 		postBlock: sinon.stub().callsArgWith(1, sinon.stub().callsArg(1)),
