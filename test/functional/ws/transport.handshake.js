@@ -20,7 +20,7 @@ var WSServerMaster = require('../../common/ws/serverMaster');
 describe('handshake', function () {
 
 	var wsServerPort = 9999;
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({port: wsServerPort, nonce: wsServer.validNonce});
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({wsPort: wsServerPort, nonce: wsServer.validNonce});
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;

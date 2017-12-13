@@ -80,11 +80,12 @@ WSServerMaster.generatePeerHeaders = function (headers) {
 		status: 2,
 		height: 1,
 		ip: '127.0.0.1',
-		port: (Math.floor(Math.random() * 65535) + 1),
+		wsPort: (Math.floor(Math.random() * 65535) + 1),
 		httpPort: (Math.floor(Math.random() * 65535) + 1),
 		nonce: randomstring.generate(16),
 		os: operatingSystems[((Math.floor(Math.random() * operatingSystems.length)))],
-		version: testConfig.version
+		version: testConfig.version,
+		minVersion: testConfig.minVersion
 	};
 
 	return Object.assign({}, defaults, headers);

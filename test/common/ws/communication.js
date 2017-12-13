@@ -18,7 +18,7 @@ var wsCommunication = {
 	call: function (procedure, data, done, includePeer) {
 		if (!this.defaultConnectionState) {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
-			this.defaultSocketPeerHeaders = WSServer.generatePeerHeaders({ip: '127.0.0.1', port: 9999});
+			this.defaultSocketPeerHeaders = WSServer.generatePeerHeaders({ip: '127.0.0.1', wsPort: 9999});
 			System.setHeaders(this.defaultSocketPeerHeaders);
 			this.caller = ClientRPCStub.prototype.sendAfterSocketReadyCb(this.defaultConnectionState);
 		}

@@ -20,7 +20,7 @@ describe('RPC', function () {
 	var clientSocket;
 	var validClientSocketOptions;
 	var wampClient = new WAMPClient();
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({port: wsServer.options.port, nonce: wsServer.validNonce});
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({wsPort: wsServer.options.port, nonce: wsServer.validNonce});
 
 	before(function (done) {
 		validClientSocketOptions = {
