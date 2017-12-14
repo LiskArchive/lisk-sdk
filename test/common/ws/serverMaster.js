@@ -77,9 +77,8 @@ WSServerMaster.generatePeerHeaders = function (headers) {
 	var defaults = {
 		broadhash: testConfig.nethash,
 		nethash: testConfig.nethash,
-		status: 2,
+		state: 2,
 		height: 1,
-		ip: '127.0.0.1',
 		wsPort: (Math.floor(Math.random() * 65535) + 1),
 		httpPort: (Math.floor(Math.random() * 65535) + 1),
 		nonce: randomstring.generate(16),
