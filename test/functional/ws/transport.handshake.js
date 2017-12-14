@@ -36,6 +36,12 @@ describe('handshake', function () {
 		clientSocket.on('error', errorStub);
 	}
 
+	function disconnect () {
+		if (clientSocket && clientSocket.id) {
+			clientSocket.disconnect();
+		}
+	}
+
 	function expectDisconnect (testContext, cb) {
 		var disconnectHandler = function (code, description) {
 			// Prevent from calling done() multiple times
@@ -82,9 +88,7 @@ describe('handshake', function () {
 	});
 
 	afterEach(function () {
-		if (clientSocket) {
-			clientSocket.disconnect();
-		}
+		disconnect();
 	});
 
 	describe('with invalid headers', function () {
@@ -174,7 +178,6 @@ describe('handshake', function () {
 			 * to: present nonce, present connectionId, present on master
 			 */
 			validClientSocketOptions.query.nonce = randomstring.generate(16);
-			connect();
 		});
 
 		describe('when present on master', function () {
@@ -218,6 +221,7 @@ describe('handshake', function () {
 			var wampClient = new WAMPClient();
 
 			beforeEach(function (done) {
+				connect();
 				wampClient.upgradeToWAMP(clientSocket);
 				setTimeout(function () {
 					validClientSocketOptions.query.state = 1;
@@ -232,10 +236,15 @@ describe('handshake', function () {
 				this.timeout(2000);
 			});
 
+			afterEach(function () {
+				disconnect();
+			});
+
 			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
+					disconnect();
 				});
 
 				it('should succeed when connectionId is present', function (done) {
@@ -251,6 +260,10 @@ describe('handshake', function () {
 			});
 
 			describe('when nonce is present', function () {
+
+				beforeEach(function () {
+					disconnect();
+				});
 
 				it('should succeed when connectionId is present', function (done) {
 					connect();
