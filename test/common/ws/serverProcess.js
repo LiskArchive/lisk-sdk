@@ -44,6 +44,8 @@ WSServer.prototype.start = function () {
 	self.rpcServer = new MasterWAMPServer(self.socketCluster, childProcessOptions);
 
 	self.rpcServer.registerRPCEndpoints({
+		updatePeer: sinon.stub().callsArgWith(1, null),
+		height:  sinon.stub().callsArgWith(1, null, {success: true, height: self.options.headers}),
 		status: sinon.stub().callsArgWith(1, null, self.options.headers),
 		list: sinon.stub().callsArgWith(1, null, {peers: []}),
 		blocks:  sinon.stub().callsArgWith(1, null, {blocks: []}),
