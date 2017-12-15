@@ -168,6 +168,18 @@ export default class LiskAPI {
 			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
 
+	broadcastSignatures(signatures, callback) {
+		const request = {
+			requestUrl: `${utils.getFullURL(this)}/api/signatures`,
+			nethash: this.nethash,
+			requestParams: { signatures },
+		};
+		return privateApi.sendRequestPromise
+			.call(this, POST, request)
+			.then(result => result.body)
+			.then(utils.optionallyCallCallback.bind(null, callback));
+	}
+
 	/**
 	 * @method sendRequest
 	 * @param requestMethod

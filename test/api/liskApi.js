@@ -506,6 +506,56 @@ describe('Lisk API module', () => {
 		});
 	});
 
+	describe('#broadcastSignatures', () => {
+		let signatures;
+		let requestObject;
+
+		beforeEach(() => {
+			signatures = [
+				{
+					key1: 'value1',
+					key2: 2,
+				},
+				{
+					key3: 'value3',
+					key4: 4,
+				},
+			];
+			requestObject = {
+				requestUrl: `${defaultUrl}/api/signatures`,
+				nethash: defaultNethash,
+				requestParams: { signatures },
+			};
+		});
+
+		it('should use getFullURL to get the url', () => {
+			return LSK.broadcastSignatures({}).then(() => {
+				getFullURLStub.should.be.calledWithExactly(LSK);
+			});
+		});
+
+		it('should call sendRequestPromise with a prepared request object', () => {
+			return LSK.broadcastSignatures(signatures).then(() => {
+				sendRequestPromiseStub.should.be.calledOn(LSK);
+				sendRequestPromiseStub.should.be.calledWithExactly(POST, requestObject);
+			});
+		});
+
+		it('should resolve to the body of the result of sendRequestPromise', () => {
+			return LSK.broadcastSignatures(signatures).then(result =>
+				result.should.be.equal(defaultRequestPromiseResult.body),
+			);
+		});
+
+		it('should call the callback with the body of the result of sendRequestPromise', () => {
+			return new Promise(resolve => {
+				LSK.broadcastSignatures({}, resolve);
+			}).then(result => {
+				result.should.be.equal(defaultRequestPromiseResult.body);
+			});
+		});
+	});
+
 	describe('#sendRequest', () => {
 		const method = GET;
 		const endpoint = 'transactions';
