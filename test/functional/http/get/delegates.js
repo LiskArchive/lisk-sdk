@@ -156,10 +156,8 @@ describe('GET /delegates', function () {
 				});
 			});
 
-			it('using invalid username should fail', function () {
-				return delegatesEndpoint.makeRequest({username: 1}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'username');
-				});
+			it('using integer username should be ok', function () {
+				return delegatesEndpoint.makeRequest({username: 1}, 200);
 			});
 
 			it('using valid existing username of genesis delegate should return the result', function () {
