@@ -76,6 +76,13 @@ def cleanup_master() {
 	}
 }
 
+def archive_logs() {
+	sh '''
+	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	'''
+	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
+}
+
 def run_action(action) {
 	try {
 		sh """
@@ -83,11 +90,12 @@ def run_action(action) {
 		npm run ${action}
 		"""
 	} catch (err) {
+		archive_logs()
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
 		error('Stopping build: ' + action + ' failed')
-	}	
+	}
 }
 
 def report_coverage(node) {
@@ -256,50 +264,57 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	}
 
 	stage ('Parallel Tests') {
-		parallel(
-			"ESLint" : {
-				node('node-01'){
-					run_action('eslint')
-				}
-			},
-			"Functional HTTP GET tests" : {
-				node('node-01'){
-					if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-						run_action('test-functional-http-get-extensive')
-					} else {
-						run_action('test-functional-http-get')
+		timestamps {
+			parallel(
+				"ESLint" : {
+					node('node-01'){
+						run_action('eslint')
 					}
-				}
-			}, // End node-01 tests
-			"Functional HTTP POST tests" : {
-				node('node-02'){
-					run_action('test-functional-http-post')
-				}
-			}, // End Node-02 tests
-			"Functional WS tests" : {
-				node('node-03'){
-					if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-						run_action('test-functional-ws-extensive')
-					} else {
-						run_action('test-functional-ws')
+				},
+				"Functional HTTP GET tests" : {
+					node('node-01'){
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							run_action('test-functional-http-get-extensive')
+						} else {
+							run_action('test-functional-http-get')
+						}
+						archive_logs()
 					}
-				}
-			}, // End Node-03 tests
-			"Unit Tests" : {
-				node('node-04'){
-					if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-						run_action('test-unit-extensive')
-					} else {
-						run_action('test-unit')
+				}, // End node-01 tests
+				"Functional HTTP POST tests" : {
+					node('node-02'){
+						run_action('test-functional-http-post')
+						archive_logs()
 					}
-				}
-			}, // End Node-04 unit tests
-			"Functional Transaction pool" : {
-				node('node-05'){
-					run_action('test-functional-pool')
-				}
-			} // End Node-05 tests
-		) // End Parallel
+				}, // End Node-02 tests
+				"Functional WS tests" : {
+					node('node-03'){
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							run_action('test-functional-ws-extensive')
+						} else {
+							run_action('test-functional-ws')
+						}
+						archive_logs()
+					}
+				}, // End Node-03 tests
+				"Unit Tests" : {
+					node('node-04'){
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							run_action('test-unit-extensive')
+						} else {
+							run_action('test-unit')
+						}
+						archive_logs()
+					}
+				}, // End Node-04 unit tests
+				"Functional System" : {
+					node('node-05'){
+						run_action('test-functional-system')
+						archive_logs()
+					}
+				} // End Node-05 tests
+			) // End Parallel
+		} // End timestamp
 	}
 
 	stage ('Gather Coverage') {

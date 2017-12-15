@@ -21,6 +21,10 @@ module.exports = {
 				shell.recreateDatabases(configurations, cbSeries);
 			},
 			function (cbSeries) {
+				utils.logger.log('Clearing existing logs');
+				shell.clearLogs(cbSeries);
+			},
+			function (cbSeries) {
 				utils.logger.log('Launching network');
 				shell.launchTestNodes(cbSeries);
 			},

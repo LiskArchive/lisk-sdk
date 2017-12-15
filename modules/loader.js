@@ -251,7 +251,7 @@ __private.loadTransactions = function (cb) {
 					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', transaction: transaction});
 
 					library.logger.warn(['Transaction', id, 'is not valid, peer removed'].join(' '), peer.string);
-					modules.peers.remove(peer.ip, peer.port);
+					modules.peers.remove(peer.ip, peer.wsPort);
 
 					return setImmediate(eachSeriesCb, e);
 				}

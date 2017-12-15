@@ -25,8 +25,6 @@ tags:
   description: Dapps related API calls
 - name: Delegates
   description: Delegates related API calls
-- name: Delegates (Private)
-  description: Private API calls only available to localhost/whitelist
 - name: Node
   description: Node related API calls
 - name: Peers
@@ -84,7 +82,89 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /accounts/{address}/multisignature_groups:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests multisignature groups data
+      operationId: getMultisignatureGroups
+      description:
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature groups
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          in: path
+          description: Address of account
+          type: string
+          format: address
+          required: true
+          minLength: 2
+          maxLength: 22
+      responses:
+        200:
+          description: List of multisignature accounts
+          schema:
+            $ref: '#/definitions/MultisignatureGroupsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Multisignature account not found
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /accounts/{address}/multisignature_memberships:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests multisignature memberships data
+      operationId: getMultisignatureMemberships
+      description:
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature memberships
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          in: path
+          description: Address of account
+          type: string
+          format: address
+          required: true
+          minLength: 2
+          maxLength: 22
+      responses:
+        200:
+          description: List of multisignature accounts
+          schema:
+            $ref: '#/definitions/MultisignatureGroupsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -97,7 +177,7 @@ paths:
     get:
       tags:
       - Dapps
-      summary: Requests a list of registered dapps
+      summary: Requests dapps data
       operationId: getDapps
       description:
         By passing in the appropriate options, you can search for
@@ -139,7 +219,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -188,7 +268,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -213,7 +293,7 @@ paths:
           schema:
             $ref: '#/definitions/NodeConstantsResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -237,7 +317,7 @@ paths:
           schema:
             $ref: '#/definitions/NodeStatusResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -255,7 +335,7 @@ paths:
       summary: Requests forging status of a delegate
       operationId: getForgingStatus
       description:
-        By querying by publicKey, a delegates forging status on a node can be determined
+        By querying by publicKey, the forging status of a delegate can be determined on a node
       produces:
         - application/json
       parameters:
@@ -274,7 +354,7 @@ paths:
           schema:
             $ref: '#/definitions/AccessDeniedError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -331,7 +411,71 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /node/transactions/{state}:
+    x-swagger-router-controller: node
+    get:
+      tags:
+        - Transactions
+        - Queue
+      summary: Requests unprocessed transactions data
+      operationId: getPooledTransactions
+      description:
+        This API call returns unprocessed transactions matching filter criteria
+        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: state
+          description: State of transactions to query
+          required: true
+          type: string
+          enum:
+            - unprocessed
+            - unconfirmed
+            - unsigned
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientAddress'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderAddress'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -344,7 +488,7 @@ paths:
     get:
       tags:
       - Delegates
-      summary: Requests a list of delegates
+      summary: Requests delegates data
       operationId: getDelegates
       x-lisk-cache-enabled: true
       description:
@@ -395,7 +539,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -408,7 +552,7 @@ paths:
     get:
       tags:
         - Delegates
-      summary: Requests a list of next forgers
+      summary: Requests next forgers data
       operationId: getForgers
       description:
         By passing in the appropriate options, you can get a list of the next forgers
@@ -427,7 +571,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -483,7 +627,7 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -496,10 +640,10 @@ paths:
     get:
       tags:
         - Votes
-      summary: Requests voters of a delegate.
+      summary: Requests voters data for a delegate
       operationId: getVoters
       description:
-        This API call returns all voters of a delegate. Must provide at least one of the filter parameters.
+        This API call returns all votes received by a delegate. At least one of the filter parameters must be provided
       produces:
         - application/json
       parameters:
@@ -533,7 +677,57 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /votes:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: Requests votes data for an account
+      operationId: getVotes
+      description:
+        This API call returns all votes placed by an account
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Votes list
+          schema:
+            $ref: '#/definitions/VotesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
@@ -577,13 +771,110 @@ paths:
           schema:
             $ref: '#/definitions/ProcessingError'
         429:
-          description: Too many requests, exceeded rate limit.
+          description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
           description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
+
+  /transactions:
+    x-swagger-router-controller: transactions
+    get:
+      tags:
+        - Transactions
+      summary: Requests transactions data
+      operationId: getTransactions
+      x-lisk-cache-enabled: true
+      description:
+        This API call returns transactions matching filter criteria
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientAddress'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderAddress'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/minAmount'
+        - $ref: '#/parameters/maxAmount'
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
+        - $ref: '#/parameters/blockId'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+    post:
+      tags:
+        - Transactions
+      summary: Submits signed transactions for processing
+      operationId: postTransactions
+      description:
+        Submits signed transactions for processing by the transaction pool
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: transactions
+          description: Transaction object to submit to the network
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Transaction'
+      responses:
+        200:
+          description: Transaction accepted by the node for processing
+          schema:
+            $ref: '#/definitions/GeneralStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        409:
+          description: Some error related to processing of request
+          schema:
+            $ref: '#/definitions/ProcessingError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
 
 parameters:
   ip:
@@ -616,7 +907,7 @@ parameters:
   version:
     name: version
     in: query
-    description: Lisk version run by node
+    description: Lisk version of the node
     type: string
     format: version
     minLength: 5
@@ -677,7 +968,7 @@ parameters:
   secondPublicKey:
     name: secondPublicKey
     in: query
-    description: Public key to query
+    description: Second public key to query
     type: string
     format: publicKey
   username:
@@ -691,11 +982,80 @@ parameters:
   blockId:
     name: blockId
     in: query
-    description: BlockId to query
+    description: Block id to query
     type: string
     format: id
     minLength: 1
     maxLength: 20
+  transactionId:
+    name: id
+    in: query
+    description: Transaction id to query
+    type: string
+    format: id
+    minLength: 1
+    maxLength: 20
+  recipientAddress:
+    name: recipientAddress
+    in: query
+    description: Recipient address to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
+  recipientPublicKey:
+    name: recipientPublicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+    minLength: 1
+  senderAddress:
+    name: senderAddress
+    in: query
+    description: Sender address to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
+  senderPublicKey:
+    name: senderPublicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+    minLength: 1
+  transactionType:
+    name: type
+    in: query
+    description: Transaction type
+    type: integer
+    minimum: 0
+    maximum: 7
+  minAmount:
+    name: minAmount
+    in: query
+    description: Minimum transaction amount
+    type: integer
+    minimum: 0
+  maxAmount:
+    name: maxAmount
+    in: query
+    description: Maximum transaction amount
+    type: integer
+    minimum: 0
+  fromTimestamp:
+    name: fromTimestamp
+    in: query
+    description: Starting Lisk timestamp of records to query
+    type: integer
+    minimum: 0
+  toTimestamp:
+    name: toTimestamp
+    in: query
+    description: Ending Lisk timestamp of records to query
+    type: integer
+    minimum: 1
 
 definitions:
   NodeStatusResponse:
@@ -726,8 +1086,8 @@ definitions:
       links:
         type: object
 
-  PeersResponse:
-    description: Peers response
+  BlocksResponse:
+    description: Blocks response
     type: object
     required:
       - data
@@ -786,6 +1146,23 @@ definitions:
             description: Limit applied to results
             type: integer
             example: 100
+      links:
+        type: object
+
+  MultisignatureGroupsResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of multisignature groups
+        type: array
+        items:
+          $ref: '#/definitions/MultisignatureGroup'
+      meta:
+        type: object
       links:
         type: object
 
@@ -964,6 +1341,156 @@ definitions:
       links:
         type: object
 
+  TransactionsResponse:
+    description: Transactions response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+          - count
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+          count:
+            description: Number of transactions in the response
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  GeneralStatusResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        type: object
+        required:
+          - message
+        properties:
+          message:
+            type: string
+            minLength: 1
+      meta:
+       type: object
+       required:
+         - status
+       properties:
+         status:
+           description: Acceptance status for transactions
+           type: boolean
+           example: true
+      links:
+        type: object
+
+  Transaction:
+    type: object
+    required:
+      - id
+      - type
+      - amount
+      - fee
+      - senderPublicKey
+      - recipientAddress
+      - timestamp
+      - asset
+      - signature
+    properties:
+      id:
+        type: string
+        format: id
+        example: "222675625422353767"
+        minLength: 1
+        maxLength: 20
+      amount:
+        type: string
+        example: '150000000'
+      fee:
+        type: string
+        example: '1000000'
+      type:
+        type: integer
+        minimum: 0
+        maximum: 7
+      height:
+        type: integer
+        minimum: 1
+      blockId:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      timestamp:
+        type: integer
+        example: 28227090
+      senderAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      senderPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      senderSecondPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      recipientAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      recipientPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      signature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      secondSignature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      multisignatures:
+        type: array
+        items:
+          type: string
+          format: signature
+          example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
+      confirmations:
+        type: integer
+        minimum: 0
+      asset:
+        type: object
+      receivedAt:
+        type: string
+        format: 'date-time'
+      relays:
+        type: integer
+      signSignature:
+        type: string
+        format: signature
+
   Signature:
     type: object
     required:
@@ -1084,6 +1611,33 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/DelegateWithVoters'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  VotesResponse:
+    description: Votes endpoint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/DelegateWithVotes'
       meta:
         type: object
         required:
@@ -1317,6 +1871,7 @@ definitions:
       - loaded
       - networkHeight
       - syncing
+      - transactions
     properties:
       broadhash:
         type: string
@@ -1341,6 +1896,30 @@ definitions:
       syncing:
         type: boolean
         example: false
+      transactions:
+        type: object
+        required:
+          - unconfirmed
+          - unsigned
+          - unprocessed
+          - confirmed
+          - total
+        properties:
+          unconfirmed:
+            type: integer
+            example: 5
+          unsigned:
+            type: integer
+            example: 2
+          unprocessed:
+            type: integer
+            example: 3
+          confirmed:
+            type: integer
+            example: 5
+          total:
+            type: integer
+            example: 15
 
   ProcessingError:
     type: object
@@ -1387,7 +1966,7 @@ definitions:
     properties:
       error:
         type: string
-        example: Request limit exceeded. Please try again later.
+        example: Request limit exceeded. Please try again later
 
   ParamErrorResponse:
     type: object
@@ -1441,7 +2020,6 @@ definitions:
     type: object
     description: Singular error detail for a parameter
     required:
-      - code
       - message
     properties:
       code:
@@ -1503,6 +2081,46 @@ definitions:
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
       delegate:
         $ref: '#/definitions/Delegate'
+
+  MultisignatureGroup:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+      - unconfirmedBalance
+      - min
+      - lifetime
+      - members
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+      unconfirmedBalance:
+        type: string
+        example: 0
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      min:
+        type: integer
+        example: 3
+      lifetime:
+        type: integer
+        example: 72
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/Account'
 
   Delegate:
     type: object
@@ -1611,6 +2229,63 @@ definitions:
           $ref: '#/definitions/Voter'
 
   Voter:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+
+  DelegateWithVotes:
+    type: object
+    required:
+      - username
+      - address
+      - votesUsed
+      - votesAvailable
+      - balance
+      - votes
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      balance:
+        type: string
+        example: 1081560729258
+      username:
+        type: string
+        example: isabella
+        format: username
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      votesUsed:
+        type: integer
+        example: 2
+      votesAvailable:
+        type: integer
+        example: 40
+      votes:
+        type: array
+        items:
+          $ref: '#/definitions/Vote'
+
+  Vote:
     type: object
     required:
       - address

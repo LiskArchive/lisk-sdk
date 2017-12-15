@@ -19,7 +19,7 @@ function Peer (peer) {
 	Object.defineProperties(this, {
 		rpc: {
 			get: function () {
-				return wsRPC.getClientRPCStub(this.ip, this.port);
+				return wsRPC.getClientRPCStub(this.ip, this.wsPort);
 			}.bind(this)
 		}
 	});
@@ -30,7 +30,7 @@ function Peer (peer) {
 /**
  * @typedef {Object} peer
  * @property {string} ip
- * @property {number} port - Between 1 and 65535
+ * @property {number} wsPort - Between 1 and 65535
  * @property {number} httpPort - Between 1 and 65535
  * @property {number} state - Between 0 and 2. (banned = 0, unbanned = 1, active = 2)
  * @property {string} os - Between 1 and 64 chars
@@ -45,7 +45,7 @@ function Peer (peer) {
 // Public properties
 Peer.prototype.properties = [
 	'ip',
-	'port',
+	'wsPort',
 	'state',
 	'os',
 	'version',
@@ -59,7 +59,7 @@ Peer.prototype.properties = [
 
 Peer.prototype.immutable = [
 	'ip',
-	'port',
+	'wsPort',
 	'httpPort',
 	'string'
 ];
@@ -109,8 +109,8 @@ Peer.prototype.accept = function (peer) {
 		this.ip = ip.fromLong(this.ip);
 	}
 
-	if (this.ip && this.port) {
-		this.string = this.ip + ':' + this.port;
+	if (this.ip && this.wsPort) {
+		this.string = this.ip + ':' + this.wsPort;
 	}
 
 	return this;
@@ -126,7 +126,7 @@ Peer.prototype.normalize = function (peer) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
 
-	peer.port = this.parseInt(peer.port, 0);
+	peer.wsPort = this.parseInt(peer.wsPort, 0);
 	peer.httpPort = this.parseInt(peer.httpPort, 0);
 	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 

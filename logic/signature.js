@@ -118,7 +118,7 @@ Signature.prototype.getBytes = function (transaction) {
  */
 Signature.prototype.schema = {
 	id: 'Signature',
-	object: true,
+	type: 'object',
 	properties: {
 		publicKey: {
 			type: 'string',

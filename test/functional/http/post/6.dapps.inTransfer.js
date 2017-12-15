@@ -18,6 +18,7 @@ var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/waitFor');
 var apiHelpers = require('../../../common/helpers/api');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+var errorCodes = require('../../../../helpers/apiCodes');
 
 describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
@@ -40,8 +41,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		return Promise.all(promises)
 			.then(function (results) {
 				results.forEach(function (res) {
-					expect(res).to.have.property('status').to.equal(200);
-					expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+					res.body.data.message.should.be.equal('Transaction(s) accepted');
 				});
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id);
@@ -54,8 +54,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
@@ -64,8 +63,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				randomUtil.blockDataDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.blockDataDapp.id);
@@ -84,9 +82,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
 				delete transaction.asset.inTransfer.dappId;
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Missing required property: dappId');
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Missing required property: dappId');
 					badTransactions.push(transaction);
 				});
 			});
@@ -95,9 +92,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = 1;
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type integer');
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type integer');
 					badTransactions.push(transaction);
 				});
 			});
@@ -106,9 +102,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = 1.2;
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number');
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number');
 					badTransactions.push(transaction);
 				});
 			});
@@ -117,9 +112,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = [];
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type array');
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type array');
 					badTransactions.push(transaction);
 				});
 			});
@@ -128,9 +122,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = {};
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object');
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object');
 					badTransactions.push(transaction);
 				});
 			});
@@ -138,9 +131,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			it('with empty string should fail', function () {
 				transaction = lisk.transfer.createInTransfer('', Date.now(), account.password);
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: String is too short (0 chars), minimum 1');
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: String is too short (0 chars), minimum 1');
 					badTransactions.push(transaction);
 				});
 			});
@@ -149,9 +141,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				var invalidDappId = '1L';
 				transaction = lisk.transfer.createInTransfer(invalidDappId, 1, accountFixtures.genesis.password);
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate inTransfer schema: Object didn\'t pass validation for format id: ' + invalidDappId);
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Object didn\'t pass validation for format id: ' + invalidDappId);
 					badTransactions.push(transaction);
 				});
 			});
@@ -162,9 +153,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			it('using < 0 should fail', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, -1, accountFixtures.genesis.password);
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.equal('Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0');
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0');
 					badTransactions.push(transaction);
 				});
 			});
@@ -178,11 +168,10 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 						var amount = new bignum(balance).plus('1').toNumber();
 						transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, amount, account.password);
 
-						return sendTransactionPromise(transaction);
+						return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR);
 					})
 					.then(function (res) {
-						expect(res).to.have.property('status').to.equal(400);
-						expect(res).to.have.nested.property('body.message').to.match(/^Account does not have enough LSK: /);
+						res.body.message.should.match(/^Account does not have enough LSK: /);
 						badTransactions.push(transaction);
 					});
 			});
@@ -195,9 +184,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			var unknownDappId = '1';
 			transaction = lisk.transfer.createInTransfer(unknownDappId, 1, accountFixtures.genesis.password);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + unknownDappId);
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Application not found: ' + unknownDappId);
 				badTransactions.push(transaction);
 			});
 		});
@@ -206,9 +194,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			var inexistentId = randomUtil.transaction().id;
 			transaction = lisk.transfer.createInTransfer(inexistentId, 1, account.password);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + inexistentId);
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Application not found: ' + inexistentId);
 				badTransactions.push(transaction);
 			});
 		});
@@ -216,9 +203,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		it('using unrelated transaction id as dapp id should fail', function () {
 			transaction = lisk.transfer.createInTransfer(transactionsToWaitFor[0], 1, accountFixtures.genesis.password);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Application not found: ' + transactionsToWaitFor[0]);
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Application not found: ' + transactionsToWaitFor[0]);
 				badTransactions.push(transaction);
 			});
 		});
@@ -227,8 +213,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * normalizer, accountFixtures.genesis.password);
 
 			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -238,9 +223,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			it('with minimal funds should fail', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.blockDataDapp.id, 1, accountMinimalFunds.password);
 
-				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').to.match(/^Account does not have enough LSK: /);
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.match(/^Account does not have enough LSK: /);
 					badTransactions.push(transaction);
 				});
 			});
@@ -249,8 +233,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * normalizer, account.password);
 
 				return sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(200);
-					expect(res).to.have.nested.property('body.status').that.is.equal('Transaction(s) accepted');
+					res.body.data.message.should.be.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});

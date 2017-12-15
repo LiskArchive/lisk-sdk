@@ -42,12 +42,12 @@ var testNodeConfigs = generateNodesConfig(10, SYNC_MODE.ALL_TO_GROUP, [0, 1, 2, 
 var monitorWSClient = {
 	protocol: 'http',
 	hostname: '127.0.0.1',
-	port: 'toOverwrite',
+	wsPort: 'toOverwrite',
 	autoReconnect: true,
 	query: WSClient.generatePeerHeaders()
 };
 
-monitorWSClient.query.port = 9999;
+monitorWSClient.query.wsPort = 9999;
 
 function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 	syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS;
@@ -66,7 +66,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 				if (isPickedWithProbability(syncModeArgs.RANDOM.PROBABILITY)) {
 					peersList.push({
 						ip: '127.0.0.1',
-						port: 5000 + index
+						wsPort: 5000 + index
 					});
 				}
 			});
@@ -75,7 +75,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 		case SYNC_MODE.ALL_TO_FIRST:
 			peersList = [{
 				ip: '127.0.0.1',
-				port: 5001
+				wsPort: 5001
 			}];
 			break;
 
@@ -87,7 +87,7 @@ function generateNodePeers (numOfPeers, syncMode, syncModeArgs) {
 				if (syncModeArgs.ALL_TO_GROUP.INDICES.indexOf(index) !== -1) {
 					peersList.push({
 						ip: '127.0.0.1',
-						port: 5000 + index
+						wsPort: 5000 + index
 					});
 				}
 			});
@@ -105,7 +105,7 @@ function generateNodesConfig (numOfPeers, syncMode, forgingNodesIndices) {
 		var isForging = forgingNodesIndices.indexOf(index) !== -1;
 		return {
 			ip: '127.0.0.1',
-			port: 5000 + index,
+			wsPort: 5000 + index,
 			database: 'lisk_local_' + index,
 			peers: {
 				list: generateNodePeers(numOfPeers, syncMode)
@@ -126,7 +126,7 @@ function generatePM2NodesConfig (testNodeConfigs) {
 
 		function peersAsString (peersList) {
 			return peersList.reduce(function (acc, peer) {
-				acc += peer.ip + ':' + peer.port + ',';
+				acc += peer.ip + ':' + peer.wsPort + ',';
 				return acc;
 			}, '').slice(0, -1);
 		}
@@ -135,8 +135,8 @@ function generatePM2NodesConfig (testNodeConfigs) {
 			'exec_mode': 'fork',
 			'script': 'app.js',
 			'name': 'node_' + index,
-			'args': ' -p ' + nodeConfig.port +
-			' -h ' + (nodeConfig.port - 1000) +
+			'args': ' -p ' + nodeConfig.wsPort +
+			' -h ' + (nodeConfig.wsPort - 1000) +
 			' -x ' + peersAsString(nodeConfig.peers.list) +
 			' -d ' + nodeConfig.database,
 			'env': {
@@ -216,7 +216,7 @@ function enableForgingOnDelegates (done) {
 	testNodeConfigs.forEach(function (testNodeConfig) {
 		testNodeConfig.secrets.forEach(function (keys) {
 			var enableForgingPromise = popsicle.put({
-				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/node/status/forging',
+				url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.wsPort - 1000) + '/api/node/status/forging',
 				headers: {
 					'Accept': 'application/json',
 					'Content-Type': 'application/json'
@@ -238,7 +238,7 @@ function enableForgingOnDelegates (done) {
 
 function waitForAllNodesToBeReady (done) {
 	async.forEachOf(testNodeConfigs, function (nodeConfig, index, eachCb) {
-		blockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.port - 1000));
+		blockchainReady(eachCb, 20, 2000, 'http://' + nodeConfig.ip + ':' + (nodeConfig.wsPort - 1000));
 	}, done);
 }
 
@@ -248,7 +248,7 @@ function establishWSConnectionsToNodes (sockets, done) {
 
 	setTimeout(function () {
 		testNodeConfigs.forEach(function (testNodeConfig) {
-			monitorWSClient.port = testNodeConfig.port;
+			monitorWSClient.wsPort = testNodeConfig.wsPort;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			socket.on('connect', function () {
@@ -260,7 +260,7 @@ function establishWSConnectionsToNodes (sockets, done) {
 			});
 			socket.on('error', function (err) {});
 			socket.on('connectAbort', function (err) {
-				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.port);
+				done('Unable to establish WS connection with ' + testNodeConfig.ip + ':' + testNodeConfig.wsPort);
 			});
 		}, WAIT_BEFORE_CONNECT_MS);
 	});
@@ -310,10 +310,10 @@ describe('integration', function () {
 					expect(result).to.have.property('success').to.be.ok;
 					expect(result).to.have.property('peers').to.be.a('array');
 					var peerPorts = result.peers.map(function (p) {
-						return p.port;
+						return p.wsPort;
 					});
 					var allPeerPorts = testNodeConfigs.map(function (testNodeConfig) {
-						return testNodeConfig.port;
+						return testNodeConfig.wsPort;
 					});
 					expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
 				});
@@ -423,7 +423,7 @@ describe('integration', function () {
 			before(function () {
 				return Promise.all(testNodeConfigs.map(function (testNodeConfig) {
 					return popsicle.get({
-						url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.port - 1000) + '/api/blocks',
+						url: 'http://' + testNodeConfig.ip + ':' + (testNodeConfig.wsPort - 1000) + '/api/blocks',
 						headers: {
 							'Accept': 'application/json',
 							'Content-Type': 'application/json'

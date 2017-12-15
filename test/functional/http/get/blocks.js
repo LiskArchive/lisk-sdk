@@ -11,7 +11,6 @@ var waitFor = require('../../../common/utils/waitFor');
 var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 
 var swaggerEndpoint = require('../../../common/swaggerSpec');
-var modulesLoader = require('../../../common/modulesLoader');
 var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -37,95 +36,6 @@ describe('GET /blocks', function () {
 			}
 		});
 	}
-
-	describe('from (cache)', function () {
-
-		var cache;
-		var url = blocksEndpoint.getPath() + '?';
-		var getJsonForKeyPromise;
-
-		before(function (done) {
-			test.config.cacheEnabled = true;
-			modulesLoader.initCache(function (err, __cache) {
-				cache = __cache;
-				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
-				expect(err).to.not.exist;
-				expect(__cache).to.be.an('object');
-				return done(err);
-			});
-		});
-
-		afterEach(function (done) {
-			cache.flushDb(function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
-				done(err);
-			});
-		});
-
-		after(function (done) {
-			cache.quit(done);
-		});
-
-		it('cache blocks by the url and parameters when response is a success', function () {
-			var params = [
-				'height=' + block.blockHeight
-			];
-			var initialResponse = null;
-
-			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
-				expectHeightCheck(res);
-				initialResponse = res;
-				return Promise.all([0, 10, 100].map(function (delay) {
-					return Promise.delay(delay).then(function () {
-						return getJsonForKeyPromise(url + params.join('&'));
-					});
-				}));
-			}).then(function (responses) {
-				responses.should.deep.include(initialResponse.body);
-			});
-		});
-
-		it('should not cache if response is not a success', function () {
-			var params = [
-				'height=' + -100
-			];
-			var initialResponse = null;
-
-			return blocksEndpoint.makeRequest({height: -100}, 400).then(function (res) {
-				expectSwaggerParamError(res, 'height');
-				initialResponse = res;
-				return getJsonForKeyPromise(url + params.join('&'));
-			}).then(function (response) {
-				expect(response).to.eql(null);
-			});
-		});
-
-		it('should remove entry from cache on new block', function () {
-			var params = [
-				'height=' + block.blockHeight
-			];
-			var initialResponse = null;
-
-			return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
-				expectHeightCheck(res);
-				initialResponse = res;
-				return Promise.all([0, 10, 100].map(function (delay) {
-					return Promise.delay(delay).then(function () {
-						return getJsonForKeyPromise(url + params.join('&'));
-					});
-				}));
-			}).then(function (responses) {
-				responses.should.deep.include(initialResponse.body);
-			}).then(function () {
-				return waitForBlocksPromise(1);
-			}).then(function () {
-				return getJsonForKeyPromise(url + params.join('&'));
-			}).then(function (result) {
-				expect(result).to.eql(null);
-			});
-		});
-	});
 
 	describe('?', function () {
 

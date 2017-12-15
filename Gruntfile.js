@@ -63,37 +63,42 @@ module.exports = function (grunt) {
 			},
 
 			testUnit: {
-				command: 'export NODE_ENV=test TEST_TYPE=unit && node test/unit/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=unit && node test/common/parallelTests.js unit',
 				maxBuffer: maxBufferSize
 			},
 
 			testUnitExtensive: {
-				command: 'export NODE_ENV=test TEST_TYPE=unit && node test/unit/index.js @slow',
+				command: 'export NODE_ENV=test TEST_TYPE=unit && node test/common/parallelTests.js unit @slow',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalWs: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && node test/functional/ws/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node test/common/parallelTests.js functional-ws',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalWsExtensive: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && node test/functional/ws/index.js @slow',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node test/common/parallelTests.js functional-ws @slow',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalHttpGet: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && node test/functional/http/get/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node test/common/parallelTests.js functional-http-get',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalHttpGetExtensive: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && node test/functional/http/get/index.js @slow',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node test/common/parallelTests.js functional-http-get @slow',
 				maxBuffer: maxBufferSize
 			},
 
 			testFunctionalHttpPost: {
-				command: 'export NODE_ENV=test TEST_TYPE=func && node test/functional/http/post/index.js',
+				command: 'export NODE_ENV=test TEST_TYPE=func && node test/common/parallelTests.js functional-http-post',
+				maxBuffer: maxBufferSize
+			},
+
+			testFunctionalSystem: {
+				command: 'export NODE_ENV=test TEST_TYPE=func && node test/common/parallelTests.js functional-system',
 				maxBuffer: maxBufferSize
 			},
 
@@ -103,7 +108,12 @@ module.exports = function (grunt) {
 			},
 
 			testIntegration: {
-				command: './node_modules/.bin/_mocha --bail test/integration/index.js ',
+				command: './node_modules/.bin/_mocha --bail test/integration/index.js --grep @slow --invert',
+				maxBuffer: maxBufferSize
+			},
+
+			testIntegrationExtensive: {
+				command: './node_modules/.bin/_mocha --bail test/integration/index.js',
 				maxBuffer: maxBufferSize
 			},
 
@@ -174,8 +184,9 @@ module.exports = function (grunt) {
 	grunt.registerTask('test-functional-http-get', ['eslint', 'exec:testFunctionalHttpGet']);
 	grunt.registerTask('test-functional-http-get-extensive', ['eslint', 'exec:testFunctionalHttpGetExtensive']);
 	grunt.registerTask('test-functional-http-post', ['eslint', 'exec:testFunctionalHttpPost']);
-	grunt.registerTask('test-functional-pool', ['eslint', 'exec:testFunctionalPool']);
+	grunt.registerTask('test-functional-system', ['eslint', 'exec:testFunctionalSystem']);
 	grunt.registerTask('test-integration', ['eslint', 'exec:testIntegration']);
+	grunt.registerTask('test-integration-extensive', ['eslint', 'exec:testIntegrationExtensive']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);

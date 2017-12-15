@@ -10,7 +10,7 @@ describe('app', function () {
 		process.argv.splice(2 ,0,'--');
 		process.argv.splice(2,0,(config.httpPort += 1).toString());
 		process.argv.splice(2,0,'-h');
-		process.argv.splice(2,0,(config.port += 1).toString());
+		process.argv.splice(2,0,(config.wsPort += 1).toString());
 		process.argv.splice(2,0,'-p');
 
 		require('../../../app');

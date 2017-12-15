@@ -114,17 +114,17 @@ describe('ClientRPCStub', function () {
 			});
 
 			it('without port should call RPC callback with INVALID_HEADERS error', function (done) {
-				delete validHeaders.port;
+				delete validHeaders.wsPort;
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/port: Expected type integer but found type not-a-number');
+					expect(err).to.have.property('description').equal('#/wsPort: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
 
 			it('with valid port as string should call RPC callback without an error', function (done) {
-				validHeaders.port = validHeaders.port.toString();
+				validHeaders.wsPort = validHeaders.wsPort.toString();
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.be.null;

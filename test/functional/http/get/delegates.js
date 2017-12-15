@@ -16,7 +16,6 @@ var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/waitFor');
 var onNewRoundPromise = Promise.promisify(waitFor.newRound);
-var modulesLoader = require('../../../common/modulesLoader');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -25,87 +24,6 @@ describe('GET /delegates', function () {
 	var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
 	var validDelegate = genesisDelegates.delegates[0];
 	var validNotExistingPublicKey = 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
-
-	describe('from (cache)', function () {
-
-		var cache;
-		var getJsonForKeyPromise;
-
-		before(function (done) {
-			test.config.cacheEnabled = true;
-			modulesLoader.initCache(function (err, __cache) {
-				cache = __cache;
-				getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
-				should.not.exist(err);
-				__cache.should.be.an('object');
-				return done(err);
-			});
-		});
-
-		afterEach(function (done) {
-			cache.flushDb(function (err, status) {
-				should.not.exist(err);
-				status.should.equal('OK');
-				done(err);
-			});
-		});
-
-		after(function (done) {
-			cache.quit(done);
-		});
-
-		it('should cache delegates when response is successful', function () {
-			var url = delegatesEndpoint.getPath();
-			var params = [];
-
-			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
-				return Promise.all([0, 10, 100].map(function (delay) {
-					return Promise.delay(delay).then(function () {
-						return getJsonForKeyPromise(url + params.join('&'));
-					});
-				})).then(function (responses) {
-					responses.should.deep.include(res.body);
-				});
-			});
-		});
-
-		it('should not cache delegates when response is unsuccessful', function () {
-			var url, params;
-			url = delegatesEndpoint.getPath();
-			params = [
-				'sort=invalidValue'
-			];
-
-			return delegatesEndpoint.makeRequest({sort: 'invalidValue'}, 400).then(function (res) {
-
-				return getJsonForKeyPromise(url + params.join('&')).then(function (response) {
-					should.not.exist(response);
-				});
-			});
-		});
-
-		it('should flush cache on the next round @slow', function () {
-			var url;
-			url = delegatesEndpoint.getPath();
-			var params = [];
-
-			return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
-				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return Promise.all([0, 10, 100].map(function (delay) {
-					return Promise.delay(delay).then(function () {
-						return getJsonForKeyPromise(url + params.join('&'));
-					});
-				})).then(function (responses) {
-					responses.should.deep.include(res.body);
-					return onNewRoundPromise().then(function () {
-						return getJsonForKeyPromise(url).then(function (result) {
-							should.not.exist(result);
-						});
-					});
-				});
-			});
-		});
-	});
 
 	describe('/', function () {
 

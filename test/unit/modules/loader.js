@@ -69,22 +69,22 @@ describe('loader', function () {
 			var peers = [
 				{
 					ip: '1.1.1.1',
-					port: '4000',
+					wsPort: '4000',
 					height: 1
 				},
 				{
 					ip: '4.4.4.4',
-					port: '4000',
+					wsPort: '4000',
 					height: 4
 				},
 				{
 					ip: '3.3.3.3',
-					port: '4000',
+					wsPort: '4000',
 					height: 3
 				},
 				{
 					ip: '2.2.2.2',
-					port: '4000',
+					wsPort: '4000',
 					height: 2
 				}
 			];
@@ -95,21 +95,21 @@ describe('loader', function () {
 			expect(_.isEqualWith(goodPeers.peers, [
 				{
 					ip: '4.4.4.4',
-					port: '4000',
+					wsPort: '4000',
 					height: 4
 				},
 				{
 					ip: '3.3.3.3',
-					port: '4000',
+					wsPort: '4000',
 					height: 3
 				},
 				{
 					ip: '2.2.2.2',
-					port: '4000',
+					wsPort: '4000',
 					height: 2
 				}
 			], function (a, b) {
-				return a.ip === b.ip &&  a.port === b.port &&  a.height === b.height;
+				return a.ip === b.ip &&  a.wsPort === b.wsPort &&  a.height === b.height;
 			})).to.be.ok;
 		});
 	});
