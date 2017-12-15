@@ -18,7 +18,7 @@ import 'babel-polyfill';
 import should from 'should';
 import sinon from 'sinon';
 import 'should-sinon';
-import './givenWhenThen';
+import mochaBDD from 'mocha-bdd';
 
 process.env.NODE_ENV = 'test';
 process.env.LISKY_CONFIG_DIR =
@@ -35,6 +35,7 @@ should.use((_, Assertion) => {
 	});
 });
 
+mochaBDD();
 // See https://github.com/shouldjs/should.js/issues/41
 Object.defineProperty(global, 'should', { value: should });
 global.sinon = sinon;
