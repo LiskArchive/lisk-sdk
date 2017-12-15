@@ -1,5 +1,6 @@
 node {
 	stage('Build extensive testsuite') {
         build job: "lisk-core/${env.BRANCH_NAME}", parameters: [string(name: 'JENKINS_PROFILE', value: 'jenkins-extensive')]
+        build job: "lisk-core-integration/${env.BRANCH_NAME}", parameters: [string(name: 'JENKINS_PROFILE', value: 'jenkins-extensive')]
 	}
 }

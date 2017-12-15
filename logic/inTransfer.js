@@ -114,14 +114,14 @@ InTransfer.prototype.getBytes = function (transaction) {
 
 InTransfer.prototype.schema = {
 	id: 'InTransfer',
-	object: true,
+	type: 'object',
 	properties: {
 		dappId: {
 			type: 'string',
 			format: 'id',
 			minLength: 1,
 			maxLength: 20
-		},
+		}
 	},
 	required: ['dappId']
 };

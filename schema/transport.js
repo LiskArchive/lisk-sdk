@@ -7,7 +7,7 @@ module.exports = {
 		id: 'transport.headers',
 		type: 'object',
 		properties: {
-			port: {
+			wsPort: {
 				type: 'integer',
 				minimum: 1,
 				maximum: 65535
@@ -47,7 +47,7 @@ module.exports = {
 				maxLength: 16
 			}
 		},
-		required: ['port', 'httpPort', 'version', 'nonce', 'nethash', 'height', 'os']
+		required: ['wsPort', 'httpPort', 'version', 'nonce', 'nethash', 'height', 'os']
 	},
 	commonBlock: {
 		id: 'transport.commonBlock',

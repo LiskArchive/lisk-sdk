@@ -13,6 +13,11 @@ var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable
 
 var constants = require('../../../../helpers/constants');
 
+var modulesLoader = require('../../../common/modulesLoader');
+var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
+
+var constants = require('../../../../helpers/constants');
+
 describe.skip('blocks/process', function () {
 
 	var blocksProcess;

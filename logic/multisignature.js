@@ -152,7 +152,7 @@ Multisignature.prototype.verify = function (transaction, sender, cb) {
 				return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 			}
 		} catch (e) {
-			library.logger.error(e.stack);
+			library.logger.trace(e.stack);
 			return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 		}
 

@@ -8,6 +8,7 @@ var expect = require('chai').expect;
 var phases = require('../../../common/phases');
 var Scenarios = require('../../../common/scenarios');
 var localCommon = require('./common');
+var errorCodes = require('../../../../../helpers/apiCodes');
 
 var sendTransactionPromise = require('../../../../common/helpers/api').sendTransactionPromise;
 
@@ -28,9 +29,8 @@ describe('POST /api/transactions (validate type 4 on top of type 4)', function (
 		it('with an account already registered should fail', function () {
 			transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, 1, 2);
 
-			return sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').to.equal('Account already has multisignatures enabled');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.be.equal('Account already has multisignatures enabled');
 				badTransactions.push(transaction);
 			});
 		});

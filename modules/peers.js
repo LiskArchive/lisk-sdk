@@ -79,7 +79,7 @@ __private.countByFilter = function (filter, cb) {
  * @returns {setImmediateCallback|Array<Peer>} peers
  */
 __private.getByFilter = function (filter, cb) {
-	var allowedFields = ['ip', 'port', 'httpPort', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
+	var allowedFields = ['ip', 'wsPort', 'httpPort', 'state', 'os', 'version', 'broadhash', 'height', 'nonce'];
 	var limit  = filter.limit ? Math.abs(filter.limit) : null;
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
 
@@ -277,7 +277,7 @@ __private.dbSave = function (cb) {
 
 	// Creating set of columns
 	var cs = new pgp.helpers.ColumnSet([
-		'ip', 'port', 'state', 'height', 'os', 'version', 'clock',
+		'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
 		{name: 'broadhash', init: function (col) {
 			return col.value ? Buffer.from(col.value, 'hex') : null;
 		}}
@@ -345,11 +345,11 @@ Peers.prototype.update = function (peer) {
  */
 Peers.prototype.remove = function (peer) {
 	var frozenPeer = _.find(library.config.peers.list, function (__peer) {
-		return peer.ip === __peer.ip && peer.port === __peer.port;
+		return peer.ip === __peer.ip && peer.wsPort === __peer.wsPort;
 	});
 	if (frozenPeer) {
 		// FIXME: Keeping peer frozen is bad idea at all
-		library.logger.debug('Cannot remove frozen peer', peer.ip + ':' + peer.port);
+		library.logger.debug('Cannot remove frozen peer', peer.ip + ':' + peer.wsPort);
 		peer.state = Peer.STATE.DISCONNECTED;
 		library.logic.peers.upsert(peer);
 		return failureCodes.ON_MASTER.REMOVE.FROZEN_PEER;
@@ -430,7 +430,7 @@ Peers.prototype.acceptable = function (peers) {
 	return _(peers)
 		.uniqWith(function (a, b) {
 			// Removing non-unique peers
-			return (a.ip + a.port) === (b.ip + b.port);
+			return (a.ip + a.wsPort) === (b.ip + b.wsPort);
 		})
 		.filter(function (peer) {
 			// Removing peers with private address or nonce equal to itself
@@ -630,7 +630,7 @@ Peers.prototype.shared = {
 	 *
 	 * @param {Object} parameters - Object of all parameters
 	 * @param {string} parameters.ip - IP of the peer
-	 * @param {string} parameters.port - WS Port of the peer
+	 * @param {string} parameters.wsPort - WS Port of the peer
 	 * @param {string} parameters.httpPort - Web Socket Port of the peer
 	 * @param {string} parameters.os - OS of the peer
 	 * @param {string} parameters.version - Version the peer is running

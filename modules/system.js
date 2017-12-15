@@ -36,7 +36,7 @@ function System (cb, scope) {
 		db: scope.db,
 		config: {
 			version: scope.config.version,
-			port: scope.config.port,
+			wsPort: scope.config.wsPort,
 			httpPort: scope.config.httpPort,
 			nethash: scope.config.nethash,
 			minVersion: scope.config.minVersion,
@@ -48,7 +48,7 @@ function System (cb, scope) {
 
 	__private.os = os.platform() + os.release();
 	__private.version = library.config.version;
-	__private.port = library.config.port;
+	__private.wsPort = library.config.wsPort;
 	__private.httpPort = library.config.httpPort;
 	__private.height = 1;
 	__private.nethash = library.config.nethash;
@@ -113,7 +113,7 @@ System.prototype.getVersion = function () {
  * @return {number}
  */
 System.prototype.getPort = function () {
-	return __private.port;
+	return __private.wsPort;
 };
 
 /**

@@ -92,7 +92,8 @@ describe('delegate', function () {
 		};
 		accountsMock = {
 			getAccount: sinon.stub().callsArg(3),
-			getSender: sinon.stub().callsArg(1)
+			// FIXME: replace setAccountAndGet with getSender
+			setAccountAndGet: sinon.stub().callsArg(1)
 		};
 
 		loggerMock = {

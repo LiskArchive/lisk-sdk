@@ -141,7 +141,7 @@ OutTransfer.prototype.getBytes = function (transaction) {
 
 OutTransfer.prototype.schema = {
 	id: 'OutTransfer',
-	object: true,
+	type: 'object',
 	properties: {
 		dappId: {
 			type: 'string',

@@ -22,7 +22,7 @@ PeersController.getPeers = function (context, next) {
 
 	var filters = {
 		ip: params.ip.value,
-		port: params.wsPort.value,
+		wsPort: params.wsPort.value,
 		httpPort: params.httpPort.value,
 		state: params.state.value,
 		os: params.os.value,
@@ -46,8 +46,6 @@ PeersController.getPeers = function (context, next) {
 		data = _.cloneDeep(data);
 
 		data = _.map(data, function (peer) {
-			peer.wsPort = peer.port;
-			delete peer.port;
 			delete peer.updated;
 			delete peer.clock;
 			return peer;

@@ -12,7 +12,7 @@ describe('system', function () {
 
 			it('should assign config.version');
 
-			it('should assign config.port');
+			it('should assign config.wsPort');
 
 			it('should assign config.version');
 
@@ -36,7 +36,7 @@ describe('system', function () {
 
 			it('should assign version from config.version');
 
-			it('should assign port from config.port');
+			it('should assign port from config.wsPort');
 
 			it('should assign httpPort from config.httpPort');
 
@@ -91,7 +91,7 @@ describe('system', function () {
 
 	describe('getPort', function () {
 
-		it('should __private.port');
+		it('should __private.wsPort');
 	});
 
 	describe('getHeight', function () {

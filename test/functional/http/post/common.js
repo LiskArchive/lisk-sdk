@@ -8,6 +8,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
+var errorCodes = require('../../../../helpers/apiCodes');
 
 function invalidAssets (option, badTransactions) {
 
@@ -45,9 +46,10 @@ function invalidAssets (option, badTransactions) {
 			it('using ' + test.description + ' should fail', function () {
 				transaction.asset = test.input;
 
-				return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').that.is.not.empty;
+				var expectedResponse = (test.expectation === 'object' && test.description !== 'date' ? errorCodes.PROCESSING_ERROR : errorCodes.BAD_REQUEST);
+
+				return apiHelpers.sendTransactionPromise(transaction, expectedResponse).then(function (res) {
+					res.body.message.should.not.be.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -56,9 +58,8 @@ function invalidAssets (option, badTransactions) {
 		it('deleting object should fail', function () {
 			delete transaction.asset;
 
-			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').that.is.not.empty;
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
+				res.body.message.should.not.be.empty;
 				badTransactions.push(transaction);
 			});
 		});
@@ -70,9 +71,8 @@ function invalidAssets (option, badTransactions) {
 			it('using ' + test.description + ' should fail', function () {
 				transaction.asset[option] = test.input;
 
-				return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-					expect(res).to.have.property('status').to.equal(400);
-					expect(res).to.have.nested.property('body.message').that.is.not.empty;
+				return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+					res.body.message.should.not.be.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -81,9 +81,8 @@ function invalidAssets (option, badTransactions) {
 		it('deleting object should fail', function () {
 			delete transaction.asset[option];
 
-			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message').that.is.not.empty;
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				res.body.message.should.not.be.empty;
 				badTransactions.push(transaction);
 			});
 		});

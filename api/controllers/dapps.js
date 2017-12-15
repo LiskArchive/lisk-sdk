@@ -36,6 +36,21 @@ DappsController.getDapps = function (context, next) {
 		try {
 			if (err) { return next(err); }
 
+			data = _.cloneDeep(data);
+
+			data = _.map(data, function (dapp) {
+				if (_.isNull(dapp.description)) {
+					dapp.description = '';
+				}
+				if (_.isNull(dapp.tags)) {
+					dapp.tags = '';
+				}
+				if (_.isNull(dapp.icon)) {
+					dapp.icon = '';
+				}
+				return dapp;
+			});
+
 			next(null, {
 				data: data,
 				meta: {

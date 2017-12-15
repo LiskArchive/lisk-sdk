@@ -28,12 +28,12 @@ var extend = require('extend');
 var fs = require('fs');
 var https = require('https');
 var path = require('path');
-var SocketCluster = require('socketcluster').SocketCluster;
+var SocketCluster = require('socketcluster');
 var util = require('util');
 
 var genesisblock = require('./genesisBlock.json');
 var Logger = require('./logger.js');
-var workersController = require('./workersController');
+var workersControllerPath = path.join(__dirname, 'workersController');
 var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
 
 var AppConfig = require('./helpers/config.js');
@@ -98,8 +98,6 @@ var config = {
 		voters: './modules/voters'
 	},
 	api: {
-		multisignatures: { http: './api/http/multisignatures.js' },
-		transactions: { http: './api/http/transactions.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
@@ -232,10 +230,10 @@ d.run(function () {
 		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: scope.config.wsWorkers,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				workerController: workersController.path,
+				workerController: workersControllerPath,
 				perMessageDeflate: false,
 				secretKey: 'liskSecretKey',
 				pingInterval: 5000,
@@ -264,7 +262,7 @@ d.run(function () {
 				version: scope.config.version,
 				minVersion: scope.config.minVersion,
 				nethash: scope.config.nethash,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				nonce: scope.config.nonce
 			};
 
