@@ -3,9 +3,9 @@ swagger: '2.0'
 info:
   description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.19'
+  version: '1.0.20'
   contact:
-    email: isabella@lightcurve.io
+    email: admin@lisk.io
   license:
     name: GPL v3.0
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -1086,8 +1086,8 @@ definitions:
       links:
         type: object
 
-  BlocksResponse:
-    description: Blocks response
+  PeersResponse:
+    description: Peers response
     type: object
     required:
       - data
