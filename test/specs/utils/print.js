@@ -32,8 +32,8 @@ describe('print utils', () => {
 						() => {
 							When('the result is printed', when.theResultIsPrinted, () => {
 								Then(
-									'shouldUseJsonOutput should be called with the config and an empty options object',
-									then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject,
+									'shouldUseJSONOutput should be called with the config and an empty options object',
+									then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject,
 								);
 								Then(
 									'shouldUsePrettyOutput should be called with the config and an empty options object',
@@ -53,8 +53,8 @@ describe('print utils', () => {
 												when.theResultIsPrinted,
 												() => {
 													Then(
-														'shouldUseJsonOutput should be called with the config and the options',
-														then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions,
+														'shouldUseJSONOutput should be called with the config and the options',
+														then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
 													);
 													Then(
 														'the result should be returned',
@@ -81,8 +81,8 @@ describe('print utils', () => {
 														when.theResultIsPrinted,
 														() => {
 															Then(
-																'shouldUseJsonOutput should be called with the config and the options',
-																then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions,
+																'shouldUseJSONOutput should be called with the config and the options',
+																then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
 															);
 															Then(
 																'shouldUsePrettyOutput should be called with the config and the options',
@@ -94,7 +94,7 @@ describe('print utils', () => {
 															);
 															Then(
 																'JSON output should be logged without ANSI codes',
-																then.jSONOutputShouldBeLoggedWithoutANSICodes,
+																then.jsonOutputShouldBeLoggedWithoutANSICodes,
 															);
 														},
 													);
@@ -113,8 +113,8 @@ describe('print utils', () => {
 																when.theResultIsPrinted,
 																() => {
 																	Then(
-																		'shouldUseJsonOutput should be called with the config and the options',
-																		then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions,
+																		'shouldUseJSONOutput should be called with the config and the options',
+																		then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
 																	);
 																	Then(
 																		'shouldUsePrettyOutput should be called with the config and the options',
@@ -161,8 +161,8 @@ describe('print utils', () => {
 														when.theResultIsPrinted,
 														() => {
 															Then(
-																'shouldUseJsonOutput should be called with the config and the options',
-																then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions,
+																'shouldUseJSONOutput should be called with the config and the options',
+																then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
 															);
 															Then(
 																'shouldUsePrettyOutput should be called with the config and the options',
@@ -201,8 +201,8 @@ describe('print utils', () => {
 														when.theResultIsPrinted,
 														() => {
 															Then(
-																'shouldUseJsonOutput should be called with the config and the options',
-																then.shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions,
+																'shouldUseJSONOutput should be called with the config and the options',
+																then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
 															);
 															Then(
 																'shouldUsePrettyOutput should be called with the config and the options',
@@ -214,7 +214,7 @@ describe('print utils', () => {
 															);
 															Then(
 																'JSON output should be logged without ANSI codes',
-																then.jSONOutputShouldBeLoggedWithoutANSICodes,
+																then.jsonOutputShouldBeLoggedWithoutANSICodes,
 															);
 														},
 													);

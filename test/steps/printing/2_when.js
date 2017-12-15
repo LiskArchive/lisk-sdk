@@ -14,7 +14,7 @@
  *
  */
 import {
-	shouldUseJsonOutput,
+	shouldUseJSONOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
 import { printResult } from '../../../src/utils/print';
@@ -55,13 +55,13 @@ export function theArrayIsTablified() {
 	this.test.ctx.returnValue = tablify(testArray);
 }
 
-export function shouldUseJsonOutputIsCalledWithTheConfigAndOptions() {
+export function shouldUseJSONOutputIsCalledWithTheConfigAndOptions() {
 	const { config, options } = this.test.ctx;
 	try {
-		const returnValue = shouldUseJsonOutput(config, options);
+		const returnValue = shouldUseJSONOutput(config, options);
 		this.test.ctx.returnValue = returnValue;
 	} catch (error) {
-		const testFunction = shouldUseJsonOutput.bind(null, config, options);
+		const testFunction = shouldUseJSONOutput.bind(null, config, options);
 		this.test.ctx.testFunction = testFunction;
 	}
 }

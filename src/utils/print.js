@@ -16,7 +16,7 @@
 import chalk from 'chalk';
 import stripANSI from 'strip-ansi';
 import config from './config';
-import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
+import { shouldUseJSONOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
 const removeANSI = result =>
@@ -27,11 +27,11 @@ const removeANSI = result =>
 	);
 
 export const printResult = (vorpal, options = {}) => result => {
-	const useJsonOutput = shouldUseJsonOutput(config, options);
+	const useJSONOutput = shouldUseJSONOutput(config, options);
 	const prettifyOutput = shouldUsePrettyOutput(config, options);
-	const resultToPrint = useJsonOutput ? removeANSI(result) : result;
+	const resultToPrint = useJSONOutput ? removeANSI(result) : result;
 
-	const output = useJsonOutput
+	const output = useJSONOutput
 		? JSON.stringify(resultToPrint, null, prettifyOutput ? '\t' : null)
 		: tablify(resultToPrint).toString();
 

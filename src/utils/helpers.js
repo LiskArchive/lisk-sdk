@@ -91,7 +91,7 @@ export const deAlias = type => (type === 'address' ? 'account' : type);
 export const processQueryResult = type => result =>
 	result.error ? result : result[deAlias(type)];
 
-export const shouldUseJsonOutput = (config = {}, options = {}) => {
+export const shouldUseJSONOutput = (config = {}, options = {}) => {
 	if (!!options.json === options.json) return options.json;
 	if (!!options.table === options.table) return !options.table;
 	return !!config.json;

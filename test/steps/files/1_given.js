@@ -30,7 +30,7 @@ export function aFilePath() {
 export function theConfigFileCanBeWritten() {}
 
 export function theConfigFileCannotBeWritten() {
-	fsUtils.writeJsonSync.throws('EACCES: permission denied');
+	fsUtils.writeJSONSync.throws('EACCES: permission denied');
 }
 
 export function thereIsAFileWithUtf8EncodedJSONContentsAtPath() {
@@ -86,7 +86,7 @@ export function aConfigFileName() {
 export function theDirectoryDoesNotExist() {
 	const { directoryPath } = this.test.ctx;
 	fs.existsSync.withArgs(directoryPath).returns(false);
-	fsUtils.readJsonSync.throws('Cannot read file');
+	fsUtils.readJSONSync.throws('Cannot read file');
 }
 
 export function theDirectoryDoesExist() {
@@ -110,7 +110,7 @@ export function theFileDoesNotExist() {
 	fs.existsSync.withArgs(filePath).returns(false);
 	fs.readFileSync.throws(error);
 	fs.createReadStream.returns(streamStub);
-	fsUtils.readJsonSync.throws('Cannot read file');
+	fsUtils.readJSONSync.throws('Cannot read file');
 }
 
 export function theFileDoesExist() {
@@ -119,7 +119,7 @@ export function theFileDoesExist() {
 }
 
 export function theFileCannotBeWritten() {
-	fsUtils.writeJsonSync.throws('Cannot write to file');
+	fsUtils.writeJSONSync.throws('Cannot write to file');
 }
 
 export function theFileCanBeWritten() {}
@@ -136,7 +136,7 @@ export function theFileCannotBeRead() {
 		.throws('Cannot read file');
 	fs.readFileSync.throws(error);
 	fs.createReadStream.returns(streamStub);
-	fsUtils.readJsonSync.throws('Cannot read file');
+	fsUtils.readJSONSync.throws('Cannot read file');
 }
 
 export function theFileCanBeRead() {
@@ -172,7 +172,7 @@ export function theFileAtTheFilePathHasContents() {
 }
 
 export function theFileIsNotValidJSON() {
-	fsUtils.readJsonSync.throws('Invalid JSON');
+	fsUtils.readJSONSync.throws('Invalid JSON');
 }
 
 export function theFileIsValidJSON() {
@@ -189,5 +189,5 @@ export function theFileIsValidJSON() {
 
 	this.test.ctx.userConfig = userConfig;
 
-	fsUtils.readJsonSync.returns(userConfig);
+	fsUtils.readJSONSync.returns(userConfig);
 }

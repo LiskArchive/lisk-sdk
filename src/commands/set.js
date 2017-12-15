@@ -15,7 +15,7 @@
  */
 import { CONFIG_VARIABLES } from '../utils/constants';
 import config, { configFilePath } from '../utils/config';
-import { writeJsonSync } from '../utils/fs';
+import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 import liskAPIInstance from '../utils/api';
 
@@ -31,7 +31,7 @@ const WRITE_FAIL_WARNING =
 
 const writeConfigToFile = newConfig => {
 	try {
-		writeJsonSync(configFilePath, newConfig);
+		writeJSONSync(configFilePath, newConfig);
 		return true;
 	} catch (e) {
 		return false;

@@ -20,7 +20,7 @@ import * as then from '../../steps/3_then';
 
 describe('fs module', () => {
 	beforeEach(setUpUtilFs);
-	describe('#readJsonSync', () => {
+	describe('#readJSONSync', () => {
 		Given(
 			'there is a file with utf8-encoded JSON contents at path "/some/path/to/file.json"',
 			given.thereIsAFileWithUtf8EncodedJSONContentsAtPath,
@@ -32,7 +32,7 @@ describe('fs module', () => {
 					);
 					Then(
 						'JSON.parse should be called with the file contents as a string',
-						then.jSONParseShouldBeCalledWithTheFileContentsAsAString,
+						then.jsonParseShouldBeCalledWithTheFileContentsAsAString,
 					);
 					Then(
 						'the parsed file contents should be returned',
@@ -47,7 +47,7 @@ describe('fs module', () => {
 						);
 						Then(
 							'JSON.parse should be called with the file contents as a string without the BOM',
-							then.jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM,
+							then.jsonParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM,
 						);
 						Then(
 							'the parsed file contents should be returned',
@@ -58,7 +58,7 @@ describe('fs module', () => {
 			},
 		);
 	});
-	describe('#writeJsonSync', () => {
+	describe('#writeJSONSync', () => {
 		Given(
 			'there is an object that should be written to path "/some/path/to/file.json"',
 			given.thereIsAnObjectThatShouldBeWrittenToPath,
@@ -66,7 +66,7 @@ describe('fs module', () => {
 				When('the JSON is written', when.theJSONIsWritten, () => {
 					Then(
 						'JSON.stringify should be called with the object using tab indentation',
-						then.jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation,
+						then.jsonStringifyShouldBeCalledWithTheObjectUsingTabIndentation,
 					);
 					Then(
 						'fs.writeFileSync should be called with the path and the stringified JSON',
