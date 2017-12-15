@@ -5,7 +5,7 @@
 		"testnet": false,
 		"node": "",
 		"port": "",
-		"ssl": false
+		"ssl": true
 	},
 	"pretty": false
 }
