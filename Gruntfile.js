@@ -48,22 +48,7 @@ module.exports = function (grunt) {
 						util.format('cp %s/LICENSE %s', __dirname, version_dir),
 						util.format('mkdir -p %s/sql/migrations', version_dir),
 						util.format('cp %s/sql/*.sql %s/sql/', __dirname, version_dir),
-						util.format('cp %s/sql/migrations/*.sql %s/sql/migrations/', __dirname, version_dir),
-						util.format('cd %s/public && mkdir -p ./static', __dirname),
-						'npm install && bower install && grunt release && cd ../',
-						util.format('cp %s/public/wallet.html %s/public/', __dirname, version_dir),
-						util.format('cp %s/public/loading.html %s/public/', __dirname, version_dir),
-						util.format('cp -Rf %s/public/images %s/public/', __dirname, version_dir),
-						util.format('cp -Rf %s/public/partials %s/public/', __dirname, version_dir),
-						util.format('cp -RfL %s/public/static %s/public/', __dirname, version_dir),
-						util.format('mkdir -p %s/public/node_modules', version_dir),
-						util.format('cp -Rf %s/public/node_modules/chart.js %s/public/node_modules', __dirname, version_dir),
-						util.format('mkdir -p %s/public/bower_components', version_dir),
-						util.format('mkdir -p %s/public/socket.io', version_dir),
-						util.format('cp -Rf %s/public/bower_components/jquery %s/public/bower_components', __dirname, version_dir),
-						util.format('cp -Rf %s/public/bower_components/materialize %s/public/bower_components', __dirname, version_dir),
-						util.format('cp -Rf %s/public/bower_components/blob %s/public/bower_components', __dirname, version_dir),
-						util.format('cp -Rf %s/public/bower_components/file-saver %s/public/bower_components', __dirname, version_dir)
+						util.format('cp %s/sql/migrations/*.sql %s/sql/migrations/', __dirname, version_dir)
 					].join(' && ');
 				}
 			},
@@ -117,6 +102,7 @@ module.exports = function (grunt) {
 				'modules',
 				'logic',
 				'schema',
+				// 'sql',
 				'tasks',
 				'test'
 			]
@@ -134,7 +120,6 @@ module.exports = function (grunt) {
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('jenkins', ['exec:coverageSingle']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
-	grunt.registerTask('test', ['eslint', 'exec:coverage']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
