@@ -16,18 +16,18 @@ This sections provides details on what you need install on your system in order 
 - Tool chain components -- Used for compiling dependencies
 
     - Linux:
-    
+
         ```
         sudo apt-get update
         sudo apt-get install -y python build-essential curl automake autoconf libtool
         ```
-        
+
     - Mac:
 
         Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
 
         Update homebrew and install dependencies:
-        
+
         ```
         brew update
         brew doctor
@@ -47,14 +47,14 @@ This sections provides details on what you need install on your system in order 
         ```
         sudo apt-get install -y git
         ```
-        
+
     - Mac:
-    
+
         ```
         brew install git
         ```
 
-### Node.js (<https://nodejs.org/>) 
+### Node.js (<https://nodejs.org/>)
 
 - Node.js serves as the underlying engine for code execution.
 
@@ -68,7 +68,7 @@ This sections provides details on what you need install on your system in order 
         ```
 
     - Mac:
-    
+
         ```
         brew install node@6
         ```
@@ -109,11 +109,11 @@ This sections provides details on what you need install on your system in order 
         sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
         sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
         ```
-      
+
    - Mac:
-    
+
         When installing a different version, replace 9.6.6 with your version in the following commands:
-        
+
         ```
         brew install postgresql
         initdb /usr/local/var/postgres -E utf8
@@ -127,7 +127,7 @@ This sections provides details on what you need install on your system in order 
 ### Installing Redis
 
    - Linux:
-        
+
         ```
         wget http://download.redis.io/redis-stable.tar.gz
         tar xvzf redis-stable.tar.gz
@@ -135,36 +135,41 @@ This sections provides details on what you need install on your system in order 
         make
         sudo make install
         ```
-        
-        start redis-server:
+
+        Start redis-server:
+
         ```
         redis-server redis.conf --daemonize yes
         ```
-        
-        stop redis-server: 
+
+        Stop redis-server:
+
         ```
-        redis-cli 
+        redis-cli
         shutdown
         ```
-        
+
         If you run into any problems during the redis-setup, please check out the official redis docs: https://redis.io/topics/quickstart
-        
+
    - Mac:
-    
+
         ```
         brew install redis
         cp /usr/local/Cellar/redis/homebrew.mxcl.redis.plist ~/Library/LaunchAgents/
         ```
-        start redis-server:
+
+        Start redis-server:
+
         ```
         lunchy start redis
         ```
-        
-        stop redis-server: 
+
+        Stop redis-server:
+
         ```
         lunchy stop redis
         ```
-        
+
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
 1. **Change the Lisk configuration**
@@ -201,7 +206,7 @@ npm install
 
 ## Managing Lisk
 
-To test that Lisk is built and configured correctly, run the following command:
+To test that Lisk is built and configured correctly, issue the following command:
 
 ```
 node app.js
