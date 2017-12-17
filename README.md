@@ -167,26 +167,26 @@ This sections provides details on what you need install on your system in order 
         
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
-#### Change The Lisk Configuration
+1. **Change the Lisk configuration**
 
-Update the redis port configuration in both `config.json` and `test/config.json`. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
+  Update the redis port configuration in both `config.json` and `test/config.json`. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
 
-#### Change The Redis Launch configuration
+2. **Change the Redis launch configuration**
 
-Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+  Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
-1. Stop Redis on your computer.
-2. Open the `redis.conf` file and change this: `port 6379` to `port 6380`
-3. Restart Redis.
+  1. Stop Redis on your computer.
+  2. Open the `redis.conf` file and change this: `port 6379` to `port 6380`
+  3. Restart Redis.
 
-Now confirm that redis is running on port 6380.
+  Now confirm that redis is running on `port 6380`:
 
-```
-redis-cli -p 6380
-ping
-```
+  ```
+  redis-cli -p 6380
+  ping
+  ```
 
-and you should get the result of 'PONG'
+  And you should get the result `PONG`.
 
 ## Installation Steps
 
