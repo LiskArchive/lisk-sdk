@@ -19,9 +19,20 @@ const time = require('../../src/transactions/utils/time');
 describe('#castVotes transaction', () => {
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
-	const publicKey =
+	const firstPublicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const publicKeys = [`+${publicKey}`];
+	const secondPublicKey =
+		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa';
+	const thirdPublicKey =
+		'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca';
+	const fourthPublicKey =
+		'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd914';
+	const tooShortPublicKey =
+		'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9';
+	const plusPrependedPublicKey =
+		'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const votePublicKeys = [firstPublicKey, secondPublicKey];
+	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
 
@@ -34,9 +45,9 @@ describe('#castVotes transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('with first passphrase', () => {
+	describe('when the transaction is created with one passphrase and the votes object', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes({ passphrase, delegates: publicKeys });
+			castVotesTransaction = castVotes({ passphrase, votes: [firstPublicKey] });
 		});
 
 		it('should create a cast votes transaction', () => {
@@ -49,12 +60,12 @@ describe('#castVotes transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			castVotes({ passphrase, delegates: publicKeys, timeOffset: offset });
+			castVotes({ passphrase, vote: [firstPublicKey], timeOffset: offset });
 
 			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
-		describe('returned cast votes transaction', () => {
+		describe('the returned cast votes transaction', () => {
 			it('should be an object', () => {
 				castVotesTransaction.should.be.type('object');
 			});
@@ -95,7 +106,7 @@ describe('#castVotes transaction', () => {
 				castVotesTransaction.should.have
 					.property('senderPublicKey')
 					.and.be.hexString()
-					.and.equal(publicKey);
+					.and.equal(firstPublicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
@@ -126,24 +137,13 @@ describe('#castVotes transaction', () => {
 						.and.be.type('object');
 				});
 
-				it('should not be empty', () => {
-					castVotesTransaction.asset.votes.should.not.be.empty();
-				});
-
 				it('should contain one element', () => {
 					castVotesTransaction.asset.votes.should.have.length(1);
 				});
 
-				it('should have public keys in hex', () => {
-					castVotesTransaction.asset.votes.forEach(v => {
-						v.should.be.type('string').and.startWith('+');
-						v.slice(1).should.be.hexString();
-					});
-				});
-
 				it('should have a vote for the delegate public key', () => {
-					const v = castVotesTransaction.asset.votes[0];
-					v.substring(1, v.length).should.be.equal(publicKey);
+					const votes = castVotesTransaction.asset.votes[0];
+					votes.substring(1, votes.length).should.be.equal(firstPublicKey);
 				});
 			});
 		});
@@ -153,7 +153,7 @@ describe('#castVotes transaction', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({
 				passphrase,
-				delegates: publicKeys,
+				vote: [firstPublicKey],
 				secondPassphrase,
 			});
 		});
@@ -162,6 +162,78 @@ describe('#castVotes transaction', () => {
 			castVotesTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('when the cast vote transaction is created with the votes and unvotes', () => {
+		beforeEach(() => {
+			castVotesTransaction = castVotes({
+				passphrase,
+				votes: votePublicKeys,
+				unvotes: unvotePublicKeys,
+			});
+		});
+
+		it('the transaction should have the votes object', () => {
+			castVotesTransaction.asset.should.have
+				.property('votes')
+				.and.be.type('object');
+		});
+
+		it('the transaction should have two upvotes and two unvotes', () => {
+			const expectedArray = [
+				`+${firstPublicKey}`,
+				`+${secondPublicKey}`,
+				`-${thirdPublicKey}`,
+				`-${fourthPublicKey}`,
+			];
+			castVotesTransaction.asset.votes.should.be.eql(expectedArray);
+		});
+	});
+
+	describe('when the cast vote transaction is created with the unvotes', () => {
+		beforeEach(() => {
+			castVotesTransaction = castVotes({
+				passphrase,
+				unvotes: unvotePublicKeys,
+			});
+		});
+
+		it('the transaction should have the votes object', () => {
+			castVotesTransaction.asset.should.have
+				.property('votes')
+				.and.be.type('object');
+		});
+
+		it('the transaction should have two upvotes and two unvotes', () => {
+			const expectedArray = [`-${thirdPublicKey}`, `-${fourthPublicKey}`];
+			castVotesTransaction.asset.votes.should.be.eql(expectedArray);
+		});
+	});
+
+	describe('when the cast vote transaction is created with one too short public key', () => {
+		it('should throw an error', () => {
+			castVotes
+				.bind(null, {
+					passphrase,
+					unvotes: unvotePublicKeys,
+					votes: [tooShortPublicKey],
+				})
+				.should.throw(
+					'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
+				);
+		});
+	});
+
+	describe('when the cast vote transaction is created with one plus prepended public key', () => {
+		it('should throw an error', () => {
+			castVotes
+				.bind(null, {
+					passphrase,
+					unvotes: unvotePublicKeys,
+					votes: [plusPrependedPublicKey],
+				})
+				.should.throw('Invalid hex string');
 		});
 	});
 });
