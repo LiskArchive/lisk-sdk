@@ -233,39 +233,34 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 ## Tests
 
-For functional testing we need to apply less strict behaviour regarding local nodes. Typically, any connection from a local node will be rejected, but for testing purposes that rule can be ignored.
-
-To disable localhost checking we have to tell the main process that we are working on the test environment by setting the `NODE_ENV` variable.
+The test suite is comprised of four categories `unit`, `system`, `transport` and `api`. It can be executed in full by issuing the following command:
 
 ```
-NODE_ENV="test" node app.js
+npm run test extensive all
 ```
 
-Run the test suite:
+The test suite can also be run selectively by utilising the following command options:
 
 ```
 npm run test <test-extent> <test-suite> [test-filename]
 ```
 
-**test-extent:** `untagged | unstable | slow | extensive`
-
-**test-suite:** `file | unit | system | transport | api | all`
+- Where **test-extent** can be one of `untagged | unstable | slow | extensive`
+- Where **test-suite** can be one of  `file | unit | system | transport | api | all`
+- Where **test-filename** is the test's filename when `test-suite` equals `file`
 
 #### Examples:
 
-`npm run test file test/unit/blocks.js` - to run a single test-file, specify the path
+- `npm run test file test/unit/blocks.js` - To run a single test-file, specifying the path
+- `npm run test untagged transport` - All untagged (not slow or unstable) transport tests
+- `npm run test unstable transport` - All unstable transport tests
+- `npm run test slow unit` - All slow unit tests
+- `npm run test extensive unit` - All untagged, slow and unstable unit tests
+- `npm run test untagged all` - All untagged tests
 
-`npm run test untagged transport` - all untagged (not slow or unstable) transport tests
+### Genesis Account
 
-`npm run test unstable transport` - all unstable transport tests
-
-`npm run test slow unit` - all slow unit tests
-
-`npm run test extensive unit` - all untagged, slow and unstable unit tests
-
-`npm run test untagged all` - all untagged tests
-
-**NOTE:** The master passphrase for this genesis block is as follows:
+The master passphrase for the genesis block used by the test suite is as follows:
 
 ```
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
