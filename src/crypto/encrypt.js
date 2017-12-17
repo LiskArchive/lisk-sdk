@@ -79,14 +79,26 @@ export const decryptMessageWithPassphrase = (
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 
-	const decoded = naclInstance.crypto_box_open(
-		cipherBytes,
-		nonceBytes,
-		convertedPublicKey,
-		convertedPrivateKey,
-	);
-
-	return naclInstance.decode_utf8(decoded);
+	try {
+		const decoded = naclInstance.crypto_box_open(
+			cipherBytes,
+			nonceBytes,
+			convertedPublicKey,
+			convertedPrivateKey,
+		);
+		return naclInstance.decode_utf8(decoded);
+	} catch (error) {
+		if (
+			error.message.match(
+				/nacl\.crypto_box_open expected 24-byte nonce but got length 1/,
+			)
+		) {
+			throw new Error('Expected 24-byte nonce but got length 1.');
+		}
+		throw new Error(
+			'Something went wrong during decryption. Is this the full encrypted message?',
+		);
+	}
 };
 
 /**
