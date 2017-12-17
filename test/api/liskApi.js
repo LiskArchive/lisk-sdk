@@ -19,9 +19,9 @@ const utils = require('../../src/api/utils');
 
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
-	const testPort = 7000;
-	const livePort = 8000;
-	const sslPort = 443;
+	const testPort = '7000';
+	const livePort = '8000';
+	const sslPort = '443';
 	const mainnetHash =
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 	const testnetHash =
@@ -155,18 +155,18 @@ describe('Lisk API module', () => {
 
 		describe('port', () => {
 			it('should set port to desired port if set on initialization when passed as an option', () => {
-				LSK = new LiskAPI({ port: 2000 });
-				LSK.should.have.property('port').be.equal(2000);
+				LSK = new LiskAPI({ port: '2000' });
+				LSK.should.have.property('port').be.equal('2000');
 			});
 
 			it('should set port to default testnet port if not set but used testnet on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ port: undefined, testnet: true });
-				LSK.should.have.property('port').be.equal(7000);
+				LSK.should.have.property('port').be.equal(testPort);
 			});
 
 			it('should set testnet true and port to 100 on initialization when passed as an option', () => {
-				LSK = new LiskAPI({ port: 100, testnet: true });
-				LSK.should.have.property('port').be.equal(100);
+				LSK = new LiskAPI({ port: '100', testnet: true });
+				LSK.should.have.property('port').be.equal('100');
 			});
 		});
 
