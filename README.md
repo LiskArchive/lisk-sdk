@@ -63,21 +63,21 @@ This sections provides details on what you need install on your system in order 
     - Linux:
 
         ```
-        curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+        curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
         sudo apt-get install -y nodejs
         ```
 
     - Mac:
     
         ```
-        brew install node
+        brew install node@6
         ```
-    
-- (Optional) Install n -- Used for Node.js version management
-    
+
+- _(Recommended)_ Install n -- Used for Node.js version management
+
     ```
     npm install -g n
-    n 8.9.2
+    n 6.12.1
     ```
         
 - #### Special note about NPM 5
@@ -90,7 +90,8 @@ This sections provides details on what you need install on your system in order 
     npm install -g npm@5.3.0
     ```
     
-- PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk (Optional)
+
+- _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
 
   ```
   npm install -g pm2
