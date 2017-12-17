@@ -195,7 +195,7 @@ Clone the Lisk repository using Git and initialize the modules.
 ```
 git clone https://github.com/LiskHQ/lisk.git
 cd lisk
-git checkout 0.9.11
+git checkout master
 npm install
 ```
 
