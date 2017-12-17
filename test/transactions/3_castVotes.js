@@ -240,4 +240,32 @@ describe('#castVotes transaction', () => {
 				.should.throw('Invalid hex string');
 		});
 	});
+
+	describe('when the cast vote transaction is created with duplicated public keys', () => {
+		it('should throw an error', () => {
+			const votes = [firstPublicKey, secondPublicKey];
+			const unvotes = [firstPublicKey, thirdPublicKey];
+			castVotes
+				.bind(null, {
+					passphrase,
+					unvotes,
+					votes,
+				})
+				.should.throw(
+					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
+				);
+		});
+
+		it('should throw an error', () => {
+			const votes = [firstPublicKey, secondPublicKey, firstPublicKey];
+			castVotes
+				.bind(null, {
+					passphrase,
+					votes,
+				})
+				.should.throw(
+					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
+				);
+		});
+	});
 });

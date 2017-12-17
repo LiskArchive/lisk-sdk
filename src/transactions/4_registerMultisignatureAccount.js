@@ -15,6 +15,7 @@
 import cryptoModule from '../crypto';
 import { MULTISIGNATURE_FEE } from '../constants';
 import {
+	hasNoDuplication,
 	prepareTransaction,
 	getTimeWithOffset,
 	prependPlusToPublicKeys,
@@ -41,6 +42,7 @@ const registerMultisignatureAccount = ({
 	minimum,
 	timeOffset,
 }) => {
+	hasNoDuplication(keysgroup);
 	const keys = cryptoModule.getKeys(passphrase);
 
 	validateKeysgroup(keysgroup);

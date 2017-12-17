@@ -18,3 +18,14 @@ export const prependPlusToPublicKeys = publicKeys =>
 
 export const prependMinusToPublicKeys = publicKeys =>
 	publicKeys.map(publicKey => `-${publicKey}`);
+
+export const hasNoDuplication = publicKeys => {
+	publicKeys.forEach((element, index) => {
+		const elementFound = publicKeys.indexOf(element);
+		if (elementFound > -1 && elementFound !== index) {
+			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
+		}
+	});
+
+	return true;
+};

@@ -13,6 +13,7 @@
  *
  */
 import {
+	hasNoDuplication,
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
 } from '../../../src/transactions/utils/format';
@@ -54,6 +55,34 @@ describe('format', () => {
 				return prependMinusToPublicKeys(publicKeys).should.be.eql(
 					expectedOutput,
 				);
+			});
+		});
+	});
+
+	describe('#hasNoDuplication', () => {
+		describe('Given an array of public keys without duplication', () => {
+			const publicKeys = [
+				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+				'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+			];
+			it('should return true', () => {
+				return hasNoDuplication(publicKeys).should.be.true();
+			});
+		});
+
+		describe('Given an array of public keys with duplication', () => {
+			const publicKeys = [
+				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+			];
+			it('should throw', () => {
+				return hasNoDuplication
+					.bind(null, publicKeys)
+					.should.throw(
+						'Duplicated public key: 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa.',
+					);
 			});
 		});
 	});

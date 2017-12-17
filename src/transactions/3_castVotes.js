@@ -19,6 +19,7 @@
 import cryptoModule from '../crypto';
 import { VOTE_FEE } from '../constants';
 import {
+	hasNoDuplication,
 	prepareTransaction,
 	getTimeWithOffset,
 	prependMinusToPublicKeys,
@@ -45,6 +46,7 @@ const castVotes = ({
 	secondPassphrase,
 	timeOffset,
 }) => {
+	hasNoDuplication([...(votes || []), ...(unvotes || [])]);
 	const keys = cryptoModule.getKeys(passphrase);
 
 	validatePublicKeys([...votes, ...unvotes]);
