@@ -69,7 +69,7 @@ setup_suite() {
 	reset_data
 
 	# Start lisk
-	pm2 --silent start app.js
+	NODE_ENV="test" pm2 --silent start app.js
 	sleep 3
 }
 
