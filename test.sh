@@ -63,7 +63,7 @@ reset_data() {
 
 setup_suite() {
 	# Stop lisk
-	pm2 --silent stop app.js
+	pm2 --silent stop app.js || true
 
 	# Reset data to clean state
 	reset_data
