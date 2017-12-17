@@ -43,9 +43,8 @@ const registerMultisignatureAccount = ({
 }) => {
 	const keys = cryptoModule.getKeys(passphrase);
 
-	const plusPrependedKeysgroup = validatePublicKeys(keysgroup)
-		? prependPlusToPublicKeys(keysgroup)
-		: [];
+	const plusPrependedKeysgroup =
+		validatePublicKeys(keysgroup) && prependPlusToPublicKeys(keysgroup);
 
 	if (
 		plusPrependedKeysgroup.length === 0 ||
