@@ -23,9 +23,9 @@ This sections provides details on what you need install on your system in order 
         ```
         
     - Mac:
-    
-        Make sure that you have both XCode and Brew installed on your machine.
-        
+
+        Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
+
         Update homebrew and install dependencies:
         
         ```
@@ -33,9 +33,9 @@ This sections provides details on what you need install on your system in order 
         brew doctor
         brew install curl automake autoconf libtool
         ```
-        
-        Install Lunchy for easier starting and stoping of services:
-        
+
+        _(Recommended)_ Install Lunchy for easier starting and stoping of services:
+
         ```
         gem install lunchy
         ```
