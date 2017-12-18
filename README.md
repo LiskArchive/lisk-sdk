@@ -118,25 +118,19 @@ npm install -g npm@5.3.0
    - Ubuntu/Debian:
 
         ```
-        wget http://download.redis.io/redis-stable.tar.gz
-        tar xvzf redis-stable.tar.gz
-        cd redis-stable
-        make
-        sudo make install
-        sudo cp redis.conf /usr/local/etc/
+        sudo apt-get install redis-server
         ```
 
         Start redis-server:
 
         ```
-        redis-server /usr/local/etc/redis.conf --daemonize yes
+        service redis start
         ```
 
         Stop redis-server:
 
         ```
-        redis-cli
-        shutdown
+        service redis stop
         ```
 
         If you run into any problems during the redis-setup, please check out the official redis docs: https://redis.io/topics/quickstart
