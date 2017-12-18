@@ -164,7 +164,9 @@ npm install -g npm@5.3.0
   Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
   1. Stop redis-server
-  2. Edit the file `/usr/local/etc/redis.conf` and change: `port 6379` to `port 6380`
+  2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
+    - Ubuntu/Debian: `/etc/redis/redis.conf`
+    - MacOS: `/usr/local/etc/redis.conf`
   3. Start redis-server
 
   Now confirm that redis is running on `port 6380`:
