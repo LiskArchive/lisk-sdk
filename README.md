@@ -114,7 +114,7 @@ npm install -g npm@5.3.0
         When installing a different version, replace 9.6.6 with your version in the following commands:
 
         ```
-        brew install postgresql
+        brew install postgresql@9.6
         initdb /usr/local/var/postgres -E utf8
         mkdir -p ~/Library/LaunchAgents
         cp /usr/local/Cellar/postgresql/9.6.6/homebrew.mxcl.postgresql.plist ~/Library/LaunchAgents/
