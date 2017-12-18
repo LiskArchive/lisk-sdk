@@ -15,7 +15,7 @@ This sections provides details on what you need install on your system in order 
 
 - Tool chain components -- Used for compiling dependencies
 
-    - Linux:
+    - Ubuntu/Debian:
 
         ```
         sudo apt-get update
@@ -42,7 +42,7 @@ This sections provides details on what you need install on your system in order 
 
 - Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
-    - Linux:
+    - Ubuntu/Debian:
 
         ```
         sudo apt-get install -y git
@@ -60,7 +60,7 @@ This sections provides details on what you need install on your system in order 
 
     Install System wide via package manager:
 
-    - Linux:
+    - Ubuntu/Debian:
 
         ```
         curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
@@ -98,7 +98,7 @@ npm install -g npm@5.3.0
 
 ### PostgreSQL (version 9.6.6):
 
-   - Linux:
+   - Ubuntu/Debian:
 
         ```
         curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
@@ -125,7 +125,7 @@ npm install -g npm@5.3.0
 
 ### Installing Redis
 
-   - Linux:
+   - Ubuntu/Debian:
 
         ```
         wget http://download.redis.io/redis-stable.tar.gz
