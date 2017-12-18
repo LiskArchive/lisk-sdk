@@ -178,7 +178,7 @@ npm install -g npm@5.3.0
 
 ## Installation Steps
 
-Clone the Lisk repository using Git and initialize the modules.
+Clone the Lisk repository using git and initialize the modules.
 
 ```
 git clone https://github.com/LiskHQ/lisk.git
