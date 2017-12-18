@@ -22,7 +22,7 @@ This sections provides details on what you need install on your system in order 
         sudo apt-get install -y python build-essential curl automake autoconf libtool
         ```
 
-    - Mac:
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
 
         Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
 
@@ -48,7 +48,7 @@ This sections provides details on what you need install on your system in order 
         sudo apt-get install -y git
         ```
 
-    - Mac:
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
 
         ```
         brew install git
@@ -67,7 +67,7 @@ This sections provides details on what you need install on your system in order 
         sudo apt-get install -y nodejs
         ```
 
-    - Mac:
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
 
         ```
         brew install node@6
@@ -109,7 +109,7 @@ npm install -g npm@5.3.0
         sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
         ```
 
-   - Mac:
+   - MacOS 10.12-10.13 (Sierra/High Sierra):
 
         When installing a different version, replace 9.6.6 with your version in the following commands:
 
@@ -150,7 +150,7 @@ npm install -g npm@5.3.0
 
         If you run into any problems during the redis-setup, please check out the official redis docs: https://redis.io/topics/quickstart
 
-   - Mac:
+   - MacOS 10.12-10.13 (Sierra/High Sierra):
 
         ```
         brew install redis
