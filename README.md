@@ -131,12 +131,13 @@ npm install -g npm@5.3.0
         cd redis-stable
         make
         sudo make install
+        sudo cp redis.conf /usr/local/etc/
         ```
 
         Start redis-server:
 
         ```
-        redis-server redis.conf --daemonize yes
+        redis-server /usr/local/etc/redis.conf --daemonize yes
         ```
 
         Stop redis-server:
@@ -177,9 +178,9 @@ npm install -g npm@5.3.0
 
   Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
-  1. Stop Redis on your computer.
-  2. Open the `redis.conf` file and change this: `port 6379` to `port 6380`
-  3. Restart Redis.
+  1. Stop redis-server
+  2. Edit the file `/usr/local/etc/redis.conf` and change: `port 6379` to `port 6380`
+  3. Start redis-server
 
   Now confirm that redis is running on `port 6380`:
 
