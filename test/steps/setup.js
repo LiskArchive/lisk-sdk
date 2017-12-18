@@ -50,7 +50,7 @@ const setUpFsStubs = () => {
 };
 
 const setUpFsUtilsStubs = () => {
-	['readJsonSync', 'writeJsonSync'].forEach(methodName =>
+	['readJSONSync', 'writeJSONSync'].forEach(methodName =>
 		sandbox.stub(fsUtils, methodName),
 	);
 };
@@ -103,7 +103,7 @@ const setUpHelperStubs = () => {
 	[
 		'createErrorHandler',
 		'deAlias',
-		'shouldUseJsonOutput',
+		'shouldUseJSONOutput',
 		'shouldUsePrettyOutput',
 	].forEach(methodName => sandbox.stub(helpers, methodName));
 };

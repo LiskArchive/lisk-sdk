@@ -16,11 +16,11 @@
 import * as given from '../../steps/1_given';
 import * as then from '../../steps/3_then';
 
-describe('api util', () => {
-	Given('a lisk api instance', given.aLiskAPIInstance, () => {
+describe('API util', () => {
+	Given('a lisk API instance', given.aLiskAPIInstance, () => {
 		Then(
-			'the lisk instance should be a lisk-js api instance',
-			then.theLiskAPIInstanceShouldBeALiskJSApiInstance,
+			'the lisk instance should be a lisk-js API instance',
+			then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
 		);
 	});
 });

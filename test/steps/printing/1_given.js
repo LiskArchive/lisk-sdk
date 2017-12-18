@@ -14,7 +14,7 @@
  *
  */
 import {
-	shouldUseJsonOutput,
+	shouldUseJSONOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
 
@@ -24,11 +24,11 @@ export function thereIsAResultToPrint() {
 }
 
 export function jsonShouldBePrinted() {
-	shouldUseJsonOutput.returns(true);
+	shouldUseJSONOutput.returns(true);
 }
 
 export function jsonShouldNotBePrinted() {
-	shouldUseJsonOutput.returns(false);
+	shouldUseJSONOutput.returns(false);
 }
 
 export function outputShouldBePretty() {

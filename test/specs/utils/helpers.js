@@ -537,10 +537,10 @@ describe('utils helpers', () => {
 			},
 		);
 	});
-	describe('#shouldUseJsonOutput', () => {
+	describe('#shouldUseJSONOutput', () => {
 		When(
-			'shouldUseJsonOutput is called with the config and the options',
-			when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+			'shouldUseJSONOutput is called with the config and the options',
+			when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 			() => {
 				Then('it should return false', then.itShouldReturnFalse);
 			},
@@ -551,8 +551,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithJsonSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return true', then.itShouldReturnTrue);
 						},
@@ -564,8 +564,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithJsonSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return false', then.itShouldReturnFalse);
 						},
@@ -577,8 +577,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithTableSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return false', then.itShouldReturnFalse);
 						},
@@ -590,8 +590,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithTableSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return true', then.itShouldReturnTrue);
 						},
@@ -600,8 +600,8 @@ describe('utils helpers', () => {
 			);
 			Given('an empty options object', given.anEmptyOptionsObject, () => {
 				When(
-					'shouldUseJsonOutput is called with the config and options',
-					when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+					'shouldUseJSONOutput is called with the config and options',
+					when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 					() => {
 						Then('it should return true', then.itShouldReturnTrue);
 					},
@@ -614,8 +614,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithJsonSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return true', then.itShouldReturnTrue);
 						},
@@ -627,8 +627,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithJsonSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return false', then.itShouldReturnFalse);
 						},
@@ -640,8 +640,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithTableSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return false', then.itShouldReturnFalse);
 						},
@@ -653,8 +653,8 @@ describe('utils helpers', () => {
 				given.anOptionsObjectWithTableSetTo,
 				() => {
 					When(
-						'shouldUseJsonOutput is called with the config and options',
-						when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+						'shouldUseJSONOutput is called with the config and options',
+						when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 						() => {
 							Then('it should return true', then.itShouldReturnTrue);
 						},
@@ -663,8 +663,8 @@ describe('utils helpers', () => {
 			);
 			Given('an empty options object', given.anEmptyOptionsObject, () => {
 				When(
-					'shouldUseJsonOutput is called with the config and options',
-					when.shouldUseJsonOutputIsCalledWithTheConfigAndOptions,
+					'shouldUseJSONOutput is called with the config and options',
+					when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
 					() => {
 						Then('it should return false', then.itShouldReturnFalse);
 					},

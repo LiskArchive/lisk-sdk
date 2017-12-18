@@ -15,7 +15,7 @@
  */
 import chalk from 'chalk';
 import {
-	shouldUseJsonOutput,
+	shouldUseJSONOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
 import tablify from '../../../src/utils/tablify';
@@ -75,31 +75,31 @@ export function aTableShouldBeLogged() {
 
 export function prettyJSONOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
-	const prettyJsonOutput = JSON.stringify(result, null, '\t');
-	return vorpal.activeCommand.log.should.be.calledWithExactly(prettyJsonOutput);
+	const prettyJSONOutput = JSON.stringify(result, null, '\t');
+	return vorpal.activeCommand.log.should.be.calledWithExactly(prettyJSONOutput);
 }
 
 export function prettyJSONOutputShouldBeLoggedWithoutANSICodes() {
 	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
-	const prettyJsonOutput = JSON.stringify(resultWithoutANSICodes, null, '\t');
-	return vorpal.activeCommand.log.should.be.calledWithExactly(prettyJsonOutput);
+	const prettyJSONOutput = JSON.stringify(resultWithoutANSICodes, null, '\t');
+	return vorpal.activeCommand.log.should.be.calledWithExactly(prettyJSONOutput);
 }
 
-export function jSONOutputShouldBeLogged() {
+export function jsonOutputShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(result);
 	return vorpal.activeCommand.log.should.be.calledWithExactly(jsonOutput);
 }
 
-export function jSONOutputShouldBeLoggedWithoutANSICodes() {
+export function jsonOutputShouldBeLoggedWithoutANSICodes() {
 	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(resultWithoutANSICodes);
 	return vorpal.activeCommand.log.should.be.calledWithExactly(jsonOutput);
 }
 
-export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
+export function shouldUseJSONOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
 	const { config } = this.test.ctx;
-	return shouldUseJsonOutput.should.be.calledWithExactly(config, {});
+	return shouldUseJSONOutput.should.be.calledWithExactly(config, {});
 }
 
 export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
@@ -107,9 +107,9 @@ export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndAnEmptyOption
 	return shouldUsePrettyOutput.should.be.calledWithExactly(config, {});
 }
 
-export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions() {
+export function shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions() {
 	const { config, options } = this.test.ctx;
-	return shouldUseJsonOutput.should.be.calledWithExactly(config, options);
+	return shouldUseJSONOutput.should.be.calledWithExactly(config, options);
 }
 
 export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions() {

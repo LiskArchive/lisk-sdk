@@ -18,7 +18,7 @@ import * as fsUtils from '../../../src/utils/fs';
 
 export function itShouldWriteTheUpdatedConfigToTheConfigFile() {
 	const { filePath, config } = this.test.ctx;
-	return fsUtils.writeJsonSync.should.be.calledWithExactly(filePath, config);
+	return fsUtils.writeJSONSync.should.be.calledWithExactly(filePath, config);
 }
 
 export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
@@ -26,12 +26,12 @@ export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
 	return fs.readFileSync.should.be.calledWithExactly(filePath, 'utf8');
 }
 
-export function jSONParseShouldBeCalledWithTheFileContentsAsAString() {
+export function jsonParseShouldBeCalledWithTheFileContentsAsAString() {
 	const { fileContents } = this.test.ctx;
 	return JSON.parse.should.be.calledWithExactly(fileContents);
 }
 
-export function jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
+export function jsonParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
 	const { fileContents } = this.test.ctx;
 	return JSON.parse.should.be.calledWithExactly(fileContents.slice(1));
 }
@@ -41,7 +41,7 @@ export function theParsedFileContentsShouldBeReturned() {
 	return returnValue.should.equal(parsedFileContents);
 }
 
-export function jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
+export function jsonStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
 	const { objectToWrite } = this.test.ctx;
 	const tab = '\t';
 	return JSON.stringify.should.be.calledWithExactly(objectToWrite, null, tab);
@@ -57,14 +57,14 @@ export function fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() 
 
 export function theDefaultConfigShouldBeWrittenToTheConfigFile() {
 	const { filePath, defaultConfig } = this.test.ctx;
-	return fsUtils.writeJsonSync.should.be.calledWithExactly(
+	return fsUtils.writeJSONSync.should.be.calledWithExactly(
 		filePath,
 		defaultConfig,
 	);
 }
 
 export function theConfigFileShouldNotBeWritten() {
-	return fsUtils.writeJsonSync.should.not.be.called();
+	return fsUtils.writeJSONSync.should.not.be.called();
 }
 
 export function itShouldResolveToTheFirstLineOfTheFile() {

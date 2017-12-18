@@ -13,14 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { readJsonSync, writeJsonSync } from '../../../src/utils/fs';
+import { readJSONSync, writeJSONSync } from '../../../src/utils/fs';
 
 export function theJSONIsRead() {
 	const { filePath } = this.test.ctx;
-	this.test.ctx.returnValue = readJsonSync(filePath);
+	this.test.ctx.returnValue = readJSONSync(filePath);
 }
 
 export function theJSONIsWritten() {
 	const { filePath, objectToWrite } = this.test.ctx;
-	this.test.ctx.returnValue = writeJsonSync(filePath, objectToWrite);
+	this.test.ctx.returnValue = writeJSONSync(filePath, objectToWrite);
 }

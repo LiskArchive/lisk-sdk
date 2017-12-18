@@ -14,24 +14,24 @@
  *
  */
 import chalk from 'chalk';
-import stripAnsi from 'strip-ansi';
+import stripANSI from 'strip-ansi';
 import config from './config';
-import { shouldUseJsonOutput, shouldUsePrettyOutput } from './helpers';
+import { shouldUseJSONOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
-const removeAnsi = result =>
+const removeANSI = result =>
 	Object.entries(result).reduce(
 		(strippedResult, [key, value]) =>
-			Object.assign({}, strippedResult, { [key]: stripAnsi(value) }),
+			Object.assign({}, strippedResult, { [key]: stripANSI(value) }),
 		{},
 	);
 
 export const printResult = (vorpal, options = {}) => result => {
-	const useJsonOutput = shouldUseJsonOutput(config, options);
+	const useJSONOutput = shouldUseJSONOutput(config, options);
 	const prettifyOutput = shouldUsePrettyOutput(config, options);
-	const resultToPrint = useJsonOutput ? removeAnsi(result) : result;
+	const resultToPrint = useJSONOutput ? removeANSI(result) : result;
 
-	const output = useJsonOutput
+	const output = useJSONOutput
 		? JSON.stringify(resultToPrint, null, prettifyOutput ? '\t' : null)
 		: tablify(resultToPrint).toString();
 

@@ -115,7 +115,7 @@ Configuration is stored in a config file placed in the user's home directory (ru
 
 | Command | Description |
 | --- | --- |
-| <code>set json true&#124;false</code> | Sets default to json output (true) or text output (false) |
+| <code>set json true&#124;false</code> | Sets default to JSON output (true) or text output (false) |
 | <code>set testnet true&#124;false</code> | Set default to testnet (true) or mainnet (false) |
 
 

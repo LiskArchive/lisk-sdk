@@ -15,7 +15,7 @@
  */
 import lisk from 'lisk-js';
 
-export function theLiskAPIInstanceShouldBeALiskJSApiInstance() {
+export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {
 	const { liskAPIInstance } = this.test.ctx;
 	return liskAPIInstance.should.be.instanceOf(lisk.api);
 }
