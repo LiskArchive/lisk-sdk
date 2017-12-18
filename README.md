@@ -121,19 +121,17 @@ npm install -g npm@5.3.0
         sudo apt-get install redis-server
         ```
 
-        Start redis-server:
+        Start redis:
 
         ```
         service redis start
         ```
 
-        Stop redis-server:
+        Stop redis:
 
         ```
         service redis stop
         ```
-
-        If you run into any problems during the redis-setup, please check out the official redis docs: https://redis.io/topics/quickstart
 
    - MacOS 10.12-10.13 (Sierra/High Sierra):
 
@@ -141,13 +139,13 @@ npm install -g npm@5.3.0
         brew install redis
         ```
 
-        Start redis-server:
+        Start redis:
 
         ```
         brew services start redis
         ```
 
-        Stop redis-server:
+        Stop redis:
 
         ```
         brew services stop redis
