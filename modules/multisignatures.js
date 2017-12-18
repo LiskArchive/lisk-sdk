@@ -5,7 +5,6 @@ var crypto = require('crypto');
 var extend = require('extend');
 var genesisblock = null;
 var Multisignature = require('../logic/multisignature.js');
-var schema = require('../schema/multisignatures.js');
 var sql = require('../sql/multisignatures.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var apiError = require('../helpers/apiError');

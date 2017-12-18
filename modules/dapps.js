@@ -7,7 +7,6 @@ var dappCategories = require('../helpers/dappCategories.js');
 var InTransfer = require('../logic/inTransfer.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
 var OutTransfer = require('../logic/outTransfer.js');
-var schema = require('../schema/dapps.js');
 var sql = require('../sql/dapps.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 

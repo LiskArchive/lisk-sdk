@@ -4,7 +4,6 @@ var _ = require('lodash');
 var async = require('async');
 var failureCodes = require('../api/ws/rpc/failureCodes.js');
 var Peer = require('../logic/peer.js');
-var schema = require('../schema/peers.js');
 var System = require('../modules/system.js');
 var peersManager = require('../helpers/peersManager.js');
 
