@@ -108,8 +108,6 @@ npm install -g npm@5.3.0
         ```
         brew install postgresql@9.6
         initdb /usr/local/var/postgres -E utf8
-        mkdir -p ~/Library/LaunchAgents
-        cp /usr/local/Cellar/postgresql/9.6.6/homebrew.mxcl.postgresql.plist ~/Library/LaunchAgents/
         brew services start postgresql@9.6
         createdb lisk_test
         createdb lisk_main
@@ -147,7 +145,6 @@ npm install -g npm@5.3.0
 
         ```
         brew install redis
-        cp /usr/local/Cellar/redis/homebrew.mxcl.redis.plist ~/Library/LaunchAgents/
         ```
 
         Start redis-server:
