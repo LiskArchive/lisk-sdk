@@ -34,12 +34,6 @@ This sections provides details on what you need install on your system in order 
         brew install curl automake autoconf libtool
         ```
 
-        _(Recommended)_ Install Lunchy for easier starting and stoping of services:
-
-        ```
-        gem install lunchy
-        ```
-
 - Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
     - Ubuntu/Debian:
@@ -116,7 +110,7 @@ npm install -g npm@5.3.0
         initdb /usr/local/var/postgres -E utf8
         mkdir -p ~/Library/LaunchAgents
         cp /usr/local/Cellar/postgresql/9.6.6/homebrew.mxcl.postgresql.plist ~/Library/LaunchAgents/
-        lunchy start postgres
+        brew services start postgresql@9.6
         createdb lisk_test
         createdb lisk_main
         ```
@@ -159,13 +153,13 @@ npm install -g npm@5.3.0
         Start redis-server:
 
         ```
-        lunchy start redis
+        brew services start redis
         ```
 
         Stop redis-server:
 
         ```
-        lunchy stop redis
+        brew services stop redis
         ```
 
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
