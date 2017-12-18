@@ -18,9 +18,7 @@ describe('GET /peers', function () {
 
 	before(function () {
 		return wsServer1.start().then(function () {
-			return wsServer2.start().then(function () {
-				return Promise.delay(5000);
-			});
+			return wsServer2.start();
 		});
 	});
 

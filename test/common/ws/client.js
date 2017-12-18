@@ -59,8 +59,24 @@ WSClient.prototype.start = function () {
 			resolve(data);
 		});
 
-		self.client.on('close', reject);
-		self.client.on('error', reject);
+		self.client.on('close', function (err) {
+			reject();
+		});
+		self.client.on('error', function (err) {
+			reject();
+		});
+
+		self.client.on('disconnect', function (err) {
+			self.stop();
+		});
+
+		self.client.on('connectAbort', function (err) {
+			self.stop();
+		});
+
+		self.client.on('fail', function (err) {
+			self.stop();
+		});
 
 		Object.keys(self.getHandlers()).forEach(function (k) {
 			self.client.on(k, self.getHandlers()[k]);

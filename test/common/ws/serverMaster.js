@@ -6,8 +6,6 @@ var Promise = require('bluebird');
 var randomstring = require('randomstring');
 var testConfig = require('../../data/config.json');
 
-var WSClient = require('./client');
-
 /**
  * WSServerMaster
  * Create a socket server master instance with the support to spawn multiple processes
@@ -23,7 +21,6 @@ function WSServerMaster () {
 		version: '0.0.' + (Math.floor(Math.random() * 10) + 1)
 	});
 
-	this.client = null;
 	this.wsPort = this.headers.wsPort;
 	this.httpPort = this.headers.httpPort;
 }
@@ -37,9 +34,9 @@ WSServerMaster.prototype.start = function () {
 	var self = this;
 
 	return new Promise(function (resolve, reject) {
-		self.masterProcess = ChildProcess.spawn('node', [path.join(__dirname, 'serverProcess.js'), JSON.stringify(self.headers)], {
+		self.masterProcess = ChildProcess.fork(path.join(__dirname, 'serverProcess.js'), [JSON.stringify(self.headers)], {
 			cwd: __dirname,
-			detached: true,
+			detached: false,
 			stdio: 'inherit',
 			env: process.env
 		});
@@ -49,12 +46,18 @@ WSServerMaster.prototype.start = function () {
 			reject();
 		});
 
-		setTimeout(function () {
-			self.client = new WSClient(self.headers);
-			self.client.start().then(function () {
+		self.masterProcess.on('close', function () {
+			self.masterProcess = null;
+			self.stop();
+		});
+
+		self.masterProcess.on('message', function (message) {
+			if(message === 'ready') {
 				resolve();
-			});
-		}, 1000);
+			} else {
+				reject(message);
+			}
+		});
 	});
 };
 
@@ -103,8 +106,9 @@ WSServerMaster.prototype.getHeaders  = function () {
  * Stop the server
  */
 WSServerMaster.prototype.stop = function () {
-	this.client.stop();
-	this.masterProcess.kill();
+	if(this.masterProcess){
+		this.masterProcess.kill();
+	}
 };
 
 //module.exports = wsServer;
