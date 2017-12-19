@@ -14,7 +14,12 @@
  */
 import cryptoModule from '../crypto';
 import { MULTISIGNATURE_FEE } from '../constants';
-import { prepareTransaction, getTimeWithOffset } from './utils';
+import {
+	prepareTransaction,
+	getTimeWithOffset,
+	prependPlusToPublicKeys,
+	validateKeysgroup,
+} from './utils';
 /**
  * @method registerMultisignatureAccount
  * @param {Object} Object - Object
@@ -37,7 +42,12 @@ const registerMultisignatureAccount = ({
 	timeOffset,
 }) => {
 	const keys = cryptoModule.getKeys(passphrase);
-	const keygroupFees = keysgroup.length + 1;
+
+	validateKeysgroup(keysgroup);
+
+	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
+
+	const keygroupFees = plusPrependedKeysgroup.length + 1;
 
 	const transaction = {
 		type: 4,
@@ -50,7 +60,7 @@ const registerMultisignatureAccount = ({
 			multisignature: {
 				min: minimum,
 				lifetime,
-				keysgroup,
+				keysgroup: plusPrependedKeysgroup,
 			},
 		},
 	};

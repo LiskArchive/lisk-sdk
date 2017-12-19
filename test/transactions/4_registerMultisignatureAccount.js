@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptoModule from '../../src/crypto';
 import registerMultisignatureAccount from '../../src/transactions/4_registerMultisignatureAccount';
 
 const time = require('../../src/transactions/utils/time');
@@ -29,6 +30,8 @@ describe('#registerMultisignatureAccount transaction', () => {
 	const lifetime = 5;
 	const minimum = 2;
 
+	let tooShortPublicKeyKeysgroup;
+	let plusPrependedPublicKeyKeysgroup;
 	let keysgroup;
 	let getTimeWithOffsetStub;
 	let registerMultisignatureTransaction;
@@ -37,7 +40,16 @@ describe('#registerMultisignatureAccount transaction', () => {
 		getTimeWithOffsetStub = sandbox
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
-		keysgroup = ['+123456789', '-987654321'];
+		keysgroup = [
+			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+			'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+		];
+		plusPrependedPublicKeyKeysgroup = [
+			'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		];
+		tooShortPublicKeyKeysgroup = [
+			'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9',
+		];
 	});
 
 	describe('with first passphrase', () => {
@@ -162,11 +174,14 @@ describe('#registerMultisignatureAccount transaction', () => {
 						.and.be.equal(lifetime);
 				});
 
-				it('should have a keysgroup array equal to provided keysgroup', () => {
+				it('should have a keysgroup array with plus prepended', () => {
+					const expectedArray = [
+						'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+					];
 					registerMultisignatureTransaction.asset.multisignature.should.have
 						.property('keysgroup')
-						.and.be.an.Array()
-						.and.be.equal(keysgroup);
+						.and.be.eql(expectedArray);
 				});
 			});
 		});
@@ -187,6 +202,78 @@ describe('#registerMultisignatureAccount transaction', () => {
 			registerMultisignatureTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('when the register multisignature account transaction is created with one too short public key', () => {
+		it('should throw an error', () => {
+			registerMultisignatureAccount
+				.bind(null, {
+					passphrase,
+					secondPassphrase,
+					keysgroup: tooShortPublicKeyKeysgroup,
+					lifetime,
+					minimum,
+				})
+				.should.throw(
+					'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
+				);
+		});
+	});
+
+	describe('when the register multisignature account transaction is created with one plus prepended public key', () => {
+		it('should throw an error', () => {
+			registerMultisignatureAccount
+				.bind(null, {
+					passphrase,
+					secondPassphrase,
+					keysgroup: plusPrependedPublicKeyKeysgroup,
+					lifetime,
+					minimum,
+				})
+				.should.throw('Invalid hex string');
+		});
+	});
+
+	describe('when the register multisignature account transaction is created with one empty keysgroup', () => {
+		it('should throw an error', () => {
+			registerMultisignatureAccount
+				.bind(null, {
+					passphrase,
+					secondPassphrase,
+					keysgroup: [],
+					lifetime,
+					minimum,
+				})
+				.should.throw(
+					'Expected between 1 and 16 public keys in the keysgroup.',
+				);
+		});
+	});
+
+	describe('when the register multisignature account transaction is created with 17 public keys in keysgroup', () => {
+		beforeEach(() => {
+			keysgroup = Array(17)
+				.fill()
+				.map(
+					(_, index) =>
+						cryptoModule.getPrivateAndPublicKeyFromPassphrase(index.toString())
+							.publicKey,
+				);
+		});
+
+		it('should throw an error', () => {
+			registerMultisignatureAccount
+				.bind(null, {
+					passphrase,
+					secondPassphrase,
+					keysgroup: [],
+					lifetime,
+					minimum,
+				})
+				.should.throw(
+					'Expected between 1 and 16 public keys in the keysgroup.',
+				);
 		});
 	});
 });
