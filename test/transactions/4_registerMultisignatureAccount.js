@@ -29,13 +29,9 @@ describe('#registerMultisignatureAccount transaction', () => {
 	const timeWithOffset = 38350076;
 	const lifetime = 5;
 	const minimum = 2;
-	const tooShortPublicKeyKeysgroup = [
-		'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9',
-	];
-	const plusPrependedPublicKeyKeysgroup = [
-		'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-	];
 
+	let tooShortPublicKeyKeysgroup;
+	let plusPrependedPublicKeyKeysgroup;
 	let keysgroup;
 	let getTimeWithOffsetStub;
 	let registerMultisignatureTransaction;
@@ -47,6 +43,12 @@ describe('#registerMultisignatureAccount transaction', () => {
 		keysgroup = [
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 			'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+		];
+		plusPrependedPublicKeyKeysgroup = [
+			'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		];
+		tooShortPublicKeyKeysgroup = [
+			'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9',
 		];
 	});
 
@@ -250,15 +252,14 @@ describe('#registerMultisignatureAccount transaction', () => {
 	});
 
 	describe('when the register multisignature account transaction is created with 17 public keys in keysgroup', () => {
-		const generatePublicKey = () =>
-			cryptoModule.getPrivateAndPublicKeyFromPassphrase(
-				Math.random().toString(),
-			).publicKey;
-
 		beforeEach(() => {
 			keysgroup = Array(17)
-				.fill(0)
-				.map(generatePublicKey);
+				.fill()
+				.map(() => {
+					return cryptoModule.getPrivateAndPublicKeyFromPassphrase(
+						Math.random().toString(),
+					).publicKey;
+				});
 		});
 
 		it('should throw an error', () => {

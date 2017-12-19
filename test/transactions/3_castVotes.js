@@ -45,105 +45,109 @@ describe('#castVotes transaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('when the transaction is created with one passphrase and the votes object', () => {
+	describe('when the transaction is created with one passphrase and the votes', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes({ passphrase, votes: [firstPublicKey] });
+			castVotesTransaction = castVotes({ passphrase, votes: votePublicKeys });
 		});
 
 		it('should create a cast votes transaction', () => {
-			castVotesTransaction.should.be.ok();
+			return castVotesTransaction.should.be.ok();
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			castVotes({ passphrase, vote: [firstPublicKey], timeOffset: offset });
+			castVotes({ passphrase, votes: votePublicKeys, timeOffset: offset });
 
-			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		describe('the returned cast votes transaction', () => {
 			it('should be an object', () => {
-				castVotesTransaction.should.be.type('object');
+				return castVotesTransaction.should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				castVotesTransaction.should.have.property('id').and.be.type('string');
+				return castVotesTransaction.should.have
+					.property('id')
+					.and.be.type('string');
 			});
 
 			it('should have type number equal to 3', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('type')
 					.and.be.type('number')
 					.and.equal(3);
 			});
 
 			it('should have amount string equal to 0', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
 					.and.equal('0');
 			});
 
 			it('should have fee string equal to 100000000', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
 					.and.equal('100000000');
 			});
 
 			it('should have recipientId string equal to address', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('recipientId')
 					.and.be.type('string')
 					.and.equal(address);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('senderPublicKey')
 					.and.be.hexString()
 					.and.equal(firstPublicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('timestamp')
 					.and.be.type('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('signature')
 					.and.be.hexString();
 			});
 
 			it('should not have the second signature property', () => {
-				castVotesTransaction.should.not.have.property('signSignature');
+				return castVotesTransaction.should.not.have.property('signSignature');
 			});
 
 			it('should have asset', () => {
-				castVotesTransaction.should.have.property('asset').and.not.be.empty();
+				return castVotesTransaction.should.have
+					.property('asset')
+					.and.not.be.empty();
 			});
 
 			describe('votes asset', () => {
-				it('should be object', () => {
-					castVotesTransaction.asset.should.have
+				it('should be array', () => {
+					return castVotesTransaction.asset.should.have
 						.property('votes')
-						.and.be.type('object');
+						.and.be.Array();
 				});
 
-				it('should contain one element', () => {
-					castVotesTransaction.asset.votes.should.have.length(1);
+				it('should contain two elements', () => {
+					return castVotesTransaction.asset.votes.should.have.length(2);
 				});
 
 				it('should have a vote for the delegate public key', () => {
-					const votes = castVotesTransaction.asset.votes[0];
-					votes.substring(1, votes.length).should.be.equal(firstPublicKey);
+					const expectedArray = [`+${firstPublicKey}`, `+${secondPublicKey}`];
+					return castVotesTransaction.asset.votes.should.be.eql(expectedArray);
 				});
 			});
 		});
@@ -159,7 +163,7 @@ describe('#castVotes transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			castVotesTransaction.should.have
+			return castVotesTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
 		});
@@ -174,20 +178,20 @@ describe('#castVotes transaction', () => {
 			});
 		});
 
-		it('the transaction should have the votes object', () => {
-			castVotesTransaction.asset.should.have
+		it('the transaction should have the votes as an array', () => {
+			return castVotesTransaction.asset.should.have
 				.property('votes')
-				.and.be.type('object');
+				.and.be.Array();
 		});
 
-		it('the transaction should have two upvotes and two unvotes', () => {
+		it('the transaction should have the votes and the unvotes', () => {
 			const expectedArray = [
 				`+${firstPublicKey}`,
 				`+${secondPublicKey}`,
 				`-${thirdPublicKey}`,
 				`-${fourthPublicKey}`,
 			];
-			castVotesTransaction.asset.votes.should.be.eql(expectedArray);
+			return castVotesTransaction.asset.votes.should.be.eql(expectedArray);
 		});
 	});
 
@@ -199,21 +203,21 @@ describe('#castVotes transaction', () => {
 			});
 		});
 
-		it('the transaction should have the votes object', () => {
-			castVotesTransaction.asset.should.have
+		it('the transaction should have the votes array', () => {
+			return castVotesTransaction.asset.should.have
 				.property('votes')
-				.and.be.type('object');
+				.and.be.Array();
 		});
 
 		it('the transaction should have two upvotes and two unvotes', () => {
 			const expectedArray = [`-${thirdPublicKey}`, `-${fourthPublicKey}`];
-			castVotesTransaction.asset.votes.should.be.eql(expectedArray);
+			return castVotesTransaction.asset.votes.should.be.eql(expectedArray);
 		});
 	});
 
 	describe('when the cast vote transaction is created with one too short public key', () => {
 		it('should throw an error', () => {
-			castVotes
+			return castVotes
 				.bind(null, {
 					passphrase,
 					unvotes: unvotePublicKeys,
@@ -227,7 +231,7 @@ describe('#castVotes transaction', () => {
 
 	describe('when the cast vote transaction is created with one plus prepended public key', () => {
 		it('should throw an error', () => {
-			castVotes
+			return castVotes
 				.bind(null, {
 					passphrase,
 					unvotes: unvotePublicKeys,

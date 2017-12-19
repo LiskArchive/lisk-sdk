@@ -18,6 +18,7 @@ import {
 	prepareTransaction,
 	getTimeWithOffset,
 	prependPlusToPublicKeys,
+	validateKeysgroup,
 	validatePublicKeys,
 } from './utils';
 /**
@@ -43,17 +44,10 @@ const registerMultisignatureAccount = ({
 }) => {
 	const keys = cryptoModule.getKeys(passphrase);
 
-	const plusPrependedKeysgroup =
-		validatePublicKeys(keysgroup) && prependPlusToPublicKeys(keysgroup);
+	validatePublicKeys(keysgroup);
+	validateKeysgroup(keysgroup);
 
-	if (
-		plusPrependedKeysgroup.length === 0 ||
-		plusPrependedKeysgroup.length > 16
-	) {
-		throw new Error(
-			'You must have between 1 and 16 public keys in the keysgroup.',
-		);
-	}
+	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
 
 	const keygroupFees = plusPrependedKeysgroup.length + 1;
 

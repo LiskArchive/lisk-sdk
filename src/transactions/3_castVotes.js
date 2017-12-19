@@ -40,19 +40,19 @@ import {
 
 const castVotes = ({
 	passphrase,
-	votes,
-	unvotes,
+	votes = [],
+	unvotes = [],
 	secondPassphrase,
 	timeOffset,
 }) => {
 	const keys = cryptoModule.getKeys(passphrase);
 
-	const plusPrependedVotes =
-		votes && validatePublicKeys(votes) ? prependPlusToPublicKeys(votes) : [];
-	const minusPrependedUnvotes =
-		unvotes && validatePublicKeys(unvotes)
-			? prependMinusToPublicKeys(unvotes)
-			: [];
+	validatePublicKeys([...votes, ...unvotes]);
+
+	const plusPrependedVotes = prependPlusToPublicKeys(votes);
+	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
+
+	const allVotes = [...plusPrependedVotes, ...minusPrependedUnvotes];
 
 	const transaction = {
 		type: 3,
@@ -62,7 +62,7 @@ const castVotes = ({
 		senderPublicKey: keys.publicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
-			votes: [...plusPrependedVotes, ...minusPrependedUnvotes],
+			votes: allVotes,
 		},
 	};
 
