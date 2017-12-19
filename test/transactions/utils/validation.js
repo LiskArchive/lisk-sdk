@@ -142,7 +142,7 @@ describe('public key validation', () => {
 				keysgroup = Array(17)
 					.fill()
 					.map(
-						(current, index) =>
+						(_, index) =>
 							cryptoModule.getPrivateAndPublicKeyFromPassphrase(
 								index.toString(),
 							).publicKey,

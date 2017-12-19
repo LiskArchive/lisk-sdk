@@ -256,7 +256,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 			keysgroup = Array(17)
 				.fill()
 				.map(
-					(current, index) =>
+					(_, index) =>
 						cryptoModule.getPrivateAndPublicKeyFromPassphrase(index.toString())
 							.publicKey,
 				);

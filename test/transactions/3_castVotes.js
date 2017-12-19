@@ -209,7 +209,7 @@ describe('#castVotes transaction', () => {
 				.and.be.Array();
 		});
 
-		it('the transaction should have two upvotes and two unvotes', () => {
+		it('the transaction asset should have the unvotes', () => {
 			const expectedArray = [`-${thirdPublicKey}`, `-${fourthPublicKey}`];
 			return castVotesTransaction.asset.votes.should.be.eql(expectedArray);
 		});
