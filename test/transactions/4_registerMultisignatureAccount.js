@@ -246,7 +246,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 					minimum,
 				})
 				.should.throw(
-					'You must have between 1 and 16 public keys in the keysgroup.',
+					'Expected between 1 and 16 public keys in the keysgroup.',
 				);
 		});
 	});
@@ -255,11 +255,11 @@ describe('#registerMultisignatureAccount transaction', () => {
 		beforeEach(() => {
 			keysgroup = Array(17)
 				.fill()
-				.map(() => {
-					return cryptoModule.getPrivateAndPublicKeyFromPassphrase(
-						Math.random().toString(),
-					).publicKey;
-				});
+				.map(
+					(current, index) =>
+						cryptoModule.getPrivateAndPublicKeyFromPassphrase(index.toString())
+							.publicKey,
+				);
 		});
 
 		it('should throw an error', () => {
@@ -272,7 +272,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 					minimum,
 				})
 				.should.throw(
-					'You must have between 1 and 16 public keys in the keysgroup.',
+					'Expected between 1 and 16 public keys in the keysgroup.',
 				);
 		});
 	});

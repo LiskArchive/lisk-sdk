@@ -30,3 +30,11 @@ export const validatePublicKey = publicKey => {
 
 export const validatePublicKeys = publicKeys =>
 	publicKeys.every(validatePublicKey);
+
+export const validateKeysgroup = keysgroup => {
+	if (keysgroup.length === 0 || keysgroup.length > 16) {
+		throw new Error('Expected between 1 and 16 public keys in the keysgroup.');
+	}
+	validatePublicKeys(keysgroup);
+	return true;
+};

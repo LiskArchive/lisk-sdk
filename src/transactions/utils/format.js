@@ -18,12 +18,3 @@ export const prependPlusToPublicKeys = publicKeys =>
 
 export const prependMinusToPublicKeys = publicKeys =>
 	publicKeys.map(publicKey => `-${publicKey}`);
-
-export const validateKeysgroup = keysgroup => {
-	if (keysgroup.length === 0 || keysgroup.length > 16) {
-		throw new Error(
-			'You must have between 1 and 16 public keys in the keysgroup.',
-		);
-	}
-	return true;
-};

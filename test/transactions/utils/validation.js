@@ -12,10 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptoModule from '../../../src/crypto';
 import {
 	validatePublicKey,
 	validatePublicKeys,
-} from '../../../src/transactions/utils/validatePublicKey';
+	validateKeysgroup,
+} from '../../../src/transactions/utils/validation';
 
 describe('public key validation', () => {
 	describe('#validatePublicKey', () => {
@@ -103,6 +105,55 @@ describe('public key validation', () => {
 			];
 			it('should return true', () => {
 				return validatePublicKeys(publicKeys).should.be.true();
+			});
+		});
+	});
+
+	describe('#validateKeysgroup', () => {
+		let keysgroup;
+		describe('Given a keysgroup with three public keys', () => {
+			beforeEach(() => {
+				keysgroup = [
+					'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+				];
+			});
+			it('the validated keysgroup should return true', () => {
+				return validateKeysgroup(keysgroup).should.be.true();
+			});
+		});
+
+		describe('Given an empty keysgroup', () => {
+			beforeEach(() => {
+				keysgroup = [];
+			});
+			it('should throw the error', () => {
+				return validateKeysgroup
+					.bind(null, keysgroup)
+					.should.throw(
+						'Expected between 1 and 16 public keys in the keysgroup.',
+					);
+			});
+		});
+
+		describe('Given a keysgroup with 17 public keys', () => {
+			beforeEach(() => {
+				keysgroup = Array(17)
+					.fill()
+					.map(
+						(current, index) =>
+							cryptoModule.getPrivateAndPublicKeyFromPassphrase(
+								index.toString(),
+							).publicKey,
+					);
+			});
+			it('should throw the error', () => {
+				return validateKeysgroup
+					.bind(null, keysgroup)
+					.should.throw(
+						'Expected between 1 and 16 public keys in the keysgroup.',
+					);
 			});
 		});
 	});

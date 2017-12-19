@@ -19,7 +19,6 @@ import {
 	getTimeWithOffset,
 	prependPlusToPublicKeys,
 	validateKeysgroup,
-	validatePublicKeys,
 } from './utils';
 /**
  * @method registerMultisignatureAccount
@@ -44,7 +43,6 @@ const registerMultisignatureAccount = ({
 }) => {
 	const keys = cryptoModule.getKeys(passphrase);
 
-	validatePublicKeys(keysgroup);
 	validateKeysgroup(keysgroup);
 
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
