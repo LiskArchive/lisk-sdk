@@ -224,13 +224,13 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 The test suite is comprised of four categories `unit`, `system`, `transport` and `api`. It can be executed in full by issuing the following command:
 
 ```
-npm run test extensive all
+npm test extensive all
 ```
 
 The test suite can also be run selectively by utilising the following command options:
 
 ```
-npm run test <test-extent> <test-suite> [test-filename]
+npm test <test-extent> <test-suite> [test-filename]
 ```
 
 - Where **test-extent** can be one of `untagged | unstable | slow | extensive`
@@ -239,12 +239,12 @@ npm run test <test-extent> <test-suite> [test-filename]
 
 #### Examples:
 
-- `npm run test file test/unit/blocks.js` - To run a single test-file, specifying the path
-- `npm run test untagged transport` - All untagged (not slow or unstable) transport tests
-- `npm run test unstable transport` - All unstable transport tests
-- `npm run test slow unit` - All slow unit tests
-- `npm run test extensive unit` - All untagged, slow and unstable unit tests
-- `npm run test untagged all` - All untagged tests
+- `npm test untagged file test/unit/blocks.js` - To run a single test-file specifying the path
+- `npm test untagged transport` - All untagged (not slow or unstable) transport tests
+- `npm test unstable transport` - All unstable transport tests
+- `npm test slow unit` - All slow unit tests
+- `npm test extensive unit` - All untagged, slow and unstable unit tests
+- `npm test untagged all` - All untagged tests
 
 ### Genesis Account
 
