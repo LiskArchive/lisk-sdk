@@ -18,11 +18,7 @@ export {
 export { default as getTransactionBytes } from './getTransactionBytes';
 export { default as getTransactionHash } from './getTransactionHash';
 export { default as getTransactionId } from './getTransactionId';
-export {
-	hasNoDuplication,
-	prependPlusToPublicKeys,
-	prependMinusToPublicKeys,
-} from './format';
+export { prependPlusToPublicKeys, prependMinusToPublicKeys } from './format';
 export { default as prepareTransaction } from './prepareTransaction';
 export {
 	signTransaction,
@@ -31,6 +27,7 @@ export {
 } from './signAndVerify';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
 export {
+	checkPublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
 	validateKeysgroup,

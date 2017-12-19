@@ -28,8 +28,18 @@ export const validatePublicKey = publicKey => {
 	return true;
 };
 
+export const checkPublicKeysForDuplicates = publicKeys =>
+	publicKeys.every((element, index) => {
+		const elementFound = publicKeys.indexOf(element);
+		if (elementFound > -1 && elementFound !== index) {
+			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
+		}
+		return true;
+	});
+
 export const validatePublicKeys = publicKeys =>
-	publicKeys.every(validatePublicKey);
+	publicKeys.every(validatePublicKey) &&
+	checkPublicKeysForDuplicates(publicKeys);
 
 export const validateKeysgroup = keysgroup => {
 	if (keysgroup.length === 0 || keysgroup.length > 16) {
