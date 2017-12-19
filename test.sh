@@ -63,13 +63,13 @@ reset_data() {
 
 setup_suite() {
 	# Stop lisk
-	pm2 --silent stop app.js
+	pm2 --silent stop app.js || true
 
 	# Reset data to clean state
 	reset_data
 
 	# Start lisk
-	pm2 --silent start app.js
+	NODE_ENV="test" pm2 --silent start app.js
 	sleep 3
 }
 
