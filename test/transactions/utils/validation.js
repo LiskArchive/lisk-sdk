@@ -26,7 +26,7 @@ describe('public key validation', () => {
 			const invalidHexPublicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc';
 			it('should throw an error', () => {
-				validatePublicKey
+				return validatePublicKey
 					.bind(null, invalidHexPublicKey)
 					.should.throw('Invalid hex string');
 			});
@@ -36,7 +36,7 @@ describe('public key validation', () => {
 			const invalidHexPublicKey =
 				'12345678123456781234567812345678123456781234567812345678123456gg';
 			it('should throw an error', () => {
-				validatePublicKey
+				return validatePublicKey
 					.bind(null, invalidHexPublicKey)
 					.should.throw('Public key must be a valid hex string.');
 			});
@@ -46,7 +46,7 @@ describe('public key validation', () => {
 			const tooLongPublicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12';
 			it('should throw an error', () => {
-				validatePublicKey
+				return validatePublicKey
 					.bind(null, tooLongPublicKey)
 					.should.throw(
 						'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12 length differs from the expected 32 bytes for a public key.',
@@ -58,7 +58,7 @@ describe('public key validation', () => {
 			const tooShortPublicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b';
 			it('should throw an error', () => {
-				validatePublicKey
+				return validatePublicKey
 					.bind(null, tooShortPublicKey)
 					.should.throw(
 						'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b length differs from the expected 32 bytes for a public key.',
@@ -92,7 +92,7 @@ describe('public key validation', () => {
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
 			];
 			it('should throw an error', () => {
-				validatePublicKeys
+				return validatePublicKeys
 					.bind(null, publicKeys)
 					.should.throw('Invalid hex string');
 			});

@@ -30,8 +30,8 @@ export const validatePublicKey = publicKey => {
 
 export const checkPublicKeysForDuplicates = publicKeys =>
 	publicKeys.every((element, index) => {
-		const elementFound = publicKeys.indexOf(element);
-		if (elementFound > -1 && elementFound !== index) {
+		const elementFound = publicKeys.slice(index + 1).indexOf(element);
+		if (elementFound > -1) {
 			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
 		}
 		return true;
