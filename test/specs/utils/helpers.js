@@ -13,7 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpUtilWrapActionCreator } from '../../steps/setup';
+import {
+	setUpUtilCreateCommand,
+	setUpUtilWrapActionCreator,
+} from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
@@ -850,6 +853,7 @@ describe('utils helpers', () => {
 		});
 	});
 	describe('#createCommand', () => {
+		beforeEach(setUpUtilCreateCommand);
 		Given('a Vorpal instance', given.aVorpalInstance, () => {
 			Given(
 				'a command "some command <with> [some] [args...]"',
@@ -916,8 +920,8 @@ describe('utils helpers', () => {
 																				when.theCommandIsExecuted,
 																				() => {
 																					Then(
-																						'it should resolve to the object',
-																						then.itShouldResolveToTheObject,
+																						'the object should be printed',
+																						then.theObjectShouldBePrinted,
 																					);
 																				},
 																			);
@@ -974,8 +978,8 @@ describe('utils helpers', () => {
 																						when.theCommandIsExecuted,
 																						() => {
 																							Then(
-																								'it should resolve to the object',
-																								then.itShouldResolveToTheObject,
+																								'the object should be printed',
+																								then.theObjectShouldBePrinted,
 																							);
 																						},
 																					);

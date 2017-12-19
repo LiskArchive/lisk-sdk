@@ -26,18 +26,19 @@ const removeANSI = result =>
 		{},
 	);
 
-export const printResult = (vorpal, options = {}) => result => {
-	const useJSONOutput = shouldUseJSONOutput(config, options);
-	const prettifyOutput = shouldUsePrettyOutput(config, options);
-	const resultToPrint = useJSONOutput ? removeANSI(result) : result;
+export const printResult = (vorpal, options = {}) =>
+	function print(result) {
+		const useJSONOutput = shouldUseJSONOutput(config, options);
+		const prettifyOutput = shouldUsePrettyOutput(config, options);
+		const resultToPrint = useJSONOutput ? removeANSI(result) : result;
 
-	const output = useJSONOutput
-		? JSON.stringify(resultToPrint, null, prettifyOutput ? '\t' : null)
-		: tablify(resultToPrint).toString();
+		const output = useJSONOutput
+			? JSON.stringify(resultToPrint, null, prettifyOutput ? '\t' : null)
+			: tablify(resultToPrint).toString();
 
-	vorpal.activeCommand.log(output);
-	return resultToPrint;
-};
+		const logger = this && this.log ? this : vorpal;
+		logger.log(output);
+	};
 
 // TODO: Include commented placeholders when we support Node 8
 const PLACEHOLDERS = [

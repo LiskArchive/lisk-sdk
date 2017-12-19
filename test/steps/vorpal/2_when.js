@@ -164,12 +164,16 @@ export function theActionIsCalled() {
 export function theCommandIsExecuted() {
 	const { vorpal } = this.test.ctx;
 	const commandToExecute = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.returnValue = vorpal.exec(commandToExecute);
+	const returnValue = vorpal.exec(commandToExecute);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
 }
 
 export function theCreatedCommandIsCalledWithTheVorpalInstance() {
 	const { createdCommand, vorpal } = this.test.ctx;
-	this.test.ctx.returnValue = createdCommand(vorpal);
+	const returnValue = createdCommand(vorpal);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
 }
 
 export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix() {

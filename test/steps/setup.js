@@ -253,6 +253,10 @@ export function tearDownUtilConfig() {
 	restoreEnvVariable(LISKY_CONFIG_DIR).call(this);
 }
 
+export function setUpUtilCreateCommand() {
+	setUpPrintStubs.call(this);
+}
+
 export function setUpUtilCrypto() {
 	setUpLiskJSCryptoStubs();
 }
@@ -278,14 +282,14 @@ export function tearDownUtilInputUtils() {
 	restoreEnvVariable(TEST_PASSPHRASE).call(this);
 }
 
-export function setUpUtilWrapActionCreator() {
-	setUpPrintStubs.call(this);
-}
-
 export function setUpUtilPrint() {
 	delete require.cache[require.resolve('../../src/utils/print')];
 	setUpConsoleStubs();
 	setUpHelperStubs();
+}
+
+export function setUpUtilWrapActionCreator() {
+	setUpPrintStubs.call(this);
 }
 
 export function setUpExecFile() {
