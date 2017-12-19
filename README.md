@@ -2,116 +2,216 @@
 
 Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. For more information please refer to our website: https://lisk.io/.
 
-[![Build Status](https://travis-ci.org/LiskHQ/lisk.svg?branch=development)](https://travis-ci.org/LiskHQ/lisk)
+[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-core/development)](https://jenkins.lisk.io/job/lisk-core/job/development)
 [![Coverage Status](https://coveralls.io/repos/github/LiskHQ/lisk/badge.svg?branch=development)](https://coveralls.io/github/LiskHQ/lisk?branch=development)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 [![Join the chat at https://gitter.im/LiskHQ/lisk](https://badges.gitter.im/LiskHQ/lisk.svg)](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**NOTE:** The following information is applicable to: **Ubuntu 14.04, 16.04 (LTS) or 16.10 - x86_64**.
-
 ## Prerequisites - In order
+
+This sections provides details on what you need install on your system in order to run Lisk.
+
+### System Install
 
 - Tool chain components -- Used for compiling dependencies
 
-  `sudo apt-get install -y python build-essential curl automake autoconf libtool`
+    - Ubuntu/Debian:
+
+        ```
+        sudo apt-get update
+        sudo apt-get install -y python build-essential curl automake autoconf libtool
+        ```
+
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
+
+        Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
+
+        Update homebrew and install dependencies:
+
+        ```
+        brew update
+        brew doctor
+        brew install curl automake autoconf libtool
+        ```
 
 - Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
-  `sudo apt-get install -y git`
+    - Ubuntu/Debian:
 
-- Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for code execution.
+        ```
+        sudo apt-get install -y git
+        ```
 
-  System wide via package manager:
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
+
+        ```
+        brew install git
+        ```
+
+### Node.js (<https://nodejs.org/>)
+
+- Node.js serves as the underlying engine for code execution.
+
+    Install System wide via package manager:
+
+    - Ubuntu/Debian:
+
+        ```
+        curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        ```
+
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
+
+        ```
+        brew install node@6
+        ```
+
+- _(Recommended)_ Install n -- Used for Node.js version management
+
+    ```
+    npm install -g n
+    n 6.12.1
+    ```
+
+- _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
 
   ```
-  curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-  sudo apt-get install -y nodejs
+  npm install -g pm2
   ```
 
-  Locally using [nvm](https://github.com/creationix/nvm):
+#### Special note about NPM 5
+
+Due to an issue with NPM 5.4.x and higher, node-sodium currently cannot be built. Therefore it is recommended to fixate the local NPM version at 5.3.x if you are running NPM 5.4.x or higher.
+
+All Systems - This may require sudo depending on your environment:
+
+```
+npm install -g npm@5.3.0
+```
+
+### PostgreSQL (version 9.6.6):
+
+   - Ubuntu/Debian:
+
+        ```
+        curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+        sudo -u postgres createuser --createdb $USER
+        createdb lisk_test
+        createdb lisk_main
+        sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+        sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+        ```
+
+   - MacOS 10.12-10.13 (Sierra/High Sierra):
+
+        ```
+        brew install postgresql@9.6
+        initdb /usr/local/var/postgres -E utf8
+        brew services start postgresql@9.6
+        createdb lisk_test
+        createdb lisk_main
+        ```
+
+### Installing Redis
+
+   - Ubuntu/Debian:
+
+        ```
+        sudo apt-get install redis-server
+        ```
+
+        Start redis:
+
+        ```
+        service redis start
+        ```
+
+        Stop redis:
+
+        ```
+        service redis stop
+        ```
+
+   - MacOS 10.12-10.13 (Sierra/High Sierra):
+
+        ```
+        brew install redis
+        ```
+
+        Start redis:
+
+        ```
+        brew services start redis
+        ```
+
+        Stop redis:
+
+        ```
+        brew services stop redis
+        ```
+
+**NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
+
+1. **Change the Lisk configuration**
+
+  Update the redis port configuration in both `config.json` and `test/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
+
+2. **Change the Redis launch configuration**
+
+  Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+
+  1. Stop redis-server
+  2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
+    - Ubuntu/Debian: `/etc/redis/redis.conf`
+    - MacOS: `/usr/local/etc/redis.conf`
+  3. Start redis-server
+
+  Now confirm that redis is running on `port 6380`:
 
   ```
-  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-  nvm install v6.10.1
+  redis-cli -p 6380
+  ping
   ```
 
-- Install PostgreSQL (version 9.6.2):
-
-  ```
-  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-  sudo -u postgres createuser --createdb $USER
-  createdb lisk_test
-  createdb lisk_main
-  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
-  ```
-
-- Bower (<http://bower.io/>) -- Bower helps to install required JavaScript dependencies.
-
-  `npm install -g bower`
-
-- Grunt.js (<http://gruntjs.com/>) -- Grunt is used to compile the frontend code and serves other functions.
-
-  `npm install -g grunt-cli`
-
-- PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk (Optional)
-
-  `npm install -g pm2`
+  And you should get the result `PONG`.
 
 ## Installation Steps
 
-Clone the Lisk repository using Git and initialize the modules.
+Clone the Lisk repository using git and initialize the modules.
 
 ```
 git clone https://github.com/LiskHQ/lisk.git
 cd lisk
+git checkout master
 npm install
-```
-
-Install Lisk Node, a specialized version of Node.js used to execute dapps within a virtual machine:
-
-```
-wget https://downloads.lisk.io/lisk-node/lisk-node-Linux-x86_64.tar.gz
-tar -zxvf lisk-node-Linux-x86_64.tar.gz
-```
-
-Lisk Node has to be in `[LISK_DIR]/nodejs/node`.
-
-Load git submodules ([lisk-ui](https://github.com/LiskHQ/lisk-ui) and [lisk-js](https://github.com/LiskHQ/lisk-js)):
-
-```
-git submodule init
-git submodule update
-```
-
-Build the user-interface:
-
-```
-cd public
-npm install
-bower install
-grunt release
 ```
 
 ## Managing Lisk
 
-To test that Lisk is built and configured correctly, run the following command:
+To test that Lisk is built and configured correctly, issue the following command:
 
-`node app.js`
-
-In a browser navigate to: <http://localhost:8000> (for the mainnet) or <http://localhost:7000> (for the testnet). If Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
+```
+node app.js
+```
 
 Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
 
-`pm2 start --name lisk app.js`
+```
+pm2 start --name lisk app.js
+```
 
 After the process is started, its runtime status and log location can be retrieved by issuing the following command:
 
-`pm2 show lisk`
+```
+pm2 show lisk
+```
 
 To stop Lisk after it has been started with `pm2`, issue the following command:
 
-`pm2 stop lisk`
+```
+pm2 stop lisk
+```
 
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
@@ -121,55 +221,42 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 ## Tests
 
-Before running any tests, please ensure Lisk is configured to run on the same testnet that is used by the test-suite.
-
-Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test** directory:
+The test suite is comprised of four categories `unit`, `system`, `transport` and `api`. It can be executed in full by issuing the following command:
 
 ```
-cp test/config.json test/genesisBlock.json .
+npm test extensive all
 ```
 
-**NOTE:** If the node was started with a different genesis block previous, trauncate the database before running tests.
+The test suite can also be run selectively by utilising the following command options:
 
 ```
-dropdb lisk_test
-createdb lisk_test
+npm test <test-extent> <test-suite> [test-filename]
 ```
 
-**NOTE:** The master passphrase for this genesis block is as follows:
+- Where **test-extent** can be one of `untagged | unstable | slow | extensive`
+- Where **test-suite** can be one of  `file | unit | system | transport | api | all`
+- Where **test-filename** is the test's filename when `test-suite` equals `file`
+
+#### Examples:
+
+- `npm test untagged file test/unit/blocks.js` - To run a single test-file specifying the path
+- `npm test untagged transport` - All untagged (not slow or unstable) transport tests
+- `npm test unstable transport` - All unstable transport tests
+- `npm test slow unit` - All slow unit tests
+- `npm test extensive unit` - All untagged, slow and unstable unit tests
+- `npm test untagged all` - All untagged tests
+
+### Genesis Account
+
+The master passphrase for the genesis block used by the test suite is as follows:
 
 ```
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
 ```
 
-Launch Lisk (runs on port 4000):
+## Contributors
 
-```
-node app.js
-```
-
-Run the test suite:
-
-```
-npm test
-```
-
-Run individual tests:
-
-```
-npm test -- test/lib/accounts.js
-npm test -- test/lib/transactions.js
-```
-
-## Authors
-
-- Boris Povod <boris@crypti.me>
-- Pavel Nekrasov <landgraf.paul@gmail.com>
-- Sebastian Stupurac <stupurac.sebastian@gmail.com>
-- Oliver Beddows <oliver@lightcurve.io>
-- Isabella Dell <isabella@lightcurve.io>
-- Marius Serek <mariusz@serek.net>
-- Maciej Baj <maciej@lightcurve.io>
+https://github.com/LiskHQ/lisk/graphs/contributors
 
 ## License
 

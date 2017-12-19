@@ -286,6 +286,8 @@ function __init (initScope, done) {
 				});
 			};
 		});
+	}).catch(function (err) {
+		node.debug(err.stack);
 	});
 };
 

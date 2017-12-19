@@ -14,7 +14,7 @@ function postTransactions (transactions, done) {
 	}, done);
 }
 
-describe('POST /peer/transactions', function () {
+describe('POST /peer/transactions @slow', function () {
 
 	describe('sending 1000 bundled transfers to random addresses', function () {
 
