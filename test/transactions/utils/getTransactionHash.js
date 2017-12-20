@@ -46,7 +46,7 @@ describe('#getTransactionHash', () => {
 	});
 
 	it('should get transaction bytes', () => {
-		transactionBytesStub.should.be.calledWithExactly(transaction);
+		return transactionBytesStub.should.be.calledWithExactly(transaction);
 	});
 
 	it('should return a hash for a transaction object as a Buffer', () => {
@@ -54,6 +54,6 @@ describe('#getTransactionHash', () => {
 			'f60a26da470b1dc233fd526ed7306c1d84836f9e2ecee82c9ec47319e0910474',
 			'hex',
 		);
-		result.should.be.eql(expected);
+		return result.should.be.eql(expected);
 	});
 });

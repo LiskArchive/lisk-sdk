@@ -56,14 +56,14 @@ describe('convert', () => {
 	describe('#bufferToHex', () => {
 		it('should create a hex string from a Buffer', () => {
 			const hex = bufferToHex(defaultBuffer);
-			hex.should.be.equal(defaultHex);
+			return hex.should.be.equal(defaultHex);
 		});
 	});
 
 	describe('#hexToBuffer', () => {
 		it('should create a Buffer from a hex string', () => {
 			const buffer = hexToBuffer(defaultHex);
-			buffer.should.be.eql(defaultBuffer);
+			return buffer.should.be.eql(defaultBuffer);
 		});
 	});
 
@@ -71,7 +71,7 @@ describe('convert', () => {
 		it('should get the first eight bytes reversed from a Buffer', () => {
 			const bufferEntry = Buffer.from(defaultStringWithMoreThanEightCharacters);
 			const reversedAndCut = getFirstEightBytesReversed(bufferEntry);
-			reversedAndCut.should.be.eql(
+			return reversedAndCut.should.be.eql(
 				Buffer.from(defaultFirstEightCharactersReversed),
 			);
 		});
@@ -80,7 +80,7 @@ describe('convert', () => {
 			const reversedAndCut = getFirstEightBytesReversed(
 				defaultStringWithMoreThanEightCharacters,
 			);
-			reversedAndCut.should.be.eql(
+			return reversedAndCut.should.be.eql(
 				Buffer.from(defaultFirstEightCharactersReversed),
 			);
 		});
@@ -90,7 +90,7 @@ describe('convert', () => {
 		it('should create an address from a buffer', () => {
 			const bufferInit = Buffer.from(defaultDataForBuffer);
 			const address = toAddress(bufferInit);
-			address.should.be.eql(defaultAddressFromBuffer);
+			return address.should.be.eql(defaultAddressFromBuffer);
 		});
 	});
 
@@ -101,7 +101,7 @@ describe('convert', () => {
 
 		it('should generate address from publicKey', () => {
 			const address = getAddressFromPublicKey(defaultPublicKey);
-			address.should.be.equal(defaultAddress);
+			return address.should.be.equal(defaultAddress);
 		});
 	});
 
@@ -112,14 +112,14 @@ describe('convert', () => {
 
 		it('should generate address from publicKey', () => {
 			const address = getAddress(defaultPublicKey);
-			address.should.be.equal(defaultAddress);
+			return address.should.be.equal(defaultAddress);
 		});
 	});
 
 	describe('#convertPublicKeyEd2Curve', () => {
 		it('should convert publicKey ED25519 to Curve25519 key', () => {
 			const curveRepresentation = convertPublicKeyEd2Curve(defaultPublicKey);
-			defaultPublicKeyCurve
+			return defaultPublicKeyCurve
 				.equals(Buffer.from(curveRepresentation))
 				.should.be.true();
 		});
@@ -128,7 +128,7 @@ describe('convert', () => {
 	describe('#convertPrivateKeyEd2Curve', () => {
 		it('should convert privateKey ED25519 to Curve25519 key', () => {
 			const curveRepresentation = convertPrivateKeyEd2Curve(defaultPrivateKey);
-			defaultPrivateKeyCurve
+			return defaultPrivateKeyCurve
 				.equals(Buffer.from(curveRepresentation))
 				.should.be.true();
 		});
@@ -139,7 +139,9 @@ describe('convert', () => {
 			const bigNumber = '58191285901858109';
 			const addressSize = 8;
 			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
-			bigNumberToBuffer(bigNumber, addressSize).should.be.eql(expectedBuffer);
+			return bigNumberToBuffer(bigNumber, addressSize).should.be.eql(
+				expectedBuffer,
+			);
 		});
 	});
 
@@ -147,7 +149,7 @@ describe('convert', () => {
 		it('should convert a buffer to a big number', () => {
 			const bigNumber = '58191285901858109';
 			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
-			bufferToBigNumberString(buffer).should.be.equal(bigNumber);
+			return bufferToBigNumberString(buffer).should.be.equal(bigNumber);
 		});
 	});
 });

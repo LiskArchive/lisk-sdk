@@ -23,14 +23,14 @@ describe('#getAddressAndPublicKeyFromRecipientData', () => {
 
 	describe('When both recipientPublicKey and an address are given', () => {
 		it('when they match, it should return the address and publicKey', () => {
-			getAddressAndPublicKeyFromRecipientData({
+			return getAddressAndPublicKeyFromRecipientData({
 				recipientId,
 				recipientPublicKey,
 			}).should.be.eql({ address: recipientId, publicKey: recipientPublicKey });
 		});
 
 		it('when they do not match, it should throw', () => {
-			getAddressAndPublicKeyFromRecipientData
+			return getAddressAndPublicKeyFromRecipientData
 				.bind(null, {
 					recipientId,
 					recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
@@ -43,7 +43,7 @@ describe('#getAddressAndPublicKeyFromRecipientData', () => {
 
 	describe('When a recipientPublicKey and no address is given', () => {
 		it('it should return the address and the publicKey', () => {
-			getAddressAndPublicKeyFromRecipientData({
+			return getAddressAndPublicKeyFromRecipientData({
 				recipientPublicKey,
 			}).should.be.eql({ address: recipientId, publicKey: recipientPublicKey });
 		});
@@ -51,7 +51,9 @@ describe('#getAddressAndPublicKeyFromRecipientData', () => {
 
 	describe('When an address is given but no publicKey', () => {
 		it('it should return the address and null for the publicKey', () => {
-			getAddressAndPublicKeyFromRecipientData({ recipientId }).should.be.eql({
+			return getAddressAndPublicKeyFromRecipientData({
+				recipientId,
+			}).should.be.eql({
 				address: recipientId,
 				publicKey: null,
 			});

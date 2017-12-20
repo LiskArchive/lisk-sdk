@@ -58,13 +58,13 @@ describe('keys', () => {
 		});
 
 		it('should create buffer publicKey', () => {
-			Buffer.from(keyPair.publicKey)
+			return Buffer.from(keyPair.publicKey)
 				.toString('hex')
 				.should.be.equal(defaultPublicKey);
 		});
 
 		it('should create buffer privateKey', () => {
-			Buffer.from(keyPair.privateKey)
+			return Buffer.from(keyPair.privateKey)
 				.toString('hex')
 				.should.be.equal(defaultPrivateKey);
 		});
@@ -78,11 +78,13 @@ describe('keys', () => {
 		});
 
 		it('should generate the correct publicKey from a passphrase', () => {
-			keyPair.should.have.property('publicKey').and.be.equal(defaultPublicKey);
+			return keyPair.should.have
+				.property('publicKey')
+				.and.be.equal(defaultPublicKey);
 		});
 
 		it('should generate the correct privateKey from a passphrase', () => {
-			keyPair.should.have
+			return keyPair.should.have
 				.property('privateKey')
 				.and.be.equal(defaultPrivateKey);
 		});
@@ -96,11 +98,13 @@ describe('keys', () => {
 		});
 
 		it('should generate the correct publicKey from a passphrase', () => {
-			keyPair.should.have.property('publicKey').and.be.equal(defaultPublicKey);
+			return keyPair.should.have
+				.property('publicKey')
+				.and.be.equal(defaultPublicKey);
 		});
 
 		it('should generate the correct privateKey from a passphrase', () => {
-			keyPair.should.have
+			return keyPair.should.have
 				.property('privateKey')
 				.and.be.equal(defaultPrivateKey);
 		});
@@ -108,7 +112,7 @@ describe('keys', () => {
 
 	describe('#getAddressAndPublicKeyFromPassphrase', () => {
 		it('should create correct address and publicKey', () => {
-			getAddressAndPublicKeyFromPassphrase(defaultPassphrase).should.eql(
+			return getAddressAndPublicKeyFromPassphrase(defaultPassphrase).should.eql(
 				defaultAddressAndPublicKey,
 			);
 		});

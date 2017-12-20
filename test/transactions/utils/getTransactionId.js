@@ -48,6 +48,6 @@ describe('#getTransactionId', () => {
 		};
 		const id = getTransactionId(transaction);
 
-		id.should.be.equal(defaultTransactionId);
+		return id.should.be.equal(defaultTransactionId);
 	});
 });

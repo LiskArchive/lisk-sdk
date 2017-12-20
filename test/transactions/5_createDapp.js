@@ -57,198 +57,204 @@ describe('#createDapp transaction', () => {
 		});
 
 		it('should create a create dapp transaction', () => {
-			createDappTransaction.should.be.ok();
+			return createDappTransaction.should.be.ok();
 		});
 
 		it('should throw an error if no options are provided', () => {
-			createDapp.bind(null, { passphrase }).should.throw(noOptionsError);
+			return createDapp.bind(null, { passphrase }).should.throw(noOptionsError);
 		});
 
 		it('should throw an error if no category is provided', () => {
 			delete options.category;
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if provided category is not an integer', () => {
 			options.category = 'not an integer';
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if no name is provided', () => {
 			delete options.name;
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(nameStringError);
 		});
 
 		it('should throw an error if provided name is not a string', () => {
 			options.name = 123;
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(nameStringError);
 		});
 
 		it('should throw an error if no type is provided', () => {
 			delete options.type;
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(typeIntegerError);
 		});
 
 		it('should throw an error if provided type is not an integer', () => {
 			options.type = 'not an integer';
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(typeIntegerError);
 		});
 
 		it('should throw an error if no link is provided', () => {
 			delete options.link;
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(linkStringError);
 		});
 
 		it('should throw an error if provided link is not a string', () => {
 			options.link = 123;
-			createDapp
+			return createDapp
 				.bind(null, { passphrase, options })
 				.should.throw(linkStringError);
 		});
 
 		it('should not require description, tags, or icon', () => {
 			['description', 'tags', 'icon'].forEach(key => delete options[key]);
-			createDapp.bind(null, { passphrase, options }).should.not.throw();
+			return createDapp.bind(null, { passphrase, options }).should.not.throw();
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			createDapp({ passphrase, options, timeOffset: offset });
 
-			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		describe('returned create dapp transaction', () => {
 			it('should be an object', () => {
-				createDappTransaction.should.be.type('object');
+				return createDappTransaction.should.be.type('object');
 			});
 
 			it('should have an id string', () => {
-				createDappTransaction.should.have.property('id').and.be.type('string');
+				return createDappTransaction.should.have
+					.property('id')
+					.and.be.type('string');
 			});
 
 			it('should have type number equal to 5', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('type')
 					.and.be.type('number')
 					.and.equal(5);
 			});
 
 			it('should have amount string equal to 0', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
 					.and.equal('0');
 			});
 
 			it('should have fee string equal to 25 LSK', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
 					.and.equal(fee);
 			});
 
 			it('should have recipientId equal to null', () => {
-				createDappTransaction.should.have.property('recipientId').and.be.null();
+				return createDappTransaction.should.have
+					.property('recipientId')
+					.and.be.null();
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('senderPublicKey')
 					.and.be.hexString()
 					.and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('timestamp')
 					.and.be.type('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('signature')
 					.and.be.hexString();
 			});
 
 			it('should not have the second signature property', () => {
-				createDappTransaction.should.not.have.property('signSignature');
+				return createDappTransaction.should.not.have.property('signSignature');
 			});
 
 			it('should have asset', () => {
-				createDappTransaction.should.have.property('asset').and.not.be.empty();
+				return createDappTransaction.should.have
+					.property('asset')
+					.and.not.be.empty();
 			});
 
 			describe('dapps asset', () => {
 				it('should be object', () => {
-					createDappTransaction.asset.should.have
+					return createDappTransaction.asset.should.have
 						.property('dapp')
 						.and.be.type('object');
 				});
 
 				it('should have a category number equal to provided category', () => {
-					createDappTransaction.asset.dapp.should.have
+					return createDappTransaction.asset.dapp.should.have
 						.property('category')
 						.and.be.type('number')
 						.and.equal(options.category);
 				});
 
 				it('should have a name string equal to provided name', () => {
-					createDappTransaction.asset.dapp.should.have
+					return createDappTransaction.asset.dapp.should.have
 						.property('name')
 						.and.be.type('string')
 						.and.equal(options.name);
 				});
 
 				it('should have a description string equal to provided description', () => {
-					createDappTransaction.asset.dapp.should.have
+					return createDappTransaction.asset.dapp.should.have
 						.property('description')
 						.and.be.type('string')
 						.and.equal(options.description);
 				});
 
 				it('should have a tags string equal to provided tags', () => {
-					createDappTransaction.asset.dapp.should.have
+					return createDappTransaction.asset.dapp.should.have
 						.property('tags')
 						.and.be.type('string')
 						.and.equal(options.tags);
 				});
 
 				it('should have a type number equal to provided type', () => {
-					createDappTransaction.asset.dapp.should.have
+					return createDappTransaction.asset.dapp.should.have
 						.property('type')
 						.and.be.type('number')
 						.and.equal(options.type);
 				});
 
 				it('should have a link string equal to provided link', () => {
-					createDappTransaction.asset.dapp.should.have
+					return createDappTransaction.asset.dapp.should.have
 						.property('link')
 						.and.be.type('string')
 						.and.equal(options.link);
 				});
 
 				it('should have an icon string equal to provided icon', () => {
-					createDappTransaction.asset.dapp.should.have
+					return createDappTransaction.asset.dapp.should.have
 						.property('icon')
 						.and.be.type('string')
 						.and.equal(options.icon);
@@ -267,7 +273,7 @@ describe('#createDapp transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			createDappTransaction.should.have
+			return createDappTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
 		});

@@ -105,14 +105,14 @@ describe('encrypt', () => {
 		});
 
 		it('should encrypt a message', () => {
-			encryptedMessage.should.have
+			return encryptedMessage.should.have
 				.property('encryptedMessage')
 				.be.hexString()
 				.with.length(68);
 		});
 
 		it('should output the nonce', () => {
-			encryptedMessage.should.have
+			return encryptedMessage.should.have
 				.property('nonce')
 				.be.hexString()
 				.with.length(48);
@@ -128,11 +128,11 @@ describe('encrypt', () => {
 				defaultPublicKey,
 			);
 
-			decryptedMessage.should.be.equal(defaultMessage);
+			return decryptedMessage.should.be.equal(defaultMessage);
 		});
 
 		it('should inform the user if the nonce is the wrong length', () => {
-			decryptMessageWithPassphrase
+			return decryptMessageWithPassphrase
 				.bind(
 					null,
 					defaultEncryptedMessageWithNonce.encryptedMessage,
@@ -144,7 +144,7 @@ describe('encrypt', () => {
 		});
 
 		it('should inform the user if something goes wrong during decryption', () => {
-			decryptMessageWithPassphrase
+			return decryptMessageWithPassphrase
 				.bind(
 					null,
 					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
@@ -179,14 +179,14 @@ describe('encrypt', () => {
 			});
 
 			it('should encrypt a passphrase', () => {
-				cipher.should.be
+				return cipher.should.be
 					.type('object')
 					.and.have.property('cipher')
 					.and.be.hexString();
 			});
 
 			it('should output the IV', () => {
-				cipher.should.be
+				return cipher.should.be
 					.type('object')
 					.and.have.property('iv')
 					.and.be.hexString()
@@ -194,7 +194,7 @@ describe('encrypt', () => {
 			});
 
 			it('should output the tag', () => {
-				cipher.should.be
+				return cipher.should.be
 					.type('object')
 					.and.have.property('tag')
 					.and.be.hexString()
@@ -219,26 +219,26 @@ describe('encrypt', () => {
 					cipherNonceAndTag,
 					defaultPassword,
 				);
-				decrypted.should.be.eql(defaultPassphrase);
+				return decrypted.should.be.eql(defaultPassphrase);
 			});
 
 			it('should inform the user if the tag has been shortened', () => {
 				cipherNonceAndTag.tag = cipherNonceAndTag.tag.slice(0, 30);
-				decryptPassphraseWithPassword
+				return decryptPassphraseWithPassword
 					.bind(null, cipherNonceAndTag, defaultPassword)
 					.should.throw('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
 				cipherNonceAndTag.tag = `${cipherNonceAndTag.tag.slice(0, 30)}gg`;
-				decryptPassphraseWithPassword
+				return decryptPassphraseWithPassword
 					.bind(null, cipherNonceAndTag, defaultPassword)
 					.should.throw('Tag must be a hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
 				cipherNonceAndTag.tag = `00${cipherNonceAndTag.tag.slice(2)}`;
-				decryptPassphraseWithPassword
+				return decryptPassphraseWithPassword
 					.bind(null, cipherNonceAndTag, defaultPassword)
 					.should.throw('Unsupported state or unable to authenticate data');
 			});
@@ -254,7 +254,7 @@ describe('encrypt', () => {
 					encryptedString,
 					defaultPassword,
 				);
-				decryptedString.should.be.eql(defaultPassphrase);
+				return decryptedString.should.be.eql(defaultPassphrase);
 			});
 		});
 	});

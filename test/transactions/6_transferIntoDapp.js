@@ -47,90 +47,92 @@ describe('#transferIntoDapp transaction', () => {
 		});
 
 		it('should create an inTransfer dapp transaction', () => {
-			transferIntoDappTransaction.should.be.ok();
+			return transferIntoDappTransaction.should.be.ok();
 		});
 
 		it('should use time.getTimeWithOffset to get the time for the timestamp', () => {
-			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to get the time for the timestamp', () => {
 			transferIntoDapp({ dappId, amount, passphrase, timeOffset: offset });
 
-			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		describe('returned inTransfer transaction object', () => {
 			it('should be an object', () => {
-				transferIntoDappTransaction.should.be.type('object');
+				return transferIntoDappTransaction.should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('id')
 					.and.be.type('string');
 			});
 
 			it('should have type number equal to 6', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('type')
 					.and.be.type('number')
 					.and.equal(6);
 			});
 
 			it('should have amount string equal to 10 LSK', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 0.1 LSK', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
 					.and.equal(transferFee);
 			});
 
 			it('should have recipientId equal to null', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('recipientId')
 					.be.null();
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('senderPublicKey')
 					.and.be.hexString()
 					.and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('timestamp')
 					.and.be.type('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('signature')
 					.and.be.hexString();
 			});
 
 			it('should not have the second signature property', () => {
-				transferIntoDappTransaction.should.not.have.property('signSignature');
+				return transferIntoDappTransaction.should.not.have.property(
+					'signSignature',
+				);
 			});
 
 			it('should have an asset object', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('asset')
 					.and.be.type('object');
 			});
 
 			describe('asset', () => {
 				it('should have the in transfer dapp id', () => {
-					transferIntoDappTransaction.asset.should.have
+					return transferIntoDappTransaction.asset.should.have
 						.property('inTransfer')
 						.with.property('dappId')
 						.and.be.equal(dappId);
@@ -150,7 +152,7 @@ describe('#transferIntoDapp transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			transferIntoDappTransaction.should.have
+			return transferIntoDappTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
 		});

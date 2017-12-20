@@ -41,96 +41,98 @@ describe('#registerDelegate transaction', () => {
 		});
 
 		it('should create a register delegate transaction', () => {
-			registerDelegateTransaction.should.be.ok();
+			return registerDelegateTransaction.should.be.ok();
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			registerDelegate({ passphrase, username, timeOffset: offset });
 
-			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		it('should be an object', () => {
-			registerDelegateTransaction.should.be.type('object');
+			return registerDelegateTransaction.should.be.type('object');
 		});
 
 		it('should have an id string', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('id')
 				.and.be.type('string');
 		});
 
 		it('should have type number equal to 2', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('type')
 				.and.be.type('number')
 				.and.equal(2);
 		});
 
 		it('should have amount string equal to 0', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('amount')
 				.and.be.type('string')
 				.and.equal('0');
 		});
 
 		it('should have fee string equal to 25 LSK', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('fee')
 				.and.be.type('string')
 				.and.equal(fee);
 		});
 
 		it('should have recipientId equal to null', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('recipientId')
 				.and.be.null();
 		});
 
 		it('should have senderPublicKey hex string equal to sender public key', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('senderPublicKey')
 				.and.be.hexString()
 				.and.equal(publicKey);
 		});
 
 		it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('timestamp')
 				.and.be.type('number')
 				.and.equal(timeWithOffset);
 		});
 
 		it('should have signature hex string', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('signature')
 				.and.be.hexString();
 		});
 
 		it('should not have the second signature property', () => {
-			registerDelegateTransaction.should.not.have.property('signSignature');
+			return registerDelegateTransaction.should.not.have.property(
+				'signSignature',
+			);
 		});
 
 		it('should have asset', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('asset')
 				.and.not.be.empty();
 		});
 
 		describe('delegate asset', () => {
 			it('should be an object', () => {
-				registerDelegateTransaction.asset.should.have
+				return registerDelegateTransaction.asset.should.have
 					.property('delegate')
 					.and.be.type('object');
 			});
 
 			it('should have the provided username as a string', () => {
-				registerDelegateTransaction.asset.delegate.should.have
+				return registerDelegateTransaction.asset.delegate.should.have
 					.property('username')
 					.and.be.type('string')
 					.and.equal(username);
@@ -148,7 +150,7 @@ describe('#registerDelegate transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			registerDelegateTransaction.should.have
+			return registerDelegateTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
 		});
