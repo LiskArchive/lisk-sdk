@@ -15,18 +15,6 @@ module.exports = {
 			}
 		},
 	},
-	transactions: {
-		id: 'transport.transactions',
-		type: 'object',
-		properties: {
-			transactions: {
-				type: 'array',
-				minItems: 1,
-				maxItems: 25
-			}
-		},
-		required: ['transactions']
-	},
 	internalAccess: {
 		id: 'transport.internalAccess',
 		type: 'object',
