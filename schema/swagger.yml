@@ -2395,6 +2395,7 @@ definitions:
         maxLength: 16
 
   WSPeerUpdateRequest:
+    x-private: true
     type: object
     required:
       - data
@@ -2424,6 +2425,7 @@ definitions:
         type: number
 
   WSSignaturesList:
+    x-private: true
     type: object
     required:
       - signatures
@@ -2436,6 +2438,7 @@ definitions:
         maxItems: 25
 
   WSSignature:
+    x-private: true
     type: object
     required:
       - transaction
@@ -2451,6 +2454,7 @@ definitions:
         format: signature
 
   WSBlocksCommonRequest:
+    x-private: true
     type: object
     required:
       - ids
@@ -2460,6 +2464,7 @@ definitions:
         format: csv
 
   WSTransaction:
+    x-private: true
     type: object
     required:
       - id
@@ -2549,6 +2554,7 @@ definitions:
         format: signature
 
   WSTransactionsReqeuest:
+    x-private: true
     type: object
     required:
       - transactions
@@ -2561,6 +2567,7 @@ definitions:
         maxItems: 25
 
   WSAccessObject:
+    x-private: true
     type: object
     required:
       - peer
@@ -2577,6 +2584,7 @@ definitions:
         maximum: 1
 
   WSTransactionsResponse:
+    x-private: true
     type: object
     required:
       - transactions
@@ -2589,6 +2597,7 @@ definitions:
           type: object
 
   WSSignaturesResponse:
+    x-private: true
     required:
       - signatures
     properties:
