@@ -2575,3 +2575,26 @@ definitions:
         type: integer
         minimum: 0
         maximum: 1
+
+  WSTransactionsResponse:
+    type: object
+    required:
+      - transactions
+    properties:
+      transactions:
+        type: array
+        uniqueItems: true
+        maxItems: 100
+        items:
+          type: object
+
+  WSSignaturesResponse:
+    required:
+      - signatures
+    properties:
+      signatures:
+        type: array
+        uniqueItems: true
+        maxItems: 100
+        items:
+          type: object
