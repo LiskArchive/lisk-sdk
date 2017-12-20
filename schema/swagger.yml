@@ -2344,3 +2344,52 @@ definitions:
       balance:
         type: string
         example: 1081560729258
+
+  WSPeerHeaders:
+    x-private: true
+    type: object
+    required:
+      - httpPort
+      - wsPort
+      - os
+      - version
+      - height
+      - nethash
+      - nonce
+    properties:
+      httpPort:
+        type: integer
+        example: 8000
+        format: int32
+        minimum: 1
+        maximum: 65535
+      wsPort:
+        type: integer
+        example: 8001
+        format: int32
+        minimum: 1
+        maximum: 65535
+      os:
+        type: string
+        example: debian
+      version:
+        type: string
+        example: v0.8.0
+        format: version
+        minLength: 5
+        maxLength: 12
+      height:
+        type: integer
+        example: 123
+      nethash:
+        type: string
+        maxLength: 64
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        format: hex
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 16
+        maxLength: 16

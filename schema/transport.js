@@ -3,52 +3,6 @@
 var constants = require('../helpers/constants.js');
 
 module.exports = {
-	headers: {
-		id: 'transport.headers',
-		type: 'object',
-		properties: {
-			wsPort: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 65535
-			},
-			httpPort: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 65535
-			},
-			os: {
-				type: 'string',
-				format: 'os',
-				minLength: 1,
-				maxLength: 64
-			},
-			version: {
-				type: 'string',
-				format: 'version',
-				minLength: 5,
-				maxLength: 12
-			},
-			nethash: {
-				type: 'string',
-				maxLength: 64
-			},
-			broadhash: {
-				type: 'string',
-				format: 'hex'
-			},
-			height: {
-				type: 'integer',
-				minimum: 1
-			},
-			nonce: {
-				type: 'string',
-				minLength: 16,
-				maxLength: 16
-			}
-		},
-		required: ['wsPort', 'httpPort', 'version', 'nonce', 'nethash', 'height', 'os']
-	},
 	commonBlock: {
 		id: 'transport.commonBlock',
 		type: 'object',

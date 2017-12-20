@@ -125,7 +125,7 @@ describe('handshake', function () {
 				connect();
 				expectDisconnect(this, function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('#/height: Expected type integer but found type not-a-number');
+					expect(description).contain('height: Expected type integer but found type not-a-number');
 					done();
 				});
 			});

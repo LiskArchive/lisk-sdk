@@ -118,7 +118,7 @@ describe('ClientRPCStub', function () {
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/wsPort: Expected type integer but found type not-a-number');
+					expect(err).to.have.property('description').equal('wsPort: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -137,7 +137,7 @@ describe('ClientRPCStub', function () {
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/nonce: String is too short (9 chars), minimum 16');
+					expect(err).to.have.property('description').equal('nonce: String is too short (9 chars), minimum 16');
 					done();
 				});
 			});
@@ -147,7 +147,7 @@ describe('ClientRPCStub', function () {
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/nonce: String is too long (26 chars), maximum 16');
+					expect(err).to.have.property('description').equal('nonce: String is too long (26 chars), maximum 16');
 					done();
 				});
 			});
@@ -157,7 +157,7 @@ describe('ClientRPCStub', function () {
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/: Missing required property: nonce');
+					expect(err).to.have.property('description').equal(': Missing required property: nonce');
 					done();
 				});
 			});
@@ -167,7 +167,7 @@ describe('ClientRPCStub', function () {
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/: Missing required property: nethash');
+					expect(err).to.have.property('description').equal(': Missing required property: nethash');
 					done();
 				});
 			});
@@ -177,7 +177,7 @@ describe('ClientRPCStub', function () {
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/height: Expected type integer but found type not-a-number');
+					expect(err).to.have.property('description').equal('height: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -187,7 +187,7 @@ describe('ClientRPCStub', function () {
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/: Missing required property: version');
+					expect(err).to.have.property('description').equal(': Missing required property: version');
 					done();
 				});
 			});
