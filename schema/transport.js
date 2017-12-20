@@ -3,17 +3,6 @@
 var constants = require('../helpers/constants.js');
 
 module.exports = {
-	commonBlock: {
-		id: 'transport.commonBlock',
-		type: 'object',
-		properties: {
-			ids: {
-				type: 'string',
-				format: 'csv'
-			}
-		},
-		required: ['ids']
-	},
 	blocks: {
 		id: 'transport.blocks',
 		type: 'object',

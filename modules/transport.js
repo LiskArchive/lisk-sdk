@@ -427,7 +427,7 @@ Transport.prototype.isLoaded = function () {
 Transport.prototype.shared = {
 	blocksCommon: function (query, cb) {
 		query = query || {};
-		return library.schema.validate(query, schema.commonBlock, function (err, valid) {
+		return library.schema.validate(query, definitions.WSBlocksCommonRequest, function (err, valid) {
 			if (err) {
 				err = err[0].message + ': ' + err[0].path;
 				library.logger.debug('Common block request validation failed', {err: err.toString(), req: query});

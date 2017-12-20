@@ -2449,3 +2449,12 @@ definitions:
       signature:
         type: string
         format: signature
+
+  WSBlocksCommonRequest:
+    type: object
+    required:
+      - ids
+    properties:
+      ids:
+        type: string
+        format: csv
