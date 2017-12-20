@@ -30,6 +30,12 @@ export function aFunctionThatThrowsAValidationError() {
 	this.test.ctx.validationErrorFn = validationErrorFn;
 }
 
+export function anErrorObject() {
+	this.test.ctx.errorObject = {
+		error: 'Some error',
+	};
+}
+
 export function anEmptyObject() {
 	this.test.ctx.testObject = {};
 }

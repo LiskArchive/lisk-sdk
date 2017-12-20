@@ -15,6 +15,23 @@
  */
 import lisk from 'lisk-js';
 
+export function itShouldNotBroadcastTheTransaction() {
+	const { liskAPIInstance } = this.test.ctx;
+	return liskAPIInstance.broadcastSignedTransaction.should.not.be.called();
+}
+
+export function itShouldBroadcastTheTransaction() {
+	const { liskAPIInstance, transaction } = this.test.ctx;
+	return liskAPIInstance.broadcastSignedTransaction.should.be.calledWithExactly(
+		JSON.parse(transaction),
+	);
+}
+
+export function itShouldResolveToTheAPIResponse() {
+	const { returnValue, apiResponse } = this.test.ctx;
+	return returnValue.should.be.fulfilledWith(apiResponse);
+}
+
 export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {
 	const { liskAPIInstance } = this.test.ctx;
 	return liskAPIInstance.should.be.instanceOf(lisk.api);
