@@ -14,7 +14,6 @@ var failureCodes = require('../api/ws/rpc/failureCodes');
 var Peer = require('../logic/peer');
 var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
-var schema = require('../schema/transport.js');
 var sql = require('../sql/transport.js');
 var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
@@ -596,7 +595,7 @@ Transport.prototype.shared = {
  * @param {function} cb
  */
 __private.checkInternalAccess = function (query, cb) {
-	library.schema.validate(query, schema.internalAccess, function (err) {
+	library.schema.validate(query, definitions.WSAccessObject, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

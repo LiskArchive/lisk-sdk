@@ -2559,3 +2559,19 @@ definitions:
           $ref: '#/definitions/WSTransaction'
         minItems: 1
         maxItems: 25
+
+  WSAccessObject:
+    type: object
+    required:
+      - peer
+      - authKey
+      - updateType
+    properties:
+      peer:
+        type: object
+      authKey:
+        type: string
+      updateType:
+        type: integer
+        minimum: 0
+        maximum: 1
