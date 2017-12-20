@@ -4,6 +4,7 @@ var SwaggerRunner = require('swagger-node-runner');
 var path = require('path');
 var fs = require('fs');
 var YAML = require('js-yaml');
+var _ = require('lodash');
 
 // Its necessary to require this file to extend swagger validator with our custom formats
 var validator = require('../helpers/swagger').getValidator();
@@ -41,22 +42,33 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		swagger: swagger,
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
-		startWithWarnings: false
+		startWithWarnings: true
 	};
 
-	SwaggerRunner.create(swaggerConfig, function (err, runner) {
-		if (err) {
+	// Swagger Express Middleware
+	SwaggerRunner.create(swaggerConfig, function (errors, runner) {
+		if (errors) {
+
+			// Ignore unused definition warning
+			errors.validationWarnings = _.filter(errors.validationWarnings, function (error) {
+				return error.code !== 'UNUSED_DEFINITION';
+			});
+
 			// Some error occurred in configuring the swagger
-			if (err.validationErrors) {
+			if (!_.isEmpty(errors.validationErrors)) {
 				logger.error('Swagger Validation Errors:');
-				logger.error(err.validationErrors);
+				logger.error(errors.validationErrors);
 			}
-			if (err.validationWarnings) {
+
+			if (!_.isEmpty(errors.validationWarnings)) {
 				logger.error('Swagger Validation Warnings:');
-				logger.error(err.validationWarnings);
+				logger.error(errors.validationWarnings);
 			}
-			cb(err);
-			return;
+
+			if (!_.isEmpty(errors.validationErrors) || !_.isEmpty(errors.validationWarnings) ) {
+				cb(errors);
+				return;
+			}
 		}
 
 		// Swagger Express Middleware
@@ -78,7 +90,7 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		app.swaggerRunner = runner;
 
 		// Successfully mounted the swagger runner
-		cb(null, {swaggerRunner: runner});
+		cb(null, {swaggerRunner: runner, definitions: runner.swagger.definitions});
 	});
 }
 
