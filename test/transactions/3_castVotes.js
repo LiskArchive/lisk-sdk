@@ -240,4 +240,50 @@ describe('#castVotes transaction', () => {
 				.should.throw('Invalid hex string');
 		});
 	});
+
+	describe('when the cast vote transaction is created with duplicated public keys', () => {
+		describe('Given votes and unvotes with duplication', () => {
+			it('should throw a duplication error', () => {
+				const votes = [firstPublicKey, secondPublicKey];
+				const unvotes = [firstPublicKey, thirdPublicKey];
+				castVotes
+					.bind(null, {
+						passphrase,
+						unvotes,
+						votes,
+					})
+					.should.throw(
+						'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
+					);
+			});
+		});
+
+		describe('Given votes with duplication', () => {
+			it('should throw a duplication error for votes', () => {
+				const votes = [firstPublicKey, secondPublicKey, firstPublicKey];
+				castVotes
+					.bind(null, {
+						passphrase,
+						votes,
+					})
+					.should.throw(
+						'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
+					);
+			});
+		});
+
+		describe('Given unvotes with duplication', () => {
+			it('should throw a duplication error for unvotes', () => {
+				const unvotes = [firstPublicKey, secondPublicKey, firstPublicKey];
+				castVotes
+					.bind(null, {
+						passphrase,
+						unvotes,
+					})
+					.should.throw(
+						'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
+					);
+			});
+		});
+	});
 });

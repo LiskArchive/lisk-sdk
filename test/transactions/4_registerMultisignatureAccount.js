@@ -267,12 +267,32 @@ describe('#registerMultisignatureAccount transaction', () => {
 				.bind(null, {
 					passphrase,
 					secondPassphrase,
-					keysgroup: [],
+					keysgroup,
 					lifetime,
 					minimum,
 				})
 				.should.throw(
 					'Expected between 1 and 16 public keys in the keysgroup.',
+				);
+		});
+	});
+
+	describe('when the register multisignature account transaction is created with duplicated public keys', () => {
+		beforeEach(() => {
+			keysgroup = [keys.publicKey, keys.publicKey];
+		});
+
+		it('should throw an error', () => {
+			registerMultisignatureAccount
+				.bind(null, {
+					passphrase,
+					secondPassphrase,
+					keysgroup,
+					lifetime,
+					minimum,
+				})
+				.should.throw(
+					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
 				);
 		});
 	});
