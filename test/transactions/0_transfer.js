@@ -22,11 +22,12 @@ describe('#transfer transaction', () => {
 	const testData = 'data';
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 0;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
-	const transferFee = (0.1 * fixedPoint).toString();
-	const transferWithDataFee = (0.2 * fixedPoint).toString();
+	const fee = (0.1 * fixedPoint).toString();
+	const feeWithData = (0.2 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const unsigned = true;
 
@@ -83,7 +84,7 @@ describe('#transfer transaction', () => {
 				return transferTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(0);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to provided amount', () => {
@@ -97,7 +98,7 @@ describe('#transfer transaction', () => {
 				return transferTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal(transferFee);
+					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to provided recipient id', () => {
@@ -166,7 +167,7 @@ describe('#transfer transaction', () => {
 				return transferTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal(transferWithDataFee);
+					.and.equal(feeWithData);
 			});
 
 			describe('data asset', () => {
@@ -219,9 +220,9 @@ describe('#transfer transaction', () => {
 		});
 
 		it('should create a transfer transaction without signature', () => {
-			transferTransaction.should.have.property('type').equal(0);
-			transferTransaction.should.have.property('amount').equal('1000');
-			transferTransaction.should.have.property('fee').equal('10000000');
+			transferTransaction.should.have.property('type').equal(transactionType);
+			transferTransaction.should.have.property('amount').equal(amount);
+			transferTransaction.should.have.property('fee').equal(fee);
 			transferTransaction.should.have
 				.property('recipientId')
 				.equal(recipientId);

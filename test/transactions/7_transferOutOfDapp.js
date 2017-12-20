@@ -18,6 +18,7 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#transferOutOfDapp', () => {
 	const fixedPoint = 10 ** 8;
+	const transactionType = 7;
 	const transactionId = '9876567';
 	const recipientId = '989234L';
 	const dappId = '1234213';
@@ -26,7 +27,7 @@ describe('#transferOutOfDapp', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = (10 * fixedPoint).toString();
-	const transferFee = (0.1 * fixedPoint).toString();
+	const fee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
 	const unsigned = true;
@@ -87,7 +88,7 @@ describe('#transferOutOfDapp', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(7);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 10 LSK', () => {
@@ -101,7 +102,7 @@ describe('#transferOutOfDapp', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal(transferFee);
+					.and.equal(fee);
 			});
 
 			it('should have recipientId equal to provided recipientId', () => {
@@ -179,7 +180,7 @@ describe('#transferOutOfDapp', () => {
 		});
 	});
 
-	describe('unsigned transfer into dapp transaction', () => {
+	describe('unsigned transfer out of dapp transaction', () => {
 		beforeEach(() => {
 			transferOutOfDappTransaction = transferOutOfDapp({
 				dappId,
@@ -190,14 +191,12 @@ describe('#transferOutOfDapp', () => {
 			});
 		});
 
-		it('should create a transfer into dapp transaction without signature', () => {
-			transferOutOfDappTransaction.should.have.property('type').equal(7);
+		it('should create a transfer out of dapp transaction without signature', () => {
 			transferOutOfDappTransaction.should.have
-				.property('amount')
-				.equal('1000000000');
-			transferOutOfDappTransaction.should.have
-				.property('fee')
-				.equal('10000000');
+				.property('type')
+				.equal(transactionType);
+			transferOutOfDappTransaction.should.have.property('amount').equal(amount);
+			transferOutOfDappTransaction.should.have.property('fee').equal(fee);
 			transferOutOfDappTransaction.should.have
 				.property('recipientId')
 				.equal(recipientId);

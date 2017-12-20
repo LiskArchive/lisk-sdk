@@ -17,8 +17,10 @@ import castVotes from '../../src/transactions/3_castVotes';
 const time = require('../../src/transactions/utils/time');
 
 describe('#castVotes transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 3;
 	const firstPublicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey =
@@ -36,6 +38,8 @@ describe('#castVotes transaction', () => {
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
 	const unsigned = true;
+	const amount = '0';
+	const fee = (1 * fixedPoint).toString();
 
 	let getTimeWithOffsetStub;
 	let castVotesTransaction;
@@ -81,21 +85,21 @@ describe('#castVotes transaction', () => {
 				return castVotesTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(3);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 0', () => {
 				return castVotesTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
-					.and.equal('0');
+					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 100000000', () => {
 				return castVotesTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal('100000000');
+					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to address', () => {
@@ -298,9 +302,9 @@ describe('#castVotes transaction', () => {
 		});
 
 		it('should create a cast votes transaction without signature', () => {
-			castVotesTransaction.should.have.property('type').equal(3);
-			castVotesTransaction.should.have.property('amount').equal('0');
-			castVotesTransaction.should.have.property('fee').equal('100000000');
+			castVotesTransaction.should.have.property('type').equal(transactionType);
+			castVotesTransaction.should.have.property('amount').equal(amount);
+			castVotesTransaction.should.have.property('fee').equal(fee);
 			castVotesTransaction.should.have.property('recipientId').equal(null);
 			castVotesTransaction.should.have.property('senderPublicKey').equal(null);
 			castVotesTransaction.should.have.property('timestamp');

@@ -18,6 +18,7 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#transferIntoDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
+	const transactionType = 6;
 	const dappId = '1234213';
 	const passphrase = 'secret';
 	const secondPassphrase = 'secondSecret';
@@ -76,7 +77,7 @@ describe('#transferIntoDapp transaction', () => {
 				return transferIntoDappTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(6);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 10 LSK', () => {
@@ -169,11 +170,13 @@ describe('#transferIntoDapp transaction', () => {
 		});
 
 		it('should create a transfer into dapp transaction without signature', () => {
-			transferIntoDappTransaction.should.have.property('type').equal(6);
 			transferIntoDappTransaction.should.have
-				.property('amount')
-				.equal('1000000000');
-			transferIntoDappTransaction.should.have.property('fee').equal('10000000');
+				.property('type')
+				.equal(transactionType);
+			transferIntoDappTransaction.should.have.property('amount').equal(amount);
+			transferIntoDappTransaction.should.have
+				.property('fee')
+				.equal(transferFee);
 			transferIntoDappTransaction.should.have
 				.property('recipientId')
 				.equal(null);

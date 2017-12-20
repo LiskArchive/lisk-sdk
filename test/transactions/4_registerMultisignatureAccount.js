@@ -18,8 +18,10 @@ import registerMultisignatureAccount from '../../src/transactions/4_registerMult
 const time = require('../../src/transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 4;
 	const keys = {
 		publicKey:
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -27,6 +29,8 @@ describe('#registerMultisignatureAccount transaction', () => {
 			'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 	};
 	const timeWithOffset = 38350076;
+	const fee = (15 * fixedPoint).toString();
+	const amount = '0';
 	const lifetime = 5;
 	const minimum = 2;
 	const unsigned = true;
@@ -99,21 +103,21 @@ describe('#registerMultisignatureAccount transaction', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(4);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 0', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
-					.and.equal('0');
+					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 15 LSK', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal('1500000000');
+					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to null', () => {
@@ -309,13 +313,13 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 
 		it('should create a register multisignature account transaction without signature', () => {
-			registerMultisignatureTransaction.should.have.property('type').equal(4);
+			registerMultisignatureTransaction.should.have
+				.property('type')
+				.equal(transactionType);
 			registerMultisignatureTransaction.should.have
 				.property('amount')
-				.equal('0');
-			registerMultisignatureTransaction.should.have
-				.property('fee')
-				.equal('1500000000');
+				.equal(amount);
+			registerMultisignatureTransaction.should.have.property('fee').equal(fee);
 			registerMultisignatureTransaction.should.have
 				.property('recipientId')
 				.equal(null);

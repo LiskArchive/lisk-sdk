@@ -20,6 +20,7 @@ describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 1;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey =
@@ -29,6 +30,8 @@ describe('#registerSecondPassphrase transaction', () => {
 	const secondPassphraseFee = (5 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const unsigned = true;
+	const fee = (5 * fixedPoint).toString();
+	const amount = '0';
 
 	let getTimeWithOffsetStub;
 	let registerSecondPassphraseTransaction;
@@ -77,14 +80,14 @@ describe('#registerSecondPassphrase transaction', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('type')
 				.and.be.type('number')
-				.and.equal(1);
+				.and.equal(transactionType);
 		});
 
 		it('should have amount string equal to 0', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('amount')
 				.and.be.type('string')
-				.and.equal('0');
+				.and.equal(amount);
 		});
 
 		it('should have fee string equal to second passphrase fee', () => {
@@ -179,13 +182,15 @@ describe('#registerSecondPassphrase transaction', () => {
 		});
 
 		it('should create a register second passphrase transaction without signature', () => {
-			registerSecondPassphraseTransaction.should.have.property('type').equal(1);
+			registerSecondPassphraseTransaction.should.have
+				.property('type')
+				.equal(transactionType);
 			registerSecondPassphraseTransaction.should.have
 				.property('amount')
-				.equal('0');
+				.equal(amount);
 			registerSecondPassphraseTransaction.should.have
 				.property('fee')
-				.equal('500000000');
+				.equal(fee);
 			registerSecondPassphraseTransaction.should.have
 				.property('recipientId')
 				.equal(null);

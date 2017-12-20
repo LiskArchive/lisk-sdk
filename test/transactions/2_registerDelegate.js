@@ -20,12 +20,14 @@ describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 2;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const unsigned = true;
+	const amount = '0';
 
 	let getTimeWithOffsetStub;
 	let registerDelegateTransaction;
@@ -70,14 +72,14 @@ describe('#registerDelegate transaction', () => {
 			return registerDelegateTransaction.should.have
 				.property('type')
 				.and.be.type('number')
-				.and.equal(2);
+				.and.equal(transactionType);
 		});
 
 		it('should have amount string equal to 0', () => {
 			return registerDelegateTransaction.should.have
 				.property('amount')
 				.and.be.type('string')
-				.and.equal('0');
+				.and.equal(amount);
 		});
 
 		it('should have fee string equal to 25 LSK', () => {
@@ -166,11 +168,11 @@ describe('#registerDelegate transaction', () => {
 		});
 
 		it('should create a register delegate transaction without signature', () => {
-			registerDelegateTransaction.should.have.property('type').equal(2);
-			registerDelegateTransaction.should.have.property('amount').equal('0');
 			registerDelegateTransaction.should.have
-				.property('fee')
-				.equal('2500000000');
+				.property('type')
+				.equal(transactionType);
+			registerDelegateTransaction.should.have.property('amount').equal(amount);
+			registerDelegateTransaction.should.have.property('fee').equal(fee);
 			registerDelegateTransaction.should.have
 				.property('recipientId')
 				.equal(null);

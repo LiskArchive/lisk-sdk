@@ -18,6 +18,8 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#createDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
+	const transactionType = 5;
+	const amount = '0';
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
 	const publicKey =
@@ -289,9 +291,9 @@ describe('#createDapp transaction', () => {
 		});
 
 		it('should create a create dapp transaction without signature', () => {
-			createDappTransaction.should.have.property('type').equal(5);
-			createDappTransaction.should.have.property('amount').equal('0');
-			createDappTransaction.should.have.property('fee').equal('2500000000');
+			createDappTransaction.should.have.property('type').equal(transactionType);
+			createDappTransaction.should.have.property('amount').equal(amount);
+			createDappTransaction.should.have.property('fee').equal(fee);
 			createDappTransaction.should.have.property('recipientId').equal(null);
 			createDappTransaction.should.have.property('senderPublicKey').equal(null);
 			createDappTransaction.should.have.property('timestamp');
