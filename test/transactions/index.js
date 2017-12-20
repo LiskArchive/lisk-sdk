@@ -16,7 +16,7 @@ import transaction from '../../src/transactions/index';
 
 describe('transactions', () => {
 	describe('exports', () => {
-		it('should have all supported create transaction functions', () => {
+		return it('should have all supported create transaction functions', () => {
 			transaction.should.have.property('transfer').be.type('function');
 			transaction.should.have
 				.property('registerSecondPassphrase')

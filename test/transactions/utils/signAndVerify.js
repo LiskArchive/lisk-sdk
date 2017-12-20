@@ -75,11 +75,11 @@ describe('signAndVerify transaction utils', () => {
 		});
 
 		it('should get the transaction hash', () => {
-			getTransactionHashStub.should.be.calledWithExactly(transaction);
+			return getTransactionHashStub.should.be.calledWithExactly(transaction);
 		});
 
 		it('should sign the transaction hash with the passphrase', () => {
-			cryptoSignDataStub.should.be.calledWithExactly(
+			return cryptoSignDataStub.should.be.calledWithExactly(
 				defaultHash,
 				defaultPassphrase,
 			);
@@ -123,18 +123,20 @@ describe('signAndVerify transaction utils', () => {
 
 		it('should remove the signature and second signature before getting transaction hash', () => {
 			getTransactionHashStub.args[0].should.not.have.property('signature');
-			getTransactionHashStub.args[0].should.not.have.property('signSignature');
+			return getTransactionHashStub.args[0].should.not.have.property(
+				'signSignature',
+			);
 		});
 
 		it('should sign the transaction hash with the passphrase', () => {
-			cryptoSignDataStub.should.be.calledWithExactly(
+			return cryptoSignDataStub.should.be.calledWithExactly(
 				defaultMultisignatureHash,
 				defaultPassphrase,
 			);
 		});
 
 		it('should return the signature', () => {
-			signature.should.be.equal(defaultSignature);
+			return signature.should.be.equal(defaultSignature);
 		});
 	});
 
@@ -150,12 +152,14 @@ describe('signAndVerify transaction utils', () => {
 
 			it('should remove the signature before getting transaction hash', () => {
 				verifyTransaction(transaction);
-				getTransactionHashStub.args[0].should.not.have.property('signature');
+				return getTransactionHashStub.args[0].should.not.have.property(
+					'signature',
+				);
 			});
 
 			it('should verify the transaction using the hash, the signature and the public key', () => {
 				verifyTransaction(transaction);
-				cryptoVerifyDataStub.should.be.calledWithExactly(
+				return cryptoVerifyDataStub.should.be.calledWithExactly(
 					defaultHash,
 					defaultSignature,
 					defaultPublicKey,
@@ -165,12 +169,12 @@ describe('signAndVerify transaction utils', () => {
 			it('should return false for an invalid signature', () => {
 				cryptoVerifyDataStub.returns(false);
 				const verification = verifyTransaction(transaction);
-				verification.should.be.false();
+				return verification.should.be.false();
 			});
 
 			it('should return true for a valid signature', () => {
 				const verification = verifyTransaction(transaction);
-				verification.should.be.true();
+				return verification.should.be.true();
 			});
 		});
 
@@ -191,21 +195,21 @@ describe('signAndVerify transaction utils', () => {
 			});
 
 			it('should throw if attempting to verify without a secondPublicKey', () => {
-				verifyTransaction
+				return verifyTransaction
 					.bind(null, transaction)
 					.should.throw('Cannot verify signSignature without secondPublicKey.');
 			});
 
 			it('should remove the second signature before getting the first transaction hash', () => {
 				verifyTransaction(transaction, defaultSecondPublicKey);
-				getTransactionHashStub.firstCall.args[0].should.not.have.property(
+				return getTransactionHashStub.firstCall.args[0].should.not.have.property(
 					'signSignature',
 				);
 			});
 
 			it('should remove the first signature before getting the second transaction hash', () => {
 				verifyTransaction(transaction, defaultSecondPublicKey);
-				getTransactionHashStub.secondCall.args[0].should.not.have.property(
+				return getTransactionHashStub.secondCall.args[0].should.not.have.property(
 					'signature',
 				);
 			});
@@ -216,7 +220,7 @@ describe('signAndVerify transaction utils', () => {
 					transaction,
 					defaultSecondPublicKey,
 				);
-				verification.should.be.false();
+				return verification.should.be.false();
 			});
 
 			it('should return false for an invalid first signature', () => {
@@ -233,7 +237,7 @@ describe('signAndVerify transaction utils', () => {
 					transaction,
 					defaultSecondPublicKey,
 				);
-				verification.should.be.false();
+				return verification.should.be.false();
 			});
 
 			it('should return true for a valid signature', () => {
@@ -241,7 +245,7 @@ describe('signAndVerify transaction utils', () => {
 					transaction,
 					defaultSecondPublicKey,
 				);
-				verification.should.be.true();
+				return verification.should.be.true();
 			});
 		});
 	});

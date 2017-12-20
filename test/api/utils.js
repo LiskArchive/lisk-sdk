@@ -51,7 +51,7 @@ describe('api utils module', () => {
 			testnet.should.have.property('os').and.be.type('string');
 			testnet.should.have.property('version').and.be.type('string');
 			testnet.should.have.property('minVersion').and.be.type('string');
-			testnet.should.have.property('port').and.be.type('number');
+			return testnet.should.have.property('port').and.be.type('number');
 		});
 		it('should return an object with a mainnet nethash', () => {
 			const { mainnet } = result;
@@ -61,7 +61,7 @@ describe('api utils module', () => {
 			mainnet.should.have.property('os').and.be.type('string');
 			mainnet.should.have.property('version').and.be.type('string');
 			mainnet.should.have.property('minVersion').and.be.type('string');
-			mainnet.should.have.property('port').and.be.type('number');
+			return mainnet.should.have.property('port').and.be.type('number');
 		});
 	});
 
@@ -71,13 +71,13 @@ describe('api utils module', () => {
 		it('should return http when ssl is set to false', () => {
 			const ssl = false;
 			const result = getURLPrefix({ ssl });
-			result.should.be.equal('http');
+			return result.should.be.equal('http');
 		});
 
 		it('should return https when ssl is set to true', () => {
 			const ssl = true;
 			const result = getURLPrefix({ ssl });
-			result.should.be.equal('https');
+			return result.should.be.equal('https');
 		});
 	});
 
@@ -102,17 +102,17 @@ describe('api utils module', () => {
 
 		it('should get the URL prefix', () => {
 			const { ssl } = LSK;
-			getURLPrefixStub.should.be.calledWithExactly({ ssl });
+			return getURLPrefixStub.should.be.calledWithExactly({ ssl });
 		});
 
 		it('should add the prefix to the node URL and the port', () => {
-			result.should.equal(`${URLPrefix}://${LSK.node}:${defaultPort}`);
+			return result.should.equal(`${URLPrefix}://${LSK.node}:${defaultPort}`);
 		});
 
 		it('should not include a port if not set', () => {
 			delete LSK.port;
 			result = getFullURL(LSK);
-			result.should.equal(`${URLPrefix}://${LSK.node}`);
+			return result.should.equal(`${URLPrefix}://${LSK.node}`);
 		});
 	});
 
@@ -125,14 +125,14 @@ describe('api utils module', () => {
 				key2: 'value2',
 				key3: 'value3',
 			});
-			queryString.should.be.equal('key1=value1&key2=value2&key3=value3');
+			return queryString.should.be.equal('key1=value1&key2=value2&key3=value3');
 		});
 
 		it('should escape invalid special characters', () => {
 			const queryString = toQueryString({
 				'key:/;?': 'value:/;?',
 			});
-			queryString.should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
+			return queryString.should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
 		});
 	});
 
@@ -151,7 +151,7 @@ describe('api utils module', () => {
 				goodOptions,
 			);
 
-			checkOptions
+			return checkOptions
 				.bind(null, optionsWithUndefined)
 				.should.throw('"badKey" option should not be undefined');
 		});
@@ -164,14 +164,14 @@ describe('api utils module', () => {
 				goodOptions,
 			);
 
-			checkOptions
+			return checkOptions
 				.bind(null, optionsWithNaN)
 				.should.throw('"badKey" option should not be NaN');
 		});
 
 		it('should return the options if they are all ok', () => {
 			const result = checkOptions(Object.assign({}, goodOptions));
-			result.should.be.eql(goodOptions);
+			return result.should.be.eql(goodOptions);
 		});
 	});
 
@@ -225,7 +225,7 @@ describe('api utils module', () => {
 		});
 
 		it('should return a function', () => {
-			returnedFunction.should.be.type('function');
+			return returnedFunction.should.be.type('function');
 		});
 
 		describe('returned function', () => {
@@ -304,13 +304,13 @@ describe('api utils module', () => {
 				{ address },
 				optionsObject,
 			);
-			requestData.should.be.eql(expectedObject);
+			return requestData.should.be.eql(expectedObject);
 		});
 
 		it('should recognise when a callback function is passed instead of an options object', () => {
 			const providedObj = { address };
 			const requestData = utils.constructRequestData(providedObj, () => true);
-			requestData.should.be.eql(providedObj);
+			return requestData.should.be.eql(providedObj);
 		});
 
 		it('should prioritise values from the data object when the data object and options object conflict', () => {
@@ -318,7 +318,7 @@ describe('api utils module', () => {
 				{ limit: defaultRequestLimit, offset: defaultRequestOffset },
 				optionsWithConflictObject,
 			);
-			requestData.should.be.eql(resolvedConflictObject);
+			return requestData.should.be.eql(resolvedConflictObject);
 		});
 	});
 
@@ -329,27 +329,29 @@ describe('api utils module', () => {
 
 		it('should return the result with a callback', () => {
 			const returnValue = optionallyCallCallback(spy, result);
-			returnValue.should.equal(result);
+			return returnValue.should.equal(result);
 		});
 
 		it('should return the result without a callback', () => {
 			const returnValue = optionallyCallCallback(undefined, result);
-			returnValue.should.equal(result);
+			return returnValue.should.equal(result);
 		});
 
 		it('should not call the callback if it is not a function', () => {
-			optionallyCallCallback
+			return optionallyCallCallback
 				.bind(null, { foo: 'bar' }, result)
 				.should.not.throw();
 		});
 
 		it('should not call the callback if it is undefined', () => {
-			optionallyCallCallback.bind(null, undefined, result).should.not.throw();
+			return optionallyCallCallback
+				.bind(null, undefined, result)
+				.should.not.throw();
 		});
 
 		it('should call the callback with the result if callback is a function', () => {
 			optionallyCallCallback(spy, result);
-			spy.should.be.calledWithExactly(result);
+			return spy.should.be.calledWithExactly(result);
 		});
 	});
 });

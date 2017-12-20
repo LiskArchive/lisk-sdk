@@ -120,13 +120,13 @@ ${defaultSecondSignature}
 				defaultMessage,
 				defaultPassphrase,
 			);
-			signedMessage.should.be.eql(defaultSignedMessage);
+			return signedMessage.should.be.eql(defaultSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithPublicKey', () => {
 		it('should detect invalid publicKeys', () => {
-			verifyMessageWithPublicKey
+			return verifyMessageWithPublicKey
 				.bind(null, {
 					message: defaultMessage,
 					signature: defaultSignature,
@@ -136,7 +136,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should detect invalid signatures', () => {
-			verifyMessageWithPublicKey
+			return verifyMessageWithPublicKey
 				.bind(null, {
 					message: defaultMessage,
 					signature: changeLength(defaultSignature),
@@ -151,12 +151,12 @@ ${defaultSecondSignature}
 				signature: makeInvalid(defaultSignature),
 				publicKey: defaultPublicKey,
 			});
-			verification.should.be.false();
+			return verification.should.be.false();
 		});
 
 		it('should return true if the signature is valid', () => {
 			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
-			verification.should.be.true();
+			return verification.should.be.true();
 		});
 	});
 
@@ -168,13 +168,13 @@ ${defaultSecondSignature}
 				defaultSecondPassphrase,
 			);
 
-			signature.should.be.eql(defaultDoubleSignedMessage);
+			return signature.should.be.eql(defaultDoubleSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithTwoPublicKeys', () => {
 		it('should throw on invalid first publicKey length', () => {
-			verifyMessageWithTwoPublicKeys
+			return verifyMessageWithTwoPublicKeys
 				.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
@@ -185,7 +185,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should throw on invalid second publicKey length', () => {
-			verifyMessageWithTwoPublicKeys
+			return verifyMessageWithTwoPublicKeys
 				.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
@@ -196,7 +196,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should throw on invalid primary signature length', () => {
-			verifyMessageWithTwoPublicKeys
+			return verifyMessageWithTwoPublicKeys
 				.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
@@ -209,7 +209,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should throw on invalid secondary signature length', () => {
-			verifyMessageWithTwoPublicKeys
+			return verifyMessageWithTwoPublicKeys
 				.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
@@ -227,7 +227,7 @@ ${defaultSecondSignature}
 					signature: makeInvalid(defaultSignature),
 				}),
 			);
-			verified.should.be.false();
+			return verified.should.be.false();
 		});
 
 		it('should return false for incorrect second signature', () => {
@@ -236,14 +236,14 @@ ${defaultSecondSignature}
 					secondSignature: makeInvalid(defaultSecondSignature),
 				}),
 			);
-			verified.should.be.false();
+			return verified.should.be.false();
 		});
 
 		it('should return true for two valid signatures', () => {
 			const verified = verifyMessageWithTwoPublicKeys(
 				defaultDoubleSignedMessage,
 			);
-			verified.should.be.true();
+			return verified.should.be.true();
 		});
 	});
 
@@ -254,7 +254,7 @@ ${defaultSecondSignature}
 				signature: defaultSignature,
 				publicKey: defaultPublicKey,
 			});
-			printedMessage.should.be.equal(defaultPrintedMessage);
+			return printedMessage.should.be.equal(defaultPrintedMessage);
 		});
 
 		it('should wrap a second signed message into a printed Lisk template', () => {
@@ -265,7 +265,7 @@ ${defaultSecondSignature}
 				secondSignature: defaultSecondSignature,
 				secondPublicKey: defaultSecondPublicKey,
 			});
-			printedMessage.should.be.equal(defaultSecondSignedPrintedMessage);
+			return printedMessage.should.be.equal(defaultSecondSignedPrintedMessage);
 		});
 	});
 
@@ -275,7 +275,7 @@ ${defaultSecondSignature}
 				defaultMessage,
 				defaultPassphrase,
 			);
-			signedAndPrintedMessage.should.be.equal(defaultPrintedMessage);
+			return signedAndPrintedMessage.should.be.equal(defaultPrintedMessage);
 		});
 
 		it('should sign the message twice and wrap it into a printed Lisk template', () => {
@@ -284,7 +284,7 @@ ${defaultSecondSignature}
 				defaultPassphrase,
 				defaultSecondPassphrase,
 			);
-			signedAndPrintedMessage.should.be.equal(
+			return signedAndPrintedMessage.should.be.equal(
 				defaultSecondSignedPrintedMessage,
 			);
 		});
@@ -298,7 +298,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should sign a transaction', () => {
-			signature.should.be.equal(defaultDataSignature);
+			return signature.should.be.equal(defaultDataSignature);
 		});
 	});
 
@@ -309,7 +309,7 @@ ${defaultSecondSignature}
 				makeInvalid(defaultDataSignature),
 				defaultPublicKey,
 			);
-			verification.should.be.false();
+			return verification.should.be.false();
 		});
 
 		it('should return true for a valid signature', () => {
@@ -318,7 +318,7 @@ ${defaultSecondSignature}
 				defaultDataSignature,
 				defaultPublicKey,
 			);
-			verification.should.be.true();
+			return verification.should.be.true();
 		});
 	});
 });

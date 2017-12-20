@@ -35,18 +35,18 @@ describe('transactions utils module', () => {
 			});
 
 			it('should not mutate the original transaction', () => {
-				inputTransaction.should.eql(defaultTransaction);
+				return inputTransaction.should.eql(defaultTransaction);
 			});
 
 			it('should add a signature to a transaction', () => {
-				preparedTransaction.should.have
+				return preparedTransaction.should.have
 					.property('signature')
 					.and.be.hexString()
 					.and.equal(signature);
 			});
 
 			it('should add an id to a transaction', () => {
-				preparedTransaction.should.have
+				return preparedTransaction.should.have
 					.property('id')
 					.and.match(/^[0-9]+$/)
 					.and.equal(id);
@@ -63,11 +63,11 @@ describe('transactions utils module', () => {
 			});
 
 			it('should not mutate the original transaction', () => {
-				inputTransaction.should.eql(defaultTransaction);
+				return inputTransaction.should.eql(defaultTransaction);
 			});
 
 			it('should add a second signature to a transaction if a second passphrase is provided', () => {
-				preparedTransaction.should.have
+				return preparedTransaction.should.have
 					.property('signSignature')
 					.and.be.hexString()
 					.and.equal(secondSignature);
@@ -87,7 +87,7 @@ describe('transactions utils module', () => {
 					passphrase,
 					secondPassphrase,
 				);
-				preparedTransaction.should.not.have.property('signSignature');
+				return preparedTransaction.should.not.have.property('signSignature');
 			});
 		});
 	});

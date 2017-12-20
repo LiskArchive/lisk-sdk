@@ -51,11 +51,11 @@ describe('#transferOutOfDapp', () => {
 		});
 
 		it('should create an out transfer dapp transaction', () => {
-			transferOutOfDappTransaction.should.be.ok();
+			return transferOutOfDappTransaction.should.be.ok();
 		});
 
 		it('should use time.getTimeWithOffset to get the time for the timestamp', () => {
-			getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to get the time for the timestamp', () => {
@@ -68,87 +68,89 @@ describe('#transferOutOfDapp', () => {
 				timeOffset: offset,
 			});
 
-			getTimeWithOffsetStub.should.be.calledWithExactly(offset);
+			return getTimeWithOffsetStub.should.be.calledWithExactly(offset);
 		});
 
 		describe('returned out of dapp transfer transaction object', () => {
 			it('should be an object', () => {
-				transferOutOfDappTransaction.should.be.type('object');
+				return transferOutOfDappTransaction.should.be.type('object');
 			});
 
 			it('should have id string', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('id')
 					.and.be.type('string');
 			});
 
 			it('should have type number equal to 7', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('type')
 					.and.be.type('number')
 					.and.equal(7);
 			});
 
 			it('should have amount string equal to 10 LSK', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 0.1 LSK', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
 					.and.equal(transferFee);
 			});
 
 			it('should have recipientId equal to provided recipientId', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('recipientId')
 					.and.be.equal(recipientId);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('senderPublicKey')
 					.and.be.hexString()
 					.and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('timestamp')
 					.and.be.type('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('signature')
 					.and.be.hexString();
 			});
 
 			it('should not have the second signature property', () => {
-				transferOutOfDappTransaction.should.not.have.property('signSignature');
+				return transferOutOfDappTransaction.should.not.have.property(
+					'signSignature',
+				);
 			});
 
 			it('should have an asset object', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('asset')
 					.and.be.type('object');
 			});
 
 			describe('asset', () => {
 				it('should have the out transfer dapp id', () => {
-					transferOutOfDappTransaction.asset.should.have
+					return transferOutOfDappTransaction.asset.should.have
 						.property('outTransfer')
 						.with.property('dappId')
 						.and.be.equal(dappId);
 				});
 
 				it('should have the out transfer transaction id', () => {
-					transferOutOfDappTransaction.asset.should.have
+					return transferOutOfDappTransaction.asset.should.have
 						.property('outTransfer')
 						.with.property('transactionId')
 						.and.be.equal(transactionId);
@@ -169,7 +171,7 @@ describe('#transferOutOfDapp', () => {
 			});
 
 			it('should have the second signature property as hex string', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('signSignature')
 					.and.be.hexString();
 			});

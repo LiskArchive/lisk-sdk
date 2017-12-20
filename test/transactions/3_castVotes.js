@@ -246,7 +246,7 @@ describe('#castVotes transaction', () => {
 			it('should throw a duplication error', () => {
 				const votes = [firstPublicKey, secondPublicKey];
 				const unvotes = [firstPublicKey, thirdPublicKey];
-				castVotes
+				return castVotes
 					.bind(null, {
 						passphrase,
 						unvotes,
@@ -261,7 +261,7 @@ describe('#castVotes transaction', () => {
 		describe('Given votes with duplication', () => {
 			it('should throw a duplication error for votes', () => {
 				const votes = [firstPublicKey, secondPublicKey, firstPublicKey];
-				castVotes
+				return castVotes
 					.bind(null, {
 						passphrase,
 						votes,
@@ -275,7 +275,7 @@ describe('#castVotes transaction', () => {
 		describe('Given unvotes with duplication', () => {
 			it('should throw a duplication error for unvotes', () => {
 				const unvotes = [firstPublicKey, secondPublicKey, firstPublicKey];
-				castVotes
+				return castVotes
 					.bind(null, {
 						passphrase,
 						unvotes,
