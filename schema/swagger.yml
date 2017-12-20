@@ -2393,3 +2393,32 @@ definitions:
         example: sYHEDBKcScaAAAYg
         minLength: 16
         maxLength: 16
+
+  WSPeerUpdateRequest:
+    type: object
+    required:
+      - data
+      - socketId
+    properties:
+      data:
+        type: object
+        required:
+          - nonce
+        properties:
+          nethash:
+            type: string
+            maxLength: 64
+          broadhash:
+            type: string
+            format: hex
+          height:
+            type: integer
+            minimum: 1
+          nonce:
+            type: string
+            minLength: 16
+            maxLength: 16
+      socketId:
+        type: string
+      workerId:
+        type: number

@@ -90,39 +90,5 @@ module.exports = {
 			}
 		},
 		required: ['authKey', 'peer', 'updateType']
-	},
-	update: {
-		id: 'transport.update',
-		type: 'object',
-		properties: {
-			data: {
-				type: 'object',
-				properties: {
-					nethash: {
-						type: 'string',
-						maxLength: 64
-					},
-					broadhash: {
-						type: 'string',
-						format: 'hex'
-					},
-					height: {
-						type: 'integer',
-						minimum: 1
-					},
-					nonce: {
-						type: 'string'
-					}
-				},
-				required: ['nonce']
-			},
-			socketId: {
-				type: 'string'
-			},
-			workerId: {
-				type: 'number'
-			}
-		},
-		required: ['socketId', 'data']
 	}
 };
