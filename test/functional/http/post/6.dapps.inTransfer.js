@@ -103,7 +103,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction.asset.inTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number');
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number, Object didn\'t pass validation for format id: 1.2');
 					badTransactions.push(transaction);
 				});
 			});
@@ -123,7 +123,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 				transaction.asset.inTransfer.dappId = {};
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object');
+					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object, Object didn\'t pass validation for format id: {}');
 					badTransactions.push(transaction);
 				});
 			});
