@@ -5,6 +5,7 @@ var path = require('path');
 var fs = require('fs');
 var YAML = require('js-yaml');
 var _ = require('lodash');
+var swaggerHelper = require('../helpers/swagger');
 
 // Its necessary to require this file to extend swagger validator with our custom formats
 var validator = require('../helpers/swagger').getValidator();
@@ -34,12 +35,10 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		require(config.root + controllerFolder + file)(scope);
 	});
 
-	var swagger = YAML.safeLoad(fs.readFileSync(path.join(config.root + '/schema/swagger.yml')).toString());
-
 	var swaggerConfig = {
 		appRoot: config.root,
 		configDir: config.root + '/config/swagger',
-		swagger: swagger,
+		swaggerFile: path.join(config.root + '/schema/swagger.yml'),
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
 		startWithWarnings: true
@@ -89,8 +88,12 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		// To be used in test cases or getting configuration runtime
 		app.swaggerRunner = runner;
 
-		// Successfully mounted the swagger runner
-		cb(null, {swaggerRunner: runner, definitions: runner.swagger.definitions});
+		swaggerHelper.getResolvedSwaggerSpec().then(function (resolvedSchema) {
+			// Successfully mounted the swagger runner
+			cb(null, {swaggerRunner: runner, definitions: resolvedSchema.definitions});
+		}).catch(function (reason) {
+			cb(reason);
+		});
 	});
 }
 
