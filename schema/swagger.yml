@@ -2422,3 +2422,30 @@ definitions:
         type: string
       workerId:
         type: number
+
+  WSSignaturesList:
+    type: object
+    required:
+      - signatures
+    properties:
+      signatures:
+        type: array
+        items:
+          $ref: '#/definitions/WSSignature'
+        minItems: 1
+        maxItems: 25
+
+  WSSignature:
+    type: object
+    required:
+      - transaction
+      - signature
+    properties:
+      transaction:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+      signature:
+        type: string
+        format: signature

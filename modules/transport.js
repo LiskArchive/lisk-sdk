@@ -20,7 +20,7 @@ var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
 // Private fields
-var modules, library, self, __private = {};
+var modules, definitions, library, self, __private = {};
 
 __private.headers = {};
 __private.loaded = false;
@@ -121,7 +121,7 @@ __private.receiveSignatures = function (query, cb) {
 
 	async.series({
 		validateSchema: function (seriesCb) {
-			library.schema.validate(query, schema.signatures, function (err) {
+			library.schema.validate(query, definitions.WSSignaturesList, function (err) {
 				if (err) {
 					return setImmediate(seriesCb, 'Invalid signatures body');
 				} else {
@@ -158,7 +158,7 @@ __private.receiveSignatures = function (query, cb) {
  * @return {setImmediateCallback} cb | error messages
  */
 __private.receiveSignature = function (query, cb) {
-	library.schema.validate({signature: query}, schema.signature, function (err) {
+	library.schema.validate(query, definitions.WSSignature, function (err) {
 		if (err) {
 			return setImmediate(cb, 'Invalid signature body ' + err[0].message);
 		}
@@ -311,6 +311,8 @@ Transport.prototype.onBind = function (scope) {
 		system: scope.system,
 		transactions: scope.transactions
 	};
+
+	definitions = scope.swagger.definitions;
 
 	__private.headers = System.getHeaders();
 	__private.broadcaster.bind(
