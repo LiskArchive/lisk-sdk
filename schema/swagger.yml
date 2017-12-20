@@ -1586,6 +1586,35 @@ definitions:
         type: string
         example: "65000000"
 
+  CommonBlock:
+    x-private: true
+    type: object
+    required:
+      - id
+      - height
+      - previousBlock
+    properties:
+      id:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      previousBlock:
+        type: string
+        format: id
+        example: "15918760246746894806"
+
+  BlocksList:
+    x-private: true
+    type: array
+    items:
+      $ref: '#/definitions/Block'
+
   ForgingStatus:
     type: object
     required:
