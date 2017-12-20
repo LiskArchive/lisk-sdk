@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as broadcastTransaction from '../../src/commands/broadcastTransaction';
 import * as createAccount from '../../src/commands/createAccount';
 import * as createTransactionRegisterDelegate from '../../src/commands/createTransactionRegisterDelegate';
 import * as createTransactionCastVotes from '../../src/commands/createTransactionCastVotes';
@@ -70,6 +71,7 @@ export const getCommandInstance = (vorpal, command) => {
 
 export const getActionCreator = actionName =>
 	({
+		'broadcast transaction': broadcastTransaction.actionCreator,
 		'create account': createAccount.actionCreator,
 		'decrypt message': decryptMessage.actionCreator,
 		'decrypt passphrase': decryptPassphrase.actionCreator,

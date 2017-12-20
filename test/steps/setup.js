@@ -18,6 +18,7 @@ import fs from 'fs';
 import readline from 'readline';
 import lockfile from 'lockfile';
 import lisk from 'lisk-js';
+import liskAPIInstance from '../../src/utils/api';
 import cryptoInstance from '../../src/utils/cryptoModule';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
@@ -76,6 +77,16 @@ const setUpProcessStubs = () => {
 const setUpReadlineStubs = () => {
 	sandbox.stub(readline, 'createInterface');
 };
+
+function setUpLiskJSAPIStubs() {
+	const apiResponse = {
+		message: 'Transaction accepted by the node for processing',
+	};
+	this.test.ctx.apiResponse = apiResponse;
+	sandbox
+		.stub(liskAPIInstance, 'broadcastSignedTransaction')
+		.returns(apiResponse);
+}
 
 const setUpLiskJSCryptoStubs = () => {
 	[
@@ -166,6 +177,10 @@ const restoreEnvVariable = variable =>
 		}
 	};
 
+export function setUpCommandBroadcastTransaction() {
+	setUpLiskJSAPIStubs.call(this);
+}
+
 export function setUpCommandCreateAccount() {
 	setUpCryptoStubs();
 	setUpMnemonicStubs();
@@ -253,6 +268,10 @@ export function tearDownUtilConfig() {
 	restoreEnvVariable(LISKY_CONFIG_DIR).call(this);
 }
 
+export function setUpUtilCreateCommand() {
+	setUpPrintStubs.call(this);
+}
+
 export function setUpUtilCrypto() {
 	setUpLiskJSCryptoStubs();
 }
@@ -278,14 +297,14 @@ export function tearDownUtilInputUtils() {
 	restoreEnvVariable(TEST_PASSPHRASE).call(this);
 }
 
-export function setUpUtilWrapActionCreator() {
-	setUpPrintStubs.call(this);
-}
-
 export function setUpUtilPrint() {
 	delete require.cache[require.resolve('../../src/utils/print')];
 	setUpConsoleStubs();
 	setUpHelperStubs();
+}
+
+export function setUpUtilWrapActionCreator() {
+	setUpPrintStubs.call(this);
 }
 
 export function setUpExecFile() {

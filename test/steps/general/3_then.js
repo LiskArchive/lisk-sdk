@@ -55,6 +55,11 @@ export function itShouldResolveToTheObject() {
 	return returnValue.should.be.fulfilledWith(testObject);
 }
 
+export function itShouldResolveToTheErrorObject() {
+	const { returnValue, errorObject } = this.test.ctx;
+	return returnValue.should.be.fulfilledWith(errorObject);
+}
+
 export async function itShouldResolveToAnObjectWithMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);

@@ -18,6 +18,37 @@ import * as inputUtils from '../../../src/utils/input/utils';
 import execFile from '../../../src/execFile';
 import { getFirstQuotedString } from '../utils';
 
+export function theActionIsCalledWithTheTransactionAndTheStringifiedErrorObjectViaVorpalStdIn() {
+	const { action, transaction, errorObject } = this.test.ctx;
+	const returnValue = action({
+		transaction,
+		stdin: [JSON.stringify(errorObject)],
+	});
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
+export function theActionIsCalledWithTheStringifiedErrorObjectViaVorpalStdIn() {
+	const { action, errorObject } = this.test.ctx;
+	const returnValue = action({ stdin: [JSON.stringify(errorObject)] });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
+}
+
+export function theActionIsCalledWithTheTransaction() {
+	const { action, transaction } = this.test.ctx;
+	const returnValue = action({ transaction });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheTransactionViaVorpalStdIn() {
+	const { action, transaction } = this.test.ctx;
+	const returnValue = action({ stdin: [transaction] });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions() {
 	const { action, lifetime, keysgroup, minimum, options } = this.test.ctx;
 	const returnValue = action({
@@ -156,7 +187,7 @@ export function theActionIsCalledWithTheOptions() {
 
 export function theActionIsCalled() {
 	const { action } = this.test.ctx;
-	const returnValue = action();
+	const returnValue = action({});
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
 }
@@ -164,12 +195,16 @@ export function theActionIsCalled() {
 export function theCommandIsExecuted() {
 	const { vorpal } = this.test.ctx;
 	const commandToExecute = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.returnValue = vorpal.exec(commandToExecute);
+	const returnValue = vorpal.exec(commandToExecute);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
 }
 
 export function theCreatedCommandIsCalledWithTheVorpalInstance() {
 	const { createdCommand, vorpal } = this.test.ctx;
-	this.test.ctx.returnValue = createdCommand(vorpal);
+	const returnValue = createdCommand(vorpal);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
 }
 
 export function createCommandIsCalledWithAnObjectContainingTheCommandTheAutocompleteListTheDescriptionTheActionCreatorTheOptionsListAndThePrefix() {

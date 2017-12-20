@@ -22,14 +22,30 @@ describe('print utils', () => {
 	beforeEach(setUpUtilPrint);
 	describe('printResult', () => {
 		Given(
-			'a Vorpal instance with an active command that can log',
-			given.aVorpalInstanceWithAnActiveCommandThatCanLog,
+			'a Vorpal instance that can log',
+			given.aVorpalInstanceThatCanLog,
 			() => {
 				Given('there is a result to print', given.thereIsAResultToPrint, () => {
 					Given(
 						'a config with json set to true',
 						given.aConfigWithJsonSetTo,
 						() => {
+							Given(
+								'an active command that can log',
+								given.anActiveCommandThatCanLog,
+								() => {
+									When(
+										'the result is printed using the active command context',
+										when.theResultIsPrintedUsingTheActiveCommandContext,
+										() => {
+											Then(
+												'the active command should be used to log',
+												then.theActiveCommandShouldBeUsedToLog,
+											);
+										},
+									);
+								},
+							);
 							When('the result is printed', when.theResultIsPrinted, () => {
 								Then(
 									'shouldUseJSONOutput should be called with the config and an empty options object',
@@ -55,10 +71,6 @@ describe('print utils', () => {
 													Then(
 														'shouldUseJSONOutput should be called with the config and the options',
 														then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
-													);
-													Then(
-														'the result should be returned',
-														then.theResultShouldBeReturned,
 													);
 													Then(
 														'a table should be logged',
@@ -89,10 +101,6 @@ describe('print utils', () => {
 																then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
 															);
 															Then(
-																'the result stripped of ANSI codes should be returned',
-																then.theResultStrippedOfANSICodesShouldBeReturned,
-															);
-															Then(
 																'JSON output should be logged without ANSI codes',
 																then.jsonOutputShouldBeLoggedWithoutANSICodes,
 															);
@@ -119,10 +127,6 @@ describe('print utils', () => {
 																	Then(
 																		'shouldUsePrettyOutput should be called with the config and the options',
 																		then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
-																	);
-																	Then(
-																		'the result stripped of ANSI codes should be returned',
-																		then.theResultStrippedOfANSICodesShouldBeReturned,
 																	);
 																	Then(
 																		'pretty JSON output should be logged without ANSI codes',
@@ -169,10 +173,6 @@ describe('print utils', () => {
 																then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
 															);
 															Then(
-																'the result stripped of ANSI codes should be returned',
-																then.theResultStrippedOfANSICodesShouldBeReturned,
-															);
-															Then(
 																'pretty JSON output should be logged without ANSI codes',
 																then.prettyJSONOutputShouldBeLoggedWithoutANSICodes,
 															);
@@ -207,10 +207,6 @@ describe('print utils', () => {
 															Then(
 																'shouldUsePrettyOutput should be called with the config and the options',
 																then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
-															);
-															Then(
-																'the result stripped of ANSI codes should be returned',
-																then.theResultStrippedOfANSICodesShouldBeReturned,
 															);
 															Then(
 																'JSON output should be logged without ANSI codes',

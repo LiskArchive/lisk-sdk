@@ -129,15 +129,13 @@ export const prepareOptions = async options =>
 		}
 	});
 
-export const wrapActionCreator = (
-	vorpal,
-	actionCreator,
-	errorPrefix,
-) => async parameters =>
-	prepareOptions(parameters.options)
-		.then(() => actionCreator(vorpal)(parameters))
-		.catch(createErrorHandler(errorPrefix))
-		.then(printResult(vorpal, parameters.options));
+export const wrapActionCreator = (vorpal, actionCreator, errorPrefix) =>
+	async function wrappedActionCreator(parameters) {
+		return prepareOptions(parameters.options)
+			.then(() => actionCreator(vorpal).call(this, parameters))
+			.catch(createErrorHandler(errorPrefix))
+			.then(printResult(vorpal, parameters.options).bind(this));
+	};
 
 const OPTION_TYPES = {
 	string: [

@@ -53,8 +53,8 @@ describe('input utils', () => {
 	describe('#getInputsFromSource', () => {
 		beforeEach(setUpUtilInput);
 		Given(
-			'a Vorpal instance with an active command that can log',
-			given.aVorpalInstanceWithAnActiveCommandThatCanLog,
+			'a Vorpal instance that can log',
+			given.aVorpalInstanceThatCanLog,
 			() => {
 				Given(
 					'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',

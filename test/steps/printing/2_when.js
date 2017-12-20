@@ -45,6 +45,14 @@ export function theResultIsPrinted() {
 	this.test.ctx.returnValue = printResult(vorpal, options)(result);
 }
 
+export function theResultIsPrintedUsingTheActiveCommandContext() {
+	const { vorpal, result, options, activeCommand } = this.test.ctx;
+	this.test.ctx.returnValue = printResult(vorpal, options).call(
+		activeCommand,
+		result,
+	);
+}
+
 export function theObjectIsTablified() {
 	const { testObject } = this.test.ctx;
 	this.test.ctx.returnValue = tablify(testObject);

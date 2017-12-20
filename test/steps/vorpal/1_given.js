@@ -55,6 +55,12 @@ export function aCommand() {
 	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
 }
 
+export function anActiveCommandThatCanLog() {
+	this.test.ctx.activeCommand = {
+		log: sinon.spy(),
+	};
+}
+
 export function anActionCreatorThatCreatesAnActionThatResolvesToAnObject() {
 	const testObject = {
 		lisk: 'js',
@@ -92,11 +98,9 @@ export function aVorpalInstance() {
 	this.test.ctx.vorpal = vorpal;
 }
 
-export function aVorpalInstanceWithAnActiveCommandThatCanLog() {
+export function aVorpalInstanceThatCanLog() {
 	this.test.ctx.vorpal = {
-		activeCommand: {
-			log: sandbox.spy(),
-		},
+		log: sandbox.spy(),
 	};
 }
 

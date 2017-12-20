@@ -18,7 +18,7 @@ import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Query class', () => {
-	Given('a lisk API instance', given.aLiskAPIInstance, () => {
+	Given('a Lisk API instance', given.aLiskAPIInstance, () => {
 		Given('a query instance', given.aQueryInstance, () => {
 			Then(
 				'the query instance should have the Lisk API instance as a client',
