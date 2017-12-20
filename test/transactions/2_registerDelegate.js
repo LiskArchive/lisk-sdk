@@ -25,6 +25,7 @@ describe('#registerDelegate transaction', () => {
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let registerDelegateTransaction;
@@ -153,6 +154,38 @@ describe('#registerDelegate transaction', () => {
 			return registerDelegateTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('unsigned register delegate transaction', () => {
+		beforeEach(() => {
+			registerDelegateTransaction = registerDelegate({
+				username,
+				unsigned,
+			});
+		});
+
+		it('should create a register delegate transaction without signature', () => {
+			registerDelegateTransaction.should.have.property('type').equal(2);
+			registerDelegateTransaction.should.have.property('amount').equal('0');
+			registerDelegateTransaction.should.have
+				.property('fee')
+				.equal('2500000000');
+			registerDelegateTransaction.should.have
+				.property('recipientId')
+				.equal(null);
+			registerDelegateTransaction.should.have
+				.property('senderPublicKey')
+				.equal(null);
+			registerDelegateTransaction.should.have.property('timestamp');
+			registerDelegateTransaction.asset.should.have
+				.property('delegate')
+				.and.be.type('object');
+			registerDelegateTransaction.asset.delegate.should.have
+				.property('username')
+				.and.be.type('string');
+			registerDelegateTransaction.should.not.have.property('signature');
+			registerDelegateTransaction.should.not.have.property('id');
 		});
 	});
 });

@@ -43,15 +43,18 @@ const transferOutOfDapp = ({
 	passphrase,
 	secondPassphrase,
 	timeOffset,
+	unsigned,
 }) => {
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
 
 	const transaction = {
 		type: 7,
 		amount: amount.toString(),
 		fee: OUT_TRANSFER_FEE.toString(),
 		recipientId,
-		senderPublicKey: keys.publicKey,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			outTransfer: {
@@ -61,7 +64,9 @@ const transferOutOfDapp = ({
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default transferOutOfDapp;

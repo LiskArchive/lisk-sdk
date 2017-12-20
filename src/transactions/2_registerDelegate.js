@@ -36,15 +36,18 @@ const registerDelegate = ({
 	username,
 	secondPassphrase,
 	timeOffset,
+	unsigned,
 }) => {
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
 
 	const transaction = {
 		type: 2,
 		amount: '0',
 		fee: DELEGATE_FEE.toString(),
 		recipientId: null,
-		senderPublicKey: keys.publicKey,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			delegate: {
@@ -53,7 +56,9 @@ const registerDelegate = ({
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default registerDelegate;

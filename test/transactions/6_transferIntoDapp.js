@@ -27,6 +27,7 @@ describe('#transferIntoDapp transaction', () => {
 	const transferFee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let transferIntoDappTransaction;
@@ -155,6 +156,42 @@ describe('#transferIntoDapp transaction', () => {
 			return transferIntoDappTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('unsigned transfer into dapp transaction', () => {
+		beforeEach(() => {
+			transferIntoDappTransaction = transferIntoDapp({
+				dappId,
+				amount,
+				unsigned,
+			});
+		});
+
+		it('should create a transfer into dapp transaction without signature', () => {
+			transferIntoDappTransaction.should.have.property('type').equal(6);
+			transferIntoDappTransaction.should.have
+				.property('amount')
+				.equal('1000000000');
+			transferIntoDappTransaction.should.have.property('fee').equal('10000000');
+			transferIntoDappTransaction.should.have
+				.property('recipientId')
+				.equal(null);
+			transferIntoDappTransaction.should.have
+				.property('senderPublicKey')
+				.equal(null);
+			transferIntoDappTransaction.should.have.property('timestamp');
+			transferIntoDappTransaction.should.have
+				.property('asset')
+				.and.be.type('object');
+			transferIntoDappTransaction.asset.should.have
+				.property('inTransfer')
+				.and.be.type('object');
+			transferIntoDappTransaction.asset.inTransfer.should.have
+				.property('dappId')
+				.and.be.type('string');
+			transferIntoDappTransaction.should.not.have.property('signature');
+			transferIntoDappTransaction.should.not.have.property('id');
 		});
 	});
 });

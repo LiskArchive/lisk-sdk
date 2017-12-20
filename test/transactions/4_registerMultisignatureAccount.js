@@ -29,6 +29,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	const timeWithOffset = 38350076;
 	const lifetime = 5;
 	const minimum = 2;
+	const unsigned = true;
 
 	let tooShortPublicKeyKeysgroup;
 	let plusPrependedPublicKeyKeysgroup;
@@ -294,6 +295,44 @@ describe('#registerMultisignatureAccount transaction', () => {
 				.should.throw(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
 				);
+		});
+	});
+
+	describe('unsigned register multisignature account transaction', () => {
+		beforeEach(() => {
+			registerMultisignatureTransaction = registerMultisignatureAccount({
+				keysgroup,
+				lifetime,
+				minimum,
+				unsigned,
+			});
+		});
+
+		it('should create a register multisignature account transaction without signature', () => {
+			registerMultisignatureTransaction.should.have.property('type').equal(4);
+			registerMultisignatureTransaction.should.have
+				.property('amount')
+				.equal('0');
+			registerMultisignatureTransaction.should.have
+				.property('fee')
+				.equal('1500000000');
+			registerMultisignatureTransaction.should.have
+				.property('recipientId')
+				.equal(null);
+			registerMultisignatureTransaction.should.have
+				.property('senderPublicKey')
+				.equal(null);
+			registerMultisignatureTransaction.should.have.property('timestamp');
+			registerMultisignatureTransaction.asset.should.have
+				.property('multisignature')
+				.and.be.type('object');
+			registerMultisignatureTransaction.asset.multisignature.should.have.properties(
+				'min',
+				'lifetime',
+				'keysgroup',
+			);
+			registerMultisignatureTransaction.should.not.have.property('signature');
+			registerMultisignatureTransaction.should.not.have.property('id');
 		});
 	});
 });

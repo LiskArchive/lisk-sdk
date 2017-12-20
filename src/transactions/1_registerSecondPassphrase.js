@@ -46,20 +46,25 @@ const registerSecondPassphrase = ({
 	passphrase,
 	secondPassphrase,
 	timeOffset,
+	unsigned,
 }) => {
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
 
 	const transaction = {
 		type: 1,
 		amount: '0',
 		fee: SIGNATURE_FEE.toString(),
 		recipientId: null,
-		senderPublicKey: keys.publicKey,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: createAsset(secondPassphrase),
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default registerSecondPassphrase;

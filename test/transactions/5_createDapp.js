@@ -39,6 +39,7 @@ describe('#createDapp transaction', () => {
 	const nameStringError = 'Dapp name must be a string.';
 	const typeIntegerError = 'Dapp type must be an integer.';
 	const linkStringError = 'Dapp link must be a string.';
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let options;
@@ -276,6 +277,37 @@ describe('#createDapp transaction', () => {
 			return createDappTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('unsigned create dapp transaction', () => {
+		beforeEach(() => {
+			createDappTransaction = createDapp({
+				options,
+				unsigned,
+			});
+		});
+
+		it('should create a create dapp transaction without signature', () => {
+			createDappTransaction.should.have.property('type').equal(5);
+			createDappTransaction.should.have.property('amount').equal('0');
+			createDappTransaction.should.have.property('fee').equal('2500000000');
+			createDappTransaction.should.have.property('recipientId').equal(null);
+			createDappTransaction.should.have.property('senderPublicKey').equal(null);
+			createDappTransaction.should.have.property('timestamp');
+			createDappTransaction.asset.should.have
+				.property('dapp')
+				.and.be.type('object');
+			createDappTransaction.asset.dapp.should.have.properties(
+				'category',
+				'name',
+				'tags',
+				'type',
+				'link',
+				'icon',
+			);
+			createDappTransaction.should.not.have.property('signature');
+			createDappTransaction.should.not.have.property('id');
 		});
 	});
 });

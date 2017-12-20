@@ -28,6 +28,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 	const secondPassphraseFee = (5 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let registerSecondPassphraseTransaction;
@@ -166,6 +167,40 @@ describe('#registerSecondPassphrase transaction', () => {
 					emptyStringPublicKey,
 				);
 			});
+		});
+	});
+
+	describe('unsigned register second passphrase transaction', () => {
+		beforeEach(() => {
+			registerSecondPassphraseTransaction = registerSecondPassphrase({
+				secondPassphrase,
+				unsigned,
+			});
+		});
+
+		it('should create a register second passphrase transaction without signature', () => {
+			registerSecondPassphraseTransaction.should.have.property('type').equal(1);
+			registerSecondPassphraseTransaction.should.have
+				.property('amount')
+				.equal('0');
+			registerSecondPassphraseTransaction.should.have
+				.property('fee')
+				.equal('500000000');
+			registerSecondPassphraseTransaction.should.have
+				.property('recipientId')
+				.equal(null);
+			registerSecondPassphraseTransaction.should.have
+				.property('senderPublicKey')
+				.equal(null);
+			registerSecondPassphraseTransaction.should.have.property('timestamp');
+			registerSecondPassphraseTransaction.asset.should.have
+				.property('signature')
+				.and.be.type('object');
+			registerSecondPassphraseTransaction.asset.signature.should.have
+				.property('publicKey')
+				.and.be.type('string');
+			registerSecondPassphraseTransaction.should.not.have.property('signature');
+			registerSecondPassphraseTransaction.should.not.have.property('id');
 		});
 	});
 });

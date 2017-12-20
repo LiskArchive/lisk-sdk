@@ -53,17 +53,25 @@ const validateOptions = options => {
  * @return {Object}
  */
 
-const createDapp = ({ passphrase, secondPassphrase, options, timeOffset }) => {
+const createDapp = ({
+	passphrase,
+	secondPassphrase,
+	options,
+	timeOffset,
+	unsigned,
+}) => {
 	validateOptions(options);
 
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
 
 	const transaction = {
 		type: 5,
 		amount: '0',
 		fee: DAPP_FEE.toString(),
 		recipientId: null,
-		senderPublicKey: keys.publicKey,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			dapp: {
@@ -78,7 +86,9 @@ const createDapp = ({ passphrase, secondPassphrase, options, timeOffset }) => {
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default createDapp;

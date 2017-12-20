@@ -35,6 +35,7 @@ describe('#castVotes transaction', () => {
 	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let castVotesTransaction;
@@ -284,6 +285,31 @@ describe('#castVotes transaction', () => {
 						'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
 					);
 			});
+		});
+	});
+
+	describe('unsigned cast votes transaction', () => {
+		beforeEach(() => {
+			castVotesTransaction = castVotes({
+				votes: votePublicKeys,
+				unvotes: unvotePublicKeys,
+				unsigned,
+			});
+		});
+
+		it('should create a cast votes transaction without signature', () => {
+			castVotesTransaction.should.have.property('type').equal(3);
+			castVotesTransaction.should.have.property('amount').equal('0');
+			castVotesTransaction.should.have.property('fee').equal('100000000');
+			castVotesTransaction.should.have.property('recipientId').equal(null);
+			castVotesTransaction.should.have.property('senderPublicKey').equal(null);
+			castVotesTransaction.should.have.property('timestamp');
+			castVotesTransaction.asset.should.have
+				.property('votes')
+				.and.be.type('object');
+			castVotesTransaction.asset.votes.should.be.Array();
+			castVotesTransaction.should.not.have.property('signature');
+			castVotesTransaction.should.not.have.property('id');
 		});
 	});
 });

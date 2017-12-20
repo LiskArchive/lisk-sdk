@@ -28,6 +28,7 @@ describe('#transfer transaction', () => {
 	const transferFee = (0.1 * fixedPoint).toString();
 	const transferWithDataFee = (0.2 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let transferTransaction;
@@ -205,6 +206,30 @@ describe('#transfer transaction', () => {
 			return transferTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('unsigned transfer transaction', () => {
+		beforeEach(() => {
+			transferTransaction = transfer({
+				recipientId,
+				amount,
+				unsigned,
+			});
+		});
+
+		it('should create a transfer transaction without signature', () => {
+			transferTransaction.should.have.property('type').equal(0);
+			transferTransaction.should.have.property('amount').equal('1000');
+			transferTransaction.should.have.property('fee').equal('10000000');
+			transferTransaction.should.have
+				.property('recipientId')
+				.equal(recipientId);
+			transferTransaction.should.have.property('senderPublicKey').equal(null);
+			transferTransaction.should.have.property('timestamp');
+			transferTransaction.should.have.property('asset').and.be.type('object');
+			transferTransaction.should.not.have.property('signature');
+			transferTransaction.should.not.have.property('id');
 		});
 	});
 });
