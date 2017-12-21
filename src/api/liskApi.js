@@ -21,18 +21,21 @@ export default class LiskAPI {
 	constructor(providedOptions) {
 		const options = Object.assign({}, config.options, providedOptions);
 
+		this.ssl = [true, false].includes(options.ssl) ? options.ssl : true;
+		this.testnet = options.testnet || false;
+
 		this.defaultNodes = options.nodes || config.nodes.mainnet;
-
 		this.defaultSSLNodes = this.defaultNodes;
-
 		this.defaultTestnetNodes = options.nodes || config.nodes.testnet;
 
-		this.options = options;
-		this.ssl = options.ssl;
-		this.randomNode = Boolean(options.randomNode);
-		this.testnet = options.testnet;
-		this.bannedNodes = options.bannedNodes;
+		this.randomNode = [true, false].includes(options.randomNode)
+			? options.randomNode
+			: true;
+		this.bannedNodes = options.bannedNodes || [];
+
 		this.node = options.node || privateApi.selectNewNode.call(this);
+		this.providedNode = options.node || null;
+
 		this.port =
 			options.port === '' || options.port
 				? options.port
