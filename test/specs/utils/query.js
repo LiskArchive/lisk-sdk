@@ -65,6 +65,24 @@ describe('Query class', () => {
 										);
 									},
 								);
+								When(
+									'a rejection occurs sending a request using the endpoint and the parameters',
+									when.aRejectionOccursSendingARequestUsingTheEndpointAndTheParameters,
+									() => {
+										Then(
+											'it should not set the Lisk API instance testnet setting',
+											then.itShouldNotSetTheLiskAPIInstanceTestnetSetting,
+										);
+										Then(
+											'it should use the Lisk API instance to send a request to the endpoint using the parameters',
+											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+										);
+										Then(
+											'it should reject with the the original rejection',
+											then.itShouldRejectWithTheOriginalRejection,
+										);
+									},
+								);
 								Given('an options object', given.anOptionsObject, () => {
 									Given(
 										'the options object has key "testnet" set to boolean true',
@@ -89,6 +107,28 @@ describe('Query class', () => {
 													Then(
 														'it should resolve to the result of sending the request',
 														then.itShouldResolveToTheResultOfSendingTheRequest,
+													);
+												},
+											);
+											When(
+												'a rejection occurs sending a request using the endpoint, the parameters and the options',
+												when.aRejectionOccursSendingARequestUsingTheEndpointTheParametersAndTheOptions,
+												() => {
+													Then(
+														'it should set the Lisk API instance testnet setting to true',
+														then.itShouldSetTheLiskAPIInstanceTestnetSettingTo,
+													);
+													Then(
+														'it should use the Lisk API instance to send a request to the endpoint using the parameters',
+														then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+													);
+													Then(
+														'it should set the Lisk API instance testnet setting back to the original setting',
+														then.itShouldSetTheLiskAPIInstanceTestnetSettingBackToTheOriginalSetting,
+													);
+													Then(
+														'it should reject with the the original rejection',
+														then.itShouldRejectWithTheOriginalRejection,
 													);
 												},
 											);

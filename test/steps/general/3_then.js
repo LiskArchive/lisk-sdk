@@ -96,6 +96,11 @@ export function itShouldRejectWithMessage() {
 	return returnValue.should.be.rejectedWith(message);
 }
 
+export function itShouldRejectWithTheOriginalRejection() {
+	const { returnValue, rejection } = this.test.ctx;
+	return returnValue.should.be.rejectedWith(rejection);
+}
+
 export function itShouldReturnAnEmptyObject() {
 	const { returnValue } = this.test.ctx;
 	return returnValue.should.be.fulfilledWith({});

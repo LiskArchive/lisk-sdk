@@ -25,21 +25,40 @@ class Query {
 			transaction: (transaction, options) =>
 				this.getTransaction(transaction, options),
 		};
+
+		this.testnetCache = null;
+	}
+
+	cacheTestnetSetting() {
+		this.testnetCache = this.client.testnet;
+	}
+
+	resetTestnetSetting() {
+		this.client.setTestnet(this.testnetCache);
+		this.testnetCache = null;
 	}
 
 	sendRequest(endpoint, parameters, { testnet } = {}) {
-		const originalTestnetSetting = this.client.testnet;
 		const overrideTestnetSetting =
 			typeof testnet === 'boolean' && this.client.testnet !== testnet;
-		const reset = result => {
-			if (overrideTestnetSetting)
-				this.client.setTestnet(originalTestnetSetting);
+
+		const handleSuccess = async result => {
+			if (overrideTestnetSetting) this.resetTestnetSetting();
 			return result;
 		};
+		const handleFailure = async result => {
+			if (overrideTestnetSetting) this.resetTestnetSetting();
+			throw result;
+		};
 
-		if (overrideTestnetSetting) this.client.setTestnet(testnet);
+		if (overrideTestnetSetting) {
+			this.cacheTestnetSetting();
+			this.client.setTestnet(testnet);
+		}
 
-		return this.client.sendRequest(endpoint, parameters).then(reset, reset);
+		return this.client
+			.sendRequest(endpoint, parameters)
+			.then(handleSuccess, handleFailure);
 	}
 
 	getBlock(input, options) {

@@ -29,6 +29,41 @@ export function theQueryInstanceSendsARequestUsingTheEndpointTheParametersAndThe
 	return returnValue.catch(e => e);
 }
 
+export function aRejectionOccursSendingARequestUsingTheEndpointAndTheParameters() {
+	const {
+		liskAPIInstance,
+		queryInstance,
+		endpoint,
+		parameters,
+	} = this.test.ctx;
+
+	const rejection = { error: 'oh no' };
+	this.test.ctx.rejection = rejection;
+	liskAPIInstance.sendRequest.rejects(rejection);
+
+	const returnValue = queryInstance.sendRequest(endpoint, parameters);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function aRejectionOccursSendingARequestUsingTheEndpointTheParametersAndTheOptions() {
+	const {
+		liskAPIInstance,
+		queryInstance,
+		endpoint,
+		parameters,
+		options,
+	} = this.test.ctx;
+
+	const rejection = { error: 'oh no' };
+	this.test.ctx.rejection = rejection;
+	liskAPIInstance.sendRequest.rejects(rejection);
+
+	const returnValue = queryInstance.sendRequest(endpoint, parameters, options);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function processQueryResultIsCalledWithTheTypeThenTheResult() {
 	const { type, result } = this.test.ctx;
 	const returnValue = processQueryResult(type)(result);
