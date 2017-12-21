@@ -1,26 +1,24 @@
 {
-    "nodes": {
-        "mainnet": [
-            "node01.lisk.io",
-            "node02.lisk.io",
-            "node03.lisk.io",
-            "node04.lisk.io",
-            "node05.lisk.io",
-            "node06.lisk.io",
-            "node07.lisk.io",
-            "node08.lisk.io"
-        ],
-        "testnet": [
-            "testnet.lisk.io"
-        ]
-    },
-    "options": {
-        "testnet": false,
-        "ssl": true,
-        "randomNode": true,
-        "node": null,
-        "port": null,
-        "nethash": null,
-        "bannedNodes": []
-    }
+	"nodes": {
+		"mainnet": [
+			"node01.lisk.io",
+			"node02.lisk.io",
+			"node03.lisk.io",
+			"node04.lisk.io",
+			"node05.lisk.io",
+			"node06.lisk.io",
+			"node07.lisk.io",
+			"node08.lisk.io"
+		],
+		"testnet": ["testnet.lisk.io"]
+	},
+	"options": {
+		"testnet": false,
+		"ssl": true,
+		"randomNode": true,
+		"node": null,
+		"port": null,
+		"nethash": null,
+		"bannedNodes": []
+	}
 }
