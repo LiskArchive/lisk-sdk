@@ -34,8 +34,8 @@ export default class LiskAPI {
 		this.defaultSSLNodes = this.defaultNodes;
 		this.defaultTestnetNodes = options.nodes || config.nodes.testnet;
 
-		this.randomNode = [true, false].includes(options.randomNode)
-			? options.randomNode
+		this.randomizeNodes = [true, false].includes(options.randomizeNodes)
+			? options.randomizeNodes
 			: true;
 		this.bannedNodes = options.bannedNodes || [];
 
@@ -47,6 +47,34 @@ export default class LiskAPI {
 				? options.port
 				: utils.getDefaultPort(options);
 		this.nethash = this.getNethash(options.nethash);
+	}
+
+	get allNodes() {
+		return {
+			current: this.node,
+			default: this.defaultNodes,
+			ssl: this.defaultSSLNodes,
+			testnet: this.defaultTestnetNodes,
+		};
+	}
+
+	get nodes() {
+		if (this.testnet) return this.defaultTestnetNodes;
+		if (this.ssl) return this.defaultSSLNodes;
+		return this.defaultNodes;
+	}
+
+	get randomNode() {
+		const nodes = this.nodes.filter(node => !this.isBanned(node));
+
+		if (!nodes.length) {
+			throw new Error(
+				'Cannot get random node: all relevant nodes have been banned.',
+			);
+		}
+
+		const randomIndex = Math.floor(Math.random() * nodes.length);
+		return nodes[randomIndex];
 	}
 
 	/**
@@ -96,20 +124,6 @@ export default class LiskAPI {
 	}
 
 	/**
-	 * @method getAllNodes
-	 * @return {Object}
-	 */
-
-	getAllNodes() {
-		return {
-			current: this.node,
-			default: this.defaultNodes,
-			ssl: this.defaultSSLNodes,
-			testnet: this.defaultTestnetNodes,
-		};
-	}
-
-	/**
 	 * @method getNethash
 	 * @return {Object}
 	 * @public
@@ -130,46 +144,15 @@ export default class LiskAPI {
 	}
 
 	/**
-	 * @method getNodes
-	 * @return {Array}
-	 * @private
-	 */
-
-	getNodes() {
-		if (this.testnet) return this.defaultTestnetNodes;
-		if (this.ssl) return this.defaultSSLNodes;
-		return this.defaultNodes;
-	}
-
-	/**
-	 * @method getRandomNode
-	 * @return  {String}
-	 * @private
-	 */
-
-	getRandomNode() {
-		const nodes = this.getNodes().filter(node => !this.isBanned(node));
-
-		if (!nodes.length) {
-			throw new Error(
-				'Cannot get random node: all relevant nodes have been banned.',
-			);
-		}
-
-		const randomIndex = Math.floor(Math.random() * nodes.length);
-		return nodes[randomIndex];
-	}
-
-	/**
 	 * @method hasAvailableNodes
 	 * @return {Boolean}
 	 * @private
 	 */
 
 	hasAvailableNodes() {
-		const nodes = this.getNodes();
-
-		return this.randomNode ? nodes.some(node => !this.isBanned(node)) : false;
+		return this.randomizeNodes
+			? this.nodes.some(node => !this.isBanned(node))
+			: false;
 	}
 
 	/**
@@ -189,19 +172,19 @@ export default class LiskAPI {
 	 */
 
 	selectNewNode() {
-		if (this.randomNode) {
-			return this.getRandomNode();
+		if (this.randomizeNodes) {
+			return this.randomNode;
 		} else if (this.providedNode) {
 			if (this.isBanned(this.providedNode)) {
 				throw new Error(
-					'Cannot select node: provided node has been banned and randomNode is not set to true.',
+					'Cannot select node: provided node has been banned and randomizeNodes is not set to true.',
 				);
 			}
 			return this.providedNode;
 		}
 
 		throw new Error(
-			'Cannot select node: no node provided and randomNode is not set to true.',
+			'Cannot select node: no node provided and randomizeNodes is not set to true.',
 		);
 	}
 

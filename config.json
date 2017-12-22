@@ -15,7 +15,7 @@
 	"options": {
 		"testnet": false,
 		"ssl": true,
-		"randomNode": true,
+		"randomizeNodes": true,
 		"node": null,
 		"port": null,
 		"nethash": null,
