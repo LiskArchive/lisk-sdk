@@ -20,7 +20,7 @@ const utils = require('api/utils');
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
 	const testPort = '7000';
-	const livePort = '8000';
+	// const livePort = '8000';
 	const sslPort = '443';
 	const mainnetHash =
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
@@ -53,8 +53,14 @@ describe('Lisk API module', () => {
 	const defaultRequestOffset = 101;
 	const defaultAmount = 1 * fixedPoint;
 	const defaultOrderBy = 'rate:asc';
+	const localNode = 'localhost';
+	const externalNode = 'external';
+	const sslNode = 'sslNode';
+	const externalTestnetNode = 'testnet';
+	const defaultNodes = [localNode, externalNode];
+	const defaultSSLNodes = [localNode, externalNode, sslNode];
+	const defaultTestnetNodes = [localNode, externalTestnetNode];
 	const defaultbannedNodes = ['naughty1', 'naughty2', 'naughty3'];
-	const defaultNodes = ['goodnode1', 'goodnode2', 'goodnode3'];
 	const defaultSelectedNode = 'selected_node';
 	const defaultUrl = 'node.url.com';
 	const defaultRequestPromiseResult = {
@@ -75,9 +81,6 @@ describe('Lisk API module', () => {
 	let LSK;
 
 	beforeEach(() => {
-		selectNewNodeStub = sandbox
-			.stub(privateApi, 'selectNewNode')
-			.returns(defaultSelectedNode);
 		sendRequestPromiseStub = sandbox
 			.stub(privateApi, 'sendRequestPromise')
 			.resolves(Object.assign({}, defaultRequestPromiseResult));
@@ -97,11 +100,11 @@ describe('Lisk API module', () => {
 
 	describe('LiskAPI()', () => {
 		it('should create a new instance of LiskAPI', () => {
-			return LSK.should.be.an('object').and.be.an.instanceof(LiskAPI);
+			return LSK.should.be.type('object').and.be.instanceof(LiskAPI);
 		});
 
 		it('should set node string by default', () => {
-			return LSK.should.have.property('node').and.be.a('string');
+			return LSK.should.have.property('node').and.be.type('string');
 		});
 
 		describe('with option testnet true', () => {
@@ -122,33 +125,36 @@ describe('Lisk API module', () => {
 	describe('on initialize', () => {
 		describe('SSL', () => {
 			it('should set SSL to true on initialization when no SSL options is passed', () => {
-				return LSK.should.have.property('ssl').be.true;
+				return LSK.should.have.property('ssl').be.true();
 			});
 
 			it('should set SSL to false on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: false });
-				return LSK.should.have.property('ssl').be.false;
+				return LSK.should.have.property('ssl').be.false();
 			});
 
 			it('should set SSL to true on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: true });
-				return LSK.should.have.property('ssl').be.true;
+				return LSK.should.have.property('ssl').be.true();
 			});
 		});
 
 		describe('randomNode', () => {
 			it('should set randomNode to true when randomNode not explicitly set', () => {
-				return LSK.should.have.property('randomNode').be.true;
+				return LSK.should.have.property('randomNode').be.true();
 			});
 
 			it('should set randomNode to true on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ randomNode: true });
-				return LSK.should.have.property('randomNode').be.true;
+				return LSK.should.have.property('randomNode').be.true();
 			});
 
 			it('should set randomNode to false on initialization when passed as an option', () => {
-				LSK = new LiskAPI({ randomNode: false });
-				return LSK.should.have.property('randomNode').be.false;
+				LSK = new LiskAPI({
+					node: defaultSelectedNode,
+					randomNode: false,
+				});
+				return LSK.should.have.property('randomNode').be.false();
 			});
 		});
 
@@ -211,6 +217,236 @@ describe('Lisk API module', () => {
 		});
 	});
 
+	describe('#getNodes', () => {
+		describe('with SSL set to true', () => {
+			beforeEach(() => {
+				LSK.ssl = true;
+			});
+
+			it('should return default testnet nodes if testnet is set to true', () => {
+				LSK.testnet = true;
+				LSK.defaultTestnetNodes = defaultTestnetNodes;
+				const nodes = LSK.getNodes();
+				return nodes.should.be.eql(defaultTestnetNodes);
+			});
+
+			it('should return default SSL nodes if testnet is not set to true', () => {
+				LSK.testnet = false;
+				LSK.defaultSSLNodes = defaultSSLNodes;
+				const nodes = LSK.getNodes();
+				return nodes.should.be.eql(defaultSSLNodes);
+			});
+		});
+
+		describe('with SSL set to false', () => {
+			beforeEach(() => {
+				LSK.ssl = false;
+			});
+
+			it('should return default testnet nodes if testnet is set to true', () => {
+				LSK.testnet = true;
+				LSK.defaultTestnetNodes = defaultTestnetNodes;
+				const nodes = LSK.getNodes();
+				return nodes.should.be.eql(defaultTestnetNodes);
+			});
+
+			it('should return default mainnet nodes if testnet is not set to true', () => {
+				LSK.testnet = false;
+				LSK.defaultNodes = defaultNodes;
+				const nodes = LSK.getNodes();
+				return nodes.should.be.eql(defaultNodes);
+			});
+		});
+	});
+
+	describe('#isBanned', () => {
+		it('should return true when provided node is banned', () => {
+			LSK.bannedNodes = [].concat(defaultNodes);
+			return LSK.isBanned(localNode).should.be.true();
+		});
+
+		it('should return false when provided node is not banned', () => {
+			LSK.bannedNodes = [];
+			return LSK.isBanned(localNode).should.be.false();
+		});
+	});
+
+	describe('#getRandomNode', () => {
+		beforeEach(() => {
+			sandbox.stub(LSK, 'getNodes').returns([].concat(defaultNodes));
+		});
+
+		it('should throw an error if all relevant nodes are banned', () => {
+			LSK.bannedNodes = [].concat(defaultNodes);
+			return LSK.getRandomNode
+				.bind(LSK)
+				.should.throw(
+					'Cannot get random node: all relevant nodes have been banned.',
+				);
+		});
+
+		it('should get nodes', () => {
+			LSK.getRandomNode();
+			return LSK.getNodes.should.be.called();
+		});
+
+		it('should return a node', () => {
+			const result = LSK.getRandomNode();
+			return defaultNodes.should.containEql(result);
+		});
+
+		it('should randomly select the node', () => {
+			const firstResult = LSK.getRandomNode();
+			let nextResult = LSK.getRandomNode();
+			// Test will almost certainly time out if not random
+			while (nextResult === firstResult) {
+				nextResult = LSK.getRandomNode();
+			}
+		});
+	});
+
+	describe('#selectNewNode', () => {
+		const customNode = 'customNode';
+		const getRandomNodeResult = externalNode;
+
+		beforeEach(() => {
+			sandbox.stub(LSK, 'getRandomNode').returns(getRandomNodeResult);
+		});
+
+		describe('if a node was provided in the options', () => {
+			beforeEach(() => {
+				LSK.providedNode = customNode;
+			});
+			describe('if randomNode is set to false', () => {
+				beforeEach(() => {
+					LSK.randomNode = false;
+				});
+
+				it('should throw an error if the provided node is banned', () => {
+					LSK.bannedNodes = [customNode];
+					return LSK.selectNewNode
+						.bind(LSK)
+						.should.throw(
+							'Cannot select node: provided node has been banned and randomNode is not set to true.',
+						);
+				});
+
+				it('should return the provided node if it is not banned', () => {
+					const result = LSK.selectNewNode();
+					return result.should.be.equal(customNode);
+				});
+			});
+
+			describe('if randomNode is set to true', () => {
+				beforeEach(() => {
+					LSK.randomNode = true;
+				});
+
+				it('should call getRandomNode', () => {
+					LSK.selectNewNode();
+					return LSK.getRandomNode.should.be.called();
+				});
+
+				it('should return a random node', () => {
+					const result = LSK.selectNewNode();
+					return result.should.be.equal(getRandomNodeResult);
+				});
+			});
+		});
+
+		describe('if a node was not provided in the options', () => {
+			beforeEach(() => {
+				LSK.providedNode = undefined;
+			});
+
+			describe('if randomNode is set to false', () => {
+				beforeEach(() => {
+					LSK.randomNode = false;
+				});
+
+				it('should throw an error', () => {
+					return LSK.selectNewNode
+						.bind(LSK)
+						.should.throw(
+							'Cannot select node: no node provided and randomNode is not set to true.',
+						);
+				});
+			});
+
+			describe('if randomNode is set to true', () => {
+				beforeEach(() => {
+					LSK.randomNode = true;
+				});
+
+				it('should call getRandomNode', () => {
+					LSK.selectNewNode(LSK);
+					return LSK.getRandomNode.should.be.called();
+				});
+
+				it('should return a random node', () => {
+					const result = LSK.selectNewNode();
+					return result.should.be.equal(getRandomNodeResult);
+				});
+			});
+		});
+	});
+
+	describe('#banActiveNode', () => {
+		let node;
+
+		beforeEach(() => {
+			node = LSK.node;
+		});
+
+		it('should add current node to banned nodes', () => {
+			LSK.banActiveNode();
+
+			return LSK.bannedNodes.should.containEql(node);
+		});
+
+		it('should not duplicate a banned node', () => {
+			const bannedNodes = [node];
+			LSK.bannedNodes = bannedNodes;
+			LSK.banActiveNode();
+
+			return LSK.bannedNodes.should.be.eql(bannedNodes);
+		});
+	});
+
+	describe('#hasAvailableNodes', () => {
+		beforeEach(() => {
+			sandbox.stub(LSK, 'getNodes').returns([].concat(defaultNodes));
+		});
+
+		describe('with random node', () => {
+			beforeEach(() => {
+				LSK.randomNode = true;
+			});
+
+			it('should get nodes', () => {
+				LSK.hasAvailableNodes();
+				return LSK.getNodes.should.be.called();
+			});
+
+			it('should return false without nodes left', () => {
+				LSK.getNodes.returns([]);
+				const result = LSK.hasAvailableNodes();
+				return result.should.be.false();
+			});
+		});
+
+		describe('without random node', () => {
+			beforeEach(() => {
+				LSK.randomNode = false;
+			});
+
+			it('should return false', () => {
+				const result = LSK.hasAvailableNodes();
+				return result.should.be.false();
+			});
+		});
+	});
+
 	describe('#getNethash', () => {
 		it('should provide default mainnet nethash values', () => {
 			return LSK.getNethash().should.eql(defaultNethash);
@@ -226,48 +462,45 @@ describe('Lisk API module', () => {
 		});
 	});
 
-	describe('#getNodes', () => {
-		it('should get a set of nodes', () => {
-			return LSK.getNodes().should.be.an('object');
+	describe('#getAllNodes', () => {
+		let nodes;
+
+		beforeEach(() => {
+			nodes = LSK.getAllNodes();
 		});
 
-		it('should list 8 official nodes', () => {
-			const nodes = LSK.getNodes();
-			nodes.should.have
-				.property('official')
-				.have.property('length')
-				.be.equal(8);
-			return nodes.official.forEach(node => {
-				node.should.have.property('node').and.be.a('string');
+		it('should show the current node', () => {
+			nodes.should.have.property('current').equal(LSK.node);
+		});
+
+		it('should list 8 default nodes', () => {
+			nodes.should.have.property('default').have.length(8);
+			return nodes.default.forEach(node => {
+				node.should.be.type('string');
 			});
 		});
 
 		it('should list 8 ssl nodes', () => {
-			const nodes = LSK.getNodes();
-			nodes.should.have
-				.property('ssl')
-				.have.property('length')
-				.be.equal(8);
+			nodes.should.have.property('ssl').have.length(8);
 			return nodes.ssl.forEach(node => {
-				node.should.have.property('node').and.be.a('string');
-				node.should.have.property('ssl').and.be.true;
+				node.should.be.type('string');
 			});
 		});
 
 		it('should list 1 testnet node', () => {
-			const nodes = LSK.getNodes();
-			nodes.should.have
-				.property('testnet')
-				.have.property('length')
-				.be.equal(1);
+			nodes.should.have.property('testnet').have.length(1);
 			return nodes.testnet.forEach(node => {
-				node.should.have.property('node').and.be.a('string');
-				node.should.have.property('testnet').and.be.true;
+				node.should.be.type('string');
 			});
 		});
 	});
 
 	describe('#setNode', () => {
+		beforeEach(() => {
+			selectNewNodeStub = sandbox
+				.stub(LSK, 'selectNewNode')
+				.returns(defaultSelectedNode);
+		});
 		it('should set current node to a provided node', () => {
 			const myOwnNode = 'myOwnNode.com';
 			LSK.setNode(myOwnNode);
@@ -285,16 +518,24 @@ describe('Lisk API module', () => {
 	});
 
 	describe('#setTestnet', () => {
+		beforeEach(() => {
+			selectNewNodeStub = sandbox
+				.stub(LSK, 'selectNewNode')
+				.returns(defaultSelectedNode);
+		});
+
 		describe('to true', () => {
 			beforeEach(() => {
-				LSK.setTestnet(true);
+				LSK.testnet = false;
 			});
 
 			it('should set testnet to true', () => {
-				return LSK.should.have.property('testnet').and.be.true;
+				LSK.setTestnet(true);
+				return LSK.should.have.property('testnet').and.be.true();
 			});
 
 			it('should set port to 7000', () => {
+				LSK.setTestnet(true);
 				return LSK.should.have.property('port').and.be.equal(testPort);
 			});
 
@@ -307,20 +548,22 @@ describe('Lisk API module', () => {
 
 		describe('to false', () => {
 			beforeEach(() => {
-				LSK.setTestnet(false);
+				LSK.testnet = true;
 			});
 
 			it('should set testnet to false', () => {
-				return LSK.should.have.property('testnet').and.be.false;
+				LSK.setTestnet(false);
+				return LSK.should.have.property('testnet').and.be.false();
 			});
 
-			it('should set port to 8000', () => {
-				return LSK.should.have.property('port').and.be.equal(livePort);
+			it('should set port to 443', () => {
+				LSK.setTestnet(false);
+				return LSK.should.have.property('port').and.be.equal(sslPort);
 			});
 
 			it('should select a node', () => {
 				const callCount = selectNewNodeStub.callCount;
-				LSK.setTestnet(true);
+				LSK.setTestnet(false);
 				return selectNewNodeStub.should.have.callCount(callCount + 1);
 			});
 		});
@@ -333,8 +576,10 @@ describe('Lisk API module', () => {
 			describe('when initially on mainnet', () => {
 				it('should reset banned nodes when switching from mainnet to testnet', () => {
 					LSK.setTestnet(true);
-					return LSK.should.have.property('bannedNodes').and.be.an('array').and
-						.be.empty;
+					return LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should not reset banned nodes when switching from mainnet to mainnet', () => {
@@ -352,8 +597,10 @@ describe('Lisk API module', () => {
 
 				it('should reset banned nodes when switching from testnet to mainnet', () => {
 					LSK.setTestnet(false);
-					return LSK.should.have.property('bannedNodes').and.be.an('array').and
-						.be.empty;
+					return LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should not reset banned nodes when switching from testnet to testnet', () => {
@@ -367,6 +614,12 @@ describe('Lisk API module', () => {
 	});
 
 	describe('#setSSL', () => {
+		beforeEach(() => {
+			selectNewNodeStub = sandbox
+				.stub(LSK, 'selectNewNode')
+				.returns(defaultSelectedNode);
+		});
+
 		describe('when ssl is initially true', () => {
 			beforeEach(() => {
 				LSK.ssl = true;
@@ -375,7 +628,7 @@ describe('Lisk API module', () => {
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
 					LSK.setSSL(true);
-					return LSK.should.have.property('ssl').and.be.true;
+					return LSK.should.have.property('ssl').and.be.true();
 				});
 
 				it('should not change bannedNodes', () => {
@@ -396,14 +649,16 @@ describe('Lisk API module', () => {
 			describe('when set to false', () => {
 				it('should have ssl set to false', () => {
 					LSK.setSSL(false);
-					return LSK.should.have.property('ssl').and.be.false;
+					return LSK.should.have.property('ssl').and.be.false();
 				});
 
 				it('should reset bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(false);
-					return LSK.should.have.property('bannedNodes').and.be.an('array').and
-						.be.empty;
+					return LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should select a node', () => {
@@ -422,14 +677,16 @@ describe('Lisk API module', () => {
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
 					LSK.setSSL(true);
-					return LSK.should.have.property('ssl').and.be.true;
+					return LSK.should.have.property('ssl').and.be.true();
 				});
 
 				it('should reset bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(true);
-					return LSK.should.have.property('bannedNodes').and.be.an('array').and
-						.be.empty;
+					return LSK.should.have
+						.property('bannedNodes')
+						.and.be.Array()
+						.and.be.empty();
 				});
 
 				it('should select a node', () => {
@@ -442,7 +699,7 @@ describe('Lisk API module', () => {
 			describe('when set to false', () => {
 				it('should have ssl set to false', () => {
 					LSK.setSSL(false);
-					return LSK.should.have.property('ssl').and.be.false;
+					return LSK.should.have.property('ssl').and.be.false();
 				});
 
 				it('should not change bannedNodes', () => {

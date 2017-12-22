@@ -50,281 +50,16 @@ describe('privateApi module', () => {
 				foo: 'bar',
 			},
 
-			parseOfflineRequests: () => ({
-				requestMethod: GET,
-			}),
-			setTestnet: () => {},
-			setNode: () => {},
+			banActiveNode: sandbox.spy(),
+			hasAvailableNodes: sandbox.stub(),
 			sendRequest: () => {},
+			setNode: () => {},
+			setTestnet: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
 		sendRequestStub = sandbox
 			.stub(LSK, 'sendRequest')
 			.resolves(Object.assign({}, sendRequestResult));
-	});
-
-	describe('#getNodes', () => {
-		const { getNodes } = privateApi;
-
-		describe('with SSL set to true', () => {
-			beforeEach(() => {
-				LSK.ssl = true;
-			});
-
-			it('should return default testnet nodes if testnet is set to true', () => {
-				LSK.testnet = true;
-				const nodes = getNodes.call(LSK);
-				return nodes.should.be.eql(defaultTestnetNodes);
-			});
-
-			it('should return default SSL nodes if testnet is not set to true', () => {
-				LSK.testnet = false;
-				const nodes = getNodes.call(LSK);
-				return nodes.should.be.eql(defaultSSLNodes);
-			});
-		});
-
-		describe('with SSL set to false', () => {
-			beforeEach(() => {
-				LSK.ssl = false;
-			});
-
-			it('should return default testnet nodes if testnet is set to true', () => {
-				LSK.testnet = true;
-				const nodes = getNodes.call(LSK);
-				return nodes.should.be.eql(defaultTestnetNodes);
-			});
-
-			it('should return default mainnet nodes if testnet is not set to true', () => {
-				LSK.testnet = false;
-				const nodes = getNodes.call(LSK);
-				return nodes.should.be.eql(defaultNodes);
-			});
-		});
-	});
-
-	describe('#isBanned', () => {
-		const { isBanned } = privateApi;
-		it('should return true when provided node is banned', () => {
-			LSK.bannedNodes = [].concat(defaultNodes);
-			return isBanned.call(LSK, localNode).should.be.true;
-		});
-
-		it('should return false when provided node is not banned', () => {
-			LSK.bannedNodes = [];
-			return isBanned.call(LSK, localNode).should.be.false;
-		});
-	});
-
-	describe('#getRandomNode', () => {
-		const { getRandomNode } = privateApi;
-		let getNodesStub;
-		let restoreGetNodesStub;
-
-		beforeEach(() => {
-			getNodesStub = sandbox.stub().returns([].concat(defaultNodes));
-			// eslint-disable-next-line no-underscore-dangle
-			restoreGetNodesStub = privateApi.__set__('getNodes', getNodesStub);
-		});
-
-		afterEach(() => {
-			restoreGetNodesStub();
-		});
-
-		it('should throw an error if all relevant nodes are banned', () => {
-			LSK.bannedNodes = [].concat(defaultNodes);
-			return getRandomNode
-				.bind(LSK)
-				.should.throw(
-					'Cannot get random node: all relevant nodes have been banned.',
-				);
-		});
-
-		it('should get nodes', () => {
-			getRandomNode.call(LSK);
-			return getNodesStub.should.be.calledOn(LSK);
-		});
-
-		it('should return a node', () => {
-			const result = getRandomNode.call(LSK);
-			return LSK.defaultNodes.should.include(result);
-		});
-
-		it('should randomly select the node', () => {
-			const firstResult = getRandomNode.call(LSK);
-			let nextResult = getRandomNode.call(LSK);
-			// Test will almost certainly time out if not random
-			while (nextResult === firstResult) {
-				nextResult = getRandomNode.call(LSK);
-			}
-		});
-	});
-
-	describe('#selectNewNode', () => {
-		const { selectNewNode } = privateApi;
-		const customNode = 'customNode';
-		const getRandomNodeResult = externalNode;
-
-		let getRandomNodeStub;
-		let restoreGetRandomNode;
-
-		beforeEach(() => {
-			getRandomNodeStub = sandbox.stub().returns(getRandomNodeResult);
-			// eslint-disable-next-line no-underscore-dangle
-			restoreGetRandomNode = privateApi.__set__(
-				'getRandomNode',
-				getRandomNodeStub,
-			);
-		});
-
-		afterEach(() => {
-			restoreGetRandomNode();
-		});
-
-		describe('if a node was provided in the options', () => {
-			beforeEach(() => {
-				LSK.options.node = customNode;
-			});
-			describe('if randomNode is set to false', () => {
-				beforeEach(() => {
-					LSK.randomNode = false;
-				});
-
-				it('should throw an error if the provided node is banned', () => {
-					LSK.bannedNodes = [customNode];
-					return selectNewNode
-						.bind(LSK)
-						.should.throw(
-							'Cannot select node: provided node has been banned and randomNode is not set to true.',
-						);
-				});
-
-				it('should return the provided node if it is not banned', () => {
-					const result = selectNewNode.call(LSK);
-					return result.should.be.equal(customNode);
-				});
-			});
-
-			describe('if randomNode is set to true', () => {
-				beforeEach(() => {
-					LSK.randomNode = true;
-				});
-
-				it('should call getRandomNode', () => {
-					selectNewNode.call(LSK);
-					return getRandomNodeStub.should.be.calledOn(LSK);
-				});
-
-				it('should return a random node', () => {
-					const result = selectNewNode.call(LSK);
-					return result.should.be.equal(getRandomNodeResult);
-				});
-			});
-		});
-
-		describe('if a node was not provided in the options', () => {
-			beforeEach(() => {
-				LSK.options.node = undefined;
-			});
-
-			describe('if randomNode is set to false', () => {
-				beforeEach(() => {
-					LSK.randomNode = false;
-				});
-
-				it('should throw an error', () => {
-					return selectNewNode
-						.bind(LSK)
-						.should.throw(
-							'Cannot select node: no node provided and randomNode is not set to true.',
-						);
-				});
-			});
-
-			describe('if randomNode is set to true', () => {
-				beforeEach(() => {
-					LSK.randomNode = true;
-				});
-
-				it('should call getRandomNode', () => {
-					selectNewNode.call(LSK);
-					return getRandomNodeStub.should.be.calledOn(LSK);
-				});
-
-				it('should return a random node', () => {
-					const result = selectNewNode.call(LSK);
-					return result.should.be.equal(getRandomNodeResult);
-				});
-			});
-		});
-	});
-
-	describe('#banActiveNode', () => {
-		const { banActiveNode } = privateApi;
-		let node;
-
-		beforeEach(() => {
-			node = LSK.node;
-		});
-
-		it('should add current node to banned nodes', () => {
-			banActiveNode.call(LSK);
-
-			return LSK.bannedNodes.should.include(node);
-		});
-
-		it('should not duplicate a banned node', () => {
-			const bannedNodes = [node];
-			LSK.bannedNodes = bannedNodes;
-			banActiveNode.call(LSK);
-
-			return LSK.bannedNodes.should.be.eql(bannedNodes);
-		});
-	});
-
-	describe('#hasAvailableNodes', () => {
-		const { hasAvailableNodes } = privateApi;
-		let getNodesStub;
-		let restoreGetNodesStub;
-
-		beforeEach(() => {
-			getNodesStub = sandbox.stub().returns([].concat(defaultNodes));
-			// eslint-disable-next-line no-underscore-dangle
-			restoreGetNodesStub = privateApi.__set__('getNodes', getNodesStub);
-		});
-
-		afterEach(() => {
-			restoreGetNodesStub();
-		});
-
-		describe('with random node', () => {
-			beforeEach(() => {
-				LSK.randomNode = true;
-			});
-
-			it('should get nodes', () => {
-				hasAvailableNodes.call(LSK);
-				return getNodesStub.should.be.calledOn(LSK);
-			});
-
-			it('should return false without nodes left', () => {
-				LSK.defaultNodes = [];
-				restoreGetNodesStub();
-				const result = hasAvailableNodes.call(LSK);
-				return result.should.be.false;
-			});
-		});
-
-		describe('without random node', () => {
-			beforeEach(() => {
-				LSK.randomNode = false;
-			});
-
-			it('should return false', () => {
-				const result = hasAvailableNodes.call(LSK);
-				return result.should.be.false;
-			});
-		});
 	});
 
 	describe('#createRequestObject', () => {
@@ -435,7 +170,7 @@ describe('privateApi module', () => {
 		});
 
 		it('should create a request object', () => {
-			createRequestObjectStub.calledOn(LSK).should.be.true;
+			createRequestObjectStub.calledOn(LSK).should.be.true();
 			return createRequestObjectStub.should.be.calledWithExactly(
 				defaultMethod,
 				defaultEndpoint,
@@ -543,10 +278,6 @@ describe('privateApi module', () => {
 		let options;
 		let error;
 		let setNodeSpy;
-		let banActiveNodeSpy;
-		let restorebanActiveNodeSpy;
-		let hasAvailableNodesStub;
-		let restorehasAvailableNodesStub;
 		let clock;
 
 		beforeEach(() => {
@@ -556,31 +287,19 @@ describe('privateApi module', () => {
 			};
 			error = new Error('Test error.');
 			setNodeSpy = sandbox.spy(LSK, 'setNode');
-			banActiveNodeSpy = sandbox.spy();
-			// eslint-disable-next-line no-underscore-dangle
-			restorebanActiveNodeSpy = privateApi.__set__(
-				'banActiveNode',
-				banActiveNodeSpy,
-			);
 		});
 
 		afterEach(() => {
-			restorebanActiveNodeSpy();
+			LSK.banActiveNode();
 		});
 
 		describe('if a redial is possible', () => {
 			beforeEach(() => {
-				hasAvailableNodesStub = sandbox.stub().returns(true);
-				// eslint-disable-next-line no-underscore-dangle
-				restorehasAvailableNodesStub = privateApi.__set__(
-					'hasAvailableNodes',
-					hasAvailableNodesStub,
-				);
+				LSK.hasAvailableNodes.returns(true);
 				clock = sinon.useFakeTimers();
 			});
 
 			afterEach(() => {
-				restorehasAvailableNodesStub();
 				clock.restore();
 			});
 
@@ -594,7 +313,7 @@ describe('privateApi module', () => {
 					error,
 				);
 				clock.tick(1000);
-				return request.then(() => banActiveNodeSpy.should.be.calledOn(LSK));
+				return request.then(() => LSK.banActiveNode.should.be.called());
 			});
 
 			it('should not ban the node with options randomNode false', () => {
@@ -607,7 +326,7 @@ describe('privateApi module', () => {
 					error,
 				);
 				clock.tick(1000);
-				return request.then(() => banActiveNodeSpy.should.not.be.calledOn(LSK));
+				return request.then(() => LSK.banActiveNode.should.not.be.called());
 			});
 
 			it('should set a new node', () => {
@@ -619,7 +338,7 @@ describe('privateApi module', () => {
 					error,
 				);
 				clock.tick(1000);
-				return request.then(() => setNodeSpy.should.be.calledOnce);
+				return request.then(() => setNodeSpy.should.be.calledOnce());
 			});
 
 			it('should send the request again with the same arguments', () => {
@@ -655,9 +374,7 @@ describe('privateApi module', () => {
 
 		describe('if no redial is possible', () => {
 			beforeEach(() => {
-				hasAvailableNodesStub = sandbox
-					.stub(privateApi, 'hasAvailableNodes')
-					.returns(false);
+				LSK.hasAvailableNodes.returns(false);
 			});
 
 			it('should resolve to an object with success set to false', () => {
