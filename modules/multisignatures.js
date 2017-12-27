@@ -5,7 +5,6 @@ var crypto = require('crypto');
 var extend = require('extend');
 var genesisblock = null;
 var Multisignature = require('../logic/multisignature.js');
-var sql = require('../sql/multisignatures.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var apiError = require('../helpers/apiError');
 var errorCodes = require('../helpers/apiCodes');
@@ -202,10 +201,10 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 			});
 		},
 		getMembers: function (seriesCb) {
-			library.db.one(sql.getMultisignatureMemberPublicKeys, {address: scope.group.address}).then(function (result) {
+			library.db.multisignatures.getMultisignatureMemberPublicKeys(scope.group.address).then(function (memberAccountKeys) {
 				var addresses = [];
 
-				result.memberAccountKeys.forEach(function (key) {
+				memberAccountKeys.forEach(function (key) {
 					addresses.push(modules.accounts.generateAddressByPublicKey(key));
 				});
 
@@ -307,11 +306,11 @@ Multisignatures.prototype.shared = {
 				});
 			},
 			getGroupAccountIds: function (seriesCb) {
-				library.db.one(sql.getMultisignatureGroupIds, {publicKey: scope.targetAccount.publicKey}).then(function (result) {
+				library.db.multisignatures.getMultisignatureGroupIds(scope.targetAccount.publicKey).then(function (groupAccountIds) {
 
 					scope.groups = [];
 
-					async.each(result.groupAccountIds, function (groupId, callback){
+					async.each(groupAccountIds, function (groupId, callback){
 						modules.multisignatures.getGroup(groupId, function (err, group) {
 							scope.groups.push(group);
 
