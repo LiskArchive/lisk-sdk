@@ -11,7 +11,6 @@ var transactionTypes = require('../../../helpers/transactionTypes.js');
 var constants = require('../../../helpers/constants.js');
 var modulesLoader = require('../../common/modulesLoader');
 var rewire = require('rewire');
-var sql = require('../../../sql/transactions.js');
 
 var AccountLogic = require('../../../logic/account.js');
 var TransactionLogic = require('../../../logic/transaction.js');

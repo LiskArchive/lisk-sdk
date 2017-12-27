@@ -9,7 +9,6 @@ var apiCodes = require('../helpers/apiCodes.js');
 var ApiError = require('../helpers/apiError.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
 var schema = require('../schema/transactions.js');
-var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Transfer = require('../logic/transfer.js');
@@ -158,7 +157,7 @@ __private.list = function (filter, cb) {
 
 	var sort = sortBy(
 		filter.sort, {
-			sortFields: sql.sortFields,
+			sortFields: library.db.transactions.sortFields,
 			fieldPrefix: function (sortField) {
 				if (['height'].indexOf(sortField) > -1) {
 					return 'b_' + sortField;
@@ -178,17 +177,17 @@ __private.list = function (filter, cb) {
 	var rawTransactionRows;
 	var count;
 
-	library.db.query(sql.countList({
+	library.db.transactions.countList(Object.assign({}, {
 		where: where,
 		owner: owner
-	}), params).then(function (rows) {
+	}, params)).then(function (rows) {
 		count = rows.length ? rows[0].count : 0;
-		return library.db.query(sql.list({
+		return library.db.transactions.list(Object.assign({}, {
 			where: where,
 			owner: owner,
 			sortField: sort.sortField,
 			sortMethod: sort.sortMethod
-		}), params);
+		}, params));
 	}).then(function (rows) {
 		rawTransactionRows = rows;
 		return __private.getAssetForIds(groupTransactionIdsByType(rows));
@@ -248,7 +247,7 @@ __private.getQueryNameByType = function (type) {
 __private.getAssetForIdsBasedOnType = function (ids, type) {
 	var queryName = __private.getQueryNameByType(type);
 
-	return library.db.query(sql[queryName], {id: ids});
+	return library.db.transactions[queryName](ids);
 };
 
 /**
@@ -609,13 +608,13 @@ Transactions.prototype.shared = {
 	},
 
 	getTransactionsCount: function (cb) {
-		library.db.query(sql.count).then(function (transactionsCount) {
+		library.db.transactions.count().then(function (transactionsCount) {
 			return setImmediate(cb, null, {
-				confirmed: transactionsCount[0].count,
+				confirmed: transactionsCount,
 				unconfirmed: Object.keys(__private.transactionPool.unconfirmed.index).length,
 				unprocessed: Object.keys(__private.transactionPool.queued.index).length,
 				unsigned: Object.keys(__private.transactionPool.multisignature.index).length,
-				total: transactionsCount[0].count + Object.keys(__private.transactionPool.unconfirmed.index).length + Object.keys(__private.transactionPool.queued.index).length + Object.keys(__private.transactionPool.multisignature.index).length
+				total: transactionsCount + Object.keys(__private.transactionPool.unconfirmed.index).length + Object.keys(__private.transactionPool.queued.index).length + Object.keys(__private.transactionPool.multisignature.index).length
 			});
 		}, function (err) {
 			return setImmediate(cb, 'Failed to count transactions');
