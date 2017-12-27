@@ -15,7 +15,6 @@ var Peer = require('../logic/peer');
 var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
 var schema = require('../schema/transport.js');
-var sql = require('../sql/transport.js');
 var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
@@ -451,7 +450,7 @@ Transport.prototype.shared = {
 				return setImmediate(cb, 'Invalid block id sequence');
 			}
 
-			library.db.blocks.getCommonBlock(escapedIds).then(function (rows) {
+			library.db.blocks.getBlocksForTransport(escapedIds).then(function (rows) {
 				return setImmediate(cb, null, { success: true, common: rows[0] || null });
 			}).catch(function (err) {
 				library.logger.error(err.stack);
