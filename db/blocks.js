@@ -5,19 +5,19 @@ var PQ = require('pg-promise').ParameterizedQuery;
 function BlocksRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
-}
 
-BlocksRepo.prototype.sortFields = [
-	'id',
-	'timestamp',
-	'height',
-	'previousBlock',
-	'totalAmount',
-	'totalFee',
-	'reward',
-	'numberOfTransactions',
-	'generatorPublicKey'
-];
+	this.sortFields = [
+		'id',
+		'timestamp',
+		'height',
+		'previousBlock',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'numberOfTransactions',
+		'generatorPublicKey'
+	];
+}
 
 BlocksRepo.prototype.getGenesisBlockId = function (id) {
 	return this.db.query(new PQ('SELECT "id" FROM blocks WHERE "id" = $1;', [id]));

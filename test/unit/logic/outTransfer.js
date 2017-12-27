@@ -13,7 +13,6 @@ var modulesLoader = require('../../common/modulesLoader');
 var typesRepresentatives = require('../../fixtures/typesRepresentatives');
 
 var OutTransfer = rewire('../../../logic/outTransfer');
-var sql = require('../../../sql/dapps');
 var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
@@ -43,8 +42,13 @@ describe('outTransfer', function () {
 
 	beforeEach(function () {
 		dbStub = {
-			query: sinon.stub().resolves(),
-			one: sinon.stub().resolves()
+			dapps: {
+				countByTransactionId: sinon.stub().resolves(),
+				countByOutTransactionId: sinon.stub().resolves(),
+				getExisting: sinon.stub().resolves(),
+				list: sinon.stub().resolves(),
+				getGenesis: sinon.stub().resolves()
+			}
 		};
 
 		sharedStub = {
@@ -231,23 +235,23 @@ describe('outTransfer', function () {
 			OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 		});
 
-		it('should call library.db.one', function (done) {
+		it('should call library.db.dapps.countByTransactionId', function (done) {
 			outTransfer.process(transaction, sender, function () {
-				expect(dbStub.one.calledOnce).to.be.true;
+				expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.true;
 				done();
 			});
 		});
 
-		it('should call library.db.one with sql.countByTransactionId', function (done) {
+		it('should call library.db.dapps.countByTransactionId', function (done) {
 			outTransfer.process(transaction, sender, function () {
-				expect(dbStub.one.calledWith(sql.countByTransactionId)).to.be.true;
+				expect(dbStub.dapps.countByTransactionId.calledWith(transaction.asset.outTransfer.dappId)).to.be.true;
 				done();
 			});
 		});
 
-		it('should call library.db.one with {id: transaction.asset.outTransfer.dappId}', function (done) {
+		it('should call library.db.dapps.countByTransactionId with transaction.asset.outTransfer.dappId}', function (done) {
 			outTransfer.process(transaction, sender, function () {
-				expect(dbStub.one.args[0][1]).to.eql({id: transaction.asset.outTransfer.dappId});
+				expect(dbStub.dapps.countByTransactionId.calledWith(transaction.asset.outTransfer.dappId)).to.be.true;
 				done();
 			});
 		});
@@ -255,7 +259,7 @@ describe('outTransfer', function () {
 		describe('when library.db.one fails', function () {
 
 			beforeEach(function () {
-				dbStub.one = sinon.stub().rejects('Rejection error');
+				dbStub.dapps.countByTransactionId = sinon.stub().rejects('Rejection error');
 			});
 
 			it('should call callback with error', function (done) {
@@ -266,12 +270,13 @@ describe('outTransfer', function () {
 			});
 		});
 
-		describe('when library.db.one succeeds', function () {
+		describe('when library.db.dapps.countByTransactionId succeeds', function () {
 
 			describe('when dapp does not exist', function () {
 
 				beforeEach(function () {
-					dbStub.one = sinon.stub().resolves({count: 0});
+					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 0});
+					dbStub.dapps.countByOutTransactionId = sinon.stub().resolves({count: 0});
 				});
 
 				it('should call callback with error', function (done) {
@@ -285,7 +290,8 @@ describe('outTransfer', function () {
 			describe('when dapp exists', function () {
 
 				beforeEach(function () {
-					dbStub.one = sinon.stub().resolves({count: 1});
+					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 1});
+					dbStub.dapps.countByOutTransactionId = sinon.stub().resolves({count: 1});
 				});
 
 				describe('when unconfirmed out transfer exists', function () {
@@ -310,31 +316,32 @@ describe('outTransfer', function () {
 						OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 					});
 
-					it('should call library.db.one second time', function (done) {
+					it('should call library.db.dapps.countByTransactionId second time', function (done) {
 						outTransfer.process(transaction, sender, function () {
-							expect(dbStub.one.calledTwice).to.be.true;
+							expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.true;
+							expect(dbStub.dapps.countByOutTransactionId.calledOnce).to.be.true;
 							done();
 						});
 					});
 
-					it('should call library.db.one with sql.countByTransactionId', function (done) {
+					it('should call library.db.dapps.countByOutTransactionId', function (done) {
 						outTransfer.process(transaction, sender, function () {
-							expect(dbStub.one.calledWith(sql.countByOutTransactionId)).to.be.true;
+							expect(dbStub.dapps.countByOutTransactionId.calledWith(transaction.asset.outTransfer.transactionId)).to.be.true;
 							done();
 						});
 					});
 
-					it('should call library.db.one with {id: transaction.asset.outTransfer.transactionId}', function (done) {
+					it('should call library.db.dapps.countByOutTransactionId transaction.asset.outTransfer.transactionId', function (done) {
 						outTransfer.process(transaction, sender, function () {
-							expect(dbStub.one.args[1][1]).to.eql({transactionId: transaction.asset.outTransfer.transactionId});
+							expect(dbStub.dapps.countByOutTransactionId.calledWith(transaction.asset.outTransfer.transactionId)).to.be.true;
 							done();
 						});
 					});
 
-					describe('when library.db.one fails on the second call', function () {
+					describe('when library.db.dapps.countByOutTransactionId fails on call', function () {
 
 						beforeEach(function () {
-							dbStub.one.withArgs(sql.countByOutTransactionId).rejects('countByOutTransactionId error');
+							dbStub.dapps.countByOutTransactionId.withArgs(transaction.id).rejects('countByOutTransactionId error');
 						});
 
 						it('should call callback with error', function (done) {
@@ -350,7 +357,7 @@ describe('outTransfer', function () {
 						describe('when confirmed outTransfer transaction exists', function () {
 
 							beforeEach(function () {
-								dbStub.one.withArgs(sql.countByOutTransactionId).resolves({count: 1});
+								dbStub.dapps.countByOutTransactionId.withArgs(transaction.id).resolves({count: 1});
 							});
 
 							it('should call callback with error', function (done) {
@@ -364,7 +371,8 @@ describe('outTransfer', function () {
 						describe('when confirmed outTransfer transaction does not exist', function () {
 
 							beforeEach(function () {
-								dbStub.one.withArgs(sql.countByOutTransactionId).resolves({count: 0});
+								dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 1});
+								dbStub.dapps.countByOutTransactionId = sinon.stub().resolves({count: 0});
 							});
 
 							it('should call callback with error = null', function (done) {

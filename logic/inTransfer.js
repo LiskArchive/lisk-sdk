@@ -1,7 +1,6 @@
 'use strict';
 
 var constants = require('../helpers/constants.js');
-var sql = require('../sql/dapps.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
@@ -68,9 +67,7 @@ InTransfer.prototype.verify = function (transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	library.db.one(sql.countByTransactionId, {
-		id: transaction.asset.inTransfer.dappId
-	}).then(function (row) {
+	library.db.dapps.countByTransactionId(transaction.asset.inTransfer.dappId).then(function (row) {
 		if (row.count === 0) {
 			return setImmediate(cb, 'Application not found: ' + transaction.asset.inTransfer.dappId);
 		} else {
