@@ -20,7 +20,12 @@ function BlocksRepo (db, pgp) {
 }
 
 var Queries = {
+
+	count: new PQ('SELECT COUNT("rowId")::int FROM blocks'),
+
 	getGenesisBlockId: new PQ('SELECT "id" FROM blocks WHERE "id" = $1;'),
+
+	getGenesisBlock: new PQ('SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1'),
 
 	deleteBlock: new PQ('DELETE FROM blocks WHERE "id" = $1;'),
 
@@ -95,6 +100,10 @@ var Queries = {
 	deleteAfterBlock: new PQ('DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = $1);')
 };
 
+BlocksRepo.prototype.getGenesisBlock = function (task) {
+	return (task || this.db).query(Queries.getGenesisBlock);
+};
+
 BlocksRepo.prototype.getGenesisBlockId = function (id) {
 	return this.db.query(Queries.getGenesisBlockId, [id]);
 };
@@ -105,6 +114,10 @@ BlocksRepo.prototype.deleteBlock = function (id) {
 
 BlocksRepo.prototype.aggregateBlocksReward = function (params) {
 	return this.db.query(Queries.aggregateBlocksReward(params), params);
+};
+
+BlocksRepo.prototype.count = function (task) {
+	return (task || this.db).one(Queries.count);
 };
 
 BlocksRepo.prototype.list = function (params) {
