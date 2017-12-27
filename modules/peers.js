@@ -16,7 +16,6 @@ var failureCodes = require('../api/ws/rpc/failureCodes.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
-var sql = require('../sql/peers.js');
 
 // Private fields
 var modules, library, self, __private = {};
@@ -223,7 +222,7 @@ __private.insertSeeds = function (cb) {
 __private.dbLoad = function (cb) {
 	var updated = 0;
 	library.logger.trace('Importing peers from database');
-	library.db.any(sql.getAll).then(function (rows) {
+	library.db.peers.list().then(function (rows) {
 		library.logger.info('Imported peers from database', {count: rows.length});
 		async.each (rows, function (peer, eachCb) {
 			peer = library.logic.peers.create(peer);
@@ -275,27 +274,11 @@ __private.dbSave = function (cb) {
 		return setImmediate(cb);
 	}
 
-	// Creating set of columns
-	var cs = new pgp.helpers.ColumnSet([
-		'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
-		{name: 'broadhash', init: function (col) {
-			return col.value ? Buffer.from(col.value, 'hex') : null;
-		}}
-	], {table: 'peers'});
-
 	// Wrap sql queries in transaction and execute
-	library.db.tx(function (t) {
-		// Generating insert query
-		var insert_peers = pgp.helpers.insert(peers, cs);
-
-		var queries = [
-			// Clear peers table
-			t.none(sql.clear),
-			// Insert all peers
-			t.none(insert_peers)
-		];
-
-		return t.batch(queries);
+	library.db.tx('modules:peers:dbSave', function (t) {
+		return library.db.peers.clear(t).then(function (value) {
+			return library.db.peers.insert(peers, t);
+		});
 	}).then(function (data) {
 		library.logger.info('Peers exported to database');
 		return setImmediate(cb);
