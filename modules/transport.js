@@ -451,7 +451,7 @@ Transport.prototype.shared = {
 				return setImmediate(cb, 'Invalid block id sequence');
 			}
 
-			library.db.query(sql.getCommonBlock, escapedIds).then(function (rows) {
+			library.db.blocks.getCommonBlock(escapedIds).then(function (rows) {
 				return setImmediate(cb, null, { success: true, common: rows[0] || null });
 			}).catch(function (err) {
 				library.logger.error(err.stack);

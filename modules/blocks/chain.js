@@ -4,7 +4,6 @@ var _ = require('lodash');
 var async = require('async');
 var crypto = require('crypto');
 var Inserts = require('../../helpers/inserts.js');
-var sql = require('../../sql/blocks.js');
 var transactionTypes = require('../../helpers/transactionTypes.js');
 
 var modules, library, self, __private = {};
@@ -52,7 +51,7 @@ function Chain (logger, block, transaction, db, genesisblock, bus, balancesSeque
 Chain.prototype.saveGenesisBlock = function (cb) {
 	// Check if genesis block ID already exists in the database
 	// FIXME: Duplicated, there is another SQL query that we can use for that
-	library.db.query(sql.getGenesisBlockId, { id: library.genesisblock.block.id }).then(function (rows) {
+	library.db.blocks.getGenesisBlockId(library.genesisblock.block.id).then(function (rows) {
 		var blockId = rows.length && rows[0].id;
 
 		if (!blockId) {
@@ -197,7 +196,7 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 Chain.prototype.deleteBlock = function (blockId, cb) {
 	// Delete block with ID from blocks table
 	// WARNING: DB_WRITE
-	library.db.none(sql.deleteBlock, {id: blockId}).then(function () {
+	library.db.blocks.deleteBlock(blockId).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -218,7 +217,7 @@ Chain.prototype.deleteBlock = function (blockId, cb) {
  * @return {Object}   cb.res SQL response
  */
 Chain.prototype.deleteAfterBlock = function (blockId, cb) {
-	library.db.query(sql.deleteAfterBlock, {id: blockId}).then(function (res) {
+	library.db.blocks.deleteAfterBlock(blockId).then(function (res) {
 		return setImmediate(cb, null, res);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
