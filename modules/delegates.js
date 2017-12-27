@@ -14,7 +14,6 @@ var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
 var sortBy = require('../helpers/sort_by.js').sortBy;
 var slots = require('../helpers/slots.js');
-var sql = require('../sql/delegates.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
@@ -413,8 +412,8 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
  * @returns {setImmediateCallback} err
  */
 Delegates.prototype.generateDelegateList = function (cb) {
-	library.db.query(sql.delegateList).then(function (result) {
-		__private.delegatesList = result[0].list;
+	library.db.delegates.list().then(function (result) {
+		__private.delegatesList = result;
 		return setImmediate(cb, null, __private.delegatesList);
 	}).catch(function (err) {
 		return setImmediate(cb, err);
@@ -476,9 +475,7 @@ Delegates.prototype.getForgers = function (query, cb) {
 		}
 	}
 
-	library.db.query(sql.getDelegatesByPublicKeys, {
-		publicKeys: forgerKeys
-	}).then(function (data) {
+	library.db.delegates.getDelegatesByPublicKeys(forgerKeys).then(function (data) {
 		data.map(function (forger) {
 			forger.nextSlot = __private.delegatesList.indexOf(forger.publicKey) + currentSlot + 1;
 
@@ -532,7 +529,7 @@ Delegates.prototype.fork = function (block, cause) {
 		cause: cause
 	};
 
-	library.db.none(sql.insertFork, fork).then(function () {
+	library.db.delegates.insertFork(fork).then(function () {
 		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };
