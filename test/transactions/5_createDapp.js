@@ -290,26 +290,59 @@ describe('#createDapp transaction', () => {
 			});
 		});
 
-		it('should create a create dapp transaction without signature', () => {
-			createDappTransaction.should.have.property('type').equal(transactionType);
-			createDappTransaction.should.have.property('amount').equal(amount);
-			createDappTransaction.should.have.property('fee').equal(fee);
-			createDappTransaction.should.have.property('recipientId').equal(null);
-			createDappTransaction.should.have.property('senderPublicKey').equal(null);
-			createDappTransaction.should.have.property('timestamp');
-			createDappTransaction.asset.should.have
-				.property('dapp')
-				.and.be.type('object');
-			createDappTransaction.asset.dapp.should.have.properties(
-				'category',
-				'name',
-				'tags',
-				'type',
-				'link',
-				'icon',
-			);
-			createDappTransaction.should.not.have.property('signature');
-			createDappTransaction.should.not.have.property('id');
+		describe('when the register delegate transaction is created without signature', () => {
+			it('should have the type', () => {
+				createDappTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				createDappTransaction.should.have.property('amount').equal(amount);
+			});
+
+			it('should have the fee', () => {
+				createDappTransaction.should.have.property('fee').equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				createDappTransaction.should.have.property('recipientId').equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				createDappTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				createDappTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset', () => {
+				createDappTransaction.asset.should.have
+					.property('dapp')
+					.and.be.type('object');
+			});
+
+			it('should have the asset with dapp creation properties category, name, tags, type, link, icon', () => {
+				createDappTransaction.asset.dapp.should.have.properties(
+					'category',
+					'name',
+					'tags',
+					'type',
+					'link',
+					'icon',
+				);
+			});
+
+			it('should not have the signature', () => {
+				createDappTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				createDappTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

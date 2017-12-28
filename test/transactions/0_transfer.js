@@ -218,19 +218,44 @@ describe('#transfer transaction', () => {
 				unsigned,
 			});
 		});
+		describe('when the transfer transaction is created without signature', () => {
+			it('should have the type', () => {
+				transferTransaction.should.have.property('type').equal(transactionType);
+			});
 
-		it('should create a transfer transaction without signature', () => {
-			transferTransaction.should.have.property('type').equal(transactionType);
-			transferTransaction.should.have.property('amount').equal(amount);
-			transferTransaction.should.have.property('fee').equal(fee);
-			transferTransaction.should.have
-				.property('recipientId')
-				.equal(recipientId);
-			transferTransaction.should.have.property('senderPublicKey').equal(null);
-			transferTransaction.should.have.property('timestamp');
-			transferTransaction.should.have.property('asset').and.be.type('object');
-			transferTransaction.should.not.have.property('signature');
-			transferTransaction.should.not.have.property('id');
+			it('should have the amount', () => {
+				transferTransaction.should.have.property('amount').equal(amount);
+			});
+
+			it('should have the fee', () => {
+				transferTransaction.should.have.property('fee').equal(fee);
+			});
+
+			it('should have the recipient', () => {
+				transferTransaction.should.have
+					.property('recipientId')
+					.equal(recipientId);
+			});
+
+			it('should have the sender public key', () => {
+				transferTransaction.should.have.property('senderPublicKey').equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				transferTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset', () => {
+				transferTransaction.should.have.property('asset').and.be.type('object');
+			});
+
+			it('should not have the signature', () => {
+				transferTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				transferTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

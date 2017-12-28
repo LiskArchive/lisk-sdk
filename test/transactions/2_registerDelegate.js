@@ -167,27 +167,58 @@ describe('#registerDelegate transaction', () => {
 			});
 		});
 
-		it('should create a register delegate transaction without signature', () => {
-			registerDelegateTransaction.should.have
-				.property('type')
-				.equal(transactionType);
-			registerDelegateTransaction.should.have.property('amount').equal(amount);
-			registerDelegateTransaction.should.have.property('fee').equal(fee);
-			registerDelegateTransaction.should.have
-				.property('recipientId')
-				.equal(null);
-			registerDelegateTransaction.should.have
-				.property('senderPublicKey')
-				.equal(null);
-			registerDelegateTransaction.should.have.property('timestamp');
-			registerDelegateTransaction.asset.should.have
-				.property('delegate')
-				.and.be.type('object');
-			registerDelegateTransaction.asset.delegate.should.have
-				.property('username')
-				.and.be.type('string');
-			registerDelegateTransaction.should.not.have.property('signature');
-			registerDelegateTransaction.should.not.have.property('id');
+		describe('when the register delegate transaction is created without signature', () => {
+			it('should have the type', () => {
+				registerDelegateTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				registerDelegateTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				registerDelegateTransaction.should.have.property('fee').equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				registerDelegateTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				registerDelegateTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				registerDelegateTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset with the delegate', () => {
+				registerDelegateTransaction.asset.should.have
+					.property('delegate')
+					.and.be.type('object');
+			});
+
+			it('should have the username as part of the asset with the delegate', () => {
+				registerDelegateTransaction.asset.delegate.should.have
+					.property('username')
+					.and.be.type('string');
+			});
+
+			it('should not have the signature', () => {
+				registerDelegateTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				registerDelegateTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

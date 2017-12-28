@@ -169,32 +169,66 @@ describe('#transferIntoDapp transaction', () => {
 			});
 		});
 
-		it('should create a transfer into dapp transaction without signature', () => {
-			transferIntoDappTransaction.should.have
-				.property('type')
-				.equal(transactionType);
-			transferIntoDappTransaction.should.have.property('amount').equal(amount);
-			transferIntoDappTransaction.should.have
-				.property('fee')
-				.equal(transferFee);
-			transferIntoDappTransaction.should.have
-				.property('recipientId')
-				.equal(null);
-			transferIntoDappTransaction.should.have
-				.property('senderPublicKey')
-				.equal(null);
-			transferIntoDappTransaction.should.have.property('timestamp');
-			transferIntoDappTransaction.should.have
-				.property('asset')
-				.and.be.type('object');
-			transferIntoDappTransaction.asset.should.have
-				.property('inTransfer')
-				.and.be.type('object');
-			transferIntoDappTransaction.asset.inTransfer.should.have
-				.property('dappId')
-				.and.be.type('string');
-			transferIntoDappTransaction.should.not.have.property('signature');
-			transferIntoDappTransaction.should.not.have.property('id');
+		describe('when the register delegate transaction is created without signature', () => {
+			it('should have the type', () => {
+				transferIntoDappTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				transferIntoDappTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				transferIntoDappTransaction.should.have
+					.property('fee')
+					.equal(transferFee);
+			});
+
+			it('should have the recipient id', () => {
+				transferIntoDappTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				transferIntoDappTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				transferIntoDappTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset', () => {
+				transferIntoDappTransaction.should.have
+					.property('asset')
+					.and.be.type('object');
+			});
+
+			it('should have the asset with in transfer object', () => {
+				transferIntoDappTransaction.asset.should.have
+					.property('inTransfer')
+					.and.be.type('object');
+			});
+
+			it('should have the asset with in transfer object and a reference to the dapp id', () => {
+				transferIntoDappTransaction.asset.inTransfer.should.have
+					.property('dappId')
+					.and.be.type('string');
+			});
+
+			it('should not have the signature', () => {
+				transferIntoDappTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				transferIntoDappTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

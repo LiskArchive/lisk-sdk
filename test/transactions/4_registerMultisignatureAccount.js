@@ -312,31 +312,62 @@ describe('#registerMultisignatureAccount transaction', () => {
 			});
 		});
 
-		it('should create a register multisignature account transaction without signature', () => {
-			registerMultisignatureTransaction.should.have
-				.property('type')
-				.equal(transactionType);
-			registerMultisignatureTransaction.should.have
-				.property('amount')
-				.equal(amount);
-			registerMultisignatureTransaction.should.have.property('fee').equal(fee);
-			registerMultisignatureTransaction.should.have
-				.property('recipientId')
-				.equal(null);
-			registerMultisignatureTransaction.should.have
-				.property('senderPublicKey')
-				.equal(null);
-			registerMultisignatureTransaction.should.have.property('timestamp');
-			registerMultisignatureTransaction.asset.should.have
-				.property('multisignature')
-				.and.be.type('object');
-			registerMultisignatureTransaction.asset.multisignature.should.have.properties(
-				'min',
-				'lifetime',
-				'keysgroup',
-			);
-			registerMultisignatureTransaction.should.not.have.property('signature');
-			registerMultisignatureTransaction.should.not.have.property('id');
+		describe('when the register delegate transaction is created without signature', () => {
+			it('should have the type', () => {
+				registerMultisignatureTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				registerMultisignatureTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				registerMultisignatureTransaction.should.have
+					.property('fee')
+					.equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				registerMultisignatureTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				registerMultisignatureTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				registerMultisignatureTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset', () => {
+				registerMultisignatureTransaction.asset.should.have
+					.property('multisignature')
+					.and.be.type('object');
+			});
+
+			it('should have a multisignature registration asset with min, lifetime and keysgroup', () => {
+				registerMultisignatureTransaction.asset.multisignature.should.have.properties(
+					'min',
+					'lifetime',
+					'keysgroup',
+				);
+			});
+
+			it('should not have the signature', () => {
+				registerMultisignatureTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				registerMultisignatureTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

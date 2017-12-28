@@ -191,37 +191,65 @@ describe('#transferOutOfDapp', () => {
 			});
 		});
 
-		it('should create a transfer out of dapp transaction without signature', () => {
-			transferOutOfDappTransaction.should.have
-				.property('type')
-				.equal(transactionType);
-			transferOutOfDappTransaction.should.have.property('amount').equal(amount);
-			transferOutOfDappTransaction.should.have.property('fee').equal(fee);
-			transferOutOfDappTransaction.should.have
-				.property('recipientId')
-				.equal(recipientId);
-			transferOutOfDappTransaction.should.have
-				.property('senderPublicKey')
-				.equal(null);
-			transferOutOfDappTransaction.should.have.property('timestamp');
-			transferOutOfDappTransaction.should.have
-				.property('asset')
-				.and.be.type('object');
-			transferOutOfDappTransaction.asset.should.have
-				.property('outTransfer')
-				.and.be.type('object');
-			transferOutOfDappTransaction.asset.outTransfer.should.have.properties(
-				'dappId',
-				'transactionId',
-			);
-			transferOutOfDappTransaction.asset.outTransfer.dappId.should.be.type(
-				'string',
-			);
-			transferOutOfDappTransaction.asset.outTransfer.transactionId.should.be.type(
-				'string',
-			);
-			transferOutOfDappTransaction.should.not.have.property('signature');
-			transferOutOfDappTransaction.should.not.have.property('id');
+		describe('when the register delegate transaction is created without signature', () => {
+			it('should have the type', () => {
+				transferOutOfDappTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				transferOutOfDappTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				transferOutOfDappTransaction.should.have.property('fee').equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				transferOutOfDappTransaction.should.have
+					.property('recipientId')
+					.equal(recipientId);
+			});
+
+			it('should have the sender public key', () => {
+				transferOutOfDappTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				transferOutOfDappTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset', () => {
+				transferOutOfDappTransaction.should.have
+					.property('asset')
+					.and.be.type('object');
+			});
+
+			it('should have the asset with out transfer object', () => {
+				transferOutOfDappTransaction.asset.should.have
+					.property('outTransfer')
+					.and.be.type('object');
+			});
+
+			it('should have the asset with out transfer object and reference to dapp id and transaction id', () => {
+				transferOutOfDappTransaction.asset.outTransfer.should.have.properties(
+					'dappId',
+					'transactionId',
+				);
+			});
+
+			it('should not have the signature', () => {
+				transferOutOfDappTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				transferOutOfDappTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });
