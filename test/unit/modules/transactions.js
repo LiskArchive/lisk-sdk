@@ -32,6 +32,15 @@ describe('transactions', function () {
 
 	var transactionsModule;
 	var dbStub;
+	var TransactionTypeMap = {};
+	TransactionTypeMap[transactionTypes.SEND] = 'getTransferByIds';
+	TransactionTypeMap[transactionTypes.SIGNATURE] = 'getSignatureByIds';
+	TransactionTypeMap[transactionTypes.DELEGATE] = 'getDelegateByIds';
+	TransactionTypeMap[transactionTypes.VOTE] = 'getVotesByIds';
+	TransactionTypeMap[transactionTypes.MULTI] = 'getMultiByIds';
+	TransactionTypeMap[transactionTypes.DAPP] = 'getDappByIds';
+	TransactionTypeMap[transactionTypes.IN_TRANSFER] = 'getInTransferByIds';
+	TransactionTypeMap[transactionTypes.OUT_TRANSFER] = 'getOutTransferByIds';
 
 	function attachAllAssets (transactionLogic, accountLogic, delegatesModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
@@ -69,8 +78,28 @@ describe('transactions', function () {
 
 	before(function (done) {
 		dbStub = {
-			query: sinon.stub()
+			transactions: {
+				sortFields: [
+					'id',
+					'blockId',
+					'amount',
+					'fee',
+					'type',
+					'timestamp',
+					'senderPublicKey',
+					'senderId',
+					'recipientId',
+					'confirmations',
+					'height'
+				],
+				countList: sinon.stub().resolves(),
+				list: sinon.stub().resolves()
+			}
 		};
+
+		Object.keys(TransactionTypeMap).forEach(function (key) {
+			dbStub.transactions[TransactionTypeMap[key]] = sinon.stub().resolves();
+		});
 
 		async.auto({
 			accountLogic: function (cb) {
@@ -144,7 +173,12 @@ describe('transactions', function () {
 	});
 
 	beforeEach(function () {
-		dbStub.query.reset();
+		dbStub.transactions.countList.reset();
+		dbStub.transactions.list.reset();
+
+		Object.keys(TransactionTypeMap).forEach(function (key) {
+			dbStub.transactions[TransactionTypeMap[key]].reset();
+		});
 	});
 
 	describe('Transaction#shared', function () {
@@ -328,9 +362,9 @@ describe('transactions', function () {
 				var transactionId = transactionsByType[transactionTypes.SEND].transactionId;
 				var transaction = transactionsByType[transactionTypes.SEND].transaction;
 
-				dbStub.query.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
 
-				dbStub.query.onCall(1).resolves([{
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '10707276464897629547',
 					b_height: 276,
 					t_blockId: '10342884759015889572',
@@ -348,7 +382,7 @@ describe('transactions', function () {
 					confirmations: 12,
 				}]);
 
-				dbStub.query.onCall(2).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.SEND]].onCall(0).resolves([{
 					transaction_id: '10707276464897629547',
 					tf_data: 'extra information'
 				}]);
@@ -375,9 +409,9 @@ describe('transactions', function () {
 				var transactionId = transactionsByType[transactionTypes.SIGNATURE].transactionId;
 				var transaction = transactionsByType[transactionTypes.SIGNATURE].transaction;
 
-				dbStub.query.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
 
-				dbStub.query.onCall(1).resolves([{
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '11286126025791281057',
 					b_height: 276,
 					t_blockId: '10342884759015889572',
@@ -395,7 +429,7 @@ describe('transactions', function () {
 					confirmations: 42
 				}]);
 
-				dbStub.query.onCall(2).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.SIGNATURE]].onCall(0).resolves([{
 					transaction_id: '11286126025791281057',
 					s_publicKey: 'e26ede27ed390a9da260b5f5b76db5908a164044d3d1f9d2b24116dd5b25dc72'
 				}]);
@@ -417,9 +451,9 @@ describe('transactions', function () {
 				var transactionId = transactionsByType[transactionTypes.DELEGATE].transactionId;
 				var transaction = transactionsByType[transactionTypes.DELEGATE].transaction;
 
-				dbStub.query.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
 
-				dbStub.query.onCall(1).resolves([{
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '6092156606242987573',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -437,7 +471,7 @@ describe('transactions', function () {
 					confirmations: 13,
 				}]);
 
-				dbStub.query.onCall(2).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.DELEGATE]].onCall(0).resolves([{
 					transaction_id: '6092156606242987573',
 					d_username: '&im'
 				}]);
@@ -461,9 +495,9 @@ describe('transactions', function () {
 				var transactionId = transactionsByType[transactionTypes.VOTE].transactionId;
 				var transaction = transactionsByType[transactionTypes.VOTE].transaction;
 
-				dbStub.query.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
 
-				dbStub.query.onCall(1).resolves([{
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '6820432253266933365',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -481,7 +515,7 @@ describe('transactions', function () {
 					confirmations: 40
 				}]);
 
-				dbStub.query.onCall(2).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.VOTE]].onCall(0).resolves([{
 					transaction_id: '6820432253266933365',
 					v_votes: '+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
 				}]);
@@ -503,9 +537,9 @@ describe('transactions', function () {
 				var transactionId = transactionsByType[transactionTypes.MULTI].transactionId;
 				var transaction = transactionsByType[transactionTypes.MULTI].transaction;
 
-				dbStub.query.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
 
-				dbStub.query.onCall(1).resolves([{
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '481620703379194749',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -523,7 +557,7 @@ describe('transactions', function () {
 					confirmations: 65
 				}]);
 
-				dbStub.query.onCall(2).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.MULTI]].onCall(0).resolves([{
 					transaction_id: '481620703379194749',
 					m_min: 2,
 					m_lifetime: 1,
@@ -549,9 +583,9 @@ describe('transactions', function () {
 				var transactionId = transactionsByType[transactionTypes.DAPP].transactionId;
 				var transaction = transactionsByType[transactionTypes.DAPP].transaction;
 
-				dbStub.query.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
 
-				dbStub.query.onCall(1).resolves([{
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '1907088915785679339',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -569,7 +603,7 @@ describe('transactions', function () {
 					confirmations: 97,
 				}]);
 
-				dbStub.query.onCall(2).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.DAPP]].onCall(0).resolves([{
 					transaction_id: '1907088915785679339',
 					dapp_name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
 					dapp_description: null,

@@ -48,6 +48,8 @@ function __init (initScope, done) {
 	var options = {
 		promiseLib: Promise,
 
+		pgNative: true,
+
 		// Extending the database protocol with our custom repositories;
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
 		extend: function (object, dc) {
