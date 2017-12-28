@@ -32,7 +32,7 @@ var DappsSql = {
 };
 
 DappsRepo.prototype.countByTransactionId = function (id) {
-	return this.db.one(DappsSql.countByOutTransactionId, [id]);
+	return this.db.one(DappsSql.countByTransactionId, [id]);
 };
 
 DappsRepo.prototype.countByOutTransactionId = function (id) {
