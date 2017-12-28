@@ -15,14 +15,14 @@ function VotersRepo (db, pgp) {
 
 var Queries = {
 
-	getVoters: new PQ('SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${publicKey} LIMIT ${limit} OFFSET ${offset}'),
+	getVoters: new PQ('SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = $1 LIMIT $2 OFFSET $3'),
 
 	getVotersCount: new PQ('SELECT COUNT("accountId") AS "votersCount" FROM mem_accounts2delegates WHERE "dependentId" = $1')
 
 };
 
 VotersRepo.prototype.list = function (params) {
-	return this.db.query(Queries.getVoters, params);
+	return this.db.query(Queries.getVoters, [params.publicKey, params.limit, params.offset]);
 };
 
 VotersRepo.prototype.count = function (publicKey) {

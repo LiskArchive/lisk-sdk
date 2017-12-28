@@ -16,16 +16,16 @@ var DappsSql = {
 
 	countByOutTransactionId: new PQ('SELECT COUNT(*)::int AS "count" FROM outtransfer WHERE "outTransactionId" = $1'),
 
-	getExisting: new PQ('SELECT "name", "link" FROM dapps WHERE ("name" = ${name} OR "link" = ${link}) AND "transactionId" != ${transactionId}'),
+	getExisting: new PQ('SELECT "name", "link" FROM dapps WHERE ("name" = $1 OR "link" = $2) AND "transactionId" != $3'),
 
 	// Need to fix "or" or "and" in query
 	list: function (params) {
-		return new PQ([
+		return [
 			'SELECT "name" COLLATE "C", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
-			(params.where.length ? 'WHERE ' + params.where.join(' OR ') : ''),
+			( (params.where && params.where.length) ? 'WHERE ' + params.where.join(' OR ') : ''),
 			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
-		].filter(Boolean).join(' '));
+		].filter(Boolean).join(' ');
 	},
 
 	getGenesis: new PQ('SELECT b."height" AS "height", b."id" AS "id", t."senderId" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = $1')
@@ -40,7 +40,7 @@ DappsRepo.prototype.countByOutTransactionId = function (id) {
 };
 
 DappsRepo.prototype.getExisting = function (params) {
-	return this.db.query(DappsSql.getExisting, params);
+	return this.db.query(DappsSql.getExisting, [params.name, params.link, params.transactionId]);
 };
 
 DappsRepo.prototype.list = function (params) {

@@ -29,26 +29,24 @@ var Queries = {
 
 	deleteBlock: new PQ('DELETE FROM blocks WHERE "id" = $1;'),
 
-	aggregateBlocksReward: function (params) {
-		return new PQ([
-			'WITH',
-			'delegate AS (SELECT',
-			'1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE(${generatorPublicKey}, \'hex\') LIMIT 1),',
-			'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE pk = DECODE(${generatorPublicKey}, \'hex\')',
-			(params.start !== undefined ? ' AND timestamp >= ${start}' : ''),
-			(params.end !== undefined ? ' AND timestamp <= ${end}' : ''),
-			')',
-			'SELECT (SELECT * FROM delegate) AS delegate, * FROM rewards'
-		].filter(Boolean).join(' '));
-	},
+	aggregateBlocksReward: new PQ([
+		'WITH',
+		'delegate AS (SELECT',
+		'1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE($1, \'hex\') LIMIT 1),',
+		'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE pk = DECODE($1, \'hex\')',
+		'AND ($2 IS NULL OR timestamp >= $2)',
+		'AND ($3 IS NULL OR timestamp <= $3)',
+		')',
+		'SELECT (SELECT * FROM delegate) AS delegate, * FROM rewards'
+	].filter(Boolean).join(' ')),
 
 	list: function (params) {
-		return new PQ([
+		return [
 			'SELECT * FROM blocks_list',
-			(params.where.length ? 'WHERE ' + params.where.join(' AND ') : ''),
+			( (params.where && params.where.length) ? 'WHERE ' + params.where.join(' AND ') : ''),
 			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
-		].filter(Boolean).join(' '));
+		].filter(Boolean).join(' ');
 	},
 
 	getIdSequence: new PQ([
@@ -113,7 +111,7 @@ BlocksRepo.prototype.deleteBlock = function (id) {
 };
 
 BlocksRepo.prototype.aggregateBlocksReward = function (params) {
-	return this.db.query(Queries.aggregateBlocksReward(params), params);
+	return this.db.query(Queries.aggregateBlocksReward, [params.generatorPublicKey, params.start, params.end]);
 };
 
 BlocksRepo.prototype.count = function (task) {
