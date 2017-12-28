@@ -67,7 +67,7 @@ var Queries = {
 		].filter(Boolean).join(' '));
 	},
 	
-	getBlocksForTransport: new PQ('SELECT MAX("height") AS "height", "id", "previousBlock", "timestamp" FROM blocks WHERE "id" IN ($1:csv) GROUP BY "id" ORDER BY "height" DESC'),
+	getBlocksForTransport: 'SELECT MAX("height") AS "height", "id", "previousBlock", "timestamp" FROM blocks WHERE "id" IN ($1:csv) GROUP BY "id" ORDER BY "height" DESC',
 
 	getHeightByLastId: new PQ('SELECT "height" FROM blocks WHERE "id" = $1'),
 
@@ -78,7 +78,7 @@ var Queries = {
 			limitPart = 'WHERE "b_height" < ${limit}';
 		}
 
-		return new PQ([
+		return [
 			'SELECT * FROM full_blocks_list',
 			limitPart,
 			(params.id || params.lastId ? 'WHERE' : ''),
@@ -86,7 +86,7 @@ var Queries = {
 			(params.id && params.lastId ? ' AND ' : ''),
 			(params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : ''),
 			'ORDER BY "b_height", "t_rowId"'
-		].filter(Boolean).join(' '));
+		].filter(Boolean).join(' ');
 	},
 
 	loadBlocksOffset: new PQ('SELECT * FROM full_blocks_list WHERE "b_height" >= $1 AND "b_height" < $2 ORDER BY "b_height", "t_rowId"'),
