@@ -8,6 +8,9 @@ function parallelTests (tag, suite, section) {
 	var suiteFolder = null;
 
 	switch (suite) {
+		case 'unit':
+			suiteFolder = 'test/unit/';
+			break;
 		case 'functional':
 			switch (section) {
 				case 'get':
@@ -23,16 +26,14 @@ function parallelTests (tag, suite, section) {
 					suiteFolder = 'test/functional/system/';
 					break;
 				default:
-					console.warn('Invalid section argument. Options are: get, post, ws and system');
+					console.warn('Invalid section argument. Options are: get, post, ws or system');
 					process.exit();
 					break;
 			};
 			break;
-		case 'unit':
-			suiteFolder = 'test/unit/';
-			break;
+
 		default:
-			console.warn('Invalid suite argument. Options are: functional or unit');
+			console.warn('Invalid suite argument. Options are: unit or functional');
 			process.exit();
 			break;
 	};
@@ -65,7 +66,7 @@ function parallelTests (tag, suite, section) {
 	pathfiles.forEach(function (test) {
 		var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', test];
 		var istanbulArguments = coverageArguments.concat(mochaArguments);
-		
+
 		var child = child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
 			cwd: __dirname + '/../..',
 			detached: true,
