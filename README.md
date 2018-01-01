@@ -194,54 +194,51 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 ## Tests
 
-Before running any tests, please ensure Lisk is configured to run on the same testnet that is used by the test-suite.
+### Preparing Node
 
-Replace **config.json** and **genesisBlock.json** with the corresponding files under the **test/data/** directory
+1. Recreate the database in order to run the tests against a new blockchain:
+
+  ```
+  dropdb lisk_test
+  createdb lisk_test
+  ```
+
+2. Ensure Lisk is configured to run on the same local network used by the tests. Replace the files **config.json** and **genesisBlock.json** with those located under the **test/data** directory:
+
+  ```
+  cp test/data/config.json test/data/genesisBlock.json .
+  ```
+
+3. Launch Lisk (runs on port 4000):
+
+  ```
+  node app.js
+  ```
+
+### Running Tests
+
+Tests are run using the following command:
 
 ```
-cp test/data/config.json test/data/genesisBlock.json .
+npm test -- mocha:<tag>:<suite>:[section]
 ```
 
-**NOTE:** If the node was started with a different genesis block previous, trauncate the database before running tests.
+- Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
+- Where **suite** can be one of `unit | functional | integration`  (required)
+- Where **section** can be one of `get | post | ws | system` (optional)
+
+Individual test files can be run using the following command:
 
 ```
-dropdb lisk_test
-createdb lisk_test
+npm run mocha -- path/to/test.js
 ```
 
-**NOTE:** Remember to manage the Redis non-default port setting of 6380 as described above.
+### Genesis Account
 
-**NOTE:** The master passphrase for this genesis block is as follows:
+The master passphrase for the genesis block used by the tests is as follows:
 
 ```
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
-```
-
-Launch Lisk (runs on port 4000):
-
-```
-node app.js
-```
-
-Run test suites:
-
-Our tests are subdivided in three suites: unit, functional and integration. 
-Therefore we offer the next possibilities:
-- run each test suite separately
-- filter tests by existing tags
-- execute concurrently all the files from the chosen suite
-
-The way to choose and execute them is as follows:
-
-```
-npm test -- mocha:<tag>:<suite>:<section>
-```
-
-Run individual tests:
-
-```
-npm run mocha -- test/functional/http/get/accounts.js
-npm run mocha -- test/unit/modules/loader.js
 ```
 
 ## Authors
