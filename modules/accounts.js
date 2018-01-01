@@ -8,7 +8,6 @@ var crypto = require('crypto');
 var apiCodes = require('../helpers/apiCodes.js');
 var ApiError = require('../helpers/apiError.js');
 var extend = require('extend');
-var schema = require('../schema/accounts.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Vote = require('../logic/vote.js');
 
