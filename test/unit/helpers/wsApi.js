@@ -19,7 +19,6 @@ var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var WSServerMaster = require('../../common/ws/serverMaster');
 var System = require('../../../modules/system');
 
-
 describe('handshake', function () {
 
 	var system;
@@ -80,7 +79,6 @@ describe('handshake', function () {
 	});
 
 	after(function () {
-
 		validHeaders = WSServerMaster.generatePeerHeaders({version: minVersion, nonce: '0123456789ABCDEF'});
 
 		describe('schema tests', function () {
@@ -98,7 +96,6 @@ describe('handshake', function () {
 				);
 
 				invalidTypes.forEach(function (type) {
-
 					it('should call callback with error.description when input is: ' + type.description, function (done) {
 						handshake(type.input, function (err) {
 							expect(err.description).to.equal('#/: Expected type object but found type ' + type.expectation);
@@ -125,7 +122,6 @@ describe('handshake', function () {
 					});
 
 					invalidTypes.forEach(function (type) {
-
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.nonce = type.input;
 							handshake(headers, function (err) {
@@ -144,9 +140,7 @@ describe('handshake', function () {
 					});
 
 					validValues.forEach(function (input) {
-
 						it('should call callback with error = null when input is:' + input, function (done) {
-
 							handshake(headers, function (err) {
 								expect(err).to.not.exist;
 								done();
@@ -173,7 +167,6 @@ describe('handshake', function () {
 						.concat(typeRepresentatives.negativeNumbers);
 
 					invalidTypes.forEach(function (type) {
-
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.height = type.input;
 							handshake(headers, function (err) {
@@ -192,7 +185,6 @@ describe('handshake', function () {
 					});
 
 					validValues.forEach(function (input) {
-
 						it('should call callback with error = null when input is: ' + input, function (done) {
 							headers.height = input;
 							handshake(headers, function (err) {
@@ -214,7 +206,6 @@ describe('handshake', function () {
 					);
 
 					invalidTypes.forEach(function (type) {
-
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.nethash = type.input;
 							handshake(headers, function (err) {
@@ -240,7 +231,6 @@ describe('handshake', function () {
 					);
 
 					invalidTypes.forEach(function (type) {
-
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.version = type.input;
 							handshake(headers, function (err) {

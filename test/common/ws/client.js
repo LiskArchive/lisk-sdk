@@ -62,6 +62,7 @@ WSClient.prototype.start = function () {
 		self.client.on('close', function (err) {
 			reject();
 		});
+
 		self.client.on('error', function (err) {
 			reject();
 		});

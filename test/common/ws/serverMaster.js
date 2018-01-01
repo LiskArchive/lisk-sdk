@@ -70,12 +70,11 @@ WSServerMaster.prototype.start = function () {
  *
  */
 WSServerMaster.generatePeerHeaders = function (headers) {
-
-	if(!headers) {
+	if (!headers) {
 		headers = {};
 	}
 
-	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
+	var operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];
 
 	var defaults = {
 		broadhash: testConfig.nethash,
@@ -106,10 +105,10 @@ WSServerMaster.prototype.getHeaders  = function () {
  * Stop the server
  */
 WSServerMaster.prototype.stop = function () {
-	if(this.masterProcess){
+	if (this.masterProcess) {
 		this.masterProcess.kill();
 	}
 };
 
-//module.exports = wsServer;
+// module.exports = wsServer;
 module.exports = WSServerMaster;

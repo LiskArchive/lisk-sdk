@@ -41,7 +41,6 @@ WSServer.prototype.start = function () {
 	};
 
 	return new Promise(function (resolve, reject) {
-
 		if (self.socketCluster) {
 			reject(new Error('SocketCluster instance is already running'));
 		}
@@ -49,7 +48,6 @@ WSServer.prototype.start = function () {
 		self.socketCluster = new SocketCluster(self.options);
 
 		self.socketCluster.on('ready', function () {
-
 			self.socketClient = new WSClient(self.options.headers);
 			self.rpcServer = new MasterWAMPServer(self.socketCluster, childProcessOptions);
 
@@ -78,7 +76,6 @@ WSServer.prototype.start = function () {
 		self.socketCluster.on('error', function (err) {
 			self.stop();
 		});
-
 	});
 };
 
@@ -94,10 +91,9 @@ WSServer.prototype.stop = function () {
 var server = new WSServer(JSON.parse(process.argv[2]));
 
 server.start().then(function () {
-	if(process.send) {
+	if (process.send) {
 		process.send('ready');
 	}
-
 }).catch(function (reason) {
 	console.log('Starting WSServer error', reason);
 	server.stop();
