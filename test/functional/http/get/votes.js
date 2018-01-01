@@ -188,10 +188,8 @@ describe('GET /api/votes', function () {
 				});
 			});
 
-			it('using invalid username as a number should fail', function () {
-				return votesEndpoint.makeRequest({username: 1}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'username');
-				});
+			it('using unknown integer username should be ok but not found', function () {
+				return votesEndpoint.makeRequest({username: 1}, 404);
 			});
 
 			it('using valid existing username of a delegate account should return the expected result of having no vote', function () {
