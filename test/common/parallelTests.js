@@ -23,7 +23,7 @@ function parallelTests (tag, suite, section) {
 					suiteFolder = 'test/functional/system/';
 					break;
 				default:
-					console.warn('A section needs to be chosen to run functional suite. Options are: get, post, ws and system.');
+					console.warn('Invalid section argument. Options are: get, post, ws and system');
 					process.exit();
 					break;
 			};
@@ -32,7 +32,7 @@ function parallelTests (tag, suite, section) {
 			suiteFolder = 'test/unit/';
 			break;
 		default:
-			console.warn('A suite among functional or unit needs to be chosen.');
+			console.warn('Invalid suite argument. Options are: functional or unit');
 			process.exit();
 			break;
 	};
