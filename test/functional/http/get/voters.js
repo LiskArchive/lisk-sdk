@@ -185,10 +185,8 @@ describe('GET /api/voters', function () {
 				});
 			});
 
-			it('using invalid username as a number should fail', function () {
-				return votersEndpoint.makeRequest({username: 1}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'username');
-				});
+			it('using unknown integer username should be ok but not found', function () {
+				return votersEndpoint.makeRequest({username: 1}, 404);
 			});
 
 			it('using valid existing username of genesis delegate should return the expected result', function () {

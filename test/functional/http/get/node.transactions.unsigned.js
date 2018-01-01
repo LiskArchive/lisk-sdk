@@ -18,7 +18,7 @@ describe('GET /api/node', function () {
 
 	describe('/transactions', function () {
 
-		describe.skip('/unprocessed @unstable', function () {
+		describe('/unprocessed @unstable', function () {
 
 			var UnsignedEndpoint = new swaggerEndpoint('GET /node/transactions/{state}').addParameters({state: 'unsigned'});
 			var signatureEndpoint = new swaggerEndpoint('POST /signatures');

@@ -1,7 +1,7 @@
 'use strict';
 
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var WSClient = require('../../common/ws/client');
+var WSServerMaster = require('../../common/ws/serverMaster');
 var scClient = require('socketcluster-client');
 
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
 			hostname: '127.0.0.1',
 			wsPort: null,
 			autoReconnect: true,
-			query: WSClient.generatePeerHeaders()
+			query: WSServerMaster.generatePeerHeaders()
 		};
 		var connectedTo = 0;
 		configurations.forEach(function (configuration) {

@@ -55,11 +55,29 @@ WSClient.prototype.start = function () {
 
 		self.client.on('connect', function (data) {
 			self.id = data.id;
+			console.log('Client Socket: Connected... id: ', self.id);
 			resolve(data);
 		});
 
-		self.client.on('close', reject);
-		self.client.on('error', reject);
+		self.client.on('close', function (err) {
+			reject();
+		});
+
+		self.client.on('error', function (err) {
+			reject();
+		});
+
+		self.client.on('disconnect', function (err) {
+			self.stop();
+		});
+
+		self.client.on('connectAbort', function (err) {
+			self.stop();
+		});
+
+		self.client.on('fail', function (err) {
+			self.stop();
+		});
 
 		Object.keys(self.getHandlers()).forEach(function (k) {
 			self.client.on(k, self.getHandlers()[k]);
@@ -74,37 +92,6 @@ WSClient.prototype.start = function () {
  */
 WSClient.prototype.stop = function () {
 	this.client.disconnect();
-};
-
-/**
- * Generate random header values for a peer socket connection
- *
- * @param {string} [ip]
- * @param {int} [port]
- * @param {string} [nonce]
- * @return {Object}
- */
-WSClient.generatePeerHeaders = function (ip, wsPort, nonce) {
-	wsPort = wsPort || (Math.floor(Math.random() * 65535) + 1);
-	ip = ip || '127.0.0.1';
-	nonce = nonce || randomstring.generate(16);
-	var httpPort = (Math.floor(Math.random() * 65535) + 1);
-	var operatingSystems = ['win32','win64','ubuntu','debian', 'centos'];
-	var os = operatingSystems[((Math.floor(Math.random() * operatingSystems.length)))];
-	var version =  testConfig.version;
-
-	return {
-		broadhash: testConfig.nethash,
-		height: 1,
-		nethash: testConfig.nethash,
-		os: os,
-		ip: ip,
-		wsPort: wsPort,
-		httpPort: httpPort,
-		version: version,
-		nonce: nonce,
-		status: 2
-	};
 };
 
 module.exports = WSClient;
