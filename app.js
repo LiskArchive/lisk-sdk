@@ -605,8 +605,7 @@ d.run(function () {
 			 */
 			process.once('cleanup', function () {
 				scope.logger.info('Cleaning up...');
-				scope.socketCluster.killWorkers();
-				scope.socketCluster.killBrokers();
+				scope.socketCluster.destroy();
 				async.eachSeries(modules, function (module, cb) {
 					if (typeof(module.cleanup) === 'function') {
 						module.cleanup(cb);
