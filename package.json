@@ -9,7 +9,7 @@
     "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
     "coverageReport": "./node_modules/.bin/grunt coverageReport --verbose",
     "test": "./node_modules/.bin/grunt",
-    "grunt": "./node_modules/.bin/grunt release",
+    "grunt": "./node_modules/.bin/grunt",
     "mocha": "./node_modules/.bin/mocha",
     "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "create-bundles": "webpack",
