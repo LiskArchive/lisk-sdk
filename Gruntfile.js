@@ -145,8 +145,8 @@ module.exports = function (grunt) {
 	});
 	
 	grunt.registerTask('mocha', 'Run test suite.', function (tag, suite, section) {
-		if (['functional', 'unit', 'integration'].indexOf(suite) < 0) {
-			grunt.log.write('A suite needs to be chosen. Options are: functional, unit or integartion. Example `npm test -- mocha:untagged:unit` or `npm test -- mocha:slow:functional:get`');
+		if (['unit', 'functional', 'integration'].indexOf(suite) < 0) {
+			grunt.log.write('A suite needs to be chosen. Options are: unit, functional or integration. Example `npm test -- mocha:untagged:unit` or `npm test -- mocha:slow:functional:get`');
 		} else {
 			grunt.task.run('eslint');
 			var toExecute = [
