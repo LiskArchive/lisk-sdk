@@ -196,7 +196,7 @@ describe('GET /accounts', function () {
 			});
 		});
 
-		describe.skip('sort', function () {
+		describe('sort @unstable', function () {
 			it('using sort = invalid should return error', function () {
 				return accountsEndpoint.makeRequest({sort: 'invalid'}, 400);
 			});
