@@ -14,29 +14,29 @@ var wsServer = {
 	testWampServer: null,
 
 	start: function () {
-		if (this.testSocketCluster) {
+		if (this.socketCluster) {
 			throw new Error('SocketCluster instance is already running');
 		}
-		this.testSocketCluster = new SocketCluster(this.options);
+		this.socketCluster = new SocketCluster(this.options);
 	},
 
 	stop: function () {
-		if (!this.testSocketCluster) {
+		if (!this.socketCluster) {
 			throw new Error('No SocketCluster instance running');
 		}
-		this.testSocketCluster.killWorkers();
-		this.testSocketCluster.killBrokers();
-		this.testSocketCluster = null;
+		this.socketCluster.killWorkers();
+		this.socketCluster.killBrokers();
+		this.socketCluster = null;
 	},
 
 	// Invoked by each worker
 	run: function (worker) {
 		console.log('run invoked');
 		var scServer = worker.scServer;
-		this.testWampServer = new WAMPServer();
-		this.testWampServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
+		this.rpcServer = new WAMPServer();
+		this.rpcServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
 		scServer.on('connection', function (socket) {
-			this.testWampServer.upgradeToWAMP(socket);
+			this.rpcServer.upgradeToWAMP(socket);
 			socket.emit('accepted');
 		}.bind(this));
 	},

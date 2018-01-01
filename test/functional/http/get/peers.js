@@ -7,20 +7,17 @@ var _ = test._;
 var WSServer = require('../../../common/ws/serverMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/helpers/api');
+var Promise = require('bluebird');
 
 describe('GET /peers', function () {
 
 	var peersEndpoint = new swaggerEndpoint('GET /peers');
-	var wsServer1;
-	var wsServer2;
-	var validHeaders = null;
+	var wsServer1 = new WSServer();
+	var wsServer2 = new WSServer();
+	var validHeaders = wsServer1.headers;
 
 	before(function () {
-		wsServer1 = new WSServer();
-		wsServer2 = new WSServer();
-
 		return wsServer1.start().then(function () {
-			validHeaders = wsServer1.getHeaders();
 			return wsServer2.start();
 		});
 	});
@@ -95,30 +92,30 @@ describe('GET /peers', function () {
 		});
 	});
 
-	describe('pass data from a real peer @unstable', function () {
+	describe('pass data from a real peer', function () {
 
-		it('using a valid httpPort should return the result', function () {
+		it('using a valid httpPort = ' + validHeaders.httpPort + ' should return the result', function () {
 			return peersEndpoint.makeRequest({httpPort: validHeaders.httpPort}, 200)
 				.then(function (res) {
 					res.body.data[0].httpPort.should.be.eql(validHeaders.httpPort);
 				});
 		});
 
-		it('using state = 2 should return the result', function () {
+		it('using state = ' + validHeaders.status + ' should return the result', function () {
 			return peersEndpoint.makeRequest({state: validHeaders.status}, 200)
 				.then(function (res) {
 					res.body.data[0].state.should.be.eql(2);
 				});
 		});
 
-		it('using version = "0.0.0a" should return the result', function () {
+		it('using version = "' + validHeaders.version + '" should return the result', function () {
 			return peersEndpoint.makeRequest({version: validHeaders.version}, 200)
 				.then(function (res) {
 					res.body.data[0].version.should.be.eql(validHeaders.version);
 				});
 		});
 
-		it('using valid broadhash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d" should return the result', function () {
+		it('using valid broadhash = "' + validHeaders.broadhash + '" should return the result', function () {
 			return peersEndpoint.makeRequest({broadhash: validHeaders.broadhash}, 200)
 				.then(function (res) {
 					res.body.data[0].broadhash.should.be.eql(validHeaders.broadhash);
