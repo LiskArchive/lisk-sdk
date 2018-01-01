@@ -144,8 +144,7 @@ module.exports = function (grunt) {
 		grunt.log.write('Tag & suite are needed to run Test task. Section parameter is optional. Example `npm test -- mocha:untagged:unit` or `npm test -- mocha:slow:functional:get`');
 	});
 	
-	grunt.registerTask('mocha', 'running set of test', function (tag, suite, section) {
-
+	grunt.registerTask('mocha', 'Run test suite.', function (tag, suite, section) {
 		if (['functional', 'unit', 'integration'].indexOf(suite) < 0) {
 			grunt.log.write('A suite needs to be chosen. Options are: functional, unit or integartion. Example `npm test -- mocha:untagged:unit` or `npm test -- mocha:slow:functional:get`');
 		} else {
