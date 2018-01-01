@@ -5,7 +5,6 @@ var ApiError = require('../../helpers/apiError.js');
 var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var sortBy = require('../../helpers/sort_by.js').sortBy;
-var schema = require('../../schema/blocks.js');
 var sql = require('../../sql/blocks.js');
 
 var modules, library, self, __private = {};

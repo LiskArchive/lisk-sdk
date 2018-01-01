@@ -7,7 +7,6 @@ var crypto = require('crypto');
 var apiCodes = require('../helpers/apiCodes');
 var ApiError = require('../helpers/apiError');
 var sql = require('../sql/voters');
-var schema = require('../schema/voters');
 var constants = require('../helpers/constants');
 
 // Private fields

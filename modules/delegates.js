@@ -13,7 +13,6 @@ var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var extend = require('extend');
 var sortBy = require('../helpers/sort_by.js').sortBy;
-var schema = require('../schema/delegates.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/delegates.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
