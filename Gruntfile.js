@@ -140,10 +140,6 @@ module.exports = function (grunt) {
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 
-	grunt.registerTask('default', function () {
-		grunt.log.write('Tag & suite are needed to run Test task. Section parameter is optional. Example `npm test -- mocha:untagged:unit` or `npm test -- mocha:slow:functional:get`');
-	});
-
 	grunt.registerTask('mocha', 'Run test suite.', function (tag, suite, section) {
 		if (['unit', 'functional', 'integration'].indexOf(suite) < 0) {
 			grunt.fail.warn('Please specify a test suite to run.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)');
@@ -162,4 +158,6 @@ module.exports = function (grunt) {
 		grunt.config.set('eslint.options.fix', true);
 		grunt.task.run('eslint');
 	});
+
+	grunt.registerTask('default', 'mocha');
 };
