@@ -213,7 +213,7 @@ describe('handshake', function () {
 			});
 		});
 
-		describe('when not present on master', function () {
+		describe('when not present on master @unstable', function () {
 
 			var wampClient = new WAMPClient();
 
