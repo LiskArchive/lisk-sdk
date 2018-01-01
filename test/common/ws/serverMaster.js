@@ -62,12 +62,10 @@ WSServerMaster.prototype.start = function () {
 };
 
 /**
- * Generate headers for WS Server
+ * Generate peer headers for WS server
  *
- * @param {Object} [headers] - Existing headers to override on random values
- *
+ * @param {Object} [headers] - Existing headers to override with random values
  * @return {{broadhash, height: number, nethash, os: string, ip, wsPort: *|number, httpPort: number|*, version: *, nonce: *|number|{}, status: number}}
- *
  */
 WSServerMaster.generatePeerHeaders = function (headers) {
 	if (!headers) {
