@@ -94,8 +94,8 @@ server.start().then(function () {
 	if (process.send) {
 		process.send('ready');
 	}
-}).catch(function (reason) {
-	console.log('Starting WSServer error', reason);
+}).catch(function (err) {
+	console.log('Error starting WS server', err);
 	server.stop();
 });
 
