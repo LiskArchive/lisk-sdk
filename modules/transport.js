@@ -384,10 +384,10 @@ Transport.prototype.onNewBlock = function (block, broadcast) {
 				async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
 					peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
 						if (err) {
-							library.logger.debug('Peer notification error for update: ',  err);
+							library.logger.debug('Failed to notify peer about self',  err);
 							__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
 						} else {
-							library.logger.debug('Peer notified correctly after update: ' + peer.string);
+							library.logger.debug('Successfully notified peer about self', peer.string);
 						}
 						return cb();
 					});
