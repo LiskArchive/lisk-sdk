@@ -6,14 +6,13 @@ var exceptions = require('../helpers/exceptions');
 var ip = require('ip');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var Peer = require('../logic/peer.js');
-var schema = require('../schema/loader.js');
 var slots = require('../helpers/slots.js');
 var sql = require('../sql/loader.js');
 
 require('colors');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, definitions, library, self, __private = {}, shared = {};
 
 __private.loaded = false;
 __private.isActive = false;
@@ -172,7 +171,7 @@ __private.loadSignatures = function (cb) {
 					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 					return setImmediate(waterCb, err);
 				} else {
-					library.schema.validate(res, schema.loadSignatures, function (err) {
+					library.schema.validate(res, definitions.WSSignaturesResponse, function (err) {
 						return setImmediate(waterCb, err, res.signatures);
 					});
 				}
@@ -232,7 +231,7 @@ __private.loadTransactions = function (cb) {
 					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
 					return setImmediate(waterCb, err);
 				}
-				library.schema.validate(res, schema.loadTransactions, function (err) {
+				library.schema.validate(res, definitions.WSTransactionsResponse, function (err) {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					} else {
@@ -845,6 +844,8 @@ Loader.prototype.onBind = function (scope) {
 		multisignatures: scope.multisignatures,
 		system: scope.system,
 	};
+
+	definitions = scope.swagger.definitions;
 
 	__private.loadBlockChain();
 };

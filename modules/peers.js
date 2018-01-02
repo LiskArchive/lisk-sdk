@@ -14,12 +14,11 @@ var ApiError = require('../helpers/apiError.js');
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failureCodes.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
-var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
 var sql = require('../sql/peers.js');
 
 // Private fields
-var modules, library, self, __private = {};
+var modules, library, self, __private = {}, definitions;
 
 /**
  * Initializes library with scope content.
@@ -379,7 +378,7 @@ Peers.prototype.discover = function (cb) {
 	}
 
 	function validatePeersList (result, waterCb) {
-		library.schema.validate(result, schema.discover.peers, function (err) {
+		library.schema.validate(result, definitions.PeersList, function (err) {
 			return setImmediate(waterCb, err, result.peers);
 		});
 	}
@@ -393,7 +392,7 @@ Peers.prototype.discover = function (cb) {
 	function updatePeers (peers, waterCb) {
 		async.each(peers, function (peer, eachCb) {
 			peer = library.logic.peers.create(peer);
-			library.schema.validate(peer, schema.discover.peer, function (err) {
+			library.schema.validate(peer, definitions.Peer, function (err) {
 				if (err) {
 					library.logger.warn(['Rejecting invalid peer:', peer.string].join(' '), {err: err});
 					return setImmediate(eachCb);
@@ -519,6 +518,8 @@ Peers.prototype.onBind = function (scope) {
 	modules = {
 		system: scope.system
 	};
+
+	definitions = scope.swagger.definitions;
 };
 
 /**
@@ -550,7 +551,7 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 /**
- * Discovers peers and updates them in 10sec intervals loop.
+ * Periodically discovers and updates peers.
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
@@ -596,8 +597,8 @@ Peers.prototype.onPeersReady = function () {
 			return setImmediate(cb);
 		});
 	}
-	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 60000);
+	// Loop in 10 sec intervals (5 sec + 5 sec connection timeout from pingPeer)
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
 };
 
 /**
