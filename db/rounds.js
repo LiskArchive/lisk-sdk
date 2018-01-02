@@ -8,7 +8,7 @@ function RoundsRepo (db, pgp) {
 }
 
 var Queries = {
-	getRoundsExceptions: 'SELECT * FROM rounds_exceptions;',
+	getRoundsExceptions: 'SELECT * FROM rounds_exceptions',
 };
 
 RoundsRepo.prototype.getExceptions = function (task) {

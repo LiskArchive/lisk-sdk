@@ -20,7 +20,7 @@ var DappsSql = {
 	list: function (params) {
 		return [
 			'SELECT "name" COLLATE "C", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
-			( (params.where && params.where.length) ? 'WHERE ' + params.where.join(' OR ') : ''),
+			((params.where && params.where.length) ? 'WHERE ' + params.where.join(' OR ') : ''),
 			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
 		].filter(Boolean).join(' ');

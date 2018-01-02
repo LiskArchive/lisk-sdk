@@ -8,11 +8,11 @@ function DelegatesRepo (db, pgp) {
 }
 
 var DelegatesSql = {
-	delegateList: 'SELECT getDelegatesList() AS list;',
+	delegateList: 'SELECT getDelegatesList() AS list',
 
-	insertFork: new PQ('INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause") VALUES ($1, $2, $3, $4, $5, $6);'),
+	insertFork: new PQ('INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause") VALUES ($1, $2, $3, $4, $5, $6)'),
 
-	getDelegatesByPublicKeys: 'SELECT ENCODE(pk, \'hex\') as "publicKey", name as username, address FROM delegates WHERE ENCODE(pk, \'hex\') IN ($1:csv) ORDER BY rank ASC'
+	getDelegatesByPublicKeys: 'SELECT ENCODE(pk, \'hex\') as "publicKey", name AS username, address FROM delegates WHERE ENCODE(pk, \'hex\') IN ($1:csv) ORDER BY rank ASC'
 };
 
 DelegatesRepo.prototype.list = function () {
