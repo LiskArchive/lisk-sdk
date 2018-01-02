@@ -531,8 +531,8 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			// Check if block id is already in the database (very low probability of hash collision)
 			// TODO: In case of hash-collision, to me it would be a special autofork...
 			// DATABASE: read only
-			library.db.blocks.blockExists(block.id).then(function (result) {
-				if (result) {
+			library.db.blocks.blockExists(block.id).then(function (rows) {
+				if (rows) {
 					return setImmediate(seriesCb, ['Block', block.id, 'already exists'].join(' '));
 				} else {
 					return setImmediate(seriesCb);

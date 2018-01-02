@@ -412,8 +412,8 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
  * @returns {setImmediateCallback} err
  */
 Delegates.prototype.generateDelegateList = function (cb) {
-	library.db.delegates.list().then(function (result) {
-		__private.delegatesList = result;
+	library.db.delegates.list().then(function (rows) {
+		__private.delegatesList = rows;
 		return setImmediate(cb, null, __private.delegatesList);
 	}).catch(function (err) {
 		return setImmediate(cb, err);
@@ -475,13 +475,13 @@ Delegates.prototype.getForgers = function (query, cb) {
 		}
 	}
 
-	library.db.delegates.getDelegatesByPublicKeys(forgerKeys).then(function (data) {
-		data.map(function (forger) {
+	library.db.delegates.getDelegatesByPublicKeys(forgerKeys).then(function (rows) {
+		rows.map(function (forger) {
 			forger.nextSlot = __private.delegatesList.indexOf(forger.publicKey) + currentSlot + 1;
 
 			return forger;
 		});
-		return setImmediate(cb, null, data);
+		return setImmediate(cb, null, rows);
 	}).catch(function (error) {
 		return setImmediate(cb, error);
 	});
