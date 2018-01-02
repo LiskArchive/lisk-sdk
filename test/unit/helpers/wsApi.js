@@ -98,7 +98,7 @@ describe('handshake', function () {
 				invalidTypes.forEach(function (type) {
 					it('should call callback with error.description when input is: ' + type.description, function (done) {
 						handshake(type.input, function (err) {
-							expect(err.description).to.equal('#/: Expected type object but found type ' + type.expectation);
+							expect(err.description).to.equal(': Expected type object but found type ' + type.expectation);
 							done();
 						});
 					});
@@ -125,7 +125,7 @@ describe('handshake', function () {
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.nonce = type.input;
 							handshake(headers, function (err) {
-								expect(err.description).to.equal('#/nonce: Expected type string but found type ' + type.expectation);
+								expect(err.description).to.equal('nonce: Expected type string but found type ' + type.expectation);
 								done();
 							});
 						});
@@ -170,7 +170,7 @@ describe('handshake', function () {
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.height = type.input;
 							handshake(headers, function (err) {
-								expect(err.description).to.equal('#/height: Expected type integer but found type ' + type.expectation);
+								expect(err.description).to.equal('height: Expected type integer but found type ' + type.expectation);
 								done();
 							});
 						});
@@ -209,7 +209,7 @@ describe('handshake', function () {
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.nethash = type.input;
 							handshake(headers, function (err) {
-								expect(err.description).to.equal('#/nethash: Expected type string but found type ' + type.expectation);
+								expect(err.description).to.equal('nethash: Expected type string but found type ' + type.expectation);
 								done();
 							});
 						});
@@ -234,7 +234,7 @@ describe('handshake', function () {
 						it('should call callback with error.description when input is: ' + type.description, function (done) {
 							headers.version = type.input;
 							handshake(headers, function (err) {
-								expect(err.description).to.equal('#/version: Expected type string but found type ' + type.expectation);
+								expect(err.description).to.equal('version: Expected type string but found type ' + type.expectation);
 								done();
 							});
 						});
@@ -254,7 +254,7 @@ describe('handshake', function () {
 					it('should call callback with error for required property: ' + property, function (done) {
 						headers[property] = undefined;
 						handshake(headers, function (err) {
-							expect(err.description).to.equal('#/: Missing required property: ' + property);
+							expect(err.description).to.equal(': Missing required property: ' + property);
 							done();
 						});
 					});

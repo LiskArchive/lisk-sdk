@@ -1592,6 +1592,35 @@ definitions:
         type: string
         example: "65000000"
 
+  CommonBlock:
+    x-private: true
+    type: object
+    required:
+      - id
+      - height
+      - previousBlock
+    properties:
+      id:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      previousBlock:
+        type: string
+        format: id
+        example: "15918760246746894806"
+
+  BlocksList:
+    x-private: true
+    type: array
+    items:
+      $ref: '#/definitions/Block'
+
   ForgingStatus:
     type: object
     required:
@@ -1775,6 +1804,17 @@ definitions:
         type: string
         example: sYHEDBKcScaAAAYg
         minLength: 1
+
+  PeersList:
+    x-private: true
+    type: object
+    required:
+      - peers
+    properties:
+      peers:
+        type: array
+        items:
+          $ref: '#/definitions/Peer'
 
   Fees:
     type: object
@@ -2310,3 +2350,266 @@ definitions:
       balance:
         type: string
         example: 1081560729258
+
+  WSPeerHeaders:
+    x-private: true
+    type: object
+    required:
+      - httpPort
+      - wsPort
+      - os
+      - version
+      - height
+      - nethash
+      - nonce
+    properties:
+      httpPort:
+        type: integer
+        example: 8000
+        format: int32
+        minimum: 1
+        maximum: 65535
+      wsPort:
+        type: integer
+        example: 8001
+        format: int32
+        minimum: 1
+        maximum: 65535
+      os:
+        type: string
+        example: debian
+      version:
+        type: string
+        example: v0.8.0
+        format: version
+        minLength: 5
+        maxLength: 12
+      height:
+        type: integer
+        example: 123
+      nethash:
+        type: string
+        maxLength: 64
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        format: hex
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 16
+        maxLength: 16
+
+  WSPeerUpdateRequest:
+    x-private: true
+    type: object
+    required:
+      - data
+      - socketId
+    properties:
+      data:
+        type: object
+        required:
+          - nonce
+        properties:
+          nethash:
+            type: string
+            maxLength: 64
+          broadhash:
+            type: string
+            format: hex
+          height:
+            type: integer
+            minimum: 1
+          nonce:
+            type: string
+            minLength: 16
+            maxLength: 16
+      socketId:
+        type: string
+      workerId:
+        type: number
+
+  WSSignaturesList:
+    x-private: true
+    type: object
+    required:
+      - signatures
+    properties:
+      signatures:
+        type: array
+        items:
+          $ref: '#/definitions/WSSignature'
+        minItems: 1
+        maxItems: 25
+
+  WSSignature:
+    x-private: true
+    type: object
+    required:
+      - transaction
+      - signature
+    properties:
+      transaction:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+      signature:
+        type: string
+        format: signature
+
+  WSBlocksCommonRequest:
+    x-private: true
+    type: object
+    required:
+      - ids
+    properties:
+      ids:
+        type: string
+        format: csv
+
+  WSTransaction:
+    x-private: true
+    type: object
+    required:
+      - id
+      - type
+      - amount
+      - fee
+      - senderPublicKey
+      - recipientId
+      - timestamp
+      - asset
+      - signature
+    properties:
+      id:
+        type: string
+        format: id
+        example: "222675625422353767"
+        minLength: 1
+        maxLength: 20
+      amount:
+        type: integer
+        example: '150000000'
+      fee:
+        type: integer
+        example: '1000000'
+      type:
+        type: integer
+        minimum: 0
+        maximum: 7
+      height:
+        type: integer
+        minimum: 1
+      blockId:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      timestamp:
+        type: integer
+        example: 28227090
+      senderId:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      senderPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      senderSecondPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      recipientId:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      recipientPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      signature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      secondSignature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      multisignatures:
+        type: array
+        items:
+          type: string
+          format: signature
+          example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
+      confirmations:
+        type: integer
+        minimum: 0
+      asset:
+        type: object
+      receivedAt:
+        type: string
+        format: 'date-time'
+      relays:
+        type: integer
+      signSignature:
+        type: string
+        format: signature
+
+  WSTransactionsReqeuest:
+    x-private: true
+    type: object
+    required:
+      - transactions
+    properties:
+      transactions:
+        type: array
+        items:
+          $ref: '#/definitions/WSTransaction'
+        minItems: 1
+        maxItems: 25
+
+  WSAccessObject:
+    x-private: true
+    type: object
+    required:
+      - peer
+      - authKey
+      - updateType
+    properties:
+      peer:
+        type: object
+      authKey:
+        type: string
+      updateType:
+        type: integer
+        minimum: 0
+        maximum: 1
+
+  WSTransactionsResponse:
+    x-private: true
+    type: object
+    required:
+      - transactions
+    properties:
+      transactions:
+        type: array
+        uniqueItems: true
+        maxItems: 100
+        items:
+          type: object
+
+  WSSignaturesResponse:
+    x-private: true
+    required:
+      - signatures
+    properties:
+      signatures:
+        type: array
+        uniqueItems: true
+        maxItems: 100
+        items:
+          type: object

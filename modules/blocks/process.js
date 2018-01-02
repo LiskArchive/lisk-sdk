@@ -4,11 +4,10 @@ var _ = require('lodash');
 var async = require('async');
 var constants = require('../../helpers/constants.js');
 var Peer = require('../../logic/peer.js');
-var schema = require('../../schema/blocks.js');
 var slots = require('../../helpers/slots.js');
 var sql = require('../../sql/blocks.js');
 
-var modules, library, self, __private = {};
+var modules, definitions, library, self, __private = {};
 
 /**
  * Initializes library.
@@ -231,7 +230,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 		},
 		function (common, waterCb) {
 			// Validate remote peer response via schema
-			library.schema.validate(common, schema.getCommonBlock, function (err) {
+			library.schema.validate(common, definitions.CommonBlock, function (err) {
 				if (err) {
 					return setImmediate(waterCb, err[0].message);
 				} else {
@@ -397,7 +396,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 	}
 
 	function validateBlocks (blocks, seriesCb) {
-		var report = library.schema.validate(blocks, schema.loadBlocksFromPeer);
+		var report = library.schema.validate(blocks, definitions.BlocksList);
 
 		if (!report) {
 			return setImmediate(seriesCb, 'Received invalid blocks data');
@@ -582,6 +581,8 @@ Process.prototype.onBind = function (scope) {
 		transactions: scope.transactions,
 		transport: scope.transport,
 	};
+
+	definitions = scope.swagger.definitions;
 
 	// Set module as loaded
 	__private.loaded = true;

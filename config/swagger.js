@@ -4,6 +4,8 @@ var SwaggerRunner = require('swagger-node-runner');
 var path = require('path');
 var fs = require('fs');
 var YAML = require('js-yaml');
+var _ = require('lodash');
+var swaggerHelper = require('../helpers/swagger');
 
 // Its necessary to require this file to extend swagger validator with our custom formats
 var validator = require('../helpers/swagger').getValidator();
@@ -33,38 +35,46 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		require(config.root + controllerFolder + file)(scope);
 	});
 
-	var swagger = YAML.safeLoad(fs.readFileSync(path.join(config.root + '/schema/swagger.yml')).toString());
-
 	var swaggerConfig = {
 		appRoot: config.root,
 		configDir: config.root + '/config/swagger',
-		swagger: swagger,
+		swaggerFile: path.join(config.root + '/schema/swagger.yml'),
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
-		startWithWarnings: false
+		startWithWarnings: true
 	};
 
-	SwaggerRunner.create(swaggerConfig, function (err, runner) {
-		if (err) {
+	// Swagger express middleware
+	SwaggerRunner.create(swaggerConfig, function (errors, runner) {
+		if (errors) {
+			// Ignore unused definition warning
+			errors.validationWarnings = _.filter(errors.validationWarnings, function (error) {
+				return error.code !== 'UNUSED_DEFINITION';
+			});
+
 			// Some error occurred in configuring the swagger
-			if (err.validationErrors) {
+			if (!_.isEmpty(errors.validationErrors)) {
 				logger.error('Swagger Validation Errors:');
-				logger.error(err.validationErrors);
+				logger.error(errors.validationErrors);
 			}
-			if (err.validationWarnings) {
+
+			if (!_.isEmpty(errors.validationWarnings)) {
 				logger.error('Swagger Validation Warnings:');
-				logger.error(err.validationWarnings);
+				logger.error(errors.validationWarnings);
 			}
-			cb(err);
-			return;
+
+			if (!_.isEmpty(errors.validationErrors) || !_.isEmpty(errors.validationWarnings) ) {
+				cb(errors);
+				return;
+			}
 		}
 
-		// Swagger Express Middleware
+		// Swagger express middleware
 		var swaggerExpress = runner.expressMiddleware();
 
-		// Check the response and do appropriate on error
+		// Check the response and act appropriately on error
 		runner.on('responseValidationError', function (validationResponse, request, response) {
-			// TODO: Troubleshoot why default validation hook consider json response as string response
+			// TODO: Troubleshoot why default validation hook considers json response as string response
 			if (validationResponse.errors[0].code !== 'INVALID_RESPONSE_BODY') {
 				logger.error('Swagger Response Validation Errors:');
 				logger.error(validationResponse.errors[0].errors);
@@ -77,8 +87,12 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		// To be used in test cases or getting configuration runtime
 		app.swaggerRunner = runner;
 
-		// Successfully mounted the swagger runner
-		cb(null, {swaggerRunner: runner});
+		swaggerHelper.getResolvedSwaggerSpec().then(function (resolvedSchema) {
+			// Successfully mounted the swagger runner
+			cb(null, {swaggerRunner: runner, definitions: resolvedSchema.definitions});
+		}).catch(function (reason) {
+			cb(reason);
+		});
 	});
 }
 

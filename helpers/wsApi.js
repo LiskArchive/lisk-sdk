@@ -3,18 +3,18 @@
 var _ = require('lodash');
 var url = require('url');
 var failureCodes = require('../api/ws/rpc/failureCodes.js');
-var Z_schema = require('../helpers/z_schema.js');
-var schema = require('../schema/transport.js');
+var swaggerHelper = require('../helpers/swagger');
+var definitions = swaggerHelper.getSwaggerSpec().definitions;
 var Peer = require('../logic/peer.js');
 var constants = require('./constants');
 
-var z_schema = new Z_schema();
+var z_schema = swaggerHelper.getValidator();
 
 var middleware = {
 
 	Handshake: function (system) {
 		return function (headers, cb) {
-			z_schema.validate(headers, schema.headers, function (error) {
+			z_schema.validate(headers, definitions.WSPeerHeaders, function (error) {
 				if (error) {
 					return setImmediate(cb, {
 						code: failureCodes.INVALID_HEADERS,

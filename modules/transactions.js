@@ -8,7 +8,6 @@ var extend = require('extend');
 var apiCodes = require('../helpers/apiCodes.js');
 var ApiError = require('../helpers/apiError.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
-var schema = require('../schema/transactions.js');
 var sql = require('../sql/transactions.js');
 var TransactionPool = require('../logic/transactionPool.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
@@ -249,30 +248,6 @@ __private.getAssetForIdsBasedOnType = function (ids, type) {
 	var queryName = __private.getQueryNameByType(type);
 
 	return library.db.query(sql[queryName], {id: ids});
-};
-
-/**
- * Gets transaction by calling parameter method.
- * @private
- * @param {Object} method
- * @param {Object} req
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error | data: {transaction}
- */
-__private.getPooledTransaction = function (method, req, cb) {
-	library.schema.validate(req.body, schema.getPooledTransaction, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		var transaction = self[method](req.body.id);
-
-		if (!transaction) {
-			return setImmediate(cb, 'Transaction not found');
-		}
-
-		return setImmediate(cb, null, {transaction: transaction});
-	});
 };
 
 /**
@@ -622,24 +597,12 @@ Transactions.prototype.shared = {
 		});
 	},
 
-	getQueuedTransaction: function (req, cb) {
-		return __private.getPooledTransaction('getQueuedTransaction', req, cb);
-	},
-
 	getUnProcessedTransactions: function (filters, cb) {
 		return __private.getPooledTransactions('getQueuedTransactionList', filters, cb);
 	},
 
-	getMultisignatureTransaction: function (req, cb) {
-		return __private.getPooledTransaction('getMultisignatureTransaction', req, cb);
-	},
-
 	getMultisignatureTransactions: function (req, cb) {
 		return __private.getPooledTransactions('getMultisignatureTransactionList', req, cb);
-	},
-
-	getUnconfirmedTransaction: function (req, cb) {
-		return __private.getPooledTransaction('getUnconfirmedTransaction', req, cb);
 	},
 
 	getUnconfirmedTransactions: function (req, cb) {
