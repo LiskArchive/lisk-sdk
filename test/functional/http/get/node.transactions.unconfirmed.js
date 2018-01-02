@@ -16,7 +16,7 @@ describe('GET /api/node', function () {
 
 	describe('/transactions', function () {
 
-		describe('/unconfirmed', function () {
+		describe('/unconfirmed @unstable', function () {
 
 			var UnconfirmedEndpoint = new swaggerEndpoint('GET /node/transactions/{state}').addParameters({state: 'unconfirmed'});
 

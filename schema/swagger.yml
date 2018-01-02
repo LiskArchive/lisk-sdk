@@ -38,9 +38,11 @@ tags:
 - name: Votes
   description: Votes related API calls
 - name: Private
+  x-private: true
   description: Private endpoint only authorized to whitelisted IPs
 
 schemes:
+  - http
   - https
 
 paths:
@@ -327,6 +329,7 @@ paths:
 
   /node/status/forging:
     x-swagger-router-controller: node
+    x-private: true
     get:
       tags:
         - Node
@@ -875,6 +878,9 @@ paths:
           description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
+
+  /spec:
+    x-swagger-pipe: swagger_raw_pipe
 
 parameters:
   ip:
