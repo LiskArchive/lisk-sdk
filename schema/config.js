@@ -66,7 +66,10 @@ module.exports = {
 					password: {
 						type: 'string'
 					},
-					poolSize: {
+					min: {
+						type: 'integer'
+					},
+					max: {
 						type: 'integer'
 					},
 					poolIdleTimeout: {
@@ -79,7 +82,7 @@ module.exports = {
 						type: 'array'
 					}
 				},
-				required: ['host', 'port', 'database', 'user', 'password', 'poolSize', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
+				required: ['host', 'port', 'database', 'user', 'password', 'min', 'max', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
 			},
 			redis: {
 				type: 'object',
