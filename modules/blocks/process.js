@@ -5,7 +5,6 @@ var async = require('async');
 var constants = require('../../helpers/constants.js');
 var Peer = require('../../logic/peer.js');
 var slots = require('../../helpers/slots.js');
-var sql = require('../../sql/blocks.js');
 
 var modules, definitions, library, self, __private = {};
 
@@ -240,7 +239,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 		},
 		function (common, waterCb) {
 			// Check that block with ID, previousBlock and height exists in database
-			library.db.query(sql.getCommonBlock(common.previousBlock), {
+			library.db.blocks.getCommonBlock({
 				id: common.id,
 				previousBlock: common.previousBlock,
 				height: common.height
@@ -297,7 +296,7 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	library.dbSequence.add(function (cb) {
 		// Loads full blocks from database
 		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
-		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
+		library.db.blocks.loadBlocksOffset(params.offset, params.limit).then(function (rows) {
 			// Normalize blocks
 			var blocks = modules.blocks.utils.readDbRows(rows);
 

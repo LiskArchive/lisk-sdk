@@ -34,7 +34,10 @@ describe('peers', function () {
 
 	before(function (done) {
 		dbMock = {
-			any: sinon.stub().resolves()
+			any: sinon.stub().resolves(),
+			peers: {
+				list: sinon.stub().resolves()
+			}
 		};
 		PeersRewired = rewire('../../../modules/peers');
 		peersLogicMock = {

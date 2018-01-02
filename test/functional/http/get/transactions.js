@@ -10,7 +10,6 @@ var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesisBlock.json');
 
-var transactionSortFields = require('../../../../sql/transactions').sortFields;
 var transactionTypes = require('../../../../helpers/transactionTypes');
 var constants = require('../../../../helpers/constants');
 

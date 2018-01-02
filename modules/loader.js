@@ -7,7 +7,6 @@ var ip = require('ip');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var Peer = require('../logic/peer.js');
 var slots = require('../helpers/slots.js');
-var sql = require('../sql/loader.js');
 
 require('colors');
 
@@ -381,11 +380,11 @@ __private.loadBlockChain = function () {
 
 	function checkMemTables (t) {
 		var promises = [
-			t.one(sql.countBlocks),
-			t.query(sql.getGenesisBlock),
-			t.one(sql.countMemAccounts),
-			t.query(sql.validateMemBalances),
-			t.query(sql.getRoundsExceptions)
+			library.db.blocks.count(t),
+			library.db.blocks.getGenesisBlock(t),
+			library.db.accounts.countMemAccounts(t),
+			library.db.accounts.validateMemBalances(t),
+			library.db.rounds.getExceptions(t),
 		];
 
 		return t.batch(promises);
@@ -481,9 +480,9 @@ __private.loadBlockChain = function () {
 
 		function updateMemAccounts (t) {
 			var promises = [
-				t.none(sql.updateMemAccounts),
-				t.query(sql.getOrphanedMemAccounts),
-				t.query(sql.getDelegates)
+				library.db.accounts.updateMemAccounts(t),
+				library.db.accounts.getOrphanedMemAccounts(t),
+				library.db.accounts.getDelegates(t),
 			];
 
 			return t.batch(promises);

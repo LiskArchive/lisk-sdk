@@ -1,7 +1,6 @@
 'use strict';
 
 var constants = require('../helpers/constants.js');
-var sql = require('../sql/dapps.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
@@ -89,9 +88,7 @@ OutTransfer.prototype.verify = function (transaction, sender, cb) {
  * @return {setImmediateCallback} errors messages | transaction
  */
 OutTransfer.prototype.process = function (transaction, sender, cb) {
-	library.db.one(sql.countByTransactionId, {
-		id: transaction.asset.outTransfer.dappId
-	}).then(function (row) {
+	library.db.dapps.countByTransactionId(transaction.asset.outTransfer.dappId).then(function (row) {
 		if (row.count === 0) {
 			return setImmediate(cb, 'Application not found: ' + transaction.asset.outTransfer.dappId);
 		}
@@ -100,9 +97,7 @@ OutTransfer.prototype.process = function (transaction, sender, cb) {
 			return setImmediate(cb, 'Transaction is already processed: ' + transaction.asset.outTransfer.transactionId);
 		}
 
-		library.db.one(sql.countByOutTransactionId, {
-			transactionId: transaction.asset.outTransfer.transactionId
-		}).then(function (row) {
+		library.db.dapps.countByOutTransactionId(transaction.asset.outTransfer.transactionId).then(function (row) {
 			if (row.count > 0) {
 				return setImmediate(cb, 'Transaction is already confirmed: ' + transaction.asset.outTransfer.transactionId);
 			} else {

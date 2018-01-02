@@ -37,7 +37,7 @@ describe('blocks/chain', function () {
 
 		it('should call library.db.query');
 
-		it('should call library.db.query with sql.getGenesisBlockId');
+		it('should call library.db.blocks.getGenesisBlockId');
 
 		it('should call library.db.query with { id: library.genesisblock.block.id }');
 
@@ -144,7 +144,7 @@ describe('blocks/chain', function () {
 
 		it('should call library.db.none');
 
-		it('should call library.db.none with sql.deleteBlock');
+		it('should call library.db.blocks.deleteBlock');
 
 		it('should call library.db.none with {id: blockId}');
 

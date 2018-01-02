@@ -5,9 +5,18 @@ var bignum = require('./bignum');
 var fs = require('fs');
 var path = require('path');
 var monitor = require('pg-monitor');
+var repos = require('require-all')(__dirname + '/../db');
 
 var pgOptions = {
-	pgNative: true
+	pgNative: true,
+
+	// Extending the database protocol with our custom repositories;
+	// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
+	extend: function (object, dc) {
+		Object.keys(repos).forEach(function (repoName) {
+			object[repoName] = new repos[repoName](object, pgp);
+		});
+	}
 };
 var pgp = require('pg-promise')(pgOptions);
 var db;

@@ -7,7 +7,6 @@ var dappCategories = require('../helpers/dappCategories.js');
 var InTransfer = require('../logic/inTransfer.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
 var OutTransfer = require('../logic/outTransfer.js');
-var sql = require('../sql/dapps.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
@@ -148,7 +147,7 @@ __private.list = function (filter, cb) {
 
 	var sort = sortBy(
 		filter.sort, {
-			sortFields: sql.sortFields
+			sortFields: library.db.dapps.sortFields
 		}
 	);
 
@@ -156,11 +155,11 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.query(sql.list({
+	library.db.dapps.list(Object.assign({}, {
 		where: where,
 		sortField: sort.sortField,
 		sortMethod: sort.sortMethod
-	}), params).then(function (rows) {
+	}, params)).then(function (rows) {
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -236,7 +235,7 @@ DApps.prototype.shared = {
 
 // Shared API
 shared.getGenesis = function (req, cb) {
-	library.db.query(sql.getGenesis, { id: req.dappid }).then(function (rows) {
+	library.db.dapps.getGenesis(req.dappid).then(function (rows) {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Application genesis block not found');
 		} else {
