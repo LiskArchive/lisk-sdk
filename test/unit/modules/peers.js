@@ -17,6 +17,7 @@ var constants = require('../../../helpers/constants');
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;
 var modulesLoader = require('../../common/modulesLoader');
 var random = require('../../common/utils/random');
+var swagerHelper = require('../../../helpers/swagger');
 
 describe('peers', function () {
 
@@ -31,7 +32,7 @@ describe('peers', function () {
 
 	var NONCE = randomstring.generate(16);
 
-	before(function () {
+	before(function (done) {
 		dbMock = {
 			any: sinon.stub().resolves(),
 			peers: {
@@ -53,6 +54,13 @@ describe('peers', function () {
 			system: systemModuleMock,
 			transport: transportModuleMock
 		};
+
+		swagerHelper.getResolvedSwaggerSpec().then(function (resolvedSpec) {
+			modules.swagger = {
+				definitions: resolvedSpec.definitions
+			};
+			done();
+		});
 	});
 
 	before(function (done) {

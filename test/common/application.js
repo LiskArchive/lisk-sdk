@@ -278,7 +278,9 @@ function __init (initScope, done) {
 					cb(err, results);
 				});
 			}],
-			ready: ['modules', 'bus', 'logic', function (scope, cb) {
+			ready: ['swagger', 'modules', 'bus', 'logic', function (scope, cb) {
+				scope.modules.swagger = scope.swagger;
+
 				// Fire onBind event in every module
 				scope.bus.message('bind', scope.modules);
 				scope.logic.peers.bindModules(scope.modules);

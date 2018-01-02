@@ -14,12 +14,11 @@ var failureCodes = require('../api/ws/rpc/failureCodes');
 var Peer = require('../logic/peer');
 var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
-var schema = require('../schema/transport.js');
 var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
 
 // Private fields
-var modules, library, self, __private = {};
+var modules, definitions, library, self, __private = {};
 
 __private.headers = {};
 __private.loaded = false;
@@ -120,7 +119,7 @@ __private.receiveSignatures = function (query, cb) {
 
 	async.series({
 		validateSchema: function (seriesCb) {
-			library.schema.validate(query, schema.signatures, function (err) {
+			library.schema.validate(query, definitions.WSSignaturesList, function (err) {
 				if (err) {
 					return setImmediate(seriesCb, 'Invalid signatures body');
 				} else {
@@ -157,7 +156,7 @@ __private.receiveSignatures = function (query, cb) {
  * @return {setImmediateCallback} cb | error messages
  */
 __private.receiveSignature = function (query, cb) {
-	library.schema.validate({signature: query}, schema.signature, function (err) {
+	library.schema.validate(query, definitions.WSSignature, function (err) {
 		if (err) {
 			return setImmediate(cb, 'Invalid signature body ' + err[0].message);
 		}
@@ -311,6 +310,8 @@ Transport.prototype.onBind = function (scope) {
 		transactions: scope.transactions
 	};
 
+	definitions = scope.swagger.definitions;
+
 	__private.headers = System.getHeaders();
 	__private.broadcaster.bind(
 		scope.peers,
@@ -425,7 +426,7 @@ Transport.prototype.isLoaded = function () {
 Transport.prototype.shared = {
 	blocksCommon: function (query, cb) {
 		query = query || {};
-		return library.schema.validate(query, schema.commonBlock, function (err, valid) {
+		return library.schema.validate(query, definitions.WSBlocksCommonRequest, function (err, valid) {
 			if (err) {
 				err = err[0].message + ': ' + err[0].path;
 				library.logger.debug('Common block request validation failed', {err: err.toString(), req: query});
@@ -560,7 +561,7 @@ Transport.prototype.shared = {
 	},
 
 	postTransactions: function (query, cb) {
-		library.schema.validate(query, schema.transactions, function (err) {
+		library.schema.validate(query, definitions.WSTransactionsReqeuest, function (err) {
 			if (err) {
 				return setImmediate(cb, null, {success: false, message: err});
 			}
@@ -594,7 +595,7 @@ Transport.prototype.shared = {
  * @param {function} cb
  */
 __private.checkInternalAccess = function (query, cb) {
-	library.schema.validate(query, schema.internalAccess, function (err) {
+	library.schema.validate(query, definitions.WSAccessObject, function (err) {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}

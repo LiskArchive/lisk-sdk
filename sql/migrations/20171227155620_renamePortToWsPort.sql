@@ -1,4 +1,3 @@
-
 /**
  * Rename port to wsPort in peers table.
  */
