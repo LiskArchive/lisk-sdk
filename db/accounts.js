@@ -39,5 +39,4 @@ AccountsRepo.prototype.getDelegates = function (task) {
 	return (task || this.db).query(Queries.getDelegates);
 };
 
-
 module.exports = AccountsRepo;

@@ -16,7 +16,6 @@ function PeersRepo (db, pgp) {
 }
 
 var PeersSql = {
-
 	getAll: 'SELECT ip, "wsPort", state, os, version, ENCODE(broadhash, \'hex\') AS broadhash, height, clock FROM peers',
 
 	clear: 'DELETE FROM peers'

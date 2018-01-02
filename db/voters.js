@@ -14,11 +14,9 @@ function VotersRepo (db, pgp) {
 }
 
 var Queries = {
-
 	getVoters: new PQ('SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = $1 LIMIT $2 OFFSET $3'),
 
 	getVotersCount: new PQ('SELECT COUNT("accountId") AS "votersCount" FROM mem_accounts2delegates WHERE "dependentId" = $1')
-
 };
 
 VotersRepo.prototype.list = function (params) {

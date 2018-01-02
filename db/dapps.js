@@ -1,4 +1,3 @@
-
 'use strict';
 
 var PQ = require('pg-promise').ParameterizedQuery;
@@ -11,7 +10,6 @@ function DappsRepo (db, pgp) {
 }
 
 var DappsSql = {
-
 	countByTransactionId: new PQ('SELECT COUNT(*)::int AS "count" FROM dapps WHERE "transactionId" = $1'),
 
 	countByOutTransactionId: new PQ('SELECT COUNT(*)::int AS "count" FROM outtransfer WHERE "outTransactionId" = $1'),

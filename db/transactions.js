@@ -21,8 +21,6 @@ function TransactionsRepo (db, pgp) {
 	];
 }
 
-
-
 var Queries = {
 	count: 'SELECT COUNT("id")::int AS "count" FROM trs',
 
@@ -69,7 +67,6 @@ var Queries = {
 
 	getOutTransferByIds: 'SELECT "transactionId" as "transaction_id", "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" IN ($1:csv)'
 };
-
 
 TransactionsRepo.prototype.count = function () {
 	return this.db.one(Queries.count).then(function (result) {

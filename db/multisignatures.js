@@ -5,7 +5,6 @@ var PQ = require('pg-promise').ParameterizedQuery;
 function MultisignaturesRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
-
 }
 
 var Queries = {

@@ -20,7 +20,6 @@ function BlocksRepo (db, pgp) {
 }
 
 var Queries = {
-
 	count: new PQ('SELECT COUNT("rowId")::int FROM blocks'),
 
 	getGenesisBlockId: new PQ('SELECT "id" FROM blocks WHERE "id" = $1;'),
@@ -66,7 +65,7 @@ var Queries = {
 			'AND "height" = ${height}'
 		].filter(Boolean).join(' '));
 	},
-	
+
 	getBlocksForTransport: 'SELECT MAX("height") AS "height", "id", "previousBlock", "timestamp" FROM blocks WHERE "id" IN ($1:csv) GROUP BY "id" ORDER BY "height" DESC',
 
 	getHeightByLastId: new PQ('SELECT "height" FROM blocks WHERE "id" = $1'),
