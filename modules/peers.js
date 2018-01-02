@@ -14,12 +14,10 @@ var ApiError = require('../helpers/apiError.js');
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failureCodes.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
-var schema = require('../schema/peers.js');
 var Peer = require('../logic/peer.js');
-var sql = require('../sql/peers.js');
 
 // Private fields
-var modules, library, self, __private = {};
+var modules, library, self, __private = {}, definitions;
 
 /**
  * Initializes library with scope content.
@@ -223,7 +221,7 @@ __private.insertSeeds = function (cb) {
 __private.dbLoad = function (cb) {
 	var updated = 0;
 	library.logger.trace('Importing peers from database');
-	library.db.any(sql.getAll).then(function (rows) {
+	library.db.peers.list().then(function (rows) {
 		library.logger.info('Imported peers from database', {count: rows.length});
 		async.each (rows, function (peer, eachCb) {
 			peer = library.logic.peers.create(peer);
@@ -275,27 +273,11 @@ __private.dbSave = function (cb) {
 		return setImmediate(cb);
 	}
 
-	// Creating set of columns
-	var cs = new pgp.helpers.ColumnSet([
-		'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
-		{name: 'broadhash', init: function (col) {
-			return col.value ? Buffer.from(col.value, 'hex') : null;
-		}}
-	], {table: 'peers'});
-
 	// Wrap sql queries in transaction and execute
-	library.db.tx(function (t) {
-		// Generating insert query
-		var insert_peers = pgp.helpers.insert(peers, cs);
-
-		var queries = [
-			// Clear peers table
-			t.none(sql.clear),
-			// Insert all peers
-			t.none(insert_peers)
-		];
-
-		return t.batch(queries);
+	library.db.tx('modules:peers:dbSave', function (t) {
+		return library.db.peers.clear(t).then(function (value) {
+			return library.db.peers.insert(peers, t);
+		});
 	}).then(function (data) {
 		library.logger.info('Peers exported to database');
 		return setImmediate(cb);
@@ -379,7 +361,7 @@ Peers.prototype.discover = function (cb) {
 	}
 
 	function validatePeersList (result, waterCb) {
-		library.schema.validate(result, schema.discover.peers, function (err) {
+		library.schema.validate(result, definitions.PeersList, function (err) {
 			return setImmediate(waterCb, err, result.peers);
 		});
 	}
@@ -393,7 +375,7 @@ Peers.prototype.discover = function (cb) {
 	function updatePeers (peers, waterCb) {
 		async.each(peers, function (peer, eachCb) {
 			peer = library.logic.peers.create(peer);
-			library.schema.validate(peer, schema.discover.peer, function (err) {
+			library.schema.validate(peer, definitions.Peer, function (err) {
 				if (err) {
 					library.logger.warn(['Rejecting invalid peer:', peer.string].join(' '), {err: err});
 					return setImmediate(eachCb);
@@ -519,6 +501,8 @@ Peers.prototype.onBind = function (scope) {
 	modules = {
 		system: scope.system
 	};
+
+	definitions = scope.swagger.definitions;
 };
 
 /**
@@ -550,7 +534,7 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 /**
- * Discovers peers and updates them in 10sec intervals loop.
+ * Periodically discovers and updates peers.
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
@@ -596,8 +580,8 @@ Peers.prototype.onPeersReady = function () {
 			return setImmediate(cb);
 		});
 	}
-	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 60000);
+	// Loop in 10 sec intervals (5 sec + 5 sec connection timeout from pingPeer)
+	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
 };
 
 /**

@@ -14,7 +14,6 @@ var slots = require('../../../helpers/slots');
 var typesRepresentatives = require('../../fixtures/typesRepresentatives');
 
 var InTransfer = rewire('../../../logic/inTransfer.js');
-var sql = require('../../../sql/dapps.js');
 
 var modulesLoader = require('../../common/modulesLoader');
 
@@ -95,8 +94,13 @@ describe('inTransfer', function () {
 
 	beforeEach(function () {
 		dbStub = {
-			query: sinon.stub().resolves(),
-			one: sinon.stub().resolves()
+			dapps: {
+				countByTransactionId: sinon.stub().resolves(),
+				countByOutTransactionId: sinon.stub().resolves(),
+				getExisting: sinon.stub().resolves(),
+				list: sinon.stub().resolves(),
+				getGenesis: sinon.stub().resolves()
+			}
 		};
 		sharedStub = {
 			getGenesis: sinon.stub().callsArgWith(1, null, validGetGensisResult)
@@ -238,23 +242,23 @@ describe('inTransfer', function () {
 			});
 		});
 
-		it('should call library.db.one', function (done) {
+		it('should call library.db.dapps.countByTransactionId', function (done) {
 			inTransfer.verify(trs, sender, function () {
-				expect(dbStub.one.calledOnce).to.be.true;
+				expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.true;
 				done();
 			});
 		});
 
-		it('should call library.db.one with sql.countByTransactionId', function (done) {
+		it('should call library.db.dapps.countByTransactionId with trs.asset.inTransfer.dappId', function (done) {
 			inTransfer.verify(trs, sender, function () {
-				expect(dbStub.one.calledWith(sql.countByTransactionId)).to.be.true;
+				expect(dbStub.dapps.countByTransactionId.calledWith(trs.asset.inTransfer.dappId)).to.be.true;
 				done();
 			});
 		});
 
-		it('should call library.db.one with {id: trs.asset.inTransfer.dappId}', function (done) {
+		it('should call library.db.dapps.countByTransactionId with trs.asset.inTransfer.dappId', function (done) {
 			inTransfer.verify(trs, sender, function () {
-				expect(dbStub.one.args[0][1]).to.eql({id: trs.asset.inTransfer.dappId});
+				expect(dbStub.dapps.countByTransactionId.calledWith(trs.asset.inTransfer.dappId)).to.be.true;
 				done();
 			});
 		});
@@ -262,7 +266,7 @@ describe('inTransfer', function () {
 		describe('when library.db.one fails', function () {
 
 			beforeEach(function () {
-				dbStub.one = sinon.stub().rejects('Rejection error');
+				dbStub.dapps.countByTransactionId = sinon.stub().rejects('Rejection error');
 			});
 
 			it('should call callback with error', function (done) {
@@ -278,7 +282,7 @@ describe('inTransfer', function () {
 			describe('when dapp does not exist', function () {
 
 				beforeEach(function () {
-					dbStub.one = sinon.stub().resolves({count: 0});
+					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 0});
 				});
 
 				it('should call callback with error', function (done) {
@@ -292,7 +296,7 @@ describe('inTransfer', function () {
 			describe('when dapp exists', function () {
 
 				beforeEach(function () {
-					dbStub.one = sinon.stub().resolves({count: 1});
+					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 1});
 				});
 
 				it('should call callback with error = undefined', function (done) {

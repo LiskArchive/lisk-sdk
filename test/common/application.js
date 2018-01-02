@@ -16,6 +16,7 @@ var swagger = require('../../config/swagger');
 var database = require('../../helpers/database');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Sequence = require('../../helpers/sequence');
+var dbRepos = require('require-all')(__dirname + '/../../db');
 
 var dbSandbox;
 var currentAppScope;
@@ -45,7 +46,17 @@ function __init (initScope, done) {
 	var modules = [], rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
-		promiseLib: Promise
+		promiseLib: Promise,
+
+		pgNative: true,
+
+		// Extending the database protocol with our custom repositories;
+		// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
+		extend: function (object, dc) {
+			Object.keys(dbRepos).forEach(function (repoName) {
+				object[repoName] = new dbRepos[repoName](object, pgp);
+			});
+		}
 	};
 	var db = initScope.db;
 	if (!db) {
@@ -267,7 +278,9 @@ function __init (initScope, done) {
 					cb(err, results);
 				});
 			}],
-			ready: ['modules', 'bus', 'logic', function (scope, cb) {
+			ready: ['swagger', 'modules', 'bus', 'logic', function (scope, cb) {
+				scope.modules.swagger = scope.swagger;
+
 				// Fire onBind event in every module
 				scope.bus.message('bind', scope.modules);
 				scope.logic.peers.bindModules(scope.modules);

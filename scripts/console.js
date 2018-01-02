@@ -13,7 +13,6 @@ if(typeof before !== 'function') {
 }
 
 var application = require('../test/common/application.js');
-var node = require('../test/node');
 
 application.init({}, function (err, scope) {
 
@@ -24,6 +23,7 @@ application.init({}, function (err, scope) {
 	replServer.context.config = scope.config;
 	replServer.context.modules = scope.modules;
 	replServer.context.logic = scope.logic;
+	replServer.context.db = scope.db;
 
 	var helpers = {};
 

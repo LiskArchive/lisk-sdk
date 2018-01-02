@@ -93,7 +93,7 @@ describe('WS transport blocks', function () {
 			ws.call('blocksCommon', function (err, res) {
 				test.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(res).to.be.undefined;
-				expect(err).to.equal('Missing required property: ids: #/');
+				expect(err).to.equal('Missing required property: ids: ');
 				done();
 			});
 		});

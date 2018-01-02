@@ -8,7 +8,6 @@ var crypto = require('crypto');
 var exceptions = require('../helpers/exceptions.js');
 var extend = require('extend');
 var slots = require('../helpers/slots.js');
-var sql = require('../sql/transactions.js');
 
 // Private fields
 var self, __private = {};
@@ -243,8 +242,8 @@ Transaction.prototype.ready = function (transaction, sender) {
  * @return {setImmediateCallback} error | row.count
  */
 Transaction.prototype.countById = function (transaction, cb) {
-	self.scope.db.one(sql.countById, {id: transaction.id}).then(function (row) {
-		return setImmediate(cb, null, row.count);
+	self.scope.db.transactions.countById(transaction.id).then(function (count) {
+		return setImmediate(cb, null, count);
 	}).catch(function (err) {
 		self.scope.logger.error(err.stack);
 		return setImmediate(cb, 'Transaction#countById error');

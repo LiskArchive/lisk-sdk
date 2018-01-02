@@ -5,7 +5,6 @@ var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
-var sql = require('../../sql/blocks.js');
 var exceptions = require('../../helpers/exceptions.js');
 var bson = require('../../helpers/bson.js');
 
@@ -532,8 +531,8 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			// Check if block id is already in the database (very low probability of hash collision)
 			// TODO: In case of hash-collision, to me it would be a special autofork...
 			// DATABASE: read only
-			library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
-				if (rows.length > 0) {
+			library.db.blocks.blockExists(block.id).then(function (rows) {
+				if (rows) {
 					return setImmediate(seriesCb, ['Block', block.id, 'already exists'].join(' '));
 				} else {
 					return setImmediate(seriesCb);

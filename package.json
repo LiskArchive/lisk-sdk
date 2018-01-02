@@ -53,6 +53,7 @@
     "popsicle": "=9.1.0",
     "randomstring": "=1.1.5",
     "redis": "=2.7.1",
+    "require-all": "=2.2.0",
     "rimraf": "=2.6.1",
     "semver": "=5.3.0",
     "socket.io": "=2.0.3",

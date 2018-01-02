@@ -3,7 +3,6 @@
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var dappCategories = require('../helpers/dappCategories.js');
-var sql = require('../sql/dapps.js');
 var valid_url = require('valid-url');
 
 // Private fields
@@ -147,7 +146,7 @@ DApp.prototype.verify = function (transaction, sender, cb) {
 		}
 	}
 
-	library.db.query(sql.getExisting, {
+	library.db.dapps.getExisting({
 		name: transaction.asset.dapp.name,
 		link: transaction.asset.dapp.link || null,
 		transactionId: transaction.id
