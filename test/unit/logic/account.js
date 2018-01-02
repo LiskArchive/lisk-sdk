@@ -132,7 +132,6 @@ describe('account', function () {
 			expect(toDBRes.secondPublicKey).to.deep.equal(Buffer.from(raw.secondPublicKey, 'hex'));
 			done();
 		});
-
 	});
 
 	describe('get', function () {
@@ -429,6 +428,24 @@ describe('account', function () {
 
 	describe('set', function () {
 
+		it('should set provided fields when valid', function (done){
+			var fields = {u_username: 'test_set', vote: 1};
+
+			account.set(validAccount.address, fields, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.be.undefined;
+				done();
+			});
+		});
+
+		it('should throw error when unrelated fields are provided', function (done){
+			var fieldsInvalid = {unrelatedfield: 'random value'};
+
+			account.set(validAccount.address, fieldsInvalid, function (err, res) {
+				expect(err).to.equal('Account#set error');
+				done();
+			});
+		});
 	});
 
 	describe('merge', function () {
