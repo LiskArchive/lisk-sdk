@@ -117,6 +117,24 @@ describe('account', function () {
 		});
 	});
 
+	describe('toDB', function () {
+
+		it('should normalize address and transform publicKey and secondPublicKey to Buffer hex', function (done) {
+			var raw = {
+				address: '16313739661670634666l',
+				publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				secondPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
+			};
+			var toDBRes = _.cloneDeep(raw);
+			account.toDB(toDBRes);
+			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
+			expect(toDBRes.publicKey).to.deep.equal(Buffer.from(raw.publicKey, 'hex'));
+			expect(toDBRes.secondPublicKey).to.deep.equal(Buffer.from(raw.secondPublicKey, 'hex'));
+			done();
+		});
+
+	});
+
 	describe('get', function () {
 
 		it('should only get requested fields for account', function (done) {
@@ -407,5 +425,17 @@ describe('account', function () {
 				done();
 			});
 		});
+	});
+
+	describe('set', function () {
+
+	});
+
+	describe('merge', function () {
+
+	});
+
+	describe('remove', function () {
+
 	});
 });
