@@ -151,7 +151,7 @@ System.prototype.getBroadhash = function (cb) {
 		return __private.broadhash;
 	}
 
-	library.db.blocks.list({ offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC' }).then(function (rows) {
+	library.db.blocks.list({offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC'}).then(function (rows) {
 		if (rows.length <= 1) {
 			return setImmediate(cb, null, __private.nethash);
 		} else {

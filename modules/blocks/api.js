@@ -133,7 +133,7 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.blocks.list(Object.assign({}, { where: where, sortField: sort.sortField, sortMethod: sort.sortMethod }, params)).then(function (rows) {
+	library.db.blocks.list(Object.assign({}, {where: where, sortField: sort.sortField, sortMethod: sort.sortMethod}, params)).then(function (rows) {
 		var blocks = [];
 		// Normalize blocks
 		for (var i = 0; i < rows.length; i++) {

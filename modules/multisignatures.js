@@ -307,7 +307,6 @@ Multisignatures.prototype.shared = {
 			},
 			getGroupAccountIds: function (seriesCb) {
 				library.db.multisignatures.getMultisignatureGroupIds(scope.targetAccount.publicKey).then(function (groupAccountIds) {
-
 					scope.groups = [];
 
 					async.each(groupAccountIds, function (groupId, callback){
