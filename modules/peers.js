@@ -551,7 +551,7 @@ Peers.prototype.onBlockchainReady = function () {
 };
 
 /**
- * Discovers peers and updates them in 10sec intervals loop.
+ * Periodically discovers and updates peers.
  */
 Peers.prototype.onPeersReady = function () {
 	library.logger.trace('Peers ready');
@@ -597,7 +597,7 @@ Peers.prototype.onPeersReady = function () {
 			return setImmediate(cb);
 		});
 	}
-	// Loop in 10sec intervals (5sec + 5sec connect timeout from pingPeer)
+	// Loop in 10 sec intervals (5 sec + 5 sec connection timeout from pingPeer)
 	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
 };
 
