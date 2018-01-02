@@ -123,7 +123,6 @@ var liskFormats = {
 	},
 
 	version: function (str) {
-
 		if (str === null || str === undefined) {
 			return false;
 		}

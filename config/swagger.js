@@ -47,7 +47,6 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 	// Swagger Express Middleware
 	SwaggerRunner.create(swaggerConfig, function (errors, runner) {
 		if (errors) {
-
 			// Ignore unused definition warning
 			errors.validationWarnings = _.filter(errors.validationWarnings, function (error) {
 				return error.code !== 'UNUSED_DEFINITION';

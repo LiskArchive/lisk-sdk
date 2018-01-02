@@ -530,7 +530,6 @@ d.run(function () {
 		}],
 
 		ready: ['swagger', 'modules', 'bus', 'logic', function (scope, cb) {
-
 			scope.modules.swagger = scope.swagger;
 
 			// Fire onBind event in every module

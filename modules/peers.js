@@ -518,6 +518,7 @@ Peers.prototype.onBind = function (scope) {
 	modules = {
 		system: scope.system
 	};
+
 	definitions = scope.swagger.definitions;
 };
 
