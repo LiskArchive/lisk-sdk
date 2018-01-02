@@ -6,7 +6,7 @@ function PeersRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
-	// set-up all ColumnSet objects, if needed:
+	// Setup all ColumnSet objects, if needed:
 	this.cs = new pgp.helpers.ColumnSet([
 		'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
 		{name: 'broadhash', init: function (col) {
