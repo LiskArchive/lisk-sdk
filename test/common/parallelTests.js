@@ -3,6 +3,8 @@
 var child_process = require('child_process');
 var find = require('find');
 
+var maxParallelism = 20;
+
 function parallelTests (tag, suite, section) {
 
 	var suiteFolder = null;
@@ -60,10 +62,11 @@ function parallelTests (tag, suite, section) {
 
 	// Looking recursevely for javascript files not containing the word "common"
 	var pathfiles = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+	var initPathfiles = pathfiles.splice(0, maxParallelism);
 
 	var parallelTestsRunning = {};
 
-	pathfiles.forEach(function (test) {
+	var spawnTest = function (test) {
 		var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', test];
 		var istanbulArguments = coverageArguments.concat(mochaArguments);
 
@@ -72,26 +75,43 @@ function parallelTests (tag, suite, section) {
 			detached: true,
 			stdio: 'inherit'
 		});
+
 		console.log('Running the test:', test, 'as a separate process - pid', child.pid);
-		parallelTestsRunning[child.pid] = test;
+		parallelTestsRunning[child.pid] = child;
+
+		var cleanupRunningTests = function () {
+			Object.keys(parallelTestsRunning).forEach(function (k) {
+				parallelTestsRunning[k].kill('SIGTERM');
+			});
+		};
+
 		child.on('close', function (code) {
 			if (code === 0) {
 				console.log('Test finished successfully:', test);
 				delete parallelTestsRunning[child.pid];
+
+				if (pathfiles.length) {
+					spawnTest(pathfiles.shift());
+				}
 				if (Object.keys(parallelTestsRunning).length === 0) {
 					return console.log('All tests finished successfully.');
 				}
 				return;
 			}
+
 			console.log('Test failed:', test);
+			cleanupRunningTests();
 			process.exit(code);
 		});
 
 		child.on('error', function (err) {
 			console.error(err);
+			cleanupRunningTests();
 			process.exit();
 		});
-	});
+	};
+
+	initPathfiles.forEach(spawnTest);
 }
 
 parallelTests(process.argv[2], process.argv[3], process.argv[4]);
