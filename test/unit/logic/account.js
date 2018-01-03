@@ -428,20 +428,16 @@ describe('account', function () {
 
 	describe('set', function () {
 
-		it('should set provided fields when valid', function (done){
-			var fields = {u_username: 'test_set', vote: 1};
-
-			account.set(validAccount.address, fields, function (err, res) {
+		it('should set provided fields when valid', function (done) {
+			account.set(validAccount.address, {u_username: 'test_set', vote: 1}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.undefined;
 				done();
 			});
 		});
 
-		it('should throw error when unrelated fields are provided', function (done){
-			var fieldsInvalid = {unrelatedfield: 'random value'};
-
-			account.set(validAccount.address, fieldsInvalid, function (err, res) {
+		it('should throw error when unrelated fields are provided', function (done) {
+			account.set(validAccount.address, {unrelatedfield: 'random value'}, function (err, res) {
 				expect(err).to.equal('Account#set error');
 				done();
 			});
