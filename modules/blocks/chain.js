@@ -83,21 +83,15 @@ Chain.prototype.saveGenesisBlock = function (cb) {
 Chain.prototype.saveBlock = function (block, cb) {
 	// Prepare and execute SQL transaction
 	// WARNING: DB_WRITE
-	library.db.tx(function (t) {
-		// Create bytea fields (buffers), and returns pseudo-row object promise-like
-		var promise = library.logic.block.dbSave(block);
-		// Initialize insert helper
-		var inserts = new Inserts(promise, promise.values);
-
+	library.db.tx('Chain:saveBlock', function (t) {
 		var promises = [
-			// Prepare insert SQL query
-			t.none(inserts.template(), promise.values)
+			t.blocks.save(block),
+			__private.promiseTransactions(t, block)
 		];
-
 		// Apply transactions inserts
-		t = __private.promiseTransactions(t, block, promises);
+		//t = __private.promiseTransactions(t, block, promises);
 		// Exec inserts as batch
-		t.batch(promises);
+		return t.batch(promises);
 	}).then(function () {
 		// Execute afterSave for transactions
 		return __private.afterSave(block, cb);
@@ -139,47 +133,55 @@ __private.afterSave = function (block, cb) {
  * @return {Object} t SQL connection object filled with inserts
  * @throws Will throw 'Invalid promise' when no promise, promise.values or promise.table
  */
-__private.promiseTransactions = function (t, block, blockPromises) {
+__private.promiseTransactions = function (t, block) {
 	if (_.isEmpty(block.transactions)) {
 		return t;
 	}
 
-	var transactionIterator = function (transaction) {
-		// Apply block ID to transaction
+	block.transactions.map(function (transaction) {
 		transaction.blockId = block.id;
-		// Create bytea fileds (buffers), and returns pseudo-row promise-like object
-		return library.logic.transaction.dbSave(transaction);
-	};
 
-	var promiseGrouper = function (promise) {
-		if (promise && promise.table) {
-			return promise.table;
-		} else {
-			throw 'Invalid promise';
-		}
-	};
+		return transaction;
+	});
 
-	var typeIterator = function (type) {
-		var values = [];
+	return t.transactions.save(block.transactions);
 
-		_.each(type, function (promise) {
-			if (promise && promise.values) {
-				values = values.concat(promise.values);
-			} else {
-				throw 'Invalid promise';
-			}
-		});
+	// var transactionIterator = function (transaction) {
+	// 	// Apply block ID to transaction
+	// 	transaction.blockId = block.id;
+	// 	// Create bytea fileds (buffers), and returns pseudo-row promise-like object
+	// 	return library.db.transactions.save(transaction);
+	// };
 
-		// Initialize insert helper
-		var inserts = new Inserts(type[0], values, true);
-		// Prepare insert SQL query
-		t.none(inserts.template(), inserts);
-	};
+	// var promiseGrouper = function (promise) {
+	// 	if (promise && promise.table) {
+	// 		return promise.table;
+	// 	} else {
+	// 		throw 'Invalid promise';
+	// 	}
+	// };
+	//
+	// var typeIterator = function (type) {
+	// 	var values = [];
+	//
+	// 	_.each(type, function (promise) {
+	// 		if (promise && promise.values) {
+	// 			values = values.concat(promise.values);
+	// 		} else {
+	// 			throw 'Invalid promise';
+	// 		}
+	// 	});
+	//
+	// 	// Initialize insert helper
+	// 	var inserts = new Inserts(type[0], values, true);
+	// 	// Prepare insert SQL query
+	// 	t.none(inserts.template(), inserts);
+	// };
 
-	var promises = _.flatMap(block.transactions, transactionIterator);
-	_.each(_.groupBy(promises, promiseGrouper), typeIterator);
+	// var promises = _.flatMap(block.transactions, transactionIterator);
+	// _.each(_.groupBy(promises, promiseGrouper), typeIterator);
 
-	return t;
+	// return _.flatMap(block.transactions, transactionIterator);
 };
 
 /**
