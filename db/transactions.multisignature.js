@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+var transactionTypes = require('../helpers/transactionTypes');
 var columnSet;
 
 function MultiSigTransactionsRepo (db, pgp) {
@@ -24,13 +26,21 @@ function MultiSigTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
-MultiSigTransactionsRepo.prototype.save = function (transaction) {
-	return this.db.none(this.pgp.helpers.insert({
-		min: transaction.asset.multisignature.min,
-		lifetime: transaction.asset.multisignature.lifetime,
-		keysgroup: transaction.asset.multisignature.keysgroup.join(','),
-		transactionId: transaction.id
-	}, this.cs.insert));
+MultiSigTransactionsRepo.prototype.save = function (transactions) {
+
+	if(!_.isArray(transactions)) {
+		transactions = [transactions];
+	}
+
+	transactions = transactions.map(function (transaction) {
+		return {
+			min: transaction.asset.multisignature.min,
+			lifetime: transaction.asset.multisignature.lifetime,
+			keysgroup: transaction.asset.multisignature.keysgroup.join(','),
+			transactionId: transaction.id
+		};
+	});
+	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
 

@@ -181,13 +181,20 @@ TransactionsRepo.prototype.save = function (transactions) {
 	var batch = [];
 	batch.push(self.db.none(self.pgp.helpers.insert(transactions, self.cs.insert)));
 
-	transactions.forEach(function (transaction) {
-		batch.push(self.db[self.transactionsRepoMap[transaction.type]].save(transaction));
+	var groupedTransactions = _.groupBy(transactions, 'type');
+
+	Object.keys(groupedTransactions).forEach(function (type) {
+		batch.push(self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type]));
 	});
 
-	return this.db.tx(function (t) {
-		return t.batch(batch);
-	});
+	// To avoid nested transactions aka transactions checkpoints
+	if(this.db.batch) {
+		return this.db.batch(batch);
+	} else {
+		return this.db.tx(function (t) {
+			return t.batch(batch);
+		});
+	}
 };
 
 

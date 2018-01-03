@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+var transactionTypes = require('../helpers/transactionTypes')
 var columnSet;
 
 function InTransferTransactionsRepo (db, pgp) {
@@ -22,11 +24,19 @@ function InTransferTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
-InTransferTransactionsRepo.prototype.save = function (transaction) {
-	return this.db.none(this.pgp.helpers.insert({
-		dappId: transaction.asset.inTransfer.dappId,
-		transactionId: transaction.id
-	}, this.cs.insert));
+InTransferTransactionsRepo.prototype.save = function (transactions) {
+	if(!_.isArray(transactions)) {
+		transactions = [transactions];
+	}
+
+	transactions = transactions.map(function (transaction) {
+		return {
+			dappId: transaction.asset.inTransfer.dappId,
+			transactionId: transaction.id
+		};
+	});
+
+	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
 
