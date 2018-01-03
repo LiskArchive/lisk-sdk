@@ -450,6 +450,73 @@ describe('account', function () {
 
 	describe('merge', function () {
 
+		it('should merge diff when values are correct', function (done) {
+			account.merge(validAccount.address, {multisignatures: ['MS1'], delegates: ['DLG1']}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res.delegates).to.deep.equal(['DLG1']);
+				expect(res.multisignatures).to.deep.equal(['MS1']);
+				done();
+			});
+		});
+
+		describe('verify public key', function () {
+
+			it('should throw error if parameter is not a string', function () {
+				expect(function () {
+					account.merge(validAccount.address, {publicKey: 1});
+				}).to.throw('Invalid public key, must be a string');
+			});
+	
+			it('should throw error if parameter is of invalid length', function () {
+				expect(function () {
+					account.merge(validAccount.address, {publicKey: '231312312321'});
+				}).to.throw('Invalid public key, must be 64 characters long');
+			});
+	
+			it('should throw error if parameter is not a hex string', function () {
+				expect(function () {
+					account.merge(validAccount.address, {publicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az'});
+				}).to.throw('Invalid public key, must be a hex string');
+			});
+		});
+
+		describe('check database constraints', function () {
+
+			it('should throw error when address does not exist for u_delegates', function (done) {
+				account.merge('1L', {u_delegates: [validAccount.publicKey]}, function (err, res) {
+					expect(err).to.equal('Account#merge error');
+					done();
+				});
+			});
+
+			it('should throw error when address does not exist for delegates', function (done) {
+				account.merge('1L', {delegates: [validAccount.publicKey]}, function (err, res) {
+					expect(err).to.equal('Account#merge error');
+					done();
+				});
+			});
+
+			it('should throw error when address does not exist for u_multisignatures', function (done) {
+				account.merge('1L', {u_multisignatures: [validAccount.publicKey]}, function (err, res) {
+					expect(err).to.equal('Account#merge error');
+					done();
+				});
+			});
+
+			it('should throw error when address does not exist for multisignatures', function (done) {
+				account.merge('1L', {multisignatures: [validAccount.publicKey]}, function (err, res) {
+					expect(err).to.equal('Account#merge error');
+					done();
+				});
+			});
+		});
+
+		it('should throw error when a numeric field receives non numeric value', function (done) {
+			account.merge(validAccount.address, {balance: 'Not a Number'}, function (err, res) {
+				expect(err).to.equal('Encountered unsane number: Not a Number');
+				done();
+			});
+		});
 	});
 
 	describe('remove', function () {
