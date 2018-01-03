@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var columnSet;
 
 function VoteTransactionsRepo (db, pgp) {
@@ -22,11 +23,20 @@ function VoteTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
-VoteTransactionsRepo.prototype.save = function (transaction) {
-	return this.db.none(this.pgp.helpers.insert({
-		votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
-		transactionId: transaction.id
-	}, this.cs.insert));
+VoteTransactionsRepo.prototype.save = function (transactions) {
+
+	if(!_.isArray(transactions)) {
+		transactions = [transactions];
+	}
+
+	transactions = transactions.map(function (transaction) {
+		return {
+			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
+			transactionId: transaction.id
+		};
+	});
+
+	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
 

@@ -81,17 +81,26 @@ Chain.prototype.saveGenesisBlock = function (cb) {
  * @return {string}   cb.err Error if occurred
  */
 Chain.prototype.saveBlock = function (block, cb) {
+
+	block.transactions.map(function (transaction) {
+		transaction.blockId = block.id;
+
+		return transaction;
+	});
+
 	// Prepare and execute SQL transaction
 	// WARNING: DB_WRITE
 	library.db.tx('Chain:saveBlock', function (t) {
+
 		var promises = [
-			t.blocks.save(block),
-			__private.promiseTransactions(t, block)
+			t.blocks.save(block)
 		];
-		// Apply transactions inserts
-		//t = __private.promiseTransactions(t, block, promises);
-		// Exec inserts as batch
+
+		if(block.transactions.length) {
+			promises.push(t.transactions.save(block.transactions));
+		}
 		return t.batch(promises);
+
 	}).then(function () {
 		// Execute afterSave for transactions
 		return __private.afterSave(block, cb);

@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+var transactionTypes = require('../helpers/transactionTypes')
 var columnSet;
 
 function DelegateTransactionsRepo (db, pgp) {
@@ -24,13 +26,21 @@ function DelegateTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
-DelegateTransactionsRepo.prototype.save = function (transaction) {
-	return this.db.none(this.pgp.helpers.insert({
-		tx_id: transaction.id,
-		name: transaction.asset.delegate.username,
-		pk: Buffer.from(transaction.senderPublicKey, 'hex'),
-		address: transaction.senderId
-	}, this.cs.insert));
+DelegateTransactionsRepo.prototype.save = function (transactions) {
+	if(!_.isArray(transactions)) {
+		transactions = [transactions];
+	}
+
+	transactions = transactions.map(function (transaction) {
+		return {
+			tx_id: transaction.id,
+			name: transaction.asset.delegate.username,
+			pk: Buffer.from(transaction.senderPublicKey, 'hex'),
+			address: transaction.senderId
+		};
+	});
+
+	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
 

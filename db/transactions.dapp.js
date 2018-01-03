@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var columnSet;
 
 function DappsTransactionsRepo (db, pgp) {
@@ -28,17 +29,25 @@ function DappsTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
-DappsTransactionsRepo.prototype.save = function (transaction) {
-	return this.db.none(this.pgp.helpers.insert({
-		type: transaction.asset.dapp.type,
-		name: transaction.asset.dapp.name,
-		description: transaction.asset.dapp.description || null,
-		tags: transaction.asset.dapp.tags || null,
-		link: transaction.asset.dapp.link || null,
-		icon: transaction.asset.dapp.icon || null,
-		category: transaction.asset.dapp.category,
-		transactionId: transaction.id
-	}, this.cs.insert));
+DappsTransactionsRepo.prototype.save = function (transactions) {
+	if(!_.isArray(transactions)) {
+		transactions = [transactions];
+	}
+
+	transactions = transactions.map(function (transaction) {
+		return {
+			type: transaction.asset.dapp.type,
+			name: transaction.asset.dapp.name,
+			description: transaction.asset.dapp.description || null,
+			tags: transaction.asset.dapp.tags || null,
+			link: transaction.asset.dapp.link || null,
+			icon: transaction.asset.dapp.icon || null,
+			category: transaction.asset.dapp.category,
+			transactionId: transaction.id
+		};
+	});
+
+	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
 

@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 var columnSet;
 
 function SignatureTransactionsRepo (db, pgp) {
@@ -22,19 +24,24 @@ function SignatureTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
-SignatureTransactionsRepo.prototype.save = function (transaction) {
-	var publicKey;
+SignatureTransactionsRepo.prototype.save = function (transactions) {
+
+	if(!_.isArray(transactions)) {
+		transactions = [transactions];
+	}
 
 	try {
-		publicKey = Buffer.from(transaction.asset.signature.publicKey, 'hex');
+		transactions = transactions.map(function (transaction) {
+			return {
+				transactionId: transaction.id,
+				publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex')
+			};
+		});
 	} catch (e) {
 		throw e;
 	}
 
-	return this.db.none(this.pgp.helpers.insert({
-		transactionId: transaction.id,
-		publicKey: publicKey
-	}, this.cs.insert));
+	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
 
