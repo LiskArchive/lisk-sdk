@@ -6,12 +6,16 @@ var _ = require('lodash');
 var crypto = require('crypto');
 var async = require('async');
 var sinon = require('sinon');
+var rewire = require('rewire');
 
 var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants.js');
 var bignum = require('../../../helpers/bignum.js');
 
 var application = require('../../common/application.js');
+
+var modulesLoader = require('../../common/modulesLoader');
+var Account = rewire('../../../logic/account.js');
 
 var validAccount = {
 	username: 'genesis_100',
@@ -48,13 +52,10 @@ var validAccount = {
 	productivity: 0
 };
 
-// TODO:
-// - Add test cases for Accounts constructor
-// - Add test cases for removeTables function
-// - Add test cases for createTables function
 describe('account', function () {
 
 	var account;
+	var accountLogic;
 
 	before(function (done) {
 		application.init({sandbox: {name: 'lisk_test_logic_accounts'}}, function (err, scope) {
@@ -67,8 +68,33 @@ describe('account', function () {
 		application.cleanup(done);
 	});
 
-	describe('Account', function () {
+	describe('Account constructor', function () {
+		var library;
+		var dbStub;
 
+		before(function (done) {
+			dbStub = {
+				query: sinon.stub().resolves()
+			};
+
+			new Account(dbStub, modulesLoader.scope.schema, modulesLoader.scope.logger, function (err, lgAccount) {
+				accountLogic = lgAccount;
+				library = Account.__get__('library');
+				done();
+			});
+		});
+
+		it('should attach schema to scope variable', function () {
+			expect(accountLogic.scope.schema).to.eql(modulesLoader.scope.schema);
+		});
+
+		it('should attach db to scope variable', function () {
+			expect(accountLogic.scope.db).to.eql(dbStub);
+		});
+
+		it('should attach logger to library variable', function () {
+			expect(library.logger).to.eql(modulesLoader.scope.logger);
+		});
 	});
 
 	describe('createTables', function () {
