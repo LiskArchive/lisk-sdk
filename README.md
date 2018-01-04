@@ -90,7 +90,7 @@ All Systems - This may require sudo depending on your environment:
 npm install -g npm@5.3.0
 ```
 
-### PostgreSQL (version 9.6.6):
+### PostgreSQL (version 9.6):
 
    - Ubuntu/Debian:
 
