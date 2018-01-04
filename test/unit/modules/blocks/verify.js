@@ -9,7 +9,6 @@ var crypto = require('crypto');
 var application = require('../../../common/application');
 
 var exceptions = require('../../../../helpers/exceptions');
-var bson = require('../../../../helpers/bson');
 
 var modulesLoader = require('../../../common/modulesLoader');
 var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
@@ -676,8 +675,7 @@ describe('blocks/verify', function () {
 				}
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('newBlock');
-				onMessage[1] = bson.deserialize(onMessage[1]);
+				expect(onMessage[0]).to.equal('broadcastBlock');
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
@@ -888,8 +886,7 @@ describe('blocks/verify', function () {
 				}
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('newBlock');
-				onMessage[1] = bson.deserialize(onMessage[1]);
+				expect(onMessage[0]).to.equal('broadcastBlock');
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
 				expect(onMessage[1].totalAmount).to.be.undefined;
@@ -898,7 +895,7 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].reward).to.be.undefined;
 				expect(onMessage[1].transactions).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.be.undefined; // transactionsSaved
+				expect(onMessage[3]).to.equal('newBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			}, false);
@@ -913,8 +910,7 @@ describe('blocks/verify', function () {
 				}
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('newBlock');
-				onMessage[1] = bson.deserialize(onMessage[1]);
+				expect(onMessage[0]).to.equal('broadcastBlock');
 				expect(onMessage[1].version).to.be.undefined;
 				expect(onMessage[1].numberOfTransactions).to.be.undefined;
 				expect(onMessage[1].totalAmount).to.be.undefined;
@@ -923,7 +919,7 @@ describe('blocks/verify', function () {
 				expect(onMessage[1].reward).to.be.undefined;
 				expect(onMessage[1].transactions).to.be.undefined;
 				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.be.undefined; // transactionsSaved
+				expect(onMessage[3]).to.equal('newBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			}, false);
@@ -943,7 +939,8 @@ describe('blocks/verify', function () {
 				}
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage).to.be.an('array').that.is.empty;
+				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
+				modulesLoader.scope.bus.clearMessages();
 				done();
 			}, false);
 		});
@@ -955,7 +952,8 @@ describe('blocks/verify', function () {
 			blocksVerify.processBlock(block3, false, function (err, result) {
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage).to.be.an('array').that.is.empty;
+				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
+				modulesLoader.scope.bus.clearMessages();
 				done();
 			}, false);
 		});
