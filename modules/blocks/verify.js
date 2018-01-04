@@ -513,7 +513,7 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 				return setImmediate(seriesCb);
 			}
 		},
-		deleteBlockProperties: function (seriesCb) {
+		broadcastBlock: function (seriesCb) {
 			if (broadcast) {
 				try {
 					// Delete default properties
