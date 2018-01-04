@@ -5,8 +5,6 @@ var ApiError = require('../../helpers/apiError.js');
 var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var sortBy = require('../../helpers/sort_by.js').sortBy;
-var schema = require('../../schema/blocks.js');
-var sql = require('../../sql/blocks.js');
 
 var modules, library, self, __private = {};
 
@@ -126,7 +124,7 @@ __private.list = function (filter, cb) {
 
 	var sort = sortBy(
 		(filter.sort || 'height:desc'), {
-			sortFields: sql.sortFields,
+			sortFields: library.db.blocks.sortFields,
 			fieldPrefix: 'b_'
 		}
 	);
@@ -135,11 +133,7 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.query(sql.list({
-		where: where,
-		sortField: sort.sortField,
-		sortMethod: sort.sortMethod
-	}), params).then(function (rows) {
+	library.db.blocks.list(Object.assign({}, {where: where, sortField: sort.sortField, sortMethod: sort.sortMethod}, params)).then(function (rows) {
 		var blocks = [];
 		// Normalize blocks
 		for (var i = 0; i < rows.length; i++) {

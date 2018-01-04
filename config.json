@@ -17,7 +17,8 @@
     "database": "lisk_main",
     "user": "",
     "password": "password",
-    "poolSize": 95,
+    "min": 10,
+    "max": 95,
     "poolIdleTimeout": 30000,
     "reapIntervalMillis": 1000,
     "logEvents": [

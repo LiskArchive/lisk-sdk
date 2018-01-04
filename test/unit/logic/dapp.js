@@ -15,7 +15,6 @@ var modulesLoader = require('../../common/modulesLoader.js');
 var randomUtil = require('../../common/utils/random');
 
 var Dapp = rewire('../../../logic/dapp.js');
-var sql = require('../../../sql/dapps.js');
 var constants = require('../../../helpers/constants');
 
 var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
@@ -41,13 +40,21 @@ describe('dapp', function () {
 
 	beforeEach(function () {
 		dbStub = {
-			query: sinon.stub()
+			dapps: {
+				countByTransactionId: sinon.stub(),
+				countByOutTransactionId: sinon.stub(),
+				getExisting: sinon.stub(),
+				list: sinon.stub(),
+				getGenesis: sinon.stub()
+			}
 		};
 		dapp = new Dapp(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
 	});
 
 	afterEach(function () {
-		dbStub.query.reset();
+		Object.keys(dbStub.dapps).forEach(function (key) {
+			dbStub.dapps[key].reset();
+		});
 	});
 
 	describe('with dummy data', function () {
@@ -289,7 +296,7 @@ describe('dapp', function () {
 					var dbError = new Error(); 
 
 					it('should call callback with error = "DApp#verify error"', function (done) {
-						dbStub.query.withArgs(sql.getExisting, {
+						dbStub.dapps.getExisting.withArgs({
 							name: transaction.asset.dapp.name,
 							link: transaction.asset.dapp.link || null,
 							transactionId: transaction.id
@@ -316,7 +323,7 @@ describe('dapp', function () {
 
 					// TODO: Some of the code these tests are testing is redundant. We should review and refactor it.
 					it('should call callback with error', function (done) {
-						dbStub.query.withArgs(sql.getExisting, dappParams).resolves([{
+						dbStub.dapps.getExisting.withArgs(dappParams).resolves([{
 							name: transaction.asset.dapp.name
 						}]);
 
@@ -328,7 +335,7 @@ describe('dapp', function () {
 
 					it('should call callback with error if application link already exists', function (done) {
 
-						dbStub.query.withArgs(sql.getExisting, dappParams).resolves([{
+						dbStub.dapps.getExisting.withArgs(dappParams).resolves([{
 							link: transaction.asset.dapp.link
 						}]);
 
@@ -339,7 +346,7 @@ describe('dapp', function () {
 					});
 
 					it('should call callback with error if application already exists', function (done) {
-						dbStub.query.withArgs(sql.getExisting, {
+						dbStub.dapps.getExisting.withArgs({
 							name: transaction.asset.dapp.name,
 							link: transaction.asset.dapp.link || null,
 							transactionId: transaction.id
@@ -356,7 +363,7 @@ describe('dapp', function () {
 			describe('when transaction is valid', function (done) {
 
 				beforeEach(function () {
-					dbStub.query.withArgs(sql.getExisting, {
+					dbStub.dapps.getExisting.withArgs({
 						name: transaction.asset.dapp.name,
 						link: transaction.asset.dapp.link || null,
 						transactionId: transaction.id
@@ -374,8 +381,8 @@ describe('dapp', function () {
 
 				it('should call dbStub.query with correct params', function (done) {
 					dapp.verify(transaction, sender, function (err, res) {
-						expect(dbStub.query.calledOnce).to.equal(true);
-						expect(dbStub.query.calledWithExactly(sql.getExisting, {
+						expect(dbStub.dapps.getExisting.calledOnce).to.equal(true);
+						expect(dbStub.dapps.getExisting.calledWithExactly({
 							name: transaction.asset.dapp.name,
 							link: transaction.asset.dapp.link || null,
 							transactionId: transaction.id

@@ -15,12 +15,12 @@ var failureCodes = require('../../../api/ws/rpc/failureCodes');
 
 var ws = require('../../common/ws/communication');
 var wsServer = require('../../common/ws/server');
-var wsClient = require('../../common/ws/client');
+var WSServerMaster = require('../../common/ws/serverMaster');
 
 describe('handshake', function () {
 
 	var wsServerPort = 9999;
-	var frozenHeaders = wsClient.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({wsPort: wsServerPort, nonce: wsServer.validNonce});
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;
@@ -129,7 +129,7 @@ describe('handshake', function () {
 				connect();
 				expectDisconnect(this, function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('#/height: Expected type integer but found type not-a-number');
+					expect(description).contain('height: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -216,7 +216,7 @@ describe('handshake', function () {
 			});
 		});
 
-		describe('when not present on master', function () {
+		describe('when not present on master @unstable', function () {
 
 			var wampClient = new WAMPClient();
 

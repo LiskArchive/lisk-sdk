@@ -192,7 +192,7 @@ describe('blocks/utils', function () {
 
 		it('should call library.db.query');
 
-		it('should call library.db.query with sql.getHeightByLastId');
+		it('should call library.db.blocks.getHeightByLastId');
 
 		describe('when filter.lastId exists', function () {
 

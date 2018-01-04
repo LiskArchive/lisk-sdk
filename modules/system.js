@@ -6,7 +6,6 @@ var os = require('os');
 var _ = require('lodash');
 var constants = require('../helpers/constants.js');
 var semver = require('semver');
-var sql = require('../sql/system.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -152,7 +151,7 @@ System.prototype.getBroadhash = function (cb) {
 		return __private.broadhash;
 	}
 
-	library.db.query(sql.getBroadhash, { limit: 5 }).then(function (rows) {
+	library.db.blocks.list({offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC'}).then(function (rows) {
 		if (rows.length <= 1) {
 			return setImmediate(cb, null, __private.nethash);
 		} else {

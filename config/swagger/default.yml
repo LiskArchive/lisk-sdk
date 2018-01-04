@@ -84,3 +84,13 @@ swagger:
       - _response_formatter
       - _post_response_cache
 
+    _swagger_raw:
+      name: swagger_raw
+      filter: '.*'
+      privateTags:
+        - 'x-private'
+        - 'x-hidden'
+
+    swagger_raw_pipe:
+      - _cors
+      - _swagger_raw

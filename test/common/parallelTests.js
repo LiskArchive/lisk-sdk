@@ -3,25 +3,58 @@
 var child_process = require('child_process');
 var find = require('find');
 
-function parallelTests (suite, tag) {
+function parallelTests (tag, suite, section) {
 
 	var suiteFolder = null;
 
 	switch (suite) {
-		case 'functional-http-get':
-			suiteFolder = 'test/functional/http/get/';
-			break;
-		case 'functional-http-post':
-			suiteFolder = 'test/functional/http/post/';
-			break;
-		case 'functional-ws':
-			suiteFolder = 'test/functional/ws/';
-			break;
 		case 'unit':
 			suiteFolder = 'test/unit/';
 			break;
-		case 'functional-system':
-			suiteFolder = 'test/functional/system/';
+		case 'functional':
+			switch (section) {
+				case 'get':
+					suiteFolder = 'test/functional/http/get/';
+					break;
+				case 'post':
+					suiteFolder = 'test/functional/http/post/';
+					break;
+				case 'ws':
+					suiteFolder = 'test/functional/ws/';
+					break;
+				case 'system':
+					suiteFolder = 'test/functional/system/';
+					break;
+				default:
+					console.warn('Invalid section argument. Options are: get, post, ws or system');
+					process.exit();
+					break;
+			};
+			break;
+
+		default:
+			console.warn('Invalid suite argument. Options are: unit or functional');
+			process.exit();
+			break;
+	};
+
+	var mochaArguments = [];
+
+	switch (tag) {
+		case 'slow':
+			mochaArguments.push('--', '--grep', '@slow');
+			break;
+		case 'unstable':
+			mochaArguments.push('--', '--grep', '@unstable');
+			break;
+		case 'untagged':
+			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
+			break;
+		case 'extensive':
+			mochaArguments.push('--', '--grep', '@unstable', '--invert');
+			break;
+		default:
+			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
 			break;
 	};
 
@@ -32,11 +65,9 @@ function parallelTests (suite, tag) {
 
 	pathfiles.forEach(function (test) {
 		var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', test];
-		
-		if (tag !== '@slow') {
-			coverageArguments.push('--', '--grep', '@slow', '--invert');
-		};
-		var child = child_process.spawn('node_modules/.bin/istanbul', coverageArguments, {
+		var istanbulArguments = coverageArguments.concat(mochaArguments);
+
+		var child = child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
 			cwd: __dirname + '/../..',
 			detached: true,
 			stdio: 'inherit'
@@ -50,7 +81,7 @@ function parallelTests (suite, tag) {
 				if (Object.keys(parallelTestsRunning).length === 0) {
 					return console.log('All tests finished successfully.');
 				}
-				return console.log('Still running: ', parallelTestsRunning);
+				return;
 			}
 			console.log('Test failed:', test);
 			process.exit(code);
@@ -63,7 +94,7 @@ function parallelTests (suite, tag) {
 	});
 }
 
-parallelTests(process.argv[2], process.argv[3]);
+parallelTests(process.argv[2], process.argv[3], process.argv[4]);
 
 module.exports = {
 	parallelTests: parallelTests
