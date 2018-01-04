@@ -7,184 +7,211 @@ Lisk is a next generation crypto-currency and decentralized application platform
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 [![Join the chat at https://gitter.im/LiskHQ/lisk](https://badges.gitter.im/LiskHQ/lisk.svg)](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**NOTE:** The following information is applicable to: **Ubuntu 14.04, 16.04 (LTS) or 16.10 - x86_64**.
-
 ## Prerequisites - In order
 
 This sections provides details on what you need install on your system in order to run Lisk.
 
 ### System Install
 
-Tool chain components -- Used for compiling dependencies
+- Tool chain components -- Used for compiling dependencies
 
-- Linux:
+    - Ubuntu/Debian:
 
-  `sudo apt-get install -y python build-essential curl automake autoconf libtool`
+        ```
+        sudo apt-get update
+        sudo apt-get install -y python build-essential curl automake autoconf libtool
+        ```
 
-- Mac:
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
 
-  Make sure that you have both XCode and Brew installed on your machine.
+        Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
 
-  Update homebrew:
+        Update homebrew and install dependencies:
+
+        ```
+        brew update
+        brew doctor
+        brew install curl automake autoconf libtool
+        ```
+
+- Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
+
+    - Ubuntu/Debian:
+
+        ```
+        sudo apt-get install -y git
+        ```
+
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
+
+        ```
+        brew install git
+        ```
+
+### Node.js (<https://nodejs.org/>)
+
+- Node.js serves as the underlying engine for code execution.
+
+    Install System wide via package manager:
+
+    - Ubuntu/Debian:
+
+        ```
+        curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        ```
+
+    - MacOS 10.12-10.13 (Sierra/High Sierra):
+
+        ```
+        brew install node@6
+        ```
+
+- _(Recommended)_ Install n -- Used for Node.js version management
+
+    ```
+    npm install -g n
+    n 6.12.3
+    ```
+
+- _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
 
   ```
-  brew update
-  brew doctor
+  npm install -g pm2
   ```
 
-  Install Lunchy  for easier starting and stoping of services:
+#### Special note about NPM 5
 
-  `gem install lunchy`
+Due to an issue with NPM 5.4.x and higher, node-sodium currently cannot be built. Therefore it is recommended to fixate the local NPM version at 5.3.x if you are running NPM 5.4.x or higher.
 
+All Systems - This may require sudo depending on your environment:
 
-Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
+```
+npm install -g npm@5.3.0
+```
 
-- Linux:
+### PostgreSQL (version 9.6):
 
-  `sudo apt-get install -y git`
+   - Ubuntu/Debian:
 
-- Mac:
+        ```
+        curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+        sudo -u postgres createuser --createdb $USER
+        createdb lisk_test
+        createdb lisk_main
+        sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+        sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+        ```
 
-  `brew install git`
+   - MacOS 10.12-10.13 (Sierra/High Sierra):
 
-### Nodejs Install
+        ```
+        brew install postgresql@9.6
+        initdb /usr/local/var/postgres -E utf8
+        brew services start postgresql@9.6
+        createdb lisk_test
+        createdb lisk_main
+        ```
 
-Node.js (<https://nodejs.org/>) -- Node.js serves as the underlying engine for code execution.
+### Installing Redis
 
-- Linux:
-  ```
-  curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-  sudo apt-get install -y nodejs
-  ```
+   - Ubuntu/Debian:
 
-- Mac:
+        ```
+        sudo apt-get install redis-server
+        ```
 
-  `brew install node`
+        Start redis:
 
-### (Optional) Node Version Manager
+        ```
+        service redis start
+        ```
 
-[nvm](https://github.com/creationix/nvm)
+        Stop redis:
 
-- Linux
+        ```
+        service redis stop
+        ```
 
-  ```
-  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-  nvm install v6.10.1
-  ```
+   - MacOS 10.12-10.13 (Sierra/High Sierra):
 
-- Mac
+        ```
+        brew install redis
+        ```
 
-  You can install the optional NVM from [this tutorial.](http://dev.topheman.com/install-nvm-with-homebrew-to-use-multiple-versions-of-node-and-iojs-easily/)
+        Start redis:
 
+        ```
+        brew services start redis
+        ```
 
-### NPM Installs
+        Stop redis:
 
-- Bower (<http://bower.io/>): Bower helps to install required JavaScript dependencies.
-- Grunt.js (<http://gruntjs.com/>): Grunt is used to compile the frontend code and serves other functions.
-- PM2 (<https://github.com/Unitech/pm2>): PM2 manages the node process for Lisk (Optional)
-
-    `npm install -g bower grunt-cli pm2`
-
-
-**Special note about NPM 5**
-
-Due to an issue with NPM 5.4.x and higher, node-sodium cannot be built. Therefore it is recommended to fixate the local NPM version at `v5.3.x`
-
-- All Systems - This may require sudo depending on your environment:
-
-  `npm install -g npm@5.3.0`
-
-### Install PostgreSQL (version 9.6.2):
-
-**NOTE:** Database user requires privileges to `CREATE EXTENSION pgcrypto`.
-
-- Linux
-  ```
-  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-  sudo -u postgres createuser --createdb $USER
-  createdb lisk_test
-  createdb lisk_main
-  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
-  ```
-
-- Mac
-  ```
-  brew install postgresql
-  initdb /usr/local/var/postgres -E utf8
-  mkdir -p ~/Library/LaunchAgents
-  cp /usr/local/Cellar/postgresql/9.2.1/homebrew.mxcl.postgresql.plist ~/Library/LaunchAgents/
-  lunchy start postgres
-  createdb lisk_test
-  createdb lisk_main
-  ```
-### Installing redis
-
-- Linux:
-  ```
-  wget http://download.redis.io/redis-stable.tar.gz
-  tar xvzf redis-stable.tar.gz
-  cd redis-stable
-  make
-  redis-server
-  ```
-
-- Mac:
-  ```
-  brew install redis
-  lunchy start redis
-  ```
+        ```
+        brew services stop redis
+        ```
 
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
-#### Change The Lisk Configuration
+1. **Change the Lisk configuration**
 
-Update the redis port configuration in both config.json and test/data/config.json. Note that this is the easiest option, however, be mindfull of reverting the changes should you make a pull request.
+  Update the redis port configuration in both `config.json` and `test/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
 
-#### Change The Redis Launch configuration
+2. **Change the Redis launch configuration**
 
-Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+  Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
-1. Stop Redis on your computer. [{ Linux: `redis-server stop` },{ Mac: `lunchy stop redis` }]
-2. Open the /usr/local/etc/redis.conf file and change this: `port 6379` to `port 6380`
-3. Restart Redis. [{ Linux: `redis-server` },{ Mac: `lunchy start redis` }]
+  1. Stop redis-server
+  2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
+    - Ubuntu/Debian: `/etc/redis/redis.conf`
+    - MacOS: `/usr/local/etc/redis.conf`
+  3. Start redis-server
 
-Now confirm that your is running on port 6380.
-```
-redis-cli -p 6380
-ping
-```
-and you should get the result of 'PONG'
+  Now confirm that redis is running on `port 6380`:
+
+  ```
+  redis-cli -p 6380
+  ping
+  ```
+
+  And you should get the result `PONG`.
 
 ## Installation Steps
 
-Clone the Lisk repository using Git and initialize the modules.
+Clone the Lisk repository using git and initialize the modules.
 
 ```
 git clone https://github.com/LiskHQ/lisk.git
 cd lisk
+git checkout master
 npm install
 ```
 
 ## Managing Lisk
 
-To test that Lisk is built and configured correctly, run the following command:
+To test that Lisk is built and configured correctly, issue the following command:
 
-`node app.js`
-
-In a browser navigate to: <http://localhost:8000> (for the mainnet) or <http://localhost:7000> (for the testnet). If Lisk is running on a remote system, switch `localhost` for the external IP Address of the machine.
+```
+node app.js
+```
 
 Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
 
-`pm2 start --name lisk app.js`
+```
+pm2 start --name lisk app.js
+```
 
 After the process is started, its runtime status and log location can be retrieved by issuing the following command:
 
-`pm2 show lisk`
+```
+pm2 show lisk
+```
 
 To stop Lisk after it has been started with `pm2`, issue the following command:
 
-`pm2 stop lisk`
+```
+pm2 stop lisk
+```
 
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
@@ -212,7 +239,7 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 3. Launch Lisk (runs on port 4000):
 
   ```
-  node app.js
+  NODE_ENV=test node app.js
   ```
 
 ### Running Tests
@@ -241,15 +268,9 @@ The master passphrase for the genesis block used by the tests is as follows:
 wagon stock borrow episode laundry kitten salute link globe zero feed marble
 ```
 
-## Authors
+## Contributors
 
-- Boris Povod <boris@crypti.me>
-- Pavel Nekrasov <landgraf.paul@gmail.com>
-- Sebastian Stupurac <stupurac.sebastian@gmail.com>
-- Oliver Beddows <oliver@lightcurve.io>
-- Isabella Dell <isabella@lightcurve.io>
-- Marius Serek <mariusz@serek.net>
-- Maciej Baj <maciej@lightcurve.io>
+https://github.com/LiskHQ/lisk/graphs/contributors
 
 ## License
 
