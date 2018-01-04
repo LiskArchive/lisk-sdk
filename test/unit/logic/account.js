@@ -428,6 +428,14 @@ describe('account', function () {
 
 	describe('set', function () {
 
+		it('should insert an account', function (done) {
+			account.set('123L', {u_username: 'test_set_insert'}, function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.be.undefined;
+				done();
+			});
+		});
+
 		it('should set provided fields when valid', function (done) {
 			account.set(validAccount.address, {u_username: 'test_set', vote: 1}, function (err, res) {
 				expect(err).to.not.exist;
@@ -517,5 +525,12 @@ describe('account', function () {
 
 	describe('remove', function () {
 
+		it('should remove an account', function (done) {
+			account.remove('123L', function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.equal('123L');
+				done();
+			});
+		});
 	});
 });
