@@ -517,9 +517,8 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			if (broadcast) {
 				try {
 					// Delete default properties
-					var blockReduced = self.deleteBlockProperties(block);
-					var serializedBlockReduced = bson.serialize(blockReduced);
-					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, block.id, broadcast);
+					var reducedBlock = self.deleteBlockProperties(block);
+					modules.blocks.chain.broadcastReducedBlock(reducedBlock, broadcast);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
