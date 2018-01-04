@@ -17,51 +17,27 @@
  * an individual dapp account).
  * @class transfer
  */
-import cryptoModule from '../crypto';
 import { IN_TRANSFER_FEE } from '../constants';
-import { prepareTransaction, getTimeWithOffset } from './utils';
+import { wrapTransactionCreator } from './utils';
 
 /**
  * @method transferIntoDapp
  * @param {Object} Object - Object
- * @param {String} Object.dappId
  * @param {String} Object.amount
- * @param {String} Object.passphrase
- * @param {String} Object.secondPassphrase
- * @param {Number} Object.timeOffset
+ * @param {String} Object.dappId
  *
  * @return {Object}
  */
 
-const transferIntoDapp = ({
-	dappId,
-	amount,
-	passphrase,
-	secondPassphrase,
-	timeOffset,
-	unsigned,
-}) => {
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
-
-	const transaction = {
-		type: 6,
-		amount: amount.toString(),
-		fee: IN_TRANSFER_FEE.toString(),
-		recipientId: null,
-		senderPublicKey,
-		timestamp: getTimeWithOffset(timeOffset),
-		asset: {
-			inTransfer: {
-				dappId,
-			},
+const transferIntoDapp = ({ amount, dappId }) => ({
+	type: 6,
+	amount: amount.toString(),
+	fee: IN_TRANSFER_FEE.toString(),
+	asset: {
+		inTransfer: {
+			dappId,
 		},
-	};
+	},
+});
 
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
-};
-
-export default transferIntoDapp;
+export default wrapTransactionCreator(transferIntoDapp);

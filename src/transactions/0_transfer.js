@@ -16,68 +16,51 @@
  * Transaction module provides functions for creating balance transfer transactions.
  * @class transaction
  */
-import cryptoModule from '../crypto';
 import { TRANSFER_FEE, DATA_FEE } from '../constants';
 import {
-	prepareTransaction,
 	getAddressAndPublicKeyFromRecipientData,
-	getTimeWithOffset,
+	wrapTransactionCreator,
 } from './utils';
+
+const createAsset = data => {
+	if (data && data.length > 0) {
+		if (data !== data.toString('utf8'))
+			throw new Error(
+				'Invalid encoding in transaction data. Data must be utf-8 encoded.',
+			);
+		return { data };
+	}
+	return {};
+};
 
 /**
  * @method transfer
  * @param {Object} Object - Object
+ * @param {String} Object.amount
  * @param {String} Object.recipientId
  * @param {String} Object.recipientPublicKey
- * @param {String} Object.amount
- * @param {String} Object.passphrase
- * @param {String} Object.secondPassphrase
  * @param {String} Object.data
- * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-const transfer = ({
-	recipientId,
-	recipientPublicKey,
-	amount,
-	passphrase,
-	secondPassphrase,
-	data,
-	timeOffset,
-	unsigned,
-}) => {
+const transfer = ({ amount, recipientId, recipientPublicKey, data }) => {
 	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({
 		recipientId,
 		recipientPublicKey,
 	});
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
 	const fee = data ? TRANSFER_FEE + DATA_FEE : TRANSFER_FEE;
+
 	const transaction = {
 		type: 0,
 		amount: amount.toString(),
 		fee: fee.toString(),
 		recipientId: address,
 		recipientPublicKey: publicKey,
-		senderPublicKey,
-		timestamp: getTimeWithOffset(timeOffset),
-		asset: {},
+		asset: createAsset(data),
 	};
 
-	if (data && data.length > 0) {
-		if (data !== data.toString('utf8'))
-			throw new Error(
-				'Invalid encoding in transaction data. Data must be utf-8 encoded.',
-			);
-		transaction.asset.data = data;
-	}
-
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
+	return transaction;
 };
 
-export default transfer;
+export default wrapTransactionCreator(transfer);

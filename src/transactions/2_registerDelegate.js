@@ -16,49 +16,25 @@
  * Delegate module provides functions to create delegate registration transactions.
  * @class delegate
  */
-import cryptoModule from '../crypto';
 import { DELEGATE_FEE } from '../constants';
-import { prepareTransaction, getTimeWithOffset } from './utils';
+import { wrapTransactionCreator } from './utils';
 
 /**
  * @method registerDelegate
  * @param {Object} Object - Object
- * @param {String} Object.passphrase
  * @param {String} Object.username
- * @param {String} Object.secondPassphrase
- * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-const registerDelegate = ({
-	passphrase,
-	username,
-	secondPassphrase,
-	timeOffset,
-	unsigned,
-}) => {
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
-
-	const transaction = {
-		type: 2,
-		amount: '0',
-		fee: DELEGATE_FEE.toString(),
-		recipientId: null,
-		senderPublicKey,
-		timestamp: getTimeWithOffset(timeOffset),
-		asset: {
-			delegate: {
-				username,
-			},
+const registerDelegate = ({ username }) => ({
+	type: 2,
+	fee: DELEGATE_FEE.toString(),
+	asset: {
+		delegate: {
+			username,
 		},
-	};
+	},
+});
 
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
-};
-
-export default registerDelegate;
+export default wrapTransactionCreator(registerDelegate);

@@ -52,7 +52,10 @@ describe('#castVotes transaction', () => {
 
 	describe('when the transaction is created with one passphrase and the votes', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes({ passphrase, votes: votePublicKeys });
+			castVotesTransaction = castVotes({
+				passphrase,
+				votes: votePublicKeys,
+			});
 		});
 
 		it('should create a cast votes transaction', () => {
@@ -130,7 +133,9 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should not have the second signature property', () => {
-				return castVotesTransaction.should.not.have.property('signSignature');
+				return castVotesTransaction.should.not.have.property(
+					'signSignature',
+				);
 			});
 
 			it('should have asset', () => {
@@ -147,12 +152,19 @@ describe('#castVotes transaction', () => {
 				});
 
 				it('should contain two elements', () => {
-					return castVotesTransaction.asset.votes.should.have.length(2);
+					return castVotesTransaction.asset.votes.should.have.length(
+						2,
+					);
 				});
 
 				it('should have a vote for the delegate public key', () => {
-					const expectedArray = [`+${firstPublicKey}`, `+${secondPublicKey}`];
-					return castVotesTransaction.asset.votes.should.be.eql(expectedArray);
+					const expectedArray = [
+						`+${firstPublicKey}`,
+						`+${secondPublicKey}`,
+					];
+					return castVotesTransaction.asset.votes.should.be.eql(
+						expectedArray,
+					);
 				});
 			});
 		});
@@ -279,7 +291,11 @@ describe('#castVotes transaction', () => {
 
 		describe('Given unvotes with duplication', () => {
 			it('should throw a duplication error for unvotes', () => {
-				const unvotes = [firstPublicKey, secondPublicKey, firstPublicKey];
+				const unvotes = [
+					firstPublicKey,
+					secondPublicKey,
+					firstPublicKey,
+				];
 				return castVotes
 					.bind(null, {
 						passphrase,
@@ -315,7 +331,9 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should have the fee', () => {
-				return castVotesTransaction.should.have.property('fee').equal(fee);
+				return castVotesTransaction.should.have
+					.property('fee')
+					.equal(fee);
 			});
 
 			it('should have the recipient id', () => {
@@ -341,7 +359,9 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should not have the signature', () => {
-				return castVotesTransaction.should.not.have.property('signature');
+				return castVotesTransaction.should.not.have.property(
+					'signature',
+				);
 			});
 
 			it('should not have the id', () => {

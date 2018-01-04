@@ -17,56 +17,31 @@
  * an individual dapp account).
  * @class transfer
  */
-import cryptoModule from '../crypto';
 import { OUT_TRANSFER_FEE } from '../constants';
-import { prepareTransaction, getTimeWithOffset } from './utils';
+import { wrapTransactionCreator } from './utils';
 
 /**
  * @method transferOutOfDapp
  * @param {Object} Object - Object
+ * @param {String} Object.amount
  * @param {String} Object.dappId
  * @param {String} Object.transactionId
  * @param {String} Object.recipientId
- * @param {String} Object.amount
- * @param {String} Object.passphrase
- * @param {String} Object.secondPassphrase
- * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-const transferOutOfDapp = ({
-	dappId,
-	transactionId,
+const transferOutOfDapp = ({ amount, dappId, transactionId, recipientId }) => ({
+	type: 7,
+	amount: amount.toString(),
+	fee: OUT_TRANSFER_FEE.toString(),
 	recipientId,
-	amount,
-	passphrase,
-	secondPassphrase,
-	timeOffset,
-	unsigned,
-}) => {
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
-
-	const transaction = {
-		type: 7,
-		amount: amount.toString(),
-		fee: OUT_TRANSFER_FEE.toString(),
-		recipientId,
-		senderPublicKey,
-		timestamp: getTimeWithOffset(timeOffset),
-		asset: {
-			outTransfer: {
-				dappId,
-				transactionId,
-			},
+	asset: {
+		outTransfer: {
+			dappId,
+			transactionId,
 		},
-	};
+	},
+});
 
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
-};
-
-export default transferOutOfDapp;
+export default wrapTransactionCreator(transferOutOfDapp);

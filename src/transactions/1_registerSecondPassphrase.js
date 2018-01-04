@@ -18,53 +18,28 @@
  */
 import cryptoModule from '../crypto';
 import { SIGNATURE_FEE } from '../constants';
-import { prepareTransaction, getTimeWithOffset } from './utils';
-
-/**
- * @method newSignature
- * @param secondPassphrase
- *
- * @return {Object}
- */
-
-const createAsset = secondPassphrase => {
-	const { publicKey } = cryptoModule.getKeys(secondPassphrase);
-	return { signature: { publicKey } };
-};
+import { wrapTransactionCreator } from './utils';
 
 /**
  * @method registerSecondPassphrase
  * @param {Object} Object - Object
- * @param {String} Object.passphrase
  * @param {String} Object.secondPassphrase
- * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
 
-const registerSecondPassphrase = ({
-	passphrase,
-	secondPassphrase,
-	timeOffset,
-	unsigned,
-}) => {
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
+const registerSecondPassphrase = ({ secondPassphrase }) => {
+	const { publicKey } = cryptoModule.getKeys(secondPassphrase);
 
-	const transaction = {
+	return {
 		type: 1,
-		amount: '0',
 		fee: SIGNATURE_FEE.toString(),
-		recipientId: null,
-		senderPublicKey,
-		timestamp: getTimeWithOffset(timeOffset),
-		asset: createAsset(secondPassphrase),
+		asset: {
+			signature: {
+				publicKey,
+			},
+		},
 	};
-
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
-export default registerSecondPassphrase;
+export default wrapTransactionCreator(registerSecondPassphrase);
