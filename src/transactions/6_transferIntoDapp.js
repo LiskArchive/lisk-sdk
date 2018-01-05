@@ -39,15 +39,18 @@ const transferIntoDapp = ({
 	passphrase,
 	secondPassphrase,
 	timeOffset,
+	unsigned,
 }) => {
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
 
 	const transaction = {
 		type: 6,
 		amount: amount.toString(),
 		fee: IN_TRANSFER_FEE.toString(),
 		recipientId: null,
-		senderPublicKey: keys.publicKey,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			inTransfer: {
@@ -56,7 +59,9 @@ const transferIntoDapp = ({
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default transferIntoDapp;

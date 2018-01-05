@@ -18,6 +18,7 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#transferIntoDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
+	const transactionType = 6;
 	const dappId = '1234213';
 	const passphrase = 'secret';
 	const secondPassphrase = 'secondSecret';
@@ -27,6 +28,7 @@ describe('#transferIntoDapp transaction', () => {
 	const transferFee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let transferIntoDappTransaction;
@@ -75,7 +77,7 @@ describe('#transferIntoDapp transaction', () => {
 				return transferIntoDappTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(6);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 10 LSK', () => {
@@ -155,6 +157,69 @@ describe('#transferIntoDapp transaction', () => {
 			return transferIntoDappTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('unsigned transfer into dapp transaction', () => {
+		beforeEach(() => {
+			transferIntoDappTransaction = transferIntoDapp({
+				dappId,
+				amount,
+				unsigned,
+			});
+		});
+
+		describe('when the transfer into dapp transaction is created without signature', () => {
+			it('should have the type', () => {
+				return transferIntoDappTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				return transferIntoDappTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				return transferIntoDappTransaction.should.have
+					.property('fee')
+					.equal(transferFee);
+			});
+
+			it('should have the recipient id', () => {
+				return transferIntoDappTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				return transferIntoDappTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				return transferIntoDappTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset with the in transfer with the dappId', () => {
+				return transferIntoDappTransaction.should.have
+					.property('asset')
+					.with.property('inTransfer')
+					.with.property('dappId');
+			});
+
+			it('should not have the signature', () => {
+				return transferIntoDappTransaction.should.not.have.property(
+					'signature',
+				);
+			});
+
+			it('should not have the id', () => {
+				return transferIntoDappTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

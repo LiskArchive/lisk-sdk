@@ -18,6 +18,8 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#createDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
+	const transactionType = 5;
+	const amount = '0';
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
 	const publicKey =
@@ -39,6 +41,7 @@ describe('#createDapp transaction', () => {
 	const nameStringError = 'Dapp name must be a string.';
 	const typeIntegerError = 'Dapp type must be an integer.';
 	const linkStringError = 'Dapp link must be a string.';
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let options;
@@ -276,6 +279,64 @@ describe('#createDapp transaction', () => {
 			return createDappTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('unsigned create dapp transaction', () => {
+		beforeEach(() => {
+			createDappTransaction = createDapp({
+				options,
+				unsigned,
+			});
+		});
+
+		describe('when the create dapp transaction is created without signature', () => {
+			it('should have the type', () => {
+				return createDappTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				return createDappTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				return createDappTransaction.should.have.property('fee').equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				return createDappTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				return createDappTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				return createDappTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset with dapp with properties category, name, tags, type, link, icon', () => {
+				return createDappTransaction.should.have
+					.property('asset')
+					.with.property('dapp')
+					.with.properties('category', 'name', 'tags', 'type', 'link', 'icon');
+			});
+
+			it('should not have the signature', () => {
+				return createDappTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				return createDappTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

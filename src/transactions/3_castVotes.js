@@ -44,8 +44,14 @@ const castVotes = ({
 	unvotes = [],
 	secondPassphrase,
 	timeOffset,
+	unsigned,
 }) => {
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
+	const recipientId = unsigned
+		? null
+		: cryptoModule.getAddress(senderPublicKey);
 
 	validatePublicKeys([...votes, ...unvotes]);
 
@@ -58,15 +64,17 @@ const castVotes = ({
 		type: 3,
 		amount: '0',
 		fee: VOTE_FEE.toString(),
-		recipientId: cryptoModule.getAddress(keys.publicKey),
-		senderPublicKey: keys.publicKey,
+		recipientId,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			votes: allVotes,
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default castVotes;

@@ -40,8 +40,11 @@ const registerMultisignatureAccount = ({
 	lifetime,
 	minimum,
 	timeOffset,
+	unsigned,
 }) => {
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
 
 	validateKeysgroup(keysgroup);
 
@@ -54,7 +57,7 @@ const registerMultisignatureAccount = ({
 		amount: '0',
 		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		recipientId: null,
-		senderPublicKey: keys.publicKey,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			multisignature: {
@@ -65,7 +68,9 @@ const registerMultisignatureAccount = ({
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default registerMultisignatureAccount;

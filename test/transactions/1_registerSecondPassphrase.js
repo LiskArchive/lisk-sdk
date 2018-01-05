@@ -20,6 +20,7 @@ describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 1;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey =
@@ -28,6 +29,9 @@ describe('#registerSecondPassphrase transaction', () => {
 		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 	const secondPassphraseFee = (5 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const unsigned = true;
+	const fee = (5 * fixedPoint).toString();
+	const amount = '0';
 
 	let getTimeWithOffsetStub;
 	let registerSecondPassphraseTransaction;
@@ -76,14 +80,14 @@ describe('#registerSecondPassphrase transaction', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('type')
 				.and.be.type('number')
-				.and.equal(1);
+				.and.equal(transactionType);
 		});
 
 		it('should have amount string equal to 0', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('amount')
 				.and.be.type('string')
-				.and.equal('0');
+				.and.equal(amount);
 		});
 
 		it('should have fee string equal to second passphrase fee', () => {
@@ -164,6 +168,73 @@ describe('#registerSecondPassphrase transaction', () => {
 				});
 				return registerSecondPassphraseTransaction.asset.signature.publicKey.should.be.equal(
 					emptyStringPublicKey,
+				);
+			});
+		});
+	});
+
+	describe('unsigned register second passphrase transaction', () => {
+		beforeEach(() => {
+			registerSecondPassphraseTransaction = registerSecondPassphrase({
+				secondPassphrase,
+				unsigned,
+			});
+		});
+
+		describe('when the register second passphrase transaction is created without signature', () => {
+			it('should have the type', () => {
+				return registerSecondPassphraseTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				return registerSecondPassphraseTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				return registerSecondPassphraseTransaction.should.have
+					.property('fee')
+					.equal(fee);
+			});
+
+			it('should have the recipient', () => {
+				return registerSecondPassphraseTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				return registerSecondPassphraseTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				return registerSecondPassphraseTransaction.should.have.property(
+					'timestamp',
+				);
+			});
+
+			it('should have the asset with the signature with the public key', () => {
+				return registerSecondPassphraseTransaction.should.have
+					.property('asset')
+					.with.property('signature')
+					.with.property('publicKey')
+					.of.type('string');
+			});
+
+			it('should not have the signature', () => {
+				return registerSecondPassphraseTransaction.should.not.have.property(
+					'signature',
+				);
+			});
+
+			it('should not have the id', () => {
+				return registerSecondPassphraseTransaction.should.not.have.property(
+					'id',
 				);
 			});
 		});

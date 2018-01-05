@@ -17,8 +17,10 @@ import castVotes from '../../src/transactions/3_castVotes';
 const time = require('../../src/transactions/utils/time');
 
 describe('#castVotes transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 3;
 	const firstPublicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey =
@@ -35,6 +37,9 @@ describe('#castVotes transaction', () => {
 	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
+	const unsigned = true;
+	const amount = '0';
+	const fee = (1 * fixedPoint).toString();
 
 	let getTimeWithOffsetStub;
 	let castVotesTransaction;
@@ -80,21 +85,21 @@ describe('#castVotes transaction', () => {
 				return castVotesTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(3);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 0', () => {
 				return castVotesTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
-					.and.equal('0');
+					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 100000000', () => {
 				return castVotesTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal('100000000');
+					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to address', () => {
@@ -283,6 +288,64 @@ describe('#castVotes transaction', () => {
 					.should.throw(
 						'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
 					);
+			});
+		});
+	});
+
+	describe('unsigned cast votes transaction', () => {
+		beforeEach(() => {
+			castVotesTransaction = castVotes({
+				votes: votePublicKeys,
+				unvotes: unvotePublicKeys,
+				unsigned,
+			});
+		});
+
+		describe('when the cast votes transaction is created without signature', () => {
+			it('should have the type', () => {
+				return castVotesTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				return castVotesTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				return castVotesTransaction.should.have.property('fee').equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				return castVotesTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				return castVotesTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				return castVotesTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset with the votes', () => {
+				return castVotesTransaction.should.have
+					.property('asset')
+					.with.property('votes');
+			});
+
+			it('should not have the signature', () => {
+				return castVotesTransaction.should.not.have.property('signature');
+			});
+
+			it('should not have the id', () => {
+				return castVotesTransaction.should.not.have.property('id');
 			});
 		});
 	});

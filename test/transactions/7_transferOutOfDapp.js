@@ -18,6 +18,7 @@ const time = require('../../src/transactions/utils/time');
 
 describe('#transferOutOfDapp', () => {
 	const fixedPoint = 10 ** 8;
+	const transactionType = 7;
 	const transactionId = '9876567';
 	const recipientId = '989234L';
 	const dappId = '1234213';
@@ -26,9 +27,10 @@ describe('#transferOutOfDapp', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = (10 * fixedPoint).toString();
-	const transferFee = (0.1 * fixedPoint).toString();
+	const fee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
+	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let transferOutOfDappTransaction;
@@ -86,7 +88,7 @@ describe('#transferOutOfDapp', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(7);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 10 LSK', () => {
@@ -100,7 +102,7 @@ describe('#transferOutOfDapp', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal(transferFee);
+					.and.equal(fee);
 			});
 
 			it('should have recipientId equal to provided recipientId', () => {
@@ -174,6 +176,71 @@ describe('#transferOutOfDapp', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('signSignature')
 					.and.be.hexString();
+			});
+		});
+	});
+
+	describe('unsigned transfer out of dapp transaction', () => {
+		beforeEach(() => {
+			transferOutOfDappTransaction = transferOutOfDapp({
+				dappId,
+				transactionId,
+				recipientId,
+				amount,
+				unsigned,
+			});
+		});
+
+		describe('when the transfer out of dapp transaction is created without signature', () => {
+			it('should have the type', () => {
+				return transferOutOfDappTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				return transferOutOfDappTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				return transferOutOfDappTransaction.should.have
+					.property('fee')
+					.equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				return transferOutOfDappTransaction.should.have
+					.property('recipientId')
+					.equal(recipientId);
+			});
+
+			it('should have the sender public key', () => {
+				return transferOutOfDappTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				return transferOutOfDappTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset with the out transfer with dappId and transactionId', () => {
+				return transferOutOfDappTransaction.should.have
+					.property('asset')
+					.with.property('outTransfer')
+					.with.properties('dappId', 'transactionId');
+			});
+
+			it('should not have the signature', () => {
+				return transferOutOfDappTransaction.should.not.have.property(
+					'signature',
+				);
+			});
+
+			it('should not have the id', () => {
+				return transferOutOfDappTransaction.should.not.have.property('id');
 			});
 		});
 	});

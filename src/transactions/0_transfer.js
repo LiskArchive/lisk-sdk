@@ -46,12 +46,15 @@ const transfer = ({
 	secondPassphrase,
 	data,
 	timeOffset,
+	unsigned,
 }) => {
 	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({
 		recipientId,
 		recipientPublicKey,
 	});
-	const keys = cryptoModule.getKeys(passphrase);
+	const senderPublicKey = unsigned
+		? null
+		: cryptoModule.getKeys(passphrase).publicKey;
 	const fee = data ? TRANSFER_FEE + DATA_FEE : TRANSFER_FEE;
 	const transaction = {
 		type: 0,
@@ -59,7 +62,7 @@ const transfer = ({
 		fee: fee.toString(),
 		recipientId: address,
 		recipientPublicKey: publicKey,
-		senderPublicKey: keys.publicKey,
+		senderPublicKey,
 		timestamp: getTimeWithOffset(timeOffset),
 		asset: {},
 	};
@@ -72,7 +75,9 @@ const transfer = ({
 		transaction.asset.data = data;
 	}
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase);
+	return unsigned
+		? transaction
+		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
 export default transfer;

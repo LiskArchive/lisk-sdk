@@ -18,8 +18,10 @@ import registerMultisignatureAccount from '../../src/transactions/4_registerMult
 const time = require('../../src/transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {
+	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 4;
 	const keys = {
 		publicKey:
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -27,8 +29,11 @@ describe('#registerMultisignatureAccount transaction', () => {
 			'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 	};
 	const timeWithOffset = 38350076;
+	const fee = (15 * fixedPoint).toString();
+	const amount = '0';
 	const lifetime = 5;
 	const minimum = 2;
+	const unsigned = true;
 
 	let tooShortPublicKeyKeysgroup;
 	let plusPrependedPublicKeyKeysgroup;
@@ -98,21 +103,21 @@ describe('#registerMultisignatureAccount transaction', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('type')
 					.and.be.type('number')
-					.and.equal(4);
+					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 0', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('amount')
 					.and.be.type('string')
-					.and.equal('0');
+					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 15 LSK', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('fee')
 					.and.be.type('string')
-					.and.equal('1500000000');
+					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to null', () => {
@@ -294,6 +299,72 @@ describe('#registerMultisignatureAccount transaction', () => {
 				.should.throw(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
 				);
+		});
+	});
+
+	describe('unsigned register multisignature account transaction', () => {
+		beforeEach(() => {
+			registerMultisignatureTransaction = registerMultisignatureAccount({
+				keysgroup,
+				lifetime,
+				minimum,
+				unsigned,
+			});
+		});
+
+		describe('when the register multisignature transaction is created without signature', () => {
+			it('should have the type', () => {
+				return registerMultisignatureTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				return registerMultisignatureTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				return registerMultisignatureTransaction.should.have
+					.property('fee')
+					.equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				return registerMultisignatureTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				return registerMultisignatureTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				return registerMultisignatureTransaction.should.have.property(
+					'timestamp',
+				);
+			});
+
+			it('should have the asset with the multisignature with the min, lifetime and keysgroup', () => {
+				return registerMultisignatureTransaction.should.have
+					.property('asset')
+					.with.property('multisignature')
+					.with.properties('min', 'lifetime', 'keysgroup');
+			});
+
+			it('should not have the signature', () => {
+				return registerMultisignatureTransaction.should.not.have.property(
+					'signature',
+				);
+			});
+
+			it('should not have the id', () => {
+				return registerMultisignatureTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });

@@ -20,11 +20,14 @@ describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
+	const transactionType = 2;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const unsigned = true;
+	const amount = '0';
 
 	let getTimeWithOffsetStub;
 	let registerDelegateTransaction;
@@ -69,14 +72,14 @@ describe('#registerDelegate transaction', () => {
 			return registerDelegateTransaction.should.have
 				.property('type')
 				.and.be.type('number')
-				.and.equal(2);
+				.and.equal(transactionType);
 		});
 
 		it('should have amount string equal to 0', () => {
 			return registerDelegateTransaction.should.have
 				.property('amount')
 				.and.be.type('string')
-				.and.equal('0');
+				.and.equal(amount);
 		});
 
 		it('should have fee string equal to 25 LSK', () => {
@@ -153,6 +156,68 @@ describe('#registerDelegate transaction', () => {
 			return registerDelegateTransaction.should.have
 				.property('signSignature')
 				.and.be.hexString();
+		});
+	});
+
+	describe('unsigned register delegate transaction', () => {
+		beforeEach(() => {
+			registerDelegateTransaction = registerDelegate({
+				username,
+				unsigned,
+			});
+		});
+
+		describe('when the register delegate transaction is created without signature', () => {
+			it('should have the type', () => {
+				return registerDelegateTransaction.should.have
+					.property('type')
+					.equal(transactionType);
+			});
+
+			it('should have the amount', () => {
+				return registerDelegateTransaction.should.have
+					.property('amount')
+					.equal(amount);
+			});
+
+			it('should have the fee', () => {
+				return registerDelegateTransaction.should.have
+					.property('fee')
+					.equal(fee);
+			});
+
+			it('should have the recipient id', () => {
+				return registerDelegateTransaction.should.have
+					.property('recipientId')
+					.equal(null);
+			});
+
+			it('should have the sender public key', () => {
+				return registerDelegateTransaction.should.have
+					.property('senderPublicKey')
+					.equal(null);
+			});
+
+			it('should have the timestamp', () => {
+				return registerDelegateTransaction.should.have.property('timestamp');
+			});
+
+			it('should have the asset with the delegate', () => {
+				return registerDelegateTransaction.should.have
+					.property('asset')
+					.with.property('delegate')
+					.with.property('username');
+			});
+
+			it('should not have the signature', () => {
+				return registerDelegateTransaction.should.not.have.property(
+					'signature',
+				);
+			});
+
+			it('should not have the id', () => {
+				return registerDelegateTransaction.should.not.have.property('id');
+			});
 		});
 	});
 });
