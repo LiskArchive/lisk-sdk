@@ -245,8 +245,8 @@ describe('#transfer transaction', () => {
 				transferTransaction.should.have.property('timestamp');
 			});
 
-			it('should have the asset', () => {
-				transferTransaction.should.have.property('asset').and.be.type('object');
+			it('should have the asset ', () => {
+				transferTransaction.should.have.property('asset');
 			});
 
 			it('should not have the signature', () => {

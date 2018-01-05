@@ -191,7 +191,7 @@ describe('#transferOutOfDapp', () => {
 			});
 		});
 
-		describe('when the register delegate transaction is created without signature', () => {
+		describe('when the transfer out of dapp transaction is created without signature', () => {
 			it('should have the type', () => {
 				transferOutOfDappTransaction.should.have
 					.property('type')
@@ -224,23 +224,11 @@ describe('#transferOutOfDapp', () => {
 				transferOutOfDappTransaction.should.have.property('timestamp');
 			});
 
-			it('should have the asset', () => {
+			it('should have the asset with the out transfer with dappId and transactionId', () => {
 				transferOutOfDappTransaction.should.have
 					.property('asset')
-					.and.be.type('object');
-			});
-
-			it('should have the asset with out transfer object', () => {
-				transferOutOfDappTransaction.asset.should.have
-					.property('outTransfer')
-					.and.be.type('object');
-			});
-
-			it('should have the asset with out transfer object and reference to dapp id and transaction id', () => {
-				transferOutOfDappTransaction.asset.outTransfer.should.have.properties(
-					'dappId',
-					'transactionId',
-				);
+					.with.property('outTransfer')
+					.with.properties('dappId', 'transactionId');
 			});
 
 			it('should not have the signature', () => {

@@ -312,7 +312,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 			});
 		});
 
-		describe('when the register delegate transaction is created without signature', () => {
+		describe('when the register multisignature transaction is created without signature', () => {
 			it('should have the type', () => {
 				registerMultisignatureTransaction.should.have
 					.property('type')
@@ -347,18 +347,11 @@ describe('#registerMultisignatureAccount transaction', () => {
 				registerMultisignatureTransaction.should.have.property('timestamp');
 			});
 
-			it('should have the asset', () => {
-				registerMultisignatureTransaction.asset.should.have
-					.property('multisignature')
-					.and.be.type('object');
-			});
-
-			it('should have a multisignature registration asset with min, lifetime and keysgroup', () => {
-				registerMultisignatureTransaction.asset.multisignature.should.have.properties(
-					'min',
-					'lifetime',
-					'keysgroup',
-				);
+			it('should have the asset with the multisignature with the min, lifetime and keysgroup', () => {
+				registerMultisignatureTransaction.should.have
+					.property('asset')
+					.with.property('multisignature')
+					.with.properties('min', 'lifetime', 'keysgroup');
 			});
 
 			it('should not have the signature', () => {

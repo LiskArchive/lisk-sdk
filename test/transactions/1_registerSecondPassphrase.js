@@ -216,15 +216,11 @@ describe('#registerSecondPassphrase transaction', () => {
 				registerSecondPassphraseTransaction.should.have.property('timestamp');
 			});
 
-			it('should have the asset', () => {
-				registerSecondPassphraseTransaction.asset.should.have
-					.property('signature')
-					.and.be.type('object');
-			});
-
-			it('should have the public key as part of the asset', () => {
-				registerSecondPassphraseTransaction.asset.signature.should.have
-					.property('publicKey')
+			it('should have the asset with the signature with the public key', () => {
+				registerSecondPassphraseTransaction.should.have
+					.property('asset')
+					.with.property('signature')
+					.with.property('publicKey')
 					.and.be.type('string');
 			});
 

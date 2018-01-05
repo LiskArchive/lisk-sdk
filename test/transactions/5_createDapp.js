@@ -290,7 +290,7 @@ describe('#createDapp transaction', () => {
 			});
 		});
 
-		describe('when the register delegate transaction is created without signature', () => {
+		describe('when the create dapp transaction is created without signature', () => {
 			it('should have the type', () => {
 				createDappTransaction.should.have
 					.property('type')
@@ -319,21 +319,11 @@ describe('#createDapp transaction', () => {
 				createDappTransaction.should.have.property('timestamp');
 			});
 
-			it('should have the asset', () => {
-				createDappTransaction.asset.should.have
-					.property('dapp')
-					.and.be.type('object');
-			});
-
-			it('should have the asset with dapp creation properties category, name, tags, type, link, icon', () => {
-				createDappTransaction.asset.dapp.should.have.properties(
-					'category',
-					'name',
-					'tags',
-					'type',
-					'link',
-					'icon',
-				);
+			it('should have the asset with dapp with properties category, name, tags, type, link, icon', () => {
+				createDappTransaction.should.have
+					.property('asset')
+					.with.property('dapp')
+					.with.properties('category', 'name', 'tags', 'type', 'link', 'icon');
 			});
 
 			it('should not have the signature', () => {

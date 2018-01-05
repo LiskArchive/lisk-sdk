@@ -201,15 +201,10 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should have the asset with the delegate', () => {
-				registerDelegateTransaction.asset.should.have
-					.property('delegate')
-					.and.be.type('object');
-			});
-
-			it('should have the username as part of the asset with the delegate', () => {
-				registerDelegateTransaction.asset.delegate.should.have
-					.property('username')
-					.and.be.type('string');
+				registerDelegateTransaction.should.have
+					.property('asset')
+					.with.property('delegate')
+					.with.property('username');
 			});
 
 			it('should not have the signature', () => {

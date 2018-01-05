@@ -301,7 +301,7 @@ describe('#castVotes transaction', () => {
 			});
 		});
 
-		describe('when the register delegate transaction is created without signature', () => {
+		describe('when the cast votes transaction is created without signature', () => {
 			it('should have the type', () => {
 				castVotesTransaction.should.have
 					.property('type')
@@ -330,14 +330,10 @@ describe('#castVotes transaction', () => {
 				castVotesTransaction.should.have.property('timestamp');
 			});
 
-			it('should have the asset', () => {
-				castVotesTransaction.asset.should.have
-					.property('votes')
-					.and.be.type('object');
-			});
-
-			it('should have an array as part of the votes asset', () => {
-				castVotesTransaction.asset.votes.should.be.Array();
+			it('should have the asset with the votes', () => {
+				castVotesTransaction.should.have
+					.property('asset')
+					.with.property('votes');
 			});
 
 			it('should not have the signature', () => {
