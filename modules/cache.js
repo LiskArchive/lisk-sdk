@@ -155,11 +155,9 @@ Cache.prototype.quit = function (cb) {
 
 /**
  * This function will be triggered on new block, it will clear all cache entires.
- * @param {Block} block
- * @param {Broadcast} broadcast
  * @param {function} cb
  */
-Cache.prototype.onNewBlock = function (block, broadcast, cb) {
+Cache.prototype.onNewBlock = function (cb) {
 	cb = cb || function () {};
 
 	logger.debug(['Cache - onNewBlock', '| Status:', self.isConnected()].join(' '));
