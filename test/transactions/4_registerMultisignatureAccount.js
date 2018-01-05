@@ -314,52 +314,56 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 		describe('when the register multisignature transaction is created without signature', () => {
 			it('should have the type', () => {
-				registerMultisignatureTransaction.should.have
+				return registerMultisignatureTransaction.should.have
 					.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				registerMultisignatureTransaction.should.have
+				return registerMultisignatureTransaction.should.have
 					.property('amount')
 					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				registerMultisignatureTransaction.should.have
+				return registerMultisignatureTransaction.should.have
 					.property('fee')
 					.equal(fee);
 			});
 
 			it('should have the recipient id', () => {
-				registerMultisignatureTransaction.should.have
+				return registerMultisignatureTransaction.should.have
 					.property('recipientId')
 					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				registerMultisignatureTransaction.should.have
+				return registerMultisignatureTransaction.should.have
 					.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				registerMultisignatureTransaction.should.have.property('timestamp');
+				return registerMultisignatureTransaction.should.have.property(
+					'timestamp',
+				);
 			});
 
 			it('should have the asset with the multisignature with the min, lifetime and keysgroup', () => {
-				registerMultisignatureTransaction.should.have
+				return registerMultisignatureTransaction.should.have
 					.property('asset')
 					.with.property('multisignature')
 					.with.properties('min', 'lifetime', 'keysgroup');
 			});
 
 			it('should not have the signature', () => {
-				registerMultisignatureTransaction.should.not.have.property('signature');
+				return registerMultisignatureTransaction.should.not.have.property(
+					'signature',
+				);
 			});
 
 			it('should not have the id', () => {
-				registerMultisignatureTransaction.should.not.have.property('id');
+				return registerMultisignatureTransaction.should.not.have.property('id');
 			});
 		});
 	});

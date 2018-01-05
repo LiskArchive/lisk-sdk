@@ -171,52 +171,54 @@ describe('#transferIntoDapp transaction', () => {
 
 		describe('when the transfer into dapp transaction is created without signature', () => {
 			it('should have the type', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('amount')
 					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('fee')
 					.equal(transferFee);
 			});
 
 			it('should have the recipient id', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('recipientId')
 					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				transferIntoDappTransaction.should.have.property('timestamp');
+				return transferIntoDappTransaction.should.have.property('timestamp');
 			});
 
 			it('should have the asset with the in transfer with the dappId', () => {
-				transferIntoDappTransaction.should.have
+				return transferIntoDappTransaction.should.have
 					.property('asset')
 					.with.property('inTransfer')
 					.with.property('dappId');
 			});
 
 			it('should not have the signature', () => {
-				transferIntoDappTransaction.should.not.have.property('signature');
+				return transferIntoDappTransaction.should.not.have.property(
+					'signature',
+				);
 			});
 
 			it('should not have the id', () => {
-				transferIntoDappTransaction.should.not.have.property('id');
+				return transferIntoDappTransaction.should.not.have.property('id');
 			});
 		});
 	});

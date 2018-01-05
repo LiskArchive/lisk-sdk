@@ -292,46 +292,50 @@ describe('#createDapp transaction', () => {
 
 		describe('when the create dapp transaction is created without signature', () => {
 			it('should have the type', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				createDappTransaction.should.have.property('amount').equal(amount);
+				return createDappTransaction.should.have
+					.property('amount')
+					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				createDappTransaction.should.have.property('fee').equal(fee);
+				return createDappTransaction.should.have.property('fee').equal(fee);
 			});
 
 			it('should have the recipient id', () => {
-				createDappTransaction.should.have.property('recipientId').equal(null);
+				return createDappTransaction.should.have
+					.property('recipientId')
+					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				createDappTransaction.should.have.property('timestamp');
+				return createDappTransaction.should.have.property('timestamp');
 			});
 
 			it('should have the asset with dapp with properties category, name, tags, type, link, icon', () => {
-				createDappTransaction.should.have
+				return createDappTransaction.should.have
 					.property('asset')
 					.with.property('dapp')
 					.with.properties('category', 'name', 'tags', 'type', 'link', 'icon');
 			});
 
 			it('should not have the signature', () => {
-				createDappTransaction.should.not.have.property('signature');
+				return createDappTransaction.should.not.have.property('signature');
 			});
 
 			it('should not have the id', () => {
-				createDappTransaction.should.not.have.property('id');
+				return createDappTransaction.should.not.have.property('id');
 			});
 		});
 	});

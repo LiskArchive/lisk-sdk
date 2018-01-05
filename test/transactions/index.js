@@ -16,19 +16,46 @@ import transaction from '../../src/transactions/index';
 
 describe('transactions', () => {
 	describe('exports', () => {
-		return it('should have all supported create transaction functions', () => {
-			transaction.should.have.property('transfer').be.type('function');
-			transaction.should.have
+		it('should have the create transfer transaction function', () => {
+			return transaction.should.have.property('transfer').be.type('function');
+		});
+
+		it('should have the register second passphrase transaction function', () => {
+			return transaction.should.have
 				.property('registerSecondPassphrase')
 				.be.type('function');
-			transaction.should.have.property('registerDelegate').be.type('function');
-			transaction.should.have.property('castVotes').be.type('function');
-			transaction.should.have
+		});
+
+		it('should have the register delegate transaction function', () => {
+			return transaction.should.have
+				.property('registerDelegate')
+				.be.type('function');
+		});
+
+		it('should have the cast votes transaction function', () => {
+			return transaction.should.have.property('castVotes').be.type('function');
+		});
+
+		it('should have the register multisignature transaction function', () => {
+			return transaction.should.have
 				.property('registerMultisignature')
 				.be.type('function');
-			transaction.should.have.property('createDapp').be.type('function');
-			transaction.should.have.property('transferIntoDapp').be.type('function');
-			transaction.should.have.property('transferOutOfDapp').be.type('function');
+		});
+
+		it('should have the create dapp transaction function', () => {
+			return transaction.should.have.property('createDapp').be.type('function');
+		});
+
+		it('should have the transfer into dapp transaction function', () => {
+			return transaction.should.have
+				.property('transferIntoDapp')
+				.be.type('function');
+		});
+
+		it('should have the transfer out of dapp transaction function', () => {
+			return transaction.should.have
+				.property('transferOutOfDapp')
+				.be.type('function');
 		});
 	});
 });

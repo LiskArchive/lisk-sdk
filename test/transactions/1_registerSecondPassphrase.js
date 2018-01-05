@@ -183,41 +183,43 @@ describe('#registerSecondPassphrase transaction', () => {
 
 		describe('when the register second passphrase transaction is created without signature', () => {
 			it('should have the type', () => {
-				registerSecondPassphraseTransaction.should.have
+				return registerSecondPassphraseTransaction.should.have
 					.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				registerSecondPassphraseTransaction.should.have
+				return registerSecondPassphraseTransaction.should.have
 					.property('amount')
 					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				registerSecondPassphraseTransaction.should.have
+				return registerSecondPassphraseTransaction.should.have
 					.property('fee')
 					.equal(fee);
 			});
 
 			it('should have the recipient', () => {
-				registerSecondPassphraseTransaction.should.have
+				return registerSecondPassphraseTransaction.should.have
 					.property('recipientId')
 					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				registerSecondPassphraseTransaction.should.have
+				return registerSecondPassphraseTransaction.should.have
 					.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				registerSecondPassphraseTransaction.should.have.property('timestamp');
+				return registerSecondPassphraseTransaction.should.have.property(
+					'timestamp',
+				);
 			});
 
 			it('should have the asset with the signature with the public key', () => {
-				registerSecondPassphraseTransaction.should.have
+				return registerSecondPassphraseTransaction.should.have
 					.property('asset')
 					.with.property('signature')
 					.with.property('publicKey')
@@ -225,13 +227,15 @@ describe('#registerSecondPassphrase transaction', () => {
 			});
 
 			it('should not have the signature', () => {
-				registerSecondPassphraseTransaction.should.not.have.property(
+				return registerSecondPassphraseTransaction.should.not.have.property(
 					'signature',
 				);
 			});
 
 			it('should not have the id', () => {
-				registerSecondPassphraseTransaction.should.not.have.property('id');
+				return registerSecondPassphraseTransaction.should.not.have.property(
+					'id',
+				);
 			});
 		});
 	});

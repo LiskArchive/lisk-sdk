@@ -303,45 +303,49 @@ describe('#castVotes transaction', () => {
 
 		describe('when the cast votes transaction is created without signature', () => {
 			it('should have the type', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				castVotesTransaction.should.have.property('amount').equal(amount);
+				return castVotesTransaction.should.have
+					.property('amount')
+					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				castVotesTransaction.should.have.property('fee').equal(fee);
+				return castVotesTransaction.should.have.property('fee').equal(fee);
 			});
 
 			it('should have the recipient id', () => {
-				castVotesTransaction.should.have.property('recipientId').equal(null);
+				return castVotesTransaction.should.have
+					.property('recipientId')
+					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				castVotesTransaction.should.have.property('timestamp');
+				return castVotesTransaction.should.have.property('timestamp');
 			});
 
 			it('should have the asset with the votes', () => {
-				castVotesTransaction.should.have
+				return castVotesTransaction.should.have
 					.property('asset')
 					.with.property('votes');
 			});
 
 			it('should not have the signature', () => {
-				castVotesTransaction.should.not.have.property('signature');
+				return castVotesTransaction.should.not.have.property('signature');
 			});
 
 			it('should not have the id', () => {
-				castVotesTransaction.should.not.have.property('id');
+				return castVotesTransaction.should.not.have.property('id');
 			});
 		});
 	});

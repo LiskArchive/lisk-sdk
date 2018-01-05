@@ -169,50 +169,54 @@ describe('#registerDelegate transaction', () => {
 
 		describe('when the register delegate transaction is created without signature', () => {
 			it('should have the type', () => {
-				registerDelegateTransaction.should.have
+				return registerDelegateTransaction.should.have
 					.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				registerDelegateTransaction.should.have
+				return registerDelegateTransaction.should.have
 					.property('amount')
 					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				registerDelegateTransaction.should.have.property('fee').equal(fee);
+				return registerDelegateTransaction.should.have
+					.property('fee')
+					.equal(fee);
 			});
 
 			it('should have the recipient id', () => {
-				registerDelegateTransaction.should.have
+				return registerDelegateTransaction.should.have
 					.property('recipientId')
 					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				registerDelegateTransaction.should.have
+				return registerDelegateTransaction.should.have
 					.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				registerDelegateTransaction.should.have.property('timestamp');
+				return registerDelegateTransaction.should.have.property('timestamp');
 			});
 
 			it('should have the asset with the delegate', () => {
-				registerDelegateTransaction.should.have
+				return registerDelegateTransaction.should.have
 					.property('asset')
 					.with.property('delegate')
 					.with.property('username');
 			});
 
 			it('should not have the signature', () => {
-				registerDelegateTransaction.should.not.have.property('signature');
+				return registerDelegateTransaction.should.not.have.property(
+					'signature',
+				);
 			});
 
 			it('should not have the id', () => {
-				registerDelegateTransaction.should.not.have.property('id');
+				return registerDelegateTransaction.should.not.have.property('id');
 			});
 		});
 	});

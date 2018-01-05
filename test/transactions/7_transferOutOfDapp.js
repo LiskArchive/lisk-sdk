@@ -193,50 +193,54 @@ describe('#transferOutOfDapp', () => {
 
 		describe('when the transfer out of dapp transaction is created without signature', () => {
 			it('should have the type', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('amount')
 					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				transferOutOfDappTransaction.should.have.property('fee').equal(fee);
+				return transferOutOfDappTransaction.should.have
+					.property('fee')
+					.equal(fee);
 			});
 
 			it('should have the recipient id', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('recipientId')
 					.equal(recipientId);
 			});
 
 			it('should have the sender public key', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				transferOutOfDappTransaction.should.have.property('timestamp');
+				return transferOutOfDappTransaction.should.have.property('timestamp');
 			});
 
 			it('should have the asset with the out transfer with dappId and transactionId', () => {
-				transferOutOfDappTransaction.should.have
+				return transferOutOfDappTransaction.should.have
 					.property('asset')
 					.with.property('outTransfer')
 					.with.properties('dappId', 'transactionId');
 			});
 
 			it('should not have the signature', () => {
-				transferOutOfDappTransaction.should.not.have.property('signature');
+				return transferOutOfDappTransaction.should.not.have.property(
+					'signature',
+				);
 			});
 
 			it('should not have the id', () => {
-				transferOutOfDappTransaction.should.not.have.property('id');
+				return transferOutOfDappTransaction.should.not.have.property('id');
 			});
 		});
 	});
