@@ -27,7 +27,7 @@ export const countUppercaseCharacters = passphrase => {
 	return capitalCharacterMatches ? capitalCharacterMatches.length : 0;
 };
 
-export const validatePassphrase = passphrase => {
+export const validatePassphrase = (passphrase, wordlist) => {
 	const expectedWords = 12;
 	const expectedWhitespaces = 11;
 	const expectedUppercaseCharacters = 0;
@@ -50,7 +50,12 @@ export const validatePassphrase = passphrase => {
 			`Passphrase contains ${capitalCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacters}. Please check the passphrase.`,
 		);
 	}
-	if (!Mnemonic.validateMnemonic(passphrase)) {
+	if (
+		!Mnemonic.validateMnemonic(
+			passphrase,
+			wordlist || Mnemonic.wordlists.english,
+		)
+	) {
 		throw new Error(
 			'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 		);

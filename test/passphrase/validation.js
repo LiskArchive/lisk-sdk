@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import Mnemonic from 'bip39';
 import {
 	countUppercaseCharacters,
 	countPassphraseWhitespaces,
@@ -273,6 +274,30 @@ describe('passphrase validation', () => {
 
 			it('should throw the error', () => {
 				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+			});
+		});
+
+		describe('given a passphrase that uses the correct wordlist for the passphrase', () => {
+			const wordlist = Mnemonic.wordlists.english;
+			const passphrase =
+				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
+
+			it('should return true', () => {
+				validatePassphrase(passphrase, wordlist).should.be.true();
+			});
+		});
+
+		describe('given a passphrase that uses a different wordlist for the passphrase', () => {
+			const wordlist = Mnemonic.wordlists.spanish;
+			const passphrase =
+				'model actor shallow eight glue upper seat lobster reason label engage bridge';
+			const errorMessage =
+				'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.';
+
+			it('should throw the error', () => {
+				validatePassphrase
+					.bind(null, passphrase, wordlist)
+					.should.throw(errorMessage);
 			});
 		});
 	});
