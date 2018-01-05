@@ -715,7 +715,11 @@ describe('peers', function () {
 
 		before(function () {
 			peersLogicMock.list = sinon.stub().returns([]);
-			peers.discover = sinon.stub().callsArgWith(0, null);
+			sinon.stub(peers, 'discover').callsArgWith(0, null);
+		});
+
+		after(function () {
+			peers.discover.restore();
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {
