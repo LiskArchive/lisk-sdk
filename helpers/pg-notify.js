@@ -125,7 +125,7 @@ function reconnect (delay, maxAttempts) {
 					connection = obj;
 					setListeners(obj.client, function (err) {
 						if (err) {
-							reject(err);
+							throw err;
 						} else {
 							resolve(obj);
 						}
