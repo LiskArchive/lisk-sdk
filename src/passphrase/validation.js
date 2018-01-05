@@ -22,7 +22,7 @@ export const countPassphraseWhitespaces = passphrase => {
 export const countPassphraseWords = passphrase =>
 	passphrase.split(' ').filter(Boolean).length;
 
-export const countCapitalCharacters = passphrase => {
+export const countUppercaseCharacters = passphrase => {
 	const capitalCharacterMatches = passphrase.match(/[A-Z]/g);
 	return capitalCharacterMatches ? capitalCharacterMatches.length : 0;
 };
@@ -30,10 +30,10 @@ export const countCapitalCharacters = passphrase => {
 export const validatePassphrase = passphrase => {
 	const expectedWords = 12;
 	const expectedWhitespaces = 11;
-	const expectedCapitalLetters = 0;
+	const expectedUppercaseCharacters = 0;
 	const wordsInPassphrase = countPassphraseWords(passphrase);
 	const whiteSpacesInPassphrase = countPassphraseWhitespaces(passphrase);
-	const capitalCharacterInPassphrase = countCapitalCharacters(passphrase);
+	const capitalCharacterInPassphrase = countUppercaseCharacters(passphrase);
 
 	if (wordsInPassphrase !== expectedWords) {
 		throw new Error(
@@ -45,9 +45,9 @@ export const validatePassphrase = passphrase => {
 			`Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
 		);
 	}
-	if (capitalCharacterInPassphrase !== expectedCapitalLetters) {
+	if (capitalCharacterInPassphrase !== expectedUppercaseCharacters) {
 		throw new Error(
-			`Passphrase contains ${capitalCharacterInPassphrase} capital character instead of expected ${expectedCapitalLetters}. Please check the passphrase.`,
+			`Passphrase contains ${capitalCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacters}. Please check the passphrase.`,
 		);
 	}
 	if (!Mnemonic.validateMnemonic(passphrase)) {

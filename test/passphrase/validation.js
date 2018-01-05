@@ -13,7 +13,7 @@
  *
  */
 import {
-	countCapitalCharacters,
+	countUppercaseCharacters,
 	countPassphraseWhitespaces,
 	countPassphraseWords,
 	validatePassphrase,
@@ -96,93 +96,93 @@ describe('passphrase validation', () => {
 
 	describe('countPassphraseWords', () => {
 		describe('given a valid passphrase', () => {
-			const expextedAmountOfWords = 12;
+			const expectedAmountOfWords = 12;
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expextedAmountOfWords);
+				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
 			});
 		});
 
 		describe('given a passphrase with 13 words', () => {
-			const expextedAmountOfWords = 13;
+			const expectedAmountOfWords = 13;
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge model';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expextedAmountOfWords);
+				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
 			});
 		});
 
 		describe('given a passphrase with 9 words', () => {
-			const expextedAmountOfWords = 9;
+			const expectedAmountOfWords = 9;
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expextedAmountOfWords);
+				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
 			});
 		});
 
 		describe('given a passphrase with 12 words and extra whitespaces', () => {
-			const expextedAmountOfWords = 12;
+			const expectedAmountOfWords = 12;
 			const passphrase =
 				'model  actor  shallow  eight glue upper seat lobster reason label enlist bridge';
 
 			it('should ignore the whitespaces and return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expextedAmountOfWords);
+				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
 			});
 		});
 
 		describe('given a passphrase with no words but whitespaces', () => {
-			const expextedAmountOfWords = 0;
+			const expectedAmountOfWords = 0;
 			const passphrase = '     ';
 
 			it('should ignore the whitespaces and return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expextedAmountOfWords);
+				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
 			});
 		});
 
 		describe('given an empty string passphrase', () => {
-			const expextedAmountOfWords = 0;
+			const expectedAmountOfWords = 0;
 			const passphrase = '';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expextedAmountOfWords);
+				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
 			});
 		});
 	});
 
-	describe('countCapitalCharacters', () => {
-		describe('given a passphrase without capital letters', () => {
+	describe('countUppercaseCharacters', () => {
+		describe('given a passphrase without uppercase character', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return 0', () => {
-				const capitalied = countCapitalCharacters(passphrase);
-				capitalied.should.be.equal(0);
+				const uppercased = countUppercaseCharacters(passphrase);
+				uppercased.should.be.equal(0);
 			});
 		});
 
-		describe('given a passphrase with capital letters', () => {
+		describe('given a passphrase with uppercase character', () => {
 			const expectedAmountOfCapitalCharacters = 4;
 			const passphrase =
 				'Model Actor shallow eight glue upPer seat lobSter reason label enlist bridge';
 
-			it('should return the amount of capital letters', () => {
-				const capitalied = countCapitalCharacters(passphrase);
-				capitalied.should.be.equal(expectedAmountOfCapitalCharacters);
+			it('should return the amount of uppercase character', () => {
+				const uppercased = countUppercaseCharacters(passphrase);
+				uppercased.should.be.equal(expectedAmountOfCapitalCharacters);
 			});
 		});
 
-		describe('given a passphrase with all capital letters', () => {
+		describe('given a passphrase with all uppercase character', () => {
 			const expectedAmountOfCapitalCharacters = 65;
 			const passphrase =
 				'MODEL ACTOR SHALLOW EIGHT GLUE UPPER SEAT LOBSTER REASON LABEL ENLIST BRIDGE';
 
-			it('should return the amount of capital letters', () => {
-				countCapitalCharacters(passphrase).should.be.equal(
+			it('should return the amount of uppercase character', () => {
+				countUppercaseCharacters(passphrase).should.be.equal(
 					expectedAmountOfCapitalCharacters,
 				);
 			});
@@ -199,7 +199,7 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a passphrase with extra words', () => {
+		describe('given a passphrase with too many words', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge actor';
 			const errorMessage =
@@ -210,7 +210,7 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a passphrase with less words', () => {
+		describe('given a passphrase with too few words', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist';
 			const errorMessage =
@@ -221,7 +221,7 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a passphrase with one more whitespace in the beginning', () => {
+		describe('given a passphrase with an extra whitespace in the beginning', () => {
 			const passphrase =
 				' model actor shallow eight glue upper seat lobster reason label enlist bridge';
 			const errorMessage =
@@ -232,7 +232,7 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a passphrase with one more whitespace in the end', () => {
+		describe('given a passphrase with an extra whitespace in the end', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge ';
 			const errorMessage =
@@ -243,7 +243,7 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a passphrase with more whitespaces in between', () => {
+		describe('given a passphrase with too many whitespaces in between words', () => {
 			const passphrase =
 				'model actor shallow eight glue  upper seat  lobster reason label enlist bridge';
 			const errorMessage =
@@ -254,11 +254,11 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a passphrase with capital characters', () => {
+		describe('given a passphrase with uppercase characters', () => {
 			const passphrase =
 				'modEl actor shallow eight glue upper sEat lobster reaSon label enlist bridge';
 			const errorMessage =
-				'Passphrase contains 3 capital character instead of expected 0. Please check the passphrase.';
+				'Passphrase contains 3 uppercase character instead of expected 0. Please check the passphrase.';
 
 			it('should throw the error', () => {
 				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
