@@ -103,10 +103,18 @@ describe('account', function () {
 				expect(err).to.not.exist;
 				expect(res).to.be.undefined;
 				done();
+			});
+		});
 	});
 
 	describe('removeTables', function () {
-
+		it('should remove the tables', function (done) {
+			accountLogic.removeTables(function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.be.undefined;
+				done();
+			});
+		});
 	});
 
 	describe('objectNormalize', function () {
