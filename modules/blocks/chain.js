@@ -491,7 +491,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 
 /**
  * Broadcast reduced block to increase network performance.
- * @param {Object} reducedBlock block without empty/insignificant properties
+ * @param {Object} reducedBlock Block without empty/insignificant properties
  * @param {boolean} broadcast Indicator that block needs to be broadcasted
  */
 Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
