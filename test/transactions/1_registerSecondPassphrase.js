@@ -223,7 +223,7 @@ describe('#registerSecondPassphrase transaction', () => {
 					.property('asset')
 					.with.property('signature')
 					.with.property('publicKey')
-					.and.be.type('string');
+					.of.type('string');
 			});
 
 			it('should not have the signature', () => {

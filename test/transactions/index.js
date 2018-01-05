@@ -17,45 +17,45 @@ import transaction from '../../src/transactions/index';
 describe('transactions', () => {
 	describe('exports', () => {
 		it('should have the create transfer transaction function', () => {
-			return transaction.should.have.property('transfer').be.type('function');
+			return transaction.should.have.property('transfer').of.type('function');
 		});
 
 		it('should have the register second passphrase transaction function', () => {
 			return transaction.should.have
 				.property('registerSecondPassphrase')
-				.be.type('function');
+				.of.type('function');
 		});
 
 		it('should have the register delegate transaction function', () => {
 			return transaction.should.have
 				.property('registerDelegate')
-				.be.type('function');
+				.of.type('function');
 		});
 
 		it('should have the cast votes transaction function', () => {
-			return transaction.should.have.property('castVotes').be.type('function');
+			return transaction.should.have.property('castVotes').of.type('function');
 		});
 
 		it('should have the register multisignature transaction function', () => {
 			return transaction.should.have
 				.property('registerMultisignature')
-				.be.type('function');
+				.of.type('function');
 		});
 
 		it('should have the create dapp transaction function', () => {
-			return transaction.should.have.property('createDapp').be.type('function');
+			return transaction.should.have.property('createDapp').of.type('function');
 		});
 
 		it('should have the transfer into dapp transaction function', () => {
 			return transaction.should.have
 				.property('transferIntoDapp')
-				.be.type('function');
+				.of.type('function');
 		});
 
 		it('should have the transfer out of dapp transaction function', () => {
 			return transaction.should.have
 				.property('transferOutOfDapp')
-				.be.type('function');
+				.of.type('function');
 		});
 	});
 });
