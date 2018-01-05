@@ -98,7 +98,11 @@ describe('account', function () {
 	});
 
 	describe('createTables', function () {
-
+		it('should create the tables', function (done) {
+			accountLogic.createTables(function (err, res) {
+				expect(err).to.not.exist;
+				expect(res).to.be.undefined;
+				done();
 	});
 
 	describe('removeTables', function () {
