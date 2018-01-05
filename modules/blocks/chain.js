@@ -453,10 +453,12 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
+					library.bus.message('newBlock', block, null);
 
 					return seriesCb();
 				});
 			} else {
+				library.bus.message('newBlock', block, null);
 				return seriesCb();
 			}
 		},
@@ -489,13 +491,11 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 
 /**
  * Broadcast reduced block to increase network performance.
- * @param {Object} reducedBlock reduced block
- * @param {number} blockId
+ * @param {Object} reducedBlock Block without empty/insignificant properties
  * @param {boolean} broadcast Indicator that block needs to be broadcasted
  */
-Chain.prototype.broadcastReducedBlock = function (reducedBlock, blockId, broadcast) {
-	library.bus.message('newBlock', reducedBlock, broadcast);
-	library.logger.debug(['reducedBlock', blockId, 'broadcasted correctly'].join(' '));
+Chain.prototype.broadcastReducedBlock = function (reducedBlock, broadcast) {
+	library.bus.message('broadcastBlock', reducedBlock, broadcast);
 };
 
 /**
