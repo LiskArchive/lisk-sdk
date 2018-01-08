@@ -205,7 +205,7 @@ __private.decryptSecret = function (encryptedSecret, key) {
  * @returns {setImmediateCallback} cb | error messages
  */
 
-__private.checkDelegates = function (publicKey, votes, state, cb) {
+__private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');
 	}
@@ -261,7 +261,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				}
 
 				return setImmediate(cb);
-			});
+			}, tx);
 		}, function (err) {
 			if (err) {
 				return setImmediate(cb, err);
@@ -277,7 +277,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
 				return setImmediate(cb);
 			}
 		});
-	});
+	}, tx);
 };
 
 /**
@@ -493,8 +493,8 @@ Delegates.prototype.getForgers = function (query, cb) {
  * @param {function} cb
  * @return {function} Calls checkDelegates() with 'confirmed' state.
  */
-Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb) {
-	return __private.checkDelegates(publicKey, votes, 'confirmed', cb);
+Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb, tx) {
+	return __private.checkDelegates(publicKey, votes, 'confirmed', cb, tx);
 };
 
 /**
@@ -503,8 +503,8 @@ Delegates.prototype.checkConfirmedDelegates = function (publicKey, votes, cb) {
  * @param {function} cb
  * @return {function} Calls checkDelegates() with 'unconfirmed' state.
  */
-Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) {
-	return __private.checkDelegates(publicKey, votes, 'unconfirmed', cb);
+Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb, tx) {
+	return __private.checkDelegates(publicKey, votes, 'unconfirmed', cb, tx);
 };
 
 /**
