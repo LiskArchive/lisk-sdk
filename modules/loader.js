@@ -180,7 +180,7 @@ __private.loadSignatures = function (cb) {
 					async.eachSeries(signature.signatures, function (s, eachSeriesCb) {
 						modules.multisignatures.processSignature({
 							signature: s,
-							transaction: signature.transaction
+							transactionId: signature.transactionId
 						}, function (err) {
 							return setImmediate(eachSeriesCb, err);
 						});
