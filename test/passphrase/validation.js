@@ -28,7 +28,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				countPassphraseWhitespaces(passphrase).should.be.equal(
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -40,7 +40,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge ';
 
 			it('should return the expected amount of whitespaces', () => {
-				countPassphraseWhitespaces(passphrase).should.be.equal(
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -52,7 +52,7 @@ describe('passphrase validation', () => {
 				' model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				countPassphraseWhitespaces(passphrase).should.be.equal(
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -64,7 +64,7 @@ describe('passphrase validation', () => {
 				'model  actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				countPassphraseWhitespaces(passphrase).should.be.equal(
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -76,7 +76,67 @@ describe('passphrase validation', () => {
 				'model  actor  shallow  eight  glue  upper  seat  lobster  reason  label  enlist  bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				countPassphraseWhitespaces(passphrase).should.be.equal(
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
+					expectedAmountOfWhitespaces,
+				);
+			});
+		});
+
+		describe('given a passphrase with tab in the beginning', () => {
+			const expectedAmountOfWhitespaces = 12;
+			const passphrase =
+				'\tmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
+
+			it('should return the expected amount of whitespaces', () => {
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
+					expectedAmountOfWhitespaces,
+				);
+			});
+		});
+
+		describe('given a passphrase with vertical tab in the beginning', () => {
+			const expectedAmountOfWhitespaces = 12;
+			const passphrase =
+				'\vmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
+
+			it('should return the expected amount of whitespaces', () => {
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
+					expectedAmountOfWhitespaces,
+				);
+			});
+		});
+
+		describe('given a passphrase with form feed in the beginning', () => {
+			const expectedAmountOfWhitespaces = 12;
+			const passphrase =
+				'\fmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
+
+			it('should return the expected amount of whitespaces', () => {
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
+					expectedAmountOfWhitespaces,
+				);
+			});
+		});
+
+		describe('given a passphrase with nonbreaking space in the beginning', () => {
+			const expectedAmountOfWhitespaces = 12;
+			const passphrase =
+				'\u00A0model actor shallow eight glue upper seat lobster reason label enlist bridge';
+
+			it('should return the expected amount of whitespaces', () => {
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
+					expectedAmountOfWhitespaces,
+				);
+			});
+		});
+
+		describe('given a passphrase with byte order mark in the beginning', () => {
+			const expectedAmountOfWhitespaces = 12;
+			const passphrase =
+				'\uFEFFmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
+
+			it('should return the expected amount of whitespaces', () => {
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -88,7 +148,7 @@ describe('passphrase validation', () => {
 				'modelactorshalloweightglueupperseatlobsterreasonlabelenlistbridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				countPassphraseWhitespaces(passphrase).should.be.equal(
+				return countPassphraseWhitespaces(passphrase).should.be.equal(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -102,7 +162,9 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
+				return countPassphraseWords(passphrase).should.be.equal(
+					expectedAmountOfWords,
+				);
 			});
 		});
 
@@ -112,7 +174,9 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge model';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
+				return countPassphraseWords(passphrase).should.be.equal(
+					expectedAmountOfWords,
+				);
 			});
 		});
 
@@ -122,7 +186,9 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
+				return countPassphraseWords(passphrase).should.be.equal(
+					expectedAmountOfWords,
+				);
 			});
 		});
 
@@ -132,7 +198,9 @@ describe('passphrase validation', () => {
 				'model  actor  shallow  eight glue upper seat lobster reason label enlist bridge';
 
 			it('should ignore the whitespaces and return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
+				return countPassphraseWords(passphrase).should.be.equal(
+					expectedAmountOfWords,
+				);
 			});
 		});
 
@@ -141,7 +209,9 @@ describe('passphrase validation', () => {
 			const passphrase = '     ';
 
 			it('should ignore the whitespaces and return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
+				return countPassphraseWords(passphrase).should.be.equal(
+					expectedAmountOfWords,
+				);
 			});
 		});
 
@@ -150,7 +220,9 @@ describe('passphrase validation', () => {
 			const passphrase = '';
 
 			it('should return the amount of words', () => {
-				countPassphraseWords(passphrase).should.be.equal(expectedAmountOfWords);
+				return countPassphraseWords(passphrase).should.be.equal(
+					expectedAmountOfWords,
+				);
 			});
 		});
 	});
@@ -162,7 +234,7 @@ describe('passphrase validation', () => {
 
 			it('should return 0', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
-				uppercased.should.be.equal(0);
+				return uppercased.should.be.equal(0);
 			});
 		});
 
@@ -173,7 +245,7 @@ describe('passphrase validation', () => {
 
 			it('should return the amount of uppercase character', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
-				uppercased.should.be.equal(expectedAmountOfCapitalCharacters);
+				return uppercased.should.be.equal(expectedAmountOfCapitalCharacters);
 			});
 		});
 
@@ -183,7 +255,7 @@ describe('passphrase validation', () => {
 				'MODEL ACTOR SHALLOW EIGHT GLUE UPPER SEAT LOBSTER REASON LABEL ENLIST BRIDGE';
 
 			it('should return the amount of uppercase character', () => {
-				countUppercaseCharacters(passphrase).should.be.equal(
+				return countUppercaseCharacters(passphrase).should.be.equal(
 					expectedAmountOfCapitalCharacters,
 				);
 			});
@@ -196,7 +268,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return true', () => {
-				validatePassphrase(passphrase).should.be.true();
+				return validatePassphrase(passphrase).should.be.true();
 			});
 		});
 
@@ -207,7 +279,9 @@ describe('passphrase validation', () => {
 				'Passphrase contains 13 words instead of expected 12. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+				return validatePassphrase
+					.bind(null, passphrase)
+					.should.throw(errorMessage);
 			});
 		});
 
@@ -218,7 +292,9 @@ describe('passphrase validation', () => {
 				'Passphrase contains 11 words instead of expected 12. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+				return validatePassphrase
+					.bind(null, passphrase)
+					.should.throw(errorMessage);
 			});
 		});
 
@@ -229,7 +305,9 @@ describe('passphrase validation', () => {
 				'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+				return validatePassphrase
+					.bind(null, passphrase)
+					.should.throw(errorMessage);
 			});
 		});
 
@@ -240,7 +318,9 @@ describe('passphrase validation', () => {
 				'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+				return validatePassphrase
+					.bind(null, passphrase)
+					.should.throw(errorMessage);
 			});
 		});
 
@@ -251,7 +331,9 @@ describe('passphrase validation', () => {
 				'Passphrase contains 13 whitespaces instead of expected 11. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+				return validatePassphrase
+					.bind(null, passphrase)
+					.should.throw(errorMessage);
 			});
 		});
 
@@ -262,7 +344,9 @@ describe('passphrase validation', () => {
 				'Passphrase contains 3 uppercase character instead of expected 0. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+				return validatePassphrase
+					.bind(null, passphrase)
+					.should.throw(errorMessage);
 			});
 		});
 
@@ -273,7 +357,9 @@ describe('passphrase validation', () => {
 				'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase.bind(null, passphrase).should.throw(errorMessage);
+				return validatePassphrase
+					.bind(null, passphrase)
+					.should.throw(errorMessage);
 			});
 		});
 
@@ -283,7 +369,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return true', () => {
-				validatePassphrase(passphrase, wordlist).should.be.true();
+				return validatePassphrase(passphrase, wordlist).should.be.true();
 			});
 		});
 
@@ -295,7 +381,7 @@ describe('passphrase validation', () => {
 				'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.';
 
 			it('should throw the error', () => {
-				validatePassphrase
+				return validatePassphrase
 					.bind(null, passphrase, wordlist)
 					.should.throw(errorMessage);
 			});

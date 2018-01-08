@@ -23,8 +23,8 @@ export const countPassphraseWords = passphrase =>
 	passphrase.split(' ').filter(Boolean).length;
 
 export const countUppercaseCharacters = passphrase => {
-	const capitalCharacterMatches = passphrase.match(/[A-Z]/g);
-	return capitalCharacterMatches ? capitalCharacterMatches.length : 0;
+	const uppercaseCharacterMatches = passphrase.match(/[A-Z]/g);
+	return uppercaseCharacterMatches ? uppercaseCharacterMatches.length : 0;
 };
 
 export const validatePassphrase = (passphrase, wordlist) => {
@@ -33,7 +33,7 @@ export const validatePassphrase = (passphrase, wordlist) => {
 	const expectedUppercaseCharacters = 0;
 	const wordsInPassphrase = countPassphraseWords(passphrase);
 	const whiteSpacesInPassphrase = countPassphraseWhitespaces(passphrase);
-	const capitalCharacterInPassphrase = countUppercaseCharacters(passphrase);
+	const uppercaseCharacterInPassphrase = countUppercaseCharacters(passphrase);
 
 	if (wordsInPassphrase !== expectedWords) {
 		throw new Error(
@@ -45,9 +45,9 @@ export const validatePassphrase = (passphrase, wordlist) => {
 			`Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
 		);
 	}
-	if (capitalCharacterInPassphrase !== expectedUppercaseCharacters) {
+	if (uppercaseCharacterInPassphrase !== expectedUppercaseCharacters) {
 		throw new Error(
-			`Passphrase contains ${capitalCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacters}. Please check the passphrase.`,
+			`Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacters}. Please check the passphrase.`,
 		);
 	}
 	if (
