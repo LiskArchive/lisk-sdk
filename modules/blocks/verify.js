@@ -483,7 +483,7 @@ Verify.prototype.deleteBlockProperties = function (block) {
  * @return {function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
+Verify.prototype.processBlock = function (block, broadcast, saveBlock, cb) {
 	if (modules.blocks.isCleaning.get()) {
 		// Break processing if node shutdown reqested
 		return setImmediate(cb, 'Cleaning up');
