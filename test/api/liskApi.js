@@ -510,6 +510,43 @@ describe('Lisk API module', () => {
 		});
 	});
 
+	describe('#broadcastTransaction', () => {
+		let transaction;
+		let broadcastTransactionsResult;
+		let result;
+
+		beforeEach(() => {
+			transaction = {
+				key1: 'value1',
+				key2: 2,
+			};
+			broadcastTransactionsResult = { success: true };
+			sandbox
+				.stub(LSK, 'broadcastTransactions')
+				.returns(broadcastTransactionsResult);
+			result = LSK.broadcastTransaction(transaction);
+			return result;
+		});
+
+		it('should wrap the transaction in an array and call broadcastTransactions', () => {
+			return LSK.broadcastTransactions.should.be.calledWithExactly(
+				[transaction],
+				undefined,
+			);
+		});
+		it('should return the result of broadcasting the transaction', () => {
+			return result.should.equal(broadcastTransactionsResult);
+		});
+		it('should pass on the callback', () => {
+			LSK.broadcastTransactions.callsArgWith(1, broadcastTransactionsResult);
+			return new Promise(resolve => {
+				LSK.broadcastTransaction(transaction, resolve);
+			}).then(resultViaCallback =>
+				resultViaCallback.should.equal(broadcastTransactionsResult),
+			);
+		});
+	});
+
 	describe('#broadcastSignatures', () => {
 		let signatures;
 
