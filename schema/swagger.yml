@@ -2543,7 +2543,7 @@ definitions:
         type: string
         format: signature
 
-  WSTransactionsReqeuest:
+  WSTransactionsRequest:
     x-private: true
     type: object
     required:
