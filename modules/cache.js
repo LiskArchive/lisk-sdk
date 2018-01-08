@@ -177,16 +177,14 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 };
 
 /**
- * This function will be triggered when round has changed, it will clear all cache entries.
- * @param {Object} data Data received from postgres
- * @param {Object} data.round Current round
- * @param {Object} data.list Delegates list used for slot calculations
+ * This function will be triggered when a round finishes, it will clear all cache entires.
+ * @param {Object} round Current round
  * @param {function} cb
  */
-Cache.prototype.onRoundChanged = function (data, cb) {
+Cache.prototype.onFinishRound = function (round, cb) {
 	cb = cb || function () {};
 
-	logger.debug(['Cache - onRoundChanged', '| Status:', self.isConnected()].join(' '));
+	logger.debug(['Cache - onFinishRound', '| Status:', self.isConnected()].join(' '));
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 	self.removeByPattern(pattern, function (err) {

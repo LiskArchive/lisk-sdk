@@ -2,8 +2,6 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
-var exceptions = require('../helpers/exceptions');
-var ip = require('ip');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var Peer = require('../logic/peer.js');
 var slots = require('../helpers/slots.js');
@@ -283,6 +281,7 @@ __private.loadTransactions = function (cb) {
  * - count blocks from `blocks` table
  * - get genesis block from `blocks` table
  * - count accounts from `mem_accounts` table by block id
+ * - get rounds from `mem_round`
  * Matchs genesis block with database.
  * Verifies Snapshot mode.
  * Recreates memory tables when neccesary:
@@ -301,7 +300,7 @@ __private.loadTransactions = function (cb) {
  * @implements {modules.blocks.deleteAfterBlock}
  * @implements {modules.blocks.loadLastBlock}
  * @emits exit
- * @throws {string} On failure to match genesis block with database, or when rounds exceptions do not match database
+ * @throws {string} On failure to match genesis block with database
  */
 __private.loadBlockChain = function () {
 	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
@@ -383,8 +382,8 @@ __private.loadBlockChain = function () {
 			library.db.blocks.count(t),
 			library.db.blocks.getGenesisBlock(t),
 			library.db.accounts.countMemAccounts(t),
-			library.db.accounts.validateMemBalances(t),
-			library.db.rounds.getExceptions(t),
+			library.db.rounds.getMemRounds(t),
+			library.db.delegates.countDuplicatedDelegates(t),
 		];
 
 		return t.batch(promises);
@@ -405,7 +404,6 @@ __private.loadBlockChain = function () {
 		}
 	}
 
-	// TODO: Remove snapshot verification as part of #544
 	function verifySnapshot (count, round) {
 		if (library.config.loading.snapshot !== undefined || library.config.loading.snapshot > 0) {
 			library.logger.info('Snapshot mode enabled');
@@ -417,8 +415,7 @@ __private.loadBlockChain = function () {
 					library.config.loading.snapshot = (round > 1) ? (round - 1) : 1;
 				}
 
-				// FIXME: Because round module is removed - that no longer works
-				// modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
+				modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
 			}
 
 			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);
@@ -432,8 +429,8 @@ __private.loadBlockChain = function () {
 		var countBlocks         = res[0];
 		var getGenesisBlock     = res[1];
 		var countMemAccounts    = res[2];
-		var validateMemBalances = res[3];
-		var dbRoundsExceptions  = res[4];
+		var getMemRounds        = res[3];
+		var countDuplicatedDelegates = res[4];
 
 		var count = countBlocks.count;
 		library.logger.info('Blocks ' + count);
@@ -454,28 +451,23 @@ __private.loadBlockChain = function () {
 
 		var missed = !(countMemAccounts.count);
 
-		// FIXME: That check is not passing because dependant field in mem_accounts is not always updated
-		// TODO: Remove countMemAccounts check as part of #544
-
-		// if (missed) {
-		// 	return reload(count, 'Detected missed blocks in mem_accounts');
-		// }
-
-		if (validateMemBalances.length) {
-			return reload(count, 'Memory table balances do not match balances of blockchain');
+		if (missed) {
+			return reload(count, 'Detected missed blocks in mem_accounts');
 		}
 
-		// Compare rounds exceptions with database layer
-		var roundsExceptions = Object.keys(exceptions.rounds);
-		if (roundsExceptions.length !== dbRoundsExceptions.length) {
-			throw 'Rounds exceptions count does not match database layer';
-		} else {
-			dbRoundsExceptions.forEach(function (row) {
-				var ex = exceptions.rounds[row.round];
-				if (!ex || ex.rewards_factor !== row.rewards_factor || ex.fees_factor !== row.fees_factor || ex.fees_bonus !== Number(row.fees_bonus)) {
-					throw 'Rounds exception values do not match database layer';
-				}
-			});
+		var unapplied = getMemRounds.filter(function (row) {
+			return (row.round !== String(round));
+		});
+
+		if (unapplied.length > 0) {
+			return reload(count, 'Detected unapplied rounds in mem_round');
+		}
+
+		var duplicatedDelegates = +countDuplicatedDelegates[0].count;
+
+		if (duplicatedDelegates > 0) {
+			library.logger.error('Delegates table corrupted with duplicated entries');
+			return process.emit('exit');
 		}
 
 		function updateMemAccounts (t) {
@@ -839,6 +831,7 @@ Loader.prototype.onBind = function (scope) {
 		transactions: scope.transactions,
 		blocks: scope.blocks,
 		peers: scope.peers,
+		rounds: scope.rounds,
 		transport: scope.transport,
 		multisignatures: scope.multisignatures,
 		system: scope.system,
