@@ -6,8 +6,11 @@
   "license": "GPL-3.0",
   "private": true,
   "keywords": [
+    "cryptocurrency",
+    "blockchain",
     "lisk",
-    "blockchain"
+    "nodejs",
+    "javascript"
   ],
   "homepage": "https://github.com/LiskHQ/lisk#readme",
   "repository": {
