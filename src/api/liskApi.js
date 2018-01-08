@@ -162,6 +162,10 @@ export default class LiskAPI {
 			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
 
+	broadcastTransaction(transaction, callback) {
+		return this.broadcastTransactions([transaction], callback);
+	}
+
 	broadcastSignatures(signatures, callback) {
 		return privateApi.sendRequestPromise
 			.call(this, POST, 'signatures', { signatures })
