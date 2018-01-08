@@ -148,34 +148,23 @@ export default class LiskAPI {
 	}
 
 	/**
-	 * @method broadcastSignedTransaction
-	 * @param transaction
+	 * @method broadcastTransactions
+	 * @param transactions
 	 * @param callback
 	 *
 	 * @return {Object}
 	 */
 
-	broadcastSignedTransaction(transaction, callback) {
-		const request = {
-			requestUrl: `${utils.getFullURL(this)}/api/transactions`,
-			nethash: this.nethash,
-			requestParams: { transaction },
-		};
-
+	broadcastTransactions(transactions, callback) {
 		return privateApi.sendRequestPromise
-			.call(this, POST, request)
+			.call(this, POST, 'transactions', transactions)
 			.then(result => result.body)
 			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
 
 	broadcastSignatures(signatures, callback) {
-		const request = {
-			requestUrl: `${utils.getFullURL(this)}/api/signatures`,
-			nethash: this.nethash,
-			requestParams: { signatures },
-		};
 		return privateApi.sendRequestPromise
-			.call(this, POST, request)
+			.call(this, POST, 'signatures', { signatures })
 			.then(result => result.body)
 			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
