@@ -352,7 +352,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo unconfirmed list', err);
 
-					return process.exit(0);
+					reject('Failed to undo unconfirmed list');
 				} else {
 					unconfirmedTransactionIds = ids;
 					return setImmediate(resolve);
@@ -429,7 +429,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 						library.logger.error(err);
 						library.logger.error('Transaction', transaction);
 
-						return process.exit(0);
+						reject(err);
 					}
 					// DATABASE: write
 					modules.transactions.apply(transaction, block, sender, function (err) {
@@ -439,7 +439,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 
-							return process.exit(0);
+							reject(err);
 						}
 						// Transaction applied, removed from the unconfirmed list.
 						modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -459,10 +459,10 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 				self.saveBlock(block, function (err) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
-						library.logger.error('Failed to save block...');
+						library.logger.error('Failed to save block...', err);
 						library.logger.error('Block', block);
 
-						return process.exit(0);
+						reject('Failed to save block');
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
