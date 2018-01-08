@@ -702,14 +702,14 @@ describe('peers', function () {
 
 		var originalPeersList;
 
-		before(function () {
+		beforeEach(function () {
 			originalPeersList = PeersRewired.__get__('library.config.peers.list');
 			PeersRewired.__set__('library.config.peers.list', []);
 			peersLogicMock.create = sinon.stub().returnsArg(0);
 			sinon.stub(peers, 'discover');
 		});
 
-		after(function () {
+		afterEach(function () {
 			PeersRewired.__set__('library.config.peers.list', originalPeersList);
 			peers.discover.restore();
 		});
@@ -718,6 +718,24 @@ describe('peers', function () {
 			peers.onBlockchainReady();
 			setTimeout(function () {
 				expect(peers.discover.calledOnce).to.be.ok;
+				done();
+			}, 100);
+		});
+
+		it('should update peers list onBlockchainReady even if rpc.status call fails', function (done) {
+			var peerStub = {
+				rpc: {
+					status: sinon.stub().callsArgWith(0, 'Failed to get peer status')
+				},
+				applyHeaders: sinon.stub()
+			};
+
+			PeersRewired.__set__('library.config.peers.list', [peerStub]);
+			peersLogicMock.upsert = sinon.spy();
+
+			peers.onBlockchainReady();
+			setTimeout(function () {
+				expect(peersLogicMock.upsert.calledWith(peerStub, false)).to.be.true;
 				done();
 			}, 100);
 		});
