@@ -74,7 +74,7 @@ WSServerMaster.generatePeerHeaders = function (headers) {
 	}
 
 	var operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];
-	var httpPort = random.number(1024, 65535);
+	var httpPort = random.number(1025, 65536);
 
 	var defaults = {
 		broadhash: testConfig.nethash,
