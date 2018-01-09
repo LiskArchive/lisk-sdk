@@ -173,8 +173,8 @@ describe('GET /api/transactions', function () {
 					transaction.type.should.be.equal(transactionInCheck.type);
 					transaction.amount.should.be.equal(transactionInCheck.amount.toString());
 					transaction.fee.should.be.equal(transactionInCheck.fee.toString());
-					transaction.recipientAddress.should.be.equal(transactionInCheck.recipientId);
-					transaction.senderAddress.should.be.equal(transactionInCheck.senderId);
+					transaction.recipientAddress.should.be.equal(transactionInCheck.recipientAddress);
+					transaction.senderAddress.should.be.equal(transactionInCheck.senderAddress);
 					transaction.asset.should.be.eql(transactionInCheck.asset);
 				});
 			});

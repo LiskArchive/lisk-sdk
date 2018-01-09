@@ -82,8 +82,8 @@ __private.list = function (filter, cb) {
 		toHeight:            '"b_height" <= ${toHeight}',
 		fromTimestamp:       '"t_timestamp" >= ${fromTimestamp}',
 		toTimestamp:         '"t_timestamp" <= ${toTimestamp}',
-		senderId:            '"t_senderId" IN (${senderId:csv})',
-		recipientId:         '"t_recipientId" IN (${recipientId:csv})',
+		senderAddress:            '"t_senderAddress" IN (${senderAddress:csv})',
+		recipientAddress:         '"t_recipientAddress" IN (${recipientAddress:csv})',
 		senderPublicKey:     'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKey:csv})',
 		recipientPublicKey:  'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKey:csv})',
 		minAmount:           '"t_amount" >= ${minAmount}',
@@ -133,7 +133,7 @@ __private.list = function (filter, cb) {
 
 	// FIXME: Backward compatibility, should be removed after transitional period
 	if (filter.ownerAddress && filter.ownerPublicKey) {
-		owner = '("t_senderPublicKey" = DECODE (${ownerPublicKey}, \'hex\') OR "t_recipientId" = ${ownerAddress})';
+		owner = '("t_senderPublicKey" = DECODE (${ownerPublicKey}, \'hex\') OR "t_recipientAddress" = ${ownerAddress})';
 		params.ownerPublicKey = filter.ownerPublicKey;
 		params.ownerAddress = filter.ownerAddress;
 	}
@@ -256,9 +256,9 @@ __private.getAssetForIdsBasedOnType = function (ids, type) {
  * @param {Object} method - Transaction pool method.
  * @param {Object} filters - Filters applied to results.
  * @param {string} filters.id - Transaction id.
- * @param {string} filters.recipientId - Recipient id.
+ * @param {string} filters.recipientAddress - Recipient id.
  * @param {string} filters.recipientPublicKey - Recipient public key.
- * @param {string} filters.senderId - Sender id.
+ * @param {string} filters.senderAddress - Sender id.
  * @param {string} filters.senderPublicKey - Sender public key.
  * @param {int} filters.type - Transaction type.
  * @param {string} filters.sort - Field to sort results by (amount, fee, type, timestamp).
@@ -272,12 +272,12 @@ __private.getPooledTransactions = function (method, filters, cb) {
 	var toSend = [];
 
 	if (filters.recipientPublicKey) {
-		filters.recipientId = modules.accounts.generateAddressByPublicKey(filters.recipientPublicKey);
+		filters.recipientAddress = modules.accounts.generateAddressByPublicKey(filters.recipientPublicKey);
 		delete filters.recipientPublicKey;
 	}
 
 	// Filter transactions
-	if (filters.id || filters.recipientId || filters.recipientPublicKey || filters.senderId || filters.senderPublicKey || filters.type) {
+	if (filters.id || filters.recipientAddress || filters.recipientPublicKey || filters.senderAddress || filters.senderPublicKey || filters.type) {
 		toSend = _.filter(transactions, _.omit(filters, ['limit', 'offset', 'sort']) );
 	} else {
 		toSend = _.cloneDeep(transactions);
@@ -555,9 +555,9 @@ Transactions.prototype.shared = {
 	 * @param {Object} filters - Filters applied to results.
 	 * @param {string} filters.id - Transaction id.
 	 * @param {string} filters.blockId - Block id.
-	 * @param {string} filters.recipientId - Recipient id.
+	 * @param {string} filters.recipientAddress - Recipient address.
 	 * @param {string} filters.recipientPublicKey - Recipient public key.
-	 * @param {string} filters.senderId - Sender id.
+	 * @param {string} filters.senderAddress - Sender address.
 	 * @param {string} filters.senderPublicKey - Sender public key.
 	 * @param {int} filters.transactionType - Transaction type.
 	 * @param {int} filters.fromHeight - From block height.

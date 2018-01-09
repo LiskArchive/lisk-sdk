@@ -123,10 +123,10 @@ describe('outTransfer', function () {
 
 	describe('verify', function () {
 
-		describe('when transaction.recipientId does not exist', function () {
+		describe('when transaction.recipientAddress does not exist', function () {
 
 			it('should call callback with error = "Invalid recipient"', function (done) {
-				delete transaction.recipientId;
+				delete transaction.recipientAddress;
 				outTransfer.verify(transaction, sender, function (err) {
 					expect(err).to.equal('Invalid recipient');
 					done();
@@ -453,8 +453,8 @@ describe('outTransfer', function () {
 			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true;
 		});
 
-		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientId}', function () {
-			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
+		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientAddress}', function () {
+			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientAddress})).to.be.true;
 		});
 
 		// TODO: #1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
@@ -481,8 +481,8 @@ describe('outTransfer', function () {
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: transaction.recipientId}))).to.be.true;
+			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientAddress', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: transaction.recipientAddress}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = transaction.amount', function () {
@@ -548,8 +548,8 @@ describe('outTransfer', function () {
 			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true;
 		});
 
-		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientId}', function () {
-			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
+		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientAddress}', function () {
+			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientAddress})).to.be.true;
 		});
 
 		describe('when modules.accounts.setAccountAndGet fails', function () {
@@ -575,8 +575,8 @@ describe('outTransfer', function () {
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: transaction.recipientId}))).to.be.true;
+			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientAddress', function () {
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: transaction.recipientAddress}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = -transaction.amount', function () {

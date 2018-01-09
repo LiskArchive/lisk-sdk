@@ -173,8 +173,8 @@ Transaction.prototype.getBytes = function (transaction, skipSignature, skipSecon
 			}
 		}
 
-		if (transaction.recipientId) {
-			var recipient = transaction.recipientId.slice(0, -1);
+		if (transaction.recipientAddress) {
+			var recipient = transaction.recipientAddress.slice(0, -1);
 			recipient = new bignum(recipient).toBuffer({size: 8});
 
 			for (i = 0; i < 8; i++) {
@@ -338,7 +338,7 @@ Transaction.prototype.process = function (transaction, sender, requester, cb, tx
 	}
 
 	// Equalize sender address
-	transaction.senderId = sender.address;
+	transaction.senderAddress = sender.address;
 
 	// Call process on transaction type
 	__private.types[transaction.type].process.call(this, transaction, sender, function (err, transaction) {
@@ -417,7 +417,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
 	}
 
 	// Check sender address
-	if (String(transaction.senderId).toUpperCase() !== String(sender.address).toUpperCase()) {
+	if (String(transaction.senderAddress).toUpperCase() !== String(sender.address).toUpperCase()) {
 		return setImmediate(cb, 'Invalid sender address');
 	}
 
@@ -853,8 +853,8 @@ Transaction.prototype.afterSave = function (transaction, cb) {
  * @property {number} timestamp
  * @property {publicKey} senderPublicKey
  * @property {publicKey} requesterPublicKey
- * @property {string} senderId
- * @property {string} recipientId
+ * @property {string} senderAddress
+ * @property {string} recipientAddress
  * @property {number} amount
  * @property {number} fee
  * @property {string} signature
@@ -901,13 +901,13 @@ Transaction.prototype.schema = {
 			type: 'string',
 			format: 'publicKey'
 		},
-		senderId: {
+		senderAddress: {
 			type: 'string',
 			format: 'address',
 			minLength: 1,
 			maxLength: 22
 		},
-		recipientId: {
+		recipientAddress: {
 			type: 'string',
 			format: 'address',
 			minLength: 1,
@@ -996,8 +996,8 @@ Transaction.prototype.dbRead = function (raw) {
 			timestamp: parseInt(raw.t_timestamp),
 			senderPublicKey: raw.t_senderPublicKey,
 			requesterPublicKey: raw.t_requesterPublicKey,
-			senderId: raw.t_senderId,
-			recipientId: raw.t_recipientId,
+			senderAddress: raw.t_senderAddress,
+			recipientAddress: raw.t_recipientAddress,
 			recipientPublicKey: raw.m_recipientPublicKey || null,
 			amount: parseInt(raw.t_amount),
 			fee: parseInt(raw.t_fee),

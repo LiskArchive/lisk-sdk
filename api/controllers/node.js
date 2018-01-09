@@ -130,9 +130,9 @@ NodeController.getPooledTransactions = function (context, next) {
 
 	var filters = {
 		id: params.id.value,
-		recipientId: params.recipientAddress.value,
+		recipientAddress: params.recipientAddress.value,
 		recipientPublicKey: params.recipientPublicKey.value,
-		senderId: params.senderAddress.value,
+		senderAddress: params.senderAddress.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
 		sort: params.sort.value,
@@ -149,16 +149,14 @@ NodeController.getPooledTransactions = function (context, next) {
 		if (err) { return next(err); }
 
 		var transactions = _.map(_.cloneDeep(data.transactions), function (transaction) {
-			transaction.senderAddress = transaction.senderId || '';
-			transaction.recipientAddress = transaction.recipientId || '';
+			transaction.senderAddress = transaction.senderAddress || '';
+			transaction.recipientAddress = transaction.recipientAddress || '';
 			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
 			transaction.multisignatures = transaction.signatures;
 
 			transaction.amount = transaction.amount.toString();
 			transaction.fee = transaction.fee.toString();
 
-			delete transaction.senderId;
-			delete transaction.recipientId;
 			delete transaction.signatures;
 			return transaction;
 		});

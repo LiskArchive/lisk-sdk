@@ -48,14 +48,14 @@ Transfer.prototype.calculateFee = function (transaction, sender) {
 };
 
 /**
- * Verifies recipientId and amount greather than 0.
+ * Verifies recipientAddress and amount greather than 0.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} errors | transaction
  */
 Transfer.prototype.verify = function (transaction, sender, cb, tx) {
-	if (!transaction.recipientId) {
+	if (!transaction.recipientAddress) {
 		return setImmediate(cb, 'Missing recipient');
 	}
 
@@ -95,7 +95,7 @@ Transfer.prototype.getBytes = function (transaction) {
 };
 
 /**
- * Calls setAccountAndGet based on transaction recipientId and
+ * Calls setAccountAndGet based on transaction recipientAddress and
  * mergeAccountAndGet with unconfirmed transaction amount.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -107,13 +107,13 @@ Transfer.prototype.getBytes = function (transaction) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({address: transaction.recipientAddress}, function (err, recipient) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
 		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
+			address: transaction.recipientAddress,
 			balance: transaction.amount,
 			u_balance: transaction.amount,
 			blockId: block.id,
@@ -125,7 +125,7 @@ Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 };
 
 /**
- * Calls setAccountAndGet based on transaction recipientId and
+ * Calls setAccountAndGet based on transaction recipientAddress and
  * mergeAccountAndGet with unconfirmed transaction amount and balance negative.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -137,13 +137,13 @@ Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({address: transaction.recipientAddress}, function (err, recipient) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
 		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
+			address: transaction.recipientAddress,
 			balance: -transaction.amount,
 			u_balance: -transaction.amount,
 			blockId: block.id,

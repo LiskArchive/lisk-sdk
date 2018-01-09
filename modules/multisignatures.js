@@ -79,7 +79,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 			}
 
 			modules.accounts.getAccount({
-				address: multisignatureTransaction.senderId
+				address: multisignatureTransaction.senderAddress
 			}, function (err, sender) {
 				if (err) {
 					return setImmediate(cb, err);
@@ -128,7 +128,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 		return done(cb);
 	} else {
 		modules.accounts.getAccount({
-			address: multisignatureTransaction.senderId
+			address: multisignatureTransaction.senderAddress
 		}, function (err, account) {
 			if (err) {
 				return setImmediate(cb, 'Multisignature account not found');

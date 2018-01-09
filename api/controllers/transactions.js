@@ -30,9 +30,9 @@ TransactionsController.getTransactions = function (context, next) {
 	var filters = {
 		id: params.id.value,
 		blockId: params.blockId.value,
-		recipientId: params.recipientAddress.value,
+		recipientAddress: params.recipientAddress.value,
 		recipientPublicKey: params.recipientPublicKey.value,
-		senderId: params.senderAddress.value,
+		senderAddress: params.senderAddress.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
 		fromHeight: params.height.value,
@@ -55,16 +55,14 @@ TransactionsController.getTransactions = function (context, next) {
 		if (err) { return next(err); }
 
 		var transactions = _.map(_.cloneDeep(data.transactions), function (transaction) {
-			transaction.senderAddress = transaction.senderId || '';
-			transaction.recipientAddress = transaction.recipientId || '';
+			transaction.senderAddress = transaction.senderAddress || '';
+			transaction.recipientAddress = transaction.recipientAddress || '';
 			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
 			transaction.multisignatures = transaction.signatures;
 
 			transaction.amount = transaction.amount.toString();
 			transaction.fee = transaction.fee.toString();
 
-			delete transaction.senderId;
-			delete transaction.recipientId;
 			delete transaction.signatures;
 			return transaction;
 		});
@@ -84,13 +82,8 @@ TransactionsController.postTransactions = function (context, next) {
 	var transactions = context.request.swagger.params.transactions.value;
 
 	transactions = _.map(transactions, function (transaction) {
-		transaction.recipientId = transaction.recipientAddress;
-		transaction.senderId = transaction.senderAddress;
 		transaction.amount = parseInt(transaction.amount);
 		transaction.fee = parseInt(transaction.fee);
-
-		delete transaction.recipientAddress;
-		delete transaction.senderAddress;
 
 		return transaction;
 	});

@@ -61,7 +61,7 @@ Vote.prototype.calculateFee = function (transaction, sender) {
  * calls checkConfirmedDelegates.
  */
 Vote.prototype.verify = function (transaction, sender, cb, tx) {
-	if (transaction.recipientId !== transaction.senderId) {
+	if (transaction.recipientAddress !== transaction.senderAddress) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 

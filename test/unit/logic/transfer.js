@@ -51,8 +51,8 @@ var validTransactionData = {
 	type: 0,
 	amount: 8067474861277,
 	sender: validSender,
-	senderId: '16313739661670634666L',
-	recipientId: '2460251951231579923L',
+	senderAddress: '16313739661670634666L',
+	recipientAddress: '2460251951231579923L',
 	fee: 10000000,
 	keypair: senderKeypair,
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -65,8 +65,8 @@ var validTransaction = {
 	type: 0,
 	timestamp: 33363661,
 	senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	senderId: '16313739661670634666L',
-	recipientId: '2460251951231579923L',
+	senderAddress: '16313739661670634666L',
+	recipientAddress: '2460251951231579923L',
 	amount: 8067474861277,
 	fee: 10000000,
 	signature: '0c5e9ed74fc64ca5940a45025f7386fc40cc7f495ca48490d2c7e9fb636cbe8046e1a5ce031ff5d84f7bf753f9e4307c6c3dedcc9756844177093dd46ccade06',
@@ -84,8 +84,8 @@ var rawValidTransaction = {
 	t_timestamp: 33363661,
 	t_senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	m_recipientPublicKey: null,
-	t_senderId: '16313739661670634666L',
-	t_recipientId: '2460251951231579923L',
+	t_senderAddress: '16313739661670634666L',
+	t_recipientAddress: '2460251951231579923L',
 	t_amount: 8067474861277,
 	t_fee: 10000000,
 	t_signature: '0c5e9ed74fc64ca5940a45025f7386fc40cc7f495ca48490d2c7e9fb636cbe8046e1a5ce031ff5d84f7bf753f9e4307c6c3dedcc9756844177093dd46ccade06',
@@ -152,9 +152,9 @@ describe('transfer', function () {
 
 	describe('verify', function () {
 
-		it('should return error if recipientId is not set', function (done) {
+		it('should return error if recipientAddress is not set', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			delete transaction.recipientId;
+			delete transaction.recipientAddress;
 
 			transfer.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Missing recipient');
@@ -222,9 +222,9 @@ describe('transfer', function () {
 			transfer.undo.call(transactionLogic, transaction, dummyBlock, sender, done);
 		}
 
-		it('should return error if recipientid is not set', function (done) {
+		it('should return error if recipientAddress is not set', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			delete transaction.recipientId;
+			delete transaction.recipientAddress;
 			transfer.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
 				expect(err).to.equal('Invalid public key');
 				done();
@@ -232,7 +232,7 @@ describe('transfer', function () {
 		});
 
 		it('should be okay for a valid transaction', function (done) {
-			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+			accountModule.getAccount({address: validTransaction.recipientAddress}, function (err, accountBefore) {
 				expect(err).to.not.exist;
 				expect(accountBefore).to.exist;
 
@@ -242,7 +242,7 @@ describe('transfer', function () {
 				transfer.apply.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err) {
 					expect(err).to.not.exist;
 
-					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+					accountModule.getAccount({address: validTransaction.recipientAddress}, function (err, accountAfter) {
 						expect(err).to.not.exist;
 						expect(accountAfter).to.exist;
 
@@ -266,9 +266,9 @@ describe('transfer', function () {
 			transfer.apply.call(transactionLogic, transaction, dummyBlock, sender, done);
 		}
 
-		it('should return error if recipientid is not set', function (done) {
+		it('should return error if recipientAddress is not set', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			delete transaction.recipientId;
+			delete transaction.recipientAddress;
 
 			transfer.undo.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
 				expect(err).to.equal('Invalid public key');
@@ -277,7 +277,7 @@ describe('transfer', function () {
 		});
 
 		it('should be okay for a valid transaction', function (done) {
-			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+			accountModule.getAccount({address: validTransaction.recipientAddress}, function (err, accountBefore) {
 				expect(err).to.not.exist;
 
 				var amount = new bignum(validTransaction.amount.toString());
@@ -286,7 +286,7 @@ describe('transfer', function () {
 				transfer.undo.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err) {
 					expect(err).to.not.exist;
 
-					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+					accountModule.getAccount({address: validTransaction.recipientAddress}, function (err, accountAfter) {
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 
 						expect(err).to.not.exist;

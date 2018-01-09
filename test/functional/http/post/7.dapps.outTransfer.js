@@ -221,11 +221,11 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 		});
 
-		describe('recipientId', function () {
+		describe('recipientAddress', function () {
 
 			it('with integer should fail', function () {
 				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientId = 1;
+				transaction.recipientAddress = 1;
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -234,7 +234,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with number should fail', function () {
 				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientId = 1.2;
+				transaction.recipientAddress = 1.2;
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -243,7 +243,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with empty array should fail', function () {
 				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientId = [];
+				transaction.recipientAddress = [];
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -252,7 +252,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with empty object should fail', function () {
 				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientId = {};
+				transaction.recipientAddress = {};
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -268,8 +268,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with invalid string should fail', function () {
-				var invalidRecipientId = '1X';
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, invalidRecipientId, Date.now(), account.password);
+				var invalidRecipientAddress = '1X';
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, invalidRecipientAddress, Date.now(), account.password);
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);

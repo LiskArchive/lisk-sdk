@@ -46,7 +46,7 @@ InTransfer.prototype.calculateFee = function (transaction, sender) {
 };
 
 /**
- * Verifies recipientId, amount and InTransfer object content.
+ * Verifies recipientAddress, amount and InTransfer object content.
  * Finds application into `dapps` table.
  * @implements {library.db.one}
  * @param {transaction} transaction
@@ -55,7 +55,7 @@ InTransfer.prototype.calculateFee = function (transaction, sender) {
  * @return {setImmediateCallback} errors message | transaction
  */
 InTransfer.prototype.verify = function (transaction, sender, cb, tx) {
-	if (transaction.recipientId) {
+	if (transaction.recipientAddress) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 

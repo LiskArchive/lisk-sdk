@@ -86,7 +86,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				requesterPublicKey: null,
 				timestamp: 24259352,
 				asset: {},
-				recipientId: accountFixtures.existingDelegate.address,
+				recipientAddress: accountFixtures.existingDelegate.address,
 				signature: 'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
 				id: '15307587316657110485',
 				fee: 0.1 * normalizer
