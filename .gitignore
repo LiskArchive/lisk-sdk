@@ -33,4 +33,4 @@ test/integration/pm2.integration.json
 test/integration/configs/
 
 # Coverage directory used by tools like istanbul
-test/.coverage-unit
+test/.coverage-unit/
