@@ -5,15 +5,15 @@
   "scripts": {
     "start": "node app.js",
     "console": "node scripts/console.js",
-    "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
+    "lint": "./node_modules/.bin/grunt eslint-nofix --verbose",
     "cover:fetch": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
     "cover:report": "./node_modules/.bin/grunt coverageReport --verbose",
     "test": "./node_modules/.bin/grunt",
     "grunt": "./node_modules/.bin/grunt",
     "mocha": "./node_modules/.bin/mocha",
-    "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
     "build": "webpack",
-    "build:docs": "npm run jsdoc && http-server docs/jsdoc/",
+    "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
+    "docs:server": "npm run jsdoc && http-server docs/jsdoc/",
     "precommit": "npm run eslint"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
