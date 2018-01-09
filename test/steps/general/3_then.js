@@ -50,11 +50,6 @@ export function itShouldExitWithCode() {
 	return exit.should.be.calledWithExactly(code);
 }
 
-export function itShouldResolveToTheObject() {
-	const { returnValue, testObject } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(testObject);
-}
-
 export function itShouldResolveToTheErrorObject() {
 	const { returnValue, errorObject } = this.test.ctx;
 	return returnValue.should.be.fulfilledWith(errorObject);

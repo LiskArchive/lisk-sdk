@@ -13,15 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import os from 'os';
 import { getFirstQuotedString, getFirstBoolean } from '../utils';
 import { logError, logWarning } from '../../../src/utils/print';
-
-export function aDefaultConfigDirectoryPathShouldBeSet() {
-	process.env.should.have
-		.property('LISKY_CONFIG_DIR')
-		.equal(`${os.homedir()}/.lisky`);
-}
 
 export function itShouldUpdateTheConfigVariableToTheValue() {
 	const { config, value } = this.test.ctx;

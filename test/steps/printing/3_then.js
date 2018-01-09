@@ -78,22 +78,10 @@ export function aTableShouldBeLogged() {
 	return vorpal.log.should.be.calledWithExactly(tableOutput);
 }
 
-export function prettyJSONOutputShouldBeLogged() {
-	const { result, vorpal } = this.test.ctx;
-	const prettyJSONOutput = JSON.stringify(result, null, '\t');
-	return vorpal.log.should.be.calledWithExactly(prettyJSONOutput);
-}
-
 export function prettyJSONOutputShouldBeLoggedWithoutANSICodes() {
 	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
 	const prettyJSONOutput = JSON.stringify(resultWithoutANSICodes, null, '\t');
 	return vorpal.log.should.be.calledWithExactly(prettyJSONOutput);
-}
-
-export function jsonOutputShouldBeLogged() {
-	const { result, vorpal } = this.test.ctx;
-	const jsonOutput = JSON.stringify(result);
-	return vorpal.log.should.be.calledWithExactly(jsonOutput);
 }
 
 export function jsonOutputShouldBeLoggedWithoutANSICodes() {

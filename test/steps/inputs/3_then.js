@@ -18,12 +18,12 @@ import * as inputUtils from '../../../src/utils/input/utils';
 import { getFirstQuotedString } from '../utils';
 
 export async function itShouldGetTheDataUsingTheUnvotesSource() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	return inputUtils.getData.should.be.calledWithExactly(options.unvotes);
 }
 
 export async function itShouldGetTheDataUsingTheVotesSource() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	return inputUtils.getData.should.be.calledWithExactly(options.votes);
 }
 
@@ -106,7 +106,7 @@ export function itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWit
 }
 
 export function itShouldGetTheInputsFromSourcesUsingTheEncryptedPassphraseSourceWithoutARepeatingPrompt() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	const firstCallArgs = getInputsFromSources.firstCall.args;
 	return firstCallArgs[1].should.have.property('data').eql({
 		source: options.passphrase,
@@ -119,7 +119,7 @@ export function itShouldNotGetTheInputsFromSourcesUsingTheEncryptedPassphraseSou
 }
 
 export function itShouldGetTheInputsFromSourcesUsingTheMessageSource() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	const firstCallArgs = getInputsFromSources.firstCall.args;
 	return firstCallArgs[1].should.have.property('data').eql({
 		source: options.message,
@@ -132,7 +132,7 @@ export function itShouldNotGetTheInputsFromSourcesUsingTheMessageSource() {
 }
 
 export function itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	const firstCallArgs = getInputsFromSources.firstCall.args;
 	return firstCallArgs[1].should.have.property('passphrase').eql({
 		source: options.passphrase,
@@ -141,7 +141,7 @@ export function itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepe
 }
 
 export function itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithoutARepeatingPrompt() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	const firstCallArgs = getInputsFromSources.firstCall.args;
 	return firstCallArgs[1].should.have.property('passphrase').eql({
 		source: options.passphrase,
@@ -149,7 +149,7 @@ export function itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithoutAR
 }
 
 export function itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeatingPrompt() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	const firstCallArgs = getInputsFromSources.firstCall.args;
 	return firstCallArgs[1].should.have.property('password').eql({
 		source: options.password,
@@ -158,7 +158,7 @@ export function itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithARepeat
 }
 
 export function itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithoutARepeatingPrompt() {
-	const { options = {} } = this.test.ctx;
+	const { options } = this.test.ctx;
 	const firstCallArgs = getInputsFromSources.firstCall.args;
 	return firstCallArgs[1].should.have.property('password').eql({
 		source: options.password,
@@ -167,6 +167,7 @@ export function itShouldGetTheInputsFromSourcesUsingThePasswordSourceWithoutARep
 
 export function itShouldGetTheInputsFromSourcesWithoutARepeatingPassphrasePrompt() {
 	const repeatPromptArg = getInputsFromSources.firstCall.args[1];
+	// istanbul ignore next
 	return repeatPromptArg.repeatPrompt && repeatPromptArg.repeatPrompt.passphrase
 		? repeatPromptArg.repeatPrompt.passphrase.should.not.be.true()
 		: true;

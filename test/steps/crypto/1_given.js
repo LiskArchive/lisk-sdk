@@ -27,7 +27,6 @@ export function aCryptoInstanceHasBeenInitialised() {
 		some: 'result',
 		testing: 123,
 	};
-
 	[
 		'encryptMessage',
 		'decryptMessage',
@@ -53,9 +52,6 @@ export function aNonce() {
 
 export function anEncryptedMessage() {
 	const message = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getData.resolves === 'function') {
-		inputUtils.getData.resolves(message);
-	}
 	this.test.ctx.message = message;
 }
 
@@ -131,9 +127,6 @@ export function anEncryptedPassphraseWithAnIV() {
 	if (typeof lisk.crypto.encryptPassphraseWithPassword.returns === 'function') {
 		lisk.crypto.encryptPassphraseWithPassword.returns(cipherAndIv);
 	}
-	if (typeof inputUtils.getData.resolves === 'function') {
-		inputUtils.getData.resolves(encryptedPassphrase);
-	}
 
 	this.test.ctx.cipherAndIv = cipherAndIv;
 }
@@ -143,9 +136,6 @@ export function aMessage() {
 
 	if (typeof lisk.crypto.decryptMessageWithPassphrase.returns === 'function') {
 		lisk.crypto.decryptMessageWithPassphrase.returns(message);
-	}
-	if (typeof inputUtils.getData.resolves === 'function') {
-		inputUtils.getData.resolves(message);
 	}
 
 	this.test.ctx.message = message;
