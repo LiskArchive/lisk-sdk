@@ -8,13 +8,22 @@
 	},
 	"scripts": {
 		"start": "babel-node src/index.js",
-		"test": "NODE_ENV=test nyc mocha test/specs",
+		"test":
+			"if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
+		"test:local": "NODE_ENV=test nyc mocha test/specs",
+		"test:ci":
+			"NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover":
+			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
-		"cover:local": "npm run cover:base -- --reporter=html --reporter=text mocha",
-		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
+		"cover:local":
+			"npm run cover:base -- --reporter=html --reporter=text mocha",
+		"cover:ci":
+			"npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
+		"cover:test":
+			"NODE_ENV=test nyc  --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
 		"format": "prettier --write \"{bin,src,test}{,/**}/*.js\"",
@@ -28,14 +37,9 @@
 		"type": "git",
 		"url": "git+https://github.com/LiskHQ/lisky.git"
 	},
-	"keywords": [
-		"lisk",
-		"blockchain",
-		"command-line",
-		"nodejs",
-		"javascript"
-	],
-	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"keywords": ["lisk", "blockchain", "command-line", "nodejs", "javascript"],
+	"author":
+		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
 	"bugs": {
 		"url": "https://github.com/LiskHQ/lisky/issues"
