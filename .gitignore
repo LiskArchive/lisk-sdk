@@ -2,7 +2,6 @@
 .DS_Store
 .project
 __MACOSX/
-.ed25519-node
 *.swp
 *.swo
 release/
@@ -35,6 +34,3 @@ test/integration/configs/
 
 # Coverage directory used by tools like istanbul
 test/.coverage-unit
-
-# nyc test coverage
-.nyc_output
