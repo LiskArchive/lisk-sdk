@@ -88,7 +88,8 @@ function Account (db, schema, logger, cb) {
 			name: 'isDelegate',
 			type: 'SmallInt',
 			filter: {
-				type: 'boolean'
+				type: 'integer',
+				maximum: 32767
 			},
 			conv: Boolean
 		},
@@ -96,7 +97,8 @@ function Account (db, schema, logger, cb) {
 			name: 'u_isDelegate',
 			type: 'SmallInt',
 			filter: {
-				type: 'boolean'
+				type: 'integer',
+				maximum: 32767
 			},
 			conv: Boolean
 		},
@@ -104,7 +106,8 @@ function Account (db, schema, logger, cb) {
 			name: 'secondSignature',
 			type: 'SmallInt',
 			filter: {
-				type: 'boolean'
+				type: 'integer',
+				maximum: 32767
 			},
 			conv: Boolean
 		},
@@ -112,7 +115,8 @@ function Account (db, schema, logger, cb) {
 			name: 'u_secondSignature',
 			type: 'SmallInt',
 			filter: {
-				type: 'boolean'
+				type: 'integer',
+				maximum: 32767
 			},
 			conv: Boolean
 		},
@@ -120,10 +124,17 @@ function Account (db, schema, logger, cb) {
 			name: 'u_username',
 			type: 'String',
 			filter: {
-				type: 'string',
-				case: 'lower',
-				maxLength: 20,
-				minLength: 1
+				anyOf: [
+					{
+						type: 'string',
+						case: 'lower',
+						maxLength: 20,
+						minLength: 1
+					},
+					{
+						type: 'null'
+					}
+				]
 			},
 			conv: String,
 			immutable: true
@@ -157,8 +168,15 @@ function Account (db, schema, logger, cb) {
 			name: 'secondPublicKey',
 			type: 'Binary',
 			filter: {
-				type: 'string',
-				format: 'publicKey'
+				anyOf: [
+					{
+						type: 'string',
+						format: 'publicKey'
+					},
+					{
+						type: 'null'
+					}
+				]
 			},
 			conv: String,
 			immutable: true,
@@ -201,8 +219,15 @@ function Account (db, schema, logger, cb) {
 			name: 'delegates',
 			type: 'Text',
 			filter: {
-				type: 'array',
-				uniqueItems: true
+				anyOf: [
+					{
+						type: 'array',
+						uniqueItems: true
+					},
+					{
+						type: 'null'
+					}
+				]
 			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
@@ -211,8 +236,15 @@ function Account (db, schema, logger, cb) {
 			name: 'u_delegates',
 			type: 'Text',
 			filter: {
-				type: 'array',
-				uniqueItems: true
+				anyOf: [
+					{
+						type: 'array',
+						uniqueItems: true
+					},
+					{
+						type: 'null'
+					}
+				]
 			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
@@ -221,8 +253,15 @@ function Account (db, schema, logger, cb) {
 			name: 'multisignatures',
 			type: 'Text',
 			filter: {
-				type: 'array',
-				uniqueItems: true
+				anyOf: [
+					{
+						type: 'array',
+						uniqueItems: true
+					},
+					{
+						type: 'null'
+					}
+				]
 			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2multisignatures WHERE "accountId" = a."address")'
@@ -231,8 +270,15 @@ function Account (db, schema, logger, cb) {
 			name: 'u_multisignatures',
 			type: 'Text',
 			filter: {
-				type: 'array',
-				uniqueItems: true
+				anyOf: [
+					{
+						type: 'array',
+						uniqueItems: true
+					},
+					{
+						type: 'null'
+					}
+				]
 			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_multisignatures WHERE "accountId" = a."address")'
@@ -291,7 +337,8 @@ function Account (db, schema, logger, cb) {
 			name: 'nameexist',
 			type: 'SmallInt',
 			filter: {
-				type: 'boolean'
+				type: 'integer',
+				maximum: 32767
 			},
 			conv: Boolean
 		},
@@ -299,7 +346,8 @@ function Account (db, schema, logger, cb) {
 			name: 'u_nameexist',
 			type: 'SmallInt',
 			filter: {
-				type: 'boolean'
+				type: 'integer',
+				maximum: 32767
 			},
 			conv: Boolean
 		},
@@ -355,7 +403,8 @@ function Account (db, schema, logger, cb) {
 			name: 'virgin',
 			type: 'SmallInt',
 			filter: {
-				type: 'boolean'
+				type: 'integer',
+				maximum: 32767
 			},
 			conv: Boolean,
 			immutable: true
@@ -415,8 +464,12 @@ function Account (db, schema, logger, cb) {
 
 	// Obtains filters from model
 	this.filter = {};
-	this.model.forEach(function (field) {
-		this.filter[field.name] = field.filter;
+	this.model.filter(p => p.filter).forEach(function (field) {
+		var filterField = Object.assign({}, field.filter);
+		this.filter[field.name] = filterField;
+		if ('required' in filterField) {
+			delete filterField.required;
+		}
 	}.bind(this));
 
 	// Obtains conv from model
@@ -507,15 +560,21 @@ Account.prototype.removeTables = function (cb) {
  * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
  */
 Account.prototype.objectNormalize = function (account) {
+	var requiredProperties = this.model.filter(function (prop) {
+		return prop.filter && prop.filter.required;
+	}).map(function (prop) { return prop.name; });
+
 	var report = this.scope.schema.validate(account, {
 		id: 'Account',
 		type: 'object',
+		required: requiredProperties,
 		properties: this.filter
 	});
 
 	if (!report) {
 		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
-			return err.message;
+			var path = err.path.replace('#/', '').trim();
+			return [path, ': ', err.message, ' (', typeof(account[path]), ' ', account[path], ')'].join('');
 		}).join(', ');
 	}
 
