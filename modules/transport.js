@@ -369,7 +369,7 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
  * @param {Object} broadcast
  * @emits blocks/change
  */
-Transport.prototype.onNewBlock = function (block, broadcast) {
+Transport.prototype.onBroadcastBlock = function (block, broadcast) {
 	if (broadcast) {
 		modules.system.update(function () {
 			if (__private.broadcaster.maxRelays(block)) {
