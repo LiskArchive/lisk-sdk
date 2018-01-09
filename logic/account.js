@@ -466,10 +466,13 @@ function Account (db, schema, logger, cb) {
 	this.filter = {};
 	this.model.filter(p => p.filter).forEach(function (field) {
 		var filterField = Object.assign({}, field.filter);
-		this.filter[field.name] = filterField;
+
+		// 'required' is expected to be an array of properties in JSON Schema
 		if ('required' in filterField) {
 			delete filterField.required;
 		}
+
+		this.filter[field.name] = filterField;
 	}.bind(this));
 
 	// Obtains conv from model
