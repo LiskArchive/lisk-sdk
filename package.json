@@ -12,10 +12,10 @@
     "grunt": "./node_modules/.bin/grunt",
     "mocha": "./node_modules/.bin/mocha",
     "build": "webpack",
-    "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
-    "docs:server": "npm run jsdoc && http-server docs/jsdoc/",
+    "docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
+    "docs:serve": "npm run jsdoc && http-server docs/jsdoc/",
     "precommit": "npm run lint",
-    "prepush": "npm run lint && npm test"
+    "prepush": "npm run lint"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPL-3.0",
