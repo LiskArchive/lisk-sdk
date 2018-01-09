@@ -455,13 +455,13 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
-					library.bus.message('newBlock', block, null);
+					library.bus.message('newBlock');
 
 					// DATABASE write. Update delegates accounts
 					modules.rounds.tick(block, seriesCb);
 				});
 			} else {
-				library.bus.message('newBlock', block, null);
+				library.bus.message('newBlock');
 
 				// DATABASE write. Update delegates accounts
 				modules.rounds.tick(block, seriesCb);
