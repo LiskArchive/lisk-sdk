@@ -416,7 +416,7 @@ __private.loadBlockChain = function () {
 					library.config.loading.snapshot = (round > 1) ? (round - 1) : 1;
 				}
 
-				modules.rounds.setSnapshotRounds(library.config.loading.snapshot);
+				modules.rounds.setSnapshotRound(library.config.loading.snapshot);
 			}
 
 			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);

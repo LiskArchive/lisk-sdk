@@ -158,8 +158,8 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
  * Sets up round snapshotting.
  * @param {number} round - Target round.
  */
-Rounds.prototype.setSnapshotRounds = function (rounds) {
-	library.config.loading.snapshot = rounds;
+Rounds.prototype.setSnapshotRound = function (round) {
+	library.config.loading.snapshot = round;
 };
 
 /**
