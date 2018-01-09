@@ -69,6 +69,7 @@ describe('account', function () {
 	});
 
 	describe('Account constructor', function () {
+
 		var library;
 		var dbStub;
 
@@ -98,6 +99,7 @@ describe('account', function () {
 	});
 
 	describe('createTables', function () {
+
 		it('should create the tables', function (done) {
 			accountLogic.createTables(function (err, res) {
 				expect(err).to.not.exist;
@@ -108,6 +110,7 @@ describe('account', function () {
 	});
 
 	describe('removeTables', function () {
+
 		it('should remove the tables', function (done) {
 			accountLogic.removeTables(function (err, res) {
 				expect(err).to.not.exist;
@@ -164,6 +167,7 @@ describe('account', function () {
 				secondPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
 			};
 			var toDBRes = _.cloneDeep(raw);
+
 			account.toDB(toDBRes);
 			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
 			expect(toDBRes.publicKey).to.deep.equal(Buffer.from(raw.publicKey, 'hex'));
@@ -176,6 +180,7 @@ describe('account', function () {
 
 		it('should only get requested fields for account', function (done) {
 			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
+
 			account.get({address: validAccount.address}, requestedFields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
@@ -231,7 +236,7 @@ describe('account', function () {
 		});
 
 		it('with random values, it should return approval between 0 and 100', function () {
-			// So total supply is never 0.
+			// So total supply is never 0
 			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			var votersBalance = Math.floor(Math.random() * totalSupply);
 			expect(account.calculateApproval(votersBalance, totalSupply)).to.be.least(0).and.be.at.most(100);
@@ -266,6 +271,7 @@ describe('account', function () {
 	describe('getAll', function () {
 
 		var allAccounts;
+
 		before(function (done) {
 			account.getAll({}, function (err, res) {
 				allAccounts = res;
@@ -279,6 +285,7 @@ describe('account', function () {
 				'username',
 				'non-existent-field'
 			];
+
 			account.getAll({address: validAccount.address}, fields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
@@ -291,6 +298,7 @@ describe('account', function () {
 
 		it('should only get requested fields for account', function (done) {
 			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
+
 			account.get({address: validAccount.address}, requestedFields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
