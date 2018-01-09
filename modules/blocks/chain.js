@@ -457,7 +457,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
 					library.bus.message('newBlock', block, null);
 
-
 					// DATABASE write. Update delegates accounts
 					modules.rounds.tick(block, seriesCb);
 				});

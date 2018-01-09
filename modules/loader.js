@@ -426,10 +426,10 @@ __private.loadBlockChain = function () {
 	}
 
 	library.db.task(checkMemTables).then(function (res) {
-		var countBlocks         = res[0];
-		var getGenesisBlock     = res[1];
-		var countMemAccounts    = res[2];
-		var getMemRounds        = res[3];
+		var countBlocks = res[0];
+		var getGenesisBlock = res[1];
+		var countMemAccounts = res[2];
+		var getMemRounds = res[3];
 		var countDuplicatedDelegates = res[4];
 
 		var count = countBlocks.count;
@@ -523,7 +523,6 @@ __private.loadBlockChain = function () {
 __private.loadBlocksFromNetwork = function (cb) {
 	var errorCount = 0;
 	var loaded = false;
-
 
 	self.getNetwork(function (err, network) {
 		if (err) {

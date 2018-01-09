@@ -319,7 +319,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: 'row_number() OVER (ORDER BY a.vote DESC, a."publicKey" ASC)::int'
+			expression: 'row_number() OVER (ORDER BY a."vote" DESC, a."publicKey" ASC)::int'
 		},
 		{
 			name: 'rewards',

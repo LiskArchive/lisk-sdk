@@ -274,7 +274,6 @@ __private.decryptSecret = function (encryptedSecret, key) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb | error messages
  */
-
 __private.checkDelegates = function (publicKey, votes, state, cb) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');
@@ -357,7 +356,6 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
  * @returns {setImmediateCallback}
  */
 __private.loadDelegates = function (cb) {
-
 	var secretsList = library.config.forging.secret;
 
 	if (!secretsList || !secretsList.length || !library.config.forging.force || !library.config.forging.defaultKey) {
