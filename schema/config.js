@@ -7,12 +7,12 @@ module.exports = {
 		properties: {
 			wsPort: {
 				type: 'integer',
-				minimum: 1024,
+				minimum: 1,
 				maximum: 65535
 			},
 			httpPort: {
 				type: 'integer',
-				minimum: 1024,
+				minimum: 1,
 				maximum: 65535
 			},
 			address: {
