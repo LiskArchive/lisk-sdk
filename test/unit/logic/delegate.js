@@ -878,16 +878,12 @@ describe('delegate', function () {
 			expect(delegate.dbSave(transaction)).to.eql({
 				table: 'delegates',
 				fields: [
-					'tx_id',
-					'name',
-					'pk',
-					'address'
+					'username',
+					'transactionId'
 				],
 				values: {
-					tx_id: transaction.id,
-					name: transaction.asset.delegate.username,
-					pk: Buffer.from(transaction.senderPublicKey, 'hex'),
-					address: transaction.senderId
+					username: transaction.asset.delegate.username,
+					transactionId: transaction.id
 				}
 			});
 		});
