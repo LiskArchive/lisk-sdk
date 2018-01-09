@@ -731,6 +731,7 @@ describe('peers', function () {
 	});
 
 	describe('discover', function () {
+
 		var randomPeerStub;
 		var revertPrivateStubs;
 
