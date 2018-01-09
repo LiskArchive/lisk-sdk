@@ -616,7 +616,7 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		it('should be ok when process block 1', function (done) {
+		it('should be ok when processing block 1', function (done) {
 			modulesLoader.scope.bus.clearMessages();
 			blocksVerify.processBlock(block1, true, function (err, result) {
 				if (err) {
@@ -638,7 +638,7 @@ describe('blocks/verify', function () {
 
 	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', function () {
 
-		it('should fail when process block 1 again (checkExists)', function (done) {
+		it('should fail when processing block 1 again (checkExists)', function (done) {
 			blocks.lastBlock.set(previousBlock1);
 
 			blocksVerify.processBlock(block1, true, function (err, result) {
@@ -781,7 +781,7 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		it('should be ok when process block 2', function (done) {
+		it('should be ok when processing block 2', function (done) {
 			blocks.lastBlock.set(block1);
 
 			blocksVerify.processBlock(block2, false, function (err, result) {
@@ -797,7 +797,7 @@ describe('blocks/verify', function () {
 			}, true);
 		});
 
-		it('should fail when process block 2 again (checkExists)', function (done) {
+		it('should fail when processing block 2 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block1);
 
 			blocksVerify.processBlock(block2, false, function (err, result) {
@@ -828,7 +828,7 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		it('should be ok when broadcast block 3', function (done) {
+		it('should be ok when broadcasting block 3', function (done) {
 			blocksVerify.processBlock(block3, true, function (err, result) {
 				if (err) {
 					return done(err);
@@ -850,7 +850,7 @@ describe('blocks/verify', function () {
 			}, false);
 		});
 
-		it('should be ok when broadcast block 3 again (checkExists)', function (done) {
+		it('should be ok when broadcasting block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
 
 			blocksVerify.processBlock(block3, true, function (err, result) {
@@ -878,7 +878,7 @@ describe('blocks/verify', function () {
 	// Receives a block from network, don't save it locally.
 	describe('processBlock() for valid block {broadcast: false, saveBlock: false}', function () {
 
-		it('should be ok when receive block 3', function (done) {
+		it('should be ok when receiving block 3', function (done) {
 			blocks.lastBlock.set(block2);
 			block3 = blocksVerify.deleteBlockProperties(block3);
 
@@ -894,7 +894,7 @@ describe('blocks/verify', function () {
 			}, false);
 		});
 
-		it('should be ok when receive block 3 again (checkExists)', function (done) {
+		it('should be ok when receiving block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
 			block3 = blocksVerify.deleteBlockProperties(block3);
 
