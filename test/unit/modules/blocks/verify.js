@@ -555,7 +555,7 @@ describe('blocks/verify', function () {
 		});
 	});
 
-	// TODO: Refactor this test, Dataset which we have is no longer valid because of blockSlotWindow check
+	// TODO: Refactor this test, dataset being used is no longer valid because of blockSlotWindow check
 	describe('verifyReceipt() when block is valid', function () {});
 
 	describe('verifyBlock() when block is valid', function () {});
