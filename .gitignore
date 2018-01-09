@@ -5,12 +5,12 @@ __MACOSX/
 .ed25519-node
 *.swp
 *.swo
-release
+release/
 ssl/
-tmp
+tmp/
 
 # Dependency directories
-node_modules
+node_modules/
 
 # Docs
 docs/jsdoc/
