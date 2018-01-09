@@ -206,7 +206,7 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 		previousBlock: blocksModule.lastBlock.get(),
 		transactions: transactions
 	});
-	//newBlock.id = blockLogic.getId(newBlock);
+	// newBlock.id = blockLogic.getId(newBlock);
 	return newBlock;
 }
 
@@ -421,6 +421,7 @@ describe('blocks/verify', function () {
 		});
 
 		describe('verifyPayload', function () {
+
 			it('should fail when payload length greater than maxPayloadLength constant value', function () {
 				var payloadLength = validBlock.payloadLength;
 				validBlock.payloadLength = 1024 * 1024 * 2;
