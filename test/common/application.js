@@ -93,6 +93,7 @@ function __init (initScope, done) {
 			multisignatures: '../../modules/multisignatures.js',
 			node: '../../modules/node.js',
 			peers: '../../modules/peers.js',
+			rounds: '../../modules/rounds.js',
 			signatures: '../../modules/signatures.js',
 			system: '../../modules/system.js',
 			transactions: '../../modules/transactions.js',
@@ -197,10 +198,6 @@ function __init (initScope, done) {
 			db: function (cb) {
 				cb(null, db);
 			},
-			pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
-				var pg_notify = require('../../helpers/pg-notify.js');
-				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
-			}],
 			rpc: ['db', 'bus', 'logger', function (scope, cb) {
 				var wsRPC = require('../../api/ws/rpc/wsRPC').wsRPC;
 				var transport = require('../../api/ws/transport');

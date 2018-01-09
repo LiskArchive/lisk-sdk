@@ -273,7 +273,9 @@ Chain.prototype.applyGenesisBlock = function (block, cb) {
 		} else {
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
-			return cb();
+			// Tick round
+			// WARNING: DB_WRITE
+			modules.rounds.tick(block, cb);
 		}
 	});
 };
@@ -455,11 +457,14 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
 					library.bus.message('newBlock');
 
-					return seriesCb();
+					// DATABASE write. Update delegates accounts
+					modules.rounds.tick(block, seriesCb);
 				});
 			} else {
 				library.bus.message('newBlock');
-				return seriesCb();
+
+				// DATABASE write. Update delegates accounts
+				modules.rounds.tick(block, seriesCb);
 			}
 		},
 		// Push back unconfirmed transactions list (minus the one that were on the block if applied correctly).
@@ -549,17 +554,28 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 					return process.exit(0);
 				}
 
-				// Delete last block from blockchain
+				// Perform backward tick on rounds
 				// WARNING: DB_WRITE
-				self.deleteBlock(oldLastBlock.id, function (err) {
+				modules.rounds.backwardTick(oldLastBlock, previousBlock, function (err) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
-						library.logger.error('Failed to delete block', err);
+						library.logger.error('Failed to perform backwards tick', err);
 
 						return process.exit(0);
 					}
 
-					return setImmediate(cb, null, previousBlock);
+					// Delete last block from blockchain
+					// WARNING: Db_WRITE
+					self.deleteBlock(oldLastBlock.id, function (err) {
+						if (err) {
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to delete block', err);
+
+							return process.exit(0);
+						}
+
+						return setImmediate(cb, null, previousBlock);
+					});
 				});
 			});
 		});
@@ -623,6 +639,7 @@ Chain.prototype.recoverChain = function (cb) {
  * Handle modules initialization:
  * - accounts
  * - blocks
+ * - rounds
  * - transactions
  * @param {modules} scope Exposed modules
  */
@@ -631,7 +648,8 @@ Chain.prototype.onBind = function (scope) {
 	modules = {
 		accounts: scope.accounts,
 		blocks: scope.blocks,
-		transactions: scope.transactions,
+		rounds: scope.rounds,
+		transactions: scope.transactions
 	};
 
 	// Set module as loaded

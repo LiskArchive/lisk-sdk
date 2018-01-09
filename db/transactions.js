@@ -55,7 +55,7 @@ var Queries = {
 
 	getVotesByIds: 'SELECT "transactionId" AS "transaction_id", votes AS "v_votes" FROM votes WHERE "transactionId" IN ($1:csv)',
 
-	getDelegateByIds: 'SELECT "tx_id" AS "transaction_id", name AS "d_username" FROM delegates WHERE "tx_id" IN ($1:csv)',
+	getDelegateByIds: 'SELECT "transactionId" AS "transaction_id", username AS "d_username" FROM delegates WHERE "transactionId" IN ($1:csv)',
 
 	getSignatureByIds: 'SELECT "transactionId" AS "transaction_id", ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" IN ($1:csv)',
 
