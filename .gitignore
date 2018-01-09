@@ -1,24 +1,40 @@
+# General
 .DS_Store
-.ed25519-node
-.idea/
 .project
 __MACOSX/
-docs/jsdoc/
-logs/*.log
-node_modules
-npm-debug.log
-release
-ssl/
-stacktrace*
-test/.coverage-unit
-tmp
-sftp-config.json
+.ed25519-node
 *.swp
 *.swo
+release
+ssl/
+tmp
+
+# Dependency directories
+node_modules
+
+# Docs
+docs/jsdoc/
+
+# Logs
+logs/*.log
+npm-debug.log
 tmux-client-*.log
-Session.vim
-test/integration/pm2.integration.json
 test/integration/logs/
-test/integration/configs/
-!test/integration/configs/config.non-forge.json
+stacktrace*
+
+# IDE directories
 .vscode/
+.idea/
+Session.vim
+
+# Config files
+sftp-config.json
+test/integration/pm2.integration.json
+!test/integration/configs/config.non-forge.json
+test/integration/configs/
+
+# Coverage directory used by tools like istanbul
+test/.coverage-unit
+
+# nyc test coverage
+.nyc_output
