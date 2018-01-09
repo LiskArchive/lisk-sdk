@@ -268,9 +268,6 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 	});
 };
 
-// FIXME: That function no longer works because rounds rewards are applied by triggers
-// TODO: Remove that function as part of #544
-
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
  * see: loader.loadBlockChain (private)
@@ -513,6 +510,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
  *
  * @public
  * @method  onReceiveBlock
+ * @implements slots.calcRound
  * @listens module:transport~event:receiveBlock
  * @param   {block} block New block
  */
@@ -523,7 +521,7 @@ Process.prototype.onReceiveBlock = function (block) {
 	library.sequence.add(function (cb) {
 		// When client is not loaded, is syncing or round is ticking
 		// Do not receive new blocks as client is not ready
-		if (!__private.loaded || modules.loader.syncing()) {
+		if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
 			library.logger.debug('Client not ready to receive block', block.id);
 			return;
 		}
@@ -548,7 +546,7 @@ Process.prototype.onReceiveBlock = function (block) {
 				library.logger.warn([
 					'Discarded block that does not match with current chain:', block.id,
 					'height:', block.height,
-					'round:',  slots.calcRound(block.height),
+					'round:', slots.calcRound(block.height),
 					'slot:', slots.getSlotNumber(block.timestamp),
 					'generator:', block.generatorPublicKey
 				].join(' '));
@@ -566,6 +564,7 @@ Process.prototype.onReceiveBlock = function (block) {
  * - blocks
  * - delegates
  * - loader
+ * - rounds
  * - transactions
  * - transport
  * @param {modules} scope Exposed modules
@@ -577,6 +576,7 @@ Process.prototype.onBind = function (scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
+		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
 	};
