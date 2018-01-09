@@ -53,7 +53,7 @@ function Round (scope, t) {
 
 // Public methods
 /**
- * Returns result from call to mergeAccountAndGet
+ * Returns result from call to mergeAccountAndGet.
  * @implements {modules.accounts.mergeAccountAndGet}
  * @return {function} Promise
  */
@@ -83,14 +83,14 @@ Round.prototype.updateMissedBlocks = function () {
 /**
  * Calls sql getVotes from `mem_round` table.
  * @return {}
- * @todo round must be a param option.
+ * @todo Round must be a param option.
  */
 Round.prototype.getVotes = function () {
 	return this.scope.library.db.rounds.getVotes(this.scope.round, this.t);
 };
 
 /**
- * Calls getVotes with round
+ * Calls getVotes with round.
  * @implements {getVotes}
  * @implements {modules.accounts.generateAddressByPublicKey}
  * @return {function} Promise
@@ -124,7 +124,8 @@ Round.prototype.markBlockId = function () {
 };
 
 /**
- * Calls sql flush: deletes round from `mem_round` table.
+ * Calls sql flush:
+ * - Deletes round from `mem_round` table.
  * @return {function} Promise
  */
 Round.prototype.flushRound = function () {
@@ -132,8 +133,8 @@ Round.prototype.flushRound = function () {
 };
 
 /**
- * Calls sql truncateBlocks: deletes blocks greather than height from
- * `blocks` table.
+ * Calls sql truncateBlocks:
+ * - Deletes blocks greather than height from `blocks` table.
  * @return {function} Promise
  */
 Round.prototype.truncateBlocks = function () {
@@ -141,8 +142,9 @@ Round.prototype.truncateBlocks = function () {
 };
 
 /**
- * Calls sql restoreRoundSnapshot - restores snapshoted mem_round table
- * - performed only when rollback last block of round
+ * Calls sql restoreRoundSnapshot:
+ * - Restores mem_round table snapshot.
+ * - Performed only when rollback last block of round.
  * @return {function} Promise
  */
 Round.prototype.restoreRoundSnapshot = function () {
@@ -151,8 +153,9 @@ Round.prototype.restoreRoundSnapshot = function () {
 };
 
 /**
- * Calls sql restoreVotesSnapshot - restores snapshoted mem_accounts.votes
- * - performed only when rollback last block of round
+ * Calls sql restoreVotesSnapshot:
+ * - Restores mem_accounts.votes snapshot.
+ * - Performed only when rollback last block of round.
  * @return {function} Promise
  */
 Round.prototype.restoreVotesSnapshot = function () {
@@ -161,10 +164,10 @@ Round.prototype.restoreVotesSnapshot = function () {
 };
 
 /**
- * For each delegate calls mergeAccountAndGet and creates an address array
+ * For each delegate calls mergeAccountAndGet and creates an address array.
  * @implements {helpers.RoundChanges}
  * @implements {modules.accounts.mergeAccountAndGet}
- * @return {function} Promise with address array
+ * @return {function} Promise with address array.
  */
 Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
@@ -235,7 +238,7 @@ Round.prototype.applyRound = function () {
  * @implements {updateMissedBlocks}
  * @implements {flushRound}
  * @implements {applyRound}
- * @return {function} call result
+ * @return {function} Call result.
  */
 Round.prototype.land = function () {
 	return this.updateVotes()
@@ -265,7 +268,7 @@ Round.prototype.land = function () {
  * @implements {applyRound}
  * @implements {restoreRoundSnapshot}
  * @implements {restoreVotesSnapshot}
- * @return {function} call result
+ * @return {function} Call result.
  */
 Round.prototype.backwardLand = function () {
 	return this.updateVotes()

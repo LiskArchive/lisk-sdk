@@ -5,7 +5,7 @@ var slots = require('./slots');
 var exceptions = require('./exceptions');
 
 /**
- * Sets round fees and rewards
+ * Sets round fees and rewards.
  * @requires helpers/bignum
  * @requires helpers/slots
  * @memberof module:helpers
@@ -32,11 +32,11 @@ function RoundChanges (scope) {
 // Public methods
 /**
  * Calculates rewards at round position.
- * Fees and feesRemaining based on slots
+ * Fees and feesRemaining based on slots.
  * @implements bignum
  * @implements slots
  * @param {number} index
- * @return {Object} Contains fees, feesRemaining, rewards, balance
+ * @return {Object} With fees, feesRemaining, rewards, balance.
  */
 RoundChanges.prototype.at = function (index) {
 	var fees = new bignum(this.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor();

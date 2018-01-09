@@ -32,7 +32,7 @@ __private.tmpKeypairs = {};
  * @classdesc Main delegates methods.
  * @param {scope} scope - App instance.
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @return {setImmediateCallback} Callback function with `self` as argument.
  */
 // Constructor
 function Delegates (cb, scope) {
@@ -112,8 +112,7 @@ __private.getDelegatesFromPreviousRound = function (cb) {
 };
 
 /**
- * Generates delegate list and checks if block generator publicKey
- * matches delegate id.
+ * Generates delegate list and checks if block generator publicKey matches delegate id.
  * @param {block} block
  * @param {function} source - Source function for get delegates
  * @param {function} cb - Callback function.
@@ -143,7 +142,7 @@ __private.validateBlockSlot = function (block, source, cb) {
  * @param {number} slot
  * @param {number} height
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error | cb | object {time, keypair}.
+ * @returns {setImmediateCallback} error | cb | object {time, keypair}
  */
 __private.getBlockSlotData = function (slot, height, cb) {
 	self.generateDelegateList(height, null, function (err, activeDelegates) {
@@ -250,13 +249,12 @@ __private.forge = function (cb) {
 };
 
 /**
- * Returns the decrypted secret by deciphering encrypted secret with the key provided
- * using aes-256-cbc algorithm.
+ * Returns the decrypted secret by deciphering encrypted secret with the key provided using aes-256-cbc algorithm.
  * @private
  * @param {string} encryptedSecret
  * @param {string} key
  * @returns {string} decryptedSecret
- * @throws {error} if unable to decrypt using key
+ * @throws {error} If unable to decrypt using key.
  */
 __private.decryptSecret = function (encryptedSecret, key) {
 	var decipher = crypto.createDecipher('aes-256-cbc', key);
@@ -484,7 +482,7 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
  * @param {number} height
  * @param {function} source - Source function for get delegates.
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} err | truncated delegate list.
+ * @returns {setImmediateCallback} err | truncated delegate list
  */
 Delegates.prototype.generateDelegateList = function (height, source, cb) {
 	// Set default function for getting delegates
@@ -513,8 +511,7 @@ Delegates.prototype.generateDelegateList = function (height, source, cb) {
 };
 
 /**
- * Generates delegate list and checks if block generator public Key
- * matches delegate id.
+ * Generates delegate list and checks if block generator public key matches delegate id.
  * @param {block} block
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error message | cb
@@ -524,8 +521,7 @@ Delegates.prototype.validateBlockSlot = function (block, cb) {
 };
 
 /**
- * Generates delegate list and checks if block generator public Key
- * matches delegate id - against previous round.
+ * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
  * @param {block} block
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error message | cb
@@ -535,12 +531,13 @@ Delegates.prototype.validateBlockSlotAgainstPreviousRound = function (block, cb)
 };
 
 /**
- * Gets delegates and for each one calculates rate, rank, approval, productivity.
- * sorts delegates as per criteria.
+ * Gets a list of delegates:
+ * - Calculating individual rate, rank, approval, productivity.
+ * - Sorting based on query parameter.
  * @param {Object} query
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} error| object with delegates ordered, offset, count, limit.
- * @todo sort does not affects data? What is the impact?.
+ * @todo Sort does not affect data? What is the impact?
  */
 Delegates.prototype.getDelegates = function (query, cb) {
 	if (!_.isObject(query)) {
@@ -630,8 +627,7 @@ Delegates.prototype.checkUnconfirmedDelegates = function (publicKey, votes, cb) 
 };
 
 /**
- * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal
- * with fork data: cause + block.
+ * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal with fork data: cause + block.
  * @param {block} block
  * @param {string} cause
  */
@@ -732,7 +728,7 @@ Delegates.prototype.isLoaded = function () {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
+ * @todo Implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.shared = {

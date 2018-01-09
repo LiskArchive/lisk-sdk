@@ -781,8 +781,7 @@ Account.prototype.set = function (address, fields, cb) {
 
 /**
  * Updates account from mem_account with diff data belonging to an editable field.
- * Inserts into mem_round "address", "amount", "delegate", "blockId", "round"
- * based on field balance or delegates.
+ * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
  * @param {address} address
  * @param {Object} diff - Must contains only mem_account editable fields.
  * @param {function} cb - Callback function.
