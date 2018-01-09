@@ -161,7 +161,7 @@ Cache.prototype.onNewBlock = function (cb) {
 	cb = cb || function () {};
 
 	logger.debug(['Cache - onNewBlock', '| Status:', self.isConnected()].join(' '));
-	if(!self.isReady()) {
+	if (!self.isReady()) {
 		logger.debug(errorCacheDisabled);
 		return cb(errorCacheDisabled); 
 	}
