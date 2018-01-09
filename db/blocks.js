@@ -114,7 +114,7 @@ BlocksRepo.prototype.getGenesisBlockId = function (id) {
 };
 
 BlocksRepo.prototype.deleteBlock = function (id) {
-	return this.db.none(Queries.deleteBlock[id]);
+	return this.db.none(Queries.deleteBlock, [id]);
 };
 
 BlocksRepo.prototype.aggregateBlocksReward = function (params) {
